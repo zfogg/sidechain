@@ -29,8 +29,8 @@ private:
     
     SidechainAudioProcessor& audioProcessor;
     
-    static constexpr int PLUGIN_WIDTH = 400;
-    static constexpr int PLUGIN_HEIGHT = 300;
+    static constexpr int PLUGIN_WIDTH = 600;
+    static constexpr int PLUGIN_HEIGHT = 400;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SidechainAudioProcessorEditor)
 };
