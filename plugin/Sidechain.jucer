@@ -23,6 +23,10 @@
             file="Source/PluginEditor.cpp"/>
       <FILE id="PluginEditor.h" name="PluginEditor.h" compile="0" resource="0"
             file="Source/PluginEditor.h"/>
+      <FILE id="NetworkClient" name="NetworkClient.cpp" compile="1" resource="0"
+            file="Source/NetworkClient.cpp"/>
+      <FILE id="NetworkClient.h" name="NetworkClient.h" compile="0" resource="0"
+            file="Source/NetworkClient.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>

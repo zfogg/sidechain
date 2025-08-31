@@ -25,9 +25,12 @@ public:
     using UploadCallback = std::function<void(bool success, const juce::String& audioUrl)>;
     using FeedCallback = std::function<void(const juce::var& feedData)>;
     
-    // Authentication
-    void registerDevice(DeviceRegistrationCallback callback);
-    void verifyDeviceToken(const juce::String& deviceId);
+    // Authentication (simplified - no device claiming)
+    void registerAccount(const juce::String& email, const juce::String& username, 
+                        const juce::String& password, const juce::String& displayName,
+                        AuthenticationCallback callback);
+    void loginAccount(const juce::String& email, const juce::String& password, 
+                     AuthenticationCallback callback);
     void setAuthenticationCallback(AuthenticationCallback callback);
     
     // Audio operations
@@ -42,15 +45,18 @@ public:
     void likePost(const juce::String& activityId, const juce::String& emoji = "");
     void followUser(const juce::String& userId);
     
-    // Utility
+    // Authentication state
     void setAuthToken(const juce::String& token);
     bool isAuthenticated() const { return !authToken.isEmpty(); }
     const juce::String& getBaseUrl() const { return baseUrl; }
+    const juce::String& getCurrentUsername() const { return currentUsername; }
+    const juce::String& getCurrentUserId() const { return currentUserId; }
 
 private:
     juce::String baseUrl;
     juce::String authToken;
-    juce::String currentDeviceId;
+    juce::String currentUsername;
+    juce::String currentUserId;
     
     AuthenticationCallback authCallback;
     

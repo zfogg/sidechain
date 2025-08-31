@@ -12,37 +12,100 @@ NetworkClient::~NetworkClient()
 }
 
 //==============================================================================
-void NetworkClient::registerDevice(DeviceRegistrationCallback callback)
+void NetworkClient::registerAccount(const juce::String& email, const juce::String& username, 
+                                   const juce::String& password, const juce::String& displayName,
+                                   AuthenticationCallback callback)
 {
-    // Make async request to register device
-    juce::Thread::launch([this, callback]() {
-        auto response = makeRequest("/api/v1/auth/device", "POST");
+    juce::Thread::launch([this, email, username, password, displayName, callback]() {
+        juce::var registerData;
+        registerData.getDynamicObject()->setProperty("email", email);
+        registerData.getDynamicObject()->setProperty("username", username);
+        registerData.getDynamicObject()->setProperty("password", password);
+        registerData.getDynamicObject()->setProperty("display_name", displayName);
+        
+        auto response = makeRequest("/api/v1/auth/register", "POST", registerData, false);
         
         if (response.isObject())
         {
-            auto deviceId = response.getProperty("device_id", "").toString();
-            if (!deviceId.isEmpty())
+            auto authData = response.getProperty("auth", juce::var());
+            if (authData.isObject())
             {
-                currentDeviceId = deviceId;
+                auto token = authData.getProperty("token", "").toString();
+                auto user = authData.getProperty("user", juce::var());
                 
-                // Call callback on message thread
-                juce::MessageManager::callAsync([callback, deviceId]() {
-                    callback(deviceId);
-                });
+                if (!token.isEmpty() && user.isObject())
+                {
+                    auto userId = user.getProperty("id", "").toString();
+                    auto responseUsername = user.getProperty("username", "").toString();
+                    
+                    // Store authentication info
+                    authToken = token;
+                    currentUserId = userId;
+                    currentUsername = responseUsername;
+                    
+                    // Call callback on message thread
+                    juce::MessageManager::callAsync([callback, token, userId]() {
+                        callback(token, userId);
+                    });
+                    
+                    DBG("Account registered successfully: " + responseUsername);
+                    return;
+                }
             }
         }
+        
+        // Registration failed
+        juce::MessageManager::callAsync([callback]() {
+            callback("", "");
+        });
+        DBG("Account registration failed");
     });
 }
 
-void NetworkClient::verifyDeviceToken(const juce::String& deviceId)
+void NetworkClient::loginAccount(const juce::String& email, const juce::String& password, 
+                                AuthenticationCallback callback)
 {
-    juce::Thread::launch([this, deviceId]() {
-        auto response = makeRequest("/api/v1/auth/verify", "POST");
+    juce::Thread::launch([this, email, password, callback]() {
+        juce::var loginData;
+        loginData.getDynamicObject()->setProperty("email", email);
+        loginData.getDynamicObject()->setProperty("password", password);
+        
+        auto response = makeRequest("/api/v1/auth/login", "POST", loginData, false);
         
         if (response.isObject())
         {
-            handleAuthResponse(response);
+            auto authData = response.getProperty("auth", juce::var());
+            if (authData.isObject())
+            {
+                auto token = authData.getProperty("token", "").toString();
+                auto user = authData.getProperty("user", juce::var());
+                
+                if (!token.isEmpty() && user.isObject())
+                {
+                    auto userId = user.getProperty("id", "").toString();
+                    auto username = user.getProperty("username", "").toString();
+                    
+                    // Store authentication info
+                    authToken = token;
+                    currentUserId = userId;
+                    currentUsername = username;
+                    
+                    // Call callback on message thread
+                    juce::MessageManager::callAsync([callback, token, userId]() {
+                        callback(token, userId);
+                    });
+                    
+                    DBG("Login successful: " + username);
+                    return;
+                }
+            }
         }
+        
+        // Login failed
+        juce::MessageManager::callAsync([callback]() {
+            callback("", "");
+        });
+        DBG("Login failed");
     });
 }
 
@@ -107,7 +170,10 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
             });
         }
         
-        DBG(success ? "Audio uploaded successfully: " + audioUrl : "Audio upload failed");
+        if (success)
+            DBG("Audio uploaded successfully: " + audioUrl);
+        else
+            DBG("Audio upload failed");
     });
 }
 
@@ -202,27 +268,26 @@ juce::var NetworkClient::makeRequest(const juce::String& endpoint,
 {
     juce::URL url(baseUrl + endpoint);
     
-    // Create request headers
-    juce::StringPairArray headers;
-    headers.set("Content-Type", "application/json");
+    // Build headers string
+    juce::String headers = "Content-Type: application/json\r\n";
     
     if (requireAuth && !authToken.isEmpty())
     {
-        headers.set("Authorization", authToken);
+        headers += "Authorization: Bearer " + authToken + "\r\n";
     }
     
-    // Create request options
-    juce::URL::InputStreamOptions options(juce::URL::ParameterHandling::inAddress);
-    options.withExtraHeaders(headers);
+    // Create request options with proper JUCE API
+    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                       .withExtraHeaders(headers)
+                       .withConnectionTimeoutMs(10000);
     
+    // For POST requests, add data to URL and use POST method
     if (method == "POST" || method == "PUT")
     {
-        options.withConnectionTimeoutMs(10000);
-        
         if (!data.isVoid())
         {
             juce::String jsonData = juce::JSON::toString(data);
-            options.withDataToSend(jsonData.toUTF8(), jsonData.length());
+            url = url.withPOSTData(jsonData);
         }
     }
     

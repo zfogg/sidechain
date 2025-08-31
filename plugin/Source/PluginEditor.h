@@ -18,6 +18,9 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     void buttonClicked (juce::Button* button) override;
+    
+    // Authentication UI methods
+    void showAuthenticationDialog();
 
 private:
     // Basic UI components
