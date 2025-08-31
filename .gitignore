@@ -39,3 +39,46 @@
 
 # debug information files
 *.dwo
+
+# Go
+backend/vendor/
+backend/bin/
+*.log
+go.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.production
+
+# JUCE
+plugin/JuceLibraryCode/
+plugin/Builds/*/build/
+plugin/Builds/*/
+!plugin/Builds/*/Sidechain.jucer
+
+# Audio files (for development)
+*.wav
+*.mp3
+*.aiff
+*.flac
+*.ogg
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Dependencies
+node_modules/
+/deps/*

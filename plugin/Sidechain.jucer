@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="Sidechain" name="Sidechain" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+              version="0.1.0" bundleIdentifier="gg.zfo.Sidechain" includeBinaryInAppConfig="1"
+              cppLanguageStandard="17" companyName="Joopal" companyEmail="hi@sidechain.live"
+              companyWebsite="https://sidechain.live" companyLegal="Copyright (c) 2025 Joopal"
+              pluginName="Sidechain" pluginDesc="Social VST for Music Producers"
+              pluginManufacturer="Joopal" pluginManufacturerCode="Joop" pluginCode="Schn"
+              pluginChannelConfigs="{2, 2}" pluginIsSynth="0" pluginWantsMidiIn="0"
+              pluginProducesMidiOut="0" pluginIsMidiEffect="0" pluginEditorRequiresKeys="0"
+              pluginAUExportPrefix="SidechainAU" pluginRTASCategory="" aaxIdentifier="gg.zfo.Sidechain"
+              pluginAAXCategory="8192" pluginVSTCategory="kPlugCategEffect"
+              pluginVST3Category="Fx" pluginCharacteristicsValue="pluginProducesMidiOutput,pluginWantsMidiInput"
+              defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+  <MAINGROUP id="MainGroup" name="Sidechain">
+    <GROUP id="Source" name="Source">
+      <FILE id="PluginProcessor" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="PluginProcessor.h" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="PluginEditor" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="PluginEditor.h" name="PluginEditor.h" compile="0" resource="0"
+            file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX" vstLegacyFolder="~/SDKs/VST_SDK/VST2_SDK"
+               vst3Folder="~/SDKs/VST_SDK/VST3_SDK" extraDefs="JUCE_WEB_BROWSER=0&#10;JUCE_USE_CURL=0"
+               externalLibraries="curl" extraFrameworks="Security" microphonePermissionNeeded="1">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="Sidechain"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="Sidechain"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../deps/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2022 targetFolder="Builds/VisualStudio2022" vstLegacyFolder="c:\SDKs\VST_SDK\VST2_SDK"
+            vst3Folder="c:\SDKs\VST_SDK\VST3_SDK">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" winWarningLevel="4" generateManifest="1"
+                       winArchitecture="x64" debugInformationFormat="ProgramDatabase"
+                       enablePluginBinaryCopyStep="0"/>
+        <CONFIGURATION isDebug="0" name="Release" winWarningLevel="4" generateManifest="1"
+                       winArchitecture="x64" linkTimeOptimisation="1" enablePluginBinaryCopyStep="0"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../deps/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" vstLegacyFolder="~/SDKs/VST_SDK/VST2_SDK"
+                vst3Folder="~/SDKs/VST_SDK/VST3_SDK">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../deps/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../deps/JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>
