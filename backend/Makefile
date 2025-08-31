@@ -1,0 +1,194 @@
+# Sidechain Backend Makefile
+# Production-ready Go backend with database migrations, testing, and deployment
+
+.PHONY: help install deps build run dev test test-unit test-integration clean docker docker-run migrate migrate-up migrate-down lint format
+
+# Default target
+help:
+	@echo "🎵 Sidechain Backend - Production Makefile"
+	@echo ""
+	@echo "Setup Commands:"
+	@echo "  install     - Install all dependencies (Go modules + tools)"
+	@echo "  deps        - Download Go module dependencies"
+	@echo ""
+	@echo "Development Commands:"
+	@echo "  build       - Build production binary"
+	@echo "  run         - Run built binary"
+	@echo "  dev         - Start development server with hot reload"
+	@echo "  dev-watch   - Start with file watching (requires air)"
+	@echo ""
+	@echo "Database Commands:"
+	@echo "  migrate     - Run database migrations"
+	@echo "  migrate-up  - Run migrations (explicit up)"
+	@echo "  migrate-down - Rollback last migration"
+	@echo "  db-setup    - Create database and run migrations"
+	@echo ""
+	@echo "Testing Commands:"
+	@echo "  test        - Run all tests"
+	@echo "  test-unit   - Run fast unit tests only"
+	@echo "  test-integration - Run integration tests"
+	@echo "  test-coverage - Generate test coverage report"
+	@echo "  bench       - Run benchmark tests"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  lint        - Run Go linter (golangci-lint)"
+	@echo "  format      - Format Go code (gofmt + goimports)"
+	@echo "  vet         - Run Go vet"
+	@echo ""
+	@echo "Deployment Commands:"
+	@echo "  docker      - Build Docker image"
+	@echo "  docker-run  - Run Docker container"
+	@echo "  clean       - Clean build artifacts"
+
+# Install all dependencies
+install: deps tools
+	@echo "✅ Backend setup complete"
+
+# Install project dependencies (downloads everything in go.mod automatically)
+deps:
+	@echo "📦 Downloading Go dependencies..."
+	@go mod download
+	@echo "✅ All dependencies downloaded"
+
+# Install development tools (global command-line tools)
+tools:
+	@echo "🔧 Installing development tools..."
+	@go install github.com/air-verse/air@latest
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@go install golang.org/x/tools/cmd/goimports@latest
+	@echo "✅ Development tools installed"
+
+# Build production binary
+build:
+	@echo "🔨 Building Sidechain backend..."
+	@CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o bin/sidechain-server ./cmd/server
+	@echo "✅ Binary built: bin/sidechain-server"
+
+# Build for current platform
+build-local:
+	@echo "🔨 Building for local platform..."
+	@go build -o bin/sidechain-server ./cmd/server
+	@echo "✅ Local binary built: bin/sidechain-server"
+
+# Run built binary
+run: build-local
+	@echo "🚀 Starting Sidechain backend..."
+	@./bin/sidechain-server
+
+# Development server
+dev:
+	@echo "🔧 Starting development server..."
+	@go run ./cmd/server/main.go
+
+# Development with hot reload (requires air)
+dev-watch:
+	@echo "🔥 Starting development server with hot reload..."
+	@air
+
+# Database setup
+db-setup:
+	@echo "🗄️ Setting up database..."
+	@psql -U postgres -c "CREATE DATABASE sidechain;" 2>/dev/null || echo "Database exists"
+	@psql -U postgres -c "CREATE DATABASE sidechain_test;" 2>/dev/null || echo "Test database exists"
+	@$(MAKE) migrate
+	@echo "✅ Database setup complete"
+
+# Run migrations
+migrate: migrate-up
+
+migrate-up:
+	@echo "📈 Running database migrations..."
+	@go run ./cmd/migrate/main.go up
+	@echo "✅ Migrations applied"
+
+migrate-down:
+	@echo "📉 Rolling back last migration..."
+	@go run ./cmd/migrate/main.go down
+	@echo "✅ Migration rolled back"
+
+# Create new migration
+migrate-create:
+	@echo "📝 Creating new migration: $(name)"
+	@go run ./cmd/migrate/main.go create $(name)
+
+# Testing
+test:
+	@echo "🧪 Running all tests..."
+	@$(MAKE) test-unit
+	@$(MAKE) test-integration
+	@echo "✅ All tests passed"
+
+test-unit:
+	@echo "⚡ Running unit tests..."
+	@go test ./internal/... -v -race -timeout 10s
+	@echo "✅ Unit tests passed"
+
+test-integration:
+	@echo "🧪 Running integration tests..."
+	@go test ./tests/integration/... -tags=integration -v -timeout 60s
+	@echo "✅ Integration tests passed"
+
+test-coverage:
+	@echo "📊 Generating test coverage..."
+	@go test ./... -coverprofile=coverage.out -covermode=atomic
+	@go tool cover -html=coverage.out -o coverage.html
+	@open coverage.html
+	@echo "✅ Coverage report: coverage.html"
+
+bench:
+	@echo "⚡ Running benchmarks..."
+	@go test ./... -bench=. -benchmem -timeout 60s
+
+# Code quality
+lint:
+	@echo "🔍 Running linter..."
+	@golangci-lint run ./...
+	@echo "✅ Linting passed"
+
+format:
+	@echo "💄 Formatting code..."
+	@gofmt -w .
+	@goimports -w .
+	@echo "✅ Code formatted"
+
+vet:
+	@echo "🔍 Running go vet..."
+	@go vet ./...
+	@echo "✅ Vet passed"
+
+# Docker
+docker:
+	@echo "🐳 Building Docker image..."
+	@docker build -t sidechain-backend .
+	@echo "✅ Docker image built: sidechain-backend"
+
+docker-run: docker
+	@echo "🐳 Running Docker container..."
+	@docker run -p 8787:8787 --env-file .env sidechain-backend
+
+# Cleanup
+clean:
+	@echo "🧹 Cleaning build artifacts..."
+	@rm -rf bin/
+	@rm -f coverage.out coverage.html
+	@go clean -cache
+	@echo "✅ Clean complete"
+
+# Health check
+health:
+	@echo "❤️ Checking backend health..."
+	@curl -f http://localhost:8787/health || echo "❌ Backend not running"
+
+# Development shortcuts
+dev-full: db-setup dev
+
+quick-test: test-unit
+
+# Production deployment helpers
+build-production: clean deps test lint build
+
+# Environment setup
+env-setup:
+	@echo "⚙️ Setting up environment..."
+	@cp .env.example .env
+	@echo "✅ Environment file created - please edit .env with your credentials"
