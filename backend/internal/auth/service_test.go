@@ -26,7 +26,7 @@ type AuthServiceTestSuite struct {
 func (suite *AuthServiceTestSuite) SetupSuite() {
 	// Use test database
 	testDSN := "host=localhost port=5432 user=postgres dbname=sidechain_test sslmode=disable"
-	
+
 	db, err := gorm.Open(postgres.Open(testDSN), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent), // Quiet during tests
 	})
@@ -49,7 +49,7 @@ func (suite *AuthServiceTestSuite) SetupSuite() {
 	suite.authService = NewService(
 		[]byte("test_jwt_secret_key"),
 		"test_google_client_id",
-		"test_google_client_secret", 
+		"test_google_client_secret",
 		"test_discord_client_id",
 		"test_discord_client_secret",
 	)
@@ -59,7 +59,7 @@ func (suite *AuthServiceTestSuite) SetupSuite() {
 func (suite *AuthServiceTestSuite) TearDownSuite() {
 	// Clean up test database
 	suite.db.Exec("DROP TABLE IF EXISTS users, oauth_providers, password_resets CASCADE")
-	
+
 	sqlDB, _ := suite.db.DB()
 	sqlDB.Close()
 }

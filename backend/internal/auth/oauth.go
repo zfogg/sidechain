@@ -75,7 +75,7 @@ func (s *Service) findOrCreateUserFromOAuth(provider string, userInfo *OAuthUser
 	var existingOAuth models.OAuthProvider
 	err := database.DB.Where("provider = ? AND provider_user_id = ?", provider, userInfo.ID).
 		Preload("User").First(&existingOAuth).Error
-	
+
 	if err == nil {
 		// OAuth account already linked - return existing user
 		return s.generateAuthResponse(&existingOAuth.User)
@@ -126,7 +126,7 @@ func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, us
 func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) (*AuthResponse, error) {
 	// Generate unique username from OAuth name
 	username := generateUsernameFromName(userInfo.Name)
-	
+
 	// Ensure username is unique
 	username, err := s.ensureUniqueUsername(username)
 	if err != nil {
@@ -135,13 +135,13 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 
 	// Create user
 	user := models.User{
-		ID:           uuid.New().String(),
-		Email:        userInfo.Email,
-		Username:     username,
-		DisplayName:  userInfo.Name,
-		AvatarURL:    userInfo.AvatarURL,
+		ID:            uuid.New().String(),
+		Email:         userInfo.Email,
+		Username:      username,
+		DisplayName:   userInfo.Name,
+		AvatarURL:     userInfo.AvatarURL,
 		EmailVerified: true, // OAuth emails are pre-verified
-		StreamUserID: uuid.New().String(),
+		StreamUserID:  uuid.New().String(),
 	}
 
 	// Set OAuth provider ID
@@ -261,7 +261,7 @@ func (s *Service) ensureUniqueUsername(baseUsername string) (string, error) {
 	for {
 		var existingUser models.User
 		err := database.DB.Where("LOWER(username) = LOWER(?)", username).First(&existingUser).Error
-		
+
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Username is available
 			return username, nil
@@ -283,7 +283,7 @@ func (s *Service) ensureUniqueUsername(baseUsername string) (string, error) {
 func generateUsernameFromName(name string) string {
 	// Clean the name to create a valid username
 	username := strings.ToLower(strings.ReplaceAll(name, " ", ""))
-	
+
 	// Remove non-alphanumeric characters
 	cleaned := ""
 	for _, char := range username {
@@ -291,14 +291,14 @@ func generateUsernameFromName(name string) string {
 			cleaned += string(char)
 		}
 	}
-	
+
 	if cleaned == "" {
 		cleaned = "producer"
 	}
-	
+
 	if len(cleaned) > 20 {
 		cleaned = cleaned[:20]
 	}
-	
+
 	return cleaned
 }

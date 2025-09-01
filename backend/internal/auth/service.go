@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserExists        = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserExists         = errors.New("user already exists")
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrEmailNotVerified  = errors.New("email not verified")
+	ErrEmailNotVerified   = errors.New("email not verified")
 )
 
 // Service handles all authentication operations
@@ -79,7 +79,7 @@ func (s *Service) RegisterNativeUser(req RegisterRequest) (*AuthResponse, error)
 	// Check if user exists by email (case-insensitive)
 	var existingUser models.User
 	err := database.DB.Where("LOWER(email) = LOWER(?)", req.Email).First(&existingUser).Error
-	
+
 	if err == nil {
 		// User exists - check if they can add a password
 		if existingUser.PasswordHash == nil {
@@ -132,7 +132,7 @@ func (s *Service) RegisterNativeUser(req RegisterRequest) (*AuthResponse, error)
 func (s *Service) LoginNativeUser(req LoginRequest) (*AuthResponse, error) {
 	var user models.User
 	err := database.DB.Where("LOWER(email) = LOWER(?)", req.Email).First(&user).Error
-	
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	} else if err != nil {
@@ -162,13 +162,13 @@ func (s *Service) LoginNativeUser(req LoginRequest) (*AuthResponse, error) {
 func (s *Service) FindUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	err := database.DB.Where("LOWER(email) = LOWER(?)", email).First(&user).Error
-	
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrUserNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("database error: %w", err)
 	}
-	
+
 	return &user, nil
 }
 
@@ -181,7 +181,7 @@ func (s *Service) addPasswordToOAuthUser(user *models.User, password string) (*A
 
 	hashedPasswordStr := string(hashedPassword)
 	user.PasswordHash = &hashedPasswordStr
-	
+
 	err = database.DB.Save(user).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
@@ -193,7 +193,7 @@ func (s *Service) addPasswordToOAuthUser(user *models.User, password string) (*A
 // generateAuthResponse creates JWT token and auth response
 func (s *Service) generateAuthResponse(user *models.User) (*AuthResponse, error) {
 	expiresAt := time.Now().Add(24 * time.Hour) // 24 hour tokens
-	
+
 	claims := jwt.MapClaims{
 		"user_id":        user.ID,
 		"email":          user.Email,
@@ -254,7 +254,7 @@ func (s *Service) GetGoogleOAuthURL(state string) string {
 	return s.googleConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 }
 
-// GetDiscordOAuthURL returns Discord OAuth authorization URL  
+// GetDiscordOAuthURL returns Discord OAuth authorization URL
 func (s *Service) GetDiscordOAuthURL(state string) string {
 	return s.discordConfig.AuthCodeURL(state)
 }

@@ -92,10 +92,10 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 // GoogleOAuth initiates Google OAuth flow
 func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 	state := uuid.New().String()
-	
+
 	// Store state in session (simplified - in production use proper session management)
 	c.SetCookie("oauth_state", state, 600, "/", "", false, true)
-	
+
 	authURL := h.authService.GetGoogleOAuthURL(state)
 	c.Redirect(http.StatusTemporaryRedirect, authURL)
 }
@@ -142,9 +142,9 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 // DiscordOAuth initiates Discord OAuth flow
 func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 	state := uuid.New().String()
-	
+
 	c.SetCookie("oauth_state", state, 600, "/", "", false, true)
-	
+
 	authURL := h.authService.GetDiscordOAuthURL(state)
 	c.Redirect(http.StatusTemporaryRedirect, authURL)
 }

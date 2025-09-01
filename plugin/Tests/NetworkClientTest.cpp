@@ -125,7 +125,7 @@ TEST_CASE_METHOD(NetworkClientTest, "Audio upload requires authentication", "[au
 
 TEST_CASE("JSON data construction", "[util]") {
     SECTION("Registration data is properly formatted") {
-        juce::var registerData;
+        juce::var registerData = juce::var(new juce::DynamicObject());
         registerData.getDynamicObject()->setProperty("email", "test@example.com");
         registerData.getDynamicObject()->setProperty("username", "testuser");
         registerData.getDynamicObject()->setProperty("password", "testpass");
@@ -141,7 +141,7 @@ TEST_CASE("JSON data construction", "[util]") {
     }
     
     SECTION("Login data is properly formatted") {
-        juce::var loginData;
+        juce::var loginData = juce::var(new juce::DynamicObject());
         loginData.getDynamicObject()->setProperty("email", "login@example.com");
         loginData.getDynamicObject()->setProperty("password", "loginpass");
         

@@ -22,7 +22,7 @@ type FFmpegProcessor struct {
 func NewFFmpegProcessor() *FFmpegProcessor {
 	tempDir := "/tmp/sidechain_audio"
 	os.MkdirAll(tempDir, 0755)
-	
+
 	return &FFmpegProcessor{
 		tempDir: tempDir,
 	}
@@ -91,28 +91,28 @@ func (p *FFmpegProcessor) normalizeAndEncode(ctx context.Context, inputPath stri
 	// Using two-pass loudnorm for best quality
 	args := []string{
 		"-i", inputPath,
-		
+
 		// Audio filters for loudness normalization
 		"-af", "loudnorm=I=-14:TP=-1:LRA=7:measured_I=-16:measured_LRA=11:measured_TP=-1.5:measured_thresh=-26.12:offset=-0.47",
-		
+
 		// MP3 encoding settings optimized for music
 		"-codec:a", "libmp3lame",
-		"-b:a", "128k",           // 128kbps for good quality/size balance
-		"-ar", "44100",           // Standard sample rate
-		"-ac", "2",               // Stereo
-		"-q:a", "2",              // High quality VBR
-		
+		"-b:a", "128k", // 128kbps for good quality/size balance
+		"-ar", "44100", // Standard sample rate
+		"-ac", "2", // Stereo
+		"-q:a", "2", // High quality VBR
+
 		// Metadata preservation
 		"-map_metadata", "0",
-		
+
 		// Overwrite output file
 		"-y",
-		
+
 		outputPath,
 	}
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
-	
+
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
@@ -129,11 +129,11 @@ func (p *FFmpegProcessor) generateWaveform(ctx context.Context, audioPath string
 	// Use FFmpeg to extract peak data for waveform
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-i", audioPath,
-		"-ac", "1",                    // Convert to mono for analysis
-		"-ar", "4000",                 // Downsample for peak extraction
-		"-f", "f32le",                 // 32-bit float output
+		"-ac", "1", // Convert to mono for analysis
+		"-ar", "4000", // Downsample for peak extraction
+		"-f", "f32le", // 32-bit float output
 		"-acodec", "pcm_f32le",
-		"-",                           // Output to stdout
+		"-", // Output to stdout
 	)
 
 	var stdout bytes.Buffer
@@ -164,16 +164,16 @@ func (p *FFmpegProcessor) generateSVGWaveform(audioData []byte, width, height in
 
 	svg := fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, width, height)
 	svg += `<rect width="100%" height="100%" fill="#1a1a1e"/>`
-	
+
 	// Generate waveform path
 	pathData := "M"
 	for x := 0; x < width; x++ {
 		sampleIndex := x * samplesPerPixel * 4
-		
+
 		if sampleIndex+3 < len(audioData) {
 			// Extract peak amplitude (simplified peak detection)
 			amplitude := float64(audioData[sampleIndex]%128) / 128.0
-			
+
 			// Convert to SVG coordinates
 			y := int(float64(height/2) * (1.0 - amplitude))
 			if y < 0 {
@@ -181,7 +181,7 @@ func (p *FFmpegProcessor) generateSVGWaveform(audioData []byte, width, height in
 			} else if y >= height {
 				y = height - 1
 			}
-			
+
 			if x == 0 {
 				pathData += fmt.Sprintf("%d,%d", x, height/2)
 			} else {
@@ -189,15 +189,15 @@ func (p *FFmpegProcessor) generateSVGWaveform(audioData []byte, width, height in
 			}
 		}
 	}
-	
+
 	// Add waveform path with Sidechain blue color
 	svg += fmt.Sprintf(`<path d="%s" stroke="#00d4ff" stroke-width="1.5" fill="none" opacity="0.8"/>`, pathData)
-	
+
 	// Add center line
 	svg += fmt.Sprintf(`<line x1="0" y1="%d" x2="%d" y2="%d" stroke="#333" stroke-width="0.5"/>`, height/2, width, height/2)
-	
+
 	svg += `</svg>`
-	
+
 	return svg
 }
 
@@ -222,11 +222,11 @@ func (p *FFmpegProcessor) extractAudioInfo(ctx context.Context, audioPath string
 
 	// Parse JSON output (simplified - in production use proper JSON parsing)
 	output := stdout.String()
-	
+
 	// Extract duration (simple string parsing for now)
 	duration := extractFloat(output, "duration")
 	sampleRate := int(extractFloat(output, "sample_rate"))
-	
+
 	return &AudioInfo{
 		Duration:   duration,
 		SampleRate: sampleRate,
@@ -243,13 +243,13 @@ func extractFloat(json, key string) float64 {
 	if start == -1 {
 		return 0
 	}
-	
+
 	start += len(searchStr)
 	end := strings.Index(json[start:], `"`)
 	if end == -1 {
 		return 0
 	}
-	
+
 	valueStr := json[start : start+end]
 	value, _ := strconv.ParseFloat(valueStr, 64)
 	return value
@@ -274,7 +274,7 @@ func CheckFFmpegInstallation() error {
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Run()
-	
+
 	if !strings.Contains(stdout.String(), "libmp3lame") {
 		return fmt.Errorf("libmp3lame codec not found - install with: brew install ffmpeg --with-lame")
 	}

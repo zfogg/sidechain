@@ -16,19 +16,19 @@ import (
 
 // S3Uploader handles audio file uploads to AWS S3
 type S3Uploader struct {
-	client    *s3.Client
-	bucket    string
-	region    string
-	baseURL   string
+	client  *s3.Client
+	bucket  string
+	region  string
+	baseURL string
 }
 
 // UploadResult contains the result of an S3 upload
 type UploadResult struct {
-	Key       string `json:"key"`
-	URL       string `json:"url"`
-	Bucket    string `json:"bucket"`
-	Region    string `json:"region"`
-	Size      int64  `json:"size"`
+	Key    string `json:"key"`
+	URL    string `json:"url"`
+	Bucket string `json:"bucket"`
+	Region string `json:"region"`
+	Size   int64  `json:"size"`
 }
 
 // NewS3Uploader creates a new S3 uploader
@@ -58,10 +58,10 @@ func (u *S3Uploader) UploadAudio(ctx context.Context, audioData []byte, userID, 
 	if extension == "" {
 		extension = ".mp3"
 	}
-	
+
 	// Use organized folder structure: audio/{year}/{month}/{userID}/{fileID}.mp3
 	now := time.Now()
-	key := fmt.Sprintf("audio/%d/%02d/%s/%s%s", 
+	key := fmt.Sprintf("audio/%d/%02d/%s/%s%s",
 		now.Year(), now.Month(), userID, fileID, extension)
 
 	// Set up upload parameters
@@ -70,10 +70,10 @@ func (u *S3Uploader) UploadAudio(ctx context.Context, audioData []byte, userID, 
 		Key:         aws.String(key),
 		Body:        bytes.NewReader(audioData),
 		ContentType: aws.String(getContentType(extension)),
-		
+
 		// Cache for 1 hour (audio files don't change)
 		CacheControl: aws.String("max-age=3600"),
-		
+
 		// Set metadata
 		Metadata: map[string]string{
 			"user-id":           userID,
@@ -81,7 +81,7 @@ func (u *S3Uploader) UploadAudio(ctx context.Context, audioData []byte, userID, 
 			"upload-timestamp":  now.Format(time.RFC3339),
 			"file-type":         "audio",
 		},
-		
+
 		// Note: Removed ACL - bucket policy should handle public access
 	}
 
@@ -109,13 +109,13 @@ func (u *S3Uploader) UploadWaveform(ctx context.Context, svgData []byte, audioKe
 	waveformKey := strings.Replace(audioKey, filepath.Ext(audioKey), "_waveform.svg", 1)
 
 	putObjectInput := &s3.PutObjectInput{
-		Bucket:      aws.String(u.bucket),
-		Key:         aws.String(waveformKey),
-		Body:        bytes.NewReader(svgData),
-		ContentType: aws.String("image/svg+xml"),
+		Bucket:       aws.String(u.bucket),
+		Key:          aws.String(waveformKey),
+		Body:         bytes.NewReader(svgData),
+		ContentType:  aws.String("image/svg+xml"),
 		CacheControl: aws.String("max-age=86400"), // Cache waveforms for 24 hours
 		// Note: Removed ACL - bucket policy should handle public access
-		
+
 		Metadata: map[string]string{
 			"file-type":     "waveform",
 			"related-audio": audioKey,

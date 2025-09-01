@@ -35,7 +35,7 @@ func NewHandlers(streamClient *stream.Client, audioProcessor *audio.Processor) *
 // RegisterDevice creates a new device ID for VST authentication
 func (h *Handlers) RegisterDevice(c *gin.Context) {
 	deviceID := uuid.New().String()
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"device_id": deviceID,
 		"status":    "pending_claim",
@@ -120,7 +120,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
 		return
 	}
-	
+
 	currentUser := user.(*models.User)
 
 	// Get uploaded file
@@ -137,7 +137,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	const maxFileSize = 50 * 1024 * 1024
 	if file.Size > maxFileSize {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "file_too_large", 
+			"error":   "file_too_large",
 			"message": "Audio file must be under 50MB",
 		})
 		return
@@ -209,19 +209,19 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 
 	// Return immediate response - processing happens in background
 	c.JSON(http.StatusAccepted, gin.H{
-		"message":    "Audio upload received - processing in background",
-		"post_id":    audioPost.ID,
-		"job_id":     job.ID,
-		"status":     "processing",
+		"message":     "Audio upload received - processing in background",
+		"post_id":     audioPost.ID,
+		"job_id":      job.ID,
+		"status":      "processing",
 		"eta_seconds": 10, // Estimate 10 seconds for processing
-		"poll_url":   fmt.Sprintf("/api/v1/audio/status/%s", job.ID),
+		"poll_url":    fmt.Sprintf("/api/v1/audio/status/%s", job.ID),
 	})
 }
 
 // GetAudioProcessingStatus returns the status of an audio processing job
 func (h *Handlers) GetAudioProcessingStatus(c *gin.Context) {
 	jobID := c.Param("job_id")
-	
+
 	status, err := h.audioProcessor.GetJobStatus(jobID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -243,7 +243,7 @@ func (h *Handlers) GetAudioProcessingStatus(c *gin.Context) {
 func isValidAudioFile(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	validExts := []string{".mp3", ".wav", ".aiff", ".aif", ".m4a", ".flac", ".ogg"}
-	
+
 	for _, validExt := range validExts {
 		if ext == validExt {
 			return true
@@ -262,9 +262,9 @@ func saveUploadedFile(file *multipart.FileHeader) (string, error) {
 	// Create temp file
 	tempDir := "/tmp/sidechain_uploads"
 	os.MkdirAll(tempDir, 0755)
-	
+
 	tempFilePath := filepath.Join(tempDir, uuid.New().String()+filepath.Ext(file.Filename))
-	
+
 	// Read and save file data
 	fileData := make([]byte, file.Size)
 	_, err = src.Read(fileData)
@@ -306,13 +306,13 @@ func parseGenreArray(s string) []string {
 // GetAudio retrieves audio file metadata
 func (h *Handlers) GetAudio(c *gin.Context) {
 	audioID := c.Param("id")
-	
+
 	// In production, fetch from database
 	c.JSON(http.StatusOK, gin.H{
-		"id":        audioID,
-		"url":       "https://cdn.sidechain.app/audio/" + audioID + ".mp3",
-		"duration":  32.5,
-		"waveform":  "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+		"id":       audioID,
+		"url":      "https://cdn.sidechain.app/audio/" + audioID + ".mp3",
+		"duration": 32.5,
+		"waveform": "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
 		"metadata": gin.H{
 			"bpm":           128,
 			"key":           "F minor",
@@ -367,7 +367,7 @@ func (h *Handlers) GetGlobalFeed(c *gin.Context) {
 // CreatePost creates a new post (alternative to upload)
 func (h *Handlers) CreatePost(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	var req struct {
 		AudioURL     string   `json:"audio_url" binding:"required"`
 		BPM          int      `json:"bpm"`
@@ -383,7 +383,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	postID := uuid.New().String()
-	
+
 	activity := &stream.Activity{
 		Actor:        "user:" + userID,
 		Verb:         "posted",
@@ -412,7 +412,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 // FollowUser follows another user
 func (h *Handlers) FollowUser(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	var req struct {
 		TargetUserID string `json:"target_user_id" binding:"required"`
 	}
@@ -428,8 +428,8 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":        "following",
-		"target_user":   req.TargetUserID,
+		"status":         "following",
+		"target_user":    req.TargetUserID,
 		"following_user": userID,
 	})
 }
@@ -437,7 +437,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 // UnfollowUser unfollows a user
 func (h *Handlers) UnfollowUser(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	var req struct {
 		TargetUserID string `json:"target_user_id" binding:"required"`
 	}
@@ -461,7 +461,7 @@ func (h *Handlers) UnfollowUser(c *gin.Context) {
 // LikePost likes a post with optional emoji
 func (h *Handlers) LikePost(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	var req struct {
 		ActivityID string `json:"activity_id" binding:"required"`
 		Emoji      string `json:"emoji,omitempty"` // Optional emoji like ❤️, 🔥, 🎵
@@ -504,7 +504,7 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 // GetProfile gets user profile information
 func (h *Handlers) GetProfile(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"user_id":   userID,
 		"username":  "producer_" + userID,
@@ -518,7 +518,7 @@ func (h *Handlers) GetProfile(c *gin.Context) {
 // UpdateProfile updates user profile information
 func (h *Handlers) UpdateProfile(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	var req struct {
 		Username string `json:"username"`
 		Bio      string `json:"bio"`
@@ -541,11 +541,11 @@ func (h *Handlers) UpdateProfile(c *gin.Context) {
 // EmojiReact adds an emoji reaction to a post or message
 func (h *Handlers) EmojiReact(c *gin.Context) {
 	userID := c.GetString("user_id")
-	
+
 	var req struct {
 		ActivityID string `json:"activity_id" binding:"required"`
-		Emoji      string `json:"emoji" binding:"required"`          // Required emoji like 🎵, ❤️, 🔥, 😍, 🚀, 💯
-		Type       string `json:"type,omitempty"`                   // Optional: "like", "love", "fire", etc.
+		Emoji      string `json:"emoji" binding:"required"` // Required emoji like 🎵, ❤️, 🔥, 😍, 🚀, 💯
+		Type       string `json:"type,omitempty"`           // Optional: "like", "love", "fire", etc.
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
