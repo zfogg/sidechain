@@ -28,7 +28,7 @@ type Processor struct {
 func NewProcessor(s3Uploader *storage.S3Uploader) *Processor {
 	tempDir := "/tmp/sidechain_audio"
 	os.MkdirAll(tempDir, 0755)
-	
+
 	return &Processor{
 		s3Uploader: s3Uploader,
 		tempDir:    tempDir,
@@ -79,19 +79,19 @@ func (p *Processor) ProcessUpload(ctx context.Context, file *multipart.FileHeade
 
 	// 7. Create database record
 	audioPost := &models.AudioPost{
-		ID:              uuid.New().String(),
-		UserID:          userID,
-		AudioURL:        uploadResult.URL,
+		ID:               uuid.New().String(),
+		UserID:           userID,
+		AudioURL:         uploadResult.URL,
 		OriginalFilename: file.Filename,
-		FileSize:        uploadResult.Size,
-		BPM:             metadata.BPM,
-		Key:             metadata.Key,
-		DurationBars:    metadata.DurationBars,
-		DAW:             metadata.DAW,
-		Genre:           metadata.Genre,
-		WaveformSVG:     waveformSVG,
+		FileSize:         uploadResult.Size,
+		BPM:              metadata.BPM,
+		Key:              metadata.Key,
+		DurationBars:     metadata.DurationBars,
+		DAW:              metadata.DAW,
+		Genre:            metadata.Genre,
+		WaveformSVG:      waveformSVG,
 		ProcessingStatus: "complete",
-		IsPublic:        true,
+		IsPublic:         true,
 	}
 
 	if waveformResult != nil {
@@ -126,7 +126,7 @@ func (p *Processor) saveTemporaryFile(file *multipart.FileHeader) (string, error
 
 	// Create temporary file
 	tempFilePath := filepath.Join(p.tempDir, uuid.New().String()+filepath.Ext(file.Filename))
-	
+
 	// Read file data
 	fileData := make([]byte, file.Size)
 	_, err = src.Read(fileData)
@@ -150,12 +150,12 @@ func (p *Processor) processAudio(inputPath string, metadata AudioMetadata) (stri
 	// FFmpeg command for loudness normalization to -14 LUFS and MP3 encoding
 	cmd := exec.Command("ffmpeg",
 		"-i", inputPath,
-		"-af", "loudnorm=I=-14:TP=-1:LRA=7",  // Normalize to -14 LUFS
-		"-codec:a", "libmp3lame",             // MP3 encoder
-		"-b:a", "128k",                       // 128kbps bitrate
-		"-ar", "44100",                       // 44.1kHz sample rate
-		"-channels", "2",                     // Stereo
-		"-y",                                 // Overwrite output
+		"-af", "loudnorm=I=-14:TP=-1:LRA=7", // Normalize to -14 LUFS
+		"-codec:a", "libmp3lame", // MP3 encoder
+		"-b:a", "128k", // 128kbps bitrate
+		"-ar", "44100", // 44.1kHz sample rate
+		"-channels", "2", // Stereo
+		"-y", // Overwrite output
 		outputPath,
 	)
 
@@ -175,10 +175,10 @@ func (p *Processor) generateWaveform(audioPath string) (string, error) {
 	// Use FFmpeg to extract audio peaks for waveform generation
 	cmd := exec.Command("ffmpeg",
 		"-i", audioPath,
-		"-ac", "1",                    // Convert to mono
-		"-ar", "8000",                 // Low sample rate for peak extraction
-		"-f", "f32le",                 // 32-bit float little endian
-		"-",                           // Output to stdout
+		"-ac", "1", // Convert to mono
+		"-ar", "8000", // Low sample rate for peak extraction
+		"-f", "f32le", // 32-bit float little endian
+		"-", // Output to stdout
 	)
 
 	var stdout bytes.Buffer
@@ -245,16 +245,16 @@ func generateSVGFromAudioData(audioData []byte, width, height int) string {
 
 	svg := fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, width, height)
 	svg += `<rect width="100%" height="100%" fill="#1a1a1e"/>`
-	
+
 	pathData := "M"
 	for x := 0; x < width; x++ {
 		sampleIndex := x * samplesPerPixel * 4 // 4 bytes per float32
-		
+
 		if sampleIndex+3 < len(audioData) {
 			// Extract float32 sample (simplified - proper implementation would use binary.Read)
 			// For now, use a simple amplitude calculation
 			amplitude := float64(audioData[sampleIndex]) / 255.0
-			
+
 			// Convert to SVG Y coordinate
 			y := int(float64(height/2) * (1.0 - amplitude))
 			if y < 0 {
@@ -262,7 +262,7 @@ func generateSVGFromAudioData(audioData []byte, width, height int) string {
 			} else if y >= height {
 				y = height - 1
 			}
-			
+
 			if x == 0 {
 				pathData += fmt.Sprintf("%d,%d", x, y)
 			} else {
@@ -270,10 +270,10 @@ func generateSVGFromAudioData(audioData []byte, width, height int) string {
 			}
 		}
 	}
-	
+
 	svg += fmt.Sprintf(`<path d="%s" stroke="#00d4ff" stroke-width="1" fill="none"/>`, pathData)
 	svg += `</svg>`
-	
+
 	return svg
 }
 

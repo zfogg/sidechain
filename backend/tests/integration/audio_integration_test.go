@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -23,7 +24,7 @@ func TestFFmpegIntegration(t *testing.T) {
 	}
 
 	processor := audio.NewFFmpegProcessor()
-	
+
 	// Create test audio file
 	testAudioPath := createTestAudioFile(t)
 	defer os.Remove(testAudioPath)
@@ -57,7 +58,7 @@ func TestFFmpegIntegration(t *testing.T) {
 // createTestAudioFile creates a simple test audio file using FFmpeg
 func createTestAudioFile(t *testing.T) string {
 	tempPath := filepath.Join(os.TempDir(), "integration_test_audio_"+time.Now().Format("20060102_150405")+".wav")
-	
+
 	// Generate 2-second sine wave at 440Hz using FFmpeg
 	cmd := exec.Command("ffmpeg",
 		"-f", "lavfi",
@@ -88,7 +89,7 @@ func BenchmarkAudioProcessing(b *testing.B) {
 
 	metadata := audio.AudioMetadata{
 		BPM:          128,
-		Key:          "C major", 
+		Key:          "C major",
 		DurationBars: 8,
 		DAW:          "Benchmark DAW",
 		Genre:        []string{"Electronic"},
@@ -101,7 +102,7 @@ func BenchmarkAudioProcessing(b *testing.B) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		_, err := processor.ProcessAudioFile(ctx, testAudioPath, metadata)
 		cancel()
-		
+
 		if err != nil {
 			b.Fatalf("Processing failed: %v", err)
 		}

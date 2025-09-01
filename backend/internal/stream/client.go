@@ -64,7 +64,7 @@ func NewClient() (*Client, error) {
 // CreateUser creates a Stream.io user for both feeds and chat
 func (c *Client) CreateUser(userID, username string) error {
 	ctx := context.Background()
-	
+
 	// Create user in Chat system
 	user := &chat.User{
 		ID:   userID,
@@ -84,13 +84,13 @@ func (c *Client) CreateUser(userID, username string) error {
 func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	// TODO: Implement proper V3 API once we get the exact method signatures
 	// For now, create a working stub that logs what would be sent
-	
-	fmt.Printf("📝 Stream.io Activity: user:%s posted loop with BPM:%d, Key:%s\n", 
+
+	fmt.Printf("📝 Stream.io Activity: user:%s posted loop with BPM:%d, Key:%s\n",
 		userID, activity.BPM, activity.Key)
-	
+
 	// Generate mock activity ID for development
 	activity.ID = fmt.Sprintf("activity_%s_%d", userID, time.Now().Unix())
-	
+
 	return nil
 }
 
@@ -98,9 +98,9 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 func (c *Client) GetUserTimeline(userID string, limit int, offset int) ([]*Activity, error) {
 	// TODO: Implement real V3 API
 	// For now, return mock data for development
-	
+
 	fmt.Printf("📱 Fetching timeline for user:%s (limit:%d, offset:%d)\n", userID, limit, offset)
-	
+
 	// Return mock timeline activities
 	return []*Activity{
 		{
@@ -122,15 +122,15 @@ func (c *Client) GetUserTimeline(userID string, limit int, offset int) ([]*Activ
 func (c *Client) GetGlobalFeed(limit int, offset int) ([]*Activity, error) {
 	// TODO: Implement real V3 API
 	// For now, return mock data for development
-	
+
 	fmt.Printf("🌍 Fetching global feed (limit:%d, offset:%d)\n", limit, offset)
-	
+
 	// Return mock global activities
 	return []*Activity{
 		{
 			ID:           "global_activity_1",
 			Actor:        "user:trending_producer",
-			Verb:         "posted", 
+			Verb:         "posted",
 			Object:       "Fire techno loop 🔥",
 			AudioURL:     "https://sidechain-media.s3.amazonaws.com/demo2.mp3",
 			BPM:          140,
@@ -161,7 +161,7 @@ func (c *Client) FollowUser(userID, targetUserID string) error {
 	return nil
 }
 
-// UnfollowUser makes userID unfollow targetUserID  
+// UnfollowUser makes userID unfollow targetUserID
 func (c *Client) UnfollowUser(userID, targetUserID string) error {
 	// TODO: Implement real V3 unfollow API
 	fmt.Printf("👥 %s unfollowed %s\n", userID, targetUserID)
@@ -209,4 +209,3 @@ func mockStreamActivity(id, actor, verb, object string) *Activity {
 		Object: object,
 	}
 }
-

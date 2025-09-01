@@ -17,7 +17,7 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
                                    AuthenticationCallback callback)
 {
     juce::Thread::launch([this, email, username, password, displayName, callback]() {
-        juce::var registerData;
+        juce::var registerData = juce::var(new juce::DynamicObject());
         registerData.getDynamicObject()->setProperty("email", email);
         registerData.getDynamicObject()->setProperty("username", username);
         registerData.getDynamicObject()->setProperty("password", password);
@@ -66,7 +66,7 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
                                 AuthenticationCallback callback)
 {
     juce::Thread::launch([this, email, password, callback]() {
-        juce::var loginData;
+        juce::var loginData = juce::var(new juce::DynamicObject());
         loginData.getDynamicObject()->setProperty("email", email);
         loginData.getDynamicObject()->setProperty("password", password);
         
@@ -145,7 +145,7 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
         }
         
         // Create multipart form data (simplified for now)
-        juce::var uploadData;
+        juce::var uploadData = juce::var(new juce::DynamicObject());
         uploadData.getDynamicObject()->setProperty("recording_id", recordingId);
         uploadData.getDynamicObject()->setProperty("bpm", 120); // TODO: detect from DAW
         uploadData.getDynamicObject()->setProperty("key", "C major"); // TODO: detect
@@ -220,7 +220,7 @@ void NetworkClient::likePost(const juce::String& activityId, const juce::String&
         return;
         
     juce::Thread::launch([this, activityId, emoji]() {
-        juce::var data;
+        juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("activity_id", activityId);
         
         juce::String endpoint;
@@ -247,7 +247,7 @@ void NetworkClient::followUser(const juce::String& userId)
         return;
         
     juce::Thread::launch([this, userId]() {
-        juce::var data;
+        juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("target_user_id", userId);
         
         auto response = makeRequest("/api/v1/social/follow", "POST", data, true);

@@ -63,7 +63,7 @@ func TestQueueConcurrency(t *testing.T) {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			
+
 			metadata := map[string]interface{}{
 				"bpm": 120 + index*10,
 				"key": "C major",
@@ -75,7 +75,7 @@ func TestQueueConcurrency(t *testing.T) {
 				fmt.Sprintf("test%d.wav", index),
 				metadata,
 			)
-			
+
 			errors[index] = err
 			if err == nil {
 				jobIDs[index] = job.ID
@@ -109,10 +109,10 @@ func TestQueueOverflow(t *testing.T) {
 
 	// Fill the queue buffer
 	metadata := map[string]interface{}{"test": "data"}
-	
+
 	_, err := queue.SubmitJob("user1", "/tmp/test1.wav", "test1.wav", metadata)
 	assert.NoError(t, err)
-	
+
 	_, err = queue.SubmitJob("user2", "/tmp/test2.wav", "test2.wav", metadata)
 	assert.NoError(t, err)
 
@@ -139,7 +139,7 @@ func TestJobStatusTracking(t *testing.T) {
 
 	// Update status manually for testing
 	queue.updateJobStatus(job.ID, "processing", nil, nil)
-	
+
 	status, err = queue.GetJobStatus(job.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "processing", status.Status)

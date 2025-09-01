@@ -43,7 +43,7 @@ func TestWaveformGeneration(t *testing.T) {
 func TestFFmpegInstallationCheck(t *testing.T) {
 	// This test just verifies the check function works, not FFmpeg itself
 	err := CheckFFmpegInstallation()
-	
+
 	// Either FFmpeg is available or it's not - both are valid test outcomes
 	if err != nil {
 		t.Logf("FFmpeg not available (expected in CI): %v", err)

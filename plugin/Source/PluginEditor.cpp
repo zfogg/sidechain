@@ -19,11 +19,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
     
     DBG("Status label created and added");
     
-    // Connect button  
+    // Connect button with bright colors
     connectButton = std::make_unique<juce::TextButton>("Connect Account");
     connectButton->addListener(this);
-    connectButton->setColour(juce::TextButton::buttonColourId, juce::Colours::blue);
+    connectButton->setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 212, 255)); // Sidechain blue
     connectButton->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+    connectButton->setColour(juce::TextButton::buttonOnColourId, juce::Colour::fromRGB(0, 180, 220));
     addAndMakeVisible(connectButton.get());
     
     DBG("Connect button created and added");
@@ -36,19 +37,180 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
 //==============================================================================
 void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    DBG("Paint called with bounds: " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
+    // Dark theme background  
+    g.fillAll (juce::Colour::fromRGB(32, 32, 36));
     
-    // Simple dark background for testing
-    g.fillAll (juce::Colour::fromRGB(40, 40, 44));
-    
-    // Add a visible border
-    g.setColour (juce::Colours::white);
-    g.drawRect(getLocalBounds(), 2);
-    
-    // Add debug text directly in paint to ensure something is visible
+    // Title text
     g.setColour(juce::Colours::white);
-    g.setFont(20.0f);
-    g.drawText("SIDECHAIN DEBUG", getLocalBounds(), juce::Justification::centred);
+    g.setFont(24.0f);
+    g.drawText("🎵 Sidechain", getLocalBounds().removeFromTop(60), juce::Justification::centred);
+    
+    // Subtitle
+    g.setColour(juce::Colours::lightgrey);
+    g.setFont(14.0f);
+    g.drawText("Social VST for Music Producers", getLocalBounds().withY(60).withHeight(40), juce::Justification::centred);
+    
+    // Debug info visible in UI
+    g.setColour(juce::Colours::yellow);
+    g.setFont(12.0f);
+    juce::String debugInfo = "Size: " + juce::String(getWidth()) + "x" + juce::String(getHeight());
+    debugInfo += " | Components: " + juce::String(statusLabel != nullptr ? "Label✓" : "Label✗");
+    debugInfo += " " + juce::String(connectButton != nullptr ? "Button✓" : "Button✗");
+    g.drawText(debugInfo, getLocalBounds().withY(100).withHeight(20), juce::Justification::centred);
+    
+    // Draw UI based on authentication state
+    switch (authState)
+    {
+        case AuthState::Disconnected:
+        {
+            // Single "Connect Account" button
+            auto buttonArea = getLocalBounds().withSizeKeepingCentre(200, 50).withY(150);
+            g.setColour(juce::Colour::fromRGB(0, 212, 255));
+            g.fillRoundedRectangle(buttonArea.toFloat(), 8.0f);
+            
+            g.setColour(juce::Colours::white);
+            g.setFont(16.0f);
+            g.drawText("Connect Account", buttonArea, juce::Justification::centred);
+            break;
+        }
+        
+        case AuthState::ChoosingMethod:
+        {
+            // Authentication options
+            g.setColour(juce::Colours::lightgrey);
+            g.setFont(14.0f);
+            g.drawText("Choose how to connect:", getLocalBounds().withY(110).withHeight(20), juce::Justification::centred);
+            
+            // Email Login button
+            auto emailButton = getButtonArea(0, 4);
+            g.setColour(juce::Colour::fromRGB(0, 212, 255));
+            g.fillRoundedRectangle(emailButton.toFloat(), 6.0f);
+            g.setColour(juce::Colours::white);
+            g.setFont(13.0f);
+            g.drawText("📧 Login with Email", emailButton, juce::Justification::centred);
+            
+            // Email Signup button  
+            auto signupButton = getButtonArea(1, 4);
+            g.setColour(juce::Colour::fromRGB(0, 180, 216)); // Slightly darker blue
+            g.fillRoundedRectangle(signupButton.toFloat(), 6.0f);
+            g.setColour(juce::Colours::white);
+            g.drawText("✨ Create Account", signupButton, juce::Justification::centred);
+            
+            // Google OAuth button
+            auto googleButton = getButtonArea(2, 4);
+            g.setColour(juce::Colour::fromRGB(234, 67, 53)); // Google red
+            g.fillRoundedRectangle(googleButton.toFloat(), 6.0f);
+            g.setColour(juce::Colours::white);
+            g.drawText("🔗 Google", googleButton, juce::Justification::centred);
+            
+            // Discord OAuth button
+            auto discordButton = getButtonArea(3, 4);
+            g.setColour(juce::Colour::fromRGB(88, 101, 242)); // Discord purple
+            g.fillRoundedRectangle(discordButton.toFloat(), 6.0f);
+            g.setColour(juce::Colours::white);
+            g.drawText("🎮 Discord", discordButton, juce::Justification::centred);
+            break;
+        }
+        
+        case AuthState::EmailSignup:
+        {
+            // Signup form with proper spacing
+            g.setColour(juce::Colours::white);
+            g.setFont(18.0f);
+            g.drawText("Create Sidechain Account", getLocalBounds().withY(80).withHeight(30), juce::Justification::centred);
+            
+            // Form fields with proper spacing
+            auto formArea = getLocalBounds().withSizeKeepingCentre(350, 250).withY(120);
+            const int fieldSpacing = 8;
+            const int fieldHeight = 35;
+            
+            auto emailArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Email:", email, emailArea, false, activeField == 0);
+            formArea.removeFromTop(fieldSpacing);
+            
+            auto usernameArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Username:", username, usernameArea, false, activeField == 1);
+            formArea.removeFromTop(fieldSpacing);
+            
+            auto displayNameArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Display Name:", displayName, displayNameArea, false, activeField == 2);
+            formArea.removeFromTop(fieldSpacing);
+            
+            auto passwordArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Password:", password, passwordArea, true, activeField == 3);
+            formArea.removeFromTop(fieldSpacing);
+            
+            auto confirmPasswordArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Confirm:", confirmPassword, confirmPasswordArea, true, activeField == 4);
+            
+            // Buttons with proper spacing below form
+            auto buttonY = 120 + 5 * (fieldHeight + fieldSpacing) + 20; // Below all fields
+            const int buttonWidth = 120;
+            const int buttonSpacing = 20;
+            auto submitButton = juce::Rectangle<int>(getWidth()/2 - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, 36);
+            auto cancelButton = juce::Rectangle<int>(getWidth()/2 + buttonSpacing/2, buttonY, buttonWidth, 36);
+            
+            // Submit button
+            g.setColour(juce::Colour::fromRGB(40, 167, 69)); // Green
+            g.fillRoundedRectangle(submitButton.toFloat(), 8.0f);
+            g.setColour(juce::Colours::white);
+            g.setFont(15.0f);
+            g.drawText("Create Account", submitButton, juce::Justification::centred);
+            
+            // Cancel button
+            g.setColour(juce::Colour::fromRGB(108, 117, 125)); // Grey
+            g.fillRoundedRectangle(cancelButton.toFloat(), 8.0f);
+            g.setColour(juce::Colours::white);
+            g.drawText("Cancel", cancelButton, juce::Justification::centred);
+            break;
+        }
+        
+        case AuthState::Connecting:
+        {
+            // Connecting state
+            auto buttonArea = getLocalBounds().withSizeKeepingCentre(200, 50).withY(150);
+            g.setColour(juce::Colour::fromRGB(255, 193, 7)); // Yellow
+            g.fillRoundedRectangle(buttonArea.toFloat(), 8.0f);
+            
+            g.setColour(juce::Colours::black);
+            g.setFont(16.0f);
+            g.drawText("Connecting...", buttonArea, juce::Justification::centred);
+            break;
+        }
+        
+        case AuthState::Error:
+        {
+            // Error state with retry option
+            g.setColour(juce::Colours::red);
+            g.setFont(14.0f);
+            g.drawText("❌ " + errorMessage, getLocalBounds().withY(120).withHeight(25), juce::Justification::centred);
+            
+            auto retryButton = getLocalBounds().withSizeKeepingCentre(150, 40).withY(160);
+            g.setColour(juce::Colour::fromRGB(220, 53, 69)); // Red
+            g.fillRoundedRectangle(retryButton.toFloat(), 6.0f);
+            
+            g.setColour(juce::Colours::white);
+            g.setFont(14.0f);
+            g.drawText("Try Again", retryButton, juce::Justification::centred);
+            break;
+        }
+        
+        case AuthState::Connected:
+        {
+            // Connected state
+            auto buttonArea = getLocalBounds().withSizeKeepingCentre(250, 50).withY(150);
+            g.setColour(juce::Colour::fromRGB(40, 167, 69)); // Green
+            g.fillRoundedRectangle(buttonArea.toFloat(), 8.0f);
+            
+            g.setColour(juce::Colours::white);
+            g.setFont(16.0f);
+            g.drawText("✅ Connected as " + (username.isEmpty() ? "DemoUser" : username), buttonArea, juce::Justification::centred);
+            break;
+        }
+        
+        default:
+            break;
+    }
 }
 
 void SidechainAudioProcessorEditor::resized()
@@ -102,24 +264,359 @@ void SidechainAudioProcessorEditor::buttonClicked (juce::Button* button)
     }
 }
 
+void SidechainAudioProcessorEditor::mouseUp (const juce::MouseEvent& event)
+{
+    switch (authState)
+    {
+        case AuthState::Disconnected:
+        {
+            auto buttonArea = getLocalBounds().withSizeKeepingCentre(200, 50).withY(150);
+            if (buttonArea.contains(event.getPosition()))
+            {
+                authState = AuthState::ChoosingMethod;
+                repaint();
+            }
+            break;
+        }
+        
+        case AuthState::ChoosingMethod:
+        {
+            // Check which authentication method was clicked
+            auto emailButton = getButtonArea(0, 4);
+            auto signupButton = getButtonArea(1, 4);
+            auto googleButton = getButtonArea(2, 4);
+            auto discordButton = getButtonArea(3, 4);
+            
+            if (emailButton.contains(event.getPosition()))
+            {
+                authState = AuthState::EmailLogin;
+                email = "producer@example.com"; // Default value
+                repaint();
+            }
+            else if (signupButton.contains(event.getPosition()))
+            {
+                authState = AuthState::EmailSignup;
+                email = "";
+                username = "";
+                displayName = "";
+                password = "";
+                confirmPassword = "";
+                repaint();
+            }
+            else if (googleButton.contains(event.getPosition()))
+            {
+                handleOAuthLogin("google");
+            }
+            else if (discordButton.contains(event.getPosition()))
+            {
+                handleOAuthLogin("discord");
+            }
+            break;
+        }
+        
+        case AuthState::EmailSignup:
+        {
+            // Handle signup form clicks with corrected button positions
+            const int fieldHeight = 35;
+            const int fieldSpacing = 8;
+            auto buttonY = 120 + 5 * (fieldHeight + fieldSpacing) + 20;
+            const int buttonWidth = 120;
+            const int buttonSpacing = 20;
+            auto submitButton = juce::Rectangle<int>(getWidth()/2 - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, 36);
+            auto cancelButton = juce::Rectangle<int>(getWidth()/2 + buttonSpacing/2, buttonY, buttonWidth, 36);
+            
+            if (submitButton.contains(event.getPosition()))
+            {
+                handleEmailSignup();
+            }
+            else if (cancelButton.contains(event.getPosition()))
+            {
+                authState = AuthState::ChoosingMethod;
+                activeField = -1;
+                repaint();
+            }
+            else
+            {
+                // Check if clicked on form fields to make them active
+                auto formArea = getLocalBounds().withSizeKeepingCentre(350, 250).withY(120);
+                
+                for (int i = 0; i < 5; ++i)
+                {
+                    auto fieldArea = formArea.withY(120 + i * (fieldHeight + fieldSpacing)).withHeight(fieldHeight);
+                    if (fieldArea.contains(event.getPosition()))
+                    {
+                        activeField = i;
+                        setWantsKeyboardFocus(true);
+                        grabKeyboardFocus();
+                        repaint();
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        
+        case AuthState::Connected:
+        {
+            // Click to disconnect
+            auto buttonArea = getLocalBounds().withSizeKeepingCentre(250, 50).withY(150);
+            if (buttonArea.contains(event.getPosition()))
+            {
+                authState = AuthState::Disconnected;
+                username = "";
+                repaint();
+            }
+            break;
+        }
+        
+        default:
+            break;
+    }
+}
+
+bool SidechainAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
+{
+    if (authState != AuthState::EmailSignup || activeField == -1)
+        return false;
+    
+    juce::String* targetField = nullptr;
+    
+    // Select which field to edit based on activeField
+    switch (activeField)
+    {
+        case 0: targetField = &email; break;
+        case 1: targetField = &username; break;
+        case 2: targetField = &displayName; break;
+        case 3: targetField = &password; break;
+        case 4: targetField = &confirmPassword; break;
+        default: return false;
+    }
+    
+    // Handle key input
+    if (key.getKeyCode() == juce::KeyPress::backspaceKey)
+    {
+        if (targetField->isNotEmpty())
+        {
+            *targetField = targetField->dropLastCharacters(1);
+            repaint();
+        }
+    }
+    else if (key.getKeyCode() == juce::KeyPress::returnKey)
+    {
+        // Move to next field or submit
+        activeField++;
+        if (activeField >= 5)
+        {
+            handleEmailSignup();
+        }
+        else
+        {
+            repaint();
+        }
+    }
+    else if (key.isKeyCurrentlyDown(juce::KeyPress::escapeKey))
+    {
+        activeField = -1;
+        repaint();
+    }
+    else if (key.getTextCharacter() != 0 && key.getTextCharacter() > 31)
+    {
+        juce::String keyChar = juce::String::charToString(key.getTextCharacter());
+        *targetField += keyChar;
+        repaint();
+    }
+    
+    return true;
+}
+
 void SidechainAudioProcessorEditor::showAuthenticationDialog()
 {
-    // Simple demo authentication with null checks
-    if (connectButton != nullptr)
+    // For now, simulate email/password authentication
+    authState = AuthState::Connecting;
+    repaint();
+    
+    // Simulate authentication delay
+    juce::Timer::callAfterDelay(1500, [this]() {
+        authState = AuthState::Connected;
+        username = "EmailUser";
+        repaint();
+    });
+}
+
+void SidechainAudioProcessorEditor::handleOAuthLogin(const juce::String& provider)
+{
+    authState = AuthState::Connecting;
+    repaint();
+    
+    // Open OAuth URL in system browser
+    juce::String oauthUrl = "http://localhost:8787/api/v1/auth/" + provider;
+    juce::URL(oauthUrl).launchInDefaultBrowser();
+    
+    // Simulate OAuth completion
+    juce::Timer::callAfterDelay(2000, [this, provider]() {
+        authState = AuthState::Connected;
+        username = provider == "google" ? "GoogleUser" : "DiscordUser";
+        repaint();
+    });
+}
+
+void SidechainAudioProcessorEditor::showSignupDialog()
+{
+    authState = AuthState::EmailSignup;
+    repaint();
+}
+
+void SidechainAudioProcessorEditor::handleEmailLogin()
+{
+    // TODO: Connect to real backend API
+    authState = AuthState::Connecting;
+    repaint();
+    
+    juce::Timer::callAfterDelay(1500, [this]() {
+        authState = AuthState::Connected;
+        username = "EmailUser";
+        repaint();
+    });
+}
+
+void SidechainAudioProcessorEditor::handleEmailSignup()
+{
+    // Validate form fields
+    if (email.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || displayName.isEmpty())
     {
-        connectButton->setButtonText("Connecting...");
-        connectButton->setEnabled(false);
+        errorMessage = "All fields are required";
+        authState = AuthState::Error;
+        repaint();
+        return;
+    }
+    
+    if (password != confirmPassword)
+    {
+        errorMessage = "Passwords do not match";
+        authState = AuthState::Error;
+        repaint();
+        return;
+    }
+    
+    if (password.length() < 8)
+    {
+        errorMessage = "Password must be at least 8 characters";
+        authState = AuthState::Error;
+        repaint();
+        return;
+    }
+    
+    // Show connecting state
+    authState = AuthState::Connecting;
+    repaint();
+    
+    // Make real API call to backend
+    juce::Thread::launch([this]() {
+        juce::var registerData = juce::var(new juce::DynamicObject());
+        registerData.getDynamicObject()->setProperty("email", email);
+        registerData.getDynamicObject()->setProperty("username", username);
+        registerData.getDynamicObject()->setProperty("password", password);
+        registerData.getDynamicObject()->setProperty("display_name", displayName);
         
-        // Simulate authentication with immediate callback
-        connectButton->setButtonText("✅ Connected as DemoUser");
-        connectButton->setEnabled(true);
-    }
+        juce::String jsonData = juce::JSON::toString(registerData);
+        
+        // Create HTTP request
+        juce::URL url("http://localhost:8787/api/v1/auth/register");
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                           .withExtraHeaders("Content-Type: application/json\r\n")
+                           .withConnectionTimeoutMs(10000);
+        
+        url = url.withPOSTData(jsonData);
+        auto stream = url.createInputStream(options);
+        
+        if (stream != nullptr)
+        {
+            auto response = stream->readEntireStreamAsString();
+            auto result = juce::JSON::parse(response);
+            
+            // Handle response on message thread
+            juce::MessageManager::callAsync([this, result]() {
+                if (result.isObject())
+                {
+                    auto authData = result.getProperty("auth", juce::var());
+                    if (authData.isObject())
+                    {
+                        auto user = authData.getProperty("user", juce::var());
+                        if (user.isObject())
+                        {
+                            // Success!
+                            username = user.getProperty("username", "").toString();
+                            authState = AuthState::Connected;
+                            repaint();
+                            return;
+                        }
+                    }
+                }
+                
+                // Error response
+                errorMessage = result.getProperty("message", "Registration failed").toString();
+                authState = AuthState::Error;
+                repaint();
+            });
+        }
+        else
+        {
+            // Network error
+            juce::MessageManager::callAsync([this]() {
+                errorMessage = "Cannot connect to Sidechain server";
+                authState = AuthState::Error;
+                repaint();
+            });
+        }
+    });
+}
+
+juce::Rectangle<int> SidechainAudioProcessorEditor::getButtonArea(int index, int totalButtons) const
+{
+    const int buttonWidth = totalButtons == 4 ? 130 : 180; // Smaller buttons for 4 options
+    const int buttonHeight = 35;
+    const int spacing = 8;
+    const int startY = 140;
     
-    if (statusLabel != nullptr)
+    int totalWidth = (buttonWidth * totalButtons) + (spacing * (totalButtons - 1));
+    int startX = (getWidth() - totalWidth) / 2;
+    
+    int x = startX + index * (buttonWidth + spacing);
+    
+    return juce::Rectangle<int>(x, startY, buttonWidth, buttonHeight);
+}
+
+void SidechainAudioProcessorEditor::drawFormField(juce::Graphics& g, const juce::String& label, 
+                                                 const juce::String& value, juce::Rectangle<int> area, bool isPassword, bool isActive)
+{
+    // Label
+    g.setColour(isActive ? juce::Colours::white : juce::Colours::lightgrey);
+    g.setFont(12.0f);
+    g.drawText(label, area.removeFromLeft(100), juce::Justification::centredLeft);
+    
+    // Field background (brighter when active)
+    g.setColour(isActive ? juce::Colour::fromRGB(60, 60, 64) : juce::Colour::fromRGB(50, 50, 54));
+    g.fillRoundedRectangle(area.toFloat(), 4.0f);
+    
+    // Field border (blue when active)
+    g.setColour(isActive ? juce::Colour::fromRGB(0, 212, 255) : juce::Colour::fromRGB(100, 100, 104));
+    g.drawRoundedRectangle(area.toFloat(), 4.0f, isActive ? 2.0f : 1.0f);
+    
+    // Field value
+    g.setColour(juce::Colours::white);
+    g.setFont(13.0f);
+    juce::String displayValue = isPassword ? juce::String::repeatedString("•", value.length()) : value;
+    
+    // Add cursor for active field
+    if (isActive && displayValue.isEmpty())
     {
-        statusLabel->setText("🎵 Sidechain - Ready to share loops!", juce::dontSendNotification);
+        displayValue = "|"; // Show cursor when empty and active
+    }
+    else if (isActive)
+    {
+        displayValue += "|"; // Show cursor at end when active
     }
     
-    DBG("Demo authentication completed");
+    g.drawText(displayValue, area.reduced(8, 0), juce::Justification::centredLeft);
 }
 

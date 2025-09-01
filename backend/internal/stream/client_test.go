@@ -11,10 +11,10 @@ import (
 func TestNewClient(t *testing.T) {
 	// Just test that NewClient function exists and has correct signature
 	// Real initialization testing should be done in integration tests
-	
+
 	// This will fail without real credentials, which is expected in unit tests
 	_, err := NewClient()
-	
+
 	// Either succeeds (if credentials available) or fails with expected error
 	if err != nil {
 		assert.Contains(t, err.Error(), "STREAM_API_KEY")
@@ -67,7 +67,7 @@ func TestActivityCreation(t *testing.T) {
 		Actor:        "user:testuser",
 		Verb:         "posted",
 		Object:       "loop:test123",
-		ForeignID:    "loop:test123", 
+		ForeignID:    "loop:test123",
 		AudioURL:     "https://example.com/test.mp3",
 		BPM:          140,
 		Key:          "F# minor",

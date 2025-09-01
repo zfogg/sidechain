@@ -27,21 +27,21 @@ type AudioJob struct {
 
 // AudioJobResult contains the processing result
 type AudioJobResult struct {
-	AudioURL      string `json:"audio_url"`
-	WaveformURL   string `json:"waveform_url"`
+	AudioURL      string  `json:"audio_url"`
+	WaveformURL   string  `json:"waveform_url"`
 	Duration      float64 `json:"duration"`
-	ProcessedSize int64  `json:"processed_size"`
+	ProcessedSize int64   `json:"processed_size"`
 }
 
 // AudioQueue manages background audio processing
 type AudioQueue struct {
-	jobs        chan *AudioJob
-	results     map[string]*AudioJob
-	resultsMux  sync.RWMutex
-	workers     int
-	ctx         context.Context
-	cancel      context.CancelFunc
-	
+	jobs       chan *AudioJob
+	results    map[string]*AudioJob
+	resultsMux sync.RWMutex
+	workers    int
+	ctx        context.Context
+	cancel     context.CancelFunc
+
 	// For testing: channels to signal job completion
 	jobCompleted chan string
 }
@@ -49,13 +49,13 @@ type AudioQueue struct {
 // NewAudioQueue creates a new audio processing queue
 func NewAudioQueue() *AudioQueue {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	// Use CPU count for worker pool size
 	workers := runtime.NumCPU()
 	if workers > 8 {
 		workers = 8 // Cap at 8 workers to avoid overwhelming
 	}
-	
+
 	return &AudioQueue{
 		jobs:         make(chan *AudioJob, 100), // Buffer 100 jobs
 		results:      make(map[string]*AudioJob),
@@ -69,7 +69,7 @@ func NewAudioQueue() *AudioQueue {
 // Start begins processing jobs with worker pool
 func (q *AudioQueue) Start() {
 	log.Printf("🎵 Starting audio queue with %d workers", q.workers)
-	
+
 	for i := 0; i < q.workers; i++ {
 		go q.worker(i)
 	}
@@ -111,12 +111,12 @@ func (q *AudioQueue) SubmitJob(userID, tempFilePath, filename string, metadata m
 func (q *AudioQueue) GetJobStatus(jobID string) (*AudioJob, error) {
 	q.resultsMux.RLock()
 	defer q.resultsMux.RUnlock()
-	
+
 	job, exists := q.results[jobID]
 	if !exists {
 		return nil, fmt.Errorf("job not found")
 	}
-	
+
 	return job, nil
 }
 
@@ -167,7 +167,7 @@ func (q *AudioQueue) WaitForAllJobs(jobIDs []string, timeout time.Duration) erro
 // worker processes audio jobs from the queue
 func (q *AudioQueue) worker(workerID int) {
 	log.Printf("🔧 Audio worker %d started", workerID)
-	
+
 	for {
 		select {
 		case job := <-q.jobs:
@@ -175,9 +175,9 @@ func (q *AudioQueue) worker(workerID int) {
 				log.Printf("🔧 Audio worker %d shutting down", workerID)
 				return
 			}
-			
+
 			q.processJob(workerID, job)
-			
+
 		case <-q.ctx.Done():
 			log.Printf("🔧 Audio worker %d shutting down", workerID)
 			return
@@ -188,15 +188,15 @@ func (q *AudioQueue) worker(workerID int) {
 // processJob handles the actual audio processing
 func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	log.Printf("🔧 Worker %d processing job %s", workerID, job.ID)
-	
+
 	// Update job status
 	q.updateJobStatus(job.ID, "processing", nil, nil)
-	
+
 	// TODO: Implement actual audio processing
 	// This would call the AudioProcessor with the job data
 	// For now, simulate processing time
 	time.Sleep(2 * time.Second)
-	
+
 	// Simulate successful result
 	result := &AudioJobResult{
 		AudioURL:      fmt.Sprintf("https://sidechain-media.s3.amazonaws.com/audio/%s/%s.mp3", job.UserID, job.ID),
@@ -204,17 +204,17 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 		Duration:      32.5,
 		ProcessedSize: 1024 * 1024, // 1MB
 	}
-	
+
 	// Update job with result
 	q.updateJobStatus(job.ID, "complete", result, nil)
-	
+
 	// Signal completion for testing
 	select {
 	case q.jobCompleted <- job.ID:
 	default:
 		// Channel full, don't block
 	}
-	
+
 	log.Printf("✅ Worker %d completed job %s", workerID, job.ID)
 }
 
@@ -222,16 +222,16 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 func (q *AudioQueue) updateJobStatus(jobID, status string, result *AudioJobResult, errorMessage *string) {
 	q.resultsMux.Lock()
 	defer q.resultsMux.Unlock()
-	
+
 	job, exists := q.results[jobID]
 	if !exists {
 		return
 	}
-	
+
 	job.Status = status
 	job.Result = result
 	job.ErrorMessage = errorMessage
-	
+
 	if status == "complete" || status == "failed" {
 		now := time.Now()
 		job.CompletedAt = &now

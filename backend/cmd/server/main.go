@@ -66,9 +66,10 @@ func main() {
 		log.Fatalf("Failed to initialize S3 uploader: %v", err)
 	}
 
-	// Check S3 access
+	// Check S3 access (skip for development)
 	if err := s3Uploader.CheckBucketAccess(context.Background()); err != nil {
-		log.Fatalf("S3 bucket access failed: %v", err)
+		log.Printf("Warning: S3 bucket access failed: %v", err)
+		log.Println("Continuing without S3 - audio uploads will fail")
 	}
 
 	// Check FFmpeg availability
@@ -112,13 +113,13 @@ func main() {
 			// Native auth
 			authGroup.POST("/register", authHandlers.Register)
 			authGroup.POST("/login", authHandlers.Login)
-			
+
 			// OAuth flows
 			authGroup.GET("/google", authHandlers.GoogleOAuth)
 			authGroup.GET("/google/callback", authHandlers.GoogleCallback)
 			authGroup.GET("/discord", authHandlers.DiscordOAuth)
 			authGroup.GET("/discord/callback", authHandlers.DiscordCallback)
-			
+
 			// User info (protected)
 			authGroup.GET("/me", authHandlers.AuthMiddleware(), authHandlers.Me)
 		}

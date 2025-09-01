@@ -70,24 +70,41 @@ backend-dev:
 # Plugin targets
 plugin: $(JUCE_DIR) plugin-project
 	@echo "🔄 Building VST plugin..."
-	@cd Builds/MacOSX && xcodebuild -configuration Release
+	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
 	@echo "✅ Plugin built successfully"
+
+plugin-debug: $(JUCE_DIR) plugin-project
+	@echo "🔄 Building VST plugin (Debug)..."
+	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Debug -quiet
+	@echo "✅ Plugin built successfully (Debug)"
 
 plugin-project: $(JUCE_DIR)
 	@echo "🔄 Generating plugin project files..."
-	@if [ ! -f Sidechain.jucer ]; then \
-		echo "🆕 Creating new Sidechain project..."; \
-		$(PROJUCER) --create-project-from-pip Sidechain.jucer; \
+	@if [ ! -f plugin/Sidechain.jucer ]; then \
+		echo "❌ Sidechain.jucer not found"; \
+		exit 1; \
 	else \
 		echo "🔄 Updating existing project..."; \
-		$(PROJUCER) --resave Sidechain.jucer; \
+		$(PROJUCER) --resave plugin/Sidechain.jucer; \
 	fi
 	@echo "✅ Project files generated"
 
+plugin-install: plugin
+	@echo "📦 Installing VST plugin..."
+	@rm -rf ~/Library/Audio/Plug-Ins/VST3/Sidechain.vst3
+	@cp -r plugin/Builds/MacOSX/build/Release/Sidechain.vst3 ~/Library/Audio/Plug-Ins/VST3/
+	@echo "✅ Plugin installed to system directory"
+
+plugin-install-debug: plugin-debug
+	@echo "📦 Installing VST plugin (Debug)..."
+	@rm -rf ~/Library/Audio/Plug-Ins/VST3/Sidechain.vst3
+	@cp -r plugin/Builds/MacOSX/build/Debug/Sidechain.vst3 ~/Library/Audio/Plug-Ins/VST3/
+	@echo "✅ Debug plugin installed to system directory"
+
 plugin-clean:
 	@echo "🧹 Cleaning plugin build files..."
-	@rm -rf Builds/*/build
-	@rm -rf JuceLibraryCode
+	@rm -rf plugin/Builds/*/build
+	@rm -rf plugin/JuceLibraryCode
 	@echo "✅ Plugin cleaned"
 
 # Test targets
