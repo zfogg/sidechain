@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "ProfileSetupComponent.h"
+#include "PostsFeedComponent.h"
 
 //==============================================================================
 /**
@@ -30,6 +32,8 @@ public:
     juce::Rectangle<int> getButtonArea(int index, int totalButtons) const;
     void drawFormField(juce::Graphics& g, const juce::String& label, const juce::String& value,
                       juce::Rectangle<int> area, bool isPassword = false, bool isActive = false);
+    void drawFocusedButton(juce::Graphics& g, juce::Rectangle<int> area, const juce::String& text, 
+                          juce::Colour bgColor, bool isFocused);
 
 private:
     // Basic UI components
@@ -40,16 +44,40 @@ private:
 
     // UI state
     enum class AuthState { Disconnected, ChoosingMethod, EmailLogin, EmailSignup, Connecting, Connected, Error };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed };
+    
     AuthState authState = AuthState::Disconnected;
+    AppView currentView = AppView::Authentication;
     juce::String username = "";
     juce::String email = "";
     juce::String password = "";
     juce::String confirmPassword = "";
     juce::String displayName = "";
     juce::String errorMessage = "";
+    juce::String profilePicUrl = "";
+    bool hasCompletedProfileSetup = false;  // Track if user has seen profile setup
+    
+    // Components for different views
+    std::unique_ptr<ProfileSetupComponent> profileSetupComponent;
+    std::unique_ptr<PostsFeedComponent> postsFeedComponent;
     
     // Form input state
     int activeField = -1; // -1 = none, 0 = email, 1 = username, 2 = display, 3 = password, 4 = confirm
+    
+    // View management
+    void showView(AppView view);
+    void onLoginSuccess();
+    
+    // Persistent state
+    void saveLoginState();
+    void loadLoginState();
+    
+    // Keyboard navigation
+    int currentFocusIndex = -1;  // -1 = none, 0+ = field/button index
+    int maxFocusIndex = 0;       // Updated based on current auth state
+    void updateFocusIndicators();
+    void handleTabNavigation(bool reverse = false);
+    bool handleEnterKey();
 
     static constexpr int PLUGIN_WIDTH = 1000;
     static constexpr int PLUGIN_HEIGHT = 800;

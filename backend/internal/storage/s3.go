@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"mime/multipart"
 	"path/filepath"
 	"strings"
 	"time"
@@ -163,6 +164,66 @@ func (u *S3Uploader) CheckBucketAccess(ctx context.Context) error {
 	return nil
 }
 
+// UploadProfilePicture uploads a profile picture to S3
+func (u *S3Uploader) UploadProfilePicture(ctx context.Context, file multipart.File, header *multipart.FileHeader, userID string) (*UploadResult, error) {
+	// Validate file extension
+	fileExt := strings.ToLower(filepath.Ext(header.Filename))
+	allowedExts := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".gif":  true,
+		".webp": true,
+	}
+	
+	if !allowedExts[fileExt] {
+		return nil, fmt.Errorf("unsupported file type: %s", fileExt)
+	}
+	
+	// Read file data
+	fileData := make([]byte, header.Size)
+	_, err := file.Read(fileData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	
+	// Generate unique key
+	fileID := uuid.New().String()
+	key := fmt.Sprintf("profile-pics/%s/%s%s", userID, fileID, fileExt)
+	
+	// Upload to S3
+	putObjectInput := &s3.PutObjectInput{
+		Bucket:       aws.String(u.bucket),
+		Key:          aws.String(key),
+		Body:         bytes.NewReader(fileData),
+		ContentType:  aws.String(getContentTypeForImage(fileExt)),
+		CacheControl: aws.String("max-age=86400"), // Cache for 24 hours
+		
+		Metadata: map[string]string{
+			"user-id":           userID,
+			"original-filename": header.Filename,
+			"upload-timestamp":  time.Now().Format(time.RFC3339),
+			"file-type":         "profile-picture",
+		},
+	}
+	
+	_, err = u.client.PutObject(ctx, putObjectInput)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload profile picture to S3: %w", err)
+	}
+	
+	// Generate public URL
+	publicURL := fmt.Sprintf("%s/%s", strings.TrimSuffix(u.baseURL, "/"), key)
+	
+	return &UploadResult{
+		Key:    key,
+		URL:    publicURL,
+		Bucket: u.bucket,
+		Region: u.region,
+		Size:   header.Size,
+	}, nil
+}
+
 // getContentType returns the appropriate MIME type for file extensions
 func getContentType(extension string) string {
 	switch strings.ToLower(extension) {
@@ -176,6 +237,22 @@ func getContentType(extension string) string {
 		return "audio/mp4"
 	case ".svg":
 		return "image/svg+xml"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+// getContentTypeForImage returns the appropriate MIME type for image extensions
+func getContentTypeForImage(extension string) string {
+	switch strings.ToLower(extension) {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
 	default:
 		return "application/octet-stream"
 	}

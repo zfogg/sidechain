@@ -22,15 +22,23 @@ make dev
 
 ### VST Plugin (C++/JUCE)
 ```bash
-# Build VST plugin
+# Build VST plugin (smart - only regenerates when needed)
 make plugin
 
-# Generate/update plugin project files
+# Build VST plugin (fast - skip project regeneration)
+make plugin-fast
+
+# Generate/update plugin project files (force regeneration)
 make plugin-project
+
+# Build debug version
+make plugin-debug
 
 # Clean plugin build files
 make plugin-clean
 ```
+
+**Development Tip**: Use `make plugin-fast` for iterative development - it's ~40% faster by skipping project file regeneration. Only use `make plugin` when you add new source files.
 
 ### Backend (Go)
 ```bash
