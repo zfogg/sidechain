@@ -67,16 +67,46 @@ backend-dev:
 	@echo "🔧 Starting backend in development mode..."
 	@cd backend && go run cmd/server/main.go
 
-# Plugin targets
-plugin: $(JUCE_DIR) plugin-project
+# Plugin targets - optimized for speed
+plugin: $(JUCE_DIR)
+	@if [ ! -d plugin/Builds/MacOSX ]; then \
+		echo "🔄 Generating plugin project files (first time)..."; \
+		$(PROJUCER) --resave plugin/Sidechain.jucer; \
+		echo "✅ Project files generated"; \
+	elif [ plugin/Sidechain.jucer -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ] || \
+	     [ plugin/Source -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ]; then \
+		echo "🔄 Source files changed, regenerating project..."; \
+		$(PROJUCER) --resave plugin/Sidechain.jucer; \
+		echo "✅ Project files updated"; \
+	else \
+		echo "⚡ Project files up to date, skipping regeneration"; \
+	fi
 	@echo "🔄 Building VST plugin..."
 	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
 	@echo "✅ Plugin built successfully"
 
-plugin-debug: $(JUCE_DIR) plugin-project
+plugin-debug: $(JUCE_DIR)
+	@if [ ! -d plugin/Builds/MacOSX ]; then \
+		echo "🔄 Generating plugin project files (first time)..."; \
+		$(PROJUCER) --resave plugin/Sidechain.jucer; \
+		echo "✅ Project files generated"; \
+	elif [ plugin/Sidechain.jucer -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ] || \
+	     [ plugin/Source -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ]; then \
+		echo "🔄 Source files changed, regenerating project..."; \
+		$(PROJUCER) --resave plugin/Sidechain.jucer; \
+		echo "✅ Project files updated"; \
+	else \
+		echo "⚡ Project files up to date, skipping regeneration"; \
+	fi
 	@echo "🔄 Building VST plugin (Debug)..."
 	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Debug -quiet
 	@echo "✅ Plugin built successfully (Debug)"
+
+# Fast build - always skip project regeneration 
+plugin-fast: $(JUCE_DIR)
+	@echo "🔄 Building VST plugin (fast - no project regen)..."
+	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
+	@echo "✅ Plugin built successfully"
 
 plugin-project: $(JUCE_DIR)
 	@echo "🔄 Generating plugin project files..."
@@ -160,8 +190,9 @@ help:
 	@echo "  backend       - Build Go backend server"
 	@echo "  backend-run   - Run built backend server"
 	@echo "  backend-dev   - Run backend in development mode"
-	@echo "  plugin        - Build VST plugin"
-	@echo "  plugin-project - Generate/update plugin project files"
+	@echo "  plugin        - Build VST plugin (smart regeneration)"
+	@echo "  plugin-fast   - Build VST plugin (skip project regen)"
+	@echo "  plugin-project - Force regenerate plugin project files"
 	@echo "  test          - Run all tests"
 	@echo "  dev           - Start development environment"
 	@echo "  clean         - Clean all build artifacts"

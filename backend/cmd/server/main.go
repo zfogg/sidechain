@@ -83,7 +83,7 @@ func main() {
 
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
-	authHandlers := handlers.NewAuthHandlers(authService)
+	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader)
 
 	// Setup Gin router
 	r := gin.Default()

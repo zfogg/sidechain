@@ -7,17 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/auth"
+	"github.com/zfogg/sidechain/backend/internal/storage"
 )
 
 // AuthHandlers contains authentication-related HTTP handlers
 type AuthHandlers struct {
 	authService *auth.Service
+	s3Uploader  *storage.S3Uploader
 }
 
 // NewAuthHandlers creates new auth handlers
-func NewAuthHandlers(authService *auth.Service) *AuthHandlers {
+func NewAuthHandlers(authService *auth.Service, s3Uploader *storage.S3Uploader) *AuthHandlers {
 	return &AuthHandlers{
 		authService: authService,
+		s3Uploader:  s3Uploader,
 	}
 }
 
@@ -244,4 +247,56 @@ func (h *AuthHandlers) AuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", user.ID)
 		c.Next()
 	}
+}
+
+// UploadProfilePicture handles profile picture uploads
+func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
+	// Get user ID from context (set by authentication middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "unauthorized",
+			"message": "User not authenticated",
+		})
+		return
+	}
+
+	// Parse multipart form
+	err := c.Request.ParseMultipartForm(10 << 20) // 10 MB max
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_file",
+			"message": "Failed to parse upload form",
+		})
+		return
+	}
+
+	// Get the file from form
+	file, header, err := c.Request.FormFile("profile_picture")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "missing_file",
+			"message": "No profile picture file provided",
+		})
+		return
+	}
+	defer file.Close()
+
+	// Upload to S3
+	uploadResult, err := h.s3Uploader.UploadProfilePicture(c.Request.Context(), file, header, userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "upload_failed",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// TODO: Update user's avatar_url in database
+	// For now, just return the upload result
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profile picture uploaded successfully",
+		"url":     uploadResult.URL,
+		"key":     uploadResult.Key,
+	})
 }

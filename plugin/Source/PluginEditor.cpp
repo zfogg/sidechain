@@ -9,6 +9,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
     
     DBG("Creating Sidechain Editor with size: " + juce::String(PLUGIN_WIDTH) + "x" + juce::String(PLUGIN_HEIGHT));
     
+    // Enable keyboard focus
+    setWantsKeyboardFocus(true);
+    
     // Status label
     statusLabel = std::make_unique<juce::Label>("status", "🎵 Sidechain - Social VST for Producers");
     statusLabel->setJustificationType(juce::Justification::centred);
@@ -18,6 +21,22 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
     addAndMakeVisible(statusLabel.get());
     
     DBG("Status label created and added");
+    
+    // Initialize view components
+    profileSetupComponent = std::make_unique<ProfileSetupComponent>();
+    profileSetupComponent->onSkipSetup = [this]() { showView(AppView::PostsFeed); };
+    profileSetupComponent->onCompleteSetup = [this]() { showView(AppView::PostsFeed); };
+    profileSetupComponent->onProfilePicSelected = [this](const juce::String& picUrl) { 
+        profilePicUrl = picUrl; 
+        saveLoginState(); // Save the updated profile pic
+        DBG("Main editor received profile pic: " + picUrl);
+    };
+    
+    postsFeedComponent = std::make_unique<PostsFeedComponent>();
+    postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
+    
+    // Load persistent state after components are initialized
+    loadLoginState();
     
     // Connect button with bright colors
     connectButton = std::make_unique<juce::TextButton>("Connect Account");
@@ -39,6 +58,10 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // Dark theme background  
     g.fillAll (juce::Colour::fromRGB(32, 32, 36));
+    
+    // Only show auth UI when in Authentication view
+    if (currentView != AppView::Authentication)
+        return;
     
     // Title text
     g.setColour(juce::Colours::white);
@@ -65,12 +88,8 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
         {
             // Single "Connect Account" button
             auto buttonArea = getLocalBounds().withSizeKeepingCentre(200, 50).withY(150);
-            g.setColour(juce::Colour::fromRGB(0, 212, 255));
-            g.fillRoundedRectangle(buttonArea.toFloat(), 8.0f);
-            
-            g.setColour(juce::Colours::white);
-            g.setFont(16.0f);
-            g.drawText("Connect Account", buttonArea, juce::Justification::centred);
+            drawFocusedButton(g, buttonArea, "Connect Account", juce::Colour::fromRGB(0, 212, 255), 
+                            currentFocusIndex == 0);
             break;
         }
         
@@ -83,32 +102,23 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
             
             // Email Login button
             auto emailButton = getButtonArea(0, 4);
-            g.setColour(juce::Colour::fromRGB(0, 212, 255));
-            g.fillRoundedRectangle(emailButton.toFloat(), 6.0f);
-            g.setColour(juce::Colours::white);
-            g.setFont(13.0f);
-            g.drawText("📧 Login with Email", emailButton, juce::Justification::centred);
+            drawFocusedButton(g, emailButton, "📧 Login with Email", juce::Colour::fromRGB(0, 212, 255), 
+                            currentFocusIndex == 0);
             
             // Email Signup button  
             auto signupButton = getButtonArea(1, 4);
-            g.setColour(juce::Colour::fromRGB(0, 180, 216)); // Slightly darker blue
-            g.fillRoundedRectangle(signupButton.toFloat(), 6.0f);
-            g.setColour(juce::Colours::white);
-            g.drawText("✨ Create Account", signupButton, juce::Justification::centred);
+            drawFocusedButton(g, signupButton, "✨ Create Account", juce::Colour::fromRGB(0, 180, 216), 
+                            currentFocusIndex == 1);
             
             // Google OAuth button
             auto googleButton = getButtonArea(2, 4);
-            g.setColour(juce::Colour::fromRGB(234, 67, 53)); // Google red
-            g.fillRoundedRectangle(googleButton.toFloat(), 6.0f);
-            g.setColour(juce::Colours::white);
-            g.drawText("🔗 Google", googleButton, juce::Justification::centred);
+            drawFocusedButton(g, googleButton, "🔗 Google", juce::Colour::fromRGB(234, 67, 53), 
+                            currentFocusIndex == 2);
             
             // Discord OAuth button
             auto discordButton = getButtonArea(3, 4);
-            g.setColour(juce::Colour::fromRGB(88, 101, 242)); // Discord purple
-            g.fillRoundedRectangle(discordButton.toFloat(), 6.0f);
-            g.setColour(juce::Colours::white);
-            g.drawText("🎮 Discord", discordButton, juce::Justification::centred);
+            drawFocusedButton(g, discordButton, "🎮 Discord", juce::Colour::fromRGB(88, 101, 242), 
+                            currentFocusIndex == 3);
             break;
         }
         
@@ -138,18 +148,13 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
             auto submitButton = juce::Rectangle<int>(getWidth()/2 - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, 36);
             auto cancelButton = juce::Rectangle<int>(getWidth()/2 + buttonSpacing/2, buttonY, buttonWidth, 36);
             
-            // Submit button
-            g.setColour(juce::Colour::fromRGB(40, 167, 69)); // Green
-            g.fillRoundedRectangle(submitButton.toFloat(), 8.0f);
-            g.setColour(juce::Colours::white);
-            g.setFont(15.0f);
-            g.drawText("Login", submitButton, juce::Justification::centred);
+            // Submit button (focus index 2 for EmailLogin)
+            drawFocusedButton(g, submitButton, "Login", juce::Colour::fromRGB(40, 167, 69), 
+                            currentFocusIndex == 2);
             
-            // Cancel button
-            g.setColour(juce::Colour::fromRGB(108, 117, 125)); // Grey
-            g.fillRoundedRectangle(cancelButton.toFloat(), 8.0f);
-            g.setColour(juce::Colours::white);
-            g.drawText("Cancel", cancelButton, juce::Justification::centred);
+            // Cancel button (focus index 3 for EmailLogin)
+            drawFocusedButton(g, cancelButton, "Cancel", juce::Colour::fromRGB(108, 117, 125), 
+                            currentFocusIndex == 3);
             break;
         }
         
@@ -191,18 +196,13 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
             auto submitButton = juce::Rectangle<int>(getWidth()/2 - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, 36);
             auto cancelButton = juce::Rectangle<int>(getWidth()/2 + buttonSpacing/2, buttonY, buttonWidth, 36);
             
-            // Submit button
-            g.setColour(juce::Colour::fromRGB(40, 167, 69)); // Green
-            g.fillRoundedRectangle(submitButton.toFloat(), 8.0f);
-            g.setColour(juce::Colours::white);
-            g.setFont(15.0f);
-            g.drawText("Create Account", submitButton, juce::Justification::centred);
+            // Submit button (focus index 5 for EmailSignup)
+            drawFocusedButton(g, submitButton, "Create Account", juce::Colour::fromRGB(40, 167, 69), 
+                            currentFocusIndex == 5);
             
-            // Cancel button
-            g.setColour(juce::Colour::fromRGB(108, 117, 125)); // Grey
-            g.fillRoundedRectangle(cancelButton.toFloat(), 8.0f);
-            g.setColour(juce::Colours::white);
-            g.drawText("Cancel", cancelButton, juce::Justification::centred);
+            // Cancel button (focus index 6 for EmailSignup)
+            drawFocusedButton(g, cancelButton, "Cancel", juce::Colour::fromRGB(108, 117, 125), 
+                            currentFocusIndex == 6);
             break;
         }
         
@@ -461,6 +461,19 @@ void SidechainAudioProcessorEditor::mouseUp (const juce::MouseEvent& event)
 
 bool SidechainAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 {
+    // Handle global keys first
+    if (key.getKeyCode() == juce::KeyPress::tabKey)
+    {
+        handleTabNavigation(key.getModifiers().isShiftDown());
+        return true;
+    }
+    
+    if (key.getKeyCode() == juce::KeyPress::returnKey)
+    {
+        return handleEnterKey();
+    }
+    
+    // Handle text input for form fields
     if ((authState != AuthState::EmailSignup && authState != AuthState::EmailLogin) || activeField == -1)
         return false;
     
@@ -579,6 +592,278 @@ void SidechainAudioProcessorEditor::showSignupDialog()
     repaint();
 }
 
+void SidechainAudioProcessorEditor::onLoginSuccess()
+{
+    // Hide auth UI and show profile setup
+    showView(AppView::ProfileSetup);
+}
+
+void SidechainAudioProcessorEditor::showView(AppView view)
+{
+    // Hide all view components first
+    if (profileSetupComponent)
+        removeChildComponent(profileSetupComponent.get());
+    if (postsFeedComponent)
+        removeChildComponent(postsFeedComponent.get());
+    
+    // Hide or show auth UI based on view
+    bool showAuthUI = (view == AppView::Authentication);
+    statusLabel->setVisible(showAuthUI);
+    if (connectButton)
+        connectButton->setVisible(showAuthUI);
+    
+    currentView = view;
+    
+    switch (view)
+    {
+        case AppView::Authentication:
+            // Auth UI already handled by existing paint method
+            break;
+            
+        case AppView::ProfileSetup:
+            if (profileSetupComponent)
+            {
+                profileSetupComponent->setUserInfo(username, email, profilePicUrl);
+                addAndMakeVisible(profileSetupComponent.get());
+                profileSetupComponent->setBounds(getLocalBounds());
+            }
+            else
+            {
+                DBG("ProfileSetupComponent is null!");
+            }
+            break;
+            
+        case AppView::PostsFeed:
+            if (postsFeedComponent)
+            {
+                postsFeedComponent->setUserInfo(username, email, profilePicUrl);
+                addAndMakeVisible(postsFeedComponent.get());
+                postsFeedComponent->setBounds(getLocalBounds());
+            }
+            else
+            {
+                DBG("PostsFeedComponent is null!");
+            }
+            break;
+    }
+    
+    repaint();
+}
+
+void SidechainAudioProcessorEditor::saveLoginState()
+{
+    // Save login state to application properties
+    auto properties = juce::PropertiesFile::Options();
+    properties.applicationName = "Sidechain";
+    properties.filenameSuffix = ".settings";
+    properties.folderName = "SidechainPlugin";
+    
+    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    
+    if (authState == AuthState::Connected)
+    {
+        appProperties->setValue("isLoggedIn", true);
+        appProperties->setValue("username", username);
+        appProperties->setValue("email", email);
+        appProperties->setValue("profilePicUrl", profilePicUrl);
+    }
+    else
+    {
+        appProperties->setValue("isLoggedIn", false);
+    }
+    
+    appProperties->save();
+}
+
+void SidechainAudioProcessorEditor::loadLoginState()
+{
+    // Load login state from application properties
+    auto properties = juce::PropertiesFile::Options();
+    properties.applicationName = "Sidechain";
+    properties.filenameSuffix = ".settings";
+    properties.folderName = "SidechainPlugin";
+    
+    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    
+    bool isLoggedIn = appProperties->getBoolValue("isLoggedIn", false);
+    
+    if (isLoggedIn)
+    {
+        // Restore user data
+        username = appProperties->getValue("username", "");
+        email = appProperties->getValue("email", "");
+        profilePicUrl = appProperties->getValue("profilePicUrl", "");
+        
+        // Set logged in state and show profile setup
+        authState = AuthState::Connected;
+        showView(AppView::ProfileSetup);
+    }
+    else
+    {
+        // Start with authentication view
+        authState = AuthState::Disconnected;
+        currentView = AppView::Authentication;
+    }
+}
+
+void SidechainAudioProcessorEditor::updateFocusIndicators()
+{
+    // Update maxFocusIndex based on current auth state
+    switch (authState)
+    {
+        case AuthState::Disconnected:
+            maxFocusIndex = 1; // Just the Connect Account button
+            break;
+            
+        case AuthState::ChoosingMethod:
+            maxFocusIndex = 4; // Email Login, Signup, Google, Discord buttons
+            break;
+            
+        case AuthState::EmailLogin:
+            maxFocusIndex = 4; // Email field, Password field, Login button, Cancel button
+            break;
+            
+        case AuthState::EmailSignup:
+            maxFocusIndex = 7; // 5 fields + 2 buttons
+            break;
+            
+        default:
+            maxFocusIndex = 0;
+            break;
+    }
+    
+    // Clamp current focus index
+    if (currentFocusIndex >= maxFocusIndex)
+        currentFocusIndex = maxFocusIndex - 1;
+}
+
+void SidechainAudioProcessorEditor::handleTabNavigation(bool reverse)
+{
+    updateFocusIndicators();
+    
+    if (maxFocusIndex <= 0)
+        return;
+        
+    if (reverse)
+    {
+        currentFocusIndex--;
+        if (currentFocusIndex < 0)
+            currentFocusIndex = maxFocusIndex - 1;
+    }
+    else
+    {
+        currentFocusIndex++;
+        if (currentFocusIndex >= maxFocusIndex)
+            currentFocusIndex = 0;
+    }
+    
+    // Update active field for form inputs
+    if (authState == AuthState::EmailLogin)
+    {
+        if (currentFocusIndex < 2)
+            activeField = currentFocusIndex; // 0=email, 1=password
+        else
+            activeField = -1; // buttons
+    }
+    else if (authState == AuthState::EmailSignup)
+    {
+        if (currentFocusIndex < 5)
+            activeField = currentFocusIndex; // 0-4 = form fields
+        else
+            activeField = -1; // buttons
+    }
+    
+    repaint();
+}
+
+bool SidechainAudioProcessorEditor::handleEnterKey()
+{
+    updateFocusIndicators();
+    
+    // Handle Enter key based on current focus and auth state
+    switch (authState)
+    {
+        case AuthState::Disconnected:
+            if (currentFocusIndex == 0)
+            {
+                authState = AuthState::ChoosingMethod;
+                currentFocusIndex = 0;
+                repaint();
+                return true;
+            }
+            break;
+            
+        case AuthState::ChoosingMethod:
+            if (currentFocusIndex == 0)
+            {
+                // Email Login
+                authState = AuthState::EmailLogin;
+                email = "";
+                password = "";
+                activeField = -1;
+                currentFocusIndex = 0;
+                repaint();
+            }
+            else if (currentFocusIndex == 1)
+            {
+                // Email Signup  
+                authState = AuthState::EmailSignup;
+                email = "";
+                username = "";
+                displayName = "";
+                password = "";
+                confirmPassword = "";
+                activeField = -1;
+                currentFocusIndex = 0;
+                repaint();
+            }
+            return true;
+            
+        case AuthState::EmailLogin:
+            if (currentFocusIndex == 2) // Login button
+            {
+                handleEmailLogin();
+            }
+            else if (currentFocusIndex == 3) // Cancel button
+            {
+                authState = AuthState::ChoosingMethod;
+                activeField = -1;
+                currentFocusIndex = 0;
+                repaint();
+            }
+            else
+            {
+                // Submit form from any input field
+                handleEmailLogin();
+            }
+            return true;
+            
+        case AuthState::EmailSignup:
+            if (currentFocusIndex == 5) // Submit button
+            {
+                handleEmailSignup();
+            }
+            else if (currentFocusIndex == 6) // Cancel button
+            {
+                authState = AuthState::ChoosingMethod;
+                activeField = -1;
+                currentFocusIndex = 0;
+                repaint();
+            }
+            else
+            {
+                // Submit form from any input field
+                handleEmailSignup();
+            }
+            return true;
+            
+        default:
+            break;
+    }
+    
+    return false;
+}
+
 void SidechainAudioProcessorEditor::handleEmailLogin()
 {
     // Validate form fields
@@ -637,6 +922,8 @@ void SidechainAudioProcessorEditor::handleEmailLogin()
                             username = email.upToFirstOccurrenceOf("@", false, false);
                         }
                         authState = AuthState::Connected;
+                        saveLoginState(); // Save persistent state
+                        onLoginSuccess();
                     }
                     else
                     {
@@ -735,7 +1022,8 @@ void SidechainAudioProcessorEditor::handleEmailSignup()
                             // Success!
                             username = user.getProperty("username", "").toString();
                             authState = AuthState::Connected;
-                            repaint();
+                            saveLoginState(); // Save persistent state
+                            onLoginSuccess();
                             return;
                         }
                     }
@@ -806,5 +1094,25 @@ void SidechainAudioProcessorEditor::drawFormField(juce::Graphics& g, const juce:
     }
     
     g.drawText(displayValue, area.reduced(8, 0), juce::Justification::centredLeft);
+}
+
+void SidechainAudioProcessorEditor::drawFocusedButton(juce::Graphics& g, juce::Rectangle<int> area, 
+                                                     const juce::String& text, juce::Colour bgColor, bool isFocused)
+{
+    // Button background
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(area.toFloat(), 8.0f);
+    
+    // Focus indicator
+    if (isFocused)
+    {
+        g.setColour(juce::Colour::fromRGB(0, 212, 255)); // Bright blue focus ring
+        g.drawRoundedRectangle(area.expanded(2).toFloat(), 10.0f, 3.0f);
+    }
+    
+    // Button text
+    g.setColour(juce::Colours::white);
+    g.setFont(15.0f);
+    g.drawText(text, area, juce::Justification::centred);
 }
 
