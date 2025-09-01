@@ -112,6 +112,47 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
             break;
         }
         
+        case AuthState::EmailLogin:
+        {
+            // Login form with proper spacing
+            g.setColour(juce::Colours::white);
+            g.setFont(18.0f);
+            g.drawText("Login to Sidechain", getLocalBounds().withY(80).withHeight(30), juce::Justification::centred);
+            
+            // Form fields with proper spacing (only email and password for login)
+            auto formArea = getLocalBounds().withSizeKeepingCentre(350, 150).withY(120);
+            const int fieldSpacing = 8;
+            const int fieldHeight = 35;
+            
+            auto emailArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Email:", email, emailArea, false, activeField == 0);
+            formArea.removeFromTop(fieldSpacing);
+            
+            auto passwordArea = formArea.removeFromTop(fieldHeight);
+            drawFormField(g, "Password:", password, passwordArea, true, activeField == 1);
+            
+            // Buttons with proper spacing below form
+            auto buttonY = 120 + 2 * (fieldHeight + fieldSpacing) + 20; // Below email and password fields
+            const int buttonWidth = 120;
+            const int buttonSpacing = 20;
+            auto submitButton = juce::Rectangle<int>(getWidth()/2 - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, 36);
+            auto cancelButton = juce::Rectangle<int>(getWidth()/2 + buttonSpacing/2, buttonY, buttonWidth, 36);
+            
+            // Submit button
+            g.setColour(juce::Colour::fromRGB(40, 167, 69)); // Green
+            g.fillRoundedRectangle(submitButton.toFloat(), 8.0f);
+            g.setColour(juce::Colours::white);
+            g.setFont(15.0f);
+            g.drawText("Login", submitButton, juce::Justification::centred);
+            
+            // Cancel button
+            g.setColour(juce::Colour::fromRGB(108, 117, 125)); // Grey
+            g.fillRoundedRectangle(cancelButton.toFloat(), 8.0f);
+            g.setColour(juce::Colours::white);
+            g.drawText("Cancel", cancelButton, juce::Justification::centred);
+            break;
+        }
+        
         case AuthState::EmailSignup:
         {
             // Signup form with proper spacing
@@ -290,7 +331,9 @@ void SidechainAudioProcessorEditor::mouseUp (const juce::MouseEvent& event)
             if (emailButton.contains(event.getPosition()))
             {
                 authState = AuthState::EmailLogin;
-                email = "producer@example.com"; // Default value
+                email = ""; // Clear fields for login
+                password = "";
+                activeField = -1;
                 repaint();
             }
             else if (signupButton.contains(event.getPosition()))
@@ -310,6 +353,48 @@ void SidechainAudioProcessorEditor::mouseUp (const juce::MouseEvent& event)
             else if (discordButton.contains(event.getPosition()))
             {
                 handleOAuthLogin("discord");
+            }
+            break;
+        }
+        
+        case AuthState::EmailLogin:
+        {
+            // Handle login form clicks
+            const int fieldHeight = 35;
+            const int fieldSpacing = 8;
+            auto buttonY = 120 + 2 * (fieldHeight + fieldSpacing) + 20; // Below email and password fields
+            const int buttonWidth = 120;
+            const int buttonSpacing = 20;
+            auto submitButton = juce::Rectangle<int>(getWidth()/2 - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, 36);
+            auto cancelButton = juce::Rectangle<int>(getWidth()/2 + buttonSpacing/2, buttonY, buttonWidth, 36);
+            
+            if (submitButton.contains(event.getPosition()))
+            {
+                handleEmailLogin();
+            }
+            else if (cancelButton.contains(event.getPosition()))
+            {
+                authState = AuthState::ChoosingMethod;
+                activeField = -1;
+                repaint();
+            }
+            else
+            {
+                // Check if clicked on form fields to make them active (only email and password for login)
+                auto formArea = getLocalBounds().withSizeKeepingCentre(350, 150).withY(120);
+                
+                for (int i = 0; i < 2; ++i) // Only 2 fields for login: email (0) and password (1)
+                {
+                    auto fieldArea = formArea.withY(120 + i * (fieldHeight + fieldSpacing)).withHeight(fieldHeight);
+                    if (fieldArea.contains(event.getPosition()))
+                    {
+                        activeField = i;
+                        setWantsKeyboardFocus(true);
+                        grabKeyboardFocus();
+                        repaint();
+                        break;
+                    }
+                }
             }
             break;
         }
@@ -376,20 +461,34 @@ void SidechainAudioProcessorEditor::mouseUp (const juce::MouseEvent& event)
 
 bool SidechainAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
 {
-    if (authState != AuthState::EmailSignup || activeField == -1)
+    if ((authState != AuthState::EmailSignup && authState != AuthState::EmailLogin) || activeField == -1)
         return false;
     
     juce::String* targetField = nullptr;
     
-    // Select which field to edit based on activeField
-    switch (activeField)
+    // Select which field to edit based on activeField and auth state
+    if (authState == AuthState::EmailLogin)
     {
-        case 0: targetField = &email; break;
-        case 1: targetField = &username; break;
-        case 2: targetField = &displayName; break;
-        case 3: targetField = &password; break;
-        case 4: targetField = &confirmPassword; break;
-        default: return false;
+        // Login mode: only email (0) and password (1)
+        switch (activeField)
+        {
+            case 0: targetField = &email; break;
+            case 1: targetField = &password; break;
+            default: return false;
+        }
+    }
+    else // EmailSignup
+    {
+        // Signup mode: email (0), username (1), displayName (2), password (3), confirmPassword (4)
+        switch (activeField)
+        {
+            case 0: targetField = &email; break;
+            case 1: targetField = &username; break;
+            case 2: targetField = &displayName; break;
+            case 3: targetField = &password; break;
+            case 4: targetField = &confirmPassword; break;
+            default: return false;
+        }
     }
     
     // Handle key input
@@ -405,13 +504,27 @@ bool SidechainAudioProcessorEditor::keyPressed (const juce::KeyPress& key)
     {
         // Move to next field or submit
         activeField++;
-        if (activeField >= 5)
+        if (authState == AuthState::EmailLogin)
         {
-            handleEmailSignup();
+            if (activeField >= 2) // Login has only 2 fields
+            {
+                handleEmailLogin();
+            }
+            else
+            {
+                repaint();
+            }
         }
-        else
+        else // EmailSignup
         {
-            repaint();
+            if (activeField >= 5) // Signup has 5 fields
+            {
+                handleEmailSignup();
+            }
+            else
+            {
+                repaint();
+            }
         }
     }
     else if (key.isKeyCurrentlyDown(juce::KeyPress::escapeKey))
@@ -468,14 +581,89 @@ void SidechainAudioProcessorEditor::showSignupDialog()
 
 void SidechainAudioProcessorEditor::handleEmailLogin()
 {
-    // TODO: Connect to real backend API
+    // Validate form fields
+    if (email.isEmpty() || password.isEmpty())
+    {
+        errorMessage = "Email and password are required";
+        authState = AuthState::Error;
+        repaint();
+        return;
+    }
+    
+    // Show connecting state
     authState = AuthState::Connecting;
     repaint();
     
-    juce::Timer::callAfterDelay(1500, [this]() {
-        authState = AuthState::Connected;
-        username = "EmailUser";
-        repaint();
+    // Make real API call to backend
+    juce::Thread::launch([this]() {
+        juce::var loginData = juce::var(new juce::DynamicObject());
+        loginData.getDynamicObject()->setProperty("email", email);
+        loginData.getDynamicObject()->setProperty("password", password);
+        
+        juce::String jsonData = juce::JSON::toString(loginData);
+        
+        // Create HTTP request
+        juce::URL url("http://localhost:8787/api/v1/auth/login");
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                           .withExtraHeaders("Content-Type: application/json\r\n")
+                           .withConnectionTimeoutMs(10000);
+        
+        url = url.withPOSTData(jsonData);
+        auto stream = url.createInputStream(options);
+        
+        if (stream != nullptr)
+        {
+            juce::String response = stream->readEntireStreamAsString();
+            
+            juce::MessageManager::callAsync([this, response]() {
+                // Parse response JSON
+                juce::var responseData = juce::JSON::parse(response);
+                if (responseData.isObject() && responseData.hasProperty("auth"))
+                {
+                    // Success - extract token and user info from auth object
+                    juce::var authData = responseData["auth"];
+                    if (authData.isObject() && authData.hasProperty("token"))
+                    {
+                        // Extract username from user object or use email
+                        if (authData.hasProperty("user"))
+                        {
+                            juce::var userData = authData["user"];
+                            username = userData.hasProperty("username") 
+                                      ? userData["username"].toString() 
+                                      : email.upToFirstOccurrenceOf("@", false, false);
+                        }
+                        else
+                        {
+                            username = email.upToFirstOccurrenceOf("@", false, false);
+                        }
+                        authState = AuthState::Connected;
+                    }
+                    else
+                    {
+                        errorMessage = "Invalid authentication response";
+                        authState = AuthState::Error;
+                    }
+                }
+                else
+                {
+                    // Login failed
+                    errorMessage = responseData.hasProperty("error") 
+                                  ? responseData["error"].toString() 
+                                  : "Login failed";
+                    authState = AuthState::Error;
+                }
+                repaint();
+            });
+        }
+        else
+        {
+            juce::MessageManager::callAsync([this]() {
+                // Connection failed
+                errorMessage = "Connection to server failed";
+                authState = AuthState::Error;
+                repaint();
+            });
+        }
     });
 }
 
