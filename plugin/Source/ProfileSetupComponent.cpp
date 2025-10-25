@@ -22,12 +22,20 @@ void ProfileSetupComponent::paint(juce::Graphics& g)
 {
     // Background
     g.fillAll(juce::Colour::fromRGB(25, 25, 25));
-    
+
+    // Logout button at top-right
+    auto logoutBtnBounds = juce::Rectangle<int>(getWidth() - 150, 10, 140, 40);
+    g.setColour(juce::Colour::fromRGB(180, 50, 50));
+    g.fillRoundedRectangle(logoutBtnBounds.toFloat(), 6.0f);
+    g.setColour(juce::Colours::white);
+    g.setFont(16.0f);
+    g.drawText("Logout", logoutBtnBounds, juce::Justification::centred);
+
     // Header
     g.setColour(juce::Colours::white);
     g.setFont(24.0f);
     g.drawText("Complete Your Profile", getLocalBounds().withY(60).withHeight(40), juce::Justification::centred);
-    
+
     g.setColour(juce::Colours::lightgrey);
     g.setFont(16.0f);
     g.drawText("Welcome " + username + "! Let's set up your profile.", getLocalBounds().withY(110).withHeight(30), juce::Justification::centred);
@@ -36,25 +44,28 @@ void ProfileSetupComponent::paint(juce::Graphics& g)
     auto picBounds = juce::Rectangle<int>(200, 140, 150, 150);
     drawCircularProfilePic(g, picBounds);
     
-    // Buttons positioned to the right of the profile picture where we know they'll be visible
+    // Buttons positioned to the right of the profile picture
     // Upload button
-    g.setColour(juce::Colours::red); // Bright red so we can definitely see it
-    g.fillRect(400, 150, 150, 30);
+    auto uploadBtn = juce::Rectangle<int>(400, 150, 150, 36);
+    g.setColour(juce::Colour::fromRGB(0, 212, 255));
+    g.fillRoundedRectangle(uploadBtn.toFloat(), 6.0f);
     g.setColour(juce::Colours::white);
     g.setFont(14.0f);
-    g.drawText("📸 Upload Photo", juce::Rectangle<int>(400, 150, 150, 30), juce::Justification::centred);
-    
+    g.drawText("📸 Upload Photo", uploadBtn, juce::Justification::centred);
+
     // Skip button
-    g.setColour(juce::Colours::yellow); // Bright yellow
-    g.fillRect(400, 190, 70, 30);
-    g.setColour(juce::Colours::black);
-    g.drawText("Skip", juce::Rectangle<int>(400, 190, 70, 30), juce::Justification::centred);
-    
-    // Continue button
-    g.setColour(juce::Colours::green); // Bright green
-    g.fillRect(480, 190, 70, 30);
+    auto skipBtn = juce::Rectangle<int>(400, 196, 70, 32);
+    g.setColour(juce::Colour::fromRGB(108, 117, 125));
+    g.fillRoundedRectangle(skipBtn.toFloat(), 4.0f);
     g.setColour(juce::Colours::white);
-    g.drawText("Continue", juce::Rectangle<int>(480, 190, 70, 30), juce::Justification::centred);
+    g.drawText("Skip", skipBtn, juce::Justification::centred);
+
+    // Continue button
+    auto continueBtn = juce::Rectangle<int>(480, 196, 70, 32);
+    g.setColour(juce::Colour::fromRGB(40, 167, 69));
+    g.fillRoundedRectangle(continueBtn.toFloat(), 4.0f);
+    g.setColour(juce::Colours::white);
+    g.drawText("Continue", continueBtn, juce::Justification::centred);
 }
 
 void ProfileSetupComponent::drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -126,10 +137,11 @@ void ProfileSetupComponent::resized()
 void ProfileSetupComponent::mouseUp(const juce::MouseEvent& event)
 {
     // Use same coordinates as paint method
-    auto uploadBtn = juce::Rectangle<int>(400, 150, 150, 30);
-    auto skipBtn = juce::Rectangle<int>(400, 190, 70, 30);
-    auto continueBtn = juce::Rectangle<int>(480, 190, 70, 30);
+    auto uploadBtn = juce::Rectangle<int>(400, 150, 150, 36);
+    auto skipBtn = juce::Rectangle<int>(400, 196, 70, 32);
+    auto continueBtn = juce::Rectangle<int>(480, 196, 70, 32);
     auto picBounds = juce::Rectangle<int>(200, 140, 150, 150);
+    auto logoutBtn = juce::Rectangle<int>(getWidth() - 150, 10, 140, 40);
     
     if (uploadBtn.contains(event.getPosition()) || picBounds.contains(event.getPosition()))
     {
@@ -160,6 +172,12 @@ void ProfileSetupComponent::mouseUp(const juce::MouseEvent& event)
             onSkipSetup();
         else if (continueBtn.contains(event.getPosition()) && onCompleteSetup)
             onCompleteSetup();
+    }
+    else if (logoutBtn.contains(event.getPosition()))
+    {
+        DBG("Logout button clicked");
+        if (onLogout)
+            onLogout();
     }
 }
 

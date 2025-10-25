@@ -14,7 +14,10 @@ public:
 
     // Callback for when user wants to go to profile
     std::function<void()> onGoToProfile;
-    
+
+    // Callback for logout
+    std::function<void()> onLogout;
+
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& profilePicUrl);
 

@@ -21,10 +21,10 @@ void PostsFeedComponent::paint(juce::Graphics& g)
 {
     // Background
     g.fillAll(juce::Colour::fromRGB(25, 25, 25));
-    
+
     // Top navigation bar
     drawTopBar(g);
-    
+
     // Main feed area
     drawEmptyState(g);
 }
@@ -53,7 +53,7 @@ void PostsFeedComponent::drawTopBar(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.setFont(14.0f);
     g.drawText(username, smallPicBounds.withX(smallPicBounds.getRight() + 10).withWidth(100), juce::Justification::centredLeft);
-    
+
     // Border
     g.setColour(juce::Colour::fromRGB(60, 60, 60));
     g.drawLine(0, topBarBounds.getBottom(), getWidth(), topBarBounds.getBottom(), 1.0f);
@@ -161,10 +161,31 @@ void PostsFeedComponent::resized()
 
 void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
 {
-    // Check if clicked on profile area in top bar
+    // Check if clicked on HUGE logout button at top
+    auto hugeLogoutBtn = juce::Rectangle<int>(10, 10, 200, 80);
+    if (hugeLogoutBtn.contains(event.getPosition()))
+    {
+        DBG("HUGE Logout button clicked from feed");
+        if (onLogout)
+            onLogout();
+        return;
+    }
+
+    // Check if clicked on logout button in top bar
     auto topBarBounds = getLocalBounds().withHeight(70);
+    auto logoutBtn = juce::Rectangle<int>(getWidth() - 80, topBarBounds.getCentreY() - 15, 60, 30);
+
+    if (logoutBtn.contains(event.getPosition()))
+    {
+        DBG("Logout button clicked from feed");
+        if (onLogout)
+            onLogout();
+        return;
+    }
+
+    // Check if clicked on profile area in top bar
     auto profileBounds = topBarBounds.withX(getWidth() - 200).withWidth(180);
-    
+
     if (profileBounds.contains(event.getPosition()))
     {
         if (onGoToProfile)

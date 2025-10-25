@@ -4,7 +4,7 @@
 .PHONY: all install-deps backend plugin clean test help
 
 # Default target
-all: install-deps backend plugin
+all: install-deps backend plugin plugin-install
 
 # Detect platform
 UNAME_S := $(shell uname -s)
@@ -19,16 +19,30 @@ ifeq ($(UNAME_S),Darwin)
 	JUCE_ARCHIVE = juce-$(JUCE_VERSION)-osx.zip
 	PLATFORM = osx
 	PROJUCER = $(JUCE_DIR)/Projucer.app/Contents/MacOS/Projucer
+	BUILD_DIR = plugin/Builds/MacOSX
+	BUILD_COMMAND = cd $(BUILD_DIR) && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
+	PLUGIN_OUTPUT = $(BUILD_DIR)/build/Release/Sidechain.vst3
+	PLUGIN_INSTALL_DIR = ~/Library/Audio/Plug-Ins/VST3
 else ifeq ($(UNAME_S),Linux)
 	JUCE_URL = https://github.com/juce-framework/JUCE/releases/download/$(JUCE_VERSION)/juce-$(JUCE_VERSION)-linux.zip
 	JUCE_ARCHIVE = juce-$(JUCE_VERSION)-linux.zip
 	PLATFORM = linux
 	PROJUCER = $(JUCE_DIR)/Projucer
+	BUILD_DIR = plugin/Builds/LinuxMakefile
+	BUILD_COMMAND = cd $(BUILD_DIR) && make CONFIG=Release
+	PLUGIN_OUTPUT = $(BUILD_DIR)/build/Sidechain.vst3
+	PLUGIN_INSTALL_DIR = ~/.vst3
 else ifeq ($(OS),Windows_NT)
 	JUCE_URL = https://github.com/juce-framework/JUCE/releases/download/$(JUCE_VERSION)/juce-$(JUCE_VERSION)-windows.zip
 	JUCE_ARCHIVE = juce-$(JUCE_VERSION)-windows.zip
 	PLATFORM = windows
 	PROJUCER = $(JUCE_DIR)/Projucer.exe
+	BUILD_DIR = plugin/Builds/VisualStudio2022
+	# Use MSBuild from PATH
+	MSBUILD := $(shell which MSBuild.exe 2>/dev/null || echo "MSBuild not found")
+	BUILD_COMMAND = cd $(BUILD_DIR) && "$(MSBUILD)" Sidechain_VST3.vcxproj -p:Configuration=Release -p:Platform=x64
+	PLUGIN_OUTPUT = $(BUILD_DIR)/x64/Release/VST3/Sidechain.vst3
+	PLUGIN_INSTALL_DIR = $(LOCALAPPDATA)/Programs/Common/VST3
 else
 	$(error Unsupported platform: $(UNAME_S))
 endif
@@ -68,68 +82,52 @@ backend-dev:
 	@cd backend && go run cmd/server/main.go
 
 # Plugin targets - optimized for speed
-plugin: $(JUCE_DIR)
-	@if [ ! -d plugin/Builds/MacOSX ]; then \
-		echo "🔄 Generating plugin project files (first time)..."; \
-		$(PROJUCER) --resave plugin/Sidechain.jucer; \
-		echo "✅ Project files generated"; \
-	elif [ plugin/Sidechain.jucer -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ] || \
-	     [ plugin/Source -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ]; then \
-		echo "🔄 Source files changed, regenerating project..."; \
-		$(PROJUCER) --resave plugin/Sidechain.jucer; \
-		echo "✅ Project files updated"; \
-	else \
-		echo "⚡ Project files up to date, skipping regeneration"; \
+plugin: $(JUCE_DIR) plugin-project
+ifeq ($(PLATFORM),windows)
+	@if [ "$(MSBUILD)" = "MSBuild not found" ]; then \
+		echo "❌ MSBuild not found!"; \
+		echo "Please install Visual Studio 2022 with C++ Desktop Development workload"; \
+		exit 1; \
 	fi
-	@echo "🔄 Building VST plugin..."
-	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
+	@echo "🔧 Fixing Visual Studio project..."
+	@bash fix-vcxproj.sh
+endif
+	@echo "🔄 Building VST plugin for $(PLATFORM)..."
+	@$(BUILD_COMMAND)
 	@echo "✅ Plugin built successfully"
 
-plugin-debug: $(JUCE_DIR)
-	@if [ ! -d plugin/Builds/MacOSX ]; then \
-		echo "🔄 Generating plugin project files (first time)..."; \
-		$(PROJUCER) --resave plugin/Sidechain.jucer; \
-		echo "✅ Project files generated"; \
-	elif [ plugin/Sidechain.jucer -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ] || \
-	     [ plugin/Source -nt plugin/Builds/MacOSX/Sidechain.xcodeproj ]; then \
-		echo "🔄 Source files changed, regenerating project..."; \
-		$(PROJUCER) --resave plugin/Sidechain.jucer; \
-		echo "✅ Project files updated"; \
-	else \
-		echo "⚡ Project files up to date, skipping regeneration"; \
-	fi
-	@echo "🔄 Building VST plugin (Debug)..."
-	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Debug -quiet
-	@echo "✅ Plugin built successfully (Debug)"
+plugin-debug: $(JUCE_DIR) plugin-project
+	@echo "🔄 Building VST plugin (Debug) for $(PLATFORM)..."
+	@echo "⚠️  Debug builds not yet implemented for $(PLATFORM)"
 
-# Fast build - always skip project regeneration 
+# Fast build - always skip project regeneration
 plugin-fast: $(JUCE_DIR)
-	@echo "🔄 Building VST plugin (fast - no project regen)..."
-	@cd plugin/Builds/MacOSX && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
+	@echo "🔄 Building VST plugin (fast - no project regen) for $(PLATFORM)..."
+	@$(BUILD_COMMAND)
 	@echo "✅ Plugin built successfully"
 
 plugin-project: $(JUCE_DIR)
-	@echo "🔄 Generating plugin project files..."
-	@if [ ! -f plugin/Sidechain.jucer ]; then \
-		echo "❌ Sidechain.jucer not found"; \
-		exit 1; \
+	@echo "🔄 Generating plugin project files for $(PLATFORM)..."
+	@if [ ! -d $(BUILD_DIR) ]; then \
+		echo "🔄 First time build - generating project files..."; \
+		cd plugin && ../$(PROJUCER) --resave Sidechain.jucer; \
+		echo "✅ Project files generated"; \
 	else \
-		echo "🔄 Updating existing project..."; \
-		$(PROJUCER) --resave plugin/Sidechain.jucer; \
+		echo "⚡ Project files already exist, skipping regeneration"; \
 	fi
-	@echo "✅ Project files generated"
 
 plugin-install: plugin
-	@echo "📦 Installing VST plugin..."
-	@rm -rf ~/Library/Audio/Plug-Ins/VST3/Sidechain.vst3
-	@cp -r plugin/Builds/MacOSX/build/Release/Sidechain.vst3 ~/Library/Audio/Plug-Ins/VST3/
-	@echo "✅ Plugin installed to system directory"
-
-plugin-install-debug: plugin-debug
-	@echo "📦 Installing VST plugin (Debug)..."
-	@rm -rf ~/Library/Audio/Plug-Ins/VST3/Sidechain.vst3
-	@cp -r plugin/Builds/MacOSX/build/Debug/Sidechain.vst3 ~/Library/Audio/Plug-Ins/VST3/
-	@echo "✅ Debug plugin installed to system directory"
+	@echo "📦 Installing VST plugin to $(PLUGIN_INSTALL_DIR)..."
+ifeq ($(PLATFORM),windows)
+	@test -d "$(PLUGIN_INSTALL_DIR)" || mkdir -p "$(PLUGIN_INSTALL_DIR)"
+	@rm -rf "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
+	@cp -r "$(PLUGIN_OUTPUT)" "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
+else
+	@mkdir -p "$(PLUGIN_INSTALL_DIR)"
+	@rm -rf "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
+	@cp -r "$(PLUGIN_OUTPUT)" "$(PLUGIN_INSTALL_DIR)/"
+endif
+	@echo "✅ Plugin installed successfully"
 
 plugin-clean:
 	@echo "🧹 Cleaning plugin build files..."
@@ -180,26 +178,32 @@ deps-info:
 	@echo "JUCE URL: $(JUCE_URL)"
 	@echo "JUCE Directory: $(JUCE_DIR)"
 	@echo "Projucer: $(PROJUCER)"
+ifeq ($(PLATFORM),windows)
+	@echo "MSBuild: $(MSBUILD)"
+	@echo "Build Directory: $(BUILD_DIR)"
+endif
 
 help:
 	@echo "🎵 Sidechain - Social VST for Music Producers"
 	@echo ""
+	@echo "Platform: $(PLATFORM)"
+	@echo ""
 	@echo "Available targets:"
-	@echo "  all           - Install deps and build everything"
-	@echo "  install-deps  - Download and install JUCE $(JUCE_VERSION)"
-	@echo "  backend       - Build Go backend server"
-	@echo "  backend-run   - Run built backend server"
-	@echo "  backend-dev   - Run backend in development mode"
-	@echo "  plugin        - Build VST plugin (smart regeneration)"
-	@echo "  plugin-fast   - Build VST plugin (skip project regen)"
-	@echo "  plugin-project - Force regenerate plugin project files"
-	@echo "  test          - Run all tests"
-	@echo "  dev           - Start development environment"
-	@echo "  clean         - Clean all build artifacts"
-	@echo "  deps-info     - Show dependency information"
-	@echo "  help          - Show this help message"
+	@echo "  all             - Build and install everything (recommended)"
+	@echo "  install-deps    - Download and install JUCE $(JUCE_VERSION)"
+	@echo "  backend         - Build Go backend server"
+	@echo "  backend-run     - Run built backend server"
+	@echo "  backend-dev     - Run backend in development mode"
+	@echo "  plugin          - Build VST plugin"
+	@echo "  plugin-fast     - Build VST plugin (skip project regen)"
+	@echo "  plugin-install  - Install VST plugin to system directory"
+	@echo "  plugin-project  - Regenerate plugin project files"
+	@echo "  test            - Run all tests"
+	@echo "  dev             - Start development environment"
+	@echo "  clean           - Clean all build artifacts"
+	@echo "  deps-info       - Show dependency information"
+	@echo "  help            - Show this help message"
 	@echo ""
 	@echo "Quick start:"
-	@echo "  make install-deps  # Install JUCE"
-	@echo "  make backend-dev   # Start backend server"
-	@echo "  make plugin        # Build VST plugin"
+	@echo "  make              # Build and install everything"
+	@echo "  make backend-dev  # Start backend server"

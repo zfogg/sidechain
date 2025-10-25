@@ -24,6 +24,7 @@ public:
     using AuthenticationCallback = std::function<void(const juce::String& token, const juce::String& userId)>;
     using UploadCallback = std::function<void(bool success, const juce::String& audioUrl)>;
     using FeedCallback = std::function<void(const juce::var& feedData)>;
+    using ProfilePictureCallback = std::function<void(bool success, const juce::String& pictureUrl)>;
     
     // Authentication (simplified - no device claiming)
     void registerAccount(const juce::String& email, const juce::String& username, 
@@ -45,6 +46,9 @@ public:
     void likePost(const juce::String& activityId, const juce::String& emoji = "");
     void followUser(const juce::String& userId);
     
+    // Profile operations
+    void uploadProfilePicture(const juce::File& imageFile, ProfilePictureCallback callback = nullptr);
+
     // Authentication state
     void setAuthToken(const juce::String& token);
     bool isAuthenticated() const { return !authToken.isEmpty(); }

@@ -158,13 +158,14 @@ func main() {
 			users.Use(authHandlers.AuthMiddleware())
 			users.GET("/me", h.GetProfile)
 			users.PUT("/me", h.UpdateProfile)
+			users.POST("/upload-profile-picture", authHandlers.UploadProfilePicture)
 		}
 	}
 
 	// Server configuration
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8787"
 	}
 
 	srv := &http.Server{

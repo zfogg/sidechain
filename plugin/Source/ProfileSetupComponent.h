@@ -14,12 +14,15 @@ public:
 
     // Callback for when user wants to skip profile setup
     std::function<void()> onSkipSetup;
-    
+
     // Callback for when user completes profile setup
     std::function<void()> onCompleteSetup;
-    
+
     // Callback for when profile picture is selected
     std::function<void(const juce::String& picUrl)> onProfilePicSelected;
+
+    // Callback for logout
+    std::function<void()> onLogout;
     
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& picUrl = "");
