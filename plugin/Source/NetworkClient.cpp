@@ -245,13 +245,136 @@ void NetworkClient::followUser(const juce::String& userId)
 {
     if (!isAuthenticated())
         return;
-        
+
     juce::Thread::launch([this, userId]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("target_user_id", userId);
-        
+
         auto response = makeRequest("/api/v1/social/follow", "POST", data, true);
         DBG("Follow response: " + juce::JSON::toString(response));
+    });
+}
+
+//==============================================================================
+void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePictureCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        DBG("Cannot upload profile picture: not authenticated");
+        if (callback)
+            callback(false, "");
+        return;
+    }
+
+    if (!imageFile.existsAsFile())
+    {
+        DBG("Profile picture file does not exist: " + imageFile.getFullPathName());
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(false, "");
+            });
+        }
+        return;
+    }
+
+    juce::Thread::launch([this, imageFile, callback]() {
+        // Helper function for MIME types
+        auto getMimeType = [](const juce::String& extension) -> juce::String {
+            juce::String ext = extension.toLowerCase();
+            if (ext == ".jpg" || ext == ".jpeg")
+                return "image/jpeg";
+            else if (ext == ".png")
+                return "image/png";
+            else if (ext == ".gif")
+                return "image/gif";
+            else if (ext == ".webp")
+                return "image/webp";
+            else
+                return "application/octet-stream";
+        };
+
+        // Read the image file
+        juce::MemoryBlock imageData;
+        if (!imageFile.loadFileAsData(imageData) || imageData.getSize() == 0)
+        {
+            DBG("Failed to read image file");
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(false, "");
+                });
+            }
+            return;
+        }
+
+        // Create multipart form data manually
+        juce::String boundary = "----SidechainBoundary" + juce::String(juce::Random::getSystemRandom().nextInt64());
+        juce::MemoryOutputStream formData;
+
+        // Add file field
+        formData.writeString("--" + boundary + "\r\n");
+        formData.writeString("Content-Disposition: form-data; name=\"profile_picture\"; filename=\"" + imageFile.getFileName() + "\"\r\n");
+        formData.writeString("Content-Type: " + getMimeType(imageFile.getFileExtension()) + "\r\n\r\n");
+        formData.write(imageData.getData(), imageData.getSize());
+        formData.writeString("\r\n");
+        formData.writeString("--" + boundary + "--\r\n");
+
+        // Create URL
+        juce::URL url(baseUrl + "/api/v1/users/upload-profile-picture");
+
+        // Build headers
+        juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+        headers += "Authorization: Bearer " + authToken + "\r\n";
+
+        // Create request options
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                           .withExtraHeaders(headers)
+                           .withConnectionTimeoutMs(30000); // 30 second timeout for uploads
+
+        // Add form data to URL
+        url = url.withPOSTData(formData.getMemoryBlock());
+
+        // Make request
+        auto stream = url.createInputStream(options);
+
+        if (stream == nullptr)
+        {
+            DBG("Failed to create stream for profile picture upload");
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(false, "");
+                });
+            }
+            return;
+        }
+
+        auto response = stream->readEntireStreamAsString();
+        DBG("Profile picture upload response: " + response);
+
+        // Parse response
+        auto result = juce::JSON::parse(response);
+        bool success = false;
+        juce::String pictureUrl;
+
+        if (result.isObject())
+        {
+            pictureUrl = result.getProperty("url", "").toString();
+            success = !pictureUrl.isEmpty();
+        }
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, success, pictureUrl]() {
+                callback(success, pictureUrl);
+            });
+        }
+
+        if (success)
+            DBG("Profile picture uploaded successfully: " + pictureUrl);
+        else
+            DBG("Profile picture upload failed");
     });
 }
 
@@ -340,8 +463,8 @@ juce::MemoryBlock NetworkClient::encodeAudioToMP3(const juce::AudioBuffer<float>
     // TODO: Implement MP3 encoding
     // For now, return empty block - we'll implement this with a proper encoder later
     // This would typically use LAME encoder or similar
-    
+
     DBG("Audio encoding requested: " + juce::String(buffer.getNumSamples()) + " samples at " + juce::String(sampleRate) + "Hz");
-    
+
     return juce::MemoryBlock();
 }

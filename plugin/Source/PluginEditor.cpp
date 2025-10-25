@@ -21,20 +21,55 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
     addAndMakeVisible(statusLabel.get());
     
     DBG("Status label created and added");
-    
+
+    // Initialize network client
+    networkClient = std::make_unique<NetworkClient>("http://localhost:8787");
+
     // Initialize view components
     profileSetupComponent = std::make_unique<ProfileSetupComponent>();
     profileSetupComponent->onSkipSetup = [this]() { showView(AppView::PostsFeed); };
     profileSetupComponent->onCompleteSetup = [this]() { showView(AppView::PostsFeed); };
-    profileSetupComponent->onProfilePicSelected = [this](const juce::String& picUrl) { 
-        profilePicUrl = picUrl; 
-        saveLoginState(); // Save the updated profile pic
-        DBG("Main editor received profile pic: " + picUrl);
+    profileSetupComponent->onProfilePicSelected = [this](const juce::String& localPath) {
+        DBG("Profile pic selected, uploading to S3: " + localPath);
+
+        // Upload to S3
+        juce::File imageFile(localPath);
+        if (imageFile.existsAsFile() && networkClient)
+        {
+            networkClient->uploadProfilePicture(imageFile, [this, localPath](bool success, const juce::String& s3Url) {
+                if (success)
+                {
+                    DBG("Profile picture uploaded successfully to S3: " + s3Url);
+                    profilePicUrl = s3Url; // Store the S3 URL, not the local path
+                    saveLoginState(); // Save the S3 URL
+                }
+                else
+                {
+                    DBG("Failed to upload profile picture to S3, using local path");
+                    profilePicUrl = localPath; // Fallback to local path
+                    saveLoginState();
+                }
+            });
+        }
+        else
+        {
+            DBG("Image file doesn't exist or network client not initialized");
+            profilePicUrl = localPath;
+            saveLoginState();
+        }
     };
-    
+    profileSetupComponent->onLogout = [this]() {
+        DBG("Logging out user");
+        logout();
+    };
+
     postsFeedComponent = std::make_unique<PostsFeedComponent>();
     postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
-    
+    postsFeedComponent->onLogout = [this]() {
+        DBG("Logging out user from feed");
+        logout();
+    };
+
     // Load persistent state after components are initialized
     loadLoginState();
     
@@ -56,9 +91,9 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
 //==============================================================================
 void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // Dark theme background  
+    // Dark theme background
     g.fillAll (juce::Colour::fromRGB(32, 32, 36));
-    
+
     // Only show auth UI when in Authentication view
     if (currentView != AppView::Authentication)
         return;
@@ -650,6 +685,38 @@ void SidechainAudioProcessorEditor::showView(AppView view)
     repaint();
 }
 
+void SidechainAudioProcessorEditor::logout()
+{
+    DBG("Logout called - clearing user session");
+
+    // Clear all user state
+    username = "";
+    email = "";
+    password = "";
+    confirmPassword = "";
+    displayName = "";
+    profilePicUrl = "";
+    hasCompletedProfileSetup = false;
+    authState = AuthState::Disconnected;
+
+    // Clear saved login state
+    auto properties = juce::PropertiesFile::Options();
+    properties.applicationName = "Sidechain";
+    properties.filenameSuffix = ".settings";
+    properties.folderName = "SidechainPlugin";
+
+    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    appProperties->setValue("isLoggedIn", false);
+    appProperties->removeValue("username");
+    appProperties->removeValue("email");
+    appProperties->removeValue("profilePicUrl");
+    appProperties->save();
+
+    // Return to authentication view
+    showView(AppView::Authentication);
+    repaint();
+}
+
 void SidechainAudioProcessorEditor::saveLoginState()
 {
     // Save login state to application properties
@@ -657,21 +724,22 @@ void SidechainAudioProcessorEditor::saveLoginState()
     properties.applicationName = "Sidechain";
     properties.filenameSuffix = ".settings";
     properties.folderName = "SidechainPlugin";
-    
+
     auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
-    
+
     if (authState == AuthState::Connected)
     {
         appProperties->setValue("isLoggedIn", true);
         appProperties->setValue("username", username);
         appProperties->setValue("email", email);
         appProperties->setValue("profilePicUrl", profilePicUrl);
+        appProperties->setValue("authToken", authToken);
     }
     else
     {
         appProperties->setValue("isLoggedIn", false);
     }
-    
+
     appProperties->save();
 }
 
@@ -693,7 +761,15 @@ void SidechainAudioProcessorEditor::loadLoginState()
         username = appProperties->getValue("username", "");
         email = appProperties->getValue("email", "");
         profilePicUrl = appProperties->getValue("profilePicUrl", "");
-        
+        authToken = appProperties->getValue("authToken", "");
+
+        // Set auth token on network client
+        if (!authToken.isEmpty() && networkClient)
+        {
+            networkClient->setAuthToken(authToken);
+            DBG("Auth token restored from saved state");
+        }
+
         // Set logged in state and show profile setup
         authState = AuthState::Connected;
         showView(AppView::ProfileSetup);
@@ -909,12 +985,21 @@ void SidechainAudioProcessorEditor::handleEmailLogin()
                     juce::var authData = responseData["auth"];
                     if (authData.isObject() && authData.hasProperty("token"))
                     {
+                        // Extract token and set it on network client
+                        juce::String token = authData["token"].toString();
+                        authToken = token;  // Store for persistence
+                        if (networkClient)
+                        {
+                            networkClient->setAuthToken(token);
+                            DBG("Auth token set on network client");
+                        }
+
                         // Extract username from user object or use email
                         if (authData.hasProperty("user"))
                         {
                             juce::var userData = authData["user"];
-                            username = userData.hasProperty("username") 
-                                      ? userData["username"].toString() 
+                            username = userData.hasProperty("username")
+                                      ? userData["username"].toString()
                                       : email.upToFirstOccurrenceOf("@", false, false);
                         }
                         else
@@ -1016,6 +1101,15 @@ void SidechainAudioProcessorEditor::handleEmailSignup()
                     auto authData = result.getProperty("auth", juce::var());
                     if (authData.isObject())
                     {
+                        // Extract token and set it on network client
+                        juce::String token = authData.getProperty("token", "").toString();
+                        authToken = token;  // Store for persistence
+                        if (!token.isEmpty() && networkClient)
+                        {
+                            networkClient->setAuthToken(token);
+                            DBG("Auth token set on network client (registration)");
+                        }
+
                         auto user = authData.getProperty("user", juce::var());
                         if (user.isObject())
                         {

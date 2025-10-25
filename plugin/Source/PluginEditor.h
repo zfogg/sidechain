@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include "ProfileSetupComponent.h"
 #include "PostsFeedComponent.h"
+#include "NetworkClient.h"
 
 //==============================================================================
 /**
@@ -55,19 +56,24 @@ private:
     juce::String displayName = "";
     juce::String errorMessage = "";
     juce::String profilePicUrl = "";
+    juce::String authToken = "";  // Store auth token for persistence
     bool hasCompletedProfileSetup = false;  // Track if user has seen profile setup
     
     // Components for different views
     std::unique_ptr<ProfileSetupComponent> profileSetupComponent;
     std::unique_ptr<PostsFeedComponent> postsFeedComponent;
-    
+
+    // Network client for API calls
+    std::unique_ptr<NetworkClient> networkClient;
+
     // Form input state
     int activeField = -1; // -1 = none, 0 = email, 1 = username, 2 = display, 3 = password, 4 = confirm
     
     // View management
     void showView(AppView view);
     void onLoginSuccess();
-    
+    void logout();
+
     // Persistent state
     void saveLoginState();
     void loadLoginState();
