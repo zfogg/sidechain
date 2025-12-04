@@ -143,7 +143,7 @@ jobs:
           go mod tidy
           go build -o bin/sidechain-server cmd/server/main.go
 
-      - name: Run Tests with Coverage
+      - name: Run Tests with Coverage and JUnit
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
@@ -152,7 +152,8 @@ jobs:
           POSTGRES_DB: sidechain_test
         run: |
           cd backend
-          go test ./... -v -race -coverprofile=coverage.out -covermode=atomic
+          go install github.com/jstemmer/go-junit-report/v2@latest
+          go test ./... -v -race -coverprofile=coverage.out -covermode=atomic 2>&1 | go-junit-report -set-exit-code > test-results.xml
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -164,8 +165,131 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Backend Unit Tests
+          path: backend/test-results.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Upload JUnit to Codecov
+        uses: codecov/test-results-action@v1
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: backend/test-results.xml
+          flags: backend
+          name: backend-tests
+          fail_ci_if_error: false
+
       - name: Upload Backend Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sidechain-backend-linux
           path: backend/bin/sidechain-server
+
+  test-plugin:
+    runs-on: ubuntu-latest
+    name: Plugin Tests & Coverage
+    needs: [build-plugin]  # Run after builds complete
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            ladspa-sdk \
+            libcurl4-openssl-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libwebkit2gtk-4.1-dev \
+            libglu1-mesa-dev \
+            mesa-common-dev \
+            lcov
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: plugin/build/_deps/juce-src
+          key: juce-8.0.8-${{ runner.os }}-tests
+
+      - name: Configure CMake with Tests and Coverage
+        run: |
+          cmake -S plugin -B plugin/build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DSIDECHAIN_BUILD_TESTS=ON \
+            -DSIDECHAIN_ENABLE_COVERAGE=ON \
+            -DSIDECHAIN_BUILD_PLUGIN_HOST=OFF
+
+      - name: Build Tests
+        run: cmake --build plugin/build --config Debug --target SidechainTests --parallel
+
+      - name: Run Tests
+        run: |
+          cd plugin/build
+          ctest --output-on-failure -C Debug --output-junit test-results.xml
+
+      - name: Generate Coverage Report
+        run: |
+          lcov --capture --directory plugin/build --output-file plugin/build/coverage.info --ignore-errors mismatch
+          lcov --remove plugin/build/coverage.info \
+            '/usr/*' \
+            '*/deps/*' \
+            '*/_deps/*' \
+            '*/Catch2/*' \
+            '*/build/*' \
+            --output-file plugin/build/coverage.info --ignore-errors unused
+          lcov --list plugin/build/coverage.info
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: plugin/build/coverage.info
+          flags: plugin
+          name: plugin-coverage
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload Test Results Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plugin-test-results
+          path: plugin/build/test-results.xml
+          if-no-files-found: warn
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Plugin Unit Tests
+          path: plugin/build/test-results.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Upload JUnit to Codecov
+        uses: codecov/test-results-action@v1
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: plugin/build/test-results.xml
+          flags: plugin
+          name: plugin-tests
+          fail_ci_if_error: false

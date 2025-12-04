@@ -1,0 +1,60 @@
+# Codecov configuration for Sidechain
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  precision: 2
+  round: down
+  range: "60...100"
+
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 5%
+        if_ci_failed: error
+      backend:
+        flags:
+          - backend
+        target: auto
+        threshold: 5%
+      plugin:
+        flags:
+          - plugin
+        target: auto
+        threshold: 10%  # More lenient for C++ plugin code
+    patch:
+      default:
+        target: 50%
+        threshold: 10%
+
+# Flag management
+flags:
+  backend:
+    paths:
+      - backend/
+    carryforward: true
+  plugin:
+    paths:
+      - plugin/Source/
+    carryforward: true
+
+# Ignore paths from coverage
+ignore:
+  - "**/*_test.go"
+  - "**/tests/**"
+  - "**/mock_*.go"
+  - "backend/cmd/**"
+  - "plugin/tests/**"
+  - "deps/**"
+
+# Comment configuration for PRs
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+
+# GitHub checks
+github_checks:
+  annotations: true
