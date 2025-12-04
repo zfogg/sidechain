@@ -235,6 +235,8 @@ target_sources(Sidechain
         Source/ProfileComponent.h
         Source/EditProfileComponent.cpp
         Source/EditProfileComponent.h
+        Source/WebSocketClient.cpp
+        Source/WebSocketClient.h
 )
 
 # Preprocessor definitions
