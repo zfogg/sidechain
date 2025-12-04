@@ -88,6 +88,8 @@ target_sources(Sidechain
         Source/PluginEditor.h
         Source/AudioCapture.cpp
         Source/AudioCapture.h
+        Source/RecordingComponent.cpp
+        Source/RecordingComponent.h
         Source/NetworkClient.cpp
         Source/NetworkClient.h
         Source/ConnectionIndicator.h

@@ -196,10 +196,11 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
     auto feedBounds = getLocalBounds().withTrimmedTop(70);
     auto centerBounds = feedBounds.withSizeKeepingCentre(400, 300);
     auto actionBtn = juce::Rectangle<int>(centerBounds.getCentreX() - 100, centerBounds.getY() + 230, 200, 50);
-    
+
     if (actionBtn.contains(event.getPosition()))
     {
-        // TODO: Start recording functionality
         DBG("Start recording clicked!");
+        if (onStartRecording)
+            onStartRecording();
     }
 }
