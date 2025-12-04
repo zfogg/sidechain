@@ -3,8 +3,8 @@ module github.com/zfogg/sidechain/backend
 go 1.22
 
 require (
-	github.com/GetStream/getstream-go/v3 v3.2.0
-	github.com/GetStream/stream-chat-go/v5 v5.9.0
+	github.com/GetStream/getstream-go v1.2.0
+	github.com/GetStream/stream-chat-go/v5 v5.8.1
 	github.com/aws/aws-sdk-go-v2 v1.32.5
 	github.com/aws/aws-sdk-go-v2/config v1.28.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.67.0

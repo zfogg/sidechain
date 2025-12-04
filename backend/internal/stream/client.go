@@ -6,13 +6,21 @@ import (
 	"os"
 	"time"
 
-	"github.com/GetStream/getstream-go/v3"
+	getstream "github.com/GetStream/getstream-go"
 	chat "github.com/GetStream/stream-chat-go/v5"
+)
+
+// Feed group names configured in Stream.io dashboard
+const (
+	FeedGroupUser     = "user"     // Personal feed - user's own posts
+	FeedGroupTimeline = "timeline" // Aggregated feed from followed users
+	FeedGroupGlobal   = "global"   // All posts from all users
 )
 
 // Client wraps the Stream.io clients with Sidechain-specific functionality
 type Client struct {
-	FeedsClient *getstream.Stream
+	client      *getstream.Stream
+	FeedsClient *getstream.FeedsClient
 	ChatClient  *chat.Client
 }
 
@@ -43,20 +51,24 @@ func NewClient() (*Client, error) {
 		return nil, fmt.Errorf("STREAM_API_KEY and STREAM_API_SECRET must be set")
 	}
 
-	// Initialize Feeds V3 client
-	feedsClient, err := getstream.NewClient(apiKey, apiSecret)
+	// Initialize Stream.io V3 client
+	client, err := getstream.NewClient(apiKey, apiSecret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Stream.io Feeds client: %w", err)
+		return nil, fmt.Errorf("failed to create Stream.io client: %w", err)
 	}
 
-	// Initialize Chat client
+	// Get the Feeds client from the main client
+	feedsClient := client.Feeds()
+
+	// Initialize Chat client (separate SDK for chat features)
 	chatClient, err := chat.NewClient(apiKey, apiSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Stream.io Chat client: %w", err)
 	}
 
 	return &Client{
-		FeedsClient: feedsClient, // This is *getstream.Client, not *getstream.Stream
+		client:      client,
+		FeedsClient: feedsClient,
 		ChatClient:  chatClient,
 	}, nil
 }
