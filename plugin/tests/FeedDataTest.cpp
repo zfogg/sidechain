@@ -533,16 +533,14 @@ TEST_CASE("FeedDataManager fetch without network client", "[FeedDataManager]")
     bool callbackCalled = false;
     FeedResponse receivedResponse;
 
-    // Try to fetch without network client
+    // Try to fetch without network client - callback is called synchronously
     manager.fetchFeed(FeedDataManager::FeedType::Timeline, [&](const FeedResponse& response)
     {
         callbackCalled = true;
         receivedResponse = response;
     });
 
-    // Process pending messages
-    juce::MessageManager::getInstance()->runDispatchLoopUntil(100);
-
+    // Callback should be called synchronously when no network client
     REQUIRE(callbackCalled == true);
     REQUIRE(receivedResponse.error.isNotEmpty());
     REQUIRE(receivedResponse.error.containsIgnoreCase("network client"));
@@ -560,9 +558,7 @@ TEST_CASE("FeedDataManager loadMorePosts without initial fetch", "[FeedDataManag
         // Should return empty response since no network client
     });
 
-    juce::MessageManager::getInstance()->runDispatchLoopUntil(100);
-
-    // Without network client, should still call callback
+    // Callback should be called synchronously
     REQUIRE(callbackCalled == true);
 }
 
@@ -580,8 +576,7 @@ TEST_CASE("FeedDataManager refresh clears cache", "[FeedDataManager]")
         REQUIRE(error.containsIgnoreCase("network client"));
     });
 
-    juce::MessageManager::getInstance()->runDispatchLoopUntil(100);
-
+    // Callback should be called synchronously when no network client
     REQUIRE(callbackCalled == true);
     REQUIRE(manager.getLoadedPostsCount() == 0);
 }

@@ -3,6 +3,14 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+# Prefer Ninja generator for faster builds (auto-parallelizes)
+if(NOT CMAKE_GENERATOR)
+    find_program(NINJA_EXECUTABLE ninja)
+    if(NINJA_EXECUTABLE)
+        set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "" FORCE)
+    endif()
+endif()
+
 project(Sidechain VERSION 0.1.0 LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
