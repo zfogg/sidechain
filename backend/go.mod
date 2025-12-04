@@ -1,6 +1,6 @@
 module github.com/zfogg/sidechain/backend
 
-go 1.22
+go 1.23
 
 require (
 	github.com/GetStream/getstream-go/v3 v3.7.0
@@ -42,6 +42,7 @@ require (
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
+	github.com/coder/websocket v1.8.14 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect

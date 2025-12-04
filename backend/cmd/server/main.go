@@ -18,6 +18,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/handlers"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/websocket"
 )
 
 func main() {
@@ -84,6 +85,14 @@ func main() {
 	audioProcessor.Start()
 	defer audioProcessor.Stop()
 
+	// Initialize WebSocket hub and handler
+	wsHub := websocket.NewHub()
+	wsHandler := websocket.NewHandler(wsHub, jwtSecret)
+	wsHandler.RegisterDefaultHandlers()
+
+	// Start WebSocket hub in background
+	go wsHub.Run()
+
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader)
@@ -141,8 +150,22 @@ func main() {
 		{
 			feed.Use(authHandlers.AuthMiddleware())
 			feed.GET("/timeline", h.GetTimeline)
+			feed.GET("/timeline/enriched", h.GetEnrichedTimeline)
+			feed.GET("/timeline/aggregated", h.GetAggregatedTimeline)
 			feed.GET("/global", h.GetGlobalFeed)
+			feed.GET("/global/enriched", h.GetEnrichedGlobalFeed)
+			feed.GET("/trending", h.GetTrendingFeed)
 			feed.POST("/post", h.CreatePost)
+		}
+
+		// Notification routes
+		notifications := api.Group("/notifications")
+		{
+			notifications.Use(authHandlers.AuthMiddleware())
+			notifications.GET("", h.GetNotifications)
+			notifications.GET("/counts", h.GetNotificationCounts)
+			notifications.POST("/read", h.MarkNotificationsRead)
+			notifications.POST("/seen", h.MarkNotificationsSeen)
 		}
 
 		// Social routes
@@ -163,6 +186,29 @@ func main() {
 			users.GET("/me", h.GetProfile)
 			users.PUT("/me", h.UpdateProfile)
 			users.POST("/upload-profile-picture", authHandlers.UploadProfilePicture)
+
+			// Public user profile endpoints (require auth for following checks)
+			users.GET("/:id/profile", h.GetUserProfile)
+			users.GET("/:id/posts", h.GetUserPosts)
+			users.GET("/:id/followers", h.GetUserFollowers)
+			users.GET("/:id/following", h.GetUserFollowing)
+			users.GET("/:id/activity", h.GetUserActivitySummary)
+			users.POST("/:id/follow", h.FollowUserByID)
+			users.DELETE("/:id/follow", h.UnfollowUserByID)
+		}
+
+		// WebSocket routes
+		ws := api.Group("/ws")
+		{
+			// WebSocket connection endpoint - auth via query param ?token=... or Authorization header
+			ws.GET("", wsHandler.HandleWebSocket)
+			ws.GET("/connect", wsHandler.HandleWebSocket)
+
+			// Metrics endpoint (protected)
+			ws.GET("/metrics", authHandlers.AuthMiddleware(), wsHandler.HandleMetrics)
+
+			// Online status check (protected)
+			ws.POST("/online", authHandlers.AuthMiddleware(), wsHandler.HandleOnlineStatus)
 		}
 	}
 
@@ -194,6 +240,11 @@ func main() {
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	// Shutdown WebSocket connections gracefully
+	if err := wsHandler.Shutdown(ctx); err != nil {
+		log.Printf("WebSocket shutdown warning: %v", err)
+	}
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server forced to shutdown:", err)
