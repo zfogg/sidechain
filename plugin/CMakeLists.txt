@@ -211,6 +211,12 @@ target_sources(Sidechain
         Source/ProfileSetupComponent.h
         Source/PostsFeedComponent.cpp
         Source/PostsFeedComponent.h
+        Source/UploadComponent.cpp
+        Source/UploadComponent.h
+        Source/FeedPost.cpp
+        Source/FeedPost.h
+        Source/FeedDataManager.cpp
+        Source/FeedDataManager.h
 )
 
 # Preprocessor definitions
@@ -377,6 +383,10 @@ if(SIDECHAIN_BUILD_TESTS)
         Source/AudioCapture.h
         Source/NetworkClient.cpp
         Source/NetworkClient.h
+        Source/FeedPost.cpp
+        Source/FeedPost.h
+        Source/FeedDataManager.cpp
+        Source/FeedDataManager.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
@@ -417,6 +427,7 @@ if(SIDECHAIN_BUILD_TESTS)
     add_executable(SidechainTests
         tests/AudioCaptureTest.cpp
         tests/NetworkClientTest.cpp
+        tests/FeedDataTest.cpp
     )
 
     target_link_libraries(SidechainTests PRIVATE
