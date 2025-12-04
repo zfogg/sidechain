@@ -25,9 +25,11 @@ Completed through **Phase 4.2** (Profile UI). The core functionality is taking s
 - Profile editing with social links
 
 ### Next Steps
-1. **Phase 2.3** (Upload UI) - BPM/key input, progress indicator
-2. **Phase 5** (Real-time Features) - WebSocket infrastructure
-3. **Phase 7** (Search & Discovery) - User and content search
+1. **Phase 1.2.2** (Notification Feed) - Stream.io notification integration ⭐ NEW
+2. **Phase 1.2.3** (Aggregated Feeds) - Timeline grouping, trending by genre ⭐ NEW
+3. **Phase 2.3** (Upload UI) - BPM/key input, progress indicator
+4. **Phase 5.4** (Notifications UI) - Bell component, notification list
+5. **Phase 7** (Search & Discovery) - User and content search
 
 ---
 
