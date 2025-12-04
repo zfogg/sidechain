@@ -1,60 +1,234 @@
 # Codecov configuration for Sidechain
-# https://docs.codecov.com/docs/codecov-yaml
+# Backend Go coverage reporting with component-based organization
+
+codecov:
+  branch: main
+  max_report_age: "12h"
+  notify:
+    require_ci_to_pass: false
+    after_n_builds: 1
 
 coverage:
   precision: 2
   round: down
-  range: "60...100"
+  range: 60..100
 
   status:
+    default_rules:
+      flag_coverage_not_uploaded_behavior: include
+
     project:
       default:
         target: auto
+        threshold: 2%
+        branches:
+          - main
+
+      # Auth service (critical)
+      auth:
+        target: 50%
+        threshold: 2%
+        paths:
+          - "backend/internal/auth/**/*"
+
+      # API handlers
+      handlers:
+        target: 50%
+        threshold: 2%
+        paths:
+          - "backend/internal/handlers/**/*"
+
+      # Stream.io integration
+      stream:
+        target: 40%
         threshold: 5%
-        if_ci_failed: error
-      backend:
-        flags:
-          - backend
-        target: auto
-        threshold: 5%
+        paths:
+          - "backend/internal/stream/**/*"
+        informational: true
+
+      # Database layer
+      database:
+        target: 50%
+        threshold: 2%
+        paths:
+          - "backend/internal/database/**/*"
+
+      # Models
+      models:
+        target: 50%
+        threshold: 2%
+        paths:
+          - "backend/internal/models/**/*"
+
+      # Plugin (C++)
       plugin:
-        flags:
-          - plugin
-        target: auto
-        threshold: 10%  # More lenient for C++ plugin code
+        target: 40%
+        threshold: 5%
+        paths:
+          - "plugin/Source/**/*"
+
     patch:
       default:
-        target: 50%
-        threshold: 10%
+        target: 60%
+        threshold: 0%
+        base: auto
+        branches:
+          - main
+        if_ci_failed: error
+        only_pulls: true
+        informational: false
 
-# Flag management
+      core_patch:
+        target: 60%
+        threshold: 5%
+        base: auto
+        paths:
+          - "backend/internal/auth/**/*"
+          - "backend/internal/handlers/**/*"
+          - "backend/internal/database/**/*"
+        branches:
+          - main
+        if_ci_failed: error
+        only_pulls: true
+
+    changes:
+      default:
+        if_ci_failed: error
+        branches:
+          - main
+
+component_management:
+  default_rules:
+    paths:
+      - "backend/**/*"
+    flag_regexes:
+      - "backend"
+    statuses:
+      - type: project
+        target: auto
+        threshold: 2%
+      - type: patch
+        target: 60%
+        threshold: 5%
+
+  individual_components:
+    - component_id: auth
+      name: "Authentication"
+      paths:
+        - "backend/internal/auth/**/*"
+      statuses:
+        - type: project
+          target: 50%
+          threshold: 2%
+        - type: patch
+          target: 60%
+
+    - component_id: handlers
+      name: "API Handlers"
+      paths:
+        - "backend/internal/handlers/**/*"
+      statuses:
+        - type: project
+          target: 50%
+          threshold: 2%
+        - type: patch
+          target: 60%
+
+    - component_id: stream
+      name: "Stream.io Integration"
+      paths:
+        - "backend/internal/stream/**/*"
+      statuses:
+        - type: project
+          target: 40%
+          threshold: 5%
+          informational: true
+
+    - component_id: database
+      name: "Database Layer"
+      paths:
+        - "backend/internal/database/**/*"
+      statuses:
+        - type: project
+          target: 50%
+          threshold: 2%
+
+    - component_id: models
+      name: "Data Models"
+      paths:
+        - "backend/internal/models/**/*"
+      statuses:
+        - type: project
+          target: 50%
+          threshold: 2%
+
+    # Plugin components
+    - component_id: plugin_core
+      name: "Plugin Core"
+      paths:
+        - "plugin/Source/**/*"
+      statuses:
+        - type: project
+          target: 40%
+          threshold: 5%
+        - type: patch
+          target: 50%
+
+    - component_id: plugin_network
+      name: "Plugin Network"
+      paths:
+        - "plugin/Source/NetworkClient.*"
+      statuses:
+        - type: project
+          target: 50%
+          threshold: 5%
+
+    - component_id: plugin_ui
+      name: "Plugin UI"
+      paths:
+        - "plugin/Source/PluginEditor.*"
+        - "plugin/Source/*Indicator.*"
+      statuses:
+        - type: project
+          target: 40%
+          threshold: 10%
+          informational: true
+
+comment:
+  layout: "header, diff, flags, components, footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  branches:
+    - main
+  show_carryforward_flags: false
+
+ignore:
+  - "backend/cmd/**/*"
+  - "backend/vendor/**/*"
+  - "frontend/**/*"
+  - "deps/**/*"
+  - "*.md"
+  - ".github/**/*"
+  - "notes/**/*"
+
 flags:
   backend:
     paths:
-      - backend/
-    carryforward: true
+      - "backend/"
+    carryforward: false
   plugin:
     paths:
-      - plugin/Source/
-    carryforward: true
+      - "plugin/Source/"
+      - "plugin/tests/"
+    carryforward: false
 
-# Ignore paths from coverage
-ignore:
-  - "**/*_test.go"
-  - "**/tests/**"
-  - "**/mock_*.go"
-  - "backend/cmd/**"
-  - "plugin/tests/**"
-  - "deps/**"
-
-# Comment configuration for PRs
-comment:
-  layout: "reach,diff,flags,files"
-  behavior: default
-  require_changes: true
-  require_base: false
-  require_head: true
-
-# GitHub checks
 github_checks:
   annotations: true
+
+profiling:
+  critical_files_paths:
+    - "backend/internal/auth/**/*"
+    - "backend/internal/handlers/**/*"
+    - "backend/internal/database/**/*"

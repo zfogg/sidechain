@@ -2,6 +2,12 @@
 
 > Social "Stories" for Music Producers - Share loops directly from your DAW
 
+## Code Coverage
+
+[![codecov](https://codecov.io/gh/zfogg/sidechain/graph/badge.svg?token=Z9QLW89VRP)](https://codecov.io/gh/zfogg/sidechain)
+
+![Coverage Sunburst](https://codecov.io/gh/zfogg/sidechain/graphs/sunburst.svg?token=Z9QLW89VRP)
+
 Sidechain is a VST3/AU plugin that brings social media into your music production workflow. Share 8-bar loops, discover what other producers are making, and build a community without ever leaving Ableton Live.
 
 ## Why Sidechain?
