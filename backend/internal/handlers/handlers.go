@@ -172,18 +172,8 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		return
 	}
 
-	// Submit to background processing queue
-	job, err := h.audioProcessor.SubmitProcessingJob(currentUser.ID, tempFilePath, file.Filename, metadata)
-	if err != nil {
-		os.Remove(tempFilePath)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "queue_failed",
-			"message": "Failed to queue audio for processing",
-		})
-		return
-	}
-
-	// Create pending audio post in database
+	// Create pending audio post in database FIRST to get the postID
+	// This allows the background job to update this record when complete
 	audioPost := &models.AudioPost{
 		ID:               uuid.New().String(),
 		UserID:           currentUser.ID,
@@ -200,9 +190,23 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 
 	err = database.DB.Create(audioPost).Error
 	if err != nil {
+		os.Remove(tempFilePath)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "database_failed",
 			"message": "Failed to save audio post",
+		})
+		return
+	}
+
+	// Submit to background processing queue with postID so it can update the record
+	job, err := h.audioProcessor.SubmitProcessingJob(currentUser.ID, audioPost.ID, tempFilePath, file.Filename, metadata)
+	if err != nil {
+		os.Remove(tempFilePath)
+		// Update the post to failed status
+		database.DB.Model(audioPost).Update("processing_status", "failed")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "queue_failed",
+			"message": "Failed to queue audio for processing",
 		})
 		return
 	}

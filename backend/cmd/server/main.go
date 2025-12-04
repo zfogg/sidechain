@@ -79,8 +79,10 @@ func main() {
 		log.Println("Audio processing will be limited without FFmpeg")
 	}
 
-	// Initialize audio processor
+	// Initialize audio processor and start the background queue
 	audioProcessor := audio.NewProcessor(s3Uploader)
+	audioProcessor.Start()
+	defer audioProcessor.Stop()
 
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
@@ -126,11 +128,12 @@ func main() {
 		}
 
 		// Audio routes
-		audio := api.Group("/audio")
+		audioGroup := api.Group("/audio")
 		{
-			audio.Use(authHandlers.AuthMiddleware())
-			audio.POST("/upload", h.UploadAudio)
-			audio.GET("/:id", h.GetAudio)
+			audioGroup.Use(authHandlers.AuthMiddleware())
+			audioGroup.POST("/upload", h.UploadAudio)
+			audioGroup.GET("/status/:job_id", h.GetAudioProcessingStatus)
+			audioGroup.GET("/:id", h.GetAudio)
 		}
 
 		// Feed routes
