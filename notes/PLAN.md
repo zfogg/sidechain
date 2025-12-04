@@ -637,11 +637,11 @@ streamActivity.To = []string{
 - [ ] 4.3.8 Add follow notifications (Phase 5)
 - [ ] 4.3.9 Implement bulk follow import (future: from SoundCloud)
 
-### 4.4 User Discovery
+### 4.4 User Discovery ✅
 
 - [x] 4.4.1 Implement user search endpoint (by username) - handlers.go:SearchUsers (GET /api/v1/search/users?q=)
-- [ ] 4.4.2 Add search UI in plugin (search bar)
-- [ ] 4.4.3 Show recent searches
+- [x] 4.4.2 Add search UI in plugin (search bar) - UserDiscoveryComponent.h/cpp with TextEditor search box
+- [x] 4.4.3 Show recent searches - Persisted to ~/.local/share/Sidechain/recent_searches.txt
 - [x] 4.4.4 Implement trending users algorithm - handlers.go:GetTrendingUsers (GET /api/v1/discover/trending)
 - [x] 4.4.5 Add "featured producers" section - handlers.go:GetFeaturedProducers (GET /api/v1/discover/featured)
 - [x] 4.4.6 Implement genre-based user discovery - handlers.go:GetUsersByGenre (GET /api/v1/discover/genre/:genre)
