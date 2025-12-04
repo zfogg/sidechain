@@ -505,27 +505,141 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 	})
 }
 
-// GetProfile gets user profile information
-func (h *Handlers) GetProfile(c *gin.Context) {
-	userID := c.GetString("user_id")
+// GetUserProfile gets a user's profile by ID (public endpoint)
+// GET /api/users/:id/profile
+func (h *Handlers) GetUserProfile(c *gin.Context) {
+	targetUserID := c.Param("id")
+	currentUserID := c.GetString("user_id") // May be empty if not authenticated
+
+	// Fetch user from database
+	var user models.User
+	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found", "message": "User not found"})
+		return
+	}
+
+	// Fetch follow stats from Stream.io (source of truth)
+	var followStats *stream.FollowStats
+	var followStatsErr error
+	if h.stream != nil {
+		followStats, followStatsErr = h.stream.GetFollowStats(user.StreamUserID)
+		if followStatsErr != nil {
+			// Log but don't fail - use cached values from DB
+			fmt.Printf("Warning: Failed to get follow stats from Stream.io: %v\n", followStatsErr)
+		}
+	}
+
+	// Use Stream.io stats if available, otherwise fall back to cached DB values
+	followerCount := user.FollowerCount
+	followingCount := user.FollowingCount
+	if followStats != nil {
+		followerCount = followStats.FollowerCount
+		followingCount = followStats.FollowingCount
+		// Optionally update cache in background
+		go func() {
+			database.DB.Model(&user).Updates(map[string]interface{}{
+				"follower_count":  followerCount,
+				"following_count": followingCount,
+			})
+		}()
+	}
+
+	// Check if current user follows this profile
+	var isFollowing bool
+	var isFollowedBy bool
+	if currentUserID != "" && currentUserID != user.ID && h.stream != nil {
+		isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
+		isFollowedBy, _ = h.stream.CheckIsFollowing(user.StreamUserID, currentUserID)
+	}
+
+	// Count posts
+	var postCount int64
+	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true", user.ID).Count(&postCount)
 
 	c.JSON(http.StatusOK, gin.H{
-		"user_id":   userID,
-		"username":  "producer_" + userID,
-		"followers": 42,
-		"following": 17,
-		"posts":     23,
-		"bio":       "Making beats at 3am",
+		"id":                  user.ID,
+		"username":            user.Username,
+		"display_name":        user.DisplayName,
+		"bio":                 user.Bio,
+		"location":            user.Location,
+		"avatar_url":          user.AvatarURL,
+		"profile_picture_url": user.ProfilePictureURL,
+		"daw_preference":      user.DAWPreference,
+		"genre":               user.Genre,
+		"social_links":        user.SocialLinks,
+		"follower_count":      followerCount,
+		"following_count":     followingCount,
+		"post_count":          postCount,
+		"is_following":        isFollowing,
+		"is_followed_by":      isFollowedBy,
+		"created_at":          user.CreatedAt,
 	})
 }
 
-// UpdateProfile updates user profile information
-func (h *Handlers) UpdateProfile(c *gin.Context) {
-	userID := c.GetString("user_id")
+// GetMyProfile gets the authenticated user's own profile
+// GET /api/profile
+func (h *Handlers) GetMyProfile(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	// Fetch follow stats from Stream.io
+	var followStats *stream.FollowStats
+	if h.stream != nil {
+		followStats, _ = h.stream.GetFollowStats(currentUser.StreamUserID)
+	}
+
+	followerCount := currentUser.FollowerCount
+	followingCount := currentUser.FollowingCount
+	if followStats != nil {
+		followerCount = followStats.FollowerCount
+		followingCount = followStats.FollowingCount
+	}
+
+	// Count posts
+	var postCount int64
+	database.DB.Model(&models.AudioPost{}).Where("user_id = ?", currentUser.ID).Count(&postCount)
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":                  currentUser.ID,
+		"email":               currentUser.Email,
+		"username":            currentUser.Username,
+		"display_name":        currentUser.DisplayName,
+		"bio":                 currentUser.Bio,
+		"location":            currentUser.Location,
+		"avatar_url":          currentUser.AvatarURL,
+		"profile_picture_url": currentUser.ProfilePictureURL,
+		"daw_preference":      currentUser.DAWPreference,
+		"genre":               currentUser.Genre,
+		"social_links":        currentUser.SocialLinks,
+		"follower_count":      followerCount,
+		"following_count":     followingCount,
+		"post_count":          postCount,
+		"email_verified":      currentUser.EmailVerified,
+		"created_at":          currentUser.CreatedAt,
+	})
+}
+
+// UpdateMyProfile updates the authenticated user's profile
+// PUT /api/profile
+func (h *Handlers) UpdateMyProfile(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
 
 	var req struct {
-		Username string `json:"username"`
-		Bio      string `json:"bio"`
+		DisplayName   *string              `json:"display_name"`
+		Bio           *string              `json:"bio"`
+		Location      *string              `json:"location"`
+		DAWPreference *string              `json:"daw_preference"`
+		Genre         []string             `json:"genre"`
+		SocialLinks   *models.SocialLinks  `json:"social_links"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -533,13 +647,312 @@ func (h *Handlers) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// In production, update database
+	// Build update map for non-nil fields
+	updates := make(map[string]interface{})
+	if req.DisplayName != nil {
+		updates["display_name"] = *req.DisplayName
+	}
+	if req.Bio != nil {
+		updates["bio"] = *req.Bio
+	}
+	if req.Location != nil {
+		updates["location"] = *req.Location
+	}
+	if req.DAWPreference != nil {
+		updates["daw_preference"] = *req.DAWPreference
+	}
+	if req.Genre != nil {
+		updates["genre"] = req.Genre
+	}
+	if req.SocialLinks != nil {
+		updates["social_links"] = req.SocialLinks
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no_fields_to_update"})
+		return
+	}
+
+	// Update in database
+	if err := database.DB.Model(currentUser).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "update_failed", "message": err.Error()})
+		return
+	}
+
+	// Reload user
+	database.DB.First(currentUser, "id = ?", currentUser.ID)
+
 	c.JSON(http.StatusOK, gin.H{
-		"user_id":  userID,
-		"username": req.Username,
-		"bio":      req.Bio,
-		"updated":  time.Now().UTC(),
+		"message": "profile_updated",
+		"user": gin.H{
+			"id":             currentUser.ID,
+			"display_name":   currentUser.DisplayName,
+			"bio":            currentUser.Bio,
+			"location":       currentUser.Location,
+			"daw_preference": currentUser.DAWPreference,
+			"genre":          currentUser.Genre,
+			"social_links":   currentUser.SocialLinks,
+		},
+		"updated_at": time.Now().UTC(),
 	})
+}
+
+// GetUserFollowers gets the list of users who follow a user
+// GET /api/users/:id/followers
+func (h *Handlers) GetUserFollowers(c *gin.Context) {
+	targetUserID := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	// Validate user exists
+	var user models.User
+	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Get followers from Stream.io
+	followers, err := h.stream.GetFollowers(user.StreamUserID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_followers", "message": err.Error()})
+		return
+	}
+
+	// Enrich with user data from database
+	followerUsers := make([]gin.H, 0, len(followers))
+	for _, f := range followers {
+		var followerUser models.User
+		if err := database.DB.First(&followerUser, "id = ? OR stream_user_id = ?", f.UserID, f.UserID).Error; err == nil {
+			followerUsers = append(followerUsers, gin.H{
+				"id":           followerUser.ID,
+				"username":     followerUser.Username,
+				"display_name": followerUser.DisplayName,
+				"avatar_url":   followerUser.AvatarURL,
+				"bio":          followerUser.Bio,
+			})
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"followers": followerUsers,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(followerUsers),
+		},
+	})
+}
+
+// GetUserFollowing gets the list of users a user follows
+// GET /api/users/:id/following
+func (h *Handlers) GetUserFollowing(c *gin.Context) {
+	targetUserID := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	// Validate user exists
+	var user models.User
+	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Get following from Stream.io
+	following, err := h.stream.GetFollowing(user.StreamUserID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_following", "message": err.Error()})
+		return
+	}
+
+	// Enrich with user data from database
+	followingUsers := make([]gin.H, 0, len(following))
+	for _, f := range following {
+		var followedUser models.User
+		if err := database.DB.First(&followedUser, "id = ? OR stream_user_id = ?", f.UserID, f.UserID).Error; err == nil {
+			followingUsers = append(followingUsers, gin.H{
+				"id":           followedUser.ID,
+				"username":     followedUser.Username,
+				"display_name": followedUser.DisplayName,
+				"avatar_url":   followedUser.AvatarURL,
+				"bio":          followedUser.Bio,
+			})
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"following": followingUsers,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(followingUsers),
+		},
+	})
+}
+
+// GetUserPosts gets a user's posts with enriched data (likes, etc.)
+// GET /api/users/:id/posts
+func (h *Handlers) GetUserPosts(c *gin.Context) {
+	targetUserID := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	// Validate user exists
+	var user models.User
+	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Get enriched activities from Stream.io
+	activities, err := h.stream.GetEnrichedUserFeed(user.StreamUserID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_posts", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"posts": activities,
+		"user": gin.H{
+			"id":           user.ID,
+			"username":     user.Username,
+			"display_name": user.DisplayName,
+			"avatar_url":   user.AvatarURL,
+		},
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+		},
+	})
+}
+
+// GetEnrichedTimeline gets the user's timeline with reaction counts
+// GET /api/feed/timeline/enriched
+func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	activities, err := h.stream.GetEnrichedTimeline(currentUser.StreamUserID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_timeline", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+		},
+	})
+}
+
+// GetEnrichedGlobalFeed gets the global feed with reaction counts
+// GET /api/feed/global/enriched
+func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	activities, err := h.stream.GetEnrichedGlobalFeed(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_global_feed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+		},
+	})
+}
+
+// FollowUserByID follows a user by ID (path param version)
+// POST /api/users/:id/follow
+func (h *Handlers) FollowUserByID(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+	targetUserID := c.Param("id")
+
+	// Validate target user exists
+	var targetUser models.User
+	if err := database.DB.First(&targetUser, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Can't follow yourself
+	if currentUser.ID == targetUser.ID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot_follow_self"})
+		return
+	}
+
+	// Follow via Stream.io
+	if err := h.stream.FollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "follow_failed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":      "following",
+		"target_user": targetUser.ID,
+		"username":    targetUser.Username,
+	})
+}
+
+// UnfollowUserByID unfollows a user by ID (path param version)
+// DELETE /api/users/:id/follow
+func (h *Handlers) UnfollowUserByID(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+	targetUserID := c.Param("id")
+
+	// Validate target user exists
+	var targetUser models.User
+	if err := database.DB.First(&targetUser, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Unfollow via Stream.io
+	if err := h.stream.UnfollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "unfollow_failed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":      "unfollowed",
+		"target_user": targetUser.ID,
+	})
+}
+
+// Legacy placeholder handlers for backwards compatibility
+// GetProfile gets user profile information (deprecated - use GetMyProfile)
+func (h *Handlers) GetProfile(c *gin.Context) {
+	h.GetMyProfile(c)
+}
+
+// UpdateProfile updates user profile information (deprecated - use UpdateMyProfile)
+func (h *Handlers) UpdateProfile(c *gin.Context) {
+	h.UpdateMyProfile(c)
 }
 
 // EmojiReact adds an emoji reaction to a post or message

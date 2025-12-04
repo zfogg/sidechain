@@ -7,6 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// SocialLinks stores user's external profile links
+type SocialLinks struct {
+	Instagram  string `json:"instagram,omitempty"`
+	SoundCloud string `json:"soundcloud,omitempty"`
+	Spotify    string `json:"spotify,omitempty"`
+	YouTube    string `json:"youtube,omitempty"`
+	Twitter    string `json:"twitter,omitempty"`
+	Website    string `json:"website,omitempty"`
+}
+
 // User represents a Sidechain producer account with unified auth
 type User struct {
 	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
@@ -14,6 +24,7 @@ type User struct {
 	Username    string `gorm:"uniqueIndex;not null" json:"username"`
 	DisplayName string `gorm:"not null" json:"display_name"`
 	Bio         string `gorm:"type:text" json:"bio"`
+	Location    string `gorm:"type:text" json:"location"` // City/Country
 
 	// Native auth fields
 	PasswordHash     *string `gorm:"type:text" json:"-"`
@@ -25,11 +36,14 @@ type User struct {
 	DiscordID *string `gorm:"uniqueIndex" json:"-"`
 
 	// Profile data
-	AvatarURL     string   `json:"avatar_url"`
-	DAWPreference string   `json:"daw_preference"`
-	Genre         []string `gorm:"type:text[]" json:"genre"`
+	AvatarURL         string       `json:"avatar_url"`
+	ProfilePictureURL string       `json:"profile_picture_url"` // S3 URL for uploaded profile picture
+	DAWPreference     string       `json:"daw_preference"`
+	Genre             []string     `gorm:"type:text[]" json:"genre"`
+	SocialLinks       *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
 
-	// Social stats (cached from Stream.io)
+	// Social stats (fetched from Stream.io - these are cached values, not source of truth)
+	// Use stream.Client.GetFollowStats() for real-time counts
 	FollowerCount  int `gorm:"default:0" json:"follower_count"`
 	FollowingCount int `gorm:"default:0" json:"following_count"`
 	PostCount      int `gorm:"default:0" json:"post_count"`
