@@ -60,7 +60,7 @@ jobs:
             libxinerama-dev \
             libxrandr-dev \
             libxrender-dev \
-            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
             libglu1-mesa-dev \
             mesa-common-dev
 
@@ -120,7 +120,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-          cache-dependency-path: backend/go.sum
+          cache-dependency-path: backend/go.mod
 
       - name: Build Backend
         run: |
