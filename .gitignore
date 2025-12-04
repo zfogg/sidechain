@@ -61,11 +61,10 @@ Thumbs.db
 .env.local
 .env.production
 
-# JUCE
+# JUCE / CMake build
 plugin/JuceLibraryCode/
-plugin/Builds/*/build/
-plugin/Builds/*/
-!plugin/Builds/*/Sidechain.jucer
+plugin/Builds/
+plugin/build/
 
 # Audio files (for development)
 *.wav

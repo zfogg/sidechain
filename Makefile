@@ -1,66 +1,59 @@
 # Sidechain Makefile
-# Builds both the VST plugin and Go backend
+# Builds both the VST plugin (via CMake) and Go backend
 
 .PHONY: all install-deps backend plugin clean test help
 
 # Default target
-all: install-deps backend plugin plugin-install
+all: backend plugin plugin-install
 
 # Detect platform
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
 
-# JUCE version and URLs
+# JUCE version for FetchContent fallback info
 JUCE_VERSION = 8.0.8
 JUCE_DIR = ./deps/JUCE
 
+# Platform-specific settings
 ifeq ($(UNAME_S),Darwin)
-	JUCE_URL = https://github.com/juce-framework/JUCE/releases/download/$(JUCE_VERSION)/juce-$(JUCE_VERSION)-osx.zip
-	JUCE_ARCHIVE = juce-$(JUCE_VERSION)-osx.zip
-	PLATFORM = osx
-	PROJUCER = $(JUCE_DIR)/Projucer.app/Contents/MacOS/Projucer
-	BUILD_DIR = plugin/Builds/MacOSX
-	BUILD_COMMAND = cd $(BUILD_DIR) && xcodebuild -target "Sidechain - VST3" -configuration Release -quiet
-	PLUGIN_OUTPUT = $(BUILD_DIR)/build/Release/Sidechain.vst3
+	PLATFORM = macos
+	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/Release/VST3/Sidechain.vst3
+	AU_OUTPUT = plugin/build/Sidechain_artefacts/Release/AU/Sidechain.component
 	PLUGIN_INSTALL_DIR = ~/Library/Audio/Plug-Ins/VST3
+	AU_INSTALL_DIR = ~/Library/Audio/Plug-Ins/Components
+	CMAKE_GENERATOR =
 else ifeq ($(UNAME_S),Linux)
-	JUCE_URL = https://github.com/juce-framework/JUCE/releases/download/$(JUCE_VERSION)/juce-$(JUCE_VERSION)-linux.zip
-	JUCE_ARCHIVE = juce-$(JUCE_VERSION)-linux.zip
 	PLATFORM = linux
-	PROJUCER = $(JUCE_DIR)/Projucer
-	BUILD_DIR = plugin/Builds/LinuxMakefile
-	BUILD_COMMAND = cd $(BUILD_DIR) && make CONFIG=Release
-	PLUGIN_OUTPUT = $(BUILD_DIR)/build/Sidechain.vst3
+	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/Release/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = ~/.vst3
+	CMAKE_GENERATOR =
 else ifeq ($(OS),Windows_NT)
-	JUCE_URL = https://github.com/juce-framework/JUCE/releases/download/$(JUCE_VERSION)/juce-$(JUCE_VERSION)-windows.zip
-	JUCE_ARCHIVE = juce-$(JUCE_VERSION)-windows.zip
 	PLATFORM = windows
-	PROJUCER = $(JUCE_DIR)/Projucer.exe
-	BUILD_DIR = plugin/Builds/VisualStudio2022
-	# Use MSBuild from PATH
-	MSBUILD := $(shell which MSBuild.exe 2>/dev/null || echo "MSBuild not found")
-	BUILD_COMMAND = cd $(BUILD_DIR) && "$(MSBUILD)" Sidechain_VST3.vcxproj -p:Configuration=Release -p:Platform=x64
-	PLUGIN_OUTPUT = $(BUILD_DIR)/x64/Release/VST3/Sidechain.vst3
+	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/Release/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = $(LOCALAPPDATA)/Programs/Common/VST3
+	CMAKE_GENERATOR = -G "Visual Studio 17 2022" -A x64
 else
 	$(error Unsupported platform: $(UNAME_S))
 endif
 
-# Install dependencies
-install-deps: $(JUCE_DIR)
-	@echo "✅ Dependencies installed for $(PLATFORM)"
+# Build directory
+BUILD_DIR = plugin/build
 
-$(JUCE_DIR):
-	@echo "🔄 Installing JUCE $(JUCE_VERSION) for $(PLATFORM)..."
-	@mkdir -p deps
-	@echo "📥 Downloading $(JUCE_URL)..."
-	@curl -L -o deps/$(JUCE_ARCHIVE) $(JUCE_URL)
-	@echo "📦 Extracting JUCE..."
-	@cd deps && unzip -q $(JUCE_ARCHIVE)
-	@echo "🧹 Cleaning up archive..."
-	@rm deps/$(JUCE_ARCHIVE)
-	@echo "✅ JUCE $(JUCE_VERSION) installed to $(JUCE_DIR)"
+# Install JUCE (optional - CMake can fetch it automatically)
+install-deps:
+	@echo "📦 Dependencies will be fetched automatically by CMake if needed"
+	@echo "✅ Ready to build for $(PLATFORM)"
+
+# Legacy target for manual JUCE installation
+install-juce:
+	@if [ ! -d "$(JUCE_DIR)" ]; then \
+		echo "🔄 Downloading JUCE $(JUCE_VERSION)..."; \
+		mkdir -p deps; \
+		cd deps && git clone --depth 1 --branch $(JUCE_VERSION) https://github.com/juce-framework/JUCE.git; \
+		echo "✅ JUCE $(JUCE_VERSION) installed to $(JUCE_DIR)"; \
+	else \
+		echo "✅ JUCE already installed at $(JUCE_DIR)"; \
+	fi
 
 # Backend targets
 backend: backend-deps
@@ -81,58 +74,48 @@ backend-dev:
 	@echo "🔧 Starting backend in development mode..."
 	@cd backend && go run cmd/server/main.go
 
-# Plugin targets - optimized for speed
-plugin: $(JUCE_DIR) plugin-project
-ifeq ($(PLATFORM),windows)
-	@if [ "$(MSBUILD)" = "MSBuild not found" ]; then \
-		echo "❌ MSBuild not found!"; \
-		echo "Please install Visual Studio 2022 with C++ Desktop Development workload"; \
-		exit 1; \
-	fi
-	@echo "🔧 Fixing Visual Studio project..."
-	@bash fix-vcxproj.sh
-endif
+# Plugin targets using CMake
+plugin: plugin-configure
 	@echo "🔄 Building VST plugin for $(PLATFORM)..."
-	@$(BUILD_COMMAND)
+	@cmake --build $(BUILD_DIR) --config Release --parallel
 	@echo "✅ Plugin built successfully"
 
-plugin-debug: $(JUCE_DIR) plugin-project
+plugin-configure:
+	@echo "🔄 Configuring CMake build for $(PLATFORM)..."
+	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release
+	@echo "✅ CMake configuration complete"
+
+plugin-debug: plugin-configure-debug
 	@echo "🔄 Building VST plugin (Debug) for $(PLATFORM)..."
-	@echo "⚠️  Debug builds not yet implemented for $(PLATFORM)"
+	@cmake --build $(BUILD_DIR) --config Debug --parallel
+	@echo "✅ Debug plugin built successfully"
 
-# Fast build - always skip project regeneration
-plugin-fast: $(JUCE_DIR)
-	@echo "🔄 Building VST plugin (fast - no project regen) for $(PLATFORM)..."
-	@$(BUILD_COMMAND)
+plugin-configure-debug:
+	@echo "🔄 Configuring CMake debug build for $(PLATFORM)..."
+	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Debug
+
+# Fast build - skip configuration if already done
+plugin-fast:
+	@echo "🔄 Building VST plugin (fast - no reconfigure) for $(PLATFORM)..."
+	@cmake --build $(BUILD_DIR) --config Release --parallel
 	@echo "✅ Plugin built successfully"
-
-plugin-project: $(JUCE_DIR)
-	@echo "🔄 Generating plugin project files for $(PLATFORM)..."
-	@if [ ! -d $(BUILD_DIR) ]; then \
-		echo "🔄 First time build - generating project files..."; \
-		cd plugin && ../$(PROJUCER) --resave Sidechain.jucer; \
-		echo "✅ Project files generated"; \
-	else \
-		echo "⚡ Project files already exist, skipping regeneration"; \
-	fi
 
 plugin-install: plugin
 	@echo "📦 Installing VST plugin to $(PLUGIN_INSTALL_DIR)..."
-ifeq ($(PLATFORM),windows)
-	@test -d "$(PLUGIN_INSTALL_DIR)" || mkdir -p "$(PLUGIN_INSTALL_DIR)"
-	@rm -rf "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
-	@cp -r "$(PLUGIN_OUTPUT)" "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
-else
 	@mkdir -p "$(PLUGIN_INSTALL_DIR)"
 	@rm -rf "$(PLUGIN_INSTALL_DIR)/Sidechain.vst3"
 	@cp -r "$(PLUGIN_OUTPUT)" "$(PLUGIN_INSTALL_DIR)/"
+ifeq ($(PLATFORM),macos)
+	@echo "📦 Installing AU plugin to $(AU_INSTALL_DIR)..."
+	@mkdir -p "$(AU_INSTALL_DIR)"
+	@rm -rf "$(AU_INSTALL_DIR)/Sidechain.component"
+	@cp -r "$(AU_OUTPUT)" "$(AU_INSTALL_DIR)/"
 endif
-	@echo "✅ Plugin installed successfully"
+	@echo "✅ Plugin(s) installed successfully"
 
 plugin-clean:
 	@echo "🧹 Cleaning plugin build files..."
-	@rm -rf plugin/Builds/*/build
-	@rm -rf plugin/JuceLibraryCode
+	@rm -rf $(BUILD_DIR)
 	@echo "✅ Plugin cleaned"
 
 # Test targets
@@ -155,7 +138,8 @@ test-coverage:
 
 test-plugin:
 	@echo "🧪 Testing plugin build..."
-	@echo "✅ Plugin tests passed"
+	@test -d "$(PLUGIN_OUTPUT)" || (echo "❌ Plugin not built" && exit 1)
+	@echo "✅ Plugin build verified"
 
 # Development helpers
 dev: install-deps
@@ -175,13 +159,10 @@ deps-info:
 	@echo "📋 Dependency Information:"
 	@echo "Platform: $(PLATFORM)"
 	@echo "JUCE Version: $(JUCE_VERSION)"
-	@echo "JUCE URL: $(JUCE_URL)"
 	@echo "JUCE Directory: $(JUCE_DIR)"
-	@echo "Projucer: $(PROJUCER)"
-ifeq ($(PLATFORM),windows)
-	@echo "MSBuild: $(MSBUILD)"
 	@echo "Build Directory: $(BUILD_DIR)"
-endif
+	@echo "Plugin Output: $(PLUGIN_OUTPUT)"
+	@echo "Install Directory: $(PLUGIN_INSTALL_DIR)"
 
 help:
 	@echo "🎵 Sidechain - Social VST for Music Producers"
@@ -189,15 +170,17 @@ help:
 	@echo "Platform: $(PLATFORM)"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  all             - Build and install everything (recommended)"
-	@echo "  install-deps    - Download and install JUCE $(JUCE_VERSION)"
+	@echo "  all             - Build backend and plugin (recommended)"
+	@echo "  install-deps    - Show dependency info (CMake fetches automatically)"
+	@echo "  install-juce    - Manually install JUCE to deps/"
 	@echo "  backend         - Build Go backend server"
 	@echo "  backend-run     - Run built backend server"
 	@echo "  backend-dev     - Run backend in development mode"
-	@echo "  plugin          - Build VST plugin"
-	@echo "  plugin-fast     - Build VST plugin (skip project regen)"
-	@echo "  plugin-install  - Install VST plugin to system directory"
-	@echo "  plugin-project  - Regenerate plugin project files"
+	@echo "  plugin          - Build VST plugin via CMake"
+	@echo "  plugin-fast     - Build VST plugin (skip reconfigure)"
+	@echo "  plugin-debug    - Build debug version of plugin"
+	@echo "  plugin-install  - Install plugin to system directory"
+	@echo "  plugin-clean    - Clean plugin build files"
 	@echo "  test            - Run all tests"
 	@echo "  dev             - Start development environment"
 	@echo "  clean           - Clean all build artifacts"
@@ -205,5 +188,6 @@ help:
 	@echo "  help            - Show this help message"
 	@echo ""
 	@echo "Quick start:"
-	@echo "  make              # Build and install everything"
+	@echo "  make              # Build everything"
+	@echo "  make plugin       # Build just the plugin"
 	@echo "  make backend-dev  # Start backend server"

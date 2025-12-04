@@ -1,0 +1,140 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-plugin:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS Intel (x86_64)
+          - os: macos-13
+            name: macOS-Intel
+            cmake_args: ""
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+          # macOS Apple Silicon (arm64)
+          - os: macos-14
+            name: macOS-ARM64
+            cmake_args: ""
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+          # Linux (x86_64)
+          - os: ubuntu-latest
+            name: Linux
+            cmake_args: ""
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+          # Windows (x86_64)
+          - os: windows-latest
+            name: Windows
+            cmake_args: -G "Visual Studio 17 2022" -A x64
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.name }})
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            ladspa-sdk \
+            libcurl4-openssl-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libwebkit2gtk-4.0-dev \
+            libglu1-mesa-dev \
+            mesa-common-dev
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: plugin/build/_deps/juce-src
+          key: juce-8.0.8-${{ runner.os }}
+
+      - name: Configure CMake
+        run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Plugin
+        run: cmake --build plugin/build --config Release --parallel
+
+      - name: List Build Artifacts
+        shell: bash
+        run: |
+          echo "Build artifacts:"
+          find plugin/build/Sidechain_artefacts -type f -name "*.vst3" -o -name "*.component" -o -name "*.dll" -o -name "*.so" 2>/dev/null || true
+          ls -la ${{ matrix.artifact_path }} || true
+
+      - name: Upload VST3 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sidechain-VST3-${{ matrix.name }}
+          path: ${{ matrix.artifact_path }}/VST3/
+          if-no-files-found: error
+
+      - name: Upload AU Artifact (macOS only)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sidechain-AU-${{ matrix.name }}
+          path: ${{ matrix.artifact_path }}/AU/
+          if-no-files-found: error
+
+      - name: Upload Standalone Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sidechain-Standalone-${{ matrix.name }}
+          path: ${{ matrix.artifact_path }}/Standalone/
+          if-no-files-found: warn
+
+  build-backend:
+    runs-on: ubuntu-latest
+    name: Build Backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: backend/go.sum
+
+      - name: Build Backend
+        run: |
+          cd backend
+          go mod tidy
+          go build -o bin/sidechain-server cmd/server/main.go
+
+      - name: Run Tests
+        run: |
+          cd backend
+          go test ./... -v
+
+      - name: Upload Backend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sidechain-backend-linux
+          path: backend/bin/sidechain-server
