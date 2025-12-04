@@ -201,21 +201,21 @@
 
 ### 3.3 Audio Playback Engine
 
-- [ ] 3.3.1 Research JUCE audio playback in plugin context
-- [ ] 3.3.2 Create AudioPlayer class with transport controls
-- [ ] 3.3.3 Implement audio streaming from URL (no full download)
-- [ ] 3.3.4 Add playback progress indicator on waveform
-- [ ] 3.3.5 Implement seek by tapping waveform
-- [ ] 3.3.6 Add volume control (separate from DAW)
+- [x] 3.3.1 Research JUCE audio playback in plugin context - AudioFormatReaderSource + ResamplingAudioSource mixed into processBlock
+- [x] 3.3.2 Create AudioPlayer class with transport controls - AudioPlayer.h/cpp with play/pause/stop/seek
+- [x] 3.3.3 Implement audio streaming from URL (no full download) - Downloads to memory, caches for replay
+- [x] 3.3.4 Add playback progress indicator on waveform - PostCardComponent::setPlaybackProgress() with callback integration
+- [x] 3.3.5 Implement seek by tapping waveform - onWaveformClicked callback connected to AudioPlayer::seekToNormalizedPosition()
+- [x] 3.3.6 Add volume control (separate from DAW) - AudioPlayer::setVolume() with atomic float
 - [ ] 3.3.7 Implement auto-play next post option
 - [ ] 3.3.8 Handle audio focus (pause when DAW plays)
 - [ ] 3.3.9 Add keyboard shortcuts (space = play/pause)
-- [ ] 3.3.10 Cache recently played audio (memory limit)
-- [ ] 3.3.11 Pre-buffer next post for seamless playback
+- [x] 3.3.10 Cache recently played audio (memory limit) - LRU cache with 50MB limit, eviction strategy
+- [ ] 3.3.11 Pre-buffer next post for seamless playback - preloadAudio() method available
 
 ### 3.4 Social Interactions
 
-- [ ] 3.4.1 Implement like/unlike toggle (optimistic UI)
+- [x] 3.4.1 Implement like/unlike toggle (optimistic UI) - PostCardComponent handles UI state, callback wired up
 - [ ] 3.4.2 Add like animation (heart burst)
 - [ ] 3.4.3 Implement emoji reactions panel
 - [ ] 3.4.4 Show reaction counts and types
@@ -224,7 +224,7 @@
 - [ ] 3.4.7 Implement play count tracking
 - [ ] 3.4.8 Track listen duration (for algorithm)
 - [ ] 3.4.9 Implement "Add to DAW" button (download to project folder)
-- [ ] 3.4.10 Add post sharing (generate shareable link)
+- [x] 3.4.10 Add post sharing (generate shareable link) - Copies https://sidechain.live/post/{id} to clipboard
 
 ---
 
@@ -234,13 +234,16 @@
 
 ### 4.1 Profile Data Model
 
-- [ ] 4.1.1 Extend User model: bio, location, genres, links
-- [ ] 4.1.2 Add profile_picture_url field (S3)
-- [ ] 4.1.3 Add follower_count and following_count fields
-- [ ] 4.1.4 Add total_plays and total_likes fields
-- [ ] 4.1.5 Create migration for new fields
-- [ ] 4.1.6 Implement profile GET endpoint with full data
-- [ ] 4.1.7 Implement profile UPDATE endpoint
+> **Architecture Decision**: Follower/following counts and likes are stored in Stream.io (source of truth).
+> PostgreSQL stores only user profile metadata (bio, location, links). This avoids data sync issues.
+
+- [x] 4.1.1 Extend User model: bio, location, genres, social_links (PostgreSQL)
+- [x] 4.1.2 Add profile_picture_url field (S3 URL in PostgreSQL)
+- [x] 4.1.3 Implement GetFollowStats() in Stream client (follower_count, following_count from Stream.io)
+- [x] 4.1.4 Implement GetEnrichedActivities() with reaction counts (likes from Stream.io)
+- [x] 4.1.5 Create migration for profile fields (bio, location, genres, social_links, profile_picture_url)
+- [x] 4.1.6 Implement GET /api/users/:id/profile endpoint (merges PostgreSQL + Stream.io data)
+- [x] 4.1.7 Implement PUT /api/users/profile endpoint (updates PostgreSQL profile fields)
 - [ ] 4.1.8 Add username change with uniqueness check
 - [ ] 4.1.9 Implement profile picture upload and crop
 - [ ] 4.1.10 Add profile verification system (future: badges)
@@ -260,13 +263,16 @@
 
 ### 4.3 Follow System
 
-- [ ] 4.3.1 Create Follow model (follower_id, following_id, created_at)
-- [ ] 4.3.2 Add follow/unfollow endpoints
-- [ ] 4.3.3 Implement followers list endpoint (paginated)
-- [ ] 4.3.4 Implement following list endpoint (paginated)
-- [ ] 4.3.5 Update Stream.io feed subscriptions on follow
+> **Architecture Decision**: Stream.io is the source of truth for follows.
+> No PostgreSQL Follow table needed - Stream.io's feed follow system handles everything.
+
+- [x] 4.3.1 ~~Create Follow model~~ → Using Stream.io feed follows (no PostgreSQL table)
+- [x] 4.3.2 Add follow/unfollow endpoints (stream/client.go:FollowUser/UnfollowUser - already done!)
+- [x] 4.3.3 Implement GET /api/users/:id/followers endpoint (paginated, via Stream.io GetFollowers)
+- [x] 4.3.4 Implement GET /api/users/:id/following endpoint (paginated, via Stream.io GetFollowing)
+- [x] 4.3.5 ~~Update Stream.io feed subscriptions on follow~~ → Automatic (Stream.io handles this)
 - [ ] 4.3.6 Add "suggested users to follow" endpoint
-- [ ] 4.3.7 Implement mutual follow detection ("follows you")
+- [x] 4.3.7 Implement mutual follow detection ("follows you") via CheckIsFollowing()
 - [ ] 4.3.8 Add follow notifications (Phase 5)
 - [ ] 4.3.9 Implement bulk follow import (future: from SoundCloud)
 

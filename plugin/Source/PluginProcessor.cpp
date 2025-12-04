@@ -94,6 +94,9 @@ void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     int numChannels = getTotalNumInputChannels();
     audioCapture.prepare(sampleRate, samplesPerBlock, numChannels);
 
+    // Prepare audio player for feed playback
+    audioPlayer.prepareToPlay(sampleRate, samplesPerBlock);
+
     DBG("Sidechain prepared: " + juce::String(sampleRate) + "Hz, " +
         juce::String(samplesPerBlock) + " samples, " +
         juce::String(numChannels) + " channels");
@@ -101,7 +104,7 @@ void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 
 void SidechainAudioProcessor::releaseResources()
 {
-    // Nothing to release yet
+    audioPlayer.releaseResources();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -159,8 +162,9 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // This captures the incoming audio before any processing
     audioCapture.captureAudio(buffer);
 
-    // Pass audio through unchanged (Sidechain is a passthrough effect)
-    // All the social functionality happens in the UI layer
+    // Mix in feed audio playback (adds to the output buffer)
+    // This allows users to hear posts while working in their DAW
+    audioPlayer.processBlock(buffer, buffer.getNumSamples());
 
     juce::ignoreUnused(midiMessages);
 }

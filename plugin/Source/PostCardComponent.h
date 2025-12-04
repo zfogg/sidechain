@@ -30,12 +30,15 @@ public:
     // Data binding
     void setPost(const FeedPost& post);
     const FeedPost& getPost() const { return post; }
+    juce::String getPostId() const { return post.id; }
 
     // Update specific fields without full refresh
     void updateLikeCount(int count, bool isLiked);
     void updatePlayCount(int count);
     void setPlaybackProgress(float progress); // 0.0 - 1.0
     void setIsPlaying(bool playing);
+    void setPlaying(bool playing) { setIsPlaying(playing); }
+    void setLoading(bool loading);
 
     //==============================================================================
     // Callbacks for user actions
@@ -70,6 +73,7 @@ private:
     // UI state
     bool isHovered = false;
     bool isPlaying = false;
+    bool isLoading = false;
     float playbackProgress = 0.0f;
 
     // Cached avatar image

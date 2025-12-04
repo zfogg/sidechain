@@ -32,6 +32,81 @@ void PostsFeedComponent::setNetworkClient(NetworkClient* client)
     feedDataManager.setNetworkClient(client);
 }
 
+void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
+{
+    audioPlayer = player;
+
+    if (audioPlayer)
+    {
+        // Set up progress callback to update post cards
+        audioPlayer->onProgressUpdate = [this](const juce::String& postId, double progress) {
+            // Find the card for this post and update its playback progress
+            for (auto* card : postCards)
+            {
+                if (card->getPostId() == postId)
+                {
+                    card->setPlaybackProgress(static_cast<float>(progress));
+                    break;
+                }
+            }
+        };
+
+        // Handle playback state changes
+        audioPlayer->onPlaybackStarted = [this](const juce::String& postId) {
+            // Update all cards - only the playing one should show as playing
+            for (auto* card : postCards)
+            {
+                card->setPlaying(card->getPostId() == postId);
+            }
+        };
+
+        audioPlayer->onPlaybackPaused = [this](const juce::String& postId) {
+            for (auto* card : postCards)
+            {
+                if (card->getPostId() == postId)
+                {
+                    card->setPlaying(false);
+                    break;
+                }
+            }
+        };
+
+        audioPlayer->onPlaybackStopped = [this](const juce::String& postId) {
+            for (auto* card : postCards)
+            {
+                if (card->getPostId() == postId)
+                {
+                    card->setPlaying(false);
+                    card->setPlaybackProgress(0.0f);
+                    break;
+                }
+            }
+        };
+
+        audioPlayer->onLoadingStarted = [this](const juce::String& postId) {
+            for (auto* card : postCards)
+            {
+                if (card->getPostId() == postId)
+                {
+                    card->setLoading(true);
+                    break;
+                }
+            }
+        };
+
+        audioPlayer->onLoadingComplete = [this](const juce::String& postId, bool /*success*/) {
+            for (auto* card : postCards)
+            {
+                if (card->getPostId() == postId)
+                {
+                    card->setLoading(false);
+                    break;
+                }
+            }
+        };
+    }
+}
+
 //==============================================================================
 void PostsFeedComponent::loadFeed()
 {
@@ -372,17 +447,24 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
 {
     card->onPlayClicked = [this](const FeedPost& post) {
         DBG("Play clicked for post: " + post.id);
-        // TODO: Integrate with audio player in Phase 3.3
+        if (audioPlayer && post.audioUrl.isNotEmpty())
+        {
+            audioPlayer->loadAndPlay(post.id, post.audioUrl);
+        }
     };
 
     card->onPauseClicked = [this](const FeedPost& post) {
         DBG("Pause clicked for post: " + post.id);
-        // TODO: Integrate with audio player in Phase 3.3
+        if (audioPlayer && audioPlayer->isPostPlaying(post.id))
+        {
+            audioPlayer->pause();
+        }
     };
 
     card->onLikeToggled = [this](const FeedPost& post, bool liked) {
         DBG("Like toggled for post: " + post.id + " -> " + (liked ? "liked" : "unliked"));
-        // TODO: Call backend API and update optimistically
+        // Optimistic UI update - card handles its own state
+        // TODO: Call backend API
     };
 
     card->onUserClicked = [this](const FeedPost& post) {
@@ -397,7 +479,9 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
 
     card->onShareClicked = [this](const FeedPost& post) {
         DBG("Share clicked for post: " + post.id);
-        // TODO: Copy shareable link to clipboard
+        // Copy shareable link to clipboard
+        juce::String shareUrl = "https://sidechain.live/post/" + post.id;
+        juce::SystemClipboard::copyTextToClipboard(shareUrl);
     };
 
     card->onMoreClicked = [this](const FeedPost& post) {
@@ -407,7 +491,23 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
 
     card->onWaveformClicked = [this](const FeedPost& post, float position) {
         DBG("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
-        // TODO: Seek audio playback
+        if (audioPlayer)
+        {
+            // If this post isn't playing, start it at the clicked position
+            if (!audioPlayer->isPostPlaying(post.id))
+            {
+                audioPlayer->loadAndPlay(post.id, post.audioUrl);
+                // Seek after a short delay to let it load
+                juce::Timer::callAfterDelay(100, [this, position]() {
+                    if (audioPlayer)
+                        audioPlayer->seekToNormalizedPosition(position);
+                });
+            }
+            else
+            {
+                audioPlayer->seekToNormalizedPosition(position);
+            }
+        }
     };
 }
 

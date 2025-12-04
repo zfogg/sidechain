@@ -229,6 +229,8 @@ target_sources(Sidechain
         Source/PostCardComponent.h
         Source/AuthComponent.cpp
         Source/AuthComponent.h
+        Source/AudioPlayer.cpp
+        Source/AudioPlayer.h
 )
 
 # Preprocessor definitions
