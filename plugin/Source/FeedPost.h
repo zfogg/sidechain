@@ -53,6 +53,8 @@ public:
     int playCount = 0;
     int commentCount = 0;
     bool isLiked = false;      // Whether current user has liked this post
+    bool isFollowing = false;  // Whether current user is following this post's author
+    bool isOwnPost = false;    // Whether this is the current user's own post
 
     //==============================================================================
     // Processing status
