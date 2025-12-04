@@ -87,7 +87,16 @@ void SidechainAudioProcessor::changeProgramName (int index, const juce::String& 
 //==============================================================================
 void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    DBG("Sidechain prepared: " + juce::String(sampleRate) + "Hz, " + juce::String(samplesPerBlock) + " samples");
+    currentSampleRate = sampleRate;
+    currentBlockSize = samplesPerBlock;
+
+    // Prepare audio capture with current settings
+    int numChannels = getTotalNumInputChannels();
+    audioCapture.prepare(sampleRate, samplesPerBlock, numChannels);
+
+    DBG("Sidechain prepared: " + juce::String(sampleRate) + "Hz, " +
+        juce::String(samplesPerBlock) + " samples, " +
+        juce::String(numChannels) + " channels");
 }
 
 void SidechainAudioProcessor::releaseResources()
@@ -129,9 +138,13 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    // Capture audio for recording (lock-free, called on audio thread)
+    // This captures the incoming audio before any processing
+    audioCapture.captureAudio(buffer);
+
     // Pass audio through unchanged (Sidechain is a passthrough effect)
     // All the social functionality happens in the UI layer
-    
+
     juce::ignoreUnused(midiMessages);
 }
 
@@ -168,6 +181,28 @@ void SidechainAudioProcessor::setStateInformation (const void* data, int sizeInB
             authenticated = state.getProperty("authenticated", false);
         }
     }
+}
+
+//==============================================================================
+// Audio Recording API
+//==============================================================================
+void SidechainAudioProcessor::startRecording()
+{
+    // Generate a unique recording ID
+    juce::String recordingId = juce::Uuid().toString();
+    audioCapture.startRecording(recordingId);
+    DBG("Started recording: " + recordingId);
+}
+
+void SidechainAudioProcessor::stopRecording()
+{
+    lastRecordedAudio = audioCapture.stopRecording();
+    DBG("Stopped recording: " + juce::String(lastRecordedAudio.getNumSamples()) + " samples");
+}
+
+juce::AudioBuffer<float> SidechainAudioProcessor::getRecordedAudio()
+{
+    return lastRecordedAudio;
 }
 
 //==============================================================================

@@ -5,6 +5,7 @@
 #include "ProfileSetupComponent.h"
 #include "PostsFeedComponent.h"
 #include "NetworkClient.h"
+#include "ConnectionIndicator.h"
 
 //==============================================================================
 /**
@@ -65,6 +66,9 @@ private:
 
     // Network client for API calls
     std::unique_ptr<NetworkClient> networkClient;
+
+    // Connection status indicator
+    std::unique_ptr<ConnectionIndicator> connectionIndicator;
 
     // Form input state
     int activeField = -1; // -1 = none, 0 = email, 1 = username, 2 = display, 3 = password, 4 = confirm
