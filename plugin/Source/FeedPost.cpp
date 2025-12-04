@@ -67,6 +67,8 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.playCount = static_cast<int>(json.getProperty("play_count", 0));
     post.commentCount = static_cast<int>(json.getProperty("comment_count", 0));
     post.isLiked = static_cast<bool>(json.getProperty("is_liked", false));
+    post.isFollowing = static_cast<bool>(json.getProperty("is_following", false));
+    post.isOwnPost = static_cast<bool>(json.getProperty("is_own_post", false));
 
     // Processing status
     juce::String statusStr = json.getProperty("status", "").toString().toLowerCase();
@@ -125,6 +127,8 @@ juce::var FeedPost::toJson() const
     obj->setProperty("play_count", playCount);
     obj->setProperty("comment_count", commentCount);
     obj->setProperty("is_liked", isLiked);
+    obj->setProperty("is_following", isFollowing);
+    obj->setProperty("is_own_post", isOwnPost);
 
     // Status
     juce::String statusStr;

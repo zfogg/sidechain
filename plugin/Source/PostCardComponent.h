@@ -36,6 +36,7 @@ public:
     // Update specific fields without full refresh
     void updateLikeCount(int count, bool isLiked);
     void updatePlayCount(int count);
+    void updateFollowState(bool isFollowing);
     void setPlaybackProgress(float progress); // 0.0 - 1.0
     void setIsPlaying(bool playing);
     void setPlaying(bool playing) { setIsPlaying(playing); }
@@ -51,6 +52,7 @@ public:
     std::function<void(const FeedPost&)> onShareClicked;
     std::function<void(const FeedPost&)> onMoreClicked;
     std::function<void(const FeedPost&, float position)> onWaveformClicked; // Seek position
+    std::function<void(const FeedPost&, bool willFollow)> onFollowToggled; // Follow/unfollow user
 
     //==============================================================================
     // Component overrides
@@ -95,6 +97,7 @@ private:
     void drawBackground(juce::Graphics& g);
     void drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawFollowButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawPlayButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds);
@@ -114,6 +117,7 @@ private:
     juce::Rectangle<int> getCommentButtonBounds() const;
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getMoreButtonBounds() const;
+    juce::Rectangle<int> getFollowButtonBounds() const;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCardComponent)

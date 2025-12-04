@@ -495,6 +495,33 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
         // TODO: Show context menu
     };
 
+    card->onFollowToggled = [this, card](const FeedPost& post, bool willFollow) {
+        DBG("Follow toggled for user: " + post.userId + " -> " + (willFollow ? "follow" : "unfollow"));
+
+        // Optimistic UI update
+        card->updateFollowState(willFollow);
+
+        // Update all other cards by the same user
+        for (auto* otherCard : postCards)
+        {
+            if (otherCard != card && otherCard->getPost().userId == post.userId)
+            {
+                otherCard->updateFollowState(willFollow);
+            }
+        }
+
+        // TODO: Call backend API to follow/unfollow
+        // feedDataManager.followUser(post.userId, willFollow, [this, post, willFollow](bool success) {
+        //     if (!success) {
+        //         // Revert on failure
+        //         for (auto* c : postCards) {
+        //             if (c->getPost().userId == post.userId)
+        //                 c->updateFollowState(!willFollow);
+        //         }
+        //     }
+        // });
+    };
+
     card->onWaveformClicked = [this](const FeedPost& post, float position) {
         DBG("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
         if (audioPlayer)
