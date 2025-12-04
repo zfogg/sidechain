@@ -61,7 +61,22 @@ public:
     using FeedCallback = std::function<void(const juce::var& feedData)>;
     using ProfilePictureCallback = std::function<void(bool success, const juce::String& pictureUrl)>;
     using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
-    
+
+    //==========================================================================
+    // Metadata for audio uploads
+    struct AudioUploadMetadata
+    {
+        juce::String title;
+        double bpm = 0.0;
+        juce::String key;        // e.g., "C", "Am", "F#m" or empty
+        juce::String genre;      // e.g., "Electronic", "Hip-Hop"
+
+        // Auto-populated fields
+        double durationSeconds = 0.0;
+        int sampleRate = 44100;
+        int numChannels = 2;
+    };
+
     // Authentication (simplified - no device claiming)
     void registerAccount(const juce::String& email, const juce::String& username, 
                         const juce::String& password, const juce::String& displayName,
@@ -71,10 +86,16 @@ public:
     void setAuthenticationCallback(AuthenticationCallback callback);
     
     // Audio operations
-    void uploadAudio(const juce::String& recordingId, 
+    void uploadAudio(const juce::String& recordingId,
                     const juce::AudioBuffer<float>& audioBuffer,
                     double sampleRate,
                     UploadCallback callback = nullptr);
+
+    // Upload audio with full metadata (title, BPM, key, genre)
+    void uploadAudioWithMetadata(const juce::AudioBuffer<float>& audioBuffer,
+                                 double sampleRate,
+                                 const AudioUploadMetadata& metadata,
+                                 UploadCallback callback = nullptr);
     
     // Social feed operations
     void getGlobalFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);

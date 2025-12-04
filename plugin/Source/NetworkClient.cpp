@@ -329,6 +329,115 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
 }
 
 //==============================================================================
+void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audioBuffer,
+                                             double sampleRate,
+                                             const AudioUploadMetadata& metadata,
+                                             UploadCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        DBG("Cannot upload audio: not authenticated");
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(false, "");
+            });
+        }
+        return;
+    }
+
+    // Copy the buffer and metadata for the background thread
+    juce::AudioBuffer<float> bufferCopy(audioBuffer);
+    AudioUploadMetadata metadataCopy = metadata;
+
+    juce::Thread::launch([this, bufferCopy, sampleRate, metadataCopy, callback]() {
+        // Encode audio to WAV (server will transcode to MP3)
+        auto audioData = encodeAudioToWAV(bufferCopy, sampleRate);
+
+        if (audioData.getSize() == 0)
+        {
+            DBG("Failed to encode audio");
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(false, "");
+                });
+            }
+            return;
+        }
+
+        // Generate unique recording ID
+        juce::String recordingId = juce::Uuid().toString();
+
+        // Calculate duration
+        double durationSecs = static_cast<double>(bufferCopy.getNumSamples()) / sampleRate;
+
+        // Build metadata fields for multipart upload
+        std::map<juce::String, juce::String> fields;
+        fields["recording_id"] = recordingId;
+        fields["title"] = metadataCopy.title;
+
+        if (metadataCopy.bpm > 0)
+            fields["bpm"] = juce::String(metadataCopy.bpm, 1);
+
+        if (metadataCopy.key.isNotEmpty())
+            fields["key"] = metadataCopy.key;
+
+        if (metadataCopy.genre.isNotEmpty())
+            fields["genre"] = metadataCopy.genre;
+
+        fields["duration_seconds"] = juce::String(durationSecs, 2);
+        fields["sample_rate"] = juce::String(static_cast<int>(sampleRate));
+        fields["channels"] = juce::String(bufferCopy.getNumChannels());
+
+        // Calculate approximate bar count if BPM is known
+        if (metadataCopy.bpm > 0)
+        {
+            double beatsPerSecond = metadataCopy.bpm / 60.0;
+            double totalBeats = durationSecs * beatsPerSecond;
+            int bars = static_cast<int>(totalBeats / 4.0 + 0.5); // Assuming 4/4 time
+            fields["duration_bars"] = juce::String(juce::jmax(1, bars));
+        }
+
+        // Generate filename
+        juce::String safeTitle = metadataCopy.title.replaceCharacters(" /\\:*?\"<>|", "-----------");
+        juce::String fileName = safeTitle + "-" + recordingId.substring(0, 8) + ".wav";
+
+        // Upload using multipart form data
+        auto result = uploadMultipartData(
+            "/api/v1/audio/upload",
+            "audio_file",
+            audioData,
+            fileName,
+            "audio/wav",
+            fields
+        );
+
+        bool success = result.success;
+        juce::String audioUrl;
+
+        if (result.data.isObject())
+        {
+            audioUrl = result.data.getProperty("audio_url", "").toString();
+            if (audioUrl.isEmpty())
+                audioUrl = result.data.getProperty("url", "").toString();
+        }
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, success, audioUrl]() {
+                callback(success, audioUrl);
+            });
+        }
+
+        if (success)
+            DBG("Audio with metadata uploaded successfully: " + audioUrl);
+        else
+            DBG("Audio upload failed: " + result.getUserFriendlyError());
+    });
+}
+
+//==============================================================================
 void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback)
 {
     if (!isAuthenticated())
