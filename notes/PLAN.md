@@ -187,16 +187,16 @@
 
 ### 3.2 Post Card Component
 
-- [ ] 3.2.1 Design post card layout (avatar, username, waveform, controls)
-- [ ] 3.2.2 Implement user avatar display (circular, with fallback)
-- [ ] 3.2.3 Display username and post timestamp
-- [ ] 3.2.4 Render waveform visualization
-- [ ] 3.2.5 Add play/pause button overlay
-- [ ] 3.2.6 Display BPM and key badges
-- [ ] 3.2.7 Add like button with count
-- [ ] 3.2.8 Add comment count indicator
-- [ ] 3.2.9 Add share button (copy link)
-- [ ] 3.2.10 Add "more" menu (report, hide, etc.)
+- [x] 3.2.1 Design post card layout (avatar, username, waveform, controls) - PostCardComponent.h/cpp
+- [x] 3.2.2 Implement user avatar display (circular, with fallback) - drawAvatar() with initials fallback
+- [x] 3.2.3 Display username and post timestamp - drawUserInfo() with DAW badge
+- [x] 3.2.4 Render waveform visualization - drawWaveform() with playback progress
+- [x] 3.2.5 Add play/pause button overlay - drawPlayButton() with state toggle
+- [x] 3.2.6 Display BPM and key badges - drawMetadataBadges() with genre tags
+- [x] 3.2.7 Add like button with count - drawSocialButtons() with heart icon
+- [x] 3.2.8 Add comment count indicator - Comment count in social buttons
+- [x] 3.2.9 Add share button (copy link) - Share button bounds and callback
+- [x] 3.2.10 Add "more" menu (report, hide, etc.) - More button bounds and callback
 - [ ] 3.2.11 Implement card tap to expand details
 
 ### 3.3 Audio Playback Engine

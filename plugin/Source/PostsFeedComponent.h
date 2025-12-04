@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "FeedDataManager.h"
 #include "FeedPost.h"
+#include "PostCardComponent.h"
 
 class NetworkClient;
 
@@ -73,6 +74,7 @@ private:
     //==============================================================================
     // UI Components
     juce::ScrollBar scrollBar { true }; // vertical
+    juce::OwnedArray<PostCardComponent> postCards;
 
     //==============================================================================
     // UI layout constants
@@ -87,8 +89,12 @@ private:
     void drawEmptyState(juce::Graphics& g);
     void drawErrorState(juce::Graphics& g);
     void drawFeedPosts(juce::Graphics& g);
-    void drawPostCard(juce::Graphics& g, const FeedPost& post, juce::Rectangle<int> bounds);
     void drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds, bool small = false);
+
+    // Post card management
+    void rebuildPostCards();
+    void updatePostCardPositions();
+    void setupPostCardCallbacks(PostCardComponent* card);
 
     // Feed callback handlers
     void onFeedLoaded(const FeedResponse& response);

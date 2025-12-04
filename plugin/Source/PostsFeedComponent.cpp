@@ -92,6 +92,7 @@ void PostsFeedComponent::onFeedLoaded(const FeedResponse& response)
     else
         feedState = FeedState::Loaded;
 
+    rebuildPostCards();
     updateScrollBounds();
     repaint();
 }
@@ -312,127 +313,102 @@ void PostsFeedComponent::drawErrorState(juce::Graphics& g)
 
 void PostsFeedComponent::drawFeedPosts(juce::Graphics& g)
 {
-    auto contentBounds = getFeedContentBounds();
-
-    // Clip to content area
-    g.saveState();
-    g.reduceClipRegion(contentBounds);
-
-    int yOffset = contentBounds.getY() - static_cast<int>(scrollPosition);
-    int cardWidth = contentBounds.getWidth() - 40; // Padding
-
-    for (int i = 0; i < posts.size(); ++i)
-    {
-        auto cardBounds = juce::Rectangle<int>(
-            contentBounds.getX() + 20,
-            yOffset + i * (POST_CARD_HEIGHT + POST_CARD_SPACING),
-            cardWidth,
-            POST_CARD_HEIGHT
-        );
-
-        // Only draw visible cards
-        if (cardBounds.getBottom() > contentBounds.getY() && cardBounds.getY() < contentBounds.getBottom())
-        {
-            drawPostCard(g, posts[i], cardBounds);
-        }
-    }
-
-    g.restoreState();
+    // Post cards are now child components, just update their visibility
+    updatePostCardPositions();
 
     // Loading more indicator at bottom
     if (feedDataManager.isFetching() && feedDataManager.hasMorePosts())
     {
-        auto loadingBounds = contentBounds.removeFromBottom(40);
-        g.setColour(juce::Colours::grey);
-        g.setFont(14.0f);
-        g.drawText("Loading more...", loadingBounds, juce::Justification::centred);
+        auto contentBounds = getFeedContentBounds();
+        int loadingY = contentBounds.getY() + totalContentHeight - static_cast<int>(scrollPosition);
+
+        if (loadingY < contentBounds.getBottom())
+        {
+            g.setColour(juce::Colours::grey);
+            g.setFont(14.0f);
+            g.drawText("Loading more...",
+                       contentBounds.getX(), loadingY, contentBounds.getWidth(), 40,
+                       juce::Justification::centred);
+        }
     }
 }
 
-void PostsFeedComponent::drawPostCard(juce::Graphics& g, const FeedPost& post, juce::Rectangle<int> bounds)
+//==============================================================================
+void PostsFeedComponent::rebuildPostCards()
 {
-    // Card background
-    g.setColour(juce::Colour::fromRGB(40, 40, 40));
-    g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
+    postCards.clear();
 
-    // Card border
-    g.setColour(juce::Colour::fromRGB(60, 60, 60));
-    g.drawRoundedRectangle(bounds.toFloat(), 8.0f, 1.0f);
-
-    // Left section: avatar + username
-    auto avatarBounds = juce::Rectangle<int>(bounds.getX() + 15, bounds.getCentreY() - 25, 50, 50);
-
-    // Avatar placeholder
-    g.setColour(juce::Colour::fromRGB(70, 70, 70));
-    g.fillEllipse(avatarBounds.toFloat());
-
-    // User initial
-    g.setColour(juce::Colours::white);
-    g.setFont(18.0f);
-    juce::String initial = post.username.isEmpty() ? "?" : post.username.substring(0, 1).toUpperCase();
-    g.drawText(initial, avatarBounds, juce::Justification::centred);
-
-    // Username and time
-    int textX = avatarBounds.getRight() + 15;
-    g.setColour(juce::Colours::white);
-    g.setFont(14.0f);
-    g.drawText(post.username.isEmpty() ? "Unknown" : post.username,
-               textX, bounds.getY() + 15, 150, 20, juce::Justification::centredLeft);
-
-    g.setColour(juce::Colours::grey);
-    g.setFont(12.0f);
-    g.drawText(post.timeAgo, textX, bounds.getY() + 35, 150, 18, juce::Justification::centredLeft);
-
-    // Center section: waveform placeholder
-    auto waveformBounds = juce::Rectangle<int>(textX + 160, bounds.getY() + 20, bounds.getWidth() - textX - 280, bounds.getHeight() - 40);
-
-    g.setColour(juce::Colour::fromRGB(50, 50, 50));
-    g.fillRoundedRectangle(waveformBounds.toFloat(), 4.0f);
-
-    // Waveform bars placeholder
-    g.setColour(juce::Colour::fromRGB(0, 180, 220));
-    int barWidth = 3;
-    int barSpacing = 2;
-    int numBars = waveformBounds.getWidth() / (barWidth + barSpacing);
-
-    for (int i = 0; i < numBars; ++i)
+    for (const auto& post : posts)
     {
-        int barHeight = 5 + (std::hash<int>{}(post.id.hashCode() + i) % 25);
-        int barX = waveformBounds.getX() + i * (barWidth + barSpacing);
-        int barY = waveformBounds.getCentreY() - barHeight / 2;
-        g.fillRect(barX, barY, barWidth, barHeight);
+        auto* card = postCards.add(new PostCardComponent());
+        card->setPost(post);
+        setupPostCardCallbacks(card);
+        addAndMakeVisible(card);
     }
 
-    // Right section: metadata badges
-    int badgeX = bounds.getRight() - 110;
-    int badgeY = bounds.getY() + 20;
+    updatePostCardPositions();
+}
 
-    // BPM badge
-    if (post.bpm > 0)
+void PostsFeedComponent::updatePostCardPositions()
+{
+    auto contentBounds = getFeedContentBounds();
+    int cardWidth = contentBounds.getWidth() - 40; // Padding
+
+    for (int i = 0; i < postCards.size(); ++i)
     {
-        g.setColour(juce::Colour::fromRGB(60, 60, 60));
-        g.fillRoundedRectangle(static_cast<float>(badgeX), static_cast<float>(badgeY), 50.0f, 22.0f, 4.0f);
-        g.setColour(juce::Colours::white);
-        g.setFont(11.0f);
-        g.drawText(juce::String(post.bpm) + " BPM", badgeX, badgeY, 50, 22, juce::Justification::centred);
-        badgeY += 28;
-    }
+        auto* card = postCards[i];
+        int cardY = contentBounds.getY() - static_cast<int>(scrollPosition) + i * (POST_CARD_HEIGHT + POST_CARD_SPACING);
 
-    // Key badge
-    if (post.key.isNotEmpty())
-    {
-        g.setColour(juce::Colour::fromRGB(60, 60, 60));
-        g.fillRoundedRectangle(static_cast<float>(badgeX), static_cast<float>(badgeY), 50.0f, 22.0f, 4.0f);
-        g.setColour(juce::Colours::white);
-        g.setFont(11.0f);
-        g.drawText(post.key, badgeX, badgeY, 50, 22, juce::Justification::centred);
-        badgeY += 28;
-    }
+        card->setBounds(contentBounds.getX() + 20, cardY, cardWidth, POST_CARD_HEIGHT);
 
-    // Like count
-    g.setColour(juce::Colours::grey);
-    g.setFont(12.0f);
-    g.drawText(juce::String(post.likeCount) + " likes", badgeX - 10, bounds.getBottom() - 30, 70, 20, juce::Justification::centredLeft);
+        // Show/hide based on visibility
+        bool visible = (cardY + POST_CARD_HEIGHT > contentBounds.getY()) &&
+                      (cardY < contentBounds.getBottom());
+        card->setVisible(visible);
+    }
+}
+
+void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
+{
+    card->onPlayClicked = [this](const FeedPost& post) {
+        DBG("Play clicked for post: " + post.id);
+        // TODO: Integrate with audio player in Phase 3.3
+    };
+
+    card->onPauseClicked = [this](const FeedPost& post) {
+        DBG("Pause clicked for post: " + post.id);
+        // TODO: Integrate with audio player in Phase 3.3
+    };
+
+    card->onLikeToggled = [this](const FeedPost& post, bool liked) {
+        DBG("Like toggled for post: " + post.id + " -> " + (liked ? "liked" : "unliked"));
+        // TODO: Call backend API and update optimistically
+    };
+
+    card->onUserClicked = [this](const FeedPost& post) {
+        DBG("User clicked: " + post.username);
+        // TODO: Navigate to user profile
+    };
+
+    card->onCommentClicked = [this](const FeedPost& post) {
+        DBG("Comments clicked for post: " + post.id);
+        // TODO: Open comments panel
+    };
+
+    card->onShareClicked = [this](const FeedPost& post) {
+        DBG("Share clicked for post: " + post.id);
+        // TODO: Copy shareable link to clipboard
+    };
+
+    card->onMoreClicked = [this](const FeedPost& post) {
+        DBG("More menu clicked for post: " + post.id);
+        // TODO: Show context menu
+    };
+
+    card->onWaveformClicked = [this](const FeedPost& post, float position) {
+        DBG("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
+        // TODO: Seek audio playback
+    };
 }
 
 void PostsFeedComponent::drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds, bool small)
@@ -501,6 +477,7 @@ void PostsFeedComponent::resized()
     // Position scroll bar on right
     scrollBar.setBounds(bounds.getRight() - 12, contentBounds.getY(), 12, contentBounds.getHeight());
     updateScrollBounds();
+    updatePostCardPositions();
 }
 
 void PostsFeedComponent::scrollBarMoved(juce::ScrollBar* bar, double newRangeStart)
@@ -549,8 +526,20 @@ void PostsFeedComponent::checkLoadMore()
         feedDataManager.loadMorePosts([this](const FeedResponse& response) {
             if (response.error.isEmpty())
             {
+                // Add new posts to array
                 posts.addArray(response.posts);
+
+                // Create card components for new posts
+                for (const auto& post : response.posts)
+                {
+                    auto* card = postCards.add(new PostCardComponent());
+                    card->setPost(post);
+                    setupPostCardCallbacks(card);
+                    addAndMakeVisible(card);
+                }
+
                 updateScrollBounds();
+                updatePostCardPositions();
                 repaint();
             }
         });

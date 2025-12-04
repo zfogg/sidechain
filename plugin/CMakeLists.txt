@@ -225,6 +225,8 @@ target_sources(Sidechain
         Source/FeedPost.h
         Source/FeedDataManager.cpp
         Source/FeedDataManager.h
+        Source/PostCardComponent.cpp
+        Source/PostCardComponent.h
 )
 
 # Preprocessor definitions
@@ -452,7 +454,13 @@ if(SIDECHAIN_BUILD_TESTS)
     endif()
 
     # Create test-results directory for JUnit XML output
+    # Use both file(MAKE_DIRECTORY) at configure time AND a POST_BUILD command
+    # to ensure directory exists when tests run (fixes CI race condition)
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test-results)
+    add_custom_command(TARGET SidechainTests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test-results
+        COMMENT "Ensuring test-results directory exists"
+    )
 
     # Register tests with CTest
     catch_discover_tests(SidechainTests

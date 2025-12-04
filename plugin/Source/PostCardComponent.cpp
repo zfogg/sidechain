@@ -1,0 +1,444 @@
+#include "PostCardComponent.h"
+
+//==============================================================================
+PostCardComponent::PostCardComponent()
+{
+    setSize(600, CARD_HEIGHT);
+}
+
+PostCardComponent::~PostCardComponent()
+{
+}
+
+//==============================================================================
+void PostCardComponent::setPost(const FeedPost& newPost)
+{
+    post = newPost;
+    avatarLoadRequested = false;
+    avatarImage = juce::Image();
+    repaint();
+}
+
+void PostCardComponent::updateLikeCount(int count, bool liked)
+{
+    post.likeCount = count;
+    post.isLiked = liked;
+    repaint();
+}
+
+void PostCardComponent::updatePlayCount(int count)
+{
+    post.playCount = count;
+    repaint();
+}
+
+void PostCardComponent::setPlaybackProgress(float progress)
+{
+    playbackProgress = juce::jlimit(0.0f, 1.0f, progress);
+    repaint();
+}
+
+void PostCardComponent::setIsPlaying(bool playing)
+{
+    isPlaying = playing;
+    repaint();
+}
+
+//==============================================================================
+void PostCardComponent::paint(juce::Graphics& g)
+{
+    drawBackground(g);
+    drawAvatar(g, getAvatarBounds());
+    drawUserInfo(g, getUserInfoBounds());
+    drawWaveform(g, getWaveformBounds());
+    drawPlayButton(g, getPlayButtonBounds());
+    drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 120, 15, 110, CARD_HEIGHT - 30));
+    drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 120, CARD_HEIGHT - 40, 110, 30));
+}
+
+void PostCardComponent::drawBackground(juce::Graphics& g)
+{
+    auto bounds = getLocalBounds().toFloat();
+
+    // Card background
+    auto bgColor = isHovered ? juce::Colour::fromRGB(50, 50, 50) : juce::Colour::fromRGB(40, 40, 40);
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(bounds, 8.0f);
+
+    // Border
+    g.setColour(juce::Colour::fromRGB(60, 60, 60));
+    g.drawRoundedRectangle(bounds, 8.0f, 1.0f);
+}
+
+void PostCardComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Create circular clipping
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+
+    if (avatarImage.isValid())
+    {
+        // Draw loaded avatar image
+        auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+        g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
+    }
+    else
+    {
+        // Draw placeholder with initial
+        g.setColour(juce::Colour::fromRGB(70, 70, 70));
+        g.fillEllipse(bounds.toFloat());
+
+        g.setColour(juce::Colours::white);
+        g.setFont(18.0f);
+        juce::String initial = post.username.isEmpty() ? "?" : post.username.substring(0, 1).toUpperCase();
+        g.drawText(initial, bounds, juce::Justification::centred);
+    }
+
+    g.restoreState();
+
+    // Avatar border
+    g.setColour(juce::Colour::fromRGB(100, 100, 100));
+    g.drawEllipse(bounds.toFloat(), 1.0f);
+}
+
+void PostCardComponent::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Username
+    g.setColour(juce::Colours::white);
+    g.setFont(14.0f);
+    g.drawText(post.username.isEmpty() ? "Unknown" : post.username,
+               bounds.getX(), bounds.getY(), bounds.getWidth(), 20,
+               juce::Justification::centredLeft);
+
+    // Timestamp
+    g.setColour(juce::Colours::grey);
+    g.setFont(12.0f);
+    g.drawText(post.timeAgo,
+               bounds.getX(), bounds.getY() + 20, bounds.getWidth(), 18,
+               juce::Justification::centredLeft);
+
+    // DAW badge if present
+    if (post.daw.isNotEmpty())
+    {
+        g.setColour(juce::Colour::fromRGB(80, 80, 80));
+        g.setFont(10.0f);
+        g.drawText(post.daw,
+                   bounds.getX(), bounds.getY() + 40, bounds.getWidth(), 15,
+                   juce::Justification::centredLeft);
+    }
+}
+
+void PostCardComponent::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Waveform background
+    g.setColour(juce::Colour::fromRGB(50, 50, 50));
+    g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
+
+    // Generate deterministic waveform based on post ID
+    int barWidth = 3;
+    int barSpacing = 2;
+    int numBars = bounds.getWidth() / (barWidth + barSpacing);
+
+    // Draw waveform bars
+    for (int i = 0; i < numBars; ++i)
+    {
+        float barProgress = static_cast<float>(i) / static_cast<float>(numBars);
+        int barHeight = 5 + (std::hash<int>{}(post.id.hashCode() + i) % 25);
+        int barX = bounds.getX() + i * (barWidth + barSpacing);
+        int barY = bounds.getCentreY() - barHeight / 2;
+
+        // Color based on playback progress
+        if (barProgress <= playbackProgress)
+        {
+            g.setColour(juce::Colour::fromRGB(0, 212, 255)); // Played portion
+        }
+        else
+        {
+            g.setColour(juce::Colour::fromRGB(0, 140, 180)); // Unplayed portion
+        }
+
+        g.fillRect(barX, barY, barWidth, barHeight);
+    }
+
+    // Duration overlay at bottom-right of waveform
+    if (post.durationSeconds > 0)
+    {
+        int seconds = static_cast<int>(post.durationSeconds);
+        int mins = seconds / 60;
+        int secs = seconds % 60;
+        juce::String duration = juce::String::formatted("%d:%02d", mins, secs);
+
+        auto durationBounds = juce::Rectangle<int>(bounds.getRight() - 45, bounds.getBottom() - 18, 40, 16);
+        g.setColour(juce::Colour::fromRGBA(0, 0, 0, 180));
+        g.fillRoundedRectangle(durationBounds.toFloat(), 3.0f);
+
+        g.setColour(juce::Colours::white);
+        g.setFont(10.0f);
+        g.drawText(duration, durationBounds, juce::Justification::centred);
+    }
+}
+
+void PostCardComponent::drawPlayButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Semi-transparent circle background
+    g.setColour(juce::Colour::fromRGBA(0, 0, 0, 150));
+    g.fillEllipse(bounds.toFloat());
+
+    // Play/pause icon
+    g.setColour(juce::Colours::white);
+
+    if (isPlaying)
+    {
+        // Pause icon (two vertical bars)
+        int barWidth = 4;
+        int barHeight = 14;
+        int gap = 4;
+        int startX = bounds.getCentreX() - (barWidth + gap / 2);
+        int startY = bounds.getCentreY() - barHeight / 2;
+
+        g.fillRect(startX, startY, barWidth, barHeight);
+        g.fillRect(startX + barWidth + gap, startY, barWidth, barHeight);
+    }
+    else
+    {
+        // Play icon (triangle)
+        juce::Path triangle;
+        float cx = static_cast<float>(bounds.getCentreX());
+        float cy = static_cast<float>(bounds.getCentreY());
+        float size = 10.0f;
+
+        // Slightly offset to right for visual centering
+        triangle.addTriangle(cx - size * 0.4f, cy - size,
+                            cx - size * 0.4f, cy + size,
+                            cx + size * 0.8f, cy);
+        g.fillPath(triangle);
+    }
+
+    // Border
+    g.setColour(juce::Colour::fromRGBA(255, 255, 255, 100));
+    g.drawEllipse(bounds.toFloat(), 1.0f);
+}
+
+void PostCardComponent::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    int badgeY = bounds.getY();
+
+    // BPM badge
+    if (post.bpm > 0)
+    {
+        auto bpmBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
+        g.setColour(juce::Colour::fromRGB(60, 60, 60));
+        g.fillRoundedRectangle(bpmBounds.toFloat(), 4.0f);
+
+        g.setColour(juce::Colours::white);
+        g.setFont(11.0f);
+        g.drawText(juce::String(post.bpm) + " BPM", bpmBounds, juce::Justification::centred);
+
+        badgeY += BADGE_HEIGHT + 5;
+    }
+
+    // Key badge
+    if (post.key.isNotEmpty())
+    {
+        auto keyBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
+        g.setColour(juce::Colour::fromRGB(60, 60, 60));
+        g.fillRoundedRectangle(keyBounds.toFloat(), 4.0f);
+
+        g.setColour(juce::Colours::white);
+        g.setFont(11.0f);
+        g.drawText(post.key, keyBounds, juce::Justification::centred);
+
+        badgeY += BADGE_HEIGHT + 5;
+    }
+
+    // Genre badges (first two)
+    for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i)
+    {
+        auto genreBounds = juce::Rectangle<int>(bounds.getX(), badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
+        g.setColour(juce::Colour::fromRGB(50, 50, 50));
+        g.fillRoundedRectangle(genreBounds.toFloat(), 3.0f);
+
+        g.setColour(juce::Colour::fromRGB(150, 150, 150));
+        g.setFont(10.0f);
+        g.drawText(post.genres[i], genreBounds, juce::Justification::centred);
+
+        badgeY += BADGE_HEIGHT;
+    }
+}
+
+void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Like button
+    auto likeBounds = getLikeButtonBounds();
+    juce::Colour likeColor = post.isLiked ? juce::Colour::fromRGB(255, 80, 80) : juce::Colours::grey;
+
+    g.setColour(likeColor);
+    g.setFont(14.0f);
+
+    // Heart icon (using text for now, could be a path)
+    juce::String heartIcon = post.isLiked ? "♥" : "♡";
+    g.drawText(heartIcon, likeBounds.withWidth(20), juce::Justification::centred);
+
+    g.setFont(11.0f);
+    g.drawText(juce::String(post.likeCount),
+               likeBounds.withX(likeBounds.getX() + 18).withWidth(30),
+               juce::Justification::centredLeft);
+
+    // Comment count
+    auto commentBounds = getCommentButtonBounds();
+    g.setColour(juce::Colours::grey);
+    g.setFont(14.0f);
+    g.drawText("💬", commentBounds.withWidth(20), juce::Justification::centred);
+
+    g.setFont(11.0f);
+    g.drawText(juce::String(post.commentCount),
+               commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
+               juce::Justification::centredLeft);
+
+    // Play count (views)
+    g.setColour(juce::Colour::fromRGB(100, 100, 100));
+    g.setFont(10.0f);
+    g.drawText(juce::String(post.playCount) + " plays",
+               bounds.getX(), bounds.getY() - 15, 60, 12,
+               juce::Justification::centredLeft);
+}
+
+//==============================================================================
+void PostCardComponent::resized()
+{
+    // Layout is handled in paint() using bounds calculations
+}
+
+void PostCardComponent::mouseUp(const juce::MouseEvent& event)
+{
+    auto pos = event.getPosition();
+
+    // Check play button
+    if (getPlayButtonBounds().contains(pos))
+    {
+        if (isPlaying)
+        {
+            if (onPauseClicked)
+                onPauseClicked(post);
+        }
+        else
+        {
+            if (onPlayClicked)
+                onPlayClicked(post);
+        }
+        return;
+    }
+
+    // Check like button
+    if (getLikeButtonBounds().contains(pos))
+    {
+        if (onLikeToggled)
+            onLikeToggled(post, !post.isLiked);
+        return;
+    }
+
+    // Check comment button
+    if (getCommentButtonBounds().contains(pos))
+    {
+        if (onCommentClicked)
+            onCommentClicked(post);
+        return;
+    }
+
+    // Check share button
+    if (getShareButtonBounds().contains(pos))
+    {
+        if (onShareClicked)
+            onShareClicked(post);
+        return;
+    }
+
+    // Check more button
+    if (getMoreButtonBounds().contains(pos))
+    {
+        if (onMoreClicked)
+            onMoreClicked(post);
+        return;
+    }
+
+    // Check avatar/user area
+    if (getAvatarBounds().contains(pos) || getUserInfoBounds().contains(pos))
+    {
+        if (onUserClicked)
+            onUserClicked(post);
+        return;
+    }
+
+    // Check waveform area (for seeking)
+    auto waveformBounds = getWaveformBounds();
+    if (waveformBounds.contains(pos))
+    {
+        float seekPosition = static_cast<float>(pos.x - waveformBounds.getX()) / static_cast<float>(waveformBounds.getWidth());
+        if (onWaveformClicked)
+            onWaveformClicked(post, seekPosition);
+        return;
+    }
+}
+
+void PostCardComponent::mouseEnter(const juce::MouseEvent& /*event*/)
+{
+    isHovered = true;
+    repaint();
+}
+
+void PostCardComponent::mouseExit(const juce::MouseEvent& /*event*/)
+{
+    isHovered = false;
+    repaint();
+}
+
+//==============================================================================
+juce::Rectangle<int> PostCardComponent::getAvatarBounds() const
+{
+    return juce::Rectangle<int>(15, (CARD_HEIGHT - AVATAR_SIZE) / 2, AVATAR_SIZE, AVATAR_SIZE);
+}
+
+juce::Rectangle<int> PostCardComponent::getUserInfoBounds() const
+{
+    auto avatar = getAvatarBounds();
+    return juce::Rectangle<int>(avatar.getRight() + 15, 15, 140, CARD_HEIGHT - 30);
+}
+
+juce::Rectangle<int> PostCardComponent::getWaveformBounds() const
+{
+    auto userInfo = getUserInfoBounds();
+    int waveformX = userInfo.getRight() + 15;
+    int waveformWidth = getWidth() - waveformX - 130;
+    return juce::Rectangle<int>(waveformX, 20, waveformWidth, CARD_HEIGHT - 40);
+}
+
+juce::Rectangle<int> PostCardComponent::getPlayButtonBounds() const
+{
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getCentreX() - BUTTON_SIZE / 2,
+                                waveform.getCentreY() - BUTTON_SIZE / 2,
+                                BUTTON_SIZE, BUTTON_SIZE);
+}
+
+juce::Rectangle<int> PostCardComponent::getLikeButtonBounds() const
+{
+    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 35, 50, 25);
+}
+
+juce::Rectangle<int> PostCardComponent::getCommentButtonBounds() const
+{
+    return juce::Rectangle<int>(getWidth() - 60, CARD_HEIGHT - 35, 45, 25);
+}
+
+juce::Rectangle<int> PostCardComponent::getShareButtonBounds() const
+{
+    return juce::Rectangle<int>(getWidth() - 35, 15, 25, 25);
+}
+
+juce::Rectangle<int> PostCardComponent::getMoreButtonBounds() const
+{
+    return juce::Rectangle<int>(getWidth() - 35, 45, 25, 25);
+}
