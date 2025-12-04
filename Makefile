@@ -1,7 +1,7 @@
 # Sidechain Makefile
 # Builds both the VST plugin (via CMake) and Go backend
 
-.PHONY: all install-deps backend plugin clean test help
+.PHONY: all install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help
 
 # Default target
 all: backend plugin plugin-install
@@ -141,6 +141,34 @@ test-plugin:
 	@test -d "$(PLUGIN_OUTPUT)" || (echo "❌ Plugin not built" && exit 1)
 	@echo "✅ Plugin build verified"
 
+# Plugin unit tests with Catch2
+test-plugin-unit: test-plugin-configure
+	@echo "🧪 Building and running plugin unit tests..."
+	@cmake --build $(BUILD_DIR) --config Release --target SidechainTests --parallel
+	@echo "🧪 Running tests..."
+	@cd $(BUILD_DIR) && ctest --output-on-failure -C Release
+	@echo "✅ Plugin unit tests passed"
+
+test-plugin-configure:
+	@echo "🔄 Configuring CMake build with tests..."
+	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release -DSIDECHAIN_BUILD_TESTS=ON
+
+# Plugin test coverage
+test-plugin-coverage: test-plugin-coverage-configure
+	@echo "📊 Building and running plugin tests with coverage..."
+	@cmake --build $(BUILD_DIR) --config Debug --target SidechainTests --parallel
+	@echo "🧪 Running tests with coverage instrumentation..."
+	@$(BUILD_DIR)/SidechainTests
+	@echo "📊 Generating coverage report..."
+	@lcov --capture --directory $(BUILD_DIR) --output-file $(BUILD_DIR)/coverage.info --ignore-errors mismatch
+	@lcov --remove $(BUILD_DIR)/coverage.info '/usr/*' '*/deps/*' '*/Catch2/*' '*/build/*' --output-file $(BUILD_DIR)/coverage.info --ignore-errors unused
+	@genhtml $(BUILD_DIR)/coverage.info --output-directory $(BUILD_DIR)/coverage-html
+	@echo "✅ Coverage report generated at $(BUILD_DIR)/coverage-html/index.html"
+
+test-plugin-coverage-configure:
+	@echo "🔄 Configuring CMake build with tests and coverage..."
+	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Debug -DSIDECHAIN_BUILD_TESTS=ON -DSIDECHAIN_ENABLE_COVERAGE=ON
+
 # Development helpers
 dev: install-deps
 	@echo "🔧 Starting development environment..."
@@ -182,6 +210,8 @@ help:
 	@echo "  plugin-install  - Install plugin to system directory"
 	@echo "  plugin-clean    - Clean plugin build files"
 	@echo "  test            - Run all tests"
+	@echo "  test-plugin-unit      - Run plugin C++ unit tests"
+	@echo "  test-plugin-coverage  - Run tests with coverage report"
 	@echo "  dev             - Start development environment"
 	@echo "  clean           - Clean all build artifacts"
 	@echo "  deps-info       - Show dependency information"

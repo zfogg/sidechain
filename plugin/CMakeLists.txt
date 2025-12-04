@@ -11,6 +11,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Option to build AudioPluginHost for testing
 option(SIDECHAIN_BUILD_PLUGIN_HOST "Build JUCE AudioPluginHost for testing" ON)
 
+# Option to build tests
+option(SIDECHAIN_BUILD_TESTS "Build unit tests with Catch2" OFF)
+
+# Option to enable coverage (requires SIDECHAIN_BUILD_TESTS)
+option(SIDECHAIN_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
+
 # JUCE is added as a subdirectory from the deps folder
 # It can be fetched via FetchContent or added as a git submodule
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/CMakeLists.txt")
@@ -209,6 +215,123 @@ if(SIDECHAIN_BUILD_PLUGIN_HOST AND TARGET AudioPluginHost)
     message(STATUS "  VST3 output:     ${ARTEFACTS_DIR}/\${CONFIG}/VST3/Sidechain.vst3")
     message(STATUS "  VST3 install:    ${VST3_INSTALL_DIR}/Sidechain.vst3")
     message(STATUS "  AudioPluginHost: ${CMAKE_BINARY_DIR}/bin/AudioPluginHost")
+    message(STATUS "========================================")
+    message(STATUS "")
+endif()
+
+#==============================================================================
+# Unit Tests with Catch2
+#==============================================================================
+if(SIDECHAIN_BUILD_TESTS)
+    # Enable CTest
+    enable_testing()
+
+    # Fetch Catch2
+    include(FetchContent)
+    FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.5.2
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(Catch2)
+
+    # Include Catch2's CMake helpers
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+    include(CTest)
+    include(Catch)
+
+    # Create a static library from plugin source for testing (without plugin wrapper)
+    add_library(SidechainTestLib STATIC
+        Source/AudioCapture.cpp
+        Source/AudioCapture.h
+        Source/NetworkClient.cpp
+        Source/NetworkClient.h
+    )
+
+    # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
+    # We need to build Sidechain first to generate the header
+    add_dependencies(SidechainTestLib Sidechain)
+
+    target_include_directories(SidechainTestLib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
+        # Use the JuceHeader generated for the main plugin
+        ${CMAKE_CURRENT_BINARY_DIR}/Sidechain_artefacts/JuceLibraryCode
+    )
+
+    target_compile_definitions(SidechainTestLib PUBLIC
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_STANDALONE_APPLICATION=1
+    )
+
+    target_link_libraries(SidechainTestLib PUBLIC
+        juce::juce_audio_basics
+        juce::juce_audio_formats
+        juce::juce_core
+        juce::juce_events
+        juce::juce_graphics
+        juce::juce_data_structures
+    )
+
+    # Coverage flags
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+            target_compile_options(SidechainTestLib PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+            target_link_options(SidechainTestLib PRIVATE --coverage)
+        endif()
+    endif()
+
+    # Test executable
+    add_executable(SidechainTests
+        tests/AudioCaptureTest.cpp
+        tests/NetworkClientTest.cpp
+    )
+
+    target_link_libraries(SidechainTests PRIVATE
+        SidechainTestLib
+        Catch2::Catch2WithMain
+    )
+
+    # Coverage flags for test executable
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+            target_compile_options(SidechainTests PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+            target_link_options(SidechainTests PRIVATE --coverage)
+        endif()
+    endif()
+
+    # Register tests with CTest
+    catch_discover_tests(SidechainTests
+        REPORTER junit
+        OUTPUT_DIR ${CMAKE_BINARY_DIR}/test-results
+        OUTPUT_PREFIX "test-"
+        OUTPUT_SUFFIX ".xml"
+    )
+
+    # Custom target for running tests with coverage
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        add_custom_target(coverage
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
+            COMMAND SidechainTests
+            COMMAND lcov --capture --directory ${CMAKE_BINARY_DIR} --output-file ${CMAKE_BINARY_DIR}/coverage/coverage.info --ignore-errors mismatch
+            COMMAND lcov --remove ${CMAKE_BINARY_DIR}/coverage/coverage.info '/usr/*' '*/deps/*' '*/Catch2/*' '*/build/*' --output-file ${CMAKE_BINARY_DIR}/coverage/coverage.info --ignore-errors unused
+            COMMAND genhtml ${CMAKE_BINARY_DIR}/coverage/coverage.info --output-directory ${CMAKE_BINARY_DIR}/coverage/html
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Running tests and generating coverage report"
+            DEPENDS SidechainTests
+        )
+    endif()
+
+    message(STATUS "")
+    message(STATUS "========================================")
+    message(STATUS "  Test Configuration")
+    message(STATUS "========================================")
+    message(STATUS "  Tests enabled:   ON")
+    message(STATUS "  Coverage:        ${SIDECHAIN_ENABLE_COVERAGE}")
+    message(STATUS "  Test binary:     ${CMAKE_BINARY_DIR}/SidechainTests")
+    message(STATUS "  JUnit output:    ${CMAKE_BINARY_DIR}/test-results/")
     message(STATUS "========================================")
     message(STATUS "")
 endif()
