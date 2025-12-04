@@ -60,6 +60,9 @@ void PostCardComponent::paint(juce::Graphics& g)
     drawPlayButton(g, getPlayButtonBounds());
     drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 120, 15, 110, CARD_HEIGHT - 30));
     drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 120, CARD_HEIGHT - 40, 110, 30));
+
+    // Draw like animation on top of everything
+    drawLikeAnimation(g);
 }
 
 void PostCardComponent::drawBackground(juce::Graphics& g)
@@ -341,8 +344,14 @@ void PostCardComponent::mouseUp(const juce::MouseEvent& event)
     // Check like button
     if (getLikeButtonBounds().contains(pos))
     {
+        bool willBeLiked = !post.isLiked;
+
+        // Trigger animation when liking (not when unliking)
+        if (willBeLiked)
+            startLikeAnimation();
+
         if (onLikeToggled)
-            onLikeToggled(post, !post.isLiked);
+            onLikeToggled(post, willBeLiked);
         return;
     }
 
@@ -447,4 +456,88 @@ juce::Rectangle<int> PostCardComponent::getShareButtonBounds() const
 juce::Rectangle<int> PostCardComponent::getMoreButtonBounds() const
 {
     return juce::Rectangle<int>(getWidth() - 35, 45, 25, 25);
+}
+
+//==============================================================================
+// Like Animation
+
+void PostCardComponent::startLikeAnimation()
+{
+    likeAnimationActive = true;
+    likeAnimationProgress = 0.0f;
+    startTimer(1000 / LIKE_ANIMATION_FPS);
+}
+
+void PostCardComponent::timerCallback()
+{
+    if (!likeAnimationActive)
+    {
+        stopTimer();
+        return;
+    }
+
+    // Advance animation
+    float step = (1000.0f / LIKE_ANIMATION_FPS) / LIKE_ANIMATION_DURATION_MS;
+    likeAnimationProgress += step;
+
+    if (likeAnimationProgress >= 1.0f)
+    {
+        likeAnimationProgress = 1.0f;
+        likeAnimationActive = false;
+        stopTimer();
+    }
+
+    repaint();
+}
+
+void PostCardComponent::drawLikeAnimation(juce::Graphics& g)
+{
+    if (!likeAnimationActive)
+        return;
+
+    auto likeBounds = getLikeButtonBounds();
+    float cx = static_cast<float>(likeBounds.getCentreX()) - 5.0f;
+    float cy = static_cast<float>(likeBounds.getCentreY());
+
+    // Easing function for smooth animation (ease out cubic)
+    float t = likeAnimationProgress;
+    float easedT = 1.0f - std::pow(1.0f - t, 3.0f);
+
+    // Scale animation (pop in then settle)
+    float scalePhase = easedT < 0.5f ? easedT * 2.0f : 1.0f;
+    float scale = 1.0f + std::sin(scalePhase * juce::MathConstants<float>::pi) * 0.5f;
+
+    // Draw expanding hearts that burst outward
+    int numHearts = 6;
+    for (int i = 0; i < numHearts; ++i)
+    {
+        float angle = (static_cast<float>(i) / static_cast<float>(numHearts)) * juce::MathConstants<float>::twoPi;
+        float distance = easedT * 25.0f;
+        float alpha = 1.0f - easedT;
+
+        float hx = cx + std::cos(angle) * distance;
+        float hy = cy + std::sin(angle) * distance;
+
+        // Smaller hearts that burst out
+        float heartSize = (1.0f - easedT * 0.5f) * 8.0f;
+
+        g.setColour(juce::Colour::fromRGB(255, 80, 80).withAlpha(alpha * 0.8f));
+        g.setFont(heartSize);
+        g.drawText("♥", static_cast<int>(hx - heartSize / 2), static_cast<int>(hy - heartSize / 2),
+                   static_cast<int>(heartSize), static_cast<int>(heartSize), juce::Justification::centred);
+    }
+
+    // Draw central heart with scale
+    float centralSize = 14.0f * scale;
+    float alpha = juce::jmin(1.0f, 2.0f - easedT * 1.5f);
+    g.setColour(juce::Colour::fromRGB(255, 80, 80).withAlpha(alpha));
+    g.setFont(centralSize);
+    g.drawText("♥", static_cast<int>(cx - centralSize / 2), static_cast<int>(cy - centralSize / 2),
+               static_cast<int>(centralSize), static_cast<int>(centralSize), juce::Justification::centred);
+
+    // Draw a ring that expands
+    float ringRadius = easedT * 30.0f;
+    float ringAlpha = (1.0f - easedT) * 0.3f;
+    g.setColour(juce::Colour::fromRGB(255, 80, 80).withAlpha(ringAlpha));
+    g.drawEllipse(cx - ringRadius, cy - ringRadius, ringRadius * 2.0f, ringRadius * 2.0f, 2.0f);
 }
