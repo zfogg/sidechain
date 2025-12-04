@@ -925,3 +925,62 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
 
     return result;
 }
+
+//==============================================================================
+// Generic HTTP methods
+//==============================================================================
+void NetworkClient::get(const juce::String& endpoint, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::post(const juce::String& endpoint, const juce::var& data, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::Thread::launch([this, endpoint, data, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::put(const juce::String& endpoint, const juce::var& data, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::Thread::launch([this, endpoint, data, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::del(const juce::String& endpoint, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}

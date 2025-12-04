@@ -231,6 +231,10 @@ target_sources(Sidechain
         Source/AuthComponent.h
         Source/AudioPlayer.cpp
         Source/AudioPlayer.h
+        Source/ProfileComponent.cpp
+        Source/ProfileComponent.h
+        Source/EditProfileComponent.cpp
+        Source/EditProfileComponent.h
 )
 
 # Preprocessor definitions
