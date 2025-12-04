@@ -646,18 +646,18 @@ streamActivity.To = []string{
 **Goal**: Live updates and presence
 **Duration**: 2 weeks
 
-### 5.1 WebSocket Infrastructure
+### 5.1 WebSocket Infrastructure ✅
 
-- [ ] 5.1.1 Choose WebSocket library (gorilla/websocket)
-- [ ] 5.1.2 Create WebSocket server handler
-- [ ] 5.1.3 Implement connection authentication (JWT in query param)
-- [ ] 5.1.4 Create connection manager (track active connections)
-- [ ] 5.1.5 Implement heartbeat/ping-pong for connection health
-- [ ] 5.1.6 Handle reconnection on disconnect
-- [ ] 5.1.7 Implement message routing (by type)
-- [ ] 5.1.8 Add rate limiting per connection
-- [ ] 5.1.9 Implement graceful shutdown (drain connections)
-- [ ] 5.1.10 Add WebSocket metrics (connections, messages/sec)
+- [x] 5.1.1 Choose WebSocket library (coder/websocket - modern alternative to gorilla/websocket)
+- [x] 5.1.2 Create WebSocket server handler (internal/websocket/handler.go)
+- [x] 5.1.3 Implement connection authentication (JWT in query param or Authorization header)
+- [x] 5.1.4 Create connection manager (track active connections) - Hub struct in hub.go
+- [x] 5.1.5 Implement heartbeat/ping-pong for connection health (60s timeout, 54s ping interval)
+- [x] 5.1.6 Handle reconnection on disconnect (client cleanup, hub unregister)
+- [x] 5.1.7 Implement message routing (by type) - RegisterHandler system
+- [x] 5.1.8 Add rate limiting per connection (token bucket, 10/sec + 20 burst)
+- [x] 5.1.9 Implement graceful shutdown (drain connections) - Hub.Shutdown with context
+- [x] 5.1.10 Add WebSocket metrics (connections, messages/sec) - MetricsSnapshot struct
 
 ### 5.2 Plugin WebSocket Client
 
