@@ -18,6 +18,9 @@ public:
     // Callback for logout
     std::function<void()> onLogout;
 
+    // Callback for starting recording
+    std::function<void()> onStartRecording;
+
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& profilePicUrl);
 

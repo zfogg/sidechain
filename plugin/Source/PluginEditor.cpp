@@ -102,6 +102,23 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
         DBG("Logging out user from feed");
         logout();
     };
+    postsFeedComponent->onStartRecording = [this]() {
+        DBG("Start recording requested from feed");
+        showView(AppView::Recording);
+    };
+
+    // Create recording component
+    recordingComponent = std::make_unique<RecordingComponent>(audioProcessor);
+    recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio) {
+        DBG("Recording complete: " + juce::String(recordedAudio.getNumSamples()) + " samples");
+        // TODO: Upload the recorded audio
+        // For now, go back to feed
+        showView(AppView::PostsFeed);
+    };
+    recordingComponent->onRecordingDiscarded = [this]() {
+        DBG("Recording discarded");
+        showView(AppView::PostsFeed);
+    };
 
     // Load persistent state after components are initialized
     loadLoginState();
@@ -679,21 +696,23 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         removeChildComponent(profileSetupComponent.get());
     if (postsFeedComponent)
         removeChildComponent(postsFeedComponent.get());
-    
+    if (recordingComponent)
+        removeChildComponent(recordingComponent.get());
+
     // Hide or show auth UI based on view
     bool showAuthUI = (view == AppView::Authentication);
     statusLabel->setVisible(showAuthUI);
     if (connectButton)
         connectButton->setVisible(showAuthUI);
-    
+
     currentView = view;
-    
+
     switch (view)
     {
         case AppView::Authentication:
             // Auth UI already handled by existing paint method
             break;
-            
+
         case AppView::ProfileSetup:
             if (profileSetupComponent)
             {
@@ -706,7 +725,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 DBG("ProfileSetupComponent is null!");
             }
             break;
-            
+
         case AppView::PostsFeed:
             if (postsFeedComponent)
             {
@@ -717,6 +736,18 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             else
             {
                 DBG("PostsFeedComponent is null!");
+            }
+            break;
+
+        case AppView::Recording:
+            if (recordingComponent)
+            {
+                addAndMakeVisible(recordingComponent.get());
+                recordingComponent->setBounds(getLocalBounds());
+            }
+            else
+            {
+                DBG("RecordingComponent is null!");
             }
             break;
     }

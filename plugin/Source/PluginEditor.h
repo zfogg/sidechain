@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include "ProfileSetupComponent.h"
 #include "PostsFeedComponent.h"
+#include "RecordingComponent.h"
 #include "NetworkClient.h"
 #include "ConnectionIndicator.h"
 
@@ -46,7 +47,7 @@ private:
 
     // UI state
     enum class AuthState { Disconnected, ChoosingMethod, EmailLogin, EmailSignup, Connecting, Connected, Error };
-    enum class AppView { Authentication, ProfileSetup, PostsFeed };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording };
     
     AuthState authState = AuthState::Disconnected;
     AppView currentView = AppView::Authentication;
@@ -63,6 +64,7 @@ private:
     // Components for different views
     std::unique_ptr<ProfileSetupComponent> profileSetupComponent;
     std::unique_ptr<PostsFeedComponent> postsFeedComponent;
+    std::unique_ptr<RecordingComponent> recordingComponent;
 
     // Network client for API calls
     std::unique_ptr<NetworkClient> networkClient;
