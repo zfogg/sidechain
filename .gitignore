@@ -25,6 +25,7 @@
 # Fortran module files
 *.mod
 *.smod
+!go.mod
 
 # Compiled Static libraries
 *.lai
@@ -44,7 +45,6 @@
 backend/vendor/
 backend/bin/
 *.log
-go.sum
 
 # IDE
 .vscode/
