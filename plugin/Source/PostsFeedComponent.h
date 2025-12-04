@@ -33,6 +33,9 @@ public:
     // Callback for starting recording
     std::function<void()> onStartRecording;
 
+    // Callback for opening discovery/search
+    std::function<void()> onGoToDiscovery;
+
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& profilePicUrl);
 
@@ -128,6 +131,7 @@ private:
     juce::Rectangle<int> getRetryButtonBounds() const;
     juce::Rectangle<int> getRecordButtonBounds() const;
     juce::Rectangle<int> getFeedContentBounds() const;
+    juce::Rectangle<int> getDiscoverButtonBounds() const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostsFeedComponent)
 };

@@ -252,6 +252,18 @@ void PostsFeedComponent::drawTopBar(juce::Graphics& g)
     g.setFont(20.0f);
     g.drawText("Sidechain", topBarBounds.withX(20).withWidth(200), juce::Justification::centredLeft);
 
+    // Search/Discover button (center-ish)
+    auto discoverBounds = getDiscoverButtonBounds();
+    g.setColour(juce::Colour::fromRGB(45, 45, 50));
+    g.fillRoundedRectangle(discoverBounds.toFloat(), 8.0f);
+    g.setColour(juce::Colour::fromRGB(100, 100, 100));
+    g.drawRoundedRectangle(discoverBounds.toFloat(), 8.0f, 1.0f);
+
+    // Search icon and text
+    g.setColour(juce::Colour::fromRGB(150, 150, 150));
+    g.setFont(14.0f);
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8D")) + " Search users...", discoverBounds, juce::Justification::centred);
+
     // Profile section (right side)
     auto profileBounds = topBarBounds.withX(getWidth() - 200).withWidth(180);
 
@@ -743,6 +755,14 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Check discover/search button
+    if (getDiscoverButtonBounds().contains(pos))
+    {
+        if (onGoToDiscovery)
+            onGoToDiscovery();
+        return;
+    }
+
     // Check profile area in top bar
     auto topBarBounds = getLocalBounds().withHeight(TOP_BAR_HEIGHT);
     auto profileBounds = topBarBounds.withX(getWidth() - 200).withWidth(180);
@@ -788,6 +808,16 @@ juce::Rectangle<int> PostsFeedComponent::getRecordButtonBounds() const
 juce::Rectangle<int> PostsFeedComponent::getFeedContentBounds() const
 {
     return getLocalBounds().withTrimmedTop(TOP_BAR_HEIGHT + FEED_TABS_HEIGHT);
+}
+
+juce::Rectangle<int> PostsFeedComponent::getDiscoverButtonBounds() const
+{
+    // Center the search bar in the top bar, between title and profile section
+    int buttonWidth = 250;
+    int buttonHeight = 36;
+    int x = (getWidth() - buttonWidth) / 2;
+    int y = (TOP_BAR_HEIGHT - buttonHeight) / 2;
+    return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
 }
 
 //==============================================================================
