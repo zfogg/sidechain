@@ -84,6 +84,10 @@ private:
     AudioPlayer* audioPlayer = nullptr;
 
     //==============================================================================
+    // Network client for play tracking
+    NetworkClient* networkClient = nullptr;
+
+    //==============================================================================
     // UI Components
     juce::ScrollBar scrollBar { true }; // vertical
     juce::OwnedArray<PostCardComponent> postCards;
