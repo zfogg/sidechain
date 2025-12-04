@@ -5,6 +5,7 @@
 #include "ProfileSetupComponent.h"
 #include "PostsFeedComponent.h"
 #include "RecordingComponent.h"
+#include "UploadComponent.h"
 #include "NetworkClient.h"
 #include "ConnectionIndicator.h"
 
@@ -47,7 +48,7 @@ private:
 
     // UI state
     enum class AuthState { Disconnected, ChoosingMethod, EmailLogin, EmailSignup, Connecting, Connected, Error };
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload };
     
     AuthState authState = AuthState::Disconnected;
     AppView currentView = AppView::Authentication;
@@ -65,6 +66,7 @@ private:
     std::unique_ptr<ProfileSetupComponent> profileSetupComponent;
     std::unique_ptr<PostsFeedComponent> postsFeedComponent;
     std::unique_ptr<RecordingComponent> recordingComponent;
+    std::unique_ptr<UploadComponent> uploadComponent;
 
     // Network client for API calls
     std::unique_ptr<NetworkClient> networkClient;
