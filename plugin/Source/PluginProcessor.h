@@ -77,6 +77,12 @@ public:
     // Sample rate (for UI calculations)
     double getCurrentSampleRate() const { return currentSampleRate; }
 
+    //==============================================================================
+    // DAW Transport Info (BPM detection via AudioPlayHead)
+    // Returns 0.0 if BPM is not available from the host
+    double getCurrentBPM() const { return currentBPM.load(); }
+    bool isBPMAvailable() const { return bpmAvailable.load(); }
+
 private:
     //==============================================================================
     // Audio capture system
@@ -89,6 +95,10 @@ private:
 
     // State
     bool authenticated = false;
+
+    // DAW transport info (updated on audio thread, read from UI thread)
+    std::atomic<double> currentBPM { 0.0 };
+    std::atomic<bool> bpmAvailable { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SidechainAudioProcessor)
 };

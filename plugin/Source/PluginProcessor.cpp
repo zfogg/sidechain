@@ -138,6 +138,23 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    // Read BPM from DAW via AudioPlayHead (lock-free atomic store)
+    if (auto* playHead = getPlayHead())
+    {
+        if (auto position = playHead->getPosition())
+        {
+            if (auto bpm = position->getBpm())
+            {
+                currentBPM.store(*bpm);
+                bpmAvailable.store(true);
+            }
+            else
+            {
+                bpmAvailable.store(false);
+            }
+        }
+    }
+
     // Capture audio for recording (lock-free, called on audio thread)
     // This captures the incoming audio before any processing
     audioCapture.captureAudio(buffer);
