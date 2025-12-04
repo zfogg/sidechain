@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-plugin:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS Universal (Intel + Apple Silicon)
+          - os: macos-15
+            name: macOS
+            cmake_args: -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+            artifact_name: Sidechain-macOS
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+          # Linux (x86_64)
+          - os: ubuntu-latest
+            name: Linux
+            cmake_args: ""
+            artifact_name: Sidechain-Linux
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+          # Windows (x86_64)
+          - os: windows-latest
+            name: Windows
+            cmake_args: -G "Visual Studio 17 2022" -A x64
+            artifact_name: Sidechain-Windows
+            artifact_path: plugin/build/Sidechain_artefacts/Release
+
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.name }})
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            ladspa-sdk \
+            libcurl4-openssl-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libwebkit2gtk-4.1-dev \
+            libglu1-mesa-dev \
+            mesa-common-dev
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Configure CMake
+        run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Plugin
+        run: cmake --build plugin/build --config Release --parallel
+
+      - name: Package VST3 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd ${{ matrix.artifact_path }}
+          zip -r ../../../${{ matrix.artifact_name }}-VST3.zip VST3/
+          zip -r ../../../${{ matrix.artifact_name }}-AU.zip AU/
+
+      - name: Package VST3 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cd ${{ matrix.artifact_path }}
+          zip -r ../../../${{ matrix.artifact_name }}-VST3.zip VST3/
+
+      - name: Package VST3 (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "${{ matrix.artifact_path }}/VST3/*" -DestinationPath "plugin/${{ matrix.artifact_name }}-VST3.zip"
+
+      - name: Upload VST3 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-VST3
+          path: plugin/${{ matrix.artifact_name }}-VST3.zip
+
+      - name: Upload AU Artifact (macOS only)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-AU
+          path: plugin/${{ matrix.artifact_name }}-AU.zip
+
+  create-release:
+    needs: build-plugin
+    runs-on: ubuntu-latest
+    name: Create Release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List Artifacts
+        run: find artifacts -type f
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Sidechain ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          files: |
+            artifacts/Sidechain-macOS-VST3/*.zip
+            artifacts/Sidechain-macOS-AU/*.zip
+            artifacts/Sidechain-Linux-VST3/*.zip
+            artifacts/Sidechain-Windows-VST3/*.zip
