@@ -301,3 +301,606 @@ void AudioCapture::initializeBuffers()
     recordingBuffer.clear();
     recordingPosition = 0;
 }
+
+//==============================================================================
+bool AudioCapture::saveBufferToWavFile(const juce::File& file,
+                                        const juce::AudioBuffer<float>& buffer,
+                                        double sampleRate,
+                                        ExportFormat format)
+{
+    if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
+    {
+        DBG("saveBufferToWavFile: Empty buffer, nothing to save");
+        return false;
+    }
+
+    if (sampleRate <= 0)
+    {
+        DBG("saveBufferToWavFile: Invalid sample rate: " + juce::String(sampleRate));
+        return false;
+    }
+
+    // Delete existing file if present
+    if (file.exists())
+    {
+        if (!file.deleteFile())
+        {
+            DBG("saveBufferToWavFile: Could not delete existing file: " + file.getFullPathName());
+            return false;
+        }
+    }
+
+    // Create parent directory if needed
+    auto parentDir = file.getParentDirectory();
+    if (!parentDir.exists())
+    {
+        if (!parentDir.createDirectory())
+        {
+            DBG("saveBufferToWavFile: Could not create directory: " + parentDir.getFullPathName());
+            return false;
+        }
+    }
+
+    // Create the output stream
+    auto outputStream = std::make_unique<juce::FileOutputStream>(file);
+    if (!outputStream->openedOk())
+    {
+        DBG("saveBufferToWavFile: Could not open file for writing: " + file.getFullPathName());
+        return false;
+    }
+
+    // Determine bit depth from format
+    int bitsPerSample;
+    switch (format)
+    {
+        case ExportFormat::WAV_16bit: bitsPerSample = 16; break;
+        case ExportFormat::WAV_24bit: bitsPerSample = 24; break;
+        case ExportFormat::WAV_32bit: bitsPerSample = 32; break;
+        default: bitsPerSample = 16; break;
+    }
+
+    // Create WAV format writer
+    juce::WavAudioFormat wavFormat;
+    std::unique_ptr<juce::AudioFormatWriter> writer(
+        wavFormat.createWriterFor(
+            outputStream.get(),
+            sampleRate,
+            static_cast<unsigned int>(buffer.getNumChannels()),
+            bitsPerSample,
+            {},  // No metadata
+            0    // Quality parameter (unused for WAV)
+        )
+    );
+
+    if (writer == nullptr)
+    {
+        DBG("saveBufferToWavFile: Could not create WAV writer");
+        return false;
+    }
+
+    // Writer takes ownership of the stream on success
+    outputStream.release();
+
+    // Write the audio buffer
+    bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+
+    if (success)
+    {
+        DBG("saveBufferToWavFile: Successfully saved " + juce::String(buffer.getNumSamples()) +
+            " samples to " + file.getFullPathName() +
+            " (" + juce::String(bitsPerSample) + "-bit, " +
+            juce::String(sampleRate) + "Hz)");
+    }
+    else
+    {
+        DBG("saveBufferToWavFile: Failed to write audio data");
+    }
+
+    return success;
+}
+
+bool AudioCapture::saveRecordedAudioToWavFile(const juce::File& file, ExportFormat format) const
+{
+    if (!hasRecordedData || recordedAudio.getNumSamples() == 0)
+    {
+        DBG("saveRecordedAudioToWavFile: No recorded audio to save");
+        return false;
+    }
+
+    return saveBufferToWavFile(file, recordedAudio, currentSampleRate, format);
+}
+
+//==============================================================================
+bool AudioCapture::isFlacFormat(ExportFormat format)
+{
+    return format == ExportFormat::FLAC_16bit || format == ExportFormat::FLAC_24bit;
+}
+
+juce::String AudioCapture::getExtensionForFormat(ExportFormat format)
+{
+    switch (format)
+    {
+        case ExportFormat::FLAC_16bit:
+        case ExportFormat::FLAC_24bit:
+            return ".flac";
+        case ExportFormat::WAV_16bit:
+        case ExportFormat::WAV_24bit:
+        case ExportFormat::WAV_32bit:
+        default:
+            return ".wav";
+    }
+}
+
+bool AudioCapture::saveBufferToFile(const juce::File& file,
+                                    const juce::AudioBuffer<float>& buffer,
+                                    double sampleRate,
+                                    ExportFormat format)
+{
+    if (isFlacFormat(format))
+        return saveBufferToFlacFile(file, buffer, sampleRate, format);
+    else
+        return saveBufferToWavFile(file, buffer, sampleRate, format);
+}
+
+bool AudioCapture::saveBufferToFlacFile(const juce::File& file,
+                                        const juce::AudioBuffer<float>& buffer,
+                                        double sampleRate,
+                                        ExportFormat format,
+                                        int quality)
+{
+    if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
+    {
+        DBG("saveBufferToFlacFile: Empty buffer, nothing to save");
+        return false;
+    }
+
+    if (sampleRate <= 0)
+    {
+        DBG("saveBufferToFlacFile: Invalid sample rate: " + juce::String(sampleRate));
+        return false;
+    }
+
+    // Delete existing file if present
+    if (file.exists())
+    {
+        if (!file.deleteFile())
+        {
+            DBG("saveBufferToFlacFile: Could not delete existing file: " + file.getFullPathName());
+            return false;
+        }
+    }
+
+    // Create parent directory if needed
+    auto parentDir = file.getParentDirectory();
+    if (!parentDir.exists())
+    {
+        if (!parentDir.createDirectory())
+        {
+            DBG("saveBufferToFlacFile: Could not create directory: " + parentDir.getFullPathName());
+            return false;
+        }
+    }
+
+    // Create the output stream
+    auto outputStream = std::make_unique<juce::FileOutputStream>(file);
+    if (!outputStream->openedOk())
+    {
+        DBG("saveBufferToFlacFile: Could not open file for writing: " + file.getFullPathName());
+        return false;
+    }
+
+    // Determine bit depth from format (FLAC supports 8, 16, 24)
+    int bitsPerSample;
+    switch (format)
+    {
+        case ExportFormat::FLAC_24bit: bitsPerSample = 24; break;
+        case ExportFormat::FLAC_16bit:
+        default: bitsPerSample = 16; break;
+    }
+
+    // Clamp quality to valid range (0-8)
+    quality = juce::jlimit(0, 8, quality);
+
+    // Create FLAC format writer
+    juce::FlacAudioFormat flacFormat;
+    std::unique_ptr<juce::AudioFormatWriter> writer(
+        flacFormat.createWriterFor(
+            outputStream.get(),
+            sampleRate,
+            static_cast<unsigned int>(buffer.getNumChannels()),
+            bitsPerSample,
+            {},     // No metadata
+            quality // Compression quality (0-8)
+        )
+    );
+
+    if (writer == nullptr)
+    {
+        DBG("saveBufferToFlacFile: Could not create FLAC writer");
+        return false;
+    }
+
+    // Writer takes ownership of the stream on success
+    outputStream.release();
+
+    // Write the audio buffer
+    bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+
+    if (success)
+    {
+        DBG("saveBufferToFlacFile: Successfully saved " + juce::String(buffer.getNumSamples()) +
+            " samples to " + file.getFullPathName() +
+            " (" + juce::String(bitsPerSample) + "-bit, " +
+            juce::String(sampleRate) + "Hz, quality=" + juce::String(quality) + ")");
+    }
+    else
+    {
+        DBG("saveBufferToFlacFile: Failed to write audio data");
+    }
+
+    return success;
+}
+
+bool AudioCapture::saveRecordedAudioToFile(const juce::File& file, ExportFormat format) const
+{
+    if (!hasRecordedData || recordedAudio.getNumSamples() == 0)
+    {
+        DBG("saveRecordedAudioToFile: No recorded audio to save");
+        return false;
+    }
+
+    return saveBufferToFile(file, recordedAudio, currentSampleRate, format);
+}
+
+juce::File AudioCapture::getTempAudioFile(const juce::String& extension)
+{
+    auto tempDir = juce::File::getSpecialLocation(juce::File::tempDirectory);
+    auto sidechainDir = tempDir.getChildFile("Sidechain");
+
+    // Create Sidechain temp directory if it doesn't exist
+    if (!sidechainDir.exists())
+    {
+        sidechainDir.createDirectory();
+    }
+
+    // Generate unique filename with timestamp and random suffix
+    auto timestamp = juce::Time::getCurrentTime().formatted("%Y%m%d_%H%M%S");
+    auto randomSuffix = juce::String::toHexString(juce::Random::getSystemRandom().nextInt());
+
+    juce::String filename = "sidechain_" + timestamp + "_" + randomSuffix + extension;
+
+    return sidechainDir.getChildFile(filename);
+}
+
+//==============================================================================
+juce::String AudioCapture::formatDuration(double seconds)
+{
+    if (seconds < 0.0)
+        seconds = 0.0;
+
+    int totalSeconds = static_cast<int>(std::floor(seconds));
+    int minutes = totalSeconds / 60;
+    int secs = totalSeconds % 60;
+
+    // Format as M:SS (single digit minutes) or MM:SS
+    return juce::String(minutes) + ":" + juce::String(secs).paddedLeft('0', 2);
+}
+
+juce::String AudioCapture::formatDurationWithMs(double seconds)
+{
+    if (seconds < 0.0)
+        seconds = 0.0;
+
+    int totalSeconds = static_cast<int>(std::floor(seconds));
+    int minutes = totalSeconds / 60;
+    int secs = totalSeconds % 60;
+    int ms = static_cast<int>((seconds - totalSeconds) * 1000);
+
+    return juce::String(minutes) + ":" +
+           juce::String(secs).paddedLeft('0', 2) + "." +
+           juce::String(ms).paddedLeft('0', 3);
+}
+
+juce::String AudioCapture::formatFileSize(juce::int64 bytes)
+{
+    if (bytes < 0)
+        bytes = 0;
+
+    const double kb = 1024.0;
+    const double mb = kb * 1024.0;
+    const double gb = mb * 1024.0;
+
+    if (bytes >= gb)
+        return juce::String(bytes / gb, 2) + " GB";
+    else if (bytes >= mb)
+        return juce::String(bytes / mb, 2) + " MB";
+    else if (bytes >= kb)
+        return juce::String(bytes / kb, 1) + " KB";
+    else
+        return juce::String(bytes) + " bytes";
+}
+
+juce::int64 AudioCapture::estimateFileSize(int numSamples, int numChannels, ExportFormat format)
+{
+    if (numSamples <= 0 || numChannels <= 0)
+        return 0;
+
+    // Calculate bytes per sample based on bit depth
+    int bytesPerSample;
+    double compressionRatio = 1.0;
+
+    switch (format)
+    {
+        case ExportFormat::WAV_16bit:
+            bytesPerSample = 2;
+            break;
+        case ExportFormat::WAV_24bit:
+            bytesPerSample = 3;
+            break;
+        case ExportFormat::WAV_32bit:
+            bytesPerSample = 4;
+            break;
+        case ExportFormat::FLAC_16bit:
+            bytesPerSample = 2;
+            compressionRatio = 0.55; // Typical FLAC compression ~55% of WAV
+            break;
+        case ExportFormat::FLAC_24bit:
+            bytesPerSample = 3;
+            compressionRatio = 0.60; // 24-bit FLAC compresses slightly less
+            break;
+        default:
+            bytesPerSample = 2;
+            break;
+    }
+
+    // Calculate raw audio data size
+    juce::int64 rawSize = static_cast<juce::int64>(numSamples) * numChannels * bytesPerSample;
+
+    // Apply compression ratio for FLAC
+    juce::int64 dataSize = static_cast<juce::int64>(rawSize * compressionRatio);
+
+    // Add header overhead (WAV: 44 bytes, FLAC: ~8KB typical metadata)
+    juce::int64 headerSize = isFlacFormat(format) ? 8192 : 44;
+
+    return dataSize + headerSize;
+}
+
+juce::int64 AudioCapture::getEstimatedFileSize(ExportFormat format) const
+{
+    if (!hasRecordedData || recordedAudio.getNumSamples() == 0)
+        return 0;
+
+    return estimateFileSize(recordedAudio.getNumSamples(),
+                            recordedAudio.getNumChannels(),
+                            format);
+}
+
+//==============================================================================
+// Audio Processing Utilities
+//==============================================================================
+
+juce::AudioBuffer<float> AudioCapture::trimBuffer(const juce::AudioBuffer<float>& buffer,
+                                                   int startSample,
+                                                   int endSample)
+{
+    int numSamples = buffer.getNumSamples();
+    int numChannels = buffer.getNumChannels();
+
+    // Handle default end value
+    if (endSample < 0)
+        endSample = numSamples;
+
+    // Validate range
+    if (startSample < 0)
+        startSample = 0;
+    if (endSample > numSamples)
+        endSample = numSamples;
+    if (startSample >= endSample || numChannels == 0)
+        return juce::AudioBuffer<float>();
+
+    int trimmedLength = endSample - startSample;
+    juce::AudioBuffer<float> result(numChannels, trimmedLength);
+
+    for (int channel = 0; channel < numChannels; ++channel)
+    {
+        result.copyFrom(channel, 0, buffer, channel, startSample, trimmedLength);
+    }
+
+    return result;
+}
+
+juce::AudioBuffer<float> AudioCapture::trimBufferByTime(const juce::AudioBuffer<float>& buffer,
+                                                         double sampleRate,
+                                                         double startSeconds,
+                                                         double endSeconds)
+{
+    if (sampleRate <= 0)
+        return juce::AudioBuffer<float>();
+
+    int startSample = static_cast<int>(startSeconds * sampleRate);
+    int endSample = (endSeconds < 0) ? -1 : static_cast<int>(endSeconds * sampleRate);
+
+    return trimBuffer(buffer, startSample, endSample);
+}
+
+//==============================================================================
+// Helper function to calculate fade gain based on type
+static float calculateFadeGain(float position, AudioCapture::FadeType fadeType, bool isFadeIn)
+{
+    // position is 0.0 to 1.0 representing progress through the fade
+    float gain;
+
+    switch (fadeType)
+    {
+        case AudioCapture::FadeType::Linear:
+            gain = position;
+            break;
+
+        case AudioCapture::FadeType::Exponential:
+            // Attempt to replicate a natural audio fade with exponential curve
+            // For fade in: starts slow, ends fast
+            // For fade out: starts fast, ends slow
+            if (isFadeIn)
+                gain = position * position; // Quadratic (simple exponential approximation)
+            else
+                gain = 1.0f - (1.0f - position) * (1.0f - position);
+            break;
+
+        case AudioCapture::FadeType::SCurve:
+            // Smooth S-curve using sine interpolation
+            // Starts slow, speeds up in middle, slows at end
+            gain = 0.5f * (1.0f - std::cos(position * juce::MathConstants<float>::pi));
+            break;
+
+        default:
+            gain = position;
+            break;
+    }
+
+    return isFadeIn ? gain : (1.0f - gain);
+}
+
+void AudioCapture::applyFadeIn(juce::AudioBuffer<float>& buffer,
+                                int fadeSamples,
+                                FadeType fadeType)
+{
+    if (fadeSamples <= 0 || buffer.getNumSamples() == 0)
+        return;
+
+    // Clamp fade length to buffer length
+    fadeSamples = juce::jmin(fadeSamples, buffer.getNumSamples());
+
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        float* data = buffer.getWritePointer(channel);
+
+        for (int i = 0; i < fadeSamples; ++i)
+        {
+            float position = static_cast<float>(i) / static_cast<float>(fadeSamples);
+            float gain = calculateFadeGain(position, fadeType, true);
+            data[i] *= gain;
+        }
+    }
+}
+
+void AudioCapture::applyFadeOut(juce::AudioBuffer<float>& buffer,
+                                 int fadeSamples,
+                                 FadeType fadeType)
+{
+    if (fadeSamples <= 0 || buffer.getNumSamples() == 0)
+        return;
+
+    int numSamples = buffer.getNumSamples();
+
+    // Clamp fade length to buffer length
+    fadeSamples = juce::jmin(fadeSamples, numSamples);
+
+    int fadeStart = numSamples - fadeSamples;
+
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        float* data = buffer.getWritePointer(channel);
+
+        for (int i = 0; i < fadeSamples; ++i)
+        {
+            float position = static_cast<float>(i) / static_cast<float>(fadeSamples);
+            float gain = calculateFadeGain(position, fadeType, false);
+            data[fadeStart + i] *= gain;
+        }
+    }
+}
+
+void AudioCapture::applyFadeInByTime(juce::AudioBuffer<float>& buffer,
+                                      double sampleRate,
+                                      double fadeSeconds,
+                                      FadeType fadeType)
+{
+    if (sampleRate <= 0 || fadeSeconds <= 0)
+        return;
+
+    int fadeSamples = static_cast<int>(fadeSeconds * sampleRate);
+    applyFadeIn(buffer, fadeSamples, fadeType);
+}
+
+void AudioCapture::applyFadeOutByTime(juce::AudioBuffer<float>& buffer,
+                                       double sampleRate,
+                                       double fadeSeconds,
+                                       FadeType fadeType)
+{
+    if (sampleRate <= 0 || fadeSeconds <= 0)
+        return;
+
+    int fadeSamples = static_cast<int>(fadeSeconds * sampleRate);
+    applyFadeOut(buffer, fadeSamples, fadeType);
+}
+
+//==============================================================================
+float AudioCapture::getBufferPeakLevel(const juce::AudioBuffer<float>& buffer)
+{
+    if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
+        return 0.0f;
+
+    float peak = 0.0f;
+
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        const float* data = buffer.getReadPointer(channel);
+        for (int i = 0; i < buffer.getNumSamples(); ++i)
+        {
+            float absSample = std::abs(data[i]);
+            if (absSample > peak)
+                peak = absSample;
+        }
+    }
+
+    return peak;
+}
+
+float AudioCapture::getBufferPeakLevelDB(const juce::AudioBuffer<float>& buffer)
+{
+    float peak = getBufferPeakLevel(buffer);
+    return linearToDb(peak);
+}
+
+float AudioCapture::dbToLinear(float db)
+{
+    return std::pow(10.0f, db / 20.0f);
+}
+
+float AudioCapture::linearToDb(float linear)
+{
+    if (linear <= 0.0f)
+        return -std::numeric_limits<float>::infinity();
+
+    return 20.0f * std::log10(linear);
+}
+
+float AudioCapture::normalizeBuffer(juce::AudioBuffer<float>& buffer, float targetPeakDB)
+{
+    if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
+        return 1.0f;
+
+    float currentPeak = getBufferPeakLevel(buffer);
+
+    // Avoid division by zero for silent buffers
+    if (currentPeak < 1e-10f)
+        return 1.0f;
+
+    float targetPeakLinear = dbToLinear(targetPeakDB);
+    float gain = targetPeakLinear / currentPeak;
+
+    // Apply gain to all channels
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        float* data = buffer.getWritePointer(channel);
+        for (int i = 0; i < buffer.getNumSamples(); ++i)
+        {
+            data[i] *= gain;
+        }
+    }
+
+    DBG("normalizeBuffer: peak " + juce::String(linearToDb(currentPeak), 1) + " dB -> " +
+        juce::String(targetPeakDB, 1) + " dB (gain: " + juce::String(linearToDb(gain), 1) + " dB)");
+
+    return gain;
+}
