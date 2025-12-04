@@ -32,6 +32,12 @@ void PostCardComponent::updatePlayCount(int count)
     repaint();
 }
 
+void PostCardComponent::updateFollowState(bool following)
+{
+    post.isFollowing = following;
+    repaint();
+}
+
 void PostCardComponent::setPlaybackProgress(float progress)
 {
     playbackProgress = juce::jlimit(0.0f, 1.0f, progress);
@@ -56,6 +62,7 @@ void PostCardComponent::paint(juce::Graphics& g)
     drawBackground(g);
     drawAvatar(g, getAvatarBounds());
     drawUserInfo(g, getUserInfoBounds());
+    drawFollowButton(g, getFollowButtonBounds());
     drawWaveform(g, getWaveformBounds());
     drawPlayButton(g, getPlayButtonBounds());
     drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 120, 15, 110, CARD_HEIGHT - 30));
@@ -138,6 +145,46 @@ void PostCardComponent::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bou
                    bounds.getX(), bounds.getY() + 40, bounds.getWidth(), 15,
                    juce::Justification::centredLeft);
     }
+}
+
+void PostCardComponent::drawFollowButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Don't show follow button for own posts
+    if (post.isOwnPost)
+        return;
+
+    // Button text based on follow state
+    juce::String buttonText = post.isFollowing ? "Following" : "Follow";
+
+    // Colors based on state
+    juce::Colour bgColor, textColor, borderColor;
+    if (post.isFollowing)
+    {
+        // Following state: subtle outline button
+        bgColor = juce::Colour::fromRGBA(0, 0, 0, 0);
+        textColor = juce::Colour::fromRGB(150, 150, 150);
+        borderColor = juce::Colour::fromRGB(80, 80, 80);
+    }
+    else
+    {
+        // Not following: prominent filled button
+        bgColor = juce::Colour::fromRGB(0, 150, 255);
+        textColor = juce::Colours::white;
+        borderColor = juce::Colour::fromRGB(0, 150, 255);
+    }
+
+    // Draw button background
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
+
+    // Draw border
+    g.setColour(borderColor);
+    g.drawRoundedRectangle(bounds.toFloat(), 4.0f, 1.0f);
+
+    // Draw text
+    g.setColour(textColor);
+    g.setFont(11.0f);
+    g.drawText(buttonText, bounds, juce::Justification::centred);
 }
 
 void PostCardComponent::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -379,6 +426,15 @@ void PostCardComponent::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Check follow button (only if not own post)
+    if (!post.isOwnPost && getFollowButtonBounds().contains(pos))
+    {
+        bool willFollow = !post.isFollowing;
+        if (onFollowToggled)
+            onFollowToggled(post, willFollow);
+        return;
+    }
+
     // Check avatar/user area
     if (getAvatarBounds().contains(pos) || getUserInfoBounds().contains(pos))
     {
@@ -456,6 +512,13 @@ juce::Rectangle<int> PostCardComponent::getShareButtonBounds() const
 juce::Rectangle<int> PostCardComponent::getMoreButtonBounds() const
 {
     return juce::Rectangle<int>(getWidth() - 35, 45, 25, 25);
+}
+
+juce::Rectangle<int> PostCardComponent::getFollowButtonBounds() const
+{
+    // Position follow button below the timestamp, to the right of user info
+    auto userInfo = getUserInfoBounds();
+    return juce::Rectangle<int>(userInfo.getX(), userInfo.getY() + 58, 65, 22);
 }
 
 //==============================================================================
