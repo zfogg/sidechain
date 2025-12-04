@@ -120,10 +120,13 @@ option(SIDECHAIN_BUILD_TESTS "Build unit tests with Catch2" OFF)
 # Option to enable coverage (requires SIDECHAIN_BUILD_TESTS)
 option(SIDECHAIN_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 
+# Option to install standalone app alongside VST3
+option(SIDECHAIN_INSTALL_STANDALONE "Install Standalone app with cmake --install" OFF)
+
 # JUCE is added as a subdirectory from the deps folder
-# It can be fetched via FetchContent or added as a git submodule
+# EXCLUDE_FROM_ALL prevents JUCE from being installed with cmake --install
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/CMakeLists.txt")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE" "${CMAKE_BINARY_DIR}/JUCE")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE" "${CMAKE_BINARY_DIR}/JUCE" EXCLUDE_FROM_ALL)
 else()
     # Fetch JUCE if not present
     include(FetchContent)
@@ -132,13 +135,15 @@ else()
         GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
         GIT_TAG 8.0.8
         GIT_SHALLOW TRUE
+        EXCLUDE_FROM_ALL
     )
     FetchContent_MakeAvailable(JUCE)
 endif()
 
 # Build AudioPluginHost manually (without JUCE_BUILD_EXTRAS which builds everything)
+# EXCLUDE_FROM_ALL prevents it from being installed
 if(SIDECHAIN_BUILD_PLUGIN_HOST AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost/CMakeLists.txt")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost" "${CMAKE_BINARY_DIR}/AudioPluginHost")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost" "${CMAKE_BINARY_DIR}/AudioPluginHost" EXCLUDE_FROM_ALL)
 endif()
 
 # Plugin target
@@ -292,19 +297,21 @@ install(
     COMPONENT VST3
 )
 
-# Install Standalone app
-if(APPLE)
-    install(
-        DIRECTORY "${ARTEFACTS_DIR}/$<CONFIG>/Standalone/Sidechain.app"
-        DESTINATION "/Applications"
-        COMPONENT Standalone
-    )
-else()
-    install(
-        PROGRAMS "${ARTEFACTS_DIR}/$<CONFIG>/Standalone/Sidechain"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
-        COMPONENT Standalone
-    )
+# Install Standalone app (optional)
+if(SIDECHAIN_INSTALL_STANDALONE)
+    if(APPLE)
+        install(
+            DIRECTORY "${ARTEFACTS_DIR}/$<CONFIG>/Standalone/Sidechain.app"
+            DESTINATION "/Applications"
+            COMPONENT Standalone
+        )
+    else()
+        install(
+            PROGRAMS "${ARTEFACTS_DIR}/$<CONFIG>/Standalone/Sidechain"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+            COMPONENT Standalone
+        )
+    endif()
 endif()
 
 # Install AU plugin (macOS only)
