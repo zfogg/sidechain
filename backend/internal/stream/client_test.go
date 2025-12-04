@@ -34,7 +34,7 @@ func TestNewClientWithCredentials(t *testing.T) {
 	client, err := NewClient()
 	assert.NoError(t, err, "Should create client with valid credentials")
 	assert.NotNil(t, client, "Client should not be nil")
-	assert.NotNil(t, client.FeedsClient, "FeedsClient should not be nil")
+	assert.NotNil(t, client.FeedsClient(), "FeedsClient should not be nil")
 	assert.NotNil(t, client.ChatClient, "ChatClient should not be nil")
 }
 

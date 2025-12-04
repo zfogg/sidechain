@@ -28,7 +28,7 @@ func TestStreamClientInitialization(t *testing.T) {
 	client, err := stream.NewClient()
 	require.NoError(t, err, "Should create Stream.io client with valid credentials")
 	require.NotNil(t, client, "Client should not be nil")
-	require.NotNil(t, client.FeedsClient, "FeedsClient should not be nil")
+	require.NotNil(t, client.FeedsClient(), "FeedsClient should not be nil")
 	require.NotNil(t, client.ChatClient, "ChatClient should not be nil")
 }
 
