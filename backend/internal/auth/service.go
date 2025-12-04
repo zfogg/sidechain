@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/stream"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -25,14 +26,16 @@ var (
 // Service handles all authentication operations
 type Service struct {
 	jwtSecret     []byte
+	streamClient  *stream.Client
 	googleConfig  *oauth2.Config
 	discordConfig *oauth2.Config
 }
 
 // NewService creates a new authentication service
-func NewService(jwtSecret []byte, googleClientID, googleClientSecret, discordClientID, discordClientSecret string) *Service {
+func NewService(jwtSecret []byte, streamClient *stream.Client, googleClientID, googleClientSecret, discordClientID, discordClientSecret string) *Service {
 	return &Service{
-		jwtSecret: jwtSecret,
+		jwtSecret:    jwtSecret,
+		streamClient: streamClient,
 		googleConfig: &oauth2.Config{
 			ClientID:     googleClientID,
 			ClientSecret: googleClientSecret,
@@ -122,8 +125,13 @@ func (s *Service) RegisterNativeUser(req RegisterRequest) (*AuthResponse, error)
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	// TODO: Create Stream.io user
-	// streamClient.CreateUser(user.StreamUserID, user.Username)
+	// Create Stream.io user for social features (feeds + chat)
+	if s.streamClient != nil {
+		if err := s.streamClient.CreateUser(user.StreamUserID, user.Username); err != nil {
+			// Log but don't fail registration - Stream.io user can be created later
+			fmt.Printf("Warning: failed to create Stream.io user: %v\n", err)
+		}
+	}
 
 	return s.generateAuthResponse(&user)
 }

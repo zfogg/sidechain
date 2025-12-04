@@ -50,6 +50,7 @@ func main() {
 
 	authService := auth.NewService(
 		jwtSecret,
+		streamClient,
 		os.Getenv("GOOGLE_CLIENT_ID"),
 		os.Getenv("GOOGLE_CLIENT_SECRET"),
 		os.Getenv("DISCORD_CLIENT_ID"),
