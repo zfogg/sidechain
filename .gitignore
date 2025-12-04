@@ -46,6 +46,9 @@ backend/vendor/
 backend/bin/
 *.log
 
+# Local binaries
+/bin/
+
 # IDE
 .vscode/
 .idea/
