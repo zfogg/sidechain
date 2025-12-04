@@ -157,3 +157,8 @@ make package
 - Cache feed data locally in VST
 - Compress audio before upload (target 128kbps MP3)
 - Use CDN for global audio distribution
+
+## Git
+Only commit what you're working on. Other Claudes may be working in parallel, 
+or the user may be. Be careful with git reset and git checkout and git stash.
+

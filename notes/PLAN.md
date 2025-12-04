@@ -19,10 +19,16 @@
 - PostgreSQL database with migrations
 - S3 storage configuration
 - CMake build system with AudioPluginHost
+- **Full audio capture pipeline** (lock-free recording, circular buffer, level metering)
+- **Waveform visualization** (real-time during recording, preview after)
+- **Recording UI** (start/stop, level meters, time display, preview playback)
+- **GitHub Actions CI/CD** (macOS/Linux/Windows builds, release automation)
+- **Codecov integration** (component-based coverage tracking)
 
 ### What's Stubbed/Incomplete
 - Audio processing job queue
 - Feed UI data binding
+- Backend audio processing (MP3 conversion, loudness normalization)
 
 ### Recently Completed
 - Plugin NetworkClient HTTP implementation (GET, POST, multipart uploads)
@@ -31,9 +37,12 @@
 - Integration tests for Stream.io client (all 8 tests passing)
 - OAuth with Google/Discord (token exchange, user info, account linking)
 - OAuth token storage for future refresh
+- **AudioCapture class** (CircularAudioBuffer, lock-free recording, level metering)
+- **RecordingComponent** (full recording UI with waveform, preview, level meters)
+- **WAV export** with temp file management
+- **GitHub Actions release workflow** (v0.0.1 released)
 
 ### What's Missing
-- Audio capture from DAW
 - Audio playback in feed
 - Real-time WebSocket features
 - Search and discovery
@@ -54,7 +63,7 @@
 - [x] 1.1.5 Set up `cmake --install` for platform-specific VST3 paths
 - [x] 1.1.6 Create GitHub Actions CI for macOS/Linux/Windows
 - [x] 1.1.7 Test CI builds on all three platforms
-- [ ] 1.1.8 Add build badges to README
+- [x] 1.1.8 Add build badges to README (Codecov badge and sunburst graph)
 
 ### 1.2 Stream.io Integration (Critical Path)
 
@@ -78,7 +87,7 @@
 - [x] 1.3.4 Implement `getGoogleUserInfo()` profile fetch (oauth.go:186-216)
 - [x] 1.3.5 Implement `exchangeDiscordCode()` token exchange (oauth.go:220 - uses oauth2.Config.Exchange)
 - [x] 1.3.6 Implement `getDiscordUserInfo()` profile fetch (oauth.go:218-254)
-- [ ] 1.3.7 Test account unification (OAuth + native same email)
+- [x] 1.3.7 Test account unification (OAuth + native same email) (service_test.go:TestAccountUnification, TestReverseAccountUnification)
 - [x] 1.3.8 Add OAuth error handling and user feedback (handlers/auth.go:226-268 - getOAuthErrorMessage, parseOAuthError)
 - [x] 1.3.9 Store OAuth tokens for future refresh (oauth.go:104-124 - updateOAuthTokens)
 
@@ -102,31 +111,31 @@
 **Goal**: Capture audio from DAW and upload to backend
 **Duration**: 2 weeks
 
-### 2.1 DAW Audio Integration
+### 2.1 DAW Audio Integration ✅
 
-- [ ] 2.1.1 Study JUCE AudioProcessor processBlock() documentation
-- [ ] 2.1.2 Create circular buffer for audio capture (30 seconds @ 48kHz)
-- [ ] 2.1.3 Wire AudioCapture into PluginProcessor::processBlock()
-- [ ] 2.1.4 Implement recording start/stop with UI button
-- [ ] 2.1.5 Add recording state indicator (red dot, time elapsed)
-- [ ] 2.1.6 Implement max recording length (60 seconds)
-- [ ] 2.1.7 Add level metering during recording
-- [ ] 2.1.8 Handle sample rate changes gracefully
-- [ ] 2.1.9 Handle buffer size changes gracefully
+- [x] 2.1.1 Study JUCE AudioProcessor processBlock() documentation
+- [x] 2.1.2 Create circular buffer for audio capture (30 seconds @ 48kHz) - CircularAudioBuffer class with lock-free design
+- [x] 2.1.3 Wire AudioCapture into PluginProcessor::processBlock() - AudioCapture::processBlock() called from processor
+- [x] 2.1.4 Implement recording start/stop with UI button - RecordingComponent with start/stop controls
+- [x] 2.1.5 Add recording state indicator (red dot, time elapsed) - RecordingComponent displays recording time
+- [x] 2.1.6 Implement max recording length (60 seconds) - Configurable maxRecordingSeconds
+- [x] 2.1.7 Add level metering during recording - LevelMeterComponent with real-time updates
+- [x] 2.1.8 Handle sample rate changes gracefully - prepareToPlay() reinitializes buffers
+- [x] 2.1.9 Handle buffer size changes gracefully - prepareToPlay() handles buffer changes
 - [ ] 2.1.10 Test with mono/stereo/surround bus configurations
 
 ### 2.2 Audio Encoding (Plugin Side)
 
-- [ ] 2.2.1 Research JUCE audio format writers (WAV, FLAC)
-- [ ] 2.2.2 Implement WAV export from circular buffer
-- [ ] 2.2.3 Add FLAC compression option (smaller uploads)
-- [ ] 2.2.4 Calculate audio duration and display to user
-- [ ] 2.2.5 Generate simple waveform preview (client-side)
-- [ ] 2.2.6 Add trim controls (start/end points)
-- [ ] 2.2.7 Implement fade in/out (50ms) to avoid clicks
-- [ ] 2.2.8 Normalize audio to -1dB peak before upload
-- [ ] 2.2.9 Store temporary files in OS temp directory
-- [ ] 2.2.10 Clean up temp files after successful upload
+- [x] 2.2.1 Research JUCE audio format writers (WAV, FLAC)
+- [x] 2.2.2 Implement WAV export from circular buffer - AudioCapture::saveBufferToWavFile() with 16/24/32-bit support
+- [x] 2.2.3 Add FLAC compression option (smaller uploads) - AudioCapture::saveBufferToFlacFile() with quality control
+- [x] 2.2.4 Calculate audio duration and display to user - formatDuration(), formatDurationWithMs(), estimateFileSize()
+- [x] 2.2.5 Generate simple waveform preview (client-side) - WaveformComponent with peak analysis
+- [x] 2.2.6 Add trim controls (start/end points) - AudioCapture::trimBuffer(), trimBufferByTime()
+- [x] 2.2.7 Implement fade in/out (50ms) to avoid clicks - applyFadeIn/Out() with Linear/Exponential/SCurve
+- [x] 2.2.8 Normalize audio to -1dB peak before upload - normalizeBuffer() with dB target
+- [x] 2.2.9 Store temporary files in OS temp directory - Uses juce::File::getSpecialLocation
+- [x] 2.2.10 Clean up temp files after successful upload
 
 ### 2.3 Upload Flow
 
@@ -517,15 +526,15 @@
 
 ### 9.3 CI/CD Pipeline
 
-- [ ] 9.3.1 Configure GitHub Actions for backend tests
-- [ ] 9.3.2 Configure GitHub Actions for plugin builds
+- [x] 9.3.1 Configure GitHub Actions for backend tests - build.yml with PostgreSQL service container
+- [x] 9.3.2 Configure GitHub Actions for plugin builds - macOS/Linux/Windows matrix builds
 - [ ] 9.3.3 Add automated deployment on merge to main
 - [ ] 9.3.4 Set up staging environment
 - [ ] 9.3.5 Add deployment approval for production
 - [ ] 9.3.6 Implement database migration on deploy
 - [ ] 9.3.7 Add rollback capability
-- [ ] 9.3.8 Set up release versioning (semantic versioning)
-- [ ] 9.3.9 Create GitHub releases for plugin binaries
+- [x] 9.3.8 Set up release versioning (semantic versioning) - v*.*.* tag triggers
+- [x] 9.3.9 Create GitHub releases for plugin binaries - release.yml with artifact upload
 - [ ] 9.3.10 Add deployment notifications (Slack/Discord)
 
 ### 9.4 Monitoring & Alerting
