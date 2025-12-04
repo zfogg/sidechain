@@ -11,7 +11,7 @@ codecov:
 coverage:
   precision: 2
   round: down
-  range: 60..100
+  range: 70..100
 
   status:
     default_rules:
@@ -20,27 +20,27 @@ coverage:
     project:
       default:
         target: auto
-        threshold: 2%
+        threshold: 5%
         branches:
           - main
 
       # Auth service (critical)
       auth:
-        target: 50%
-        threshold: 2%
+        target: 80%
+        threshold: 5%
         paths:
           - "backend/internal/auth/**/*"
 
       # API handlers
       handlers:
-        target: 50%
-        threshold: 2%
+        target: 75%
+        threshold: 5%
         paths:
           - "backend/internal/handlers/**/*"
 
       # Stream.io integration
       stream:
-        target: 40%
+        target: 60%
         threshold: 5%
         paths:
           - "backend/internal/stream/**/*"
@@ -48,29 +48,29 @@ coverage:
 
       # Database layer
       database:
-        target: 50%
-        threshold: 2%
+        target: 75%
+        threshold: 5%
         paths:
           - "backend/internal/database/**/*"
 
       # Models
       models:
-        target: 50%
-        threshold: 2%
+        target: 70%
+        threshold: 5%
         paths:
           - "backend/internal/models/**/*"
 
       # Plugin (C++)
       plugin:
-        target: 40%
+        target: 60%
         threshold: 5%
         paths:
           - "plugin/Source/**/*"
 
     patch:
       default:
-        target: 60%
-        threshold: 0%
+        target: 80%
+        threshold: 5%
         base: auto
         branches:
           - main
@@ -79,7 +79,7 @@ coverage:
         informational: false
 
       core_patch:
-        target: 60%
+        target: 80%
         threshold: 5%
         base: auto
         paths:
@@ -106,9 +106,9 @@ component_management:
     statuses:
       - type: project
         target: auto
-        threshold: 2%
+        threshold: 5%
       - type: patch
-        target: 60%
+        target: 80%
         threshold: 5%
 
   individual_components:
@@ -118,10 +118,10 @@ component_management:
         - "backend/internal/auth/**/*"
       statuses:
         - type: project
-          target: 50%
-          threshold: 2%
+          target: 80%
+          threshold: 5%
         - type: patch
-          target: 60%
+          target: 80%
 
     - component_id: handlers
       name: "API Handlers"
@@ -129,10 +129,10 @@ component_management:
         - "backend/internal/handlers/**/*"
       statuses:
         - type: project
-          target: 50%
-          threshold: 2%
+          target: 75%
+          threshold: 5%
         - type: patch
-          target: 60%
+          target: 80%
 
     - component_id: stream
       name: "Stream.io Integration"
@@ -140,7 +140,7 @@ component_management:
         - "backend/internal/stream/**/*"
       statuses:
         - type: project
-          target: 40%
+          target: 60%
           threshold: 5%
           informational: true
 
@@ -150,8 +150,8 @@ component_management:
         - "backend/internal/database/**/*"
       statuses:
         - type: project
-          target: 50%
-          threshold: 2%
+          target: 75%
+          threshold: 5%
 
     - component_id: models
       name: "Data Models"
@@ -159,8 +159,8 @@ component_management:
         - "backend/internal/models/**/*"
       statuses:
         - type: project
-          target: 50%
-          threshold: 2%
+          target: 70%
+          threshold: 5%
 
     # Plugin components
     - component_id: plugin_core
@@ -169,10 +169,10 @@ component_management:
         - "plugin/Source/**/*"
       statuses:
         - type: project
-          target: 40%
+          target: 60%
           threshold: 5%
         - type: patch
-          target: 50%
+          target: 70%
 
     - component_id: plugin_network
       name: "Plugin Network"
@@ -180,7 +180,7 @@ component_management:
         - "plugin/Source/NetworkClient.*"
       statuses:
         - type: project
-          target: 50%
+          target: 70%
           threshold: 5%
 
     - component_id: plugin_ui
@@ -190,7 +190,7 @@ component_management:
         - "plugin/Source/*Indicator.*"
       statuses:
         - type: project
-          target: 40%
+          target: 60%
           threshold: 10%
           informational: true
 
