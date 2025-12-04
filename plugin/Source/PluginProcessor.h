@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "AudioCapture.h"
+#include "AudioPlayer.h"
 
 //==============================================================================
 /**
@@ -83,11 +84,19 @@ public:
     double getCurrentBPM() const { return currentBPM.load(); }
     bool isBPMAvailable() const { return bpmAvailable.load(); }
 
+    //==============================================================================
+    // Audio Playback (for feed audio)
+    AudioPlayer& getAudioPlayer() { return audioPlayer; }
+    const AudioPlayer& getAudioPlayer() const { return audioPlayer; }
+
 private:
     //==============================================================================
     // Audio capture system
     AudioCapture audioCapture;
     juce::AudioBuffer<float> lastRecordedAudio;
+
+    // Audio playback for feed
+    AudioPlayer audioPlayer;
 
     // Audio settings (cached from prepareToPlay)
     double currentSampleRate = 44100.0;

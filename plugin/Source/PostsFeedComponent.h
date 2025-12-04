@@ -4,6 +4,7 @@
 #include "FeedDataManager.h"
 #include "FeedPost.h"
 #include "PostCardComponent.h"
+#include "AudioPlayer.h"
 
 class NetworkClient;
 
@@ -33,6 +34,9 @@ public:
 
     // Network client integration
     void setNetworkClient(NetworkClient* client);
+
+    // Audio player integration
+    void setAudioPlayer(AudioPlayer* player);
 
     // Feed control
     void loadFeed();
@@ -70,6 +74,10 @@ private:
     juce::String username;
     juce::String email;
     juce::String profilePicUrl;
+
+    //==============================================================================
+    // Audio playback
+    AudioPlayer* audioPlayer = nullptr;
 
     //==============================================================================
     // UI Components

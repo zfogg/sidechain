@@ -71,6 +71,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create PostsFeedComponent
     postsFeedComponent = std::make_unique<PostsFeedComponent>();
     postsFeedComponent->setNetworkClient(networkClient.get());
+    postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
     postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
     postsFeedComponent->onLogout = [this]() { logout(); };
     postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };

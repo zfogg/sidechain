@@ -44,6 +44,12 @@ void PostCardComponent::setIsPlaying(bool playing)
     repaint();
 }
 
+void PostCardComponent::setLoading(bool loading)
+{
+    isLoading = loading;
+    repaint();
+}
+
 //==============================================================================
 void PostCardComponent::paint(juce::Graphics& g)
 {
