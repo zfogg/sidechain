@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	getstream "github.com/GetStream/getstream-go"
+	"github.com/GetStream/getstream-go/v3"
 	chat "github.com/GetStream/stream-chat-go/v5"
 )
 
@@ -94,14 +94,55 @@ func (c *Client) CreateUser(userID, username string) error {
 
 // CreateLoopActivity creates an activity for a new loop post
 func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
-	// TODO: Implement proper V3 API once we get the exact method signatures
-	// For now, create a working stub that logs what would be sent
+	ctx := context.Background()
 
-	fmt.Printf("📝 Stream.io Activity: user:%s posted loop with BPM:%d, Key:%s\n",
-		userID, activity.BPM, activity.Key)
+	// Build the user's feed identifier (user:userID)
+	userFeed := fmt.Sprintf("%s:%s", FeedGroupUser, userID)
 
-	// Generate mock activity ID for development
-	activity.ID = fmt.Sprintf("activity_%s_%d", userID, time.Now().Unix())
+	// Set activity time if not provided
+	if activity.Time == "" {
+		activity.Time = time.Now().UTC().Format(time.RFC3339)
+	}
+
+	// Create the activity request
+	// Activities are added to the user's personal feed, then copied to followers' timelines
+	request := &getstream.AddActivityRequest{
+		Feeds:  []string{userFeed},
+		Type:   getstream.PtrTo("loop"), // Activity type
+		UserID: getstream.PtrTo(userID),
+		Text:   getstream.PtrTo(activity.Object), // The loop title/description
+		Custom: map[string]any{
+			"audio_url":     activity.AudioURL,
+			"bpm":           activity.BPM,
+			"key":           activity.Key,
+			"daw":           activity.DAW,
+			"duration_bars": activity.DurationBars,
+			"genre":         activity.Genre,
+			"waveform":      activity.Waveform,
+			"actor":         activity.Actor,
+			"verb":          activity.Verb,
+			"object":        activity.Object,
+		},
+	}
+
+	// Add foreign_id if provided (for deduplication)
+	if activity.ForeignID != "" {
+		request.ForeignID = getstream.PtrTo(activity.ForeignID)
+	}
+
+	// Call Stream.io API
+	response, err := c.FeedsClient.AddActivity(ctx, request)
+	if err != nil {
+		return fmt.Errorf("failed to create activity: %w", err)
+	}
+
+	// Store the returned activity ID
+	if response != nil && response.Data != nil {
+		activity.ID = response.Data.ID
+	}
+
+	fmt.Printf("📝 Stream.io Activity created: user:%s posted loop (ID: %s) with BPM:%d, Key:%s\n",
+		userID, activity.ID, activity.BPM, activity.Key)
 
 	return nil
 }
