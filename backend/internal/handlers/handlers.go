@@ -955,6 +955,193 @@ func (h *Handlers) UpdateProfile(c *gin.Context) {
 	h.UpdateMyProfile(c)
 }
 
+// =============================================================================
+// NOTIFICATION ENDPOINTS
+// =============================================================================
+
+// GetNotifications gets the user's notifications with unseen/unread counts
+// GET /api/notifications
+func (h *Handlers) GetNotifications(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	notifs, err := h.stream.GetNotifications(currentUser.StreamUserID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_notifications", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"groups": notifs.Groups,
+		"unseen": notifs.Unseen,
+		"unread": notifs.Unread,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(notifs.Groups),
+		},
+	})
+}
+
+// GetNotificationCounts gets just the unseen/unread counts for badge display
+// GET /api/notifications/counts
+func (h *Handlers) GetNotificationCounts(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	unseen, unread, err := h.stream.GetNotificationCounts(currentUser.StreamUserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_notification_counts", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"unseen": unseen,
+		"unread": unread,
+	})
+}
+
+// MarkNotificationsRead marks all notifications as read
+// POST /api/notifications/read
+func (h *Handlers) MarkNotificationsRead(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	if err := h.stream.MarkNotificationsRead(currentUser.StreamUserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_mark_read", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "all_notifications_marked_read",
+	})
+}
+
+// MarkNotificationsSeen marks all notifications as seen (clears badge)
+// POST /api/notifications/seen
+func (h *Handlers) MarkNotificationsSeen(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	if err := h.stream.MarkNotificationsSeen(currentUser.StreamUserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_mark_seen", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "all_notifications_marked_seen",
+	})
+}
+
+// =============================================================================
+// AGGREGATED FEED ENDPOINTS
+// =============================================================================
+
+// GetAggregatedTimeline gets the user's aggregated timeline (grouped by user+day)
+// GET /api/feed/timeline/aggregated
+func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	resp, err := h.stream.GetAggregatedTimeline(currentUser.StreamUserID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_aggregated_timeline", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"groups": resp.Groups,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(resp.Groups),
+		},
+	})
+}
+
+// GetTrendingFeed gets trending loops grouped by genre/time
+// GET /api/feed/trending
+func (h *Handlers) GetTrendingFeed(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	resp, err := h.stream.GetTrendingFeed(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_trending_feed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"groups": resp.Groups,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(resp.Groups),
+		},
+	})
+}
+
+// GetUserActivitySummary gets aggregated activity for a user's profile
+// GET /api/users/:id/activity
+func (h *Handlers) GetUserActivitySummary(c *gin.Context) {
+	targetUserID := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	// Validate user exists
+	var user models.User
+	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	resp, err := h.stream.GetUserActivitySummary(user.StreamUserID, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_activity_summary", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user_id": user.ID,
+		"groups":  resp.Groups,
+		"meta": gin.H{
+			"limit": limit,
+			"count": len(resp.Groups),
+		},
+	})
+}
+
+// =============================================================================
+// LEGACY EMOJI/REACTION HANDLERS
+// =============================================================================
+
 // EmojiReact adds an emoji reaction to a post or message
 func (h *Handlers) EmojiReact(c *gin.Context) {
 	userID := c.GetString("user_id")

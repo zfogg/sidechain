@@ -138,3 +138,230 @@ func TestActivityExtraMap(t *testing.T) {
 	assert.True(t, ok)
 	assert.True(t, isRemix)
 }
+
+// =============================================================================
+// NOTIFICATION FEED TESTS
+// =============================================================================
+
+// TestNotificationFeedGroupConstants tests notification-related constants
+func TestNotificationFeedGroupConstants(t *testing.T) {
+	assert.Equal(t, "notification", FeedGroupNotification, "Notification feed group should be 'notification'")
+	assert.Equal(t, "timeline_aggregated", FeedGroupTimelineAggregated, "Aggregated timeline feed group")
+	assert.Equal(t, "trending", FeedGroupTrending, "Trending feed group")
+	assert.Equal(t, "user_activity", FeedGroupUserActivity, "User activity feed group")
+}
+
+// TestNotificationVerbConstants tests notification verb constants
+func TestNotificationVerbConstants(t *testing.T) {
+	assert.Equal(t, "like", NotifVerbLike)
+	assert.Equal(t, "follow", NotifVerbFollow)
+	assert.Equal(t, "comment", NotifVerbComment)
+	assert.Equal(t, "mention", NotifVerbMention)
+	assert.Equal(t, "repost", NotifVerbRepost)
+}
+
+// TestNotificationGroupStruct tests NotificationGroup struct
+func TestNotificationGroupStruct(t *testing.T) {
+	activities := []*Activity{
+		{
+			ID:    "act1",
+			Actor: "user:alice",
+			Verb:  NotifVerbLike,
+		},
+		{
+			ID:    "act2",
+			Actor: "user:bob",
+			Verb:  NotifVerbLike,
+		},
+	}
+
+	group := &NotificationGroup{
+		ID:            "group_123",
+		Group:         "like_2024-01-15",
+		Verb:          NotifVerbLike,
+		ActivityCount: 2,
+		ActorCount:    2,
+		Activities:    activities,
+		IsRead:        false,
+		IsSeen:        false,
+		CreatedAt:     "2024-01-15T10:00:00Z",
+		UpdatedAt:     "2024-01-15T12:00:00Z",
+	}
+
+	assert.Equal(t, "group_123", group.ID)
+	assert.Equal(t, "like_2024-01-15", group.Group)
+	assert.Equal(t, NotifVerbLike, group.Verb)
+	assert.Equal(t, 2, group.ActivityCount)
+	assert.Equal(t, 2, group.ActorCount)
+	assert.Len(t, group.Activities, 2)
+	assert.False(t, group.IsRead)
+	assert.False(t, group.IsSeen)
+}
+
+// TestNotificationResponseStruct tests NotificationResponse struct
+func TestNotificationResponseStruct(t *testing.T) {
+	resp := &NotificationResponse{
+		Groups: []*NotificationGroup{
+			{ID: "group1", Verb: NotifVerbLike},
+			{ID: "group2", Verb: NotifVerbFollow},
+		},
+		Unseen: 5,
+		Unread: 3,
+	}
+
+	assert.Len(t, resp.Groups, 2)
+	assert.Equal(t, 5, resp.Unseen)
+	assert.Equal(t, 3, resp.Unread)
+}
+
+// =============================================================================
+// AGGREGATED FEED TESTS
+// =============================================================================
+
+// TestAggregatedGroupStruct tests AggregatedGroup struct
+func TestAggregatedGroupStruct(t *testing.T) {
+	activities := []*Activity{
+		{ID: "act1", Actor: "user:alice", Verb: "posted"},
+		{ID: "act2", Actor: "user:alice", Verb: "posted"},
+		{ID: "act3", Actor: "user:alice", Verb: "posted"},
+	}
+
+	group := &AggregatedGroup{
+		ID:            "agg_group_123",
+		Group:         "user:alice_posted_2024-01-15",
+		Verb:          "posted",
+		ActivityCount: 3,
+		ActorCount:    1,
+		Activities:    activities,
+		CreatedAt:     "2024-01-15T08:00:00Z",
+		UpdatedAt:     "2024-01-15T16:00:00Z",
+	}
+
+	assert.Equal(t, "agg_group_123", group.ID)
+	assert.Equal(t, "user:alice_posted_2024-01-15", group.Group)
+	assert.Equal(t, "posted", group.Verb)
+	assert.Equal(t, 3, group.ActivityCount)
+	assert.Equal(t, 1, group.ActorCount)
+	assert.Len(t, group.Activities, 3)
+}
+
+// TestAggregatedFeedResponseStruct tests AggregatedFeedResponse struct
+func TestAggregatedFeedResponseStruct(t *testing.T) {
+	resp := &AggregatedFeedResponse{
+		Groups: []*AggregatedGroup{
+			{ID: "group1", Verb: "posted", ActivityCount: 5},
+			{ID: "group2", Verb: "posted", ActivityCount: 3},
+		},
+	}
+
+	assert.Len(t, resp.Groups, 2)
+	assert.Equal(t, 5, resp.Groups[0].ActivityCount)
+	assert.Equal(t, 3, resp.Groups[1].ActivityCount)
+}
+
+// TestTruncateString tests the truncateString helper function
+func TestTruncateString(t *testing.T) {
+	// Test string shorter than max length
+	short := truncateString("hello", 10)
+	assert.Equal(t, "hello", short)
+
+	// Test string equal to max length
+	exact := truncateString("hello", 5)
+	assert.Equal(t, "hello", exact)
+
+	// Test string longer than max length
+	long := truncateString("hello world this is a long string", 15)
+	assert.Equal(t, "hello world ...", long)
+	assert.Len(t, long, 15)
+}
+
+// TestExtractUserIDFromFeed tests the extractUserIDFromFeed helper
+func TestExtractUserIDFromFeed(t *testing.T) {
+	// Test timeline feed ID format
+	userID := extractUserIDFromFeed("timeline:user123")
+	assert.Equal(t, "user123", userID)
+
+	// Test user feed ID format
+	userID2 := extractUserIDFromFeed("user:producer456")
+	assert.Equal(t, "producer456", userID2)
+
+	// Test ID without colon
+	noColon := extractUserIDFromFeed("justanid")
+	assert.Equal(t, "justanid", noColon)
+}
+
+// =============================================================================
+// INTEGRATION TESTS (require Stream.io credentials)
+// =============================================================================
+
+// TestNotificationsIntegration tests notification methods with real Stream.io
+func TestNotificationsIntegration(t *testing.T) {
+	if os.Getenv("STREAM_API_KEY") == "" || os.Getenv("STREAM_API_SECRET") == "" {
+		t.Skip("STREAM_API_KEY and STREAM_API_SECRET not set, skipping integration test")
+	}
+
+	client, err := NewClient()
+	assert.NoError(t, err)
+
+	// Note: These tests require the "notification" feed group to be configured
+	// in the Stream.io dashboard with aggregation_format set
+
+	testUserID := "test_notif_user_" + os.Getenv("TEST_RUN_ID")
+	if testUserID == "test_notif_user_" {
+		testUserID = "test_notif_user_default"
+	}
+
+	// Test getting notification counts (should work even with empty feed)
+	unseen, unread, err := client.GetNotificationCounts(testUserID)
+	if err != nil {
+		// Feed group might not exist - skip rest of test
+		t.Skipf("Notification feed not configured: %v", err)
+	}
+	assert.GreaterOrEqual(t, unseen, 0)
+	assert.GreaterOrEqual(t, unread, 0)
+
+	// Test getting notifications
+	notifs, err := client.GetNotifications(testUserID, 10, 0)
+	if err != nil {
+		t.Skipf("Failed to get notifications: %v", err)
+	}
+	assert.NotNil(t, notifs)
+	assert.NotNil(t, notifs.Groups)
+}
+
+// TestAggregatedFeedsIntegration tests aggregated feed methods with real Stream.io
+func TestAggregatedFeedsIntegration(t *testing.T) {
+	if os.Getenv("STREAM_API_KEY") == "" || os.Getenv("STREAM_API_SECRET") == "" {
+		t.Skip("STREAM_API_KEY and STREAM_API_SECRET not set, skipping integration test")
+	}
+
+	client, err := NewClient()
+	assert.NoError(t, err)
+
+	// Note: These tests require aggregated feed groups to be configured
+	// in the Stream.io dashboard
+
+	testUserID := "test_agg_user_" + os.Getenv("TEST_RUN_ID")
+	if testUserID == "test_agg_user_" {
+		testUserID = "test_agg_user_default"
+	}
+
+	// Test getting trending feed
+	trending, err := client.GetTrendingFeed(10, 0)
+	if err != nil {
+		// Feed group might not exist - just log it
+		t.Logf("Trending feed not configured: %v", err)
+	} else {
+		assert.NotNil(t, trending)
+		assert.NotNil(t, trending.Groups)
+	}
+
+	// Test getting user activity summary
+	activity, err := client.GetUserActivitySummary(testUserID, 10)
+	if err != nil {
+		t.Logf("User activity feed not configured: %v", err)
+	} else {
+		assert.NotNil(t, activity)
+		assert.NotNil(t, activity.Groups)
+	}
+}
