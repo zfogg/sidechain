@@ -11,7 +11,8 @@ import (
 
 // TestAudioQueue tests the background job processing (fast version)
 func TestAudioQueue(t *testing.T) {
-	queue := NewAudioQueue()
+	// Pass nil for S3Uploader in tests - we're testing queue mechanics, not uploads
+	queue := NewAudioQueue(nil)
 
 	// Test job creation and submission (no workers needed)
 	metadata := map[string]interface{}{
@@ -19,12 +20,13 @@ func TestAudioQueue(t *testing.T) {
 		"key": "C major",
 	}
 
-	job, err := queue.SubmitJob("test-user", "/tmp/test.wav", "test.wav", metadata)
+	job, err := queue.SubmitJob("test-user", "test-post-id", "/tmp/test.wav", "test.wav", metadata)
 	require.NoError(t, err)
 	require.NotNil(t, job)
 
 	assert.NotEmpty(t, job.ID)
 	assert.Equal(t, "test-user", job.UserID)
+	assert.Equal(t, "test-post-id", job.PostID)
 	assert.Equal(t, "pending", job.Status)
 	assert.Equal(t, "/tmp/test.wav", job.TempFilePath)
 	assert.Equal(t, "test.wav", job.Filename)
@@ -51,7 +53,7 @@ func TestAudioQueue(t *testing.T) {
 
 // TestQueueConcurrency tests concurrent job submission (fast version)
 func TestQueueConcurrency(t *testing.T) {
-	queue := NewAudioQueue()
+	queue := NewAudioQueue(nil)
 
 	const numJobs = 10
 	var wg sync.WaitGroup
@@ -71,6 +73,7 @@ func TestQueueConcurrency(t *testing.T) {
 
 			job, err := queue.SubmitJob(
 				fmt.Sprintf("user-%d", index),
+				fmt.Sprintf("post-%d", index),
 				fmt.Sprintf("/tmp/test%d.wav", index),
 				fmt.Sprintf("test%d.wav", index),
 				metadata,
@@ -102,33 +105,34 @@ func TestQueueConcurrency(t *testing.T) {
 func TestQueueOverflow(t *testing.T) {
 	// Create queue with small buffer for testing
 	queue := &AudioQueue{
-		jobs:    make(chan *AudioJob, 2), // Only 2 job buffer
-		results: make(map[string]*AudioJob),
-		workers: 1,
+		jobs:         make(chan *AudioJob, 2), // Only 2 job buffer
+		results:      make(map[string]*AudioJob),
+		workers:      1,
+		jobCompleted: make(chan string, 10),
 	}
 
 	// Fill the queue buffer
 	metadata := map[string]interface{}{"test": "data"}
 
-	_, err := queue.SubmitJob("user1", "/tmp/test1.wav", "test1.wav", metadata)
+	_, err := queue.SubmitJob("user1", "post1", "/tmp/test1.wav", "test1.wav", metadata)
 	assert.NoError(t, err)
 
-	_, err = queue.SubmitJob("user2", "/tmp/test2.wav", "test2.wav", metadata)
+	_, err = queue.SubmitJob("user2", "post2", "/tmp/test2.wav", "test2.wav", metadata)
 	assert.NoError(t, err)
 
 	// Third job should fail (queue full)
-	_, err = queue.SubmitJob("user3", "/tmp/test3.wav", "test3.wav", metadata)
+	_, err = queue.SubmitJob("user3", "post3", "/tmp/test3.wav", "test3.wav", metadata)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "queue is full")
 }
 
 // TestJobStatusTracking tests job status updates
 func TestJobStatusTracking(t *testing.T) {
-	queue := NewAudioQueue()
+	queue := NewAudioQueue(nil)
 
 	// Submit job
 	metadata := map[string]interface{}{"test": "data"}
-	job, err := queue.SubmitJob("test-user", "/tmp/test.wav", "test.wav", metadata)
+	job, err := queue.SubmitJob("test-user", "test-post", "/tmp/test.wav", "test.wav", metadata)
 	require.NoError(t, err)
 
 	// Initial status should be pending
@@ -162,7 +166,7 @@ func TestJobStatusTracking(t *testing.T) {
 
 // TestInvalidJobID tests error handling for non-existent jobs
 func TestInvalidJobID(t *testing.T) {
-	queue := NewAudioQueue()
+	queue := NewAudioQueue(nil)
 
 	_, err := queue.GetJobStatus("non-existent-job-id")
 	assert.Error(t, err)
@@ -171,7 +175,7 @@ func TestInvalidJobID(t *testing.T) {
 
 // BenchmarkJobSubmission benchmarks job submission performance
 func BenchmarkJobSubmission(b *testing.B) {
-	queue := NewAudioQueue()
+	queue := NewAudioQueue(nil)
 	metadata := map[string]interface{}{"bpm": 128}
 
 	b.ResetTimer()
@@ -179,6 +183,7 @@ func BenchmarkJobSubmission(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := queue.SubmitJob(
 			fmt.Sprintf("user-%d", i),
+			fmt.Sprintf("post-%d", i),
 			fmt.Sprintf("/tmp/test%d.wav", i),
 			fmt.Sprintf("test%d.wav", i),
 			metadata,

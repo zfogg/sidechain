@@ -9,30 +9,44 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/queue"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 )
 
 // Processor handles audio upload and processing pipeline
 type Processor struct {
 	s3Uploader *storage.S3Uploader
+	audioQueue *queue.AudioQueue
 	tempDir    string
-	// Note: Job queue integration will be added when we connect the pieces
 }
 
-// NewProcessor creates a new audio processor
+// NewProcessor creates a new audio processor with queue integration
 func NewProcessor(s3Uploader *storage.S3Uploader) *Processor {
 	tempDir := "/tmp/sidechain_audio"
 	os.MkdirAll(tempDir, 0755)
 
+	// Create the audio queue with S3 uploader for background processing
+	audioQueue := queue.NewAudioQueue(s3Uploader)
+
 	return &Processor{
 		s3Uploader: s3Uploader,
+		audioQueue: audioQueue,
 		tempDir:    tempDir,
 	}
+}
+
+// Start begins processing jobs in the background worker pool
+func (p *Processor) Start() {
+	p.audioQueue.Start()
+}
+
+// Stop gracefully shuts down the audio processing queue
+func (p *Processor) Stop() {
+	p.audioQueue.Stop()
 }
 
 // ProcessUpload handles complete audio upload pipeline
@@ -196,25 +210,41 @@ func (p *Processor) generateWaveform(audioPath string) (string, error) {
 	return svg, nil
 }
 
-// SubmitProcessingJob submits an audio processing job (placeholder)
-func (p *Processor) SubmitProcessingJob(userID, tempFilePath, filename string, metadata map[string]interface{}) (*JobStatus, error) {
-	// TODO: Integrate with actual job queue
+// SubmitProcessingJob submits an audio processing job to the background queue
+func (p *Processor) SubmitProcessingJob(userID, postID, tempFilePath, filename string, metadata map[string]interface{}) (*JobStatus, error) {
+	job, err := p.audioQueue.SubmitJob(userID, postID, tempFilePath, filename, metadata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to submit job to queue: %w", err)
+	}
+
 	return &JobStatus{
-		ID:     fmt.Sprintf("job_%s_%d", userID, time.Now().Unix()),
-		Status: "pending",
+		ID:     job.ID,
+		Status: job.Status,
 	}, nil
 }
 
-// GetJobStatus gets the status of a processing job (placeholder)
+// GetJobStatus gets the status of a processing job from the queue
 func (p *Processor) GetJobStatus(jobID string) (*JobStatus, error) {
-	// TODO: Integrate with actual job queue
-	return &JobStatus{
-		ID:     jobID,
-		Status: "complete",
-		Result: &JobResult{
-			AudioURL: "https://mock-url.com/audio.mp3",
-		},
-	}, nil
+	job, err := p.audioQueue.GetJobStatus(jobID)
+	if err != nil {
+		return nil, err
+	}
+
+	status := &JobStatus{
+		ID:           job.ID,
+		Status:       job.Status,
+		ErrorMessage: job.ErrorMessage,
+	}
+
+	// Map queue result to processor result if complete
+	if job.Result != nil {
+		status.Result = &JobResult{
+			AudioURL:    job.Result.AudioURL,
+			WaveformURL: job.Result.WaveformURL,
+		}
+	}
+
+	return status, nil
 }
 
 // JobStatus represents the status of an audio processing job
