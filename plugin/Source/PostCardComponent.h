@@ -20,7 +20,8 @@
  * The component uses a callback-based API for actions to keep it decoupled
  * from network/audio code.
  */
-class PostCardComponent : public juce::Component
+class PostCardComponent : public juce::Component,
+                          public juce::Timer
 {
 public:
     PostCardComponent();
@@ -59,6 +60,9 @@ public:
     void mouseEnter(const juce::MouseEvent& event) override;
     void mouseExit(const juce::MouseEvent& event) override;
 
+    // Timer override for animations
+    void timerCallback() override;
+
     //==============================================================================
     // Layout constants
     static constexpr int CARD_HEIGHT = 120;
@@ -76,6 +80,12 @@ private:
     bool isLoading = false;
     float playbackProgress = 0.0f;
 
+    // Like animation state
+    bool likeAnimationActive = false;
+    float likeAnimationProgress = 0.0f;  // 0.0 to 1.0
+    static constexpr float LIKE_ANIMATION_DURATION_MS = 400.0f;
+    static constexpr int LIKE_ANIMATION_FPS = 60;
+
     // Cached avatar image
     juce::Image avatarImage;
     bool avatarLoadRequested = false;
@@ -89,6 +99,10 @@ private:
     void drawPlayButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawLikeAnimation(juce::Graphics& g);
+
+    // Animation helpers
+    void startLikeAnimation();
 
     //==============================================================================
     // Hit testing helpers
