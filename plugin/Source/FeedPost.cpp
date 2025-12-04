@@ -170,10 +170,11 @@ juce::String FeedPost::formatTimeAgo(const juce::Time& time)
     auto now = juce::Time::getCurrentTime();
     auto diff = now - time;
 
-    auto seconds = diff.inSeconds();
-    auto minutes = diff.inMinutes();
-    auto hours = diff.inHours();
-    auto days = diff.inDays();
+    // Use std::round for proper rounding instead of truncation
+    auto seconds = static_cast<juce::int64>(std::round(diff.inSeconds()));
+    auto minutes = static_cast<juce::int64>(std::round(diff.inMinutes()));
+    auto hours = static_cast<juce::int64>(std::round(diff.inHours()));
+    auto days = static_cast<juce::int64>(std::round(diff.inDays()));
 
     if (seconds < 0)
         return "just now"; // Future time, probably clock skew
