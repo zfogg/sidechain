@@ -26,11 +26,12 @@
 - **Codecov integration** (component-based coverage tracking)
 
 ### What's Stubbed/Incomplete
-- Audio processing job queue
-- Feed UI data binding
-- Backend audio processing (MP3 conversion, loudness normalization)
+- Feed UI data binding (post cards, playback)
+- Upload UI flow (BPM/key input, progress indicator)
 
 ### Recently Completed
+- **Backend audio processing pipeline** (FFmpeg normalization, MP3 encoding, waveform SVG, S3 upload)
+- **Background job queue** (goroutine worker pool with channels)
 - Plugin NetworkClient HTTP implementation (GET, POST, multipart uploads)
 - HTTP status code extraction and user-friendly error messages
 - Stream.io Feeds V2 API integration (activities, reactions, follows) - switched from V3 beta to stable V2
@@ -150,20 +151,20 @@
 - [ ] 2.3.9 Show success confirmation with post preview
 - [ ] 2.3.10 Clear recording buffer after successful upload
 
-### 2.4 Backend Audio Processing
+### 2.4 Backend Audio Processing ✅
 
-- [ ] 2.4.1 Verify FFmpeg installation in deployment environment
-- [ ] 2.4.2 Implement background job queue (goroutines + channels)
-- [ ] 2.4.3 Process uploaded WAV/FLAC to MP3 (128kbps)
-- [ ] 2.4.4 Apply loudness normalization (-14 LUFS)
-- [ ] 2.4.5 Generate waveform data (JSON array of peaks)
-- [ ] 2.4.6 Generate waveform SVG for embed
-- [ ] 2.4.7 Extract audio metadata (duration, sample rate)
-- [ ] 2.4.8 Upload processed MP3 to S3
-- [ ] 2.4.9 Upload waveform assets to S3
-- [ ] 2.4.10 Update AudioPost record with S3 URLs
-- [ ] 2.4.11 Update AudioPost status (processing → ready)
-- [ ] 2.4.12 Notify plugin of processing completion (webhook or poll)
+- [x] 2.4.1 Verify FFmpeg installation in deployment environment - CheckFFmpegAvailable() in queue/ffmpeg_helpers.go
+- [x] 2.4.2 Implement background job queue (goroutines + channels) - AudioQueue with worker pool in queue/audio_jobs.go
+- [x] 2.4.3 Process uploaded WAV/FLAC to MP3 (128kbps) - runFFmpegNormalize() with libmp3lame
+- [x] 2.4.4 Apply loudness normalization (-14 LUFS) - loudnorm filter with I=-14:TP=-1:LRA=7
+- [x] 2.4.5 Generate waveform data (JSON array of peaks) - generateSVGFromSamples() extracts float32 peaks
+- [x] 2.4.6 Generate waveform SVG for embed - generateWaveformSVG() creates bar-style SVG
+- [x] 2.4.7 Extract audio metadata (duration, sample rate) - extractAudioDuration() uses ffprobe JSON
+- [x] 2.4.8 Upload processed MP3 to S3 - s3Uploader.UploadAudio() in processJob()
+- [x] 2.4.9 Upload waveform assets to S3 - s3Uploader.UploadWaveform() in processJob()
+- [x] 2.4.10 Update AudioPost record with S3 URLs - updateAudioPostComplete() with GORM
+- [x] 2.4.11 Update AudioPost status (processing → ready) - updateAudioPostStatus() transitions state
+- [x] 2.4.12 Notify plugin of processing completion (webhook or poll) - GET /api/v1/audio/status/:job_id endpoint
 
 ---
 
