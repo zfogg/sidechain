@@ -11,10 +11,15 @@ PostsFeedComponent::PostsFeedComponent()
     scrollBar.addListener(this);
     scrollBar.setColour(juce::ScrollBar::thumbColourId, juce::Colour::fromRGB(80, 80, 80));
     scrollBar.setColour(juce::ScrollBar::trackColourId, juce::Colour::fromRGB(40, 40, 40));
+
+    // Enable keyboard focus for shortcuts
+    setWantsKeyboardFocus(true);
+    addKeyListener(this);
 }
 
 PostsFeedComponent::~PostsFeedComponent()
 {
+    removeKeyListener(this);
     scrollBar.removeListener(this);
 }
 
@@ -169,6 +174,7 @@ void PostsFeedComponent::onFeedLoaded(const FeedResponse& response)
 
     rebuildPostCards();
     updateScrollBounds();
+    updateAudioPlayerPlaylist();
     repaint();
 }
 
@@ -731,4 +737,82 @@ juce::Rectangle<int> PostsFeedComponent::getRecordButtonBounds() const
 juce::Rectangle<int> PostsFeedComponent::getFeedContentBounds() const
 {
     return getLocalBounds().withTrimmedTop(TOP_BAR_HEIGHT + FEED_TABS_HEIGHT);
+}
+
+//==============================================================================
+// Keyboard shortcuts
+
+bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* /*originatingComponent*/)
+{
+    if (audioPlayer == nullptr)
+        return false;
+
+    // Space bar - toggle play/pause
+    if (key == juce::KeyPress::spaceKey)
+    {
+        audioPlayer->togglePlayPause();
+        return true;
+    }
+
+    // Right arrow - skip to next
+    if (key == juce::KeyPress::rightKey)
+    {
+        audioPlayer->playNext();
+        return true;
+    }
+
+    // Left arrow - skip to previous / restart
+    if (key == juce::KeyPress::leftKey)
+    {
+        audioPlayer->playPrevious();
+        return true;
+    }
+
+    // Up arrow - volume up
+    if (key == juce::KeyPress::upKey)
+    {
+        float newVolume = juce::jmin(1.0f, audioPlayer->getVolume() + 0.1f);
+        audioPlayer->setVolume(newVolume);
+        return true;
+    }
+
+    // Down arrow - volume down
+    if (key == juce::KeyPress::downKey)
+    {
+        float newVolume = juce::jmax(0.0f, audioPlayer->getVolume() - 0.1f);
+        audioPlayer->setVolume(newVolume);
+        return true;
+    }
+
+    // M key - toggle mute
+    if (key.getTextCharacter() == 'm' || key.getTextCharacter() == 'M')
+    {
+        audioPlayer->setMuted(!audioPlayer->isMuted());
+        return true;
+    }
+
+    return false;
+}
+
+//==============================================================================
+// Playlist management for auto-play
+
+void PostsFeedComponent::updateAudioPlayerPlaylist()
+{
+    if (audioPlayer == nullptr)
+        return;
+
+    juce::StringArray postIds;
+    juce::StringArray audioUrls;
+
+    for (const auto& post : posts)
+    {
+        if (post.audioUrl.isNotEmpty())
+        {
+            postIds.add(post.id);
+            audioUrls.add(post.audioUrl);
+        }
+    }
+
+    audioPlayer->setPlaylist(postIds, audioUrls);
 }

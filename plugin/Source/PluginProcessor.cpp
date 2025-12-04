@@ -141,11 +141,12 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // Read BPM from DAW via AudioPlayHead (lock-free atomic store)
+    // Read transport info from DAW via AudioPlayHead
     if (auto* playHead = getPlayHead())
     {
         if (auto position = playHead->getPosition())
         {
+            // Get BPM
             if (auto bpm = position->getBpm())
             {
                 currentBPM.store(*bpm);
@@ -154,6 +155,24 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             else
             {
                 bpmAvailable.store(false);
+            }
+
+            // Detect DAW transport state changes for audio focus
+            bool isDAWPlaying = position->getIsPlaying();
+            bool wasDAWPlaying = dawTransportPlaying.load();
+
+            if (isDAWPlaying != wasDAWPlaying)
+            {
+                dawTransportPlaying.store(isDAWPlaying);
+
+                // Notify audio player on message thread (not audio thread)
+                juce::MessageManager::callAsync([this, isDAWPlaying]()
+                {
+                    if (isDAWPlaying)
+                        audioPlayer.onDAWTransportStarted();
+                    else
+                        audioPlayer.onDAWTransportStopped();
+                });
             }
         }
     }
