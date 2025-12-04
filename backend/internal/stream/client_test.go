@@ -1,157 +1,140 @@
 package stream
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-// TestNewClient tests Stream.io client initialization (environment dependent)
+// TestNewClient tests Stream.io client initialization
 func TestNewClient(t *testing.T) {
-	// Just test that NewClient function exists and has correct signature
-	// Real initialization testing should be done in integration tests
+	// Test without credentials - should fail
+	originalKey := os.Getenv("STREAM_API_KEY")
+	originalSecret := os.Getenv("STREAM_API_SECRET")
 
-	// This will fail without real credentials, which is expected in unit tests
+	os.Setenv("STREAM_API_KEY", "")
+	os.Setenv("STREAM_API_SECRET", "")
+	defer func() {
+		os.Setenv("STREAM_API_KEY", originalKey)
+		os.Setenv("STREAM_API_SECRET", originalSecret)
+	}()
+
 	_, err := NewClient()
-
-	// Either succeeds (if credentials available) or fails with expected error
-	if err != nil {
-		assert.Contains(t, err.Error(), "STREAM_API_KEY")
-	}
+	assert.Error(t, err, "Should fail without credentials")
+	assert.Contains(t, err.Error(), "STREAM_API_KEY")
 }
 
-// TestMockGlobalFeed tests the global feed mock data
-func TestMockGlobalFeed(t *testing.T) {
-	client := &Client{
-		FeedsClient: nil, // Mock client for unit testing
-		ChatClient:  nil,
+// TestNewClientWithCredentials tests client initialization with credentials
+func TestNewClientWithCredentials(t *testing.T) {
+	if os.Getenv("STREAM_API_KEY") == "" || os.Getenv("STREAM_API_SECRET") == "" {
+		t.Skip("STREAM_API_KEY and STREAM_API_SECRET not set, skipping")
 	}
 
-	activities, err := client.GetGlobalFeed(20, 0)
-	require.NoError(t, err)
-	require.NotEmpty(t, activities)
-
-	// Verify mock data structure
-	firstActivity := activities[0]
-	assert.NotEmpty(t, firstActivity.ID)
-	assert.NotEmpty(t, firstActivity.Actor)
-	assert.Equal(t, "posted", firstActivity.Verb)
-	assert.NotEmpty(t, firstActivity.Object)
-	assert.Greater(t, firstActivity.BPM, 0)
-	assert.NotEmpty(t, firstActivity.Key)
-	assert.NotEmpty(t, firstActivity.AudioURL)
+	client, err := NewClient()
+	assert.NoError(t, err, "Should create client with valid credentials")
+	assert.NotNil(t, client, "Client should not be nil")
+	assert.NotNil(t, client.FeedsClient, "FeedsClient should not be nil")
+	assert.NotNil(t, client.ChatClient, "ChatClient should not be nil")
 }
 
-// TestMockTimelineFeed tests the timeline feed mock data
-func TestMockTimelineFeed(t *testing.T) {
-	client := &Client{
-		FeedsClient: nil, // Mock client for unit testing
-		ChatClient:  nil,
-	}
-
-	activities, err := client.GetUserTimeline("test-user", 10, 0)
-	require.NoError(t, err)
-	require.NotEmpty(t, activities)
-
-	// Verify mock data structure
-	firstActivity := activities[0]
-	assert.Equal(t, "timeline_activity_1", firstActivity.ID)
-	assert.Contains(t, firstActivity.Actor, "followed_producer")
-	assert.NotEmpty(t, firstActivity.AudioURL)
-}
-
-// TestActivityCreation tests activity creation structure
-func TestActivityCreation(t *testing.T) {
+// TestActivityStruct tests Activity struct creation and field access
+func TestActivityStruct(t *testing.T) {
 	activity := &Activity{
+		ID:           "test_id_123",
 		Actor:        "user:testuser",
 		Verb:         "posted",
-		Object:       "loop:test123",
+		Object:       "My awesome loop",
 		ForeignID:    "loop:test123",
-		AudioURL:     "https://example.com/test.mp3",
+		Time:         "2024-01-15T10:30:00Z",
+		AudioURL:     "https://cdn.example.com/test.mp3",
 		BPM:          140,
 		Key:          "F# minor",
 		DAW:          "FL Studio",
 		DurationBars: 16,
 		Genre:        []string{"Techno", "Electronic"},
-		Waveform:     "<svg>test waveform</svg>",
+		Waveform:     "<svg>waveform data</svg>",
+		Extra: map[string]interface{}{
+			"custom_field": "custom_value",
+		},
 	}
 
-	// Verify activity structure
+	// Verify all fields
+	assert.Equal(t, "test_id_123", activity.ID)
 	assert.Equal(t, "user:testuser", activity.Actor)
 	assert.Equal(t, "posted", activity.Verb)
-	assert.Equal(t, "loop:test123", activity.Object)
+	assert.Equal(t, "My awesome loop", activity.Object)
+	assert.Equal(t, "loop:test123", activity.ForeignID)
+	assert.Equal(t, "2024-01-15T10:30:00Z", activity.Time)
+	assert.Equal(t, "https://cdn.example.com/test.mp3", activity.AudioURL)
 	assert.Equal(t, 140, activity.BPM)
 	assert.Equal(t, "F# minor", activity.Key)
+	assert.Equal(t, "FL Studio", activity.DAW)
+	assert.Equal(t, 16, activity.DurationBars)
 	assert.Contains(t, activity.Genre, "Techno")
 	assert.Contains(t, activity.Genre, "Electronic")
+	assert.Equal(t, "<svg>waveform data</svg>", activity.Waveform)
+	assert.Equal(t, "custom_value", activity.Extra["custom_field"])
 }
 
-// TestSocialActions tests social interaction methods (without real API calls)
-func TestSocialActions(t *testing.T) {
-	client := &Client{
-		FeedsClient: nil, // Mock client for unit testing
-		ChatClient:  nil,
-	}
-
-	// Test follow action (should succeed with mock implementation)
-	err := client.FollowUser("user1", "user2")
-	assert.NoError(t, err, "Mock follow should succeed")
-
-	// Test unfollow action
-	err = client.UnfollowUser("user1", "user2")
-	assert.NoError(t, err, "Mock unfollow should succeed")
-
-	// Test reaction actions
-	err = client.AddReaction("like", "user1", "activity123")
-	assert.NoError(t, err, "Mock reaction should succeed")
-
-	err = client.AddReactionWithEmoji("fire", "user1", "activity123", "🔥")
-	assert.NoError(t, err, "Mock emoji reaction should succeed")
-
-	err = client.RemoveReaction("activity123", "like")
-	assert.NoError(t, err, "Mock reaction removal should succeed")
+// TestFeedGroupConstants tests feed group constant values
+func TestFeedGroupConstants(t *testing.T) {
+	assert.Equal(t, "user", FeedGroupUser, "User feed group should be 'user'")
+	assert.Equal(t, "timeline", FeedGroupTimeline, "Timeline feed group should be 'timeline'")
+	assert.Equal(t, "global", FeedGroupGlobal, "Global feed group should be 'global'")
 }
 
-// TestActivityCreationMethod tests loop activity creation
-func TestActivityCreationMethod(t *testing.T) {
-	client := &Client{
-		FeedsClient: nil, // Mock client for unit testing
-		ChatClient:  nil,
-	}
-
+// TestActivityWithMinimalFields tests Activity with only required fields
+func TestActivityWithMinimalFields(t *testing.T) {
 	activity := &Activity{
-		Actor:        "user:testuser",
-		Verb:         "posted",
-		Object:       "loop:test123",
-		AudioURL:     "https://test.com/audio.mp3",
-		BPM:          140,
-		Key:          "C major",
-		DAW:          "Ableton Live",
-		DurationBars: 8,
-		Genre:        []string{"Electronic"},
+		AudioURL: "https://cdn.example.com/loop.mp3",
+		BPM:      128,
 	}
 
-	// Test activity creation (should succeed with mock implementation)
-	err := client.CreateLoopActivity("testuser", activity)
-	assert.NoError(t, err, "Mock activity creation should succeed")
-	assert.NotEmpty(t, activity.ID, "Activity should get an ID assigned")
+	assert.Empty(t, activity.ID)
+	assert.Empty(t, activity.Actor)
+	assert.Empty(t, activity.Key)
+	assert.Empty(t, activity.DAW)
+	assert.Nil(t, activity.Genre)
+	assert.Equal(t, "https://cdn.example.com/loop.mp3", activity.AudioURL)
+	assert.Equal(t, 128, activity.BPM)
 }
 
-// Helper functions for environment variable testing
-func getEnv(key string) string {
-	// In a real implementation, would use os.Getenv
-	// For testing, we'll simulate
-	if key == "STREAM_API_KEY" {
-		return "test_key"
+// TestActivityGenreSlice tests genre slice operations
+func TestActivityGenreSlice(t *testing.T) {
+	activity := &Activity{
+		Genre: []string{"House"},
 	}
-	if key == "STREAM_API_SECRET" {
-		return "test_secret"
-	}
-	return ""
+
+	// Add more genres
+	activity.Genre = append(activity.Genre, "Electronic")
+	activity.Genre = append(activity.Genre, "Deep House")
+
+	assert.Len(t, activity.Genre, 3)
+	assert.Contains(t, activity.Genre, "House")
+	assert.Contains(t, activity.Genre, "Electronic")
+	assert.Contains(t, activity.Genre, "Deep House")
 }
 
-func setEnv(key, value string) {
-	// In a real implementation, would use os.Setenv
-	// For unit testing, we'll just simulate
+// TestActivityExtraMap tests extra custom data map
+func TestActivityExtraMap(t *testing.T) {
+	activity := &Activity{
+		Extra: map[string]interface{}{
+			"plugins_used": []string{"Serum", "Massive"},
+			"collab_with":  "user:producer123",
+			"is_remix":     true,
+			"sample_count": 4,
+		},
+	}
+
+	assert.NotNil(t, activity.Extra)
+	assert.Len(t, activity.Extra, 4)
+
+	plugins, ok := activity.Extra["plugins_used"].([]string)
+	assert.True(t, ok)
+	assert.Contains(t, plugins, "Serum")
+
+	isRemix, ok := activity.Extra["is_remix"].(bool)
+	assert.True(t, ok)
+	assert.True(t, isRemix)
 }

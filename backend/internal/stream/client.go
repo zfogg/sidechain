@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/GetStream/getstream-go/v3"
+	stream "github.com/GetStream/stream-go2/v8"
 	chat "github.com/GetStream/stream-chat-go/v5"
 )
 
@@ -19,8 +19,7 @@ const (
 
 // Client wraps the Stream.io clients with Sidechain-specific functionality
 type Client struct {
-	client      *getstream.Stream
-	FeedsClient *getstream.FeedsClient
+	feedsClient *stream.Client
 	ChatClient  *chat.Client
 }
 
@@ -51,14 +50,11 @@ func NewClient() (*Client, error) {
 		return nil, fmt.Errorf("STREAM_API_KEY and STREAM_API_SECRET must be set")
 	}
 
-	// Initialize Stream.io V3 client
-	client, err := getstream.NewClient(apiKey, apiSecret)
+	// Initialize Stream.io Feeds V2 client
+	feedsClient, err := stream.New(apiKey, apiSecret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Stream.io client: %w", err)
+		return nil, fmt.Errorf("failed to create Stream.io Feeds client: %w", err)
 	}
-
-	// Get the Feeds client from the main client
-	feedsClient := client.Feeds()
 
 	// Initialize Chat client (separate SDK for chat features)
 	chatClient, err := chat.NewClient(apiKey, apiSecret)
@@ -67,10 +63,14 @@ func NewClient() (*Client, error) {
 	}
 
 	return &Client{
-		client:      client,
-		FeedsClient: feedsClient,
+		feedsClient: feedsClient,
 		ChatClient:  chatClient,
 	}, nil
+}
+
+// FeedsClient returns the underlying feeds client for direct access if needed
+func (c *Client) FeedsClient() *stream.Client {
+	return c.feedsClient
 }
 
 // CreateUser creates a Stream.io user for both feeds and chat
@@ -87,26 +87,79 @@ func (c *Client) CreateUser(userID, username string) error {
 		return fmt.Errorf("failed to create chat user: %w", err)
 	}
 
-	// Note: Feeds V3 users are created automatically when they perform actions
+	// Note: Feeds V2 users are created automatically when they perform actions
 	// No explicit user creation needed for feeds
 	return nil
 }
 
 // CreateLoopActivity creates an activity for a new loop post
 func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
-	// TODO: Implement full Stream.io Feeds V3 API integration
-	// For now, create a working stub that logs what would be sent
-	// The actual V3 API types need to be verified against the SDK
+	ctx := context.Background()
 
-	// Set activity time if not provided
-	if activity.Time == "" {
-		activity.Time = time.Now().UTC().Format(time.RFC3339)
+	// Get the user's feed
+	userFeed, err := c.feedsClient.FlatFeed(FeedGroupUser, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user feed: %w", err)
 	}
 
-	// Generate mock activity ID for development
-	activity.ID = fmt.Sprintf("activity_%s_%d", userID, time.Now().Unix())
+	// Build the activity with extra fields for loop metadata
+	streamActivity := stream.Activity{
+		Actor:  fmt.Sprintf("user:%s", userID),
+		Verb:   "posted",
+		Object: activity.Object,
+		Extra: map[string]any{
+			"audio_url":     activity.AudioURL,
+			"bpm":           activity.BPM,
+			"duration_bars": activity.DurationBars,
+		},
+	}
 
-	fmt.Printf("📝 Stream.io Activity: user:%s posted loop (ID: %s) with BPM:%d, Key:%s\n",
+	// Add optional fields
+	if activity.Key != "" {
+		streamActivity.Extra["key"] = activity.Key
+	}
+	if activity.DAW != "" {
+		streamActivity.Extra["daw"] = activity.DAW
+	}
+	if len(activity.Genre) > 0 {
+		streamActivity.Extra["genre"] = activity.Genre
+	}
+	if activity.Waveform != "" {
+		streamActivity.Extra["waveform"] = activity.Waveform
+	}
+	if activity.Extra != nil {
+		for k, v := range activity.Extra {
+			streamActivity.Extra[k] = v
+		}
+	}
+
+	// Set foreign ID if provided
+	if activity.ForeignID != "" {
+		streamActivity.ForeignID = activity.ForeignID
+	}
+
+	// Also post to global feed
+	globalFeed, err := c.feedsClient.FlatFeed(FeedGroupGlobal, "main")
+	if err != nil {
+		return fmt.Errorf("failed to get global feed: %w", err)
+	}
+
+	// Set the "to" field to also add to global feed
+	streamActivity.To = []string{globalFeed.ID()}
+
+	// Add activity to user's feed (will also propagate to global via "to")
+	resp, err := userFeed.AddActivity(ctx, streamActivity)
+	if err != nil {
+		return fmt.Errorf("failed to create Stream.io activity: %w", err)
+	}
+
+	// Update activity with returned ID and time
+	activity.ID = resp.ID
+	if !resp.Time.IsZero() {
+		activity.Time = resp.Time.Format(time.RFC3339)
+	}
+
+	fmt.Printf("📝 Stream.io Activity Created: user:%s posted loop (ID: %s) with BPM:%d, Key:%s\n",
 		userID, activity.ID, activity.BPM, activity.Key)
 
 	return nil
@@ -114,74 +167,114 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 
 // GetUserTimeline gets the timeline feed for a user (posts from people they follow)
 func (c *Client) GetUserTimeline(userID string, limit int, offset int) ([]*Activity, error) {
-	// TODO: Implement real V3 API
-	// For now, return mock data for development
+	ctx := context.Background()
 
-	fmt.Printf("📱 Fetching timeline for user:%s (limit:%d, offset:%d)\n", userID, limit, offset)
+	// Get the user's timeline feed
+	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get timeline feed: %w", err)
+	}
 
-	// Return mock timeline activities
-	return []*Activity{
-		{
-			ID:           "timeline_activity_1",
-			Actor:        "user:followed_producer",
-			Verb:         "posted",
-			Object:       "Amazing house loop",
-			AudioURL:     "https://sidechain-media.s3.amazonaws.com/demo1.mp3",
-			BPM:          128,
-			Key:          "A minor",
-			DAW:          "Ableton Live",
-			DurationBars: 8,
-			Genre:        []string{"House", "Electronic"},
-		},
-	}, nil
+	// Get activities with pagination
+	resp, err := timelineFeed.GetActivities(ctx,
+		stream.WithActivitiesLimit(limit),
+		stream.WithActivitiesOffset(offset),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query timeline: %w", err)
+	}
+
+	// Convert Stream.io activities to our Activity type
+	activities := make([]*Activity, 0, len(resp.Results))
+	for _, act := range resp.Results {
+		activity := convertStreamActivity(&act)
+		activities = append(activities, activity)
+	}
+
+	fmt.Printf("📱 Fetched %d activities from timeline for user:%s\n", len(activities), userID)
+	return activities, nil
 }
 
 // GetGlobalFeed gets the global feed of recent activities
 func (c *Client) GetGlobalFeed(limit int, offset int) ([]*Activity, error) {
-	// TODO: Implement real V3 API
-	// For now, return mock data for development
+	ctx := context.Background()
 
-	fmt.Printf("🌍 Fetching global feed (limit:%d, offset:%d)\n", limit, offset)
+	// Get the global feed
+	globalFeed, err := c.feedsClient.FlatFeed(FeedGroupGlobal, "main")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get global feed: %w", err)
+	}
 
-	// Return mock global activities
-	return []*Activity{
-		{
-			ID:           "global_activity_1",
-			Actor:        "user:trending_producer",
-			Verb:         "posted",
-			Object:       "Fire techno loop 🔥",
-			AudioURL:     "https://sidechain-media.s3.amazonaws.com/demo2.mp3",
-			BPM:          140,
-			Key:          "F# minor",
-			DAW:          "FL Studio",
-			DurationBars: 16,
-			Genre:        []string{"Techno"},
-		},
-		{
-			ID:           "global_activity_2",
-			Actor:        "user:chill_producer",
-			Verb:         "posted",
-			Object:       "Ambient vibes",
-			AudioURL:     "https://sidechain-media.s3.amazonaws.com/demo3.mp3",
-			BPM:          85,
-			Key:          "C major",
-			DAW:          "Logic Pro",
-			DurationBars: 12,
-			Genre:        []string{"Ambient", "Chill"},
-		},
-	}, nil
+	// Get activities with pagination
+	resp, err := globalFeed.GetActivities(ctx,
+		stream.WithActivitiesLimit(limit),
+		stream.WithActivitiesOffset(offset),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query global feed: %w", err)
+	}
+
+	// Convert Stream.io activities to our Activity type
+	activities := make([]*Activity, 0, len(resp.Results))
+	for _, act := range resp.Results {
+		activity := convertStreamActivity(&act)
+		activities = append(activities, activity)
+	}
+
+	fmt.Printf("🌍 Fetched %d activities from global feed\n", len(activities))
+	return activities, nil
 }
 
 // FollowUser makes userID follow targetUserID
+// This connects the user's timeline feed to the target's user feed
 func (c *Client) FollowUser(userID, targetUserID string) error {
-	// TODO: Implement real V3 follow API
+	ctx := context.Background()
+
+	// Get the follower's timeline feed
+	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get timeline feed: %w", err)
+	}
+
+	// Get the target's user feed
+	targetFeed, err := c.feedsClient.FlatFeed(FeedGroupUser, targetUserID)
+	if err != nil {
+		return fmt.Errorf("failed to get target user feed: %w", err)
+	}
+
+	// Follow: user's timeline follows target's user feed
+	// When target posts to their user feed, it appears in follower's timeline
+	_, err = timelineFeed.Follow(ctx, targetFeed)
+	if err != nil {
+		return fmt.Errorf("failed to follow user: %w", err)
+	}
+
 	fmt.Printf("👥 %s followed %s\n", userID, targetUserID)
 	return nil
 }
 
 // UnfollowUser makes userID unfollow targetUserID
 func (c *Client) UnfollowUser(userID, targetUserID string) error {
-	// TODO: Implement real V3 unfollow API
+	ctx := context.Background()
+
+	// Get the follower's timeline feed
+	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get timeline feed: %w", err)
+	}
+
+	// Get the target's user feed
+	targetFeed, err := c.feedsClient.FlatFeed(FeedGroupUser, targetUserID)
+	if err != nil {
+		return fmt.Errorf("failed to get target user feed: %w", err)
+	}
+
+	// Unfollow: remove the follow relationship
+	_, err = timelineFeed.Unfollow(ctx, targetFeed)
+	if err != nil {
+		return fmt.Errorf("failed to unfollow user: %w", err)
+	}
+
 	fmt.Printf("👥 %s unfollowed %s\n", userID, targetUserID)
 	return nil
 }
@@ -193,7 +286,29 @@ func (c *Client) AddReaction(kind, userID, activityID string) error {
 
 // AddReactionWithEmoji adds a reaction with emoji support
 func (c *Client) AddReactionWithEmoji(kind, userID, activityID, emoji string) error {
-	// TODO: Implement real V3 reaction API
+	ctx := context.Background()
+
+	// Build reaction data
+	var data map[string]any
+	if emoji != "" {
+		data = map[string]any{
+			"emoji": emoji,
+		}
+	}
+
+	// Create the reaction
+	req := stream.AddReactionRequestObject{
+		Kind:       kind,
+		ActivityID: activityID,
+		UserID:     userID,
+		Data:       data,
+	}
+
+	_, err := c.feedsClient.Reactions().Add(ctx, req)
+	if err != nil {
+		return fmt.Errorf("failed to add reaction: %w", err)
+	}
+
 	emojiSuffix := ""
 	if emoji != "" {
 		emojiSuffix = fmt.Sprintf(" %s", emoji)
@@ -203,9 +318,15 @@ func (c *Client) AddReactionWithEmoji(kind, userID, activityID, emoji string) er
 }
 
 // RemoveReaction removes a reaction from an activity
-func (c *Client) RemoveReaction(activityID, reactionType string) error {
-	// TODO: Implement real V3 reaction removal API
-	fmt.Printf("😀 Removed %s reaction from %s\n", reactionType, activityID)
+func (c *Client) RemoveReaction(reactionID string) error {
+	ctx := context.Background()
+
+	_, err := c.feedsClient.Reactions().Delete(ctx, reactionID)
+	if err != nil {
+		return fmt.Errorf("failed to remove reaction: %w", err)
+	}
+
+	fmt.Printf("😀 Removed reaction %s\n", reactionID)
 	return nil
 }
 
@@ -216,4 +337,52 @@ func (c *Client) CreateToken(userID string) (string, error) {
 		return "", fmt.Errorf("failed to create token: %w", err)
 	}
 	return token, nil
+}
+
+// convertStreamActivity converts Stream.io Activity to our Activity type
+func convertStreamActivity(act *stream.Activity) *Activity {
+	activity := &Activity{
+		ID:    act.ID,
+		Actor: act.Actor,
+		Verb:  act.Verb,
+	}
+
+	// Extract timestamp
+	if !act.Time.IsZero() {
+		activity.Time = act.Time.Format(time.RFC3339)
+	}
+
+	// Extract custom data fields for loop metadata from Extra
+	if act.Extra != nil {
+		if audioURL, ok := act.Extra["audio_url"].(string); ok {
+			activity.AudioURL = audioURL
+		}
+		if bpm, ok := act.Extra["bpm"].(float64); ok {
+			activity.BPM = int(bpm)
+		}
+		if key, ok := act.Extra["key"].(string); ok {
+			activity.Key = key
+		}
+		if daw, ok := act.Extra["daw"].(string); ok {
+			activity.DAW = daw
+		}
+		if durationBars, ok := act.Extra["duration_bars"].(float64); ok {
+			activity.DurationBars = int(durationBars)
+		}
+		if waveform, ok := act.Extra["waveform"].(string); ok {
+			activity.Waveform = waveform
+		}
+		if genre, ok := act.Extra["genre"].([]interface{}); ok {
+			for _, g := range genre {
+				if gs, ok := g.(string); ok {
+					activity.Genre = append(activity.Genre, gs)
+				}
+			}
+		}
+	}
+
+	// Extract Object field
+	activity.Object = act.Object
+
+	return activity
 }
