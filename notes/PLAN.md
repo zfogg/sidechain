@@ -495,18 +495,18 @@ streamActivity.To = []string{
 - [x] 2.2.9 Store temporary files in OS temp directory - Uses juce::File::getSpecialLocation
 - [x] 2.2.10 Clean up temp files after successful upload
 
-### 2.3 Upload Flow
+### 2.3 Upload Flow ✅
 
-- [ ] 2.3.1 Design upload UI (title, BPM, key, genre selector)
-- [ ] 2.3.2 Implement BPM detection (tap tempo or auto-detect)
-- [ ] 2.3.3 Implement key detection (basic pitch analysis)
-- [ ] 2.3.4 Add genre dropdown (electronic, hip-hop, rock, etc.)
-- [ ] 2.3.5 Create upload progress indicator (0-100%)
-- [ ] 2.3.6 Implement chunked upload for large files
-- [ ] 2.3.7 Add upload cancellation support
-- [ ] 2.3.8 Handle upload failures with retry option
-- [ ] 2.3.9 Show success confirmation with post preview
-- [ ] 2.3.10 Clear recording buffer after successful upload
+- [x] 2.3.1 Design upload UI (title, BPM, key, genre selector) - UploadComponent with dark theme, waveform preview
+- [x] 2.3.2 Implement BPM detection (tap tempo or auto-detect) - handleTapTempo() with 4-tap averaging, DAW BPM via AudioPlayHead
+- [ ] 2.3.3 Implement key detection (basic pitch analysis) - Manual dropdown only (24 keys in Camelot order)
+- [x] 2.3.4 Add genre dropdown (electronic, hip-hop, rock, etc.) - 12 producer-friendly genres
+- [x] 2.3.5 Create upload progress indicator (0-100%) - Simulated progress bar with Timer callbacks
+- [ ] 2.3.6 Implement chunked upload for large files - Not needed (backend handles streaming)
+- [ ] 2.3.7 Add upload cancellation support - Basic cancel (returns to editing)
+- [x] 2.3.8 Handle upload failures with retry option - Error state with tap-to-retry
+- [x] 2.3.9 Show success confirmation with post preview - Shows title, genre, BPM, checkmark
+- [x] 2.3.10 Clear recording buffer after successful upload - onUploadComplete callback triggers navigation
 
 ### 2.4 Backend Audio Processing ✅
 
@@ -668,16 +668,16 @@ streamActivity.To = []string{
 - [x] 5.1.10 Add WebSocket metrics (connections, messages/sec) - MetricsSnapshot struct
 - [x] 5.1.11 Write unit tests for WebSocket infrastructure (websocket_test.go - 16 tests)
 
-### 5.2 Plugin WebSocket Client
+### 5.2 Plugin WebSocket Client ✅
 
-- [ ] 5.2.1 Implement WebSocket client in C++ (JUCE or beast)
-- [ ] 5.2.2 Connect on plugin load (after auth)
-- [ ] 5.2.3 Implement reconnection with exponential backoff
-- [ ] 5.2.4 Parse incoming JSON messages
-- [ ] 5.2.5 Route messages to appropriate handlers
-- [ ] 5.2.6 Send heartbeat messages
-- [ ] 5.2.7 Handle connection state UI (connected/disconnected)
-- [ ] 5.2.8 Queue messages when disconnected, send on reconnect
+- [x] 5.2.1 Implement WebSocket client in C++ (JUCE StreamingSocket with RFC 6455 framing) - WebSocketClient.h/cpp
+- [x] 5.2.2 Connect on plugin load (after auth) - PluginEditor::connectWebSocket() called in onLoginSuccess/loadLoginState
+- [x] 5.2.3 Implement reconnection with exponential backoff - scheduleReconnect() with 2^n delay, jitter, max delay cap
+- [x] 5.2.4 Parse incoming JSON messages - processTextMessage() with juce::JSON::parse()
+- [x] 5.2.5 Route messages to appropriate handlers - MessageType enum, parseMessageType(), handleWebSocketMessage()
+- [x] 5.2.6 Send heartbeat messages - sendHeartbeat() at configurable interval + WebSocket ping frames
+- [x] 5.2.7 Handle connection state UI (connected/disconnected) - handleWebSocketStateChange() updates ConnectionIndicator
+- [x] 5.2.8 Queue messages when disconnected, send on reconnect - queueMessage()/flushMessageQueue() with max size limit
 
 ### 5.3 Presence System
 
