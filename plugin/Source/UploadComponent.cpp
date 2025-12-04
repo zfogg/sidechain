@@ -414,9 +414,30 @@ void UploadComponent::drawStatus(juce::Graphics& g)
     }
     else if (uploadState == UploadState::Success)
     {
+        // Success icon and title
         g.setColour(juce::Colour::fromRGB(0, 212, 100));
+        g.setFont(juce::Font(16.0f, juce::Font::bold));
+        g.drawText(juce::CharPointer_UTF8("\xE2\x9C\x93 Loop shared!"), statusArea, juce::Justification::centred);  // checkmark
+
+        // Show post details below
+        auto detailsArea = statusArea.translated(0, 24);
+        g.setColour(juce::Colour::fromRGB(160, 160, 170));
+        g.setFont(12.0f);
+
+        juce::String details = "\"" + lastUploadedTitle + "\"";
+        if (!lastUploadedGenre.isEmpty())
+            details += " · " + lastUploadedGenre;
+        if (lastUploadedBpm > 0)
+            details += " · " + juce::String(lastUploadedBpm, 0) + " BPM";
+
+        g.drawText(details, detailsArea, juce::Justification::centred);
+    }
+    else if (uploadState == UploadState::Uploading)
+    {
+        g.setColour(juce::Colour::fromRGB(0, 212, 255));
         g.setFont(14.0f);
-        g.drawText("Loop shared successfully!", statusArea, juce::Justification::centred);
+        int percent = static_cast<int>(uploadProgress * 100);
+        g.drawText("Uploading... " + juce::String(percent) + "%", statusArea, juce::Justification::centred);
     }
     else if (title.isEmpty() && activeField != 0)
     {
@@ -670,43 +691,68 @@ void UploadComponent::startUpload()
     }
 
     uploadState = UploadState::Uploading;
-    uploadProgress = 0.0f;
+    uploadProgress = 0.1f;  // Show initial progress
     errorMessage = "";
     repaint();
 
-    // Build metadata
+    // Build metadata struct for uploadAudioWithMetadata
     auto& keys = getMusicalKeys();
     auto& genres = getGenres();
 
-    juce::String keyValue = selectedKeyIndex > 0 && selectedKeyIndex < (int)keys.size()
+    NetworkClient::AudioUploadMetadata metadata;
+    metadata.title = title;
+    metadata.bpm = bpm;
+    metadata.key = selectedKeyIndex > 0 && selectedKeyIndex < (int)keys.size()
         ? keys[selectedKeyIndex].shortName : "";
-    juce::String genreValue = selectedGenreIndex < (int)genres.size()
+    metadata.genre = selectedGenreIndex < (int)genres.size()
         ? genres[selectedGenreIndex] : "";
+    metadata.durationSeconds = static_cast<double>(audioBuffer.getNumSamples()) / audioSampleRate;
+    metadata.sampleRate = static_cast<int>(audioSampleRate);
+    metadata.numChannels = audioBuffer.getNumChannels();
 
-    // Create a unique recording ID
-    juce::String recordingId = juce::Uuid().toString();
+    // Simulate progress updates while waiting for upload
+    // (JUCE's URL class doesn't provide progress callbacks)
+    juce::Timer::callAfterDelay(500, [this]() {
+        if (uploadState == UploadState::Uploading)
+        {
+            uploadProgress = 0.3f;
+            repaint();
+        }
+    });
+    juce::Timer::callAfterDelay(1000, [this]() {
+        if (uploadState == UploadState::Uploading)
+        {
+            uploadProgress = 0.6f;
+            repaint();
+        }
+    });
 
-    // Start async upload
-    // Note: In full implementation, NetworkClient would be extended to accept metadata
-    networkClient.uploadAudio(recordingId, audioBuffer, audioSampleRate,
-        [this](bool success, const juce::String& audioUrl) {
-            juce::MessageManager::callAsync([this, success, audioUrl]() {
+    // Start async upload with full metadata
+    networkClient.uploadAudioWithMetadata(audioBuffer, audioSampleRate, metadata,
+        [this, savedTitle = title, savedGenre = metadata.genre, savedBpm = bpm](bool success, const juce::String& audioUrl) {
+            juce::MessageManager::callAsync([this, success, audioUrl, savedTitle, savedGenre, savedBpm]() {
                 if (success)
                 {
                     uploadState = UploadState::Success;
                     uploadProgress = 1.0f;
+                    lastUploadedTitle = savedTitle;
+                    lastUploadedGenre = savedGenre;
+                    lastUploadedBpm = savedBpm;
+                    lastUploadedUrl = audioUrl;
                     DBG("Upload successful: " + audioUrl);
+                    DBG("  Title: " + savedTitle + ", Genre: " + savedGenre + ", BPM: " + juce::String(savedBpm));
 
-                    // Auto-dismiss after 2 seconds
-                    juce::Timer::callAfterDelay(2000, [this]() {
-                        if (onUploadComplete)
+                    // Auto-dismiss after 3 seconds (longer to show success preview)
+                    juce::Timer::callAfterDelay(3000, [this]() {
+                        if (uploadState == UploadState::Success && onUploadComplete)
                             onUploadComplete();
                     });
                 }
                 else
                 {
                     uploadState = UploadState::Error;
-                    errorMessage = "Upload failed. Please try again.";
+                    errorMessage = "Upload failed. Tap to try again.";
+                    uploadProgress = 0.0f;
                 }
                 repaint();
             });

@@ -108,6 +108,30 @@ void UserCardComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bound
             // For now, avatars will show initials
         }
     }
+
+    // Draw online indicator (green/cyan dot in bottom-right corner)
+    if (user.isOnline || user.isInStudio)
+    {
+        const int indicatorSize = 14;
+        const int borderWidth = 2;
+
+        // Position at bottom-right of avatar
+        auto indicatorBounds = juce::Rectangle<int>(
+            avatarArea.getRight() - indicatorSize + 2,
+            avatarArea.getBottom() - indicatorSize + 2,
+            indicatorSize,
+            indicatorSize
+        ).toFloat();
+
+        // Draw dark border (matches card background)
+        g.setColour(Colors::background);
+        g.fillEllipse(indicatorBounds);
+
+        // Draw indicator (cyan for in_studio, green for just online)
+        auto innerBounds = indicatorBounds.reduced(borderWidth);
+        g.setColour(user.isInStudio ? Colors::inStudioIndicator : Colors::onlineIndicator);
+        g.fillEllipse(innerBounds);
+    }
 }
 
 void UserCardComponent::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)

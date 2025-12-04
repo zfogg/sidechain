@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/auth"
+	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 )
 
@@ -368,11 +370,29 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 		return
 	}
 
-	// TODO: Update user's avatar_url in database
-	// For now, just return the upload result
+	// Update user's profile_picture_url in database
+	var user models.User
+	if err := database.DB.First(&user, "id = ?", userID.(string)).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "user_not_found",
+			"message": "Could not find user to update",
+		})
+		return
+	}
+
+	if err := database.DB.Model(&user).Update("profile_picture_url", uploadResult.URL).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "database_update_failed",
+			"message": "Profile picture uploaded but failed to save to profile",
+			"url":     uploadResult.URL, // Still return URL so client can retry
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Profile picture uploaded successfully",
-		"url":     uploadResult.URL,
-		"key":     uploadResult.Key,
+		"message":             "Profile picture uploaded successfully",
+		"url":                 uploadResult.URL,
+		"key":                 uploadResult.Key,
+		"profile_picture_url": uploadResult.URL,
 	})
 }

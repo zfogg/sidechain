@@ -17,6 +17,9 @@ struct DiscoveredUser
     int followerCount = 0;
     int postCount = 0;
     bool isFollowing = false;
+    bool isOnline = false;       // Online presence indicator
+    bool isInStudio = false;     // Currently producing in DAW
+    juce::String currentDAW;     // Which DAW they're using (if in studio)
     float similarityScore = 0.0f;  // For "similar users" results
 
     static DiscoveredUser fromJson(const juce::var& json)
@@ -35,7 +38,18 @@ struct DiscoveredUser
             user.followerCount = static_cast<int>(json.getProperty("follower_count", 0));
             user.postCount = static_cast<int>(json.getProperty("post_count", 0));
             user.isFollowing = static_cast<bool>(json.getProperty("is_following", false));
+            user.isOnline = static_cast<bool>(json.getProperty("is_online", false));
             user.similarityScore = static_cast<float>(json.getProperty("similarity_score", 0.0));
+
+            // Parse presence info if available
+            auto presence = json.getProperty("presence", juce::var());
+            if (presence.isObject())
+            {
+                auto status = presence.getProperty("status", "").toString();
+                user.isOnline = (status == "online" || status == "in_studio");
+                user.isInStudio = (status == "in_studio");
+                user.currentDAW = presence.getProperty("daw", "").toString();
+            }
         }
         return user;
     }
@@ -124,6 +138,8 @@ private:
         static inline juce::Colour followButton { 0xff00d4ff };
         static inline juce::Colour followingButton { 0xff3a3a3e };
         static inline juce::Colour badge { 0xff3a3a3e };
+        static inline juce::Colour onlineIndicator { 0xff00d464 };    // Green dot for online
+        static inline juce::Colour inStudioIndicator { 0xff00d4ff };  // Cyan for "in studio"
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UserCardComponent)

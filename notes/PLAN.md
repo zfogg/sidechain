@@ -592,7 +592,7 @@ streamActivity.To = []string{
 **Goal**: Complete user identity and discovery
 **Duration**: 1.5 weeks
 
-### 4.1 Profile Data Model
+### 4.1 Profile Data Model ✅
 
 > **Architecture Decision**: Follower/following counts and likes are stored in Stream.io (source of truth).
 > PostgreSQL stores only user profile metadata (bio, location, links). This avoids data sync issues.
@@ -604,8 +604,8 @@ streamActivity.To = []string{
 - [x] 4.1.5 Create migration for profile fields (bio, location, genres, social_links, profile_picture_url)
 - [x] 4.1.6 Implement GET /api/users/:id/profile endpoint (merges PostgreSQL + Stream.io data)
 - [x] 4.1.7 Implement PUT /api/users/profile endpoint (updates PostgreSQL profile fields)
-- [ ] 4.1.8 Add username change with uniqueness check
-- [ ] 4.1.9 Implement profile picture upload and crop
+- [x] 4.1.8 Add username change with uniqueness check - PUT /api/v1/users/username with validation (3-30 chars, alphanumeric/underscore/hyphen)
+- [x] 4.1.9 Implement profile picture upload and crop - POST /upload-profile-picture persists URL to profile_picture_url field
 - [ ] 4.1.10 Add profile verification system (future: badges)
 
 ### 4.2 Profile UI (Plugin) ✅
@@ -622,7 +622,7 @@ streamActivity.To = []string{
 - [x] 4.2.10 Add profile sharing (copy link) - shareProfile() copies URL to clipboard
 - [x] 4.2.11 Write PluginEditor UI tests (PluginEditorTest.cpp - 5 tests covering initialization, auth, processor)
 
-### 4.3 Follow System
+### 4.3 Follow System ✅
 
 > **Architecture Decision**: Stream.io is the source of truth for follows.
 > No PostgreSQL Follow table needed - Stream.io's feed follow system handles everything.
@@ -632,10 +632,10 @@ streamActivity.To = []string{
 - [x] 4.3.3 Implement GET /api/users/:id/followers endpoint (paginated, via Stream.io GetFollowers)
 - [x] 4.3.4 Implement GET /api/users/:id/following endpoint (paginated, via Stream.io GetFollowing)
 - [x] 4.3.5 ~~Update Stream.io feed subscriptions on follow~~ → Automatic (Stream.io handles this)
-- [ ] 4.3.6 Add "suggested users to follow" endpoint
+- [x] 4.3.6 Add "suggested users to follow" endpoint - GET /api/v1/discover/suggested (genre-based + fallback to popular)
 - [x] 4.3.7 Implement mutual follow detection ("follows you") via CheckIsFollowing()
 - [ ] 4.3.8 Add follow notifications (Phase 5)
-- [ ] 4.3.9 Implement bulk follow import (future: from SoundCloud)
+- [ ] 4.3.9 Implement bulk follow import (future: follow your discord friends)
 
 ### 4.4 User Discovery ✅
 
@@ -679,16 +679,16 @@ streamActivity.To = []string{
 - [x] 5.2.7 Handle connection state UI (connected/disconnected) - handleWebSocketStateChange() updates ConnectionIndicator
 - [x] 5.2.8 Queue messages when disconnected, send on reconnect - queueMessage()/flushMessageQueue() with max size limit
 
-### 5.3 Presence System
+### 5.3 Presence System ✅
 
-- [ ] 5.3.1 Track user online/offline status
-- [ ] 5.3.2 Track "in studio" status (plugin open in DAW)
-- [ ] 5.3.3 Broadcast presence to followers
-- [ ] 5.3.4 Show online indicator on avatars (green dot)
-- [ ] 5.3.5 Add "X friends in studio" indicator
-- [ ] 5.3.6 Implement presence persistence (Redis or in-memory)
-- [ ] 5.3.7 Handle presence timeout (5 minutes no heartbeat = offline)
-- [ ] 5.3.8 Add DAW detection (show which DAW user is using)
+- [x] 5.3.1 Track user online/offline status - PresenceManager with UserPresence struct, OnClientConnect/OnClientDisconnect
+- [x] 5.3.2 Track "in studio" status (plugin open in DAW) - StatusInStudio with DAW field, MessageTypeUserInStudio handler
+- [x] 5.3.3 Broadcast presence to followers - broadcastToFollowers() via Stream.io GetFollowers
+- [x] 5.3.4 Show online indicator on avatars (green dot) - UserCardComponent::drawAvatar() with green/cyan dot
+- [x] 5.3.5 Add "X friends in studio" indicator - GET /api/v1/ws/friends-in-studio endpoint
+- [x] 5.3.6 Implement presence persistence (Redis or in-memory) - In-memory map + database sync (is_online, last_active_at)
+- [x] 5.3.7 Handle presence timeout (5 minutes no heartbeat = offline) - runTimeoutChecker() with configurable duration
+- [x] 5.3.8 Add DAW detection (show which DAW user is using) - DAW field in UserPresence, sent in presence payload
 
 ### 5.4 Live Notifications (Stream.io Notification Feed)
 
