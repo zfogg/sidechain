@@ -81,3 +81,5 @@ plugin/build/
 # Dependencies
 node_modules/
 /deps/*
+
+/.claude/settings.local.json
