@@ -90,17 +90,348 @@ Completed through **Phase 4.2** (Profile UI). The core functionality is taking s
 
 ### 1.2 Stream.io Integration (Critical Path)
 
-- [x] 1.2.1 Create getstream.io account and obtain API credentials
-- [x] 1.2.2 Configure getstream.io Feeds V2 (V3 is beta, not dashboard-integrated; using stream-go2/v8)
-- [x] 1.2.3 Define feed groups: `user` (personal), `timeline` (following), `global` (all) in getstream dashboard
-- [x] 1.2.4 Implement `CreateLoopActivity()` with real Stream.io API call (stream/client.go:95-168)
-- [x] 1.2.5 Implement `GetUserTimeline()` with real Stream.io query (stream/client.go:170-198)
-- [x] 1.2.6 Implement `GetGlobalFeed()` with pagination (stream/client.go:200-226)
-- [x] 1.2.7 Implement `FollowUser()` / `UnfollowUser()` operations (stream/client.go:228-264)
-- [x] 1.2.8 Implement `AddReaction()` for likes and emoji reactions (stream/client.go:266-316)
-- [x] 1.2.9 Add Stream.io user creation on registration (auth/oauth.go:231-236)
-- [x] 1.2.10 Write integration tests for Stream.io client
-- [x] 1.2.11 Remove mock data from stream/client.go - replaced with real API calls
+> **Architecture Decision: Stream.io Feed Types**
+>
+> Stream.io supports three feed types, each with different capabilities:
+>
+> | Feed Type | Purpose | Key Features |
+> |-----------|---------|--------------|
+> | **Flat** | Chronological activities | Can be followed, supports ranking |
+> | **Aggregated** | Grouped activities | "X and 5 others liked your loop" |
+> | **Notification** | User notifications | Built-in read/unread tracking |
+>
+> **Current Implementation (Flat only):**
+> - `user` - User's own posts (flat)
+> - `timeline` - Posts from followed users (flat)
+> - `global` - All posts discovery feed (flat)
+>
+> **Planned Additions:**
+> - `notification` - Likes, follows, comments with read/unread (notification type) ✅ Created in dashboard
+> - `timeline_aggregated` - Grouped timeline view (aggregated type)
+> - `trending` - Genre/time-based trending (aggregated type)
+>
+> **Important**: Aggregation format is applied at **write time**. Changing the format only affects
+> new activities, not historical data. Plan aggregation strategy before production data exists!
+
+#### 1.2.1 Core Feeds (Complete)
+
+- [x] 1.2.1.1 Create getstream.io account and obtain API credentials
+- [x] 1.2.1.2 Configure getstream.io Feeds V2 (V3 is beta, not production-ready; using stream-go2/v8)
+- [x] 1.2.1.3 Define feed groups: `user` (personal), `timeline` (following), `global` (all) in getstream dashboard
+- [x] 1.2.1.4 Implement `CreateLoopActivity()` with real Stream.io API call (stream/client.go:95-168)
+- [x] 1.2.1.5 Implement `GetUserTimeline()` with real Stream.io query (stream/client.go:170-198)
+- [x] 1.2.1.6 Implement `GetGlobalFeed()` with pagination (stream/client.go:200-226)
+- [x] 1.2.1.7 Implement `FollowUser()` / `UnfollowUser()` operations (stream/client.go:228-264)
+- [x] 1.2.1.8 Implement `AddReaction()` for likes and emoji reactions (stream/client.go:266-316)
+- [x] 1.2.1.9 Add Stream.io user creation on registration (auth/oauth.go:231-236)
+- [x] 1.2.1.10 Write integration tests for Stream.io client
+- [x] 1.2.1.11 Remove mock data from stream/client.go - replaced with real API calls
+
+#### 1.2.2 Notification Feed (New - Dashboard Created)
+
+> **Stream.io Notification Feeds** provide automatic grouping with read/seen tracking.
+> Unlike flat feeds, they return `Unseen` and `Unread` counts, plus `IsSeen`/`IsRead` per group.
+> This eliminates the need to build custom notification tracking in PostgreSQL.
+
+**Dashboard Configuration (Complete):**
+- [x] 1.2.2.1 Create `notification` feed group in Stream.io dashboard (type: Notification)
+- [ ] 1.2.2.2 Configure aggregation format: `{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
+  - Groups by action type and day: "5 people liked your loops today"
+  - Alternative format for target grouping: `{{ verb }}_{{ target }}_{{ time.strftime("%Y-%m-%d") }}`
+  - This groups: "3 people liked [specific loop] today"
+
+**Backend Implementation:**
+- [ ] 1.2.2.3 Add `FeedGroupNotification = "notification"` constant to stream/client.go
+- [ ] 1.2.2.4 Implement `GetNotifications()` method using `NotificationFeed` type:
+
+```go
+// NotificationGroup represents a grouped notification from Stream.io
+type NotificationGroup struct {
+    ID            string      `json:"id"`
+    Group         string      `json:"group"`           // The aggregation group key
+    Verb          string      `json:"verb"`            // "like", "follow", "comment"
+    ActivityCount int         `json:"activity_count"`  // Total activities in group
+    ActorCount    int         `json:"actor_count"`     // Unique actors
+    Activities    []*Activity `json:"activities"`      // The actual activities (max 15)
+    IsRead        bool        `json:"is_read"`
+    IsSeen        bool        `json:"is_seen"`
+    CreatedAt     string      `json:"created_at"`
+    UpdatedAt     string      `json:"updated_at"`      // When group was last updated
+}
+
+type NotificationResponse struct {
+    Groups  []*NotificationGroup `json:"groups"`
+    Unseen  int                  `json:"unseen"`  // Total unseen notification groups
+    Unread  int                  `json:"unread"`  // Total unread notification groups
+}
+
+// GetNotifications retrieves notifications with read/unread state
+func (c *Client) GetNotifications(userID string, limit int) (*NotificationResponse, error) {
+    ctx := context.Background()
+
+    notifFeed, err := c.feedsClient.NotificationFeed(FeedGroupNotification, userID)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get notification feed: %w", err)
+    }
+
+    resp, err := notifFeed.GetActivities(ctx,
+        stream.WithActivitiesLimit(limit),
+        stream.WithEnrichReactionCounts(),
+        stream.WithEnrichRecentReactionsLimit(3),
+    )
+    if err != nil {
+        return nil, fmt.Errorf("failed to get notifications: %w", err)
+    }
+
+    // Parse the notification-specific response
+    result := &NotificationResponse{
+        Groups: make([]*NotificationGroup, 0),
+        Unseen: resp.Unseen,  // Stream.io provides this automatically!
+        Unread: resp.Unread,  // Stream.io provides this automatically!
+    }
+
+    for _, group := range resp.Results {
+        notifGroup := &NotificationGroup{
+            ID:            group.ID,
+            Group:         group.Group,
+            ActivityCount: group.ActivityCount,
+            ActorCount:    group.ActorCount,
+            IsRead:        group.IsRead,
+            IsSeen:        group.IsSeen,
+            CreatedAt:     group.CreatedAt.Format(time.RFC3339),
+            UpdatedAt:     group.UpdatedAt.Format(time.RFC3339),
+        }
+
+        // Extract verb from first activity
+        if len(group.Activities) > 0 {
+            notifGroup.Verb = group.Activities[0].Verb
+        }
+
+        // Convert activities
+        for _, act := range group.Activities {
+            notifGroup.Activities = append(notifGroup.Activities, convertStreamActivity(&act))
+        }
+
+        result.Groups = append(result.Groups, notifGroup)
+    }
+
+    return result, nil
+}
+```
+
+- [ ] 1.2.2.5 Implement `MarkNotificationsRead()` and `MarkNotificationsSeen()` methods:
+
+```go
+// MarkNotificationsRead marks notification groups as read
+func (c *Client) MarkNotificationsRead(userID string, groupIDs []string) error {
+    ctx := context.Background()
+    notifFeed, err := c.feedsClient.NotificationFeed(FeedGroupNotification, userID)
+    if err != nil { return err }
+
+    var markOpt stream.GetActivitiesOption
+    if len(groupIDs) > 0 {
+        markOpt = stream.WithNotificationsMarkRead(groupIDs...)
+    } else {
+        markOpt = stream.WithNotificationsMarkAllRead()
+    }
+    _, err = notifFeed.GetActivities(ctx, markOpt)
+    return err
+}
+
+// MarkNotificationsSeen marks notification groups as seen (clears badge)
+func (c *Client) MarkNotificationsSeen(userID string, groupIDs []string) error {
+    ctx := context.Background()
+    notifFeed, err := c.feedsClient.NotificationFeed(FeedGroupNotification, userID)
+    if err != nil { return err }
+
+    var markOpt stream.GetActivitiesOption
+    if len(groupIDs) > 0 {
+        markOpt = stream.WithNotificationsMarkSeen(groupIDs...)
+    } else {
+        markOpt = stream.WithNotificationsMarkAllSeen()
+    }
+    _, err = notifFeed.GetActivities(ctx, markOpt)
+    return err
+}
+```
+
+- [ ] 1.2.2.6 Implement `AddToNotificationFeed()` helper:
+
+```go
+// AddToNotificationFeed adds a notification activity for a user
+// Called when someone likes, follows, or comments on their content
+func (c *Client) AddToNotificationFeed(targetUserID, verb, objectID, actorID string, extra map[string]any) error {
+    ctx := context.Background()
+
+    // Don't notify yourself
+    if targetUserID == actorID {
+        return nil
+    }
+
+    notifFeed, err := c.feedsClient.NotificationFeed(FeedGroupNotification, targetUserID)
+    if err != nil {
+        return fmt.Errorf("failed to get notification feed: %w", err)
+    }
+
+    activity := stream.Activity{
+        Actor:  fmt.Sprintf("user:%s", actorID),
+        Verb:   verb,    // "like", "follow", "comment"
+        Object: objectID, // "loop:123" or "user:456"
+        Extra:  extra,
+    }
+
+    _, err = notifFeed.AddActivity(ctx, activity)
+    if err != nil {
+        return fmt.Errorf("failed to add notification: %w", err)
+    }
+
+    fmt.Printf("🔔 Notification: %s %s %s → user:%s\n", actorID, verb, objectID, targetUserID)
+    return nil
+}
+```
+
+- [ ] 1.2.2.7 Update `AddReactionWithEmoji()` to also notify post owner
+- [ ] 1.2.2.8 Update `FollowUser()` to notify the followed user
+- [ ] 1.2.2.9 Create API endpoints for notifications:
+  - `GET /api/v1/notifications` - Get paginated notifications with unseen/unread counts
+  - `POST /api/v1/notifications/read` - Mark notifications as read
+  - `POST /api/v1/notifications/seen` - Mark notifications as seen (clears badge)
+- [ ] 1.2.2.10 Write integration tests for notification feed
+
+#### 1.2.3 Aggregated Feeds (New)
+
+> **Stream.io Aggregated Feeds** group activities by a configurable format.
+> Each group contains up to 15 activities. Great for "X and 5 others did Y" displays.
+>
+> **Aggregation Format Syntax** (Jinja2-style):
+> - `{{ actor }}` - The user performing the action
+> - `{{ verb }}` - The action type (posted, liked, etc.)
+> - `{{ target }}` - The object receiving the action
+> - `{{ time.strftime("%Y-%m-%d") }}` - Date formatting
+> - Supports conditionals: `{% if verb == 'follow' %}...{% endif %}`
+
+**Dashboard Configuration:**
+- [ ] 1.2.3.1 Create `timeline_aggregated` feed group (type: Aggregated)
+  - Aggregation format: `{{ actor }}_{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
+  - Result: "BeatMaker123 posted 3 loops today"
+
+- [ ] 1.2.3.2 Create `trending` feed group (type: Aggregated)
+  - Aggregation format: `{{ extra.genre }}_{{ time.strftime("%Y-%m-%d") }}`
+  - Result: "15 new Electronic loops today"
+
+- [ ] 1.2.3.3 Create `user_activity` feed group (type: Aggregated) - for profile activity summary
+  - Aggregation format: `{{ verb }}_{{ time.strftime("%Y-%W") }}`
+  - Result: "Posted 5 loops this week"
+
+**Backend Implementation:**
+- [ ] 1.2.3.4 Add aggregated feed constants:
+
+```go
+const (
+    FeedGroupUser               = "user"                // Flat - user's posts
+    FeedGroupTimeline           = "timeline"            // Flat - following feed
+    FeedGroupGlobal             = "global"              // Flat - all posts
+    FeedGroupNotification       = "notification"        // Notification - alerts
+    FeedGroupTimelineAggregated = "timeline_aggregated" // Aggregated - grouped timeline
+    FeedGroupTrending           = "trending"            // Aggregated - by genre/time
+    FeedGroupUserActivity       = "user_activity"       // Aggregated - profile summary
+)
+```
+
+- [ ] 1.2.3.5 Implement `ActivityGroup` type for aggregated responses:
+
+```go
+// ActivityGroup represents a group of related activities from an aggregated feed
+type ActivityGroup struct {
+    ID            string      `json:"id"`
+    Group         string      `json:"group"`           // The aggregation key
+    Verb          string      `json:"verb"`            // Common verb for the group
+    ActivityCount int         `json:"activity_count"`  // Total activities (may be > len(Activities))
+    ActorCount    int         `json:"actor_count"`     // Unique actors in group
+    Activities    []*Activity `json:"activities"`      // Up to 15 most recent
+    CreatedAt     string      `json:"created_at"`
+    UpdatedAt     string      `json:"updated_at"`
+}
+
+type AggregatedFeedResponse struct {
+    Groups   []*ActivityGroup `json:"groups"`
+    NextPage string           `json:"next_page,omitempty"`
+}
+```
+
+- [ ] 1.2.3.6 Implement `GetAggregatedTimeline()`:
+
+```go
+// GetAggregatedTimeline returns timeline grouped by actor and day
+// Shows "BeatMaker123 posted 3 loops today" style grouping
+func (c *Client) GetAggregatedTimeline(userID string, limit int) (*AggregatedFeedResponse, error) {
+    ctx := context.Background()
+
+    aggFeed, err := c.feedsClient.AggregatedFeed(FeedGroupTimelineAggregated, userID)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get aggregated timeline: %w", err)
+    }
+
+    resp, err := aggFeed.GetActivities(ctx,
+        stream.WithActivitiesLimit(limit),
+        stream.WithEnrichReactionCounts(),
+    )
+    if err != nil {
+        return nil, fmt.Errorf("failed to query aggregated timeline: %w", err)
+    }
+
+    result := &AggregatedFeedResponse{
+        Groups: make([]*ActivityGroup, 0, len(resp.Results)),
+    }
+
+    for _, group := range resp.Results {
+        ag := &ActivityGroup{
+            ID:            group.ID,
+            Group:         group.Group,
+            ActivityCount: group.ActivityCount,
+            ActorCount:    group.ActorCount,
+            CreatedAt:     group.CreatedAt.Format(time.RFC3339),
+            UpdatedAt:     group.UpdatedAt.Format(time.RFC3339),
+        }
+
+        if len(group.Activities) > 0 {
+            ag.Verb = group.Activities[0].Verb
+        }
+
+        for _, act := range group.Activities {
+            ag.Activities = append(ag.Activities, convertStreamActivity(&act))
+        }
+
+        result.Groups = append(result.Groups, ag)
+    }
+
+    return result, nil
+}
+```
+
+- [ ] 1.2.3.7 Implement `GetTrendingByGenre()` for discovery page
+- [ ] 1.2.3.8 Implement `GetUserActivitySummary()` for profile pages
+- [ ] 1.2.3.9 Update `CreateLoopActivity()` to also post to aggregated feeds via "To" field:
+
+```go
+// In CreateLoopActivity, update the "To" targets:
+globalFeed, _ := c.feedsClient.FlatFeed(FeedGroupGlobal, "main")
+trendingFeed, _ := c.feedsClient.AggregatedFeed(FeedGroupTrending, "main")
+userActivityFeed, _ := c.feedsClient.AggregatedFeed(FeedGroupUserActivity, userID)
+
+streamActivity.To = []string{
+    globalFeed.ID(),       // Flat global discovery
+    trendingFeed.ID(),     // Aggregated trending by genre
+    userActivityFeed.ID(), // Aggregated user activity summary
+}
+```
+
+- [ ] 1.2.3.10 Create API endpoints for aggregated feeds:
+  - `GET /api/v1/feed/timeline/aggregated` - Grouped timeline
+  - `GET /api/v1/feed/trending` - Trending by genre
+  - `GET /api/v1/users/:id/activity` - User activity summary
+- [ ] 1.2.3.11 Update `FollowUser()` to also follow for aggregated timeline
+- [ ] 1.2.3.12 Write integration tests for aggregated feeds
 
 ### 1.3 OAuth Completion
 
@@ -229,21 +560,21 @@ Completed through **Phase 4.2** (Profile UI). The core functionality is taking s
 - [x] 3.3.4 Add playback progress indicator on waveform - PostCardComponent::setPlaybackProgress() with callback integration
 - [x] 3.3.5 Implement seek by tapping waveform - onWaveformClicked callback connected to AudioPlayer::seekToNormalizedPosition()
 - [x] 3.3.6 Add volume control (separate from DAW) - AudioPlayer::setVolume() with atomic float
-- [ ] 3.3.7 Implement auto-play next post option
-- [ ] 3.3.8 Handle audio focus (pause when DAW plays)
-- [ ] 3.3.9 Add keyboard shortcuts (space = play/pause)
+- [x] 3.3.7 Implement auto-play next post option - setAutoPlayEnabled(), setPlaylist(), playNext/playPrevious
+- [x] 3.3.8 Handle audio focus (pause when DAW plays) - onDAWTransportStarted/Stopped with wasPlayingBeforeDAW state
+- [x] 3.3.9 Add keyboard shortcuts (space = play/pause, arrows, M for mute) - KeyListener in PostsFeedComponent
 - [x] 3.3.10 Cache recently played audio (memory limit) - LRU cache with 50MB limit, eviction strategy
 - [ ] 3.3.11 Pre-buffer next post for seamless playback - preloadAudio() method available
 
 ### 3.4 Social Interactions
 
 - [x] 3.4.1 Implement like/unlike toggle (optimistic UI) - PostCardComponent handles UI state, callback wired up
-- [ ] 3.4.2 Add like animation (heart burst)
+- [x] 3.4.2 Add like animation (heart burst) - Timer-based animation with 6 expanding hearts, scale effect, ring
 - [ ] 3.4.3 Implement emoji reactions panel
 - [ ] 3.4.4 Show reaction counts and types
-- [ ] 3.4.5 Implement follow/unfollow from post card
-- [ ] 3.4.6 Add "following" indicator on posts from followed users
-- [ ] 3.4.7 Implement play count tracking
+- [x] 3.4.5 Implement follow/unfollow from post card - Follow button in PostCardComponent with optimistic UI
+- [x] 3.4.6 Add "following" indicator on posts from followed users - isFollowing field, button shows "Following" state
+- [x] 3.4.7 Implement play count tracking - NetworkClient::trackPlay() called on playback start
 - [ ] 3.4.8 Track listen duration (for algorithm)
 - [ ] 3.4.9 Implement "Add to DAW" button (download to project folder)
 - [x] 3.4.10 Add post sharing (generate shareable link) - Copies https://sidechain.live/post/{id} to clipboard
@@ -350,18 +681,52 @@ Completed through **Phase 4.2** (Profile UI). The core functionality is taking s
 - [ ] 5.3.7 Handle presence timeout (5 minutes no heartbeat = offline)
 - [ ] 5.3.8 Add DAW detection (show which DAW user is using)
 
-### 5.4 Live Notifications
+### 5.4 Live Notifications (Stream.io Notification Feed)
 
-- [ ] 5.4.1 Create notification types enum (like, follow, comment, etc.)
-- [ ] 5.4.2 Implement notification creation on events
-- [ ] 5.4.3 Store notifications in database
-- [ ] 5.4.4 Push notifications via WebSocket
-- [ ] 5.4.5 Create notification bell UI with unread count
-- [ ] 5.4.6 Implement notification list view
-- [ ] 5.4.7 Add notification grouping (X users liked your post)
-- [ ] 5.4.8 Implement mark as read
-- [ ] 5.4.9 Add notification preferences (mute types)
-- [ ] 5.4.10 Implement notification sound option
+> **Architecture Decision**: Use Stream.io Notification Feeds instead of custom database storage.
+>
+> **Why Stream.io Notifications?**
+> - Built-in `Unseen` and `Unread` counts (no custom tracking needed)
+> - Automatic grouping: "5 people liked your loop" happens automatically
+> - `IsSeen` / `IsRead` state per notification group
+> - Same API patterns as other feeds (consistent code)
+> - Scales automatically with Stream.io infrastructure
+>
+> **What we DON'T need to build:**
+> - ~~Notification database table~~ → Stream.io stores it
+> - ~~Unread count tracking~~ → `resp.Unseen` / `resp.Unread` provided
+> - ~~Grouping logic~~ → Aggregation format handles it
+> - ~~Mark as read/seen queries~~ → `WithNotificationsMarkRead()` / `WithNotificationsMarkSeen()`
+>
+> **Prerequisites**: Complete Phase 1.2.2 (Notification Feed backend implementation)
+
+#### 5.4.1 Plugin Notification UI
+
+- [ ] 5.4.1.1 Create `NotificationBellComponent` with animated badge
+- [ ] 5.4.1.2 Implement badge drawing with unseen count (red circle, "99+" for overflow)
+- [ ] 5.4.1.3 Create `NotificationListComponent` for displaying grouped notifications
+- [ ] 5.4.1.4 Implement notification row rendering with read/unread styling
+- [ ] 5.4.1.5 Add notification panel to main plugin UI (slide-out or modal)
+- [ ] 5.4.1.6 Implement notification polling (every 30 seconds when plugin is open)
+
+#### 5.4.2 Mark as Read/Seen Integration
+
+- [ ] 5.4.2.1 Mark as seen when notification panel is opened (clears badge)
+- [ ] 5.4.2.2 Mark as read when notification is clicked
+- [ ] 5.4.2.3 Add "Mark all as read" button
+
+#### 5.4.3 Backend API Endpoints
+
+- [ ] 5.4.3.1 Implement `GET /api/v1/notifications` handler (uses Phase 1.2.2.4)
+- [ ] 5.4.3.2 Implement `POST /api/v1/notifications/seen` handler
+- [ ] 5.4.3.3 Implement `POST /api/v1/notifications/read` handler
+- [ ] 5.4.3.4 Register notification routes in router
+
+#### 5.4.4 Optional Enhancements
+
+- [ ] 5.4.4.1 Implement notification sound option (user preference)
+- [ ] 5.4.4.2 Add notification preferences (mute specific types)
+- [ ] 5.4.4.3 Consider WebSocket push for real-time updates (polling is sufficient for MVP)
 
 ### 5.5 Real-time Feed Updates
 
