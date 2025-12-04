@@ -302,6 +302,9 @@ if(SIDECHAIN_BUILD_TESTS)
         endif()
     endif()
 
+    # Create test-results directory for JUnit XML output
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test-results)
+
     # Register tests with CTest
     catch_discover_tests(SidechainTests
         REPORTER junit
