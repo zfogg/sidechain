@@ -24,8 +24,17 @@ type AuthServiceTestSuite struct {
 
 // SetupSuite initializes test database and auth service
 func (suite *AuthServiceTestSuite) SetupSuite() {
-	// Use test database
-	testDSN := "host=localhost port=5432 user=postgres dbname=sidechain_test sslmode=disable"
+	// Build test DSN from environment or use defaults
+	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
+	port := getEnvOrDefault("POSTGRES_PORT", "5432")
+	user := getEnvOrDefault("POSTGRES_USER", "postgres")
+	password := getEnvOrDefault("POSTGRES_PASSWORD", "")
+	dbname := getEnvOrDefault("POSTGRES_DB", "sidechain_test")
+
+	testDSN := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", host, port, user, dbname)
+	if password != "" {
+		testDSN = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	}
 
 	db, err := gorm.Open(postgres.Open(testDSN), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent), // Quiet during tests
@@ -357,4 +366,12 @@ func TestAuthServiceSuite(t *testing.T) {
 	}
 
 	suite.Run(t, new(AuthServiceTestSuite))
+}
+
+// getEnvOrDefault returns environment variable or default value
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
