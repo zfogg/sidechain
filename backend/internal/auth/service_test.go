@@ -54,9 +54,10 @@ func (suite *AuthServiceTestSuite) SetupSuite() {
 
 	suite.db = db
 
-	// Initialize auth service with test secrets
+	// Initialize auth service with test secrets (nil stream client for tests)
 	suite.authService = NewService(
 		[]byte("test_jwt_secret_key"),
+		nil, // Stream client not needed for unit tests
 		"test_google_client_id",
 		"test_google_client_secret",
 		"test_discord_client_id",
@@ -206,7 +207,7 @@ func (suite *AuthServiceTestSuite) TestJWTTokenValidation() {
 
 	// Test expired token (would need to mock time for proper test)
 	// For now, test with wrong signing key
-	wrongService := NewService([]byte("wrong_secret"), "", "", "", "")
+	wrongService := NewService([]byte("wrong_secret"), nil, "", "", "", "")
 	_, err = wrongService.ValidateToken(authResp.Token)
 	assert.Error(t, err)
 }
