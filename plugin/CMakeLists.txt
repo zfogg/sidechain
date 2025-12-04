@@ -86,8 +86,11 @@ target_sources(Sidechain
         Source/PluginProcessor.h
         Source/PluginEditor.cpp
         Source/PluginEditor.h
+        Source/AudioCapture.cpp
+        Source/AudioCapture.h
         Source/NetworkClient.cpp
         Source/NetworkClient.h
+        Source/ConnectionIndicator.h
         Source/ProfileSetupComponent.cpp
         Source/ProfileSetupComponent.h
         Source/PostsFeedComponent.cpp

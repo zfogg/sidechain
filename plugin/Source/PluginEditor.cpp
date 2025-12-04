@@ -22,8 +22,41 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
     
     DBG("Status label created and added");
 
-    // Initialize network client
-    networkClient = std::make_unique<NetworkClient>("http://localhost:8787");
+    // Initialize network client with development config
+    networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
+
+    // Create connection indicator
+    connectionIndicator = std::make_unique<ConnectionIndicator>();
+    connectionIndicator->onReconnectClicked = [this]() {
+        if (networkClient)
+            networkClient->checkConnection();
+    };
+    addAndMakeVisible(connectionIndicator.get());
+
+    // Set up connection status callback for UI indicator
+    networkClient->setConnectionStatusCallback([this](NetworkClient::ConnectionStatus status) {
+        if (connectionIndicator)
+            connectionIndicator->setStatus(status);
+
+        juce::String statusText;
+        switch (status)
+        {
+            case NetworkClient::ConnectionStatus::Connected:
+                statusText = "Connected";
+                break;
+            case NetworkClient::ConnectionStatus::Connecting:
+                statusText = "Connecting...";
+                break;
+            case NetworkClient::ConnectionStatus::Disconnected:
+            default:
+                statusText = "Disconnected";
+                break;
+        }
+        DBG("Connection status changed: " + statusText);
+    });
+
+    // Check connection on startup
+    networkClient->checkConnection();
 
     // Initialize view components
     profileSetupComponent = std::make_unique<ProfileSetupComponent>();
@@ -292,23 +325,29 @@ void SidechainAudioProcessorEditor::paint (juce::Graphics& g)
 void SidechainAudioProcessorEditor::resized()
 {
     DBG("Editor resized to: " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
-    
+
     auto bounds = getLocalBounds();
     DBG("Local bounds: " + juce::String(bounds.getWidth()) + "x" + juce::String(bounds.getHeight()));
-    
+
+    // Position connection indicator in top-right corner
+    if (connectionIndicator != nullptr)
+    {
+        connectionIndicator->setBounds(getWidth() - 28, 8, 16, 16);
+    }
+
     bounds.reduce(20, 20);
-    
+
     // Status label at top (with null check)
     if (statusLabel != nullptr)
     {
         auto labelBounds = bounds.removeFromTop(40);
         statusLabel->setBounds(labelBounds);
-        DBG("Status label bounds: " + juce::String(labelBounds.getX()) + "," + juce::String(labelBounds.getY()) + " " + 
+        DBG("Status label bounds: " + juce::String(labelBounds.getX()) + "," + juce::String(labelBounds.getY()) + " " +
             juce::String(labelBounds.getWidth()) + "x" + juce::String(labelBounds.getHeight()));
     }
-    
+
     bounds.removeFromTop(20); // spacing
-    
+
     // Center the connect button (with null check)
     if (connectButton != nullptr)
     {
@@ -317,7 +356,7 @@ void SidechainAudioProcessorEditor::resized()
         auto buttonX = (buttonArea.getWidth() - buttonWidth) / 2;
         auto buttonBounds = juce::Rectangle<int>(buttonX, buttonArea.getY(), buttonWidth, buttonArea.getHeight());
         connectButton->setBounds(buttonBounds);
-        DBG("Connect button bounds: " + juce::String(buttonBounds.getX()) + "," + juce::String(buttonBounds.getY()) + " " + 
+        DBG("Connect button bounds: " + juce::String(buttonBounds.getX()) + "," + juce::String(buttonBounds.getY()) + " " +
             juce::String(buttonBounds.getWidth()) + "x" + juce::String(buttonBounds.getHeight()));
     }
 }

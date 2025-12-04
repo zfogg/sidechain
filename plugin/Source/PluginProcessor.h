@@ -1,12 +1,14 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "AudioCapture.h"
 
 //==============================================================================
 /**
  * Sidechain Audio Plugin Processor
- * 
- * Main plugin class - simplified for initial build
+ *
+ * Main plugin class that handles audio processing and recording.
+ * The processor captures audio from the DAW for sharing on the social feed.
  */
 class SidechainAudioProcessor : public juce::AudioProcessor
 {
@@ -49,15 +51,44 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     //==============================================================================
-    // Sidechain-specific functionality (simplified)
+    // Authentication state
     bool isAuthenticated() const { return authenticated; }
-    bool isRecording() const { return recording; }
+    void setAuthenticated(bool auth) { authenticated = auth; }
+
+    //==============================================================================
+    // Audio Recording API (called from Editor/UI thread)
+    void startRecording();
+    void stopRecording();
+    bool isRecording() const { return audioCapture.isRecording(); }
+
+    // Get recorded audio buffer (call after stopRecording)
+    juce::AudioBuffer<float> getRecordedAudio();
+
+    // Recording info
+    double getRecordingLengthSeconds() const { return audioCapture.getRecordingLengthSeconds(); }
+    double getMaxRecordingLengthSeconds() const { return audioCapture.getMaxRecordingLengthSeconds(); }
+    float getRecordingProgress() const { return audioCapture.getRecordingProgress(); }
+    bool isRecordingBufferFull() const { return audioCapture.isBufferFull(); }
+
+    // Level metering (for UI display)
+    float getPeakLevel(int channel) const { return audioCapture.getPeakLevel(channel); }
+    float getRMSLevel(int channel) const { return audioCapture.getRMSLevel(channel); }
+
+    // Sample rate (for UI calculations)
+    double getCurrentSampleRate() const { return currentSampleRate; }
 
 private:
     //==============================================================================
-    // Basic state for now
+    // Audio capture system
+    AudioCapture audioCapture;
+    juce::AudioBuffer<float> lastRecordedAudio;
+
+    // Audio settings (cached from prepareToPlay)
+    double currentSampleRate = 44100.0;
+    int currentBlockSize = 512;
+
+    // State
     bool authenticated = false;
-    bool recording = false;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SidechainAudioProcessor)
 };

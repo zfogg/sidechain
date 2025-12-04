@@ -1,14 +1,76 @@
 #include "NetworkClient.h"
 
 //==============================================================================
-NetworkClient::NetworkClient(const juce::String& baseUrl)
-    : baseUrl(baseUrl)
+NetworkClient::NetworkClient(const Config& cfg)
+    : config(cfg)
 {
-    DBG("NetworkClient initialized with base URL: " + baseUrl);
+    DBG("NetworkClient initialized with base URL: " + config.baseUrl);
+    DBG("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
 }
 
 NetworkClient::~NetworkClient()
 {
+    cancelAllRequests();
+}
+
+//==============================================================================
+void NetworkClient::setConnectionStatusCallback(ConnectionStatusCallback callback)
+{
+    connectionStatusCallback = callback;
+}
+
+void NetworkClient::updateConnectionStatus(ConnectionStatus status)
+{
+    auto previousStatus = connectionStatus.exchange(status);
+    if (previousStatus != status && connectionStatusCallback)
+    {
+        juce::MessageManager::callAsync([this, status]() {
+            if (connectionStatusCallback)
+                connectionStatusCallback(status);
+        });
+    }
+}
+
+void NetworkClient::checkConnection()
+{
+    updateConnectionStatus(ConnectionStatus::Connecting);
+
+    juce::Thread::launch([this]() {
+        if (shuttingDown.load())
+            return;
+
+        auto result = makeRequestWithRetry("/health", "GET", juce::var(), false);
+
+        if (result.success)
+        {
+            updateConnectionStatus(ConnectionStatus::Connected);
+            DBG("Connection check: Connected to backend");
+        }
+        else
+        {
+            updateConnectionStatus(ConnectionStatus::Disconnected);
+            DBG("Connection check: Failed - " + result.errorMessage);
+        }
+    });
+}
+
+void NetworkClient::cancelAllRequests()
+{
+    shuttingDown.store(true);
+    // Wait for active requests to complete (with timeout)
+    int waitCount = 0;
+    while (activeRequestCount.load() > 0 && waitCount < 50)
+    {
+        juce::Thread::sleep(100);
+        waitCount++;
+    }
+    shuttingDown.store(false);
+}
+
+void NetworkClient::setConfig(const Config& newConfig)
+{
+    config = newConfig;
+    DBG("NetworkClient config updated - base URL: " + config.baseUrl);
 }
 
 //==============================================================================
@@ -321,7 +383,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         formData.writeString("--" + boundary + "--\r\n");
 
         // Create URL
-        juce::URL url(baseUrl + "/api/v1/users/upload-profile-picture");
+        juce::URL url(config.baseUrl + "/api/v1/users/upload-profile-picture");
 
         // Build headers
         juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
@@ -330,7 +392,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         // Create request options
         auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
                            .withExtraHeaders(headers)
-                           .withConnectionTimeoutMs(30000); // 30 second timeout for uploads
+                           .withConnectionTimeoutMs(config.timeoutMs);
 
         // Add form data to URL
         url = url.withPOSTData(formData.getMemoryBlock());
@@ -384,52 +446,100 @@ void NetworkClient::setAuthToken(const juce::String& token)
     authToken = token;
 }
 
-juce::var NetworkClient::makeRequest(const juce::String& endpoint, 
+//==============================================================================
+// Core request method with retry logic
+NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::String& endpoint,
+                                                                  const juce::String& method,
+                                                                  const juce::var& data,
+                                                                  bool requireAuth)
+{
+    RequestResult result;
+    int attempts = 0;
+
+    while (attempts < config.maxRetries && !shuttingDown.load())
+    {
+        attempts++;
+        activeRequestCount++;
+
+        juce::URL url(config.baseUrl + endpoint);
+
+        // Build headers string
+        juce::String headers = "Content-Type: application/json\r\n";
+
+        if (requireAuth && !authToken.isEmpty())
+        {
+            headers += "Authorization: Bearer " + authToken + "\r\n";
+        }
+
+        // Create request options
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                           .withExtraHeaders(headers)
+                           .withConnectionTimeoutMs(config.timeoutMs);
+
+        // For POST requests, add data to URL
+        if (method == "POST" || method == "PUT")
+        {
+            if (!data.isVoid())
+            {
+                juce::String jsonData = juce::JSON::toString(data);
+                url = url.withPOSTData(jsonData);
+            }
+        }
+
+        // Make request
+        auto stream = url.createInputStream(options);
+
+        activeRequestCount--;
+
+        if (shuttingDown.load())
+        {
+            result.errorMessage = "Request cancelled";
+            return result;
+        }
+
+        if (stream == nullptr)
+        {
+            result.errorMessage = "Failed to connect to server";
+            DBG("Request attempt " + juce::String(attempts) + "/" + juce::String(config.maxRetries)
+                + " failed for: " + endpoint);
+
+            if (attempts < config.maxRetries)
+            {
+                // Wait before retry with exponential backoff
+                int delay = config.retryDelayMs * attempts;
+                juce::Thread::sleep(delay);
+                continue;
+            }
+
+            updateConnectionStatus(ConnectionStatus::Disconnected);
+            return result;
+        }
+
+        auto response = stream->readEntireStreamAsString();
+
+        // Parse JSON response
+        result.data = juce::JSON::parse(response);
+        result.success = true;
+        result.httpStatus = 200; // JUCE URL doesn't expose status codes easily
+
+        DBG("API Response from " + endpoint + ": " + response);
+
+        // Update connection status on success
+        updateConnectionStatus(ConnectionStatus::Connected);
+
+        return result;
+    }
+
+    return result;
+}
+
+juce::var NetworkClient::makeRequest(const juce::String& endpoint,
                                     const juce::String& method,
                                     const juce::var& data,
                                     bool requireAuth)
 {
-    juce::URL url(baseUrl + endpoint);
-    
-    // Build headers string
-    juce::String headers = "Content-Type: application/json\r\n";
-    
-    if (requireAuth && !authToken.isEmpty())
-    {
-        headers += "Authorization: Bearer " + authToken + "\r\n";
-    }
-    
-    // Create request options with proper JUCE API
-    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                       .withExtraHeaders(headers)
-                       .withConnectionTimeoutMs(10000);
-    
-    // For POST requests, add data to URL and use POST method
-    if (method == "POST" || method == "PUT")
-    {
-        if (!data.isVoid())
-        {
-            juce::String jsonData = juce::JSON::toString(data);
-            url = url.withPOSTData(jsonData);
-        }
-    }
-    
-    // Make request
-    auto stream = url.createInputStream(options);
-    
-    if (stream == nullptr)
-    {
-        DBG("Failed to create stream for: " + url.toString(false));
-        return juce::var();
-    }
-    
-    auto response = stream->readEntireStreamAsString();
-    
-    // Parse JSON response
-    auto result = juce::JSON::parse(response);
-    DBG("API Response from " + endpoint + ": " + response);
-    
-    return result;
+    auto result = makeRequestWithRetry(endpoint, method, data, requireAuth);
+    return result.data;
 }
 
 juce::String NetworkClient::getAuthHeader() const
