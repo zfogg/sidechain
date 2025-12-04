@@ -90,6 +90,12 @@ func main() {
 	wsHandler := websocket.NewHandler(wsHub, jwtSecret)
 	wsHandler.RegisterDefaultHandlers()
 
+	// Initialize presence manager
+	presenceManager := websocket.NewPresenceManager(wsHub, streamClient, websocket.DefaultPresenceConfig())
+	wsHandler.SetPresenceManager(presenceManager)
+	presenceManager.Start()
+	defer presenceManager.Stop()
+
 	// Start WebSocket hub in background
 	go wsHub.Run()
 
@@ -185,6 +191,7 @@ func main() {
 			users.Use(authHandlers.AuthMiddleware())
 			users.GET("/me", h.GetProfile)
 			users.PUT("/me", h.UpdateProfile)
+			users.PUT("/username", h.ChangeUsername)
 			users.POST("/upload-profile-picture", authHandlers.UploadProfilePicture)
 
 			// Public user profile endpoints (require auth for following checks)
@@ -193,8 +200,27 @@ func main() {
 			users.GET("/:id/followers", h.GetUserFollowers)
 			users.GET("/:id/following", h.GetUserFollowing)
 			users.GET("/:id/activity", h.GetUserActivitySummary)
+			users.GET("/:id/similar", h.GetSimilarUsers)
 			users.POST("/:id/follow", h.FollowUserByID)
 			users.DELETE("/:id/follow", h.UnfollowUserByID)
+		}
+
+		// Search routes
+		search := api.Group("/search")
+		{
+			search.Use(authHandlers.AuthMiddleware())
+			search.GET("/users", h.SearchUsers)
+		}
+
+		// Discovery routes
+		discover := api.Group("/discover")
+		{
+			discover.Use(authHandlers.AuthMiddleware())
+			discover.GET("/trending", h.GetTrendingUsers)
+			discover.GET("/featured", h.GetFeaturedProducers)
+			discover.GET("/suggested", h.GetSuggestedUsers)
+			discover.GET("/genres", h.GetAvailableGenres)
+			discover.GET("/genre/:genre", h.GetUsersByGenre)
 		}
 
 		// WebSocket routes
@@ -209,6 +235,10 @@ func main() {
 
 			// Online status check (protected)
 			ws.POST("/online", authHandlers.AuthMiddleware(), wsHandler.HandleOnlineStatus)
+
+			// Presence endpoints (protected)
+			ws.POST("/presence", authHandlers.AuthMiddleware(), wsHandler.HandlePresenceStatus)
+			ws.GET("/friends-in-studio", authHandlers.AuthMiddleware(), wsHandler.HandleFriendsInStudio)
 		}
 	}
 

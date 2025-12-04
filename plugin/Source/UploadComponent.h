@@ -100,6 +100,12 @@ private:
     std::vector<double> tapTimes;
     double lastTapTime = 0.0;
 
+    // Last uploaded post info (for success preview)
+    juce::String lastUploadedTitle;
+    juce::String lastUploadedGenre;
+    double lastUploadedBpm = 0.0;
+    juce::String lastUploadedUrl;
+
     // UI areas (calculated in resized())
     juce::Rectangle<int> headerArea;
     juce::Rectangle<int> waveformArea;
