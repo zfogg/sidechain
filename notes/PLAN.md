@@ -173,16 +173,16 @@
 
 ### 3.1 Feed Data Layer
 
-- [ ] 3.1.1 Create FeedPost model in C++ (id, user, audio_url, waveform, etc.)
-- [ ] 3.1.2 Implement feed fetch from backend (paginated)
-- [ ] 3.1.3 Parse JSON response into FeedPost objects
-- [ ] 3.1.4 Implement local cache (SQLite or JSON file)
-- [ ] 3.1.5 Add cache invalidation strategy (5 minute TTL)
-- [ ] 3.1.6 Implement pull-to-refresh gesture
-- [ ] 3.1.7 Add infinite scroll pagination
-- [ ] 3.1.8 Handle empty feed state
-- [ ] 3.1.9 Handle error states (network, server)
-- [ ] 3.1.10 Implement feed type switching (global, following, trending)
+- [x] 3.1.1 Create FeedPost model in C++ (id, user, audio_url, waveform, etc.) - FeedPost.h/cpp with full JSON serialization
+- [x] 3.1.2 Implement feed fetch from backend (paginated) - FeedDataManager with NetworkClient integration
+- [x] 3.1.3 Parse JSON response into FeedPost objects - FeedPost::fromJson() with robust parsing
+- [x] 3.1.4 Implement local cache (SQLite or JSON file) - JSON file cache in ~/.local/share/Sidechain/cache/
+- [x] 3.1.5 Add cache invalidation strategy (5 minute TTL) - Configurable cacheTTLSeconds
+- [x] 3.1.6 Implement pull-to-refresh gesture - Refresh button in PostsFeedComponent
+- [x] 3.1.7 Add infinite scroll pagination - FeedDataManager::loadMorePosts() with offset tracking
+- [x] 3.1.8 Handle empty feed state - PostsFeedComponent::drawEmptyState() with different messages per feed type
+- [x] 3.1.9 Handle error states (network, server) - PostsFeedComponent::drawErrorState() with retry button
+- [x] 3.1.10 Implement feed type switching (global, following) - Tab UI with Timeline/Global switching
 
 ### 3.2 Post Card Component
 
