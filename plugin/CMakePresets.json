@@ -22,7 +22,8 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "SIDECHAIN_BUILD_TESTS": "ON",
-                "SIDECHAIN_BUILD_PLUGIN_HOST": "ON"
+                "SIDECHAIN_BUILD_PLUGIN_HOST": "ON",
+                "SIDECHAIN_INSTALL_STANDALONE": "ON"
             }
         },
         {
@@ -33,7 +34,8 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "SIDECHAIN_BUILD_TESTS": "OFF",
-                "SIDECHAIN_BUILD_PLUGIN_HOST": "OFF"
+                "SIDECHAIN_BUILD_PLUGIN_HOST": "OFF",
+                "SIDECHAIN_INSTALL_STANDALONE": "OFF"
             }
         },
         {
