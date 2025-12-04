@@ -106,6 +106,15 @@ public:
     // Profile operations
     void uploadProfilePicture(const juce::File& imageFile, ProfilePictureCallback callback = nullptr);
 
+    //==========================================================================
+    // Generic HTTP methods for custom API calls
+    using ResponseCallback = std::function<void(bool success, const juce::var& response)>;
+
+    void get(const juce::String& endpoint, ResponseCallback callback);
+    void post(const juce::String& endpoint, const juce::var& data, ResponseCallback callback);
+    void put(const juce::String& endpoint, const juce::var& data, ResponseCallback callback);
+    void del(const juce::String& endpoint, ResponseCallback callback);
+
     // Authentication state
     void setAuthToken(const juce::String& token);
     bool isAuthenticated() const { return !authToken.isEmpty(); }

@@ -32,7 +32,7 @@
 ### Recently Completed
 - **Backend audio processing pipeline** (FFmpeg normalization, MP3 encoding, waveform SVG, S3 upload)
 - **Background job queue** (goroutine worker pool with channels)
-- Plugin NetworkClient HTTP implementation (GET, POST, multipart uploads)
+- Plugin NetworkClient HTTP implementation (GET, POST, PUT, DELETE, multipart uploads)
 - HTTP status code extraction and user-friendly error messages
 - Stream.io Feeds V2 API integration (activities, reactions, follows) - switched from V3 beta to stable V2
 - Integration tests for Stream.io client (all 8 tests passing)
@@ -42,6 +42,8 @@
 - **RecordingComponent** (full recording UI with waveform, preview, level meters)
 - **WAV export** with temp file management
 - **GitHub Actions release workflow** (v0.0.1 released)
+- **ProfileComponent** (full profile UI with avatar, stats, posts, follow/unfollow)
+- **EditProfileComponent** (profile editing modal with social links, bio, genre)
 
 ### What's Missing
 - Audio playback in feed
@@ -248,18 +250,18 @@
 - [ ] 4.1.9 Implement profile picture upload and crop
 - [ ] 4.1.10 Add profile verification system (future: badges)
 
-### 4.2 Profile UI (Plugin)
+### 4.2 Profile UI (Plugin) ✅
 
-- [ ] 4.2.1 Design profile view layout
-- [ ] 4.2.2 Display profile header (avatar, name, bio)
-- [ ] 4.2.3 Show follower/following counts (tappable)
-- [ ] 4.2.4 Display user's posts in grid/list
-- [ ] 4.2.5 Add follow/unfollow button
-- [ ] 4.2.6 Implement edit profile modal (own profile)
-- [ ] 4.2.7 Add social links display (Instagram, SoundCloud, etc.)
-- [ ] 4.2.8 Show genre tags
-- [ ] 4.2.9 Display "member since" date
-- [ ] 4.2.10 Add profile sharing (copy link)
+- [x] 4.2.1 Design profile view layout - ProfileComponent.h/cpp with full layout
+- [x] 4.2.2 Display profile header (avatar, name, bio) - drawHeader(), drawAvatar(), drawUserInfo()
+- [x] 4.2.3 Show follower/following counts (tappable) - drawStats() with clickable bounds
+- [x] 4.2.4 Display user's posts in grid/list - PostCardComponent array with scroll
+- [x] 4.2.5 Add follow/unfollow button - handleFollowToggle() with optimistic UI
+- [x] 4.2.6 Implement edit profile modal (own profile) - EditProfileComponent.h/cpp
+- [x] 4.2.7 Add social links display (Instagram, SoundCloud, etc.) - drawSocialLinks() with icons
+- [x] 4.2.8 Show genre tags - drawGenreTags() with badge styling
+- [x] 4.2.9 Display "member since" date - drawMemberSince()
+- [x] 4.2.10 Add profile sharing (copy link) - shareProfile() copies URL to clipboard
 
 ### 4.3 Follow System
 
