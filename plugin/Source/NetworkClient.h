@@ -4,6 +4,7 @@
 #include <functional>
 #include <atomic>
 #include <memory>
+#include <map>
 
 //==============================================================================
 /**
@@ -128,6 +129,13 @@ private:
         int httpStatus = 0;
         bool success = false;
         juce::String errorMessage;
+        juce::StringPairArray responseHeaders;
+
+        // Helper to check if request succeeded (2xx status)
+        bool isSuccess() const { return httpStatus >= 200 && httpStatus < 300; }
+
+        // Extract user-friendly error message from response
+        juce::String getUserFriendlyError() const;
     };
 
     RequestResult makeRequestWithRetry(const juce::String& endpoint,
@@ -140,12 +148,24 @@ private:
                          const juce::var& data = juce::var(),
                          bool requireAuth = false);
 
+    // Multipart form data upload helper
+    RequestResult uploadMultipartData(const juce::String& endpoint,
+                                      const juce::String& fieldName,
+                                      const juce::MemoryBlock& fileData,
+                                      const juce::String& fileName,
+                                      const juce::String& mimeType,
+                                      const std::map<juce::String, juce::String>& extraFields = {});
+
     juce::String getAuthHeader() const;
     void handleAuthResponse(const juce::var& response);
     void updateConnectionStatus(ConnectionStatus status);
 
+    // Parse HTTP status code from response headers
+    static int parseStatusCode(const juce::StringPairArray& headers);
+
     // Audio encoding
     juce::MemoryBlock encodeAudioToMP3(const juce::AudioBuffer<float>& buffer, double sampleRate);
+    juce::MemoryBlock encodeAudioToWAV(const juce::AudioBuffer<float>& buffer, double sampleRate);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NetworkClient)
 };
