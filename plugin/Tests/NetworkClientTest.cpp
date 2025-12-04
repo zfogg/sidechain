@@ -7,8 +7,8 @@
 // Test fixture for NetworkClient tests
 class NetworkClientTest {
 public:
-    NetworkClientTest() : client("http://localhost:8787") {}
-    
+    NetworkClientTest() : client(NetworkClient::Config::development()) {}
+
     NetworkClient client;
 };
 
@@ -153,8 +153,10 @@ TEST_CASE("JSON data construction", "[util]") {
 }
 
 TEST_CASE("Authentication state transitions", "[auth]") {
-    NetworkClient client("http://test.com");
-    
+    NetworkClient::Config testConfig;
+    testConfig.baseUrl = "http://test.com";
+    NetworkClient client(testConfig);
+
     SECTION("Authentication state changes correctly") {
         // Initial state
         REQUIRE_FALSE(client.isAuthenticated());

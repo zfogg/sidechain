@@ -1,6 +1,70 @@
 #include "NetworkClient.h"
 
 //==============================================================================
+// RequestResult helper methods
+juce::String NetworkClient::RequestResult::getUserFriendlyError() const
+{
+    // Try to extract error message from JSON response
+    if (data.isObject())
+    {
+        // Check common error field names
+        auto error = data.getProperty("error", juce::var());
+        if (error.isString())
+            return error.toString();
+
+        auto message = data.getProperty("message", juce::var());
+        if (message.isString())
+            return message.toString();
+
+        // Nested error object
+        if (error.isObject())
+        {
+            auto errorMsg = error.getProperty("message", juce::var());
+            if (errorMsg.isString())
+                return errorMsg.toString();
+        }
+    }
+
+    // Fall back to HTTP status-based messages
+    switch (httpStatus)
+    {
+        case 400: return "Invalid request - please check your input";
+        case 401: return "Authentication required - please log in";
+        case 403: return "Access denied - you don't have permission";
+        case 404: return "Not found - the requested resource doesn't exist";
+        case 409: return "Conflict - this action conflicts with existing data";
+        case 422: return "Validation failed - please check your input";
+        case 429: return "Too many requests - please try again later";
+        case 500: return "Server error - please try again later";
+        case 502: return "Server unavailable - please try again later";
+        case 503: return "Service temporarily unavailable";
+        default:
+            if (!errorMessage.isEmpty())
+                return errorMessage;
+            if (httpStatus >= 400)
+                return "Request failed (HTTP " + juce::String(httpStatus) + ")";
+            return "Unknown error occurred";
+    }
+}
+
+int NetworkClient::parseStatusCode(const juce::StringPairArray& headers)
+{
+    // JUCE stores the status line in a special key
+    for (auto& key : headers.getAllKeys())
+    {
+        if (key.startsWithIgnoreCase("HTTP/"))
+        {
+            // Parse "HTTP/1.1 200 OK" format
+            auto statusLine = headers[key];
+            auto parts = juce::StringArray::fromTokens(statusLine, " ", "");
+            if (parts.size() >= 2)
+                return parts[1].getIntValue();
+        }
+    }
+    return 0;
+}
+
+//==============================================================================
 NetworkClient::NetworkClient(const Config& cfg)
     : config(cfg)
 {
@@ -177,7 +241,7 @@ void NetworkClient::setAuthenticationCallback(AuthenticationCallback callback)
 }
 
 //==============================================================================
-void NetworkClient::uploadAudio(const juce::String& recordingId, 
+void NetworkClient::uploadAudio(const juce::String& recordingId,
                                 const juce::AudioBuffer<float>& audioBuffer,
                                 double sampleRate,
                                 UploadCallback callback)
@@ -186,17 +250,24 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
     {
         DBG("Cannot upload audio: not authenticated");
         if (callback)
-            callback(false, "");
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(false, "");
+            });
+        }
         return;
     }
-    
-    juce::Thread::launch([this, recordingId, audioBuffer, sampleRate, callback]() {
-        // Encode audio to MP3
-        auto mp3Data = encodeAudioToMP3(audioBuffer, sampleRate);
-        
-        if (mp3Data.getSize() == 0)
+
+    // Copy the buffer for the background thread
+    juce::AudioBuffer<float> bufferCopy(audioBuffer);
+
+    juce::Thread::launch([this, recordingId, bufferCopy, sampleRate, callback]() {
+        // Encode audio to WAV (server will transcode to MP3)
+        auto audioData = encodeAudioToWAV(bufferCopy, sampleRate);
+
+        if (audioData.getSize() == 0)
         {
-            DBG("Failed to encode audio to MP3");
+            DBG("Failed to encode audio");
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
@@ -205,37 +276,55 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
             }
             return;
         }
-        
-        // Create multipart form data (simplified for now)
-        juce::var uploadData = juce::var(new juce::DynamicObject());
-        uploadData.getDynamicObject()->setProperty("recording_id", recordingId);
-        uploadData.getDynamicObject()->setProperty("bpm", 120); // TODO: detect from DAW
-        uploadData.getDynamicObject()->setProperty("key", "C major"); // TODO: detect
-        uploadData.getDynamicObject()->setProperty("daw", "Ableton Live"); // TODO: detect
-        uploadData.getDynamicObject()->setProperty("duration_bars", 8);
-        
-        auto response = makeRequest("/api/v1/audio/upload", "POST", uploadData, true);
-        
-        bool success = false;
+
+        // Calculate duration in seconds
+        double durationSecs = static_cast<double>(bufferCopy.getNumSamples()) / sampleRate;
+
+        // Build metadata fields for multipart upload
+        std::map<juce::String, juce::String> metadata;
+        metadata["recording_id"] = recordingId;
+        metadata["bpm"] = "120";  // TODO: detect from DAW or user input
+        metadata["key"] = "C major";  // TODO: detect or user input
+        metadata["daw"] = "Unknown";  // TODO: detect from host
+        metadata["duration_bars"] = "8";  // TODO: calculate from BPM and duration
+        metadata["duration_seconds"] = juce::String(durationSecs, 2);
+        metadata["sample_rate"] = juce::String(static_cast<int>(sampleRate));
+        metadata["channels"] = juce::String(bufferCopy.getNumChannels());
+
+        // Generate filename
+        juce::String fileName = recordingId + ".wav";
+
+        // Upload using multipart form data
+        auto result = uploadMultipartData(
+            "/api/v1/audio/upload",
+            "audio_file",
+            audioData,
+            fileName,
+            "audio/wav",
+            metadata
+        );
+
+        bool success = result.success;
         juce::String audioUrl;
-        
-        if (response.isObject())
+
+        if (result.data.isObject())
         {
-            success = response.getProperty("status", "") == "uploaded";
-            audioUrl = response.getProperty("audio_url", "").toString();
+            audioUrl = result.data.getProperty("audio_url", "").toString();
+            if (audioUrl.isEmpty())
+                audioUrl = result.data.getProperty("url", "").toString();
         }
-        
+
         if (callback)
         {
             juce::MessageManager::callAsync([callback, success, audioUrl]() {
                 callback(success, audioUrl);
             });
         }
-        
+
         if (success)
             DBG("Audio uploaded successfully: " + audioUrl);
         else
-            DBG("Audio upload failed");
+            DBG("Audio upload failed: " + result.getUserFriendlyError());
     });
 }
 
@@ -471,18 +560,25 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
             headers += "Authorization: Bearer " + authToken + "\r\n";
         }
 
-        // Create request options
+        // Create request options with response headers capture
+        juce::StringPairArray responseHeaders;
         auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
                            .withExtraHeaders(headers)
-                           .withConnectionTimeoutMs(config.timeoutMs);
+                           .withConnectionTimeoutMs(config.timeoutMs)
+                           .withResponseHeaders(&responseHeaders);
 
-        // For POST requests, add data to URL
-        if (method == "POST" || method == "PUT")
+        // For POST/PUT/DELETE requests, add data to URL
+        if (method == "POST" || method == "PUT" || method == "DELETE")
         {
             if (!data.isVoid())
             {
                 juce::String jsonData = juce::JSON::toString(data);
                 url = url.withPOSTData(jsonData);
+            }
+            else if (method == "POST")
+            {
+                // Empty POST body
+                url = url.withPOSTData("");
             }
         }
 
@@ -517,15 +613,38 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
 
         auto response = stream->readEntireStreamAsString();
 
+        // Store response headers and extract status code
+        result.responseHeaders = responseHeaders;
+        result.httpStatus = parseStatusCode(responseHeaders);
+
+        // If we couldn't parse status code, assume 200 for successful stream
+        if (result.httpStatus == 0)
+            result.httpStatus = 200;
+
         // Parse JSON response
         result.data = juce::JSON::parse(response);
-        result.success = true;
-        result.httpStatus = 200; // JUCE URL doesn't expose status codes easily
+        result.success = result.isSuccess();
 
-        DBG("API Response from " + endpoint + ": " + response);
+        DBG("API Response from " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
 
-        // Update connection status on success
-        updateConnectionStatus(ConnectionStatus::Connected);
+        // Check for server errors that should trigger retry
+        if (result.httpStatus >= 500 && attempts < config.maxRetries)
+        {
+            DBG("Server error, retrying...");
+            int delay = config.retryDelayMs * attempts;
+            juce::Thread::sleep(delay);
+            continue;
+        }
+
+        // Update connection status based on result
+        if (result.httpStatus >= 200 && result.httpStatus < 500)
+        {
+            updateConnectionStatus(ConnectionStatus::Connected);
+        }
+        else
+        {
+            updateConnectionStatus(ConnectionStatus::Disconnected);
+        }
 
         return result;
     }
@@ -570,11 +689,130 @@ void NetworkClient::handleAuthResponse(const juce::var& response)
 
 juce::MemoryBlock NetworkClient::encodeAudioToMP3(const juce::AudioBuffer<float>& buffer, double sampleRate)
 {
-    // TODO: Implement MP3 encoding
-    // For now, return empty block - we'll implement this with a proper encoder later
-    // This would typically use LAME encoder or similar
+    // TODO: Implement MP3 encoding with LAME or similar library
+    // For now, fall back to WAV which the server can transcode
+    DBG("MP3 encoding not yet implemented, using WAV format");
+    return encodeAudioToWAV(buffer, sampleRate);
+}
 
-    DBG("Audio encoding requested: " + juce::String(buffer.getNumSamples()) + " samples at " + juce::String(sampleRate) + "Hz");
+juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>& buffer, double sampleRate)
+{
+    juce::MemoryOutputStream outputStream;
 
-    return juce::MemoryBlock();
+    // Create WAV format writer
+    juce::WavAudioFormat wavFormat;
+    std::unique_ptr<juce::AudioFormatWriter> writer(
+        wavFormat.createWriterFor(&outputStream, sampleRate,
+                                  static_cast<unsigned int>(buffer.getNumChannels()),
+                                  16, // bits per sample
+                                  {}, 0));
+
+    if (writer == nullptr)
+    {
+        DBG("Failed to create WAV writer");
+        return juce::MemoryBlock();
+    }
+
+    // Write audio data
+    if (!writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples()))
+    {
+        DBG("Failed to write audio data to WAV");
+        return juce::MemoryBlock();
+    }
+
+    writer.reset(); // Flush and close
+
+    DBG("Encoded " + juce::String(buffer.getNumSamples()) + " samples at "
+        + juce::String(sampleRate) + "Hz to WAV ("
+        + juce::String(outputStream.getDataSize()) + " bytes)");
+
+    return outputStream.getMemoryBlock();
+}
+
+//==============================================================================
+// Multipart form data upload helper
+NetworkClient::RequestResult NetworkClient::uploadMultipartData(
+    const juce::String& endpoint,
+    const juce::String& fieldName,
+    const juce::MemoryBlock& fileData,
+    const juce::String& fileName,
+    const juce::String& mimeType,
+    const std::map<juce::String, juce::String>& extraFields)
+{
+    RequestResult result;
+
+    if (!isAuthenticated())
+    {
+        result.errorMessage = "Not authenticated";
+        result.httpStatus = 401;
+        return result;
+    }
+
+    // Generate unique boundary
+    juce::String boundary = "----SidechainBoundary" + juce::String(juce::Random::getSystemRandom().nextInt64());
+
+    // Build multipart body
+    juce::MemoryOutputStream formData;
+
+    // Add extra text fields first
+    for (const auto& field : extraFields)
+    {
+        formData.writeString("--" + boundary + "\r\n");
+        formData.writeString("Content-Disposition: form-data; name=\"" + field.first + "\"\r\n\r\n");
+        formData.writeString(field.second + "\r\n");
+    }
+
+    // Add file field
+    formData.writeString("--" + boundary + "\r\n");
+    formData.writeString("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n");
+    formData.writeString("Content-Type: " + mimeType + "\r\n\r\n");
+    formData.write(fileData.getData(), fileData.getSize());
+    formData.writeString("\r\n");
+    formData.writeString("--" + boundary + "--\r\n");
+
+    // Create URL
+    juce::URL url(config.baseUrl + endpoint);
+
+    // Build headers
+    juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+    headers += "Authorization: Bearer " + authToken + "\r\n";
+
+    // Create request options with response headers capture
+    juce::StringPairArray responseHeaders;
+    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                       .withExtraHeaders(headers)
+                       .withConnectionTimeoutMs(config.timeoutMs)
+                       .withResponseHeaders(&responseHeaders);
+
+    // Add form data to URL
+    url = url.withPOSTData(formData.getMemoryBlock());
+
+    // Make request
+    activeRequestCount++;
+    auto stream = url.createInputStream(options);
+    activeRequestCount--;
+
+    if (stream == nullptr)
+    {
+        result.errorMessage = "Failed to connect to server";
+        updateConnectionStatus(ConnectionStatus::Disconnected);
+        return result;
+    }
+
+    auto response = stream->readEntireStreamAsString();
+
+    // Extract status code and parse response
+    result.responseHeaders = responseHeaders;
+    result.httpStatus = parseStatusCode(responseHeaders);
+    if (result.httpStatus == 0)
+        result.httpStatus = 200;
+
+    result.data = juce::JSON::parse(response);
+    result.success = result.isSuccess();
+
+    DBG("Multipart upload to " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
+
+    updateConnectionStatus(result.success ? ConnectionStatus::Connected : ConnectionStatus::Disconnected);
+
+    return result;
 }
