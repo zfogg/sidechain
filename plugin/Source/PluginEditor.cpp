@@ -111,13 +111,29 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor (SidechainAudioProc
     recordingComponent = std::make_unique<RecordingComponent>(audioProcessor);
     recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio) {
         DBG("Recording complete: " + juce::String(recordedAudio.getNumSamples()) + " samples");
-        // TODO: Upload the recorded audio
-        // For now, go back to feed
-        showView(AppView::PostsFeed);
+        // Show upload UI with the recorded audio
+        if (uploadComponent)
+        {
+            uploadComponent->setAudioToUpload(recordedAudio, audioProcessor.getCurrentSampleRate());
+            showView(AppView::Upload);
+        }
     };
     recordingComponent->onRecordingDiscarded = [this]() {
         DBG("Recording discarded");
         showView(AppView::PostsFeed);
+    };
+
+    // Create upload component
+    uploadComponent = std::make_unique<UploadComponent>(audioProcessor, *networkClient);
+    uploadComponent->onUploadComplete = [this]() {
+        DBG("Upload complete, returning to feed");
+        uploadComponent->reset();
+        showView(AppView::PostsFeed);
+    };
+    uploadComponent->onCancel = [this]() {
+        DBG("Upload cancelled, returning to recording");
+        uploadComponent->reset();
+        showView(AppView::Recording);
     };
 
     // Load persistent state after components are initialized
@@ -698,6 +714,8 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         removeChildComponent(postsFeedComponent.get());
     if (recordingComponent)
         removeChildComponent(recordingComponent.get());
+    if (uploadComponent)
+        removeChildComponent(uploadComponent.get());
 
     // Hide or show auth UI based on view
     bool showAuthUI = (view == AppView::Authentication);
@@ -750,8 +768,20 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 DBG("RecordingComponent is null!");
             }
             break;
+
+        case AppView::Upload:
+            if (uploadComponent)
+            {
+                addAndMakeVisible(uploadComponent.get());
+                uploadComponent->setBounds(getLocalBounds());
+            }
+            else
+            {
+                DBG("UploadComponent is null!");
+            }
+            break;
     }
-    
+
     repaint();
 }
 
