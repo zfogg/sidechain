@@ -21,11 +21,16 @@
 - CMake build system with AudioPluginHost
 
 ### What's Stubbed/Incomplete
-- Stream.io integration (100% mock data)
-- OAuth callbacks (URLs work, token exchange doesn't)
 - Audio processing job queue
-- NetworkClient HTTP implementation
 - Feed UI data binding
+
+### Recently Completed
+- Plugin NetworkClient HTTP implementation (GET, POST, multipart uploads)
+- HTTP status code extraction and user-friendly error messages
+- Stream.io Feeds V2 API integration (activities, reactions, follows) - switched from V3 beta to stable V2
+- Integration tests for Stream.io client (all 8 tests passing)
+- OAuth with Google/Discord (token exchange, user info, account linking)
+- OAuth token storage for future refresh
 
 ### What's Missing
 - Audio capture from DAW
@@ -48,27 +53,27 @@
 - [x] 1.1.4 Add AudioPluginHost to CMake configuration
 - [x] 1.1.5 Set up `cmake --install` for platform-specific VST3 paths
 - [x] 1.1.6 Create GitHub Actions CI for macOS/Linux/Windows
-- [ ] 1.1.7 Test CI builds on all three platforms
+- [x] 1.1.7 Test CI builds on all three platforms
 - [ ] 1.1.8 Add build badges to README
 
 ### 1.2 Stream.io Integration (Critical Path)
 
 - [x] 1.2.1 Create getstream.io account and obtain API credentials
-- [ ] 1.2.2 Configure getstream.io Feeds V3 (https://getstream.io/activity-feeds/docs/react/)
+- [x] 1.2.2 Configure getstream.io Feeds V2 (V3 is beta, not dashboard-integrated; using stream-go2/v8)
 - [x] 1.2.3 Define feed groups: `user` (personal), `timeline` (following), `global` (all) in getstream dashboard
-- [ ] 1.2.4 Implement `CreateLoopActivity()` with real Stream.io API call
-- [ ] 1.2.5 Implement `GetUserTimeline()` with real Stream.io query
-- [ ] 1.2.6 Implement `GetGlobalFeed()` with pagination
-- [ ] 1.2.7 Implement `FollowUser()` / `UnfollowUser()` operations
-- [ ] 1.2.8 Implement `AddReaction()` for likes and emoji reactions
-- [ ] 1.2.9 Add Stream.io user creation on registration
-- [ ] 1.2.10 Write integration tests for Stream.io client
-- [ ] 1.2.11 Remove all mock data from stream/client.go
+- [x] 1.2.4 Implement `CreateLoopActivity()` with real Stream.io API call (stream/client.go:95-168)
+- [x] 1.2.5 Implement `GetUserTimeline()` with real Stream.io query (stream/client.go:170-198)
+- [x] 1.2.6 Implement `GetGlobalFeed()` with pagination (stream/client.go:200-226)
+- [x] 1.2.7 Implement `FollowUser()` / `UnfollowUser()` operations (stream/client.go:228-264)
+- [x] 1.2.8 Implement `AddReaction()` for likes and emoji reactions (stream/client.go:266-316)
+- [x] 1.2.9 Add Stream.io user creation on registration (auth/oauth.go:231-236)
+- [x] 1.2.10 Write integration tests for Stream.io client
+- [x] 1.2.11 Remove mock data from stream/client.go - replaced with real API calls
 
 ### 1.3 OAuth Completion
 
 - [x] 1.3.1 Register Google OAuth application (console.developers.google.com) (client secret added to backend/.env)
-- [ ] 1.3.2 Register Discord OAuth application (discord.com/developers)
+- [x] 1.3.2 Register Discord OAuth application (discord.com/developers)
 - [x] 1.3.3 Implement `exchangeGoogleCode()` token exchange (oauth.go:187 - uses oauth2.Config.Exchange)
 - [x] 1.3.4 Implement `getGoogleUserInfo()` profile fetch (oauth.go:186-216)
 - [x] 1.3.5 Implement `exchangeDiscordCode()` token exchange (oauth.go:220 - uses oauth2.Config.Exchange)
@@ -79,17 +84,17 @@
 
 ### 1.4 Plugin NetworkClient Implementation
 
-- [ ] 1.4.1 Implement HTTP GET method with JUCE URL class
-- [ ] 1.4.2 Implement HTTP POST method with JSON body
-- [ ] 1.4.3 Implement HTTP POST multipart/form-data for file uploads
-- [ ] 1.4.4 Add Authorization header injection from stored token
-- [ ] 1.4.5 Implement JSON response parsing with juce::var
-- [ ] 1.4.6 Add request timeout handling (30s default)
-- [ ] 1.4.7 Add retry logic for network failures (3 attempts)
-- [ ] 1.4.8 Implement async request queue (background thread)
-- [ ] 1.4.9 Add request cancellation support
-- [ ] 1.4.10 Write connection status indicator (red/yellow/green)
-- [ ] 1.4.11 Make API base URL configurable (dev/prod)
+- [x] 1.4.1 Implement HTTP GET method with JUCE URL class (NetworkClient.cpp:513-628)
+- [x] 1.4.2 Implement HTTP POST method with JSON body (NetworkClient.cpp:545-557)
+- [x] 1.4.3 Implement HTTP POST multipart/form-data for file uploads (NetworkClient.cpp:707-793)
+- [x] 1.4.4 Add Authorization header injection from stored token (NetworkClient.cpp:533-536)
+- [x] 1.4.5 Implement JSON response parsing with juce::var (NetworkClient.cpp:600)
+- [x] 1.4.6 Add request timeout handling (30s default) (NetworkClient.h:38, NetworkClient.cpp:542)
+- [x] 1.4.7 Add retry logic for network failures (3 attempts) (NetworkClient.cpp:523-612)
+- [x] 1.4.8 Implement async request queue (background thread) (juce::Thread::launch throughout)
+- [x] 1.4.9 Add request cancellation support (NetworkClient.cpp:57-68, shuttingDown flag)
+- [x] 1.4.10 Write connection status indicator (red/yellow/green) (ConnectionIndicator.h)
+- [x] 1.4.11 Make API base URL configurable (dev/prod) (NetworkClient.h:42-51 Config struct)
 
 ---
 
