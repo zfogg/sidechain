@@ -9,7 +9,8 @@
 class NetworkClient;
 
 class PostsFeedComponent : public juce::Component,
-                           public juce::ScrollBar::Listener
+                           public juce::ScrollBar::Listener,
+                           public juce::KeyListener
 {
 public:
     PostsFeedComponent();
@@ -19,6 +20,9 @@ public:
     void resized() override;
     void mouseUp(const juce::MouseEvent& event) override;
     void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
+
+    // KeyListener override for keyboard shortcuts
+    bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
 
     // Callback for when user wants to go to profile
     std::function<void()> onGoToProfile;
@@ -103,6 +107,7 @@ private:
     void rebuildPostCards();
     void updatePostCardPositions();
     void setupPostCardCallbacks(PostCardComponent* card);
+    void updateAudioPlayerPlaylist();
 
     // Feed callback handlers
     void onFeedLoaded(const FeedResponse& response);

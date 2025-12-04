@@ -225,9 +225,35 @@ void AudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
         auto* reader = readerSource->getAudioFormatReader();
         if (reader != nullptr && readerSource->getNextReadPosition() >= reader->lengthInSamples)
         {
-            // Schedule stop on message thread
+            // Schedule end-of-playback handling on message thread
             juce::MessageManager::callAsync([this]()
             {
+                juce::String finishedPostId = currentPostId;
+
+                // Notify that playback finished
+                if (onPlaybackFinished)
+                    onPlaybackFinished(finishedPostId);
+
+                // Handle auto-play
+                if (autoPlayEnabled)
+                {
+                    int nextIndex = getCurrentPlaylistIndex() + 1;
+                    const juce::ScopedLock sl(playlistLock);
+                    if (nextIndex >= 0 && nextIndex < playlistPostIds.size())
+                    {
+                        // Play next post
+                        juce::String nextPostId = playlistPostIds[nextIndex];
+                        juce::String nextUrl = playlistAudioUrls[nextIndex];
+
+                        if (onAutoPlayNext)
+                            onAutoPlayNext(nextPostId);
+
+                        loadAndPlay(nextPostId, nextUrl);
+                        return;
+                    }
+                }
+
+                // No auto-play or end of playlist - just stop
                 stop();
             });
         }
@@ -423,6 +449,97 @@ void AudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlock& 
     resamplingSource->prepareToPlay(currentBlockSize, currentSampleRate);
 
     DBG("AudioPlayer: Loaded audio - Duration: " << (reader->lengthInSamples / reader->sampleRate) << "s");
+}
+
+//==============================================================================
+// Playlist and Auto-play
+
+void AudioPlayer::setPlaylist(const juce::StringArray& postIds, const juce::StringArray& audioUrls)
+{
+    const juce::ScopedLock sl(playlistLock);
+    playlistPostIds = postIds;
+    playlistAudioUrls = audioUrls;
+
+    // Pre-buffer next post if we're currently playing
+    if (playing && !currentPostId.isEmpty())
+    {
+        int currentIndex = getCurrentPlaylistIndex();
+        if (currentIndex >= 0 && currentIndex + 1 < playlistPostIds.size())
+        {
+            preloadAudio(playlistPostIds[currentIndex + 1], playlistAudioUrls[currentIndex + 1]);
+        }
+    }
+}
+
+int AudioPlayer::getCurrentPlaylistIndex() const
+{
+    const juce::ScopedLock sl(playlistLock);
+    return playlistPostIds.indexOf(currentPostId);
+}
+
+void AudioPlayer::playNext()
+{
+    int currentIndex = getCurrentPlaylistIndex();
+    const juce::ScopedLock sl(playlistLock);
+
+    if (currentIndex >= 0 && currentIndex + 1 < playlistPostIds.size())
+    {
+        loadAndPlay(playlistPostIds[currentIndex + 1], playlistAudioUrls[currentIndex + 1]);
+    }
+}
+
+void AudioPlayer::playPrevious()
+{
+    // If we're more than 3 seconds in, restart current track
+    if (getPositionSeconds() > 3.0)
+    {
+        seekToPosition(0.0);
+        return;
+    }
+
+    int currentIndex = getCurrentPlaylistIndex();
+    const juce::ScopedLock sl(playlistLock);
+
+    if (currentIndex > 0)
+    {
+        loadAndPlay(playlistPostIds[currentIndex - 1], playlistAudioUrls[currentIndex - 1]);
+    }
+    else
+    {
+        // At start of playlist, just restart
+        seekToPosition(0.0);
+    }
+}
+
+//==============================================================================
+// Audio Focus (DAW awareness)
+
+void AudioPlayer::onDAWTransportStarted()
+{
+    if (!audioFocusEnabled)
+        return;
+
+    if (playing)
+    {
+        wasPlayingBeforeDAW = true;
+        pausedByDAW = true;
+        pause();
+        DBG("AudioPlayer: Paused due to DAW transport start");
+    }
+}
+
+void AudioPlayer::onDAWTransportStopped()
+{
+    if (!audioFocusEnabled)
+        return;
+
+    if (pausedByDAW && wasPlayingBeforeDAW)
+    {
+        pausedByDAW = false;
+        wasPlayingBeforeDAW = false;
+        play();
+        DBG("AudioPlayer: Resumed after DAW transport stop");
+    }
 }
 
 //==============================================================================

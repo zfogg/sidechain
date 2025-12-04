@@ -108,6 +108,7 @@ private:
     // DAW transport info (updated on audio thread, read from UI thread)
     std::atomic<double> currentBPM { 0.0 };
     std::atomic<bool> bpmAvailable { false };
+    std::atomic<bool> dawTransportPlaying { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SidechainAudioProcessor)
 };

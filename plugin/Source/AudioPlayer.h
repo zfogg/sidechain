@@ -105,6 +105,44 @@ public:
     bool isMuted() const { return muted; }
 
     //==============================================================================
+    // Auto-play and Queue Management
+
+    /** Enable/disable auto-play next post when current finishes */
+    void setAutoPlayEnabled(bool enabled) { autoPlayEnabled = enabled; }
+    bool isAutoPlayEnabled() const { return autoPlayEnabled; }
+
+    /** Set the playlist of posts for auto-play and pre-buffering */
+    void setPlaylist(const juce::StringArray& postIds, const juce::StringArray& audioUrls);
+
+    /** Get index of current post in playlist (-1 if not in playlist) */
+    int getCurrentPlaylistIndex() const;
+
+    /** Skip to next post in playlist */
+    void playNext();
+
+    /** Skip to previous post in playlist */
+    void playPrevious();
+
+    //==============================================================================
+    // Audio Focus (DAW awareness)
+
+    /**
+     * Notify that DAW transport is playing
+     * If audio focus is enabled, this will pause feed playback
+     */
+    void onDAWTransportStarted();
+
+    /**
+     * Notify that DAW transport has stopped
+     * If audio focus is enabled and we were playing before, resume playback
+     */
+    void onDAWTransportStopped();
+
+    /** Enable/disable audio focus (pause when DAW plays) */
+    void setAudioFocusEnabled(bool enabled) { audioFocusEnabled = enabled; }
+    bool isAudioFocusEnabled() const { return audioFocusEnabled; }
+
+    //==============================================================================
     // Audio Processing (called from PluginProcessor::processBlock)
 
     /**
@@ -150,6 +188,12 @@ public:
     /** Called periodically with playback progress */
     std::function<void(const juce::String& postId, double progress)> onProgressUpdate;
 
+    /** Called when playback finishes (reached end of audio) - for auto-play */
+    std::function<void(const juce::String& postId)> onPlaybackFinished;
+
+    /** Called when auto-play moves to next post */
+    std::function<void(const juce::String& postId)> onAutoPlayNext;
+
     //==============================================================================
     // Cache Management
 
@@ -181,6 +225,17 @@ private:
     std::atomic<bool> loading { false };
     std::atomic<bool> muted { false };
     std::atomic<float> volume { 0.8f };
+
+    // Auto-play state
+    std::atomic<bool> autoPlayEnabled { true };
+    juce::StringArray playlistPostIds;
+    juce::StringArray playlistAudioUrls;
+    juce::CriticalSection playlistLock;
+
+    // Audio focus state (pause when DAW plays)
+    std::atomic<bool> audioFocusEnabled { true };
+    std::atomic<bool> pausedByDAW { false };
+    std::atomic<bool> wasPlayingBeforeDAW { false };
 
     // Current playback info
     juce::String currentPostId;
