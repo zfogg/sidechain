@@ -251,16 +251,36 @@ if(APPLE)
 endif()
 
 # Installation paths for plugins (platform-specific defaults)
-# These are the standard VST3/AU installation directories
+# These are the SYSTEM-WIDE VST3/AU installation directories (for sudo cmake --install)
+# For user-local installs, override with: cmake -DVST3_INSTALL_DIR=~/.vst3 ...
 if(APPLE)
-    set(VST3_INSTALL_DIR "$ENV{HOME}/Library/Audio/Plug-Ins/VST3" CACHE PATH "VST3 install directory")
-    set(AU_INSTALL_DIR "$ENV{HOME}/Library/Audio/Plug-Ins/Components" CACHE PATH "AU install directory")
+    # System-wide: /Library/Audio/Plug-Ins/VST3
+    # User-local: ~/Library/Audio/Plug-Ins/VST3
+    set(VST3_INSTALL_DIR "/Library/Audio/Plug-Ins/VST3" CACHE PATH "VST3 install directory")
+    set(AU_INSTALL_DIR "/Library/Audio/Plug-Ins/Components" CACHE PATH "AU install directory")
 elseif(WIN32)
-    # Use forward slashes for CMake compatibility
+    # System-wide: C:\Program Files\Common Files\VST3
+    # Use COMMONPROGRAMFILES env var which resolves to the correct path
     set(VST3_INSTALL_DIR "$ENV{COMMONPROGRAMFILES}/VST3" CACHE PATH "VST3 install directory")
 else()
-    set(VST3_INSTALL_DIR "$ENV{HOME}/.vst3" CACHE PATH "VST3 install directory")
+    # Linux system-wide: /usr/lib/vst3 or /usr/local/lib/vst3
+    # User-local: ~/.vst3
+    set(VST3_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib/vst3" CACHE PATH "VST3 install directory")
 endif()
+
+# Print install path information
+message(STATUS "")
+message(STATUS "========================================")
+message(STATUS "  Plugin Installation Paths")
+message(STATUS "========================================")
+message(STATUS "  VST3: ${VST3_INSTALL_DIR}")
+if(APPLE)
+    message(STATUS "  AU:   ${AU_INSTALL_DIR}")
+endif()
+message(STATUS "")
+message(STATUS "  To install: sudo cmake --install build/<preset>")
+message(STATUS "  To override: cmake -DVST3_INSTALL_DIR=/path/to/vst3 ...")
+message(STATUS "========================================")
 
 # Install VST3 plugin using cmake --install
 # Use the JUCE artefacts output directory structure
