@@ -105,12 +105,26 @@ func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 
 // GoogleCallback handles Google OAuth callback
 func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
+	// Check for OAuth provider errors (user denied access, etc.)
+	if oauthErr := c.Query("error"); oauthErr != "" {
+		errorDesc := c.Query("error_description")
+		if errorDesc == "" {
+			errorDesc = getOAuthErrorMessage(oauthErr)
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "oauth_denied",
+			"message": errorDesc,
+			"code":    oauthErr,
+		})
+		return
+	}
+
 	// Verify state parameter
 	storedState, err := c.Cookie("oauth_state")
 	if err != nil || storedState != c.Query("state") {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "invalid_state",
-			"message": "Invalid OAuth state",
+			"message": "OAuth session expired or invalid. Please try again.",
 		})
 		return
 	}
@@ -119,16 +133,18 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 	if code == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "missing_code",
-			"message": "Authorization code not provided",
+			"message": "Authorization code not provided by Google",
 		})
 		return
 	}
 
 	authResp, err := h.authService.HandleGoogleCallback(code)
 	if err != nil {
+		// Provide more specific error messages based on error type
+		errorCode, errorMsg := parseOAuthError(err, "Google")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "oauth_failed",
-			"message": "Google authentication failed",
+			"error":   errorCode,
+			"message": errorMsg,
 		})
 		return
 	}
@@ -154,12 +170,26 @@ func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 
 // DiscordCallback handles Discord OAuth callback
 func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
+	// Check for OAuth provider errors (user denied access, etc.)
+	if oauthErr := c.Query("error"); oauthErr != "" {
+		errorDesc := c.Query("error_description")
+		if errorDesc == "" {
+			errorDesc = getOAuthErrorMessage(oauthErr)
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "oauth_denied",
+			"message": errorDesc,
+			"code":    oauthErr,
+		})
+		return
+	}
+
 	// Verify state parameter
 	storedState, err := c.Cookie("oauth_state")
 	if err != nil || storedState != c.Query("state") {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "invalid_state",
-			"message": "Invalid OAuth state",
+			"message": "OAuth session expired or invalid. Please try again.",
 		})
 		return
 	}
@@ -168,16 +198,18 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 	if code == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "missing_code",
-			"message": "Authorization code not provided",
+			"message": "Authorization code not provided by Discord",
 		})
 		return
 	}
 
 	authResp, err := h.authService.HandleDiscordCallback(code)
 	if err != nil {
+		// Provide more specific error messages based on error type
+		errorCode, errorMsg := parseOAuthError(err, "Discord")
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "oauth_failed",
-			"message": "Discord authentication failed",
+			"error":   errorCode,
+			"message": errorMsg,
 		})
 		return
 	}
@@ -189,6 +221,50 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		"message": "Discord authentication successful",
 		"auth":    authResp,
 	})
+}
+
+// getOAuthErrorMessage returns a user-friendly message for OAuth error codes
+func getOAuthErrorMessage(errorCode string) string {
+	switch errorCode {
+	case "access_denied":
+		return "You declined to authorize the application. No account was created."
+	case "invalid_request":
+		return "The authorization request was invalid. Please try again."
+	case "unauthorized_client":
+		return "This application is not authorized. Please contact support."
+	case "unsupported_response_type":
+		return "Authorization server configuration error. Please contact support."
+	case "invalid_scope":
+		return "The requested permissions are not valid. Please contact support."
+	case "server_error":
+		return "The authorization server encountered an error. Please try again later."
+	case "temporarily_unavailable":
+		return "The authorization server is temporarily unavailable. Please try again later."
+	default:
+		return "Authentication was cancelled or failed. Please try again."
+	}
+}
+
+// parseOAuthError extracts meaningful error information from OAuth errors
+func parseOAuthError(err error, provider string) (string, string) {
+	errStr := err.Error()
+
+	// Check for common error patterns
+	if strings.Contains(errStr, "failed to exchange code") {
+		return "token_exchange_failed", provider + " authorization code is invalid or expired. Please try signing in again."
+	}
+	if strings.Contains(errStr, "failed to get user info") {
+		return "user_info_failed", "Could not retrieve your " + provider + " profile. Please try again."
+	}
+	if strings.Contains(errStr, "database error") {
+		return "database_error", "A database error occurred. Please try again later."
+	}
+	if strings.Contains(errStr, "email") && strings.Contains(errStr, "required") {
+		return "email_required", "Your " + provider + " account does not have an email address. Please use a different sign-in method."
+	}
+
+	// Default error
+	return "oauth_failed", provider + " authentication failed. Please try again."
 }
 
 // Me returns current user information

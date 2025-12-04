@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
@@ -22,10 +23,13 @@ var _ oauth2.Config
 
 // OAuthUserInfo represents user info from OAuth providers
 type OAuthUserInfo struct {
-	ID        string `json:"id"`
-	Email     string `json:"email"`
-	Name      string `json:"name"`
-	AvatarURL string `json:"avatar_url"`
+	ID           string     `json:"id"`
+	Email        string     `json:"email"`
+	Name         string     `json:"name"`
+	AvatarURL    string     `json:"avatar_url"`
+	AccessToken  string     `json:"-"` // OAuth access token for API calls
+	RefreshToken string     `json:"-"` // OAuth refresh token for token renewal
+	TokenExpiry  *time.Time `json:"-"` // When the access token expires
 }
 
 // GoogleUserInfo represents Google OAuth user response
@@ -77,7 +81,8 @@ func (s *Service) findOrCreateUserFromOAuth(provider string, userInfo *OAuthUser
 		Preload("User").First(&existingOAuth).Error
 
 	if err == nil {
-		// OAuth account already linked - return existing user
+		// OAuth account already linked - update tokens and return existing user
+		s.updateOAuthTokens(&existingOAuth, userInfo)
 		return s.generateAuthResponse(&existingOAuth.User)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("database error checking OAuth: %w", err)
@@ -96,8 +101,39 @@ func (s *Service) findOrCreateUserFromOAuth(provider string, userInfo *OAuthUser
 	return s.createUserWithOAuth(provider, userInfo)
 }
 
+// updateOAuthTokens updates stored OAuth tokens when user re-authenticates
+func (s *Service) updateOAuthTokens(oauthProvider *models.OAuthProvider, userInfo *OAuthUserInfo) {
+	// Only update if we have new tokens
+	if userInfo.AccessToken != "" {
+		oauthProvider.AccessToken = &userInfo.AccessToken
+	}
+	if userInfo.RefreshToken != "" {
+		oauthProvider.RefreshToken = &userInfo.RefreshToken
+	}
+	if userInfo.TokenExpiry != nil {
+		oauthProvider.TokenExpiry = userInfo.TokenExpiry
+	}
+
+	// Update avatar if changed
+	if userInfo.AvatarURL != "" && userInfo.AvatarURL != oauthProvider.AvatarURL {
+		oauthProvider.AvatarURL = userInfo.AvatarURL
+	}
+
+	// Save updates (fire and forget - don't fail login if token update fails)
+	database.DB.Save(oauthProvider)
+}
+
 // linkOAuthToExistingUser links OAuth provider to existing user account
 func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, userInfo *OAuthUserInfo) (*AuthResponse, error) {
+	// Store tokens if provided
+	var accessToken, refreshToken *string
+	if userInfo.AccessToken != "" {
+		accessToken = &userInfo.AccessToken
+	}
+	if userInfo.RefreshToken != "" {
+		refreshToken = &userInfo.RefreshToken
+	}
+
 	oauthProvider := models.OAuthProvider{
 		ID:             uuid.New().String(),
 		UserID:         user.ID,
@@ -106,6 +142,9 @@ func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, us
 		Email:          userInfo.Email,
 		Name:           userInfo.Name,
 		AvatarURL:      userInfo.AvatarURL,
+		AccessToken:    accessToken,
+		RefreshToken:   refreshToken,
+		TokenExpiry:    userInfo.TokenExpiry,
 	}
 
 	err := database.DB.Create(&oauthProvider).Error
@@ -151,6 +190,15 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 		user.DiscordID = &userInfo.ID
 	}
 
+	// Store tokens if provided
+	var accessToken, refreshToken *string
+	if userInfo.AccessToken != "" {
+		accessToken = &userInfo.AccessToken
+	}
+	if userInfo.RefreshToken != "" {
+		refreshToken = &userInfo.RefreshToken
+	}
+
 	// Create user in transaction
 	err = database.DB.Transaction(func(tx *gorm.DB) error {
 		// Create user
@@ -158,7 +206,7 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 			return err
 		}
 
-		// Create OAuth provider link
+		// Create OAuth provider link with tokens
 		oauthProvider := models.OAuthProvider{
 			ID:             uuid.New().String(),
 			UserID:         user.ID,
@@ -167,6 +215,9 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 			Email:          userInfo.Email,
 			Name:           userInfo.Name,
 			AvatarURL:      userInfo.AvatarURL,
+			AccessToken:    accessToken,
+			RefreshToken:   refreshToken,
+			TokenExpiry:    userInfo.TokenExpiry,
 		}
 
 		return tx.Create(&oauthProvider).Error
@@ -176,8 +227,13 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 		return nil, fmt.Errorf("failed to create user with OAuth: %w", err)
 	}
 
-	// TODO: Create Stream.io user
-	// streamClient.CreateUser(user.StreamUserID, user.Username)
+	// Create Stream.io user for social features (feeds + chat)
+	if s.streamClient != nil {
+		if err := s.streamClient.CreateUser(user.StreamUserID, user.Username); err != nil {
+			// Log but don't fail registration - Stream.io user can be created later
+			fmt.Printf("Warning: failed to create Stream.io user: %v\n", err)
+		}
+	}
 
 	return s.generateAuthResponse(&user)
 }
@@ -207,11 +263,20 @@ func (s *Service) getGoogleUserInfo(code string) (*OAuthUserInfo, error) {
 		return nil, fmt.Errorf("failed to parse user info: %w", err)
 	}
 
+	// Extract token expiry time
+	var tokenExpiry *time.Time
+	if !token.Expiry.IsZero() {
+		tokenExpiry = &token.Expiry
+	}
+
 	return &OAuthUserInfo{
-		ID:        googleUser.Sub,
-		Email:     googleUser.Email,
-		Name:      googleUser.Name,
-		AvatarURL: googleUser.Picture,
+		ID:           googleUser.Sub,
+		Email:        googleUser.Email,
+		Name:         googleUser.Name,
+		AvatarURL:    googleUser.Picture,
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		TokenExpiry:  tokenExpiry,
 	}, nil
 }
 
@@ -245,11 +310,20 @@ func (s *Service) getDiscordUserInfo(code string) (*OAuthUserInfo, error) {
 		avatarURL = fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.png", discordUser.ID, discordUser.Avatar)
 	}
 
+	// Extract token expiry time
+	var tokenExpiry *time.Time
+	if !token.Expiry.IsZero() {
+		tokenExpiry = &token.Expiry
+	}
+
 	return &OAuthUserInfo{
-		ID:        discordUser.ID,
-		Email:     discordUser.Email,
-		Name:      discordUser.Username,
-		AvatarURL: avatarURL,
+		ID:           discordUser.ID,
+		Email:        discordUser.Email,
+		Name:         discordUser.Username,
+		AvatarURL:    avatarURL,
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		TokenExpiry:  tokenExpiry,
 	}, nil
 }
 

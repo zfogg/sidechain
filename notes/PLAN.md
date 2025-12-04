@@ -54,8 +54,8 @@
 ### 1.2 Stream.io Integration (Critical Path)
 
 - [x] 1.2.1 Create getstream.io account and obtain API credentials
-- [ ] 1.2.2 Configure getstream.io Feeds V3 in dashboard
-- [ ] 1.2.3 Define feed groups: `user` (personal), `timeline` (following), `global` (all)
+- [ ] 1.2.2 Configure getstream.io Feeds V3 (https://getstream.io/activity-feeds/docs/react/)
+- [x] 1.2.3 Define feed groups: `user` (personal), `timeline` (following), `global` (all) in getstream dashboard
 - [ ] 1.2.4 Implement `CreateLoopActivity()` with real Stream.io API call
 - [ ] 1.2.5 Implement `GetUserTimeline()` with real Stream.io query
 - [ ] 1.2.6 Implement `GetGlobalFeed()` with pagination
@@ -67,15 +67,15 @@
 
 ### 1.3 OAuth Completion
 
-- [ ] 1.3.1 Register Google OAuth application (console.developers.google.com)
+- [x] 1.3.1 Register Google OAuth application (console.developers.google.com) (client secret added to backend/.env)
 - [ ] 1.3.2 Register Discord OAuth application (discord.com/developers)
-- [ ] 1.3.3 Implement `exchangeGoogleCode()` token exchange
-- [ ] 1.3.4 Implement `getGoogleUserInfo()` profile fetch
-- [ ] 1.3.5 Implement `exchangeDiscordCode()` token exchange
-- [ ] 1.3.6 Implement `getDiscordUserInfo()` profile fetch
+- [x] 1.3.3 Implement `exchangeGoogleCode()` token exchange (oauth.go:187 - uses oauth2.Config.Exchange)
+- [x] 1.3.4 Implement `getGoogleUserInfo()` profile fetch (oauth.go:186-216)
+- [x] 1.3.5 Implement `exchangeDiscordCode()` token exchange (oauth.go:220 - uses oauth2.Config.Exchange)
+- [x] 1.3.6 Implement `getDiscordUserInfo()` profile fetch (oauth.go:218-254)
 - [ ] 1.3.7 Test account unification (OAuth + native same email)
-- [ ] 1.3.8 Add OAuth error handling and user feedback
-- [ ] 1.3.9 Store OAuth tokens for future refresh
+- [x] 1.3.8 Add OAuth error handling and user feedback (handlers/auth.go:226-268 - getOAuthErrorMessage, parseOAuthError)
+- [x] 1.3.9 Store OAuth tokens for future refresh (oauth.go:104-124 - updateOAuthTokens)
 
 ### 1.4 Plugin NetworkClient Implementation
 
