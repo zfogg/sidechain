@@ -227,6 +227,8 @@ target_sources(Sidechain
         Source/FeedDataManager.h
         Source/PostCardComponent.cpp
         Source/PostCardComponent.h
+        Source/AuthComponent.cpp
+        Source/AuthComponent.h
 )
 
 # Preprocessor definitions
