@@ -1,8 +1,13 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "FeedDataManager.h"
+#include "FeedPost.h"
 
-class PostsFeedComponent : public juce::Component
+class NetworkClient;
+
+class PostsFeedComponent : public juce::Component,
+                           public juce::ScrollBar::Listener
 {
 public:
     PostsFeedComponent();
@@ -11,6 +16,7 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
     void mouseUp(const juce::MouseEvent& event) override;
+    void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
 
     // Callback for when user wants to go to profile
     std::function<void()> onGoToProfile;
@@ -24,15 +30,81 @@ public:
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& profilePicUrl);
 
+    // Network client integration
+    void setNetworkClient(NetworkClient* client);
+
+    // Feed control
+    void loadFeed();
+    void refreshFeed();
+    void switchFeedType(FeedDataManager::FeedType type);
+
+    // ScrollBar::Listener
+    void scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart) override;
+
 private:
+    //==============================================================================
+    // Feed state
+    enum class FeedState
+    {
+        Loading,    // Initial loading or refreshing
+        Loaded,     // Successfully loaded with posts
+        Empty,      // Loaded but no posts
+        Error       // Error occurred
+    };
+
+    FeedState feedState = FeedState::Loading;
+    juce::String errorMessage;
+    juce::Array<FeedPost> posts;
+    FeedDataManager feedDataManager;
+    FeedDataManager::FeedType currentFeedType = FeedDataManager::FeedType::Timeline;
+
+    // Scroll state
+    double scrollPosition = 0.0;
+    int totalContentHeight = 0;
+    static constexpr int POST_CARD_HEIGHT = 120;
+    static constexpr int POST_CARD_SPACING = 10;
+
+    //==============================================================================
+    // User info
     juce::String username;
     juce::String email;
     juce::String profilePicUrl;
-    
+
+    //==============================================================================
+    // UI Components
+    juce::ScrollBar scrollBar { true }; // vertical
+
+    //==============================================================================
+    // UI layout constants
+    static constexpr int TOP_BAR_HEIGHT = 70;
+    static constexpr int FEED_TABS_HEIGHT = 50;
+
+    //==============================================================================
     // UI helper methods
     void drawTopBar(juce::Graphics& g);
+    void drawFeedTabs(juce::Graphics& g);
+    void drawLoadingState(juce::Graphics& g);
     void drawEmptyState(juce::Graphics& g);
+    void drawErrorState(juce::Graphics& g);
+    void drawFeedPosts(juce::Graphics& g);
+    void drawPostCard(juce::Graphics& g, const FeedPost& post, juce::Rectangle<int> bounds);
     void drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds, bool small = false);
-    
+
+    // Feed callback handlers
+    void onFeedLoaded(const FeedResponse& response);
+    void onFeedError(const juce::String& error);
+
+    // Infinite scroll
+    void checkLoadMore();
+    void updateScrollBounds();
+
+    // Hit testing
+    juce::Rectangle<int> getTimelineTabBounds() const;
+    juce::Rectangle<int> getGlobalTabBounds() const;
+    juce::Rectangle<int> getRefreshButtonBounds() const;
+    juce::Rectangle<int> getRetryButtonBounds() const;
+    juce::Rectangle<int> getRecordButtonBounds() const;
+    juce::Rectangle<int> getFeedContentBounds() const;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostsFeedComponent)
 };

@@ -249,6 +249,8 @@ jobs:
       - name: Run Tests
         run: |
           cd plugin/build
+          # Create test-results directory for Catch2 JUnit output
+          mkdir -p test-results
           ctest --output-on-failure -C Debug --output-junit test-results.xml
 
       - name: Generate Coverage Report
