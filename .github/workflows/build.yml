@@ -255,7 +255,8 @@ jobs:
 
       - name: Generate Coverage Report
         run: |
-          lcov --capture --directory plugin/build --output-file plugin/build/coverage.info --ignore-errors mismatch
+          lcov --capture --directory plugin/build --output-file plugin/build/coverage.info \
+            --ignore-errors mismatch,source,gcov
           lcov --remove plugin/build/coverage.info \
             '/usr/*' \
             '*/deps/*' \
