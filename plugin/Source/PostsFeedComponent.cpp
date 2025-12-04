@@ -34,6 +34,7 @@ void PostsFeedComponent::setUserInfo(const juce::String& user, const juce::Strin
 
 void PostsFeedComponent::setNetworkClient(NetworkClient* client)
 {
+    networkClient = client;
     feedDataManager.setNetworkClient(client);
 }
 
@@ -62,6 +63,29 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
             for (auto* card : postCards)
             {
                 card->setPlaying(card->getPostId() == postId);
+            }
+
+            // Track the play in the backend
+            if (networkClient != nullptr)
+            {
+                networkClient->trackPlay(postId, [this, postId](bool success, const juce::var& response) {
+                    if (success)
+                    {
+                        // Update play count in UI if returned in response
+                        int newPlayCount = static_cast<int>(response.getProperty("play_count", -1));
+                        if (newPlayCount >= 0)
+                        {
+                            for (auto* card : postCards)
+                            {
+                                if (card->getPostId() == postId)
+                                {
+                                    card->updatePlayCount(newPlayCount);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
             }
         };
 

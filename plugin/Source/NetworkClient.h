@@ -102,7 +102,7 @@ public:
     void getTimelineFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
     void likePost(const juce::String& activityId, const juce::String& emoji = "");
     void followUser(const juce::String& userId);
-    
+
     // Profile operations
     void uploadProfilePicture(const juce::File& imageFile, ProfilePictureCallback callback = nullptr);
 
@@ -114,6 +114,9 @@ public:
     void post(const juce::String& endpoint, const juce::var& data, ResponseCallback callback);
     void put(const juce::String& endpoint, const juce::var& data, ResponseCallback callback);
     void del(const juce::String& endpoint, ResponseCallback callback);
+
+    // Play tracking (must be after ResponseCallback typedef)
+    void trackPlay(const juce::String& activityId, ResponseCallback callback = nullptr);
 
     // Authentication state
     void setAuthToken(const juce::String& token);

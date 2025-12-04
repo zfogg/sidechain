@@ -515,6 +515,31 @@ void NetworkClient::followUser(const juce::String& userId)
     });
 }
 
+void NetworkClient::trackPlay(const juce::String& activityId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(false, juce::var());
+        return;
+    }
+
+    juce::Thread::launch([this, activityId, callback]() {
+        juce::var data = juce::var(new juce::DynamicObject());
+        data.getDynamicObject()->setProperty("activity_id", activityId);
+
+        auto result = makeRequestWithRetry("/api/v1/social/play", "POST", data, true);
+        DBG("Track play response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                callback(result.isSuccess(), result.data);
+            });
+        }
+    });
+}
+
 //==============================================================================
 void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePictureCallback callback)
 {
