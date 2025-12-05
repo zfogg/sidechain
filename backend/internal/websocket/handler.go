@@ -313,7 +313,7 @@ func (h *Handler) RegisterDefaultHandlers() {
 		presence.UserID = client.UserID
 		presence.Timestamp = time.Now().UnixMilli()
 
-		// Broadcast presence to followers (simplified - in production, get followers from Stream.io)
+		// Broadcast presence to followers (simplified - in production, get followers from getstream.io)
 		h.hub.Broadcast(NewMessage(MessageTypePresence, presence))
 		return nil
 	})

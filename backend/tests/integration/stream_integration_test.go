@@ -14,25 +14,25 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/stream"
 )
 
-// skipIfNoCredentials skips the test if Stream.io credentials are not available
+// skipIfNoCredentials skips the test if getstream.io credentials are not available
 func skipIfNoCredentials(t *testing.T) {
 	if os.Getenv("STREAM_API_KEY") == "" || os.Getenv("STREAM_API_SECRET") == "" {
 		t.Skip("STREAM_API_KEY and STREAM_API_SECRET not set, skipping integration test")
 	}
 }
 
-// TestStreamClientInitialization tests that Stream.io client initializes correctly
+// TestStreamClientInitialization tests that getstream.io client initializes correctly
 func TestStreamClientInitialization(t *testing.T) {
 	skipIfNoCredentials(t)
 
 	client, err := stream.NewClient()
-	require.NoError(t, err, "Should create Stream.io client with valid credentials")
+	require.NoError(t, err, "Should create getstream.io client with valid credentials")
 	require.NotNil(t, client, "Client should not be nil")
 	require.NotNil(t, client.FeedsClient(), "FeedsClient should not be nil")
 	require.NotNil(t, client.ChatClient, "ChatClient should not be nil")
 }
 
-// TestStreamUserCreation tests creating a user in Stream.io Chat
+// TestStreamUserCreation tests creating a user in getstream.io Chat
 func TestStreamUserCreation(t *testing.T) {
 	skipIfNoCredentials(t)
 
@@ -44,7 +44,7 @@ func TestStreamUserCreation(t *testing.T) {
 	testUsername := "TestProducer_" + uuid.New().String()[:4]
 
 	err = client.CreateUser(testUserID, testUsername)
-	require.NoError(t, err, "Should create Stream.io user")
+	require.NoError(t, err, "Should create getstream.io user")
 
 	// Creating the same user again should not error (upsert behavior)
 	err = client.CreateUser(testUserID, testUsername)
@@ -65,7 +65,7 @@ func TestStreamTokenCreation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate token
-	token, err := client.CreateToken(testUserID)
+	token, err := client.CreateToken(testUserID, time.Time{}) // No expiration for test
 	require.NoError(t, err, "Should create token for user")
 	require.NotEmpty(t, token, "Token should not be empty")
 
@@ -115,7 +115,7 @@ func TestStreamFollowUnfollow(t *testing.T) {
 	err = client.FollowUser(user1, user2)
 	require.NoError(t, err, "Should follow user")
 
-	// Give Stream.io time to process
+	// Give getstream.io time to process
 	time.Sleep(500 * time.Millisecond)
 
 	// Test unfollow
@@ -235,7 +235,7 @@ func TestStreamEndToEndWorkflow(t *testing.T) {
 	}
 
 	// Step 4: Fetch follower's timeline (should eventually contain producer's activity)
-	// Note: Stream.io has eventual consistency, so this might not immediately show
+	// Note: getstream.io has eventual consistency, so this might not immediately show
 	activities, err := client.GetUserTimeline(followerID, 10, 0)
 	require.NoError(t, err)
 	require.NotNil(t, activities)

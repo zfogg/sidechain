@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	stream "github.com/GetStream/stream-go2/v8"
 	chat "github.com/GetStream/stream-chat-go/v5"
+	stream "github.com/GetStream/stream-go2/v8"
 )
 
-// Feed group names configured in Stream.io dashboard
+// Feed group names configured in getstream.io dashboard
 const (
 	// Flat feeds (chronological)
 	FeedGroupUser     = "user"     // Personal feed - user's own posts
@@ -36,7 +36,7 @@ const (
 	NotifVerbRepost  = "repost"  // Someone reposted your loop
 )
 
-// Client wraps the Stream.io clients with Sidechain-specific functionality
+// Client wraps the getstream.io clients with Sidechain-specific functionality
 type Client struct {
 	feedsClient *stream.Client
 	ChatClient  *chat.Client
@@ -60,7 +60,7 @@ type Activity struct {
 	Extra        map[string]interface{} `json:"extra,omitempty"`
 }
 
-// NewClient creates a new Stream.io client for Sidechain
+// NewClient creates a new getstream.io client for Sidechain
 func NewClient() (*Client, error) {
 	apiKey := os.Getenv("STREAM_API_KEY")
 	apiSecret := os.Getenv("STREAM_API_SECRET")
@@ -69,16 +69,16 @@ func NewClient() (*Client, error) {
 		return nil, fmt.Errorf("STREAM_API_KEY and STREAM_API_SECRET must be set")
 	}
 
-	// Initialize Stream.io Feeds V2 client
+	// Initialize getstream.io Feeds V2 client
 	feedsClient, err := stream.New(apiKey, apiSecret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Stream.io Feeds client: %w", err)
+		return nil, fmt.Errorf("failed to create getstream.io Feeds client: %w", err)
 	}
 
 	// Initialize Chat client (separate SDK for chat features)
 	chatClient, err := chat.NewClient(apiKey, apiSecret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Stream.io Chat client: %w", err)
+		return nil, fmt.Errorf("failed to create getstream.io Chat client: %w", err)
 	}
 
 	return &Client{
@@ -92,7 +92,7 @@ func (c *Client) FeedsClient() *stream.Client {
 	return c.feedsClient
 }
 
-// CreateUser creates a Stream.io user for both feeds and chat
+// CreateUser creates a getstream.io user for both feeds and chat
 func (c *Client) CreateUser(userID, username string) error {
 	ctx := context.Background()
 
@@ -192,7 +192,7 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	// Add activity to user's feed (will also propagate to all "to" feeds)
 	resp, err := userFeed.AddActivity(ctx, streamActivity)
 	if err != nil {
-		return fmt.Errorf("failed to create Stream.io activity: %w", err)
+		return fmt.Errorf("failed to create getstream.io activity: %w", err)
 	}
 
 	// Update activity with returned ID and time
@@ -201,7 +201,7 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 		activity.Time = resp.Time.Format(time.RFC3339)
 	}
 
-	fmt.Printf("📝 Stream.io Activity Created: user:%s posted loop (ID: %s) with BPM:%d, Key:%s → fanned out to %d feeds\n",
+	fmt.Printf("📝 getstream.io Activity Created: user:%s posted loop (ID: %s) with BPM:%d, Key:%s → fanned out to %d feeds\n",
 		userID, activity.ID, activity.BPM, activity.Key, len(toFeeds)+1)
 
 	return nil
@@ -226,7 +226,7 @@ func (c *Client) GetUserTimeline(userID string, limit int, offset int) ([]*Activ
 		return nil, fmt.Errorf("failed to query timeline: %w", err)
 	}
 
-	// Convert Stream.io activities to our Activity type
+	// Convert getstream.io activities to our Activity type
 	activities := make([]*Activity, 0, len(resp.Results))
 	for _, act := range resp.Results {
 		activity := convertStreamActivity(&act)
@@ -256,7 +256,7 @@ func (c *Client) GetGlobalFeed(limit int, offset int) ([]*Activity, error) {
 		return nil, fmt.Errorf("failed to query global feed: %w", err)
 	}
 
-	// Convert Stream.io activities to our Activity type
+	// Convert getstream.io activities to our Activity type
 	activities := make([]*Activity, 0, len(resp.Results))
 	for _, act := range resp.Results {
 		activity := convertStreamActivity(&act)
@@ -428,7 +428,7 @@ type FollowStats struct {
 	FollowingCount int `json:"following_count"`
 }
 
-// followStatsJSON is used to extract counts from Stream.io's FollowStatResponse via JSON
+// followStatsJSON is used to extract counts from getstream.io's FollowStatResponse via JSON
 type followStatsJSON struct {
 	Results struct {
 		Followers struct {
@@ -585,17 +585,17 @@ func (c *Client) CheckIsFollowing(userID, targetUserID string) (bool, error) {
 // EnrichedActivity extends Activity with reaction data
 type EnrichedActivity struct {
 	*Activity
-	ReactionCounts map[string]int    `json:"reaction_counts"`
-	OwnReactions   map[string][]string `json:"own_reactions"` // kind -> reaction IDs
+	ReactionCounts  map[string]int        `json:"reaction_counts"`
+	OwnReactions    map[string][]string   `json:"own_reactions"` // kind -> reaction IDs
 	LatestReactions map[string][]Reaction `json:"latest_reactions"`
 }
 
 // Reaction represents a reaction to an activity
 type Reaction struct {
-	ID        string `json:"id"`
-	Kind      string `json:"kind"`
-	UserID    string `json:"user_id"`
-	CreatedAt string `json:"created_at"`
+	ID        string         `json:"id"`
+	Kind      string         `json:"kind"`
+	UserID    string         `json:"user_id"`
+	CreatedAt string         `json:"created_at"`
 	Data      map[string]any `json:"data,omitempty"`
 }
 
@@ -769,8 +769,9 @@ func convertEnrichedActivities(acts []stream.Activity) []*EnrichedActivity {
 }
 
 // CreateToken creates a JWT token for user authentication
-func (c *Client) CreateToken(userID string) (string, error) {
-	token, err := c.ChatClient.CreateToken(userID, time.Time{})
+// If expiration is zero time, token never expires
+func (c *Client) CreateToken(userID string, expiration time.Time) (string, error) {
+	token, err := c.ChatClient.CreateToken(userID, expiration)
 	if err != nil {
 		return "", fmt.Errorf("failed to create token: %w", err)
 	}
@@ -781,8 +782,10 @@ func (c *Client) CreateToken(userID string) (string, error) {
 // NOTIFICATION FEED TYPES AND METHODS
 // =============================================================================
 
-// NotificationGroup represents a grouped notification from Stream.io
-// Stream.io notification feeds automatically group activities based on the
+// NotificationGroup represents a grouped notification from getstream.io
+//
+//	getstream.io notification feeds automatically group activities based on the
+//
 // aggregation_format configured in the dashboard (e.g., "{{ verb }}_{{ time.strftime('%Y-%m-%d') }}")
 type NotificationGroup struct {
 	ID            string      `json:"id"`
@@ -867,7 +870,8 @@ func (c *Client) GetNotifications(userID string, limit, offset int) (*Notificati
 
 // MarkNotificationsRead marks all notifications as read for a user
 // Call this when the user opens the notifications panel
-// Stream.io marks notifications via query options when fetching
+//
+//	getstream.io marks notifications via query options when fetching
 func (c *Client) MarkNotificationsRead(userID string) error {
 	ctx := context.Background()
 
@@ -892,7 +896,8 @@ func (c *Client) MarkNotificationsRead(userID string) error {
 
 // MarkNotificationsSeen marks all notifications as seen for a user
 // Call this when the user views the notification icon (clears badge count)
-// Stream.io marks notifications via query options when fetching
+//
+//	getstream.io marks notifications via query options when fetching
 func (c *Client) MarkNotificationsSeen(userID string) error {
 	ctx := context.Background()
 
@@ -1034,7 +1039,7 @@ func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID stri
 // =============================================================================
 
 // AggregatedGroup represents a grouped set of activities from an aggregated feed
-// These are grouped by the aggregation_format in Stream.io dashboard
+// These are grouped by the aggregation_format in getstream.io dashboard
 type AggregatedGroup struct {
 	ID            string      `json:"id"`
 	Group         string      `json:"group"`          // The aggregation key
@@ -1078,7 +1083,7 @@ func (c *Client) GetAggregatedTimeline(userID string, limit, offset int) (*Aggre
 }
 
 // GetTrendingFeed gets trending loops grouped by genre/time
-// Requires "trending" aggregated feed configured in Stream.io dashboard
+// Requires "trending" aggregated feed configured in getstream.io dashboard
 func (c *Client) GetTrendingFeed(limit, offset int) (*AggregatedFeedResponse, error) {
 	ctx := context.Background()
 
@@ -1261,7 +1266,7 @@ func truncateString(s string, maxLen int) string {
 // EXISTING HELPER FUNCTIONS
 // =============================================================================
 
-// convertStreamActivity converts Stream.io Activity to our Activity type
+// convertStreamActivity converts getstream.io Activity to our Activity type
 func convertStreamActivity(act *stream.Activity) *Activity {
 	activity := &Activity{
 		ID:    act.ID,
@@ -1300,6 +1305,13 @@ func convertStreamActivity(act *stream.Activity) *Activity {
 					activity.Genre = append(activity.Genre, gs)
 				}
 			}
+		}
+		// Extract comment_count if present (added by enrichment function)
+		if commentCount, ok := act.Extra["comment_count"].(float64); ok {
+			if activity.Extra == nil {
+				activity.Extra = make(map[string]interface{})
+			}
+			activity.Extra["comment_count"] = int(commentCount)
 		}
 	}
 

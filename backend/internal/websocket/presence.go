@@ -363,7 +363,7 @@ func (pm *PresenceManager) broadcastToFollowers(userID string, msgType string, p
 		return
 	}
 
-	// Get followers from Stream.io
+	// Get followers from getstream.io
 	followers, err := pm.streamClient.GetFollowers(userID, 1000, 0) // Get up to 1000 followers
 	if err != nil {
 		log.Printf("Error getting followers for presence broadcast: %v", err)
