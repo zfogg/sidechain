@@ -67,11 +67,17 @@ configure_file(
     @ONLY
 )
 
-# Default to Release if no build type specified
+# Default to Debug if no build type specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to 'Release' as none was specified.")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+    message(STATUS "Setting build type to 'Debug' as none was specified.")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+endif()
+
+# Export compile_commands.json for IDE support (clangd, etc.)
+# This can be overridden by setting CMAKE_EXPORT_COMPILE_COMMANDS=OFF
+if(NOT DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compile commands for IDE support" FORCE)
 endif()
 
 #==============================================================================
@@ -153,6 +159,7 @@ elseif(MSVC)
         "$<$<CONFIG:Release>:/Gy>"         # Function-level linking
         "$<$<CONFIG:Release>:/MD>"         # Release runtime library
         "$<$<CONFIG:Release>:/fp:fast>"    # Fast floating point
+        "$<$<CONFIG:Release>:/DNDEBUG>"    # Define NDEBUG for Release builds
     )
 
     # Release linker flags
@@ -167,6 +174,7 @@ elseif(MSVC)
         "$<$<CONFIG:RelWithDebInfo>:/O2>"
         "$<$<CONFIG:RelWithDebInfo>:/Zi>"
         "$<$<CONFIG:RelWithDebInfo>:/MD>"
+        "$<$<CONFIG:RelWithDebInfo>:/DNDEBUG>"  # Define NDEBUG for RelWithDebInfo builds
     )
 endif()
 
@@ -178,6 +186,9 @@ option(SIDECHAIN_BUILD_TESTS "Build unit tests with Catch2" OFF)
 
 # Option to enable coverage (requires SIDECHAIN_BUILD_TESTS)
 option(SIDECHAIN_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
+
+# Option to build Standalone app (default OFF - only build VST3/AU by default)
+option(SIDECHAIN_BUILD_STANDALONE "Build Standalone app (in addition to VST3/AU)" OFF)
 
 # Option to install standalone app alongside VST3
 option(SIDECHAIN_INSTALL_STANDALONE "Install Standalone app with cmake --install" OFF)
@@ -254,6 +265,109 @@ else()
     set(SIDECHAIN_HAS_KEYFINDER FALSE)
 endif()
 
+#==============================================================================
+# ASIO (Standalone) - Asynchronous I/O Library
+#==============================================================================
+# ASIO is a cross-platform C++ library for network and low-level I/O
+# programming that provides developers with a consistent asynchronous model.
+# We use the standalone version (no Boost dependency).
+#
+# Documentation: https://think-async.com/Asio/
+# GitHub: https://github.com/chriskohlhoff/asio
+#==============================================================================
+set(ASIO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/asio")
+if(EXISTS "${ASIO_DIR}/include/asio.hpp")
+    message(STATUS "ASIO found at: ${ASIO_DIR}")
+    
+    # Create an interface library for ASIO (header-only)
+    add_library(asio INTERFACE)
+    target_include_directories(asio INTERFACE "${ASIO_DIR}/include")
+    
+    # Define ASIO_STANDALONE so ASIO doesn't require Boost
+    target_compile_definitions(asio INTERFACE ASIO_STANDALONE=1)
+    
+    # ASIO requires C++11 or later (we're using C++23)
+    target_compile_features(asio INTERFACE cxx_std_11)
+    
+    # Platform-specific requirements for ASIO
+    if(WIN32)
+        # Windows: ASIO needs Windows sockets
+        target_link_libraries(asio INTERFACE ws2_32 wsock32)
+    elseif(APPLE)
+        # macOS: ASIO uses system libraries (no additional linking needed for basic functionality)
+    elseif(UNIX)
+        # Linux/Unix: ASIO uses pthread
+        target_link_libraries(asio INTERFACE pthread)
+    endif()
+    
+    set(SIDECHAIN_HAS_ASIO TRUE)
+    message(STATUS "ASIO will be available as an interface library (standalone mode)")
+else()
+    message(WARNING "ASIO not found at ${ASIO_DIR}")
+    message(STATUS "Run: git submodule update --init --recursive")
+    set(SIDECHAIN_HAS_ASIO FALSE)
+endif()
+
+#==============================================================================
+# websocketpp - WebSocket Protocol Library (Header-Only)
+#==============================================================================
+# WebSocket++ is a header-only C++ library that implements RFC6455 WebSocket
+# Protocol. It provides WebSocket client and server functionality with
+# interchangeable transport backends.
+#
+# Usage in source files:
+#   #include <websocketpp/config/asio_no_tls_client.hpp>
+#   #include <websocketpp/client.hpp>
+#
+# Transport backends available:
+#   - asio_no_tls_client.hpp: ASIO without TLS (requires Boost or standalone ASIO)
+#   - asio_client.hpp: ASIO with TLS support
+#   - minimal_client.hpp: Minimal client (no networking, for testing)
+#
+# Dependencies:
+#   - For ASIO backend: Requires either Boost.Asio or standalone ASIO library
+#   - For TLS support: Requires OpenSSL libraries
+#
+# Documentation: https://docs.websocketpp.org/
+# GitHub: https://github.com/zaphoyd/websocketpp
+#==============================================================================
+set(WEBSOCKETPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/websocketpp")
+if(EXISTS "${WEBSOCKETPP_DIR}/websocketpp")
+    message(STATUS "websocketpp found at: ${WEBSOCKETPP_DIR}")
+    
+    # Create an interface library for websocketpp (header-only)
+    add_library(websocketpp INTERFACE)
+    target_include_directories(websocketpp INTERFACE "${WEBSOCKETPP_DIR}")
+    
+    # Link ASIO if available (websocketpp needs it for ASIO backend)
+    if(SIDECHAIN_HAS_ASIO)
+        target_link_libraries(websocketpp INTERFACE asio)
+        message(STATUS "websocketpp will use standalone ASIO backend")
+    else()
+        message(WARNING "websocketpp found but ASIO not available - ASIO backend will not work")
+    endif()
+    
+    set(SIDECHAIN_HAS_WEBSOCKETPP TRUE)
+    message(STATUS "websocketpp will be available as an interface library")
+else()
+    message(WARNING "websocketpp not found at ${WEBSOCKETPP_DIR}")
+    message(STATUS "Run: git submodule update --init --recursive")
+    set(SIDECHAIN_HAS_WEBSOCKETPP FALSE)
+endif()
+
+# Build formats - conditionally include Standalone
+# VST3 is always built, AU only on macOS, Standalone only if option is enabled
+set(PLUGIN_FORMATS "VST3")
+if(APPLE)
+    list(APPEND PLUGIN_FORMATS "AU")
+endif()
+if(SIDECHAIN_BUILD_STANDALONE)
+    list(APPEND PLUGIN_FORMATS "Standalone")
+    message(STATUS "Standalone app will be built")
+else()
+    message(STATUS "Standalone app disabled (enable with -DSIDECHAIN_BUILD_STANDALONE=ON)")
+endif()
+
 # Plugin target
 juce_add_plugin(Sidechain
     # Plugin metadata (version from git tags)
@@ -283,8 +397,8 @@ juce_add_plugin(Sidechain
     AU_EXPORT_PREFIX "SidechainAU"
     AAX_IDENTIFIER "gg.zfo.Sidechain"
 
-    # Build formats - AU only available on macOS
-    FORMATS VST3 Standalone AU
+    # Build formats - use the conditionally constructed list
+    FORMATS ${PLUGIN_FORMATS}
 
     # Output name
     PRODUCT_NAME "Sidechain"
@@ -334,12 +448,18 @@ target_sources(Sidechain
         source/network/NetworkClient.h
         source/network/WebSocketClient.cpp
         source/network/WebSocketClient.h
+        source/network/StreamChatClient.cpp
+        source/network/StreamChatClient.h
         source/network/FeedDataManager.cpp
         source/network/FeedDataManager.h
 
         # UI - Auth
         source/ui/auth/AuthComponent.cpp
         source/ui/auth/AuthComponent.h
+
+        # UI - Messages
+        source/ui/messages/MessagesListComponent.cpp
+        source/ui/messages/MessagesListComponent.h
 
         # UI - Profile
         source/ui/profile/ProfileSetupComponent.cpp
@@ -376,6 +496,8 @@ target_sources(Sidechain
         source/ui/social/UserCardComponent.h
         source/ui/social/UserDiscoveryComponent.cpp
         source/ui/social/UserDiscoveryComponent.h
+        source/ui/search/SearchComponent.cpp
+        source/ui/search/SearchComponent.h
         source/ui/social/FollowersListComponent.cpp
         source/ui/social/FollowersListComponent.h
 
@@ -405,6 +527,14 @@ target_sources(Sidechain
         source/util/UIHelpers.cpp
         source/util/UIHelpers.h
         source/util/Constants.h
+        source/util/StringFormatter.cpp
+        source/util/StringFormatter.h
+        source/util/TextEditorStyler.cpp
+        source/util/TextEditorStyler.h
+        source/util/Animation.cpp
+        source/util/Animation.h
+        source/util/HoverState.h
+        source/util/LongPressDetector.h
 )
 
 # Preprocessor definitions
@@ -464,6 +594,12 @@ if(SIDECHAIN_HAS_KEYFINDER)
     message(STATUS "Sidechain will link with libkeyfinder for key detection")
 endif()
 
+# Link websocketpp if available (header-only interface library)
+if(SIDECHAIN_HAS_WEBSOCKETPP)
+    target_link_libraries(Sidechain PRIVATE websocketpp)
+    message(STATUS "Sidechain will link with websocketpp for WebSocket support")
+endif()
+
 # Installation paths for plugins (platform-specific defaults)
 # These are the SYSTEM-WIDE VST3/AU installation directories (for sudo cmake --install)
 # For user-local installs, override with: cmake -DVST3_INSTALL_DIR=~/.vst3 ...
@@ -506,8 +642,8 @@ install(
     COMPONENT VST3
 )
 
-# Install Standalone app (optional)
-if(SIDECHAIN_INSTALL_STANDALONE)
+# Install Standalone app (optional - only if it was built)
+if(SIDECHAIN_INSTALL_STANDALONE AND SIDECHAIN_BUILD_STANDALONE)
     if(APPLE)
         install(
             DIRECTORY "${ARTEFACTS_DIR}/$<CONFIG>/Standalone/Sidechain.app"
@@ -593,6 +729,8 @@ if(SIDECHAIN_BUILD_TESTS)
         source/network/FeedDataManager.h
         source/network/WebSocketClient.cpp
         source/network/WebSocketClient.h
+        source/network/StreamChatClient.cpp
+        source/network/StreamChatClient.h
         source/models/FeedPost.cpp
         source/models/FeedPost.h
         source/models/FeedResponse.h
@@ -608,6 +746,10 @@ if(SIDECHAIN_BUILD_TESTS)
         source/util/Async.h
         source/util/Validate.cpp
         source/util/Validate.h
+        source/util/StringFormatter.cpp
+        source/util/StringFormatter.h
+        source/util/Animation.cpp
+        source/util/Animation.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
@@ -635,6 +777,14 @@ if(SIDECHAIN_BUILD_TESTS)
         juce::juce_graphics
         juce::juce_data_structures
     )
+
+    # Link websocketpp and asio if available (needed for WebSocketClient tests)
+    if(SIDECHAIN_HAS_WEBSOCKETPP)
+        target_link_libraries(SidechainTestLib PRIVATE websocketpp)
+    endif()
+    if(SIDECHAIN_HAS_ASIO)
+        target_link_libraries(SidechainTestLib PRIVATE asio)
+    endif()
 
     # Coverage flags
     if(SIDECHAIN_ENABLE_COVERAGE)

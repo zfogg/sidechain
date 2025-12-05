@@ -22,6 +22,9 @@ help:
 	@echo "  migrate-up  - Run migrations (explicit up)"
 	@echo "  migrate-down - Rollback last migration"
 	@echo "  db-setup    - Create database and run migrations"
+	@echo "  seed        - Seed development database with realistic data"
+	@echo "  seed-test   - Seed test database with minimal data"
+	@echo "  seed-clean  - Remove all seed data (use with caution)"
 	@echo ""
 	@echo "Testing Commands:"
 	@echo "  test        - Run all tests"
@@ -35,9 +38,7 @@ help:
 	@echo "  format      - Format Go code (gofmt + goimports)"
 	@echo "  vet         - Run Go vet"
 	@echo ""
-	@echo "Deployment Commands:"
-	@echo "  docker      - Build Docker image"
-	@echo "  docker-run  - Run Docker container"
+	@echo "Cleanup:"
 	@echo "  clean       - Clean build artifacts"
 
 # Install all dependencies
@@ -111,6 +112,22 @@ migrate-create:
 	@echo "📝 Creating new migration: $(name)"
 	@go run ./cmd/migrate/main.go create $(name)
 
+# Seed database
+seed:
+	@echo "🌱 Seeding development database..."
+	@go run ./cmd/seed/main.go dev
+	@echo "✅ Database seeded"
+
+seed-test:
+	@echo "🧪 Seeding test database..."
+	@go run ./cmd/seed/main.go test
+	@echo "✅ Test database seeded"
+
+seed-clean:
+	@echo "🧹 Cleaning seed data..."
+	@go run ./cmd/seed/main.go clean
+	@echo "✅ Seed data cleaned"
+
 # Testing
 test:
 	@echo "🧪 Running all tests..."
@@ -154,16 +171,6 @@ vet:
 	@echo "🔍 Running go vet..."
 	@go vet ./...
 	@echo "✅ Vet passed"
-
-# Docker
-docker:
-	@echo "🐳 Building Docker image..."
-	@docker build -t sidechain-backend .
-	@echo "✅ Docker image built: sidechain-backend"
-
-docker-run: docker
-	@echo "🐳 Running Docker container..."
-	@docker run -p 8787:8787 --env-file .env sidechain-backend
 
 # Cleanup
 clean:

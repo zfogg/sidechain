@@ -38,7 +38,7 @@ coverage:
         paths:
           - "backend/internal/handlers/**/*"
 
-      # Stream.io integration
+      # getstream.io integration
       stream:
         target: 60%
         threshold: 5%

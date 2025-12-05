@@ -84,7 +84,7 @@ plugin/build/
 # Dependencies
 node_modules/
 /deps/*
-# But allow git submodules in deps
-!/deps/libkeyfinder/
 
 /.claude/settings.local.json
+
+/.clangd/
