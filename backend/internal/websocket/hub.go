@@ -413,4 +413,3 @@ func (h *Hub) GetRateLimitConfig() RateLimitConfig {
 	defer h.mu.RUnlock()
 	return h.rateLimitConfig
 }
-

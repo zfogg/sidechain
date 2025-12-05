@@ -15,33 +15,33 @@ const (
 	MessageTypeAuth   = "auth"
 
 	// Feed/Activity messages
-	MessageTypeNewPost      = "new_post"
-	MessageTypePostLiked    = "post_liked"
-	MessageTypePostUnliked  = "post_unliked"
-	MessageTypeNewComment   = "new_comment"
-	MessageTypeNewReaction  = "new_reaction"
+	MessageTypeNewPost     = "new_post"
+	MessageTypePostLiked   = "post_liked"
+	MessageTypePostUnliked = "post_unliked"
+	MessageTypeNewComment  = "new_comment"
+	MessageTypeNewReaction = "new_reaction"
 
 	// Social messages
-	MessageTypeNewFollower  = "new_follower"
-	MessageTypeUnfollowed   = "unfollowed"
+	MessageTypeNewFollower = "new_follower"
+	MessageTypeUnfollowed  = "unfollowed"
 
 	// Presence messages
-	MessageTypePresence       = "presence"
-	MessageTypeUserOnline     = "user_online"
-	MessageTypeUserOffline    = "user_offline"
-	MessageTypeUserInStudio   = "user_in_studio"
+	MessageTypePresence     = "presence"
+	MessageTypeUserOnline   = "user_online"
+	MessageTypeUserOffline  = "user_offline"
+	MessageTypeUserInStudio = "user_in_studio"
 
 	// Notification messages
-	MessageTypeNotification       = "notification"
-	MessageTypeNotificationRead   = "notification_read"
-	MessageTypeNotificationCount  = "notification_count"
+	MessageTypeNotification      = "notification"
+	MessageTypeNotificationRead  = "notification_read"
+	MessageTypeNotificationCount = "notification_count"
 
 	// Audio/Playback messages
 	MessageTypePlaybackStarted = "playback_started"
 	MessageTypePlaybackStopped = "playback_stopped"
 
 	// Real-time updates
-	MessageTypeLikeCountUpdate    = "like_count_update"
+	MessageTypeLikeCountUpdate     = "like_count_update"
 	MessageTypeFollowerCountUpdate = "follower_count_update"
 )
 
@@ -153,21 +153,21 @@ type NewPostPayload struct {
 
 // LikePayload represents a like/unlike event
 type LikePayload struct {
-	PostID        string `json:"post_id"`
-	UserID        string `json:"user_id"`
-	Username      string `json:"username"`
-	LikeCount     int    `json:"like_count"`
-	Emoji         string `json:"emoji,omitempty"`
+	PostID    string `json:"post_id"`
+	UserID    string `json:"user_id"`
+	Username  string `json:"username"`
+	LikeCount int    `json:"like_count"`
+	Emoji     string `json:"emoji,omitempty"`
 }
 
 // FollowPayload represents a follow/unfollow event
 type FollowPayload struct {
-	FollowerID      string `json:"follower_id"`
-	FollowerName    string `json:"follower_name"`
-	FollowerAvatar  string `json:"follower_avatar,omitempty"`
-	FolloweeID      string `json:"followee_id"`
-	FolloweeName    string `json:"followee_name"`
-	FollowerCount   int    `json:"follower_count,omitempty"`
+	FollowerID     string `json:"follower_id"`
+	FollowerName   string `json:"follower_name"`
+	FollowerAvatar string `json:"follower_avatar,omitempty"`
+	FolloweeID     string `json:"followee_id"`
+	FolloweeName   string `json:"followee_name"`
+	FollowerCount  int    `json:"follower_count,omitempty"`
 }
 
 // NotificationPayload represents a notification
@@ -208,4 +208,3 @@ func (m *Message) ParsePayload(target interface{}) error {
 	}
 	return json.Unmarshal(data, target)
 }
-
