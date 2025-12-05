@@ -44,6 +44,8 @@
 # Go
 backend/vendor/
 backend/bin/
+backend/main
+backend/server
 *.log
 
 # Local binaries
