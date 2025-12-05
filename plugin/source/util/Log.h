@@ -11,9 +11,9 @@
  * - warn/error: stderr
  * - All levels: written to log file
  *
- * Log file location:
- * - Debug builds: ./plugin.log (current working directory)
- * - Release builds: Platform-specific log directory
+ * Log file location (determined by NDEBUG macro):
+ * - Development builds (NDEBUG not defined): ./plugin.log (current working directory)
+ * - Release builds (NDEBUG defined): Platform-specific standard log directory
  *   - macOS: ~/Library/Logs/Sidechain/plugin.log
  *   - Linux: ~/.local/share/Sidechain/logs/plugin.log
  *   - Windows: %LOCALAPPDATA%/Sidechain/logs/plugin.log

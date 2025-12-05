@@ -8,13 +8,17 @@
  *
  * This header consolidates configuration values that were previously
  * scattered throughout the codebase. Groupings:
- *   - API: Network timeouts, retry limits
+ *   - Endpoints: API URLs for different environments
+ *   - Api: Network timeouts, retry limits
  *   - Audio: Recording limits, BPM ranges, cache sizes
  *   - UI: Component dimensions, corner radii, avatar sizes
  *   - Cache: Image and audio cache limits
  *
  * Usage:
  *   #include "util/Constants.h"
+ *
+ *   // API URLs
+ *   juce::URL url(Constants::Endpoints::DEV_BASE_URL + "/api/v1/auth/login");
  *
  *   // API timeouts
  *   .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)
@@ -24,6 +28,35 @@
  */
 namespace Constants
 {
+    //==========================================================================
+    // API Endpoints
+    //==========================================================================
+    namespace Endpoints
+    {
+        // Development server (local)
+        constexpr const char* DEV_BASE_URL = "http://localhost:8787";
+
+        // Production server
+        constexpr const char* PROD_BASE_URL = "https://api.sidechain.app";
+
+        // WebSocket endpoints
+        constexpr const char* DEV_WS_HOST = "localhost";
+        constexpr int DEV_WS_PORT = 8787;
+        constexpr const char* PROD_WS_HOST = "api.sidechain.app";
+        constexpr int PROD_WS_PORT = 443;
+        constexpr const char* WS_PATH = "/api/v1/ws";
+
+        // API version prefix
+        constexpr const char* API_VERSION = "/api/v1";
+
+        // Auth endpoints
+        constexpr const char* AUTH_LOGIN = "/api/v1/auth/login";
+        constexpr const char* AUTH_REGISTER = "/api/v1/auth/register";
+        constexpr const char* AUTH_OAUTH_POLL = "/api/v1/auth/oauth/poll";
+
+        // User endpoints
+        constexpr const char* USERS_PROFILE_PICTURE = "/api/v1/users/upload-profile-picture";
+    }
     //==========================================================================
     // API Configuration
     //==========================================================================

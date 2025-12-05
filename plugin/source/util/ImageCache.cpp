@@ -2,6 +2,8 @@
 #include "Async.h"
 #include "Constants.h"
 #include "Log.h"
+#include "../network/NetworkClient.h"
+#include <set>
 
 namespace ImageLoader
 {
@@ -26,6 +28,12 @@ namespace
     // Pending downloads (URL -> list of callbacks waiting)
     std::mutex pendingMutex;
     std::map<juce::String, std::vector<ImageCallback>> pendingDownloads;
+
+    // Failed URLs cache (to avoid spamming logs for the same URL)
+    std::set<juce::String> failedUrls;
+
+    // NetworkClient for HTTP requests (optional)
+    NetworkClient* networkClient = nullptr;
 
     // Statistics
     Stats stats;
@@ -89,28 +97,74 @@ namespace
 
                 try
                 {
-                    juce::URL imageUrl(url);
+                    juce::MemoryBlock data;
+                    bool success = false;
 
-                    // Create input stream with timeout
-                    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                        .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS)
-                        .withResponseHeaders(nullptr);
-
-                    auto stream = imageUrl.createInputStream(options);
-
-                    if (stream != nullptr)
+                    // Use NetworkClient if available, otherwise fall back to JUCE URL
+                    if (networkClient != nullptr)
                     {
-                        // Read image data
-                        juce::MemoryBlock data;
-                        stream->readIntoMemoryBlock(data);
-
-                        if (data.getSize() > 0)
+                        juce::MemoryBlock binaryData;
+                        auto result = networkClient->makeAbsoluteRequestSync(url, "GET", juce::var(), false, juce::StringPairArray(), &binaryData);
+                        if (result.success && binaryData.getSize() > 0)
                         {
-                            // Decode image
-                            loadedImage = juce::ImageFileFormat::loadFrom(data.getData(), data.getSize());
+                            data = binaryData;
+                            success = true;
+                        }
+                    }
+                    else
+                    {
+                        // Fallback to JUCE URL
+                        juce::URL imageUrl(url);
+                        int statusCode = 0;
+                        juce::StringPairArray responseHeaders;
+                        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                            .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS)
+                            .withStatusCode(&statusCode)
+                            .withResponseHeaders(&responseHeaders);
 
+                        auto stream = imageUrl.createInputStream(options);
+                        if (stream != nullptr)
+                        {
+                            stream->readIntoMemoryBlock(data);
+                            success = data.getSize() > 0;
+                        }
+                    }
+
+                    if (!success || data.getSize() == 0)
+                    {
+                        // Only log if we haven't already logged this URL
+                        bool alreadyFailed = false;
+                        {
+                            std::lock_guard<std::mutex> lock(cacheMutex);
+                            alreadyFailed = failedUrls.count(url) > 0;
+                            if (!alreadyFailed)
+                                failedUrls.insert(url);
+                        }
+                        if (!alreadyFailed)
+                            Log::warn("ImageCache: Failed to load image: " + url);
+                    }
+                    else
+                    {
+                        // Decode image
+                        loadedImage = juce::ImageFileFormat::loadFrom(data.getData(), data.getSize());
+
+                        if (!loadedImage.isValid())
+                        {
+                            // Only log if we haven't already logged this URL
+                            bool alreadyFailed = false;
+                            {
+                                std::lock_guard<std::mutex> lock(cacheMutex);
+                                alreadyFailed = failedUrls.count(url) > 0;
+                                if (!alreadyFailed)
+                                    failedUrls.insert(url);
+                            }
+                            if (!alreadyFailed)
+                                Log::warn("ImageCache: Failed to decode " + juce::String(data.getSize()) + " bytes: " + url);
+                        }
+                        else
+                        {
                             // Resize if requested
-                            if (loadedImage.isValid() && (targetWidth > 0 || targetHeight > 0))
+                            if (targetWidth > 0 || targetHeight > 0)
                             {
                                 int newWidth = targetWidth > 0 ? targetWidth : loadedImage.getWidth();
                                 int newHeight = targetHeight > 0 ? targetHeight : loadedImage.getHeight();
@@ -124,9 +178,13 @@ namespace
                         }
                     }
                 }
+                catch (const std::exception& e)
+                {
+                    Log::warn("ImageCache: Exception loading image from " + url + ": " + juce::String(e.what()));
+                }
                 catch (...)
                 {
-                    Log::warn("ImageCache: Exception loading image from " + url);
+                    Log::warn("ImageCache: Unknown exception loading image from " + url);
                 }
 
                 // Update stats (mutex protected)
@@ -140,7 +198,6 @@ namespace
                     else
                     {
                         stats.downloadFailures++;
-                        Log::warn("ImageCache: Failed to load image from " + url);
                     }
                 }
 
@@ -174,7 +231,7 @@ namespace
 //==============================================================================
 // Public API
 
-void load(const juce::String& url, ImageCallback callback, int width, int height)
+void load(const juce::String& url, ImageLoader::ImageCallback callback, int width, int height)
 {
     if (url.isEmpty())
     {
@@ -337,6 +394,7 @@ void clear()
     std::lock_guard<std::mutex> lock(cacheMutex);
     cacheMap.clear();
     cacheList.clear();
+    failedUrls.clear();  // Also clear failed URLs so they can be retried
 }
 
 void evict(const juce::String& url)
@@ -349,6 +407,7 @@ void evict(const juce::String& url)
         cacheList.erase(it->second);
         cacheMap.erase(it);
     }
+    failedUrls.erase(url);  // Also allow retry
 }
 
 //==============================================================================
@@ -423,6 +482,12 @@ void drawCircularAvatar(juce::Graphics& g,
     }
 
     g.restoreState();
+}
+
+//==============================================================================
+void setNetworkClient(NetworkClient* client)
+{
+    networkClient = client;
 }
 
 }  // namespace ImageLoader

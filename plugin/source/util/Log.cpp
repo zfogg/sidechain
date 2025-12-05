@@ -24,11 +24,13 @@ namespace
 #endif
 
     //==========================================================================
-    // Get platform-specific log directory
+    // Get log directory based on NDEBUG macro
+    // - When NDEBUG is defined (Release builds): Use platform-specific standard log directories
+    // - When NDEBUG is not defined (development): Use current working directory
     juce::File getLogDirectory()
     {
 #ifdef NDEBUG
-        // Release builds: Use platform-specific directories
+        // Release builds (NDEBUG defined): Use platform-specific standard log directories
 #if JUCE_MAC
         // macOS: ~/Library/Logs/Sidechain/
         auto logsDir = juce::File::getSpecialLocation(juce::File::userHomeDirectory)
@@ -48,7 +50,7 @@ namespace
 #endif
         return logsDir;
 #else
-        // Debug builds: Current working directory
+        // Development builds (NDEBUG not defined): Current working directory
         return juce::File::getCurrentWorkingDirectory();
 #endif
     }
