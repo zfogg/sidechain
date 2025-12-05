@@ -1,5 +1,6 @@
 #include "EmojiReactionsPanel.h"
 #include "../../util/Colors.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 // EmojiReactionsPanel Implementation
@@ -7,11 +8,13 @@
 
 EmojiReactionsPanel::EmojiReactionsPanel()
 {
+    Log::debug("EmojiReactionsPanel: Initializing");
     setSize(getPreferredSize().getWidth(), getPreferredSize().getHeight());
 }
 
 EmojiReactionsPanel::~EmojiReactionsPanel()
 {
+    Log::debug("EmojiReactionsPanel: Destroying");
 }
 
 //==============================================================================
@@ -104,6 +107,7 @@ void EmojiReactionsPanel::mouseExit(const juce::MouseEvent& /*event*/)
 void EmojiReactionsPanel::setSelectedEmoji(const juce::String& emoji)
 {
     selectedEmoji = emoji;
+    Log::debug("EmojiReactionsPanel: Selected emoji - " + emoji);
     repaint();
 }
 

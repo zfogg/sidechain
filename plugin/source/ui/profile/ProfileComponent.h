@@ -60,8 +60,8 @@ public:
 
     //==============================================================================
     // Data binding
-    void setNetworkClient(NetworkClient* client) { networkClient = client; }
-    void setCurrentUserId(const juce::String& userId) { currentUserId = userId; }
+    void setNetworkClient(NetworkClient* client);
+    void setCurrentUserId(const juce::String& userId);
     void loadProfile(const juce::String& userId);
     void loadOwnProfile();
     void setProfile(const UserProfile& profile);

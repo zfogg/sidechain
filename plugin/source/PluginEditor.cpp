@@ -1,7 +1,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "util/Colors.h"
+#include "util/Constants.h"
 #include "util/Json.h"
+#include "util/ImageCache.h"
+#include "util/Log.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -19,6 +22,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Wire up UserDataStore with NetworkClient
     userDataStore->setNetworkClient(networkClient.get());
 
+    // Set up ImageLoader with NetworkClient
+    ImageLoader::setNetworkClient(networkClient.get());
+
+    // Set up AudioPlayer with NetworkClient
+    audioProcessor.getAudioPlayer().setNetworkClient(networkClient.get());
+
     // Initialize WebSocket client
     webSocketClient = std::make_unique<WebSocketClient>(WebSocketClient::Config::development());
     webSocketClient->onMessage = [this](const WebSocketClient::Message& msg) {
@@ -28,7 +37,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         handleWebSocketStateChange(wsState);
     };
     webSocketClient->onError = [](const juce::String& error) {
-        DBG("WebSocket error: " + error);
+        Log::error("WebSocket error: " + error);
     };
 
     // Create connection indicator
@@ -60,7 +69,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         juce::String sessionId = juce::Uuid().toString().removeCharacters("-");
 
         // Open OAuth URL in system browser with session_id
-        juce::String oauthUrl = "http://localhost:8787/api/v1/auth/" + provider + "?session_id=" + sessionId;
+        juce::String oauthUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION + "/auth/" + provider + "?session_id=" + sessionId;
         juce::URL(oauthUrl).launchInDefaultBrowser();
 
         // Start polling for OAuth completion
@@ -106,7 +115,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
                     else
                     {
                         // On failure, don't store local path - just show error
-                        DBG("Profile picture upload failed");
+                        Log::error("Profile picture upload failed");
                     }
                 });
             });
@@ -169,6 +178,24 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(userDiscoveryComponent.get());
 
     //==========================================================================
+    // Create SearchComponent
+    searchComponent = std::make_unique<SearchComponent>();
+    searchComponent->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        searchComponent->setCurrentUserId(userDataStore->getUserId());
+    searchComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    searchComponent->onUserSelected = [this](const juce::String& userId) {
+        showProfile(userId);
+    };
+    searchComponent->onPostSelected = [this](const FeedPost& post) {
+        // TODO: Navigate to post details or play post
+        audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
+    };
+    addChildComponent(searchComponent.get());
+
+    //==========================================================================
     // Create ProfileComponent
     profileComponent = std::make_unique<ProfileComponent>();
     profileComponent->setNetworkClient(networkClient.get());
@@ -194,11 +221,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     //==========================================================================
     // Create central header component (shown on all post-login pages)
     headerComponent = std::make_unique<HeaderComponent>();
+    headerComponent->setNetworkClient(networkClient.get());
     headerComponent->onLogoClicked = [this]() {
         showView(AppView::PostsFeed);
     };
     headerComponent->onSearchClicked = [this]() {
-        showView(AppView::Discovery);
+        showView(AppView::Search);
     };
     headerComponent->onProfileClicked = [this]() {
         // Show current user's profile
@@ -207,8 +235,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         else
             showView(AppView::ProfileSetup);  // Fallback to setup if no user ID
     };
+    headerComponent->onRecordClicked = [this]() {
+        showView(AppView::Recording);
+    };
     addChildComponent(headerComponent.get()); // Initially hidden until logged in
 
+    //==========================================================================
+    // Check for previous crash before loading state
+    checkForPreviousCrash();
+    
     //==========================================================================
     // Load persistent state and show appropriate view
     loadLoginState();
@@ -216,6 +251,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
 SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
 {
+    // Mark clean shutdown before destroying components
+    markCleanShutdown();
+
     // Stop OAuth polling
     stopOAuthPolling();
 
@@ -405,6 +443,16 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 // Load the profile for the specified user
                 profileComponent->loadProfile(profileUserIdToView);
                 profileComponent->setVisible(true);
+            }
+            break;
+
+        case AppView::Search:
+            if (searchComponent)
+            {
+                if (userDataStore)
+                    searchComponent->setCurrentUserId(userDataStore->getUserId());
+                searchComponent->setVisible(true);
+                searchComponent->focusSearchInput();
             }
             break;
     }
@@ -616,7 +664,7 @@ void SidechainAudioProcessorEditor::loadLoginState()
     {
         userDataStore->loadFromSettings();
 
-        DBG("loadLoginState: isLoggedIn=" + juce::String(userDataStore->isLoggedIn() ? "true" : "false") +
+        Log::debug("loadLoginState: isLoggedIn=" + juce::String(userDataStore->isLoggedIn() ? "true" : "false") +
             ", username=" + userDataStore->getUsername() +
             ", profilePicUrl=" + userDataStore->getProfilePictureUrl());
 
@@ -628,7 +676,7 @@ void SidechainAudioProcessorEditor::loadLoginState()
             email = userDataStore->getEmail();
             profilePicUrl = userDataStore->getProfilePictureUrl();
 
-            DBG("loadLoginState: authToken loaded, length=" + juce::String(authToken.length()));
+            Log::debug("loadLoginState: authToken loaded, length=" + juce::String(authToken.length()));
 
             // Set auth token on network client
             if (!authToken.isEmpty() && networkClient)
@@ -654,13 +702,13 @@ void SidechainAudioProcessorEditor::loadLoginState()
 
             // Fetch fresh profile to get latest data (including profile picture)
             userDataStore->fetchUserProfile([this](bool success) {
-                DBG("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
+                Log::debug("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
                 juce::MessageManager::callAsync([this, success]() {
                     // Sync profile URL from UserDataStore
                     if (userDataStore)
                     {
                         profilePicUrl = userDataStore->getProfilePictureUrl();
-                        DBG("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
+                        Log::debug("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
                             ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
                     }
 
@@ -688,6 +736,64 @@ void SidechainAudioProcessorEditor::loadLoginState()
 }
 
 //==============================================================================
+// Crash detection
+void SidechainAudioProcessorEditor::checkForPreviousCrash()
+{
+    auto properties = juce::PropertiesFile::Options();
+    properties.applicationName = "Sidechain";
+    properties.filenameSuffix = ".settings";
+    properties.folderName = "SidechainPlugin";
+
+    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    
+    // Check if clean shutdown flag exists (if it doesn't exist, this is first run)
+    if (appProperties->containsKey("cleanShutdown"))
+    {
+        // Flag exists - check its value
+        bool cleanShutdown = appProperties->getBoolValue("cleanShutdown", false);
+        
+        if (!cleanShutdown)
+        {
+            // App didn't shut down cleanly - it likely crashed
+            // Show notification after a short delay to ensure UI is ready
+            juce::MessageManager::callAsync([this]() {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::AlertWindow::WarningIcon,
+                    "Previous Session Ended Unexpectedly",
+                    "The plugin did not shut down cleanly during the last session. "
+                    "This may indicate a crash or unexpected termination.\n\n"
+                    "If this happens frequently, please report it with details about what you were doing.",
+                    "OK"
+                );
+            });
+            
+            Log::warn("Detected previous crash - clean shutdown flag was not set");
+        }
+    }
+    // If flag doesn't exist, this is the first run - no crash to report
+    
+    // Clear the flag now (we'll set it again on clean shutdown)
+    appProperties->setValue("cleanShutdown", false);
+    appProperties->save();
+}
+
+void SidechainAudioProcessorEditor::markCleanShutdown()
+{
+    auto properties = juce::PropertiesFile::Options();
+    properties.applicationName = "Sidechain";
+    properties.filenameSuffix = ".settings";
+    properties.folderName = "SidechainPlugin";
+
+    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    
+    // Set clean shutdown flag
+    appProperties->setValue("cleanShutdown", true);
+    appProperties->save();
+    
+    Log::debug("Marked clean shutdown");
+}
+
+//==============================================================================
 // WebSocket handling
 void SidechainAudioProcessorEditor::connectWebSocket()
 {
@@ -696,13 +802,13 @@ void SidechainAudioProcessorEditor::connectWebSocket()
 
     if (authToken.isEmpty())
     {
-        DBG("Cannot connect WebSocket: no auth token");
+        Log::warn("Cannot connect WebSocket: no auth token");
         return;
     }
 
     webSocketClient->setAuthToken(authToken);
     webSocketClient->connect();
-    DBG("WebSocket connection initiated");
+    Log::info("WebSocket connection initiated");
 }
 
 void SidechainAudioProcessorEditor::disconnectWebSocket()
@@ -711,47 +817,54 @@ void SidechainAudioProcessorEditor::disconnectWebSocket()
     {
         webSocketClient->clearAuthToken();
         webSocketClient->disconnect();
-        DBG("WebSocket disconnected");
+        Log::info("WebSocket disconnected");
     }
 }
 
 void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient::Message& message)
 {
-    DBG("WebSocket message received - type: " + message.typeString);
+    Log::debug("WebSocket message received - type: " + message.typeString);
 
     switch (message.type)
     {
         case WebSocketClient::MessageType::NewPost:
         {
-            // A new post was created - refresh feed if visible
+            // A new post was created - show toast notification (5.5.1, 5.5.2)
             if (postsFeedComponent && postsFeedComponent->isVisible())
             {
-                // Show a "new posts available" indicator rather than auto-refresh
-                // This prevents jarring UI changes while user is scrolling
-                DBG("New post notification received");
+                auto payload = message.getProperty("payload");
+                postsFeedComponent->handleNewPostNotification(payload);
             }
             break;
         }
 
         case WebSocketClient::MessageType::Like:
+        case WebSocketClient::MessageType::LikeCountUpdate:
         {
-            // Update like count on the affected post
-            auto activityId = message.getProperty("activity_id").toString();
-            auto likeCount = message.getProperty("like_count");
+            // Update like count on the affected post (5.5.3)
+            auto payload = message.getProperty("payload");
+            auto postId = payload.getProperty("post_id").toString();
+            auto likeCount = static_cast<int>(payload.getProperty("like_count"));
 
-            if (postsFeedComponent && !activityId.isEmpty())
+            if (postsFeedComponent && !postId.isEmpty() && likeCount >= 0)
             {
-                // postsFeedComponent could update the specific post's like count
-                DBG("Like update for post: " + activityId);
+                postsFeedComponent->handleLikeCountUpdate(postId, likeCount);
             }
             break;
         }
 
         case WebSocketClient::MessageType::Follow:
+        case WebSocketClient::MessageType::FollowerCountUpdate:
         {
-            // Someone followed the current user
-            auto followerUsername = message.getProperty("follower_username").toString();
-            DBG("New follower: " + followerUsername);
+            // Follower count updated (5.5.4)
+            auto payload = message.getProperty("payload");
+            auto userId = payload.getProperty("followee_id").toString();
+            auto followerCount = static_cast<int>(payload.getProperty("follower_count"));
+
+            if (postsFeedComponent && !userId.isEmpty() && followerCount >= 0)
+            {
+                postsFeedComponent->handleFollowerCountUpdate(userId, followerCount);
+            }
             break;
         }
 
@@ -760,14 +873,14 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
             // Play count updated for a post
             auto activityId = message.getProperty("activity_id").toString();
             auto playCount = message.getProperty("play_count");
-            DBG("Play count update for post: " + activityId);
+            Log::debug("Play count update for post: " + activityId);
             break;
         }
 
         case WebSocketClient::MessageType::Notification:
         {
             // Generic notification - could show a badge or toast
-            DBG("Notification received: " + juce::JSON::toString(message.data));
+            Log::debug("Notification received: " + juce::JSON::toString(message.data));
             break;
         }
 
@@ -776,14 +889,14 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
             // User online/offline status changed
             auto userId = message.getProperty("user_id").toString();
             auto isOnline = message.getProperty("is_online");
-            DBG("Presence update - user: " + userId + " online: " + (isOnline ? "yes" : "no"));
+            Log::debug("Presence update - user: " + userId + " online: " + (isOnline ? "yes" : "no"));
             break;
         }
 
         case WebSocketClient::MessageType::Error:
         {
             auto errorMsg = message.getProperty("message").toString();
-            DBG("WebSocket error message: " + errorMsg);
+            Log::error("WebSocket error message: " + errorMsg);
             break;
         }
 
@@ -792,7 +905,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
             break;
 
         default:
-            DBG("Unknown WebSocket message type: " + message.typeString);
+            Log::warn("Unknown WebSocket message type: " + message.typeString);
             break;
     }
 }
@@ -806,18 +919,18 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::
         {
             case WebSocketClient::ConnectionState::Connected:
                 connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Connected);
-                DBG("WebSocket connected - indicator green");
+                Log::debug("WebSocket connected - indicator green");
                 break;
 
             case WebSocketClient::ConnectionState::Connecting:
             case WebSocketClient::ConnectionState::Reconnecting:
                 connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Connecting);
-                DBG("WebSocket connecting - indicator yellow");
+                Log::debug("WebSocket connecting - indicator yellow");
                 break;
 
             case WebSocketClient::ConnectionState::Disconnected:
                 connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Disconnected);
-                DBG("WebSocket disconnected - indicator red");
+                Log::debug("WebSocket disconnected - indicator red");
                 break;
         }
     }
@@ -829,7 +942,7 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
 {
     if (source == userDataStore.get())
     {
-        DBG("changeListenerCallback: UserDataStore changed!"
+        Log::debug("changeListenerCallback: UserDataStore changed!"
             " hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false") +
             " profilePicUrl=" + userDataStore->getProfilePictureUrl());
 
@@ -841,7 +954,7 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
             // If UserDataStore has a cached image, use it directly (avoids re-downloading)
             if (userDataStore->hasProfileImage())
             {
-                DBG("changeListenerCallback: Setting profile image on header");
+                Log::debug("changeListenerCallback: Setting profile image on header");
                 headerComponent->setProfileImage(userDataStore->getProfileImage());
             }
         }
@@ -849,7 +962,7 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
         // Update ProfileSetupComponent with cached image
         if (profileSetupComponent && userDataStore && userDataStore->hasProfileImage())
         {
-            DBG("changeListenerCallback: Setting profile image on ProfileSetupComponent");
+            Log::debug("changeListenerCallback: Setting profile image on ProfileSetupComponent");
             profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
         }
 
@@ -888,7 +1001,7 @@ void SidechainAudioProcessorEditor::setupNotifications()
     // Create notification list component (initially hidden)
     notificationList = std::make_unique<NotificationListComponent>();
     notificationList->onNotificationClicked = [this](const NotificationItem& item) {
-        DBG("Notification clicked: " + item.getDisplayText());
+        Log::debug("Notification clicked: " + item.getDisplayText());
         hideNotificationPanel();
 
         // Navigate based on notification type
@@ -1030,7 +1143,7 @@ void SidechainAudioProcessorEditor::startNotificationPolling()
     if (notificationPollTimer)
     {
         // Poll every 30 seconds
-        static_cast<NotificationPollTimer*>(notificationPollTimer.get())->startTimer(30000);
+        static_cast<NotificationPollTimer*>(notificationPollTimer.get())->startTimer(Constants::Api::DEFAULT_TIMEOUT_MS);
 
         // Also fetch immediately
         fetchNotificationCounts();
@@ -1077,7 +1190,7 @@ void SidechainAudioProcessorEditor::startOAuthPolling(const juce::String& sessio
     });
     static_cast<OAuthPollTimer*>(oauthPollTimer.get())->startTimer(1000); // Poll every 1 second
 
-    DBG("Started OAuth polling for session: " + sessionId);
+    Log::info("Started OAuth polling for session: " + sessionId);
 }
 
 void SidechainAudioProcessorEditor::stopOAuthPolling()
@@ -1114,35 +1227,25 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
     }
 
     // Make polling request
-    juce::Thread::launch([this, sessionId = oauthSessionId]() {
-        juce::URL url("http://localhost:8787/api/v1/auth/oauth/poll?session_id=" + sessionId);
+    if (networkClient == nullptr)
+    {
+        Log::warn("OAuth poll: NetworkClient not available");
+        return;
+    }
 
-        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                           .withConnectionTimeoutMs(5000);
+    juce::String endpoint = juce::String(Constants::Endpoints::AUTH_OAUTH_POLL) + "?session_id=" + oauthSessionId;
+    networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](bool success, const juce::var& responseData) {
+        // Check if this is still the active session
+        if (oauthSessionId != capturedSessionId)
+            return;
 
-        auto stream = url.createInputStream(options);
+        if (!success || !responseData.isObject())
+        {
+            Log::warn("OAuth poll: connection failed or invalid response");
+            return; // Keep polling, might be temporary network issue
+        }
 
-        juce::MessageManager::callAsync([this, stream = std::move(stream), sessionId]() {
-            // Check if this is still the active session
-            if (oauthSessionId != sessionId)
-                return;
-
-            if (stream == nullptr)
-            {
-                DBG("OAuth poll: connection failed");
-                return; // Keep polling, might be temporary network issue
-            }
-
-            juce::String response = stream->readEntireStreamAsString();
-            juce::var responseData = juce::JSON::parse(response);
-
-            if (!responseData.isObject())
-            {
-                DBG("OAuth poll: invalid response");
-                return;
-            }
-
-            juce::String status = Json::getString(responseData, "status");
+        juce::String status = Json::getString(responseData, "status");
 
             if (status == "complete")
             {
@@ -1170,7 +1273,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
                     if (userName.isEmpty() && userEmail.isNotEmpty())
                         userName = userEmail.upToFirstOccurrenceOf("@", false, false);
 
-                    DBG("OAuth success! User: " + userName);
+                    Log::info("OAuth success! User: " + userName);
 
                     if (authComponent)
                         authComponent->clearError();
@@ -1193,7 +1296,6 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
                 if (authComponent)
                     authComponent->showError("Authentication session expired. Please try again.");
             }
-            // status == "pending" -> keep polling
-        });
+        // status == "pending" -> keep polling
     });
 }

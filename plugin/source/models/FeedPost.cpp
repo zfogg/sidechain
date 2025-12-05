@@ -21,7 +21,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     juce::String timeStr = Json::getString(json, "time");
     if (timeStr.isNotEmpty())
     {
-        // Stream.io uses ISO 8601 format: "2024-01-15T10:30:00.000Z"
+        // getstream.io uses ISO 8601 format: "2024-01-15T10:30:00.000Z"
         post.timestamp = juce::Time::fromISO8601(timeStr);
         post.timeAgo = formatTimeAgo(post.timestamp);
     }
@@ -62,7 +62,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
         post.genres.add(Json::getString(json, "genre"));
     }
 
-    // Social metrics - first try enriched data from Stream.io
+    // Social metrics - first try enriched data from getstream.io
     // Enriched endpoints return reaction_counts: {"like": 5, "🔥": 3, "❤️": 2}
     auto reactionCounts = Json::getObject(json, "reaction_counts");
     if (Json::isObject(reactionCounts))

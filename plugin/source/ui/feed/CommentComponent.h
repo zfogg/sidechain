@@ -1,8 +1,10 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../util/Animation.h"
 #include "../../util/Time.h"
 #include "../../util/Colors.h"
+#include "../../util/HoverState.h"
 
 //==============================================================================
 /**
@@ -120,7 +122,7 @@ public:
 
 private:
     Comment comment;
-    bool isHovered = false;
+    HoverState hoverState;
     bool isReply = false;
 
     // Cached avatar image
@@ -189,6 +191,8 @@ public:
     // Component overrides
     void paint(juce::Graphics& g) override;
     void resized() override;
+    void mouseUp(const juce::MouseEvent& event) override;
+    bool keyPressed(const juce::KeyPress& key) override;
 
     //==============================================================================
     // Layout constants
@@ -223,7 +227,16 @@ private:
     juce::OwnedArray<CommentRowComponent> commentRows;
     std::unique_ptr<juce::TextEditor> inputField;
     std::unique_ptr<juce::TextButton> sendButton;
+    std::unique_ptr<juce::TextButton> emojiButton;
     std::unique_ptr<juce::TextButton> closeButton;
+    
+    // Mention autocomplete
+    std::unique_ptr<juce::Component> mentionAutocompletePanel;
+    juce::Array<juce::String> mentionSuggestions;  // Array of usernames
+    juce::Array<juce::String> mentionUserIds;     // Corresponding user IDs
+    int selectedMentionIndex = -1;
+    bool isShowingMentions = false;
+    int mentionQueryStart = -1;  // Position in text where @mention starts
 
     //==============================================================================
     // Methods
@@ -232,6 +245,17 @@ private:
     void loadMoreComments();
     void submitComment();
     void cancelReply();
+    
+    // Mention autocomplete
+    void checkForMention();
+    void showMentionAutocomplete(const juce::String& query);
+    void hideMentionAutocomplete();
+    void selectMention(int index);
+    void insertMention(const juce::String& username);
+    
+    // Emoji picker
+    void showEmojiPicker();
+    void insertEmoji(const juce::String& emoji);
 
     // API callbacks
     void handleCommentsLoaded(bool success, const juce::var& commentsData, int total);
@@ -241,6 +265,18 @@ private:
 
     // Row callbacks
     void setupRowCallbacks(CommentRowComponent* row);
+    
+    // TextEditor listener for mention detection
+    class MentionListener : public juce::TextEditor::Listener
+    {
+    public:
+        MentionListener(CommentsPanelComponent* parent) : parent(parent) {}
+        void textEditorTextChanged(juce::TextEditor& editor) override;
+        void textEditorReturnKeyPressed(juce::TextEditor& editor) override;
+    private:
+        CommentsPanelComponent* parent;
+    };
+    std::unique_ptr<MentionListener> mentionListener;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CommentsPanelComponent)
 };

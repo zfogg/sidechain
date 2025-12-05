@@ -1,10 +1,13 @@
 #include "UserDiscoveryComponent.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Json.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 UserDiscoveryComponent::UserDiscoveryComponent()
 {
+    Log::info("UserDiscoveryComponent: Initializing");
+    
     // Create search box
     searchBox = std::make_unique<juce::TextEditor>();
     searchBox->setMultiLine(false);
@@ -31,6 +34,7 @@ UserDiscoveryComponent::UserDiscoveryComponent()
 
 UserDiscoveryComponent::~UserDiscoveryComponent()
 {
+    Log::debug("UserDiscoveryComponent: Destroying");
     searchBox->removeListener(this);
     scrollBar.removeListener(this);
 }
@@ -39,6 +43,7 @@ UserDiscoveryComponent::~UserDiscoveryComponent()
 void UserDiscoveryComponent::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
+    Log::debug("UserDiscoveryComponent: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
 //==============================================================================
@@ -470,8 +475,12 @@ void UserDiscoveryComponent::scrollBarMoved(juce::ScrollBar* bar, double newRang
 void UserDiscoveryComponent::loadDiscoveryData()
 {
     if (networkClient == nullptr)
+    {
+        Log::warn("UserDiscoveryComponent: Cannot load discovery data - network client null");
         return;
+    }
 
+    Log::info("UserDiscoveryComponent: Loading discovery data");
     fetchTrendingUsers();
     fetchFeaturedProducers();
     fetchSuggestedUsers();
@@ -498,8 +507,12 @@ void UserDiscoveryComponent::refresh()
 void UserDiscoveryComponent::performSearch(const juce::String& query)
 {
     if (networkClient == nullptr)
+    {
+        Log::warn("UserDiscoveryComponent: Cannot perform search - network client null");
         return;
+    }
 
+    Log::info("UserDiscoveryComponent: Performing search - query: \"" + query + "\"");
     currentSearchQuery = query;
     currentViewMode = ViewMode::SearchResults;
     isSearching = true;
@@ -520,6 +533,11 @@ void UserDiscoveryComponent::performSearch(const juce::String& query)
                     searchResults.add(DiscoveredUser::fromJson(users[i]));
                 }
             }
+            Log::info("UserDiscoveryComponent: Search completed - results: " + juce::String(searchResults.size()));
+        }
+        else
+        {
+            Log::error("UserDiscoveryComponent: Search failed");
         }
 
         rebuildUserCards();
@@ -547,6 +565,7 @@ void UserDiscoveryComponent::fetchTrendingUsers()
                 {
                     trendingUsers.add(DiscoveredUser::fromJson(users[i]));
                 }
+                Log::info("UserDiscoveryComponent: Loaded " + juce::String(trendingUsers.size()) + " trending users");
             }
         }
 

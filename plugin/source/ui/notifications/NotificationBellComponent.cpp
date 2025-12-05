@@ -1,4 +1,5 @@
 #include "NotificationBellComponent.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 NotificationBellComponent::NotificationBellComponent()
@@ -12,6 +13,7 @@ void NotificationBellComponent::setUnseenCount(int count)
     if (unseenCount != count)
     {
         unseenCount = juce::jmax(0, count);
+        Log::debug("NotificationBellComponent: Unseen count updated - " + juce::String(unseenCount));
         repaint();
     }
 }
@@ -21,6 +23,7 @@ void NotificationBellComponent::setUnreadCount(int count)
     if (unreadCount != count)
     {
         unreadCount = juce::jmax(0, count);
+        Log::debug("NotificationBellComponent: Unread count updated - " + juce::String(unreadCount));
         repaint();
     }
 }

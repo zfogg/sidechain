@@ -2,6 +2,12 @@
 #include "../../util/Colors.h"
 #include "../../util/ImageCache.h"
 #include "../../util/UIHelpers.h"
+#include "../../util/StringFormatter.h"
+#include "../../util/HoverState.h"
+#include "../../util/LongPressDetector.h"
+#include "../../util/Log.h"
+#include "../../util/Animation.h"
+#include <algorithm>
 
 //==============================================================================
 PostCardComponent::PostCardComponent()
@@ -18,6 +24,7 @@ void PostCardComponent::setPost(const FeedPost& newPost)
 {
     post = newPost;
     avatarImage = juce::Image();
+    Log::debug("PostCardComponent: Setting post - ID: " + post.id + ", user: " + post.username);
 
     // Load avatar via ImageCache
     if (post.userAvatarUrl.isNotEmpty())
@@ -35,12 +42,14 @@ void PostCardComponent::updateLikeCount(int count, bool liked)
 {
     post.likeCount = count;
     post.isLiked = liked;
+    Log::debug("PostCardComponent: Like count updated - post: " + post.id + ", count: " + juce::String(count) + ", liked: " + juce::String(liked ? "true" : "false"));
     repaint();
 }
 
 void PostCardComponent::updatePlayCount(int count)
 {
     post.playCount = count;
+    Log::debug("PostCardComponent: Play count updated - post: " + post.id + ", count: " + juce::String(count));
     repaint();
 }
 
@@ -69,6 +78,7 @@ void PostCardComponent::setPlaybackProgress(float progress)
 void PostCardComponent::setIsPlaying(bool playing)
 {
     isPlaying = playing;
+    Log::debug("PostCardComponent: Playback state changed - post: " + post.id + ", playing: " + juce::String(playing ? "true" : "false"));
     repaint();
 }
 
@@ -214,21 +224,15 @@ void PostCardComponent::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bou
         g.fillRect(barX, barY, barWidth, barHeight);
     }
 
-    // Duration overlay at bottom-right of waveform
+    // Duration overlay at bottom-right of waveform - use UI::drawBadge
     if (post.durationSeconds > 0)
     {
-        int seconds = static_cast<int>(post.durationSeconds);
-        int mins = seconds / 60;
-        int secs = seconds % 60;
-        juce::String duration = juce::String::formatted("%d:%02d", mins, secs);
-
+        juce::String duration = StringFormatter::formatDuration(post.durationSeconds);
         auto durationBounds = juce::Rectangle<int>(bounds.getRight() - 45, bounds.getBottom() - 18, 40, 16);
-        g.setColour(SidechainColors::background().withAlpha(0.85f));
-        g.fillRoundedRectangle(durationBounds.toFloat(), 3.0f);
-
-        g.setColour(SidechainColors::textPrimary());
-        g.setFont(10.0f);
-        g.drawText(duration, durationBounds, juce::Justification::centred);
+        
+        UI::drawBadge(g, durationBounds, duration,
+            SidechainColors::background().withAlpha(0.85f),
+            SidechainColors::textPrimary(), 10.0f, 3.0f);
     }
 }
 
@@ -328,12 +332,26 @@ void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int
         g.drawText(heartIcon, likeBounds.withWidth(20), juce::Justification::centred);
     }
 
-    // Like/reaction count
-    g.setColour(post.isLiked || post.userReaction.isNotEmpty() ? SidechainColors::like() : SidechainColors::textMuted());
-    g.setFont(11.0f);
-    g.drawText(juce::String(post.likeCount),
-               likeBounds.withX(likeBounds.getX() + 20).withWidth(30),
-               juce::Justification::centredLeft);
+    // Calculate total reaction count (sum of all emoji reactions)
+    int totalReactions = post.likeCount;
+    for (const auto& [emoji, count] : post.reactionCounts)
+    {
+        if (emoji != "like")  // Don't double-count "like" reactions
+            totalReactions += count;
+    }
+
+    // Show total reaction count if we have reactions
+    if (totalReactions > 0)
+    {
+        g.setColour(post.isLiked || post.userReaction.isNotEmpty() ? SidechainColors::like() : SidechainColors::textMuted());
+        g.setFont(11.0f);
+        g.drawText(juce::String(totalReactions),
+                   likeBounds.withX(likeBounds.getX() + 20).withWidth(30),
+                   juce::Justification::centredLeft);
+    }
+
+    // Draw individual emoji reaction counts (top 3 most popular)
+    drawReactionCounts(g, likeBounds);
 
     // Comment count
     auto commentBounds = getCommentButtonBounds();
@@ -352,6 +370,76 @@ void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int
     g.drawText(juce::String(post.playCount) + " plays",
                bounds.getX(), bounds.getY() - 15, 60, 12,
                juce::Justification::centredLeft);
+
+    // Add to DAW button
+    auto addToDAWBounds = getAddToDAWButtonBounds();
+    if (isHovered && addToDAWBounds.contains(getMouseXYRelative()))
+    {
+        g.setColour(SidechainColors::surfaceHover());
+        g.fillRoundedRectangle(addToDAWBounds.toFloat(), 4.0f);
+    }
+    
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(10.0f);
+    g.drawText("Add to DAW", addToDAWBounds, juce::Justification::centred);
+}
+
+void PostCardComponent::drawReactionCounts(juce::Graphics& g, juce::Rectangle<int> likeBounds)
+{
+    if (post.reactionCounts.empty())
+        return;
+
+    // Collect all reactions and sort by count (descending)
+    struct ReactionItem
+    {
+        juce::String emoji;
+        int count;
+    };
+
+    juce::Array<ReactionItem> reactions;
+    for (const auto& [emoji, count] : post.reactionCounts)
+    {
+        // Skip "like" reactions as they're already shown in the main count
+        if (emoji == "like" || count == 0)
+            continue;
+        reactions.add({emoji, count});
+    }
+
+    // Sort by count (descending) using std::sort with iterators
+    std::sort(reactions.begin(), reactions.end(),
+        [](const ReactionItem& a, const ReactionItem& b) {
+            return a.count > b.count;
+        });
+
+    // Show top 3 reactions below the like button
+    int maxReactions = juce::jmin(3, reactions.size());
+    if (maxReactions == 0)
+        return;
+
+    int reactionY = likeBounds.getBottom() + 2;
+    int reactionX = likeBounds.getX();
+    int emojiSize = 14;
+    int spacing = 4;
+
+    for (int i = 0; i < maxReactions; ++i)
+    {
+        const auto& reaction = reactions[i];
+        
+        // Draw emoji
+        g.setFont(static_cast<float>(emojiSize));
+        g.setColour(SidechainColors::textPrimary());
+        auto emojiBounds = juce::Rectangle<int>(reactionX, reactionY, emojiSize, emojiSize);
+        g.drawText(reaction.emoji, emojiBounds, juce::Justification::centred);
+
+        // Draw count next to emoji
+        g.setFont(9.0f);
+        g.setColour(SidechainColors::textMuted());
+        auto countBounds = juce::Rectangle<int>(reactionX + emojiSize + 2, reactionY, 20, emojiSize);
+        g.drawText(juce::String(reaction.count), countBounds, juce::Justification::centredLeft);
+
+        // Move to next position
+        reactionX += emojiSize + spacing + 22;  // emoji + spacing + count width
+    }
 }
 
 //==============================================================================
@@ -463,6 +551,14 @@ void PostCardComponent::mouseUp(const juce::MouseEvent& event)
             onWaveformClicked(post, seekPosition);
         return;
     }
+
+    // Check Add to DAW button
+    if (getAddToDAWButtonBounds().contains(pos))
+    {
+        if (onAddToDAWClicked)
+            onAddToDAWClicked(post);
+        return;
+    }
 }
 
 void PostCardComponent::mouseEnter(const juce::MouseEvent& /*event*/)
@@ -532,14 +628,18 @@ juce::Rectangle<int> PostCardComponent::getFollowButtonBounds() const
     return juce::Rectangle<int>(userInfo.getX(), userInfo.getY() + 58, 65, 22);
 }
 
+juce::Rectangle<int> PostCardComponent::getAddToDAWButtonBounds() const
+{
+    // Position below the play count, on the left side
+    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 20, 70, 18);
+}
+
 //==============================================================================
 // Like Animation
 
 void PostCardComponent::startLikeAnimation()
 {
-    likeAnimationActive = true;
-    likeAnimationProgress = 0.0f;
-    startTimer(1000 / LIKE_ANIMATION_FPS);
+    likeAnimation.start();
 }
 
 void PostCardComponent::timerCallback()
@@ -554,31 +654,15 @@ void PostCardComponent::timerCallback()
             showEmojiReactionsPanel();
 
             // Stop timer if no animation is running
-            if (!likeAnimationActive)
+            if (!likeAnimation.isRunning())
                 stopTimer();
 
             return;
         }
     }
 
-    // Handle like animation
-    if (likeAnimationActive)
-    {
-        // Advance animation
-        float step = (1000.0f / LIKE_ANIMATION_FPS) / LIKE_ANIMATION_DURATION_MS;
-        likeAnimationProgress += step;
-
-        if (likeAnimationProgress >= 1.0f)
-        {
-            likeAnimationProgress = 1.0f;
-            likeAnimationActive = false;
-        }
-
-        repaint();
-    }
-
     // Stop timer if nothing is active
-    if (!likeAnimationActive && !longPressActive)
+    if (!likeAnimation.isRunning() && !longPressActive)
     {
         stopTimer();
     }
@@ -586,16 +670,15 @@ void PostCardComponent::timerCallback()
 
 void PostCardComponent::drawLikeAnimation(juce::Graphics& g)
 {
-    if (!likeAnimationActive)
+    if (!likeAnimation.isRunning())
         return;
 
     auto likeBounds = getLikeButtonBounds();
     float cx = static_cast<float>(likeBounds.getCentreX()) - 5.0f;
     float cy = static_cast<float>(likeBounds.getCentreY());
 
-    // Easing function for smooth animation (ease out cubic)
-    float t = likeAnimationProgress;
-    float easedT = 1.0f - std::pow(1.0f - t, 3.0f);
+    // Get eased progress from animation
+    float easedT = likeAnimation.getProgress();
 
     // Scale animation (pop in then settle)
     float scalePhase = easedT < 0.5f ? easedT * 2.0f : 1.0f;

@@ -9,7 +9,7 @@
 /**
  * FeedPost represents a single post/activity in the feed
  *
- * Maps to the Stream.io Activity structure from the backend
+ * Maps to the getstream.io Activity structure from the backend
  */
 class FeedPost
 {
@@ -19,7 +19,7 @@ public:
 
     //==============================================================================
     // Core identifiers
-    juce::String id;           // Stream.io activity ID
+    juce::String id;           // getstream.io activity ID
     juce::String foreignId;    // Our internal ID (e.g., "loop:uuid")
     juce::String actor;        // User reference (e.g., "user:12345")
     juce::String verb;         // Action type (e.g., "posted")

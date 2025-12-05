@@ -1,18 +1,24 @@
 #include "ProfileSetupComponent.h"
 #include "../../util/Colors.h"
+#include "../../util/Log.h"
 #include <thread>
 
 ProfileSetupComponent::ProfileSetupComponent()
 {
+    Log::info("ProfileSetupComponent: Initializing profile setup component");
     setSize(1000, 800);
+    Log::info("ProfileSetupComponent: Initialization complete");
 }
 
 ProfileSetupComponent::~ProfileSetupComponent()
 {
+    Log::debug("ProfileSetupComponent: Destroying profile setup component");
 }
 
 void ProfileSetupComponent::setUserInfo(const juce::String& user, const juce::String& userEmail, const juce::String& picUrl)
 {
+    Log::info("ProfileSetupComponent::setUserInfo: Setting user info - username: " + user + 
+              ", email: " + userEmail + ", profilePicUrl: " + (picUrl.isNotEmpty() ? picUrl : "empty"));
     username = user;
     email = userEmail;
     profilePicUrl = picUrl;
@@ -21,7 +27,6 @@ void ProfileSetupComponent::setUserInfo(const juce::String& user, const juce::St
     // Instead, UserDataStore downloads via the HTTP proxy and passes the cached image
     // via setProfileImage(). This method just stores the URL for reference.
 
-    DBG("ProfileSetup - setUserInfo: " + user + ", " + userEmail + ", profilePicUrl: " + profilePicUrl);
     repaint();
 }
 
@@ -30,14 +35,19 @@ void ProfileSetupComponent::setProfileImage(const juce::Image& image)
     if (image.isValid())
     {
         previewImage = image;
-        DBG("ProfileSetup - received profile image from cache (" +
-            juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()) + ")");
+        Log::info("ProfileSetupComponent::setProfileImage: Received profile image from cache - " +
+            juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()) + " pixels");
         repaint();
+    }
+    else
+    {
+        Log::warn("ProfileSetupComponent::setProfileImage: Invalid image provided");
     }
 }
 
 void ProfileSetupComponent::setLocalPreviewPath(const juce::String& localPath)
 {
+    Log::info("ProfileSetupComponent::setLocalPreviewPath: Setting local preview path: " + localPath);
     localPreviewPath = localPath;
 
     // Load the image immediately for preview
@@ -45,7 +55,19 @@ void ProfileSetupComponent::setLocalPreviewPath(const juce::String& localPath)
     if (imageFile.existsAsFile())
     {
         previewImage = juce::ImageFileFormat::loadFrom(imageFile);
-        DBG("ProfileSetup - loaded local preview image: " + localPath);
+        if (previewImage.isValid())
+        {
+            Log::info("ProfileSetupComponent::setLocalPreviewPath: Loaded local preview image - " +
+                juce::String(previewImage.getWidth()) + "x" + juce::String(previewImage.getHeight()) + " pixels");
+        }
+        else
+        {
+            Log::warn("ProfileSetupComponent::setLocalPreviewPath: Failed to load image from: " + localPath);
+        }
+    }
+    else
+    {
+        Log::warn("ProfileSetupComponent::setLocalPreviewPath: File does not exist: " + localPath);
     }
 
     repaint();
@@ -53,12 +75,13 @@ void ProfileSetupComponent::setLocalPreviewPath(const juce::String& localPath)
 
 void ProfileSetupComponent::setProfilePictureUrl(const juce::String& s3Url)
 {
+    Log::info("ProfileSetupComponent::setProfilePictureUrl: Setting S3 URL: " + s3Url);
     profilePicUrl = s3Url;
     localPreviewPath = ""; // Clear local path since we now have the S3 URL
+    Log::debug("ProfileSetupComponent::setProfilePictureUrl: Local preview path cleared");
 
     // The previewImage should already be set from setLocalPreviewPath,
     // so we don't need to re-download immediately
-    DBG("ProfileSetup - S3 URL set: " + s3Url);
     repaint();
 }
 
@@ -153,6 +176,9 @@ void ProfileSetupComponent::resized()
 
 void ProfileSetupComponent::mouseUp(const juce::MouseEvent& event)
 {
+    auto pos = event.getPosition();
+    Log::debug("ProfileSetupComponent::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
+    
     // Use same coordinates as paint method
     auto uploadBtn = juce::Rectangle<int>(400, 150, 150, 36);
     auto skipBtn = juce::Rectangle<int>(400, 196, 70, 32);
@@ -162,6 +188,7 @@ void ProfileSetupComponent::mouseUp(const juce::MouseEvent& event)
     
     if (uploadBtn.contains(event.getPosition()) || picBounds.contains(event.getPosition()))
     {
+        Log::info("ProfileSetupComponent::mouseUp: Upload/Skip button or profile picture area clicked, opening file picker");
         // Open file picker for profile picture
         auto chooser = std::make_shared<juce::FileChooser>("Select Profile Picture", juce::File(), "*.jpg;*.jpeg;*.png;*.gif");
         chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
@@ -172,13 +199,24 @@ void ProfileSetupComponent::mouseUp(const juce::MouseEvent& event)
             {
                 // Update local profilePicUrl and notify parent
                 profilePicUrl = selectedFile.getFullPathName(); // Temporary - will be S3 URL
-                DBG("Profile picture selected: " + profilePicUrl);
+                Log::info("ProfileSetupComponent::mouseUp: Profile picture selected: " + profilePicUrl);
                 
                 // Notify parent component
                 if (onProfilePicSelected)
+                {
+                    Log::debug("ProfileSetupComponent::mouseUp: Calling onProfilePicSelected callback");
                     onProfilePicSelected(profilePicUrl);
+                }
+                else
+                {
+                    Log::warn("ProfileSetupComponent::mouseUp: onProfilePicSelected callback not set");
+                }
                     
                 repaint();
+            }
+            else
+            {
+                Log::debug("ProfileSetupComponent::mouseUp: File picker cancelled or no file selected");
             }
         });
     }
@@ -186,15 +224,32 @@ void ProfileSetupComponent::mouseUp(const juce::MouseEvent& event)
     {
         // Both skip and continue go to the feed
         if (skipBtn.contains(event.getPosition()) && onSkipSetup)
+        {
+            Log::info("ProfileSetupComponent::mouseUp: Skip button clicked");
             onSkipSetup();
+        }
         else if (continueBtn.contains(event.getPosition()) && onCompleteSetup)
+        {
+            Log::info("ProfileSetupComponent::mouseUp: Continue button clicked");
             onCompleteSetup();
+        }
+        else
+        {
+            Log::warn("ProfileSetupComponent::mouseUp: Skip/Continue button clicked but callback not set");
+        }
     }
     else if (logoutBtn.contains(event.getPosition()))
     {
-        DBG("Logout button clicked");
+        Log::info("ProfileSetupComponent::mouseUp: Logout button clicked");
         if (onLogout)
+        {
+            Log::debug("ProfileSetupComponent::mouseUp: Calling onLogout callback");
             onLogout();
+        }
+        else
+        {
+            Log::warn("ProfileSetupComponent::mouseUp: onLogout callback not set");
+        }
     }
 }
 

@@ -3,6 +3,8 @@
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/UIHelpers.h"
+#include "../../util/HoverState.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 // NotificationItem implementation
@@ -161,6 +163,11 @@ juce::String NotificationItem::getVerbIcon() const
 NotificationRowComponent::NotificationRowComponent()
 {
     setSize(NotificationListComponent::PREFERRED_WIDTH, ROW_HEIGHT);
+    
+    // Set up hover state
+    hoverState.onHoverChanged = [this](bool hovered) {
+        repaint();
+    };
 }
 
 void NotificationRowComponent::setNotification(const NotificationItem& notif)
@@ -174,7 +181,7 @@ void NotificationRowComponent::paint(juce::Graphics& g)
     auto bounds = getLocalBounds();
 
     // Background
-    if (isHovered)
+    if (hoverState.isHovered())
         g.fillAll(SidechainColors::backgroundLighter());
     else if (!notification.isRead)
         g.fillAll(SidechainColors::backgroundLight()); // Slightly lighter for unread
@@ -320,14 +327,12 @@ void NotificationRowComponent::drawUnreadIndicator(juce::Graphics& g, juce::Rect
 
 void NotificationRowComponent::mouseEnter(const juce::MouseEvent&)
 {
-    isHovered = true;
-    repaint();
+    hoverState.setHovered(true);
 }
 
 void NotificationRowComponent::mouseExit(const juce::MouseEvent&)
 {
-    isHovered = false;
-    repaint();
+    hoverState.setHovered(false);
 }
 
 void NotificationRowComponent::mouseDown(const juce::MouseEvent&)
@@ -342,6 +347,7 @@ void NotificationRowComponent::mouseDown(const juce::MouseEvent&)
 
 NotificationListComponent::NotificationListComponent()
 {
+    Log::info("NotificationListComponent: Initializing");
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(&contentComponent, false);
     viewport.setScrollBarsShown(true, false);
@@ -352,6 +358,7 @@ NotificationListComponent::NotificationListComponent()
 
 NotificationListComponent::~NotificationListComponent()
 {
+    Log::debug("NotificationListComponent: Destroying");
     viewport.getVerticalScrollBar().removeListener(this);
 }
 
@@ -360,6 +367,7 @@ void NotificationListComponent::setNotifications(const juce::Array<NotificationI
     notifications = newNotifications;
     isLoading = false;
     errorMessage.clear();
+    Log::info("NotificationListComponent: Set " + juce::String(notifications.size()) + " notifications");
     rebuildRowComponents();
     repaint();
 }
@@ -383,6 +391,7 @@ void NotificationListComponent::setError(const juce::String& error)
 {
     errorMessage = error;
     isLoading = false;
+    Log::error("NotificationListComponent: Error - " + error);
     repaint();
 }
 

@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../../network/FeedDataManager.h"
 #include "../../models/FeedResponse.h"
+#include "../../util/Animation.h"
 #include "PostCardComponent.h"
 #include "CommentComponent.h"
 #include "../../audio/AudioPlayer.h"
@@ -11,7 +12,8 @@ class NetworkClient;
 
 class PostsFeedComponent : public juce::Component,
                            public juce::ScrollBar::Listener,
-                           public juce::KeyListener
+                           public juce::KeyListener,
+                           public juce::Timer
 {
 public:
     PostsFeedComponent();
@@ -54,8 +56,17 @@ public:
     void refreshFeed();
     void switchFeedType(FeedDataManager::FeedType type);
 
+    // Real-time updates (5.5)
+    void handleNewPostNotification(const juce::var& postData);
+    void handleLikeCountUpdate(const juce::String& postId, int likeCount);
+    void handleFollowerCountUpdate(const juce::String& userId, int followerCount);
+    void showNewPostsToast(int count);
+
     // ScrollBar::Listener
     void scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart) override;
+
+    // Timer override
+    void timerCallback() override;
 
 private:
     //==============================================================================
@@ -73,6 +84,12 @@ private:
     juce::Array<FeedPost> posts;
     FeedDataManager feedDataManager;
     FeedDataManager::FeedType currentFeedType = FeedDataManager::FeedType::Timeline;
+
+    // Real-time update state (5.5)
+    int pendingNewPostsCount = 0;  // Count of new posts received while user is viewing feed
+    juce::Time lastNewPostTime;    // Track when last new post notification arrived
+    bool showingNewPostsToast = false;
+    AnimationValue<float> toastOpacity{0.0f, 200, Animation::Easing::EaseOutCubic};  // Fade in/out animation
 
     // Scroll state
     double scrollPosition = 0.0;
@@ -95,6 +112,10 @@ private:
     NetworkClient* networkClient = nullptr;
 
     //==============================================================================
+    // Listen duration tracking (postId -> start time)
+    std::map<juce::String, juce::Time> playbackStartTimes;
+
+    //==============================================================================
     // UI Components
     juce::ScrollBar scrollBar { true }; // vertical
     juce::OwnedArray<PostCardComponent> postCards;
@@ -102,6 +123,7 @@ private:
     // Comments panel (slide-in overlay)
     std::unique_ptr<CommentsPanelComponent> commentsPanel;
     bool commentsPanelVisible = false;
+    AnimationValue<float> commentsPanelSlide{0.0f, 250, Animation::Easing::EaseOutCubic};  // 0.0 = hidden, 1.0 = visible
     juce::String currentUserId;
 
     void showCommentsForPost(const FeedPost& post);
@@ -118,6 +140,7 @@ private:
     void drawEmptyState(juce::Graphics& g);
     void drawErrorState(juce::Graphics& g);
     void drawFeedPosts(juce::Graphics& g);
+    void drawNewPostsToast(juce::Graphics& g); // 5.5.2
 
     // Post card management
     void rebuildPostCards();

@@ -2,16 +2,19 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/ImageCache.h"
 #include "../../util/Validate.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 EditProfileComponent::EditProfileComponent()
 {
+    Log::info("EditProfileComponent: Initializing");
     setSize(500, 780);  // Increased height for username field
     setupEditors();
 }
 
 EditProfileComponent::~EditProfileComponent()
 {
+    Log::debug("EditProfileComponent: Destroying");
 }
 
 //==============================================================================
@@ -466,6 +469,7 @@ void EditProfileComponent::handleSave()
 
 void EditProfileComponent::saveProfileData()
 {
+    Log::info("EditProfileComponent: Saving profile data");
     // Build update payload (everything except username)
     auto* updateData = new juce::DynamicObject();
     updateData->setProperty("display_name", profile.displayName);
