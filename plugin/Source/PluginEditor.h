@@ -2,17 +2,20 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "AuthComponent.h"
-#include "ProfileSetupComponent.h"
-#include "PostsFeedComponent.h"
-#include "RecordingComponent.h"
-#include "UploadComponent.h"
-#include "NetworkClient.h"
-#include "WebSocketClient.h"
-#include "ConnectionIndicator.h"
-#include "NotificationBellComponent.h"
-#include "NotificationListComponent.h"
-#include "UserDiscoveryComponent.h"
+#include "UserDataStore.h"
+#include "network/NetworkClient.h"
+#include "network/WebSocketClient.h"
+#include "ui/auth/AuthComponent.h"
+#include "ui/profile/ProfileSetupComponent.h"
+#include "ui/profile/ProfileComponent.h"
+#include "ui/feed/PostsFeedComponent.h"
+#include "ui/recording/RecordingComponent.h"
+#include "ui/recording/UploadComponent.h"
+#include "ui/common/ConnectionIndicator.h"
+#include "ui/common/HeaderComponent.h"
+#include "ui/notifications/NotificationBellComponent.h"
+#include "ui/notifications/NotificationListComponent.h"
+#include "ui/social/UserDiscoveryComponent.h"
 
 //==============================================================================
 /**
@@ -25,7 +28,8 @@
  * - Recording
  * - Upload
  */
-class SidechainAudioProcessorEditor : public juce::AudioProcessorEditor
+class SidechainAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                      public juce::ChangeListener
 {
 public:
     SidechainAudioProcessorEditor(SidechainAudioProcessor&);
@@ -35,20 +39,32 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 
+    // ChangeListener - for UserDataStore updates
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+
 private:
     SidechainAudioProcessor& audioProcessor;
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile };
     AppView currentView = AppView::Authentication;
 
+    // Navigation stack for back button support
+    juce::Array<AppView> navigationStack;
+    juce::String profileUserIdToView;  // User ID for Profile view
+
     void showView(AppView view);
+    void showProfile(const juce::String& userId);  // Navigate to a user's profile
+    void navigateBack();  // Go back to previous view
     void onLoginSuccess(const juce::String& username, const juce::String& email, const juce::String& token);
     void logout();
 
     //==============================================================================
-    // User state
+    // Centralized user data store
+    std::unique_ptr<UserDataStore> userDataStore;
+
+    // Legacy user state (to be removed as we migrate to UserDataStore)
     juce::String username;
     juce::String email;
     juce::String profilePicUrl;
@@ -62,6 +78,7 @@ private:
     std::unique_ptr<RecordingComponent> recordingComponent;
     std::unique_ptr<UploadComponent> uploadComponent;
     std::unique_ptr<UserDiscoveryComponent> userDiscoveryComponent;
+    std::unique_ptr<ProfileComponent> profileComponent;
 
     // Network client for API calls
     std::unique_ptr<NetworkClient> networkClient;
@@ -76,6 +93,9 @@ private:
     std::unique_ptr<NotificationBellComponent> notificationBell;
     std::unique_ptr<NotificationListComponent> notificationList;
     bool notificationPanelVisible = false;
+
+    // Central header component (shown on all post-login pages)
+    std::unique_ptr<HeaderComponent> headerComponent;
 
     //==============================================================================
     // Notification handling

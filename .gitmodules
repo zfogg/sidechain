@@ -1,0 +1,3 @@
+[submodule "deps/libkeyfinder"]
+	path = deps/libkeyfinder
+	url = https://github.com/mixxxdj/libkeyfinder.git

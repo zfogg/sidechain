@@ -1,8 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "AudioCapture.h"
-#include "AudioPlayer.h"
+#include "audio/AudioCapture.h"
+#include "audio/AudioPlayer.h"
 
 //==============================================================================
 /**

@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "util/Colors.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -7,8 +8,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 {
     setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
 
+    // Initialize centralized user data store
+    userDataStore = std::make_unique<UserDataStore>();
+    userDataStore->addChangeListener(this);
+
     // Initialize network client with development config
     networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
+
+    // Wire up UserDataStore with NetworkClient
+    userDataStore->setNetworkClient(networkClient.get());
 
     // Initialize WebSocket client
     webSocketClient = std::make_unique<WebSocketClient>(WebSocketClient::Config::development());
@@ -68,17 +76,38 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         juce::File imageFile(localPath);
         if (imageFile.existsAsFile() && networkClient)
         {
-            networkClient->uploadProfilePicture(imageFile, [this, localPath](bool success, const juce::String& s3Url) {
-                if (success)
-                {
-                    profilePicUrl = s3Url;
-                    saveLoginState();
-                }
-                else
-                {
-                    profilePicUrl = localPath;
-                    saveLoginState();
-                }
+            // Store local path temporarily for preview
+            profileSetupComponent->setLocalPreviewPath(localPath);
+
+            // Also set local preview in UserDataStore
+            if (userDataStore)
+                userDataStore->setLocalPreviewImage(imageFile);
+
+            networkClient->uploadProfilePicture(imageFile, [this](bool success, const juce::String& s3Url) {
+                juce::MessageManager::callAsync([this, success, s3Url]() {
+                    if (success && s3Url.isNotEmpty())
+                    {
+                        // Update UserDataStore with the S3 URL (will trigger image download)
+                        if (userDataStore)
+                        {
+                            userDataStore->setProfilePictureUrl(s3Url);
+                            userDataStore->saveToSettings();
+                        }
+
+                        // Update legacy state
+                        profilePicUrl = s3Url;
+                        saveLoginState();
+
+                        // Update profile setup component with the S3 URL
+                        if (profileSetupComponent)
+                            profileSetupComponent->setProfilePictureUrl(s3Url);
+                    }
+                    else
+                    {
+                        // On failure, don't store local path - just show error
+                        DBG("Profile picture upload failed");
+                    }
+                });
             });
         }
     };
@@ -91,6 +120,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     postsFeedComponent->setNetworkClient(networkClient.get());
     postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
     postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
+    postsFeedComponent->onNavigateToProfile = [this](const juce::String& userId) {
+        showProfile(userId);
+    };
     postsFeedComponent->onLogout = [this]() { logout(); };
     postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };
     postsFeedComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
@@ -127,19 +159,54 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     userDiscoveryComponent = std::make_unique<UserDiscoveryComponent>();
     userDiscoveryComponent->setNetworkClient(networkClient.get());
     userDiscoveryComponent->onBackPressed = [this]() {
-        showView(AppView::PostsFeed);
+        navigateBack();
     };
     userDiscoveryComponent->onUserSelected = [this](const DiscoveredUser& user) {
-        // Navigate to user profile - could show ProfileComponent with user data
-        DBG("User selected: " + user.username);
-        // For now, just go back to feed
-        showView(AppView::PostsFeed);
+        // Navigate to user profile
+        showProfile(user.id);
     };
     addChildComponent(userDiscoveryComponent.get());
 
     //==========================================================================
+    // Create ProfileComponent
+    profileComponent = std::make_unique<ProfileComponent>();
+    profileComponent->setNetworkClient(networkClient.get());
+    profileComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    profileComponent->onEditProfile = [this]() {
+        // Switch to profile setup for editing
+        showView(AppView::ProfileSetup);
+    };
+    profileComponent->onPlayClicked = [this](const FeedPost& post) {
+        audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
+    };
+    profileComponent->onPauseClicked = [this](const FeedPost& /*post*/) {
+        audioProcessor.getAudioPlayer().stop();
+    };
+    addChildComponent(profileComponent.get());
+
+    //==========================================================================
     // Setup notifications
     setupNotifications();
+
+    //==========================================================================
+    // Create central header component (shown on all post-login pages)
+    headerComponent = std::make_unique<HeaderComponent>();
+    headerComponent->onLogoClicked = [this]() {
+        showView(AppView::PostsFeed);
+    };
+    headerComponent->onSearchClicked = [this]() {
+        showView(AppView::Discovery);
+    };
+    headerComponent->onProfileClicked = [this]() {
+        // Show current user's profile
+        if (userDataStore && !userDataStore->getUserId().isEmpty())
+            showProfile(userDataStore->getUserId());
+        else
+            showView(AppView::ProfileSetup);  // Fallback to setup if no user ID
+    };
+    addChildComponent(headerComponent.get()); // Initially hidden until logged in
 
     //==========================================================================
     // Load persistent state and show appropriate view
@@ -154,6 +221,10 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
     // Stop notification polling
     stopNotificationPolling();
 
+    // Remove as listener from UserDataStore
+    if (userDataStore)
+        userDataStore->removeChangeListener(this);
+
     // Disconnect WebSocket before destruction
     if (webSocketClient)
         webSocketClient->disconnect();
@@ -163,48 +234,61 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
 void SidechainAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // Dark background - each component handles its own painting
-    g.fillAll(juce::Colour::fromRGB(26, 26, 30));
+    g.fillAll(SidechainColors::background());
 }
 
 void SidechainAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
+    auto headerHeight = HeaderComponent::HEADER_HEIGHT;
 
-    // Position notification bell in top-right corner (to the left of connection indicator)
+    // Position central header at top (for post-login views)
+    if (headerComponent)
+        headerComponent->setBounds(bounds.removeFromTop(headerHeight));
+
+    // Bounds for content below header (used by post-login views)
+    auto contentBounds = getLocalBounds().withTrimmedTop(headerHeight);
+
+    // Position notification bell in header area (right side)
     if (notificationBell)
-        notificationBell->setBounds(getWidth() - 70, 4, NotificationBellComponent::PREFERRED_SIZE, NotificationBellComponent::PREFERRED_SIZE);
+        notificationBell->setBounds(getWidth() - 70, (headerHeight - NotificationBellComponent::PREFERRED_SIZE) / 2,
+                                    NotificationBellComponent::PREFERRED_SIZE, NotificationBellComponent::PREFERRED_SIZE);
 
-    // Position connection indicator in top-right corner
+    // Position connection indicator in header area (far right)
     if (connectionIndicator)
-        connectionIndicator->setBounds(getWidth() - 28, 8, 16, 16);
+        connectionIndicator->setBounds(getWidth() - 28, (headerHeight - 16) / 2, 16, 16);
 
     // Position notification panel as dropdown from bell
     if (notificationList)
     {
         int panelX = getWidth() - NotificationListComponent::PREFERRED_WIDTH - 10;
-        int panelY = 40;
+        int panelY = headerHeight + 5;
         int panelHeight = juce::jmin(NotificationListComponent::MAX_HEIGHT, getHeight() - panelY - 20);
         notificationList->setBounds(panelX, panelY, NotificationListComponent::PREFERRED_WIDTH, panelHeight);
     }
 
-    // All view components fill the entire window
+    // Auth component fills entire window (no header)
     if (authComponent)
-        authComponent->setBounds(bounds);
+        authComponent->setBounds(getLocalBounds());
 
+    // Post-login views: use content bounds (below header)
     if (profileSetupComponent)
-        profileSetupComponent->setBounds(bounds);
+        profileSetupComponent->setBounds(contentBounds);
 
     if (postsFeedComponent)
-        postsFeedComponent->setBounds(bounds);
+        postsFeedComponent->setBounds(contentBounds);
 
     if (recordingComponent)
-        recordingComponent->setBounds(bounds);
+        recordingComponent->setBounds(contentBounds);
 
     if (uploadComponent)
-        uploadComponent->setBounds(bounds);
+        uploadComponent->setBounds(contentBounds);
 
     if (userDiscoveryComponent)
-        userDiscoveryComponent->setBounds(bounds);
+        userDiscoveryComponent->setBounds(contentBounds);
+
+    if (profileComponent)
+        profileComponent->setBounds(contentBounds);
 }
 
 //==============================================================================
@@ -223,8 +307,41 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         uploadComponent->setVisible(false);
     if (userDiscoveryComponent)
         userDiscoveryComponent->setVisible(false);
+    if (profileComponent)
+        profileComponent->setVisible(false);
+
+    // Push current view to navigation stack (except when going back)
+    if (currentView != view && currentView != AppView::Authentication)
+    {
+        navigationStack.add(currentView);
+        // Keep stack reasonable size
+        while (navigationStack.size() > 10)
+            navigationStack.remove(0);
+    }
 
     currentView = view;
+
+    // Show header for all post-login views
+    bool showHeader = (view != AppView::Authentication);
+    if (headerComponent)
+    {
+        headerComponent->setVisible(showHeader);
+        if (showHeader && userDataStore)
+        {
+            headerComponent->setUserInfo(userDataStore->getUsername(), userDataStore->getProfilePictureUrl());
+
+            // Use cached image from UserDataStore if available
+            if (userDataStore->hasProfileImage())
+            {
+                headerComponent->setProfileImage(userDataStore->getProfileImage());
+            }
+            headerComponent->toFront(false);
+        }
+    }
+
+    // Show/hide notification components based on login state
+    if (notificationBell)
+        notificationBell->setVisible(showHeader);
 
     switch (view)
     {
@@ -240,6 +357,11 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             if (profileSetupComponent)
             {
                 profileSetupComponent->setUserInfo(username, email, profilePicUrl);
+                // Pass cached profile image from UserDataStore (downloaded via HTTP proxy)
+                if (userDataStore && userDataStore->hasProfileImage())
+                {
+                    profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
+                }
                 profileSetupComponent->setVisible(true);
             }
             break;
@@ -271,6 +393,96 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 userDiscoveryComponent->loadDiscoveryData();
             }
             break;
+
+        case AppView::Profile:
+            if (profileComponent)
+            {
+                // Set current user ID for "is own profile" checks
+                if (userDataStore)
+                    profileComponent->setCurrentUserId(userDataStore->getUserId());
+
+                // Load the profile for the specified user
+                profileComponent->loadProfile(profileUserIdToView);
+                profileComponent->setVisible(true);
+            }
+            break;
+    }
+
+    repaint();
+}
+
+void SidechainAudioProcessorEditor::showProfile(const juce::String& userId)
+{
+    profileUserIdToView = userId;
+    showView(AppView::Profile);
+}
+
+void SidechainAudioProcessorEditor::navigateBack()
+{
+    if (navigationStack.isEmpty())
+    {
+        // Default to feed if no history
+        showView(AppView::PostsFeed);
+        return;
+    }
+
+    // Pop last view from stack without adding current to stack
+    AppView previousView = navigationStack.getLast();
+    navigationStack.removeLast();
+
+    // Temporarily set currentView to prevent double-push
+    AppView savedCurrent = currentView;
+    currentView = previousView;  // Prevent push in showView
+
+    // Actually show the view (this will push savedCurrent, so we prevent that above)
+    // Hide all views first
+    if (authComponent) authComponent->setVisible(false);
+    if (profileSetupComponent) profileSetupComponent->setVisible(false);
+    if (postsFeedComponent) postsFeedComponent->setVisible(false);
+    if (recordingComponent) recordingComponent->setVisible(false);
+    if (uploadComponent) uploadComponent->setVisible(false);
+    if (userDiscoveryComponent) userDiscoveryComponent->setVisible(false);
+    if (profileComponent) profileComponent->setVisible(false);
+
+    // Show the previous view
+    switch (previousView)
+    {
+        case AppView::PostsFeed:
+            if (postsFeedComponent)
+            {
+                postsFeedComponent->setVisible(true);
+            }
+            break;
+        case AppView::Discovery:
+            if (userDiscoveryComponent)
+            {
+                userDiscoveryComponent->setVisible(true);
+            }
+            break;
+        case AppView::Profile:
+            if (profileComponent)
+            {
+                profileComponent->setVisible(true);
+            }
+            break;
+        case AppView::Recording:
+            if (recordingComponent)
+            {
+                recordingComponent->setVisible(true);
+            }
+            break;
+        case AppView::ProfileSetup:
+            if (profileSetupComponent)
+            {
+                profileSetupComponent->setVisible(true);
+            }
+            break;
+        default:
+            if (postsFeedComponent)
+            {
+                postsFeedComponent->setVisible(true);
+            }
+            break;
     }
 
     repaint();
@@ -278,9 +490,17 @@ void SidechainAudioProcessorEditor::showView(AppView view)
 
 void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, const juce::String& mail, const juce::String& token)
 {
+    // Update legacy state (for backwards compatibility during migration)
     username = user;
     email = mail;
     authToken = token;
+
+    // Update centralized UserDataStore
+    if (userDataStore)
+    {
+        userDataStore->setAuthToken(token);
+        userDataStore->setBasicUserInfo(user, mail);
+    }
 
     // Set auth token on network client
     if (networkClient && !token.isEmpty())
@@ -292,8 +512,40 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     // Start notification polling
     startNotificationPolling();
 
-    saveLoginState();
-    showView(AppView::ProfileSetup);
+    // Fetch full user profile (including profile picture) via UserDataStore
+    if (userDataStore)
+    {
+        userDataStore->fetchUserProfile([this](bool success) {
+            juce::MessageManager::callAsync([this, success]() {
+                // Sync legacy state from UserDataStore
+                if (userDataStore)
+                {
+                    profilePicUrl = userDataStore->getProfilePictureUrl();
+                }
+
+                saveLoginState();
+
+                // Show header now that user is logged in
+                if (headerComponent)
+                    headerComponent->setVisible(true);
+
+                // If user has a profile picture, skip setup and go straight to feed
+                if (userDataStore && !userDataStore->getProfilePictureUrl().isEmpty())
+                {
+                    showView(AppView::PostsFeed);
+                }
+                else
+                {
+                    showView(AppView::ProfileSetup);
+                }
+            });
+        });
+    }
+    else
+    {
+        saveLoginState();
+        showView(AppView::ProfileSetup);
+    }
 }
 
 void SidechainAudioProcessorEditor::logout()
@@ -307,7 +559,13 @@ void SidechainAudioProcessorEditor::logout()
     // Disconnect WebSocket
     disconnectWebSocket();
 
-    // Clear user state
+    // Clear user state via UserDataStore (also clears persisted settings)
+    if (userDataStore)
+    {
+        userDataStore->clearAll();
+    }
+
+    // Clear legacy state
     username = "";
     email = "";
     profilePicUrl = "";
@@ -317,19 +575,9 @@ void SidechainAudioProcessorEditor::logout()
     if (networkClient)
         networkClient->setAuthToken("");
 
-    // Clear saved state
-    auto properties = juce::PropertiesFile::Options();
-    properties.applicationName = "Sidechain";
-    properties.filenameSuffix = ".settings";
-    properties.folderName = "SidechainPlugin";
-
-    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
-    appProperties->setValue("isLoggedIn", false);
-    appProperties->removeValue("username");
-    appProperties->removeValue("email");
-    appProperties->removeValue("profilePicUrl");
-    appProperties->removeValue("authToken");
-    appProperties->save();
+    // Hide header when logged out
+    if (headerComponent)
+        headerComponent->setVisible(false);
 
     showView(AppView::Authentication);
 }
@@ -362,33 +610,75 @@ void SidechainAudioProcessorEditor::saveLoginState()
 
 void SidechainAudioProcessorEditor::loadLoginState()
 {
-    auto properties = juce::PropertiesFile::Options();
-    properties.applicationName = "Sidechain";
-    properties.filenameSuffix = ".settings";
-    properties.folderName = "SidechainPlugin";
-
-    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
-
-    bool isLoggedIn = appProperties->getBoolValue("isLoggedIn", false);
-
-    if (isLoggedIn)
+    // Load user data from UserDataStore (which handles persistence)
+    if (userDataStore)
     {
-        username = appProperties->getValue("username", "");
-        email = appProperties->getValue("email", "");
-        profilePicUrl = appProperties->getValue("profilePicUrl", "");
-        authToken = appProperties->getValue("authToken", "");
+        userDataStore->loadFromSettings();
 
-        // Set auth token on network client
-        if (!authToken.isEmpty() && networkClient)
-            networkClient->setAuthToken(authToken);
+        DBG("loadLoginState: isLoggedIn=" + juce::String(userDataStore->isLoggedIn() ? "true" : "false") +
+            ", username=" + userDataStore->getUsername() +
+            ", profilePicUrl=" + userDataStore->getProfilePictureUrl());
 
-        // Connect WebSocket with saved auth token
-        connectWebSocket();
+        if (userDataStore->isLoggedIn())
+        {
+            // Sync legacy state from UserDataStore
+            authToken = userDataStore->getAuthToken();
+            username = userDataStore->getUsername();
+            email = userDataStore->getEmail();
+            profilePicUrl = userDataStore->getProfilePictureUrl();
 
-        // Start notification polling
-        startNotificationPolling();
+            DBG("loadLoginState: authToken loaded, length=" + juce::String(authToken.length()));
 
-        showView(AppView::ProfileSetup);
+            // Set auth token on network client
+            if (!authToken.isEmpty() && networkClient)
+                networkClient->setAuthToken(authToken);
+
+            // Connect WebSocket with saved auth token
+            connectWebSocket();
+
+            // Start notification polling
+            startNotificationPolling();
+
+            // Show header for logged-in users
+            if (headerComponent)
+            {
+                headerComponent->setVisible(true);
+                // Set initial user info (image will be updated via changeListenerCallback when downloaded)
+                headerComponent->setUserInfo(username, profilePicUrl);
+                if (userDataStore->hasProfileImage())
+                {
+                    headerComponent->setProfileImage(userDataStore->getProfileImage());
+                }
+            }
+
+            // Fetch fresh profile to get latest data (including profile picture)
+            userDataStore->fetchUserProfile([this](bool success) {
+                DBG("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
+                juce::MessageManager::callAsync([this, success]() {
+                    // Sync profile URL from UserDataStore
+                    if (userDataStore)
+                    {
+                        profilePicUrl = userDataStore->getProfilePictureUrl();
+                        DBG("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
+                            ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
+                    }
+
+                    // If user has a profile picture, skip setup and go straight to feed
+                    if (userDataStore && !userDataStore->getProfilePictureUrl().isEmpty())
+                    {
+                        showView(AppView::PostsFeed);
+                    }
+                    else
+                    {
+                        showView(AppView::ProfileSetup);
+                    }
+                });
+            });
+        }
+        else
+        {
+            showView(AppView::Authentication);
+        }
     }
     else
     {
@@ -528,6 +818,46 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::
                 connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Disconnected);
                 DBG("WebSocket disconnected - indicator red");
                 break;
+        }
+    }
+}
+
+//==============================================================================
+// ChangeListener - for UserDataStore updates
+void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if (source == userDataStore.get())
+    {
+        DBG("changeListenerCallback: UserDataStore changed!"
+            " hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false") +
+            " profilePicUrl=" + userDataStore->getProfilePictureUrl());
+
+        // UserDataStore changed - update components with new data
+        if (headerComponent && userDataStore)
+        {
+            headerComponent->setUserInfo(userDataStore->getUsername(), userDataStore->getProfilePictureUrl());
+
+            // If UserDataStore has a cached image, use it directly (avoids re-downloading)
+            if (userDataStore->hasProfileImage())
+            {
+                DBG("changeListenerCallback: Setting profile image on header");
+                headerComponent->setProfileImage(userDataStore->getProfileImage());
+            }
+        }
+
+        // Update ProfileSetupComponent with cached image
+        if (profileSetupComponent && userDataStore && userDataStore->hasProfileImage())
+        {
+            DBG("changeListenerCallback: Setting profile image on ProfileSetupComponent");
+            profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
+        }
+
+        // Also sync to legacy state variables during migration
+        if (userDataStore)
+        {
+            username = userDataStore->getUsername();
+            email = userDataStore->getEmail();
+            profilePicUrl = userDataStore->getProfilePictureUrl();
         }
     }
 }

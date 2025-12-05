@@ -11,10 +11,61 @@ if(NOT CMAKE_GENERATOR)
     endif()
 endif()
 
-project(Sidechain VERSION 0.1.0 LANGUAGES CXX C)
+#==============================================================================
+# Version from git tags (via scripts/version.sh)
+# NOTE: Must run BEFORE project() so we can set PROJECT_VERSION
+#==============================================================================
+execute_process(
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/version.sh"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    OUTPUT_VARIABLE SIDECHAIN_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+execute_process(
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/version.sh" --major
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    OUTPUT_VARIABLE SIDECHAIN_VERSION_MAJOR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+execute_process(
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/version.sh" --minor
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    OUTPUT_VARIABLE SIDECHAIN_VERSION_MINOR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+execute_process(
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/version.sh" --patch
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    OUTPUT_VARIABLE SIDECHAIN_VERSION_PATCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
 
-set(CMAKE_CXX_STANDARD 17)
+# Fallback to 0.0.0 if script fails
+if(NOT SIDECHAIN_VERSION OR SIDECHAIN_VERSION STREQUAL "")
+    set(SIDECHAIN_VERSION "0.0.0")
+    set(SIDECHAIN_VERSION_MAJOR "0")
+    set(SIDECHAIN_VERSION_MINOR "0")
+    set(SIDECHAIN_VERSION_PATCH "0")
+endif()
+
+message(STATUS "Sidechain version: ${SIDECHAIN_VERSION}")
+
+# Use the git-derived version for the CMake project
+project(Sidechain VERSION ${SIDECHAIN_VERSION} LANGUAGES CXX C)
+
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Generate Version.h from template
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/Version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/Version.h"
+    @ONLY
+)
 
 # Default to Release if no build type specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -154,10 +205,59 @@ if(SIDECHAIN_BUILD_PLUGIN_HOST AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/J
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost" "${CMAKE_BINARY_DIR}/AudioPluginHost" EXCLUDE_FROM_ALL)
 endif()
 
+#==============================================================================
+# libkeyfinder - Musical Key Detection Library
+#==============================================================================
+# Option to enable key detection (requires FFTW3)
+option(SIDECHAIN_ENABLE_KEY_DETECTION "Enable musical key detection using libkeyfinder" ON)
+
+if(SIDECHAIN_ENABLE_KEY_DETECTION)
+    # Find FFTW3 (required by libkeyfinder)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../deps/libkeyfinder/cmake")
+    find_package(FFTW3 QUIET)
+
+    if(FFTW3_FOUND)
+        message(STATUS "FFTW3 found - Key detection enabled")
+
+        # Build libkeyfinder as a static library
+        set(LIBKEYFINDER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/libkeyfinder")
+        if(EXISTS "${LIBKEYFINDER_DIR}/CMakeLists.txt")
+            # Configure libkeyfinder build options
+            set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+            set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
+            # Add libkeyfinder subdirectory
+            add_subdirectory("${LIBKEYFINDER_DIR}" "${CMAKE_BINARY_DIR}/libkeyfinder" EXCLUDE_FROM_ALL)
+
+            # Create an alias for cleaner usage
+            if(TARGET keyfinder)
+                set(SIDECHAIN_HAS_KEYFINDER TRUE)
+                # Enable position independent code for shared library linking
+                set_target_properties(keyfinder PROPERTIES POSITION_INDEPENDENT_CODE ON)
+                message(STATUS "libkeyfinder will be built from: ${LIBKEYFINDER_DIR}")
+            endif()
+        else()
+            message(WARNING "libkeyfinder not found at ${LIBKEYFINDER_DIR}")
+            message(STATUS "Run: git submodule update --init --recursive")
+            set(SIDECHAIN_HAS_KEYFINDER FALSE)
+        endif()
+    else()
+        message(WARNING "FFTW3 not found - Key detection disabled")
+        message(STATUS "Install FFTW3:")
+        message(STATUS "  Arch:   sudo pacman -S fftw")
+        message(STATUS "  Ubuntu: sudo apt install libfftw3-dev")
+        message(STATUS "  macOS:  brew install fftw")
+        set(SIDECHAIN_HAS_KEYFINDER FALSE)
+    endif()
+else()
+    message(STATUS "Key detection disabled")
+    set(SIDECHAIN_HAS_KEYFINDER FALSE)
+endif()
+
 # Plugin target
 juce_add_plugin(Sidechain
-    # Plugin metadata
-    VERSION 0.1.0
+    # Plugin metadata (version from git tags)
+    VERSION ${SIDECHAIN_VERSION}
     COMPANY_NAME "Joopal"
     COMPANY_WEBSITE "https://sidechain.live"
     COMPANY_EMAIL "hi@sidechain.live"
@@ -201,56 +301,87 @@ juce_add_plugin(Sidechain
 # This allows existing source files that use #include <JuceHeader.h> to work
 juce_generate_juce_header(Sidechain)
 
-# Source files (matching Sidechain.jucer)
+# Source files organized by folder
 target_sources(Sidechain
     PRIVATE
+        # Root level - Plugin entry points and core types
         Source/PluginProcessor.cpp
         Source/PluginProcessor.h
         Source/PluginEditor.cpp
         Source/PluginEditor.h
-        Source/AudioCapture.cpp
-        Source/AudioCapture.h
-        Source/RecordingComponent.cpp
-        Source/RecordingComponent.h
-        Source/NetworkClient.cpp
-        Source/NetworkClient.h
-        Source/ConnectionIndicator.h
-        Source/ProfileSetupComponent.cpp
-        Source/ProfileSetupComponent.h
-        Source/PostsFeedComponent.cpp
-        Source/PostsFeedComponent.h
-        Source/UploadComponent.cpp
-        Source/UploadComponent.h
         Source/FeedPost.cpp
         Source/FeedPost.h
-        Source/FeedDataManager.cpp
-        Source/FeedDataManager.h
-        Source/PostCardComponent.cpp
-        Source/PostCardComponent.h
-        Source/EmojiReactionsPanel.cpp
-        Source/EmojiReactionsPanel.h
-        Source/AuthComponent.cpp
-        Source/AuthComponent.h
-        Source/AudioPlayer.cpp
-        Source/AudioPlayer.h
-        Source/ProfileComponent.cpp
-        Source/ProfileComponent.h
-        Source/EditProfileComponent.cpp
-        Source/EditProfileComponent.h
-        Source/WebSocketClient.cpp
-        Source/WebSocketClient.h
-        Source/NotificationBellComponent.cpp
-        Source/NotificationBellComponent.h
-        Source/NotificationListComponent.cpp
-        Source/NotificationListComponent.h
-        Source/UserCardComponent.cpp
-        Source/UserCardComponent.h
-        Source/UserDiscoveryComponent.cpp
-        Source/UserDiscoveryComponent.h
-        Source/TimeUtils.cpp
-        Source/TimeUtils.h
-        Source/CommentComponent.cpp
-        Source/CommentComponent.h
+        Source/KeyDetector.cpp
+        Source/KeyDetector.h
+        Source/UserDataStore.cpp
+        Source/UserDataStore.h
+
+        # Audio - Audio capture and playback
+        Source/audio/AudioCapture.cpp
+        Source/audio/AudioCapture.h
+        Source/audio/AudioPlayer.cpp
+        Source/audio/AudioPlayer.h
+
+        # Network - API clients and data managers
+        Source/network/NetworkClient.cpp
+        Source/network/NetworkClient.h
+        Source/network/WebSocketClient.cpp
+        Source/network/WebSocketClient.h
+        Source/network/FeedDataManager.cpp
+        Source/network/FeedDataManager.h
+
+        # UI - Auth
+        Source/ui/auth/AuthComponent.cpp
+        Source/ui/auth/AuthComponent.h
+
+        # UI - Profile
+        Source/ui/profile/ProfileSetupComponent.cpp
+        Source/ui/profile/ProfileSetupComponent.h
+        Source/ui/profile/ProfileComponent.cpp
+        Source/ui/profile/ProfileComponent.h
+        Source/ui/profile/EditProfileComponent.cpp
+        Source/ui/profile/EditProfileComponent.h
+
+        # UI - Feed
+        Source/ui/feed/PostsFeedComponent.cpp
+        Source/ui/feed/PostsFeedComponent.h
+        Source/ui/feed/PostCardComponent.cpp
+        Source/ui/feed/PostCardComponent.h
+        Source/ui/feed/CommentComponent.cpp
+        Source/ui/feed/CommentComponent.h
+        Source/ui/feed/EmojiReactionsPanel.cpp
+        Source/ui/feed/EmojiReactionsPanel.h
+
+        # UI - Recording
+        Source/ui/recording/RecordingComponent.cpp
+        Source/ui/recording/RecordingComponent.h
+        Source/ui/recording/UploadComponent.cpp
+        Source/ui/recording/UploadComponent.h
+
+        # UI - Notifications
+        Source/ui/notifications/NotificationBellComponent.cpp
+        Source/ui/notifications/NotificationBellComponent.h
+        Source/ui/notifications/NotificationListComponent.cpp
+        Source/ui/notifications/NotificationListComponent.h
+
+        # UI - Social
+        Source/ui/social/UserCardComponent.cpp
+        Source/ui/social/UserCardComponent.h
+        Source/ui/social/UserDiscoveryComponent.cpp
+        Source/ui/social/UserDiscoveryComponent.h
+        Source/ui/social/FollowersListComponent.cpp
+        Source/ui/social/FollowersListComponent.h
+
+        # UI - Common
+        Source/ui/common/HeaderComponent.cpp
+        Source/ui/common/HeaderComponent.h
+        Source/ui/common/ConnectionIndicator.h
+
+        # Utilities
+        Source/util/Time.cpp
+        Source/util/Time.h
+        Source/util/Colors.h
+        Source/util/HttpErrorHandler.h
 )
 
 # Preprocessor definitions
@@ -260,6 +391,15 @@ target_compile_definitions(Sidechain
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
+
+# Add generated headers to include path (for Version.h)
+target_include_directories(Sidechain PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+
+# Add keyfinder compile definition if available
+if(SIDECHAIN_HAS_KEYFINDER)
+    target_compile_definitions(Sidechain PUBLIC SIDECHAIN_HAS_KEYFINDER=1)
+    target_include_directories(Sidechain PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../deps/libkeyfinder/src")
+endif()
 
 # Link JUCE modules
 target_link_libraries(Sidechain
@@ -293,6 +433,12 @@ endif()
 # Platform-specific link libraries
 if(APPLE)
     target_link_libraries(Sidechain PRIVATE "-framework Security")
+endif()
+
+# Link libkeyfinder if available
+if(SIDECHAIN_HAS_KEYFINDER)
+    target_link_libraries(Sidechain PRIVATE keyfinder)
+    message(STATUS "Sidechain will link with libkeyfinder for key detection")
 endif()
 
 # Installation paths for plugins (platform-specific defaults)
@@ -412,17 +558,24 @@ if(SIDECHAIN_BUILD_TESTS)
     include(Catch)
 
     # Create a static library from plugin source for testing (without plugin wrapper)
+    # Note: Only include .cpp files that have implementations (not header-only)
     add_library(SidechainTestLib STATIC
-        Source/AudioCapture.cpp
-        Source/AudioCapture.h
-        Source/NetworkClient.cpp
-        Source/NetworkClient.h
+        Source/audio/AudioCapture.cpp
+        Source/audio/AudioCapture.h
+        Source/audio/AudioPlayer.cpp
+        Source/audio/AudioPlayer.h
+        Source/network/NetworkClient.cpp
+        Source/network/NetworkClient.h
+        Source/network/FeedDataManager.cpp
+        Source/network/FeedDataManager.h
+        Source/network/WebSocketClient.cpp
+        Source/network/WebSocketClient.h
         Source/FeedPost.cpp
         Source/FeedPost.h
-        Source/FeedDataManager.cpp
-        Source/FeedDataManager.h
-        Source/TimeUtils.cpp
-        Source/TimeUtils.h
+        Source/UserDataStore.cpp
+        Source/UserDataStore.h
+        Source/util/Time.cpp
+        Source/util/Time.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
