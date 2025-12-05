@@ -3,33 +3,48 @@
 > **Vision**: Instagram Reels / TikTok / YouTube Shorts — but for musicians, with audio.
 > Share loops directly from your DAW, discover what other producers are making.
 
-**Last Updated**: December 4, 2024
+**Last Updated**: December 5, 2024
 **Developer**: Solo project
 **Target**: Professional launch with real users
 
 ---
 
-## Status Report (Dec 4, 2024)
+## Status Report (Dec 5, 2024)
 
 ### Test Results
 - **Plugin tests**: 62 test cases passing (AudioCapture 17, FeedPost/FeedDataManager 16, NetworkClient 24, PluginEditor 5)
-- **Backend tests**: 52 test functions passing (auth 1 suite, audio 3, queue 5, stream 17, websocket 16, integration 10)
+- **Backend tests**: 52+ test functions passing (auth 1 suite, audio 3, queue 5, stream 17+, websocket 16, comments 20+, integration 10)
 - **CI/CD**: All platform builds succeeding (macOS Intel/ARM64, Linux, Windows)
 
 ### Progress Summary
-Completed through **Phase 4.2** (Profile UI). The core functionality is taking shape:
+Completed through **Phase 5.4** (Notifications UI). The core functionality is taking shape:
 - Full authentication flow (email/password + OAuth)
 - Audio capture and recording with waveform visualization
 - Feed system with post cards and playback
 - User profiles with follow/unfollow system
 - Profile editing with social links
+- **Notification system** (Stream.io backend + plugin UI with bell, badge, read/seen)
+- **Aggregated feeds** (trending, timeline grouping, user activity summary)
+- **Presence system** (online/offline, "in studio" status)
+
+### Test Coverage Gaps Identified
+- ❌ **Profile picture upload** - Fully working end-to-end but NO tests (see 4.1.11)
+  - Backend: `UploadProfilePicture` handler (auth.go:461-529)
+  - Plugin: `NetworkClient::uploadProfilePicture()` (NetworkClient.cpp:544-664)
+  - S3: `UploadProfilePicture` (storage/s3.go:167-212)
+
+### Login Flow Issues
+- ❌ `AuthComponent.cpp` has hardcoded `localhost:8787` URLs (should use NetworkClient)
+- ❌ `ProfileSetupComponent.cpp` has hardcoded button positions (not responsive)
+- ❌ OAuth polling lacks real-time status feedback
+- See **8.3.11 Login Flow Improvements** for remediation plan
 
 ### Next Steps
-1. **Phase 1.2.2** (Notification Feed) - Stream.io notification integration ⭐ NEW
-2. **Phase 1.2.3** (Aggregated Feeds) - Timeline grouping, trending by genre ⭐ NEW
-3. **Phase 2.3** (Upload UI) - BPM/key input, progress indicator
-4. **Phase 5.4** (Notifications UI) - Bell component, notification list
-5. **Phase 7** (Search & Discovery) - User and content search
+1. **Phase 4.1.11** (NEW) - Add unit tests for profile picture upload
+2. **Phase 8.3.11** (NEW) - Login flow and UI improvements
+3. **Phase 6** (Comments & Community) - Comment system backend and UI
+4. **Phase 7** (Search & Discovery) - User and content search
+5. **Phase 5.5** (Real-time Feed Updates) - WebSocket push for new posts, likes
 
 ---
 
@@ -141,9 +156,9 @@ Completed through **Phase 4.2** (Profile UI). The core functionality is taking s
   - Alternative format for target grouping: `{{ verb }}_{{ target }}_{{ time.strftime("%Y-%m-%d") }}`
   - This groups: "3 people liked [specific loop] today"
 
-**Backend Implementation:**
-- [ ] 1.2.2.3 Add `FeedGroupNotification = "notification"` constant to stream/client.go
-- [ ] 1.2.2.4 Implement `GetNotifications()` method using `NotificationFeed` type:
+**Backend Implementation (Complete):**
+- [x] 1.2.2.3 Add `FeedGroupNotification = "notification"` constant to stream/client.go (line 22)
+- [x] 1.2.2.4 Implement `GetNotifications()` method using `NotificationFeed` type (lines 809-866):
 
 ```go
 // NotificationGroup represents a grouped notification from Stream.io
@@ -220,7 +235,7 @@ func (c *Client) GetNotifications(userID string, limit int) (*NotificationRespon
 }
 ```
 
-- [ ] 1.2.2.5 Implement `MarkNotificationsRead()` and `MarkNotificationsSeen()` methods:
+- [x] 1.2.2.5 Implement `MarkNotificationsRead()` and `MarkNotificationsSeen()` methods (lines 871-916):
 
 ```go
 // MarkNotificationsRead marks notification groups as read
@@ -256,7 +271,7 @@ func (c *Client) MarkNotificationsSeen(userID string, groupIDs []string) error {
 }
 ```
 
-- [ ] 1.2.2.6 Implement `AddToNotificationFeed()` helper:
+- [x] 1.2.2.6 Implement `AddToNotificationFeed()` helper (lines 941-972) plus `NotifyLike()`, `NotifyFollow()`, `NotifyComment()`, `NotifyMention()` (lines 974-1030):
 
 ```go
 // AddToNotificationFeed adds a notification activity for a user
@@ -291,13 +306,14 @@ func (c *Client) AddToNotificationFeed(targetUserID, verb, objectID, actorID str
 }
 ```
 
-- [ ] 1.2.2.7 Update `AddReactionWithEmoji()` to also notify post owner
-- [ ] 1.2.2.8 Update `FollowUser()` to notify the followed user
-- [ ] 1.2.2.9 Create API endpoints for notifications:
+- [x] 1.2.2.7 Update `AddReactionWithEmoji()` to also notify post owner - `AddReactionWithNotification()` in client.go:388-410
+- [x] 1.2.2.8 Update `FollowUser()` to notify the followed user - `NotifyFollow()` called in client.go:303-307
+- [x] 1.2.2.9 Create API endpoints for notifications (handlers.go:1091-1188, main.go:190-198):
   - `GET /api/v1/notifications` - Get paginated notifications with unseen/unread counts
+  - `GET /api/v1/notifications/counts` - Get just unseen/unread counts for badge
   - `POST /api/v1/notifications/read` - Mark notifications as read
   - `POST /api/v1/notifications/seen` - Mark notifications as seen (clears badge)
-- [ ] 1.2.2.10 Write integration tests for notification feed
+- [x] 1.2.2.10 Write integration tests for notification feed (client_test.go:298-367)
 
 #### 1.2.3 Aggregated Feeds (New)
 
@@ -311,7 +327,7 @@ func (c *Client) AddToNotificationFeed(targetUserID, verb, objectID, actorID str
 > - `{{ time.strftime("%Y-%m-%d") }}` - Date formatting
 > - Supports conditionals: `{% if verb == 'follow' %}...{% endif %}`
 
-**Dashboard Configuration:**
+**Dashboard Configuration (Needs manual setup in Stream.io dashboard):**
 - [ ] 1.2.3.1 Create `timeline_aggregated` feed group (type: Aggregated)
   - Aggregation format: `{{ actor }}_{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
   - Result: "BeatMaker123 posted 3 loops today"
@@ -324,8 +340,8 @@ func (c *Client) AddToNotificationFeed(targetUserID, verb, objectID, actorID str
   - Aggregation format: `{{ verb }}_{{ time.strftime("%Y-%W") }}`
   - Result: "Posted 5 loops this week"
 
-**Backend Implementation:**
-- [ ] 1.2.3.4 Add aggregated feed constants:
+**Backend Implementation (Complete):**
+- [x] 1.2.3.4 Add aggregated feed constants (stream/client.go:24-27):
 
 ```go
 const (
@@ -339,7 +355,7 @@ const (
 )
 ```
 
-- [ ] 1.2.3.5 Implement `ActivityGroup` type for aggregated responses:
+- [x] 1.2.3.5 Implement `ActivityGroup` type for aggregated responses (stream/client.go:1036-1052 as `AggregatedGroup`):
 
 ```go
 // ActivityGroup represents a group of related activities from an aggregated feed
@@ -360,7 +376,7 @@ type AggregatedFeedResponse struct {
 }
 ```
 
-- [ ] 1.2.3.6 Implement `GetAggregatedTimeline()`:
+- [x] 1.2.3.6 Implement `GetAggregatedTimeline()` (stream/client.go:1054-1078):
 
 ```go
 // GetAggregatedTimeline returns timeline grouped by actor and day
@@ -410,9 +426,9 @@ func (c *Client) GetAggregatedTimeline(userID string, limit int) (*AggregatedFee
 }
 ```
 
-- [ ] 1.2.3.7 Implement `GetTrendingByGenre()` for discovery page
-- [ ] 1.2.3.8 Implement `GetUserActivitySummary()` for profile pages
-- [ ] 1.2.3.9 Update `CreateLoopActivity()` to also post to aggregated feeds via "To" field:
+- [x] 1.2.3.7 Implement `GetTrendingByGenre()` for discovery page - `GetTrendingFeed()` at stream/client.go:1080-1102
+- [x] 1.2.3.8 Implement `GetUserActivitySummary()` for profile pages (stream/client.go:1104-1125)
+- [x] 1.2.3.9 Update `CreateLoopActivity()` to also post to aggregated feeds via "To" field (stream/client.go:169-191):
 
 ```go
 // In CreateLoopActivity, update the "To" targets:
@@ -427,12 +443,12 @@ streamActivity.To = []string{
 }
 ```
 
-- [ ] 1.2.3.10 Create API endpoints for aggregated feeds:
+- [x] 1.2.3.10 Create API endpoints for aggregated feeds (handlers.go:1190-1272, main.go:183,186,225):
   - `GET /api/v1/feed/timeline/aggregated` - Grouped timeline
   - `GET /api/v1/feed/trending` - Trending by genre
   - `GET /api/v1/users/:id/activity` - User activity summary
-- [ ] 1.2.3.11 Update `FollowUser()` to also follow for aggregated timeline
-- [ ] 1.2.3.12 Write integration tests for aggregated feeds
+- [x] 1.2.3.11 Update `FollowUser()` to also follow for aggregated timeline (stream/client.go:296-300, FollowAggregatedFeed at lines 1172-1197)
+- [x] 1.2.3.12 Write integration tests for aggregated feeds (client_test.go:332-367)
 
 ### 1.3 OAuth Completion
 
@@ -608,6 +624,29 @@ streamActivity.To = []string{
 - [x] 4.1.9 Implement profile picture upload and crop - POST /upload-profile-picture persists URL to profile_picture_url field
 - [ ] 4.1.10 Add profile verification system (future: badges)
 
+#### 4.1.11 Profile Picture Upload Tests (NEW)
+
+> **Test Coverage Gap**: Profile picture upload is fully implemented but lacks unit tests.
+> - Plugin: `NetworkClient::uploadProfilePicture()` (NetworkClient.cpp:544-664) - working, no tests
+> - Backend: `UploadProfilePicture` handler (auth.go:461-529) - working, no tests
+> - S3: `UploadProfilePicture` (storage/s3.go:167-212) - working, no tests
+
+**Backend Unit Tests:**
+- [ ] 4.1.11.1 Create `handlers/auth_test.go` test file for auth handlers
+- [ ] 4.1.11.2 Test `UploadProfilePicture` with valid image (JPEG, PNG)
+- [ ] 4.1.11.3 Test `UploadProfilePicture` with invalid file type rejection
+- [ ] 4.1.11.4 Test `UploadProfilePicture` with file size limits (max 10MB)
+- [ ] 4.1.11.5 Test `UploadProfilePicture` updates user's profile_picture_url in database
+- [ ] 4.1.11.6 Test `UploadProfilePicture` without authentication (401 response)
+- [ ] 4.1.11.7 Mock S3 uploader for isolated unit tests
+
+**Plugin Unit Tests:**
+- [ ] 4.1.11.8 Add `uploadProfilePicture` tests to `NetworkClientTest.cpp`
+- [ ] 4.1.11.9 Test unauthenticated upload returns immediately with failure
+- [ ] 4.1.11.10 Test non-existent file returns failure callback
+- [ ] 4.1.11.11 Test MIME type detection for JPEG, PNG, GIF, WebP
+- [ ] 4.1.11.12 Mock HTTP responses for successful upload with S3 URL
+
 ### 4.2 Profile UI (Plugin) ✅
 
 - [x] 4.2.1 Design profile view layout - ProfileComponent.h/cpp with full layout
@@ -634,7 +673,7 @@ streamActivity.To = []string{
 - [x] 4.3.5 ~~Update Stream.io feed subscriptions on follow~~ → Automatic (Stream.io handles this)
 - [x] 4.3.6 Add "suggested users to follow" endpoint - GET /api/v1/discover/suggested (genre-based + fallback to popular)
 - [x] 4.3.7 Implement mutual follow detection ("follows you") via CheckIsFollowing()
-- [ ] 4.3.8 Add follow notifications (Phase 5)
+- [x] 4.3.8 Add follow notifications - Stream.io NotifyFollow() + real-time WebSocket push via wsHandler.NotifyFollow()
 - [ ] 4.3.9 Implement bulk follow import (future: follow your discord friends)
 
 ### 4.4 User Discovery ✅
@@ -709,27 +748,27 @@ streamActivity.To = []string{
 >
 > **Prerequisites**: Complete Phase 1.2.2 (Notification Feed backend implementation)
 
-#### 5.4.1 Plugin Notification UI
+#### 5.4.1 Plugin Notification UI ✅
 
-- [ ] 5.4.1.1 Create `NotificationBellComponent` with animated badge
-- [ ] 5.4.1.2 Implement badge drawing with unseen count (red circle, "99+" for overflow)
-- [ ] 5.4.1.3 Create `NotificationListComponent` for displaying grouped notifications
-- [ ] 5.4.1.4 Implement notification row rendering with read/unread styling
-- [ ] 5.4.1.5 Add notification panel to main plugin UI (slide-out or modal)
-- [ ] 5.4.1.6 Implement notification polling (every 30 seconds when plugin is open)
+- [x] 5.4.1.1 Create `NotificationBellComponent` with animated badge (NotificationBellComponent.h/cpp)
+- [x] 5.4.1.2 Implement badge drawing with unseen count (red circle, "99+" for overflow)
+- [x] 5.4.1.3 Create `NotificationListComponent` for displaying grouped notifications (NotificationListComponent.h/cpp)
+- [x] 5.4.1.4 Implement notification row rendering with read/unread styling (NotificationRowComponent)
+- [x] 5.4.1.5 Add notification panel to main plugin UI (dropdown modal in PluginEditor.cpp)
+- [x] 5.4.1.6 Implement notification polling (every 30 seconds when plugin is open)
 
-#### 5.4.2 Mark as Read/Seen Integration
+#### 5.4.2 Mark as Read/Seen Integration ✅
 
-- [ ] 5.4.2.1 Mark as seen when notification panel is opened (clears badge)
-- [ ] 5.4.2.2 Mark as read when notification is clicked
-- [ ] 5.4.2.3 Add "Mark all as read" button
+- [x] 5.4.2.1 Mark as seen when notification panel is opened (clears badge) - PluginEditor::showNotificationPanel()
+- [x] 5.4.2.2 Mark as read when notification is clicked - onNotificationClicked callback
+- [x] 5.4.2.3 Add "Mark all as read" button - NotificationListComponent header
 
-#### 5.4.3 Backend API Endpoints
+#### 5.4.3 Backend API Endpoints ✅
 
-- [ ] 5.4.3.1 Implement `GET /api/v1/notifications` handler (uses Phase 1.2.2.4)
-- [ ] 5.4.3.2 Implement `POST /api/v1/notifications/seen` handler
-- [ ] 5.4.3.3 Implement `POST /api/v1/notifications/read` handler
-- [ ] 5.4.3.4 Register notification routes in router
+- [x] 5.4.3.1 Implement `GET /api/v1/notifications` handler (handlers.go:1091-1130)
+- [x] 5.4.3.2 Implement `POST /api/v1/notifications/seen` handler (handlers.go:1164-1188)
+- [x] 5.4.3.3 Implement `POST /api/v1/notifications/read` handler (handlers.go:1142-1162)
+- [x] 5.4.3.4 Register notification routes in router (main.go:190-198)
 
 #### 5.4.4 Optional Enhancements
 
@@ -881,6 +920,46 @@ streamActivity.To = []string{
 - [ ] 8.3.8 Add accessibility improvements (focus indicators)
 - [ ] 8.3.9 Test UI at different plugin window sizes
 - [ ] 8.3.10 Add plugin resize support
+
+#### 8.3.11 Login Flow Improvements (NEW)
+
+> **Current Issues Identified (Dec 5, 2024)**:
+> - `AuthComponent.cpp` has **hardcoded `localhost:8787`** instead of using `NetworkClient` config
+> - `ProfileSetupComponent.cpp` has **hardcoded button positions** (not responsive)
+> - OAuth polling lacks real-time status feedback during the wait period
+> - Login/signup forms don't use the shared `NetworkClient` - duplicated HTTP code
+> - No "Remember me" option for credentials
+> - No password reset flow in plugin
+
+**AuthComponent Refactoring:**
+- [ ] 8.3.11.1 Refactor `AuthComponent` to use `NetworkClient` instead of raw JUCE URL calls
+  - Remove hardcoded `http://localhost:8787` (line 601, 733)
+  - Pass `NetworkClient` reference to `AuthComponent` constructor
+  - Use `networkClient->post()` for login/register API calls
+- [ ] 8.3.11.2 Add proper error handling from `NetworkClient::RequestResult`
+- [ ] 8.3.11.3 Show connection status indicator in auth screen (use `ConnectionIndicator`)
+- [ ] 8.3.11.4 Add "Connecting to server..." state when backend is unreachable
+
+**ProfileSetupComponent Improvements:**
+- [ ] 8.3.11.5 Make `ProfileSetupComponent` layout responsive (use `resized()` properly)
+  - Replace hardcoded `juce::Rectangle<int>(400, 150, 150, 36)` with calculated positions
+  - Center content on different window sizes
+- [ ] 8.3.11.6 Add upload progress indicator when uploading profile picture
+- [ ] 8.3.11.7 Show S3 URL success feedback after upload completes
+- [ ] 8.3.11.8 Add image cropping UI before upload (circular crop preview)
+
+**OAuth Flow Improvements:**
+- [ ] 8.3.11.9 Show animated "Waiting for authorization..." during OAuth polling
+- [ ] 8.3.11.10 Add countdown timer for OAuth session timeout
+- [ ] 8.3.11.11 Add "Cancel" button during OAuth polling to return to welcome screen
+- [ ] 8.3.11.12 Show browser launch confirmation ("A browser window has been opened...")
+
+**Authentication UX Enhancements:**
+- [ ] 8.3.11.13 Add "Remember me" checkbox to persist credentials securely
+- [ ] 8.3.11.14 Implement "Forgot password" link → opens web URL
+- [ ] 8.3.11.15 Add password strength indicator during signup
+- [ ] 8.3.11.16 Show email verification prompt if email not verified
+- [ ] 8.3.11.17 Add biometric/keychain integration for saved credentials (future)
 
 ### 8.4 Backend Hardening
 
