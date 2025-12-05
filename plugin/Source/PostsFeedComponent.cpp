@@ -503,10 +503,28 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
         }
     };
 
-    card->onLikeToggled = [this](const FeedPost& post, bool liked) {
+    card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
         DBG("Like toggled for post: " + post.id + " -> " + (liked ? "liked" : "unliked"));
-        // Optimistic UI update - card handles its own state
-        // TODO: Call backend API
+
+        // Optimistic UI update
+        card->updateLikeCount(post.likeCount + (liked ? 1 : -1), liked);
+
+        // Call backend API (fire-and-forget)
+        if (networkClient != nullptr && liked)
+        {
+            networkClient->likePost(post.id);
+        }
+    };
+
+    card->onEmojiReaction = [this, card](const FeedPost& post, const juce::String& emoji) {
+        DBG("Emoji reaction for post: " + post.id + " -> " + emoji);
+
+        // Optimistic UI update is already done in handleEmojiSelected
+        // Call backend API with the emoji
+        if (networkClient != nullptr)
+        {
+            networkClient->likePost(post.id, emoji);
+        }
     };
 
     card->onUserClicked = [this](const FeedPost& post) {
