@@ -5,6 +5,8 @@
 #include <memory>
 #include <map>
 
+class NetworkClient;
+
 //==============================================================================
 /**
  * AudioPlayer - Handles audio playback for the feed
@@ -209,6 +211,9 @@ public:
     /** Preload audio for a post (for seamless playback) */
     void preloadAudio(const juce::String& postId, const juce::String& audioUrl);
 
+    /** Set NetworkClient for HTTP requests */
+    void setNetworkClient(NetworkClient* client) { networkClient = client; }
+
     //==============================================================================
     // ChangeListener
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
@@ -242,6 +247,10 @@ private:
     juce::String currentAudioUrl;
     double currentSampleRate = 44100.0;
     int currentBlockSize = 512;
+    
+    // Listen duration tracking
+    juce::Time playbackStartTime;
+    bool playbackStarted = false;
 
     // Thread safety
     juce::CriticalSection audioLock;
@@ -260,6 +269,9 @@ private:
     size_t maxCacheSize = 50 * 1024 * 1024; // 50MB default
     size_t currentCacheSize = 0;
     juce::CriticalSection cacheLock;
+
+    // NetworkClient for HTTP requests
+    NetworkClient* networkClient = nullptr;
 
     void evictCacheIfNeeded(size_t bytesNeeded);
     void addToCache(const juce::String& postId, std::unique_ptr<juce::MemoryBlock> data);
