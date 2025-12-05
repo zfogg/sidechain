@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "FeedPost.h"
+#include "EmojiReactionsPanel.h"
 
 //==============================================================================
 /**
@@ -37,6 +38,7 @@ public:
     void updateLikeCount(int count, bool isLiked);
     void updatePlayCount(int count);
     void updateFollowState(bool isFollowing);
+    void updateReaction(const juce::String& emoji);  // Update the user's reaction
     void setPlaybackProgress(float progress); // 0.0 - 1.0
     void setIsPlaying(bool playing);
     void setPlaying(bool playing) { setIsPlaying(playing); }
@@ -47,6 +49,7 @@ public:
     std::function<void(const FeedPost&)> onPlayClicked;
     std::function<void(const FeedPost&)> onPauseClicked;
     std::function<void(const FeedPost&, bool liked)> onLikeToggled;
+    std::function<void(const FeedPost&, const juce::String& emoji)> onEmojiReaction;  // Emoji reaction
     std::function<void(const FeedPost&)> onUserClicked;
     std::function<void(const FeedPost&)> onCommentClicked;
     std::function<void(const FeedPost&)> onShareClicked;
@@ -58,11 +61,12 @@ public:
     // Component overrides
     void paint(juce::Graphics& g) override;
     void resized() override;
+    void mouseDown(const juce::MouseEvent& event) override;
     void mouseUp(const juce::MouseEvent& event) override;
     void mouseEnter(const juce::MouseEvent& event) override;
     void mouseExit(const juce::MouseEvent& event) override;
 
-    // Timer override for animations
+    // Timer override for animations and long-press detection
     void timerCallback() override;
 
     //==============================================================================
@@ -88,6 +92,14 @@ private:
     static constexpr float LIKE_ANIMATION_DURATION_MS = 400.0f;
     static constexpr int LIKE_ANIMATION_FPS = 60;
 
+    // Long-press state for emoji reactions panel
+    bool longPressActive = false;
+    juce::Point<int> longPressPosition;
+    juce::uint32 longPressStartTime = 0;
+    static constexpr int LONG_PRESS_DURATION_MS = 400;  // Time before showing emoji panel
+    static constexpr int LONG_PRESS_TIMER_ID = 1;
+    static constexpr int ANIMATION_TIMER_ID = 2;
+
     // Cached avatar image
     juce::Image avatarImage;
     bool avatarLoadRequested = false;
@@ -106,6 +118,10 @@ private:
 
     // Animation helpers
     void startLikeAnimation();
+
+    // Emoji reactions helpers
+    void showEmojiReactionsPanel();
+    void handleEmojiSelected(const juce::String& emoji);
 
     //==============================================================================
     // Hit testing helpers

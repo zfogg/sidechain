@@ -4,13 +4,15 @@
 //==============================================================================
 AuthComponent::AuthComponent()
 {
-    setSize(1000, 800);
-
+    // Create all UI components BEFORE calling setSize() because setSize() triggers resized()
     setupWelcomeComponents();
     setupLoginComponents();
     setupSignupComponents();
 
     showWelcome();
+
+    // Set size last - this triggers resized() which requires components to exist
+    setSize(1000, 800);
 }
 
 AuthComponent::~AuthComponent()
@@ -743,9 +745,31 @@ void AuthComponent::handleSignup()
             if (stream != nullptr)
             {
                 juce::String response = stream->readEntireStreamAsString();
+                
+                // Debug logging
+                DBG("Registration response: " + response);
+                
+                // Handle empty response
+                if (response.isEmpty())
+                {
+                    showError("Server returned empty response");
+                    repaint();
+                    return;
+                }
+                
                 juce::var responseData = juce::JSON::parse(response);
 
-                if (responseData.isObject() && responseData.hasProperty("auth"))
+                // Check if JSON parsing succeeded
+                if (!responseData.isObject())
+                {
+                    // JSON parsing failed - response might be an error string
+                    DBG("JSON parse failed, response was: " + response);
+                    showError("Invalid server response");
+                    repaint();
+                    return;
+                }
+
+                if (responseData.hasProperty("auth"))
                 {
                     juce::var authData = responseData["auth"];
                     if (authData.isObject() && authData.hasProperty("token"))
@@ -758,9 +782,15 @@ void AuthComponent::handleSignup()
                     }
                 }
 
-                juce::String errorMsg = responseData.hasProperty("message")
-                                      ? responseData["message"].toString()
-                                      : "Registration failed";
+                // Extract error message from response
+                juce::String errorMsg;
+                if (responseData.hasProperty("message"))
+                    errorMsg = responseData["message"].toString();
+                else if (responseData.hasProperty("error"))
+                    errorMsg = responseData["error"].toString();
+                else
+                    errorMsg = "Registration failed";
+                    
                 showError(errorMsg);
             }
             else

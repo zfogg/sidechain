@@ -38,6 +38,16 @@ void PostCardComponent::updateFollowState(bool following)
     repaint();
 }
 
+void PostCardComponent::updateReaction(const juce::String& emoji)
+{
+    post.userReaction = emoji;
+    if (emoji.isNotEmpty())
+    {
+        post.isLiked = true;  // Reacting also counts as a like
+    }
+    repaint();
+}
+
 void PostCardComponent::setPlaybackProgress(float progress)
 {
     playbackProgress = juce::jlimit(0.0f, 1.0f, progress);
@@ -327,20 +337,32 @@ void PostCardComponent::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<in
 
 void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Like button
+    // Like/Reaction button
     auto likeBounds = getLikeButtonBounds();
-    juce::Colour likeColor = post.isLiked ? juce::Colour::fromRGB(255, 80, 80) : juce::Colours::grey;
 
-    g.setColour(likeColor);
-    g.setFont(14.0f);
+    // Show user's reaction emoji if they've reacted, otherwise show heart
+    if (post.userReaction.isNotEmpty())
+    {
+        // Show the emoji the user reacted with
+        g.setFont(16.0f);
+        g.setColour(juce::Colours::white);
+        g.drawText(post.userReaction, likeBounds.withWidth(22), juce::Justification::centred);
+    }
+    else
+    {
+        // Show heart icon
+        juce::Colour likeColor = post.isLiked ? juce::Colour::fromRGB(255, 80, 80) : juce::Colours::grey;
+        g.setColour(likeColor);
+        g.setFont(14.0f);
+        juce::String heartIcon = post.isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5")) : juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));
+        g.drawText(heartIcon, likeBounds.withWidth(20), juce::Justification::centred);
+    }
 
-    // Heart icon (using text for now, could be a path)
-    juce::String heartIcon = post.isLiked ? "♥" : "♡";
-    g.drawText(heartIcon, likeBounds.withWidth(20), juce::Justification::centred);
-
+    // Like/reaction count
+    g.setColour(post.isLiked || post.userReaction.isNotEmpty() ? juce::Colour::fromRGB(255, 80, 80) : juce::Colours::grey);
     g.setFont(11.0f);
     g.drawText(juce::String(post.likeCount),
-               likeBounds.withX(likeBounds.getX() + 18).withWidth(30),
+               likeBounds.withX(likeBounds.getX() + 20).withWidth(30),
                juce::Justification::centredLeft);
 
     // Comment count
@@ -368,9 +390,28 @@ void PostCardComponent::resized()
     // Layout is handled in paint() using bounds calculations
 }
 
+void PostCardComponent::mouseDown(const juce::MouseEvent& event)
+{
+    auto pos = event.getPosition();
+
+    // Check if pressing on the like button area - start long-press timer
+    if (getLikeButtonBounds().contains(pos))
+    {
+        longPressActive = true;
+        longPressPosition = pos;
+        longPressStartTime = juce::Time::getMillisecondCounter();
+        startTimerHz(30);  // Check every ~33ms
+    }
+}
+
 void PostCardComponent::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
+
+    // Cancel long-press timer
+    bool wasLongPress = longPressActive &&
+        (juce::Time::getMillisecondCounter() - longPressStartTime >= LONG_PRESS_DURATION_MS);
+    longPressActive = false;
 
     // Check play button
     if (getPlayButtonBounds().contains(pos))
@@ -388,8 +429,8 @@ void PostCardComponent::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
-    // Check like button
-    if (getLikeButtonBounds().contains(pos))
+    // Check like button - only handle as click if not a long-press
+    if (getLikeButtonBounds().contains(pos) && !wasLongPress)
     {
         bool willBeLiked = !post.isLiked;
 
@@ -533,24 +574,44 @@ void PostCardComponent::startLikeAnimation()
 
 void PostCardComponent::timerCallback()
 {
-    if (!likeAnimationActive)
+    // Check for long-press on like button
+    if (longPressActive)
     {
-        stopTimer();
-        return;
+        juce::uint32 elapsed = juce::Time::getMillisecondCounter() - longPressStartTime;
+        if (elapsed >= LONG_PRESS_DURATION_MS)
+        {
+            longPressActive = false;
+            showEmojiReactionsPanel();
+
+            // Stop timer if no animation is running
+            if (!likeAnimationActive)
+                stopTimer();
+
+            return;
+        }
     }
 
-    // Advance animation
-    float step = (1000.0f / LIKE_ANIMATION_FPS) / LIKE_ANIMATION_DURATION_MS;
-    likeAnimationProgress += step;
-
-    if (likeAnimationProgress >= 1.0f)
+    // Handle like animation
+    if (likeAnimationActive)
     {
-        likeAnimationProgress = 1.0f;
-        likeAnimationActive = false;
-        stopTimer();
+        // Advance animation
+        float step = (1000.0f / LIKE_ANIMATION_FPS) / LIKE_ANIMATION_DURATION_MS;
+        likeAnimationProgress += step;
+
+        if (likeAnimationProgress >= 1.0f)
+        {
+            likeAnimationProgress = 1.0f;
+            likeAnimationActive = false;
+        }
+
+        repaint();
     }
 
-    repaint();
+    // Stop timer if nothing is active
+    if (!likeAnimationActive && !longPressActive)
+    {
+        stopTimer();
+    }
 }
 
 void PostCardComponent::drawLikeAnimation(juce::Graphics& g)
@@ -603,4 +664,44 @@ void PostCardComponent::drawLikeAnimation(juce::Graphics& g)
     float ringAlpha = (1.0f - easedT) * 0.3f;
     g.setColour(juce::Colour::fromRGB(255, 80, 80).withAlpha(ringAlpha));
     g.drawEllipse(cx - ringRadius, cy - ringRadius, ringRadius * 2.0f, ringRadius * 2.0f, 2.0f);
+}
+
+//==============================================================================
+// Emoji Reactions
+
+void PostCardComponent::showEmojiReactionsPanel()
+{
+    // Create a temporary component to use as anchor for the bubble
+    // We need to find the like button's screen position
+
+    auto* bubble = new EmojiReactionsBubble(this);
+
+    // Set the currently selected emoji if user has already reacted
+    if (post.userReaction.isNotEmpty())
+        bubble->setSelectedEmoji(post.userReaction);
+
+    // Handle emoji selection
+    bubble->onEmojiSelected = [this](const juce::String& emoji) {
+        handleEmojiSelected(emoji);
+    };
+
+    // Position and show the bubble
+    // The bubble will position itself relative to this component
+    bubble->show();
+}
+
+void PostCardComponent::handleEmojiSelected(const juce::String& emoji)
+{
+    // Update local state
+    post.userReaction = emoji;
+    post.isLiked = true;
+
+    // Trigger animation
+    startLikeAnimation();
+
+    // Notify callback
+    if (onEmojiReaction)
+        onEmojiReaction(post, emoji);
+
+    repaint();
 }
