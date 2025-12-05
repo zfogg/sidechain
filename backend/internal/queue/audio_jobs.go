@@ -51,6 +51,9 @@ type AudioQueue struct {
 	s3Uploader *storage.S3Uploader
 	tempDir    string
 
+	// Callback for post indexing (7.1.4)
+	onPostComplete func(postID string)
+
 	// For testing: channels to signal job completion
 	jobCompleted chan string
 }
@@ -78,6 +81,11 @@ func NewAudioQueue(s3Uploader *storage.S3Uploader) *AudioQueue {
 		tempDir:      tempDir,
 		jobCompleted: make(chan string, 100), // For testing
 	}
+}
+
+// SetPostCompleteCallback sets a callback function to be called when a post processing completes (7.1.4)
+func (q *AudioQueue) SetPostCompleteCallback(callback func(postID string)) {
+	q.onPostComplete = callback
 }
 
 // Start begins processing jobs with worker pool
@@ -249,6 +257,11 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 	elapsed := time.Since(startTime)
 	log.Printf("✅ Worker %d completed job %s in %v (duration: %.1fs, size: %d bytes)",
 		workerID, job.ID, elapsed, processedAudio.Duration, audioResult.Size)
+
+	// Trigger post indexing callback (7.1.4)
+	if q.onPostComplete != nil {
+		go q.onPostComplete(job.PostID)
+	}
 
 	q.signalCompletion(job.ID)
 }

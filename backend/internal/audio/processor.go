@@ -24,6 +24,11 @@ type Processor struct {
 	tempDir    string
 }
 
+// SetPostCompleteCallback sets a callback for when post processing completes (7.1.4)
+func (p *Processor) SetPostCompleteCallback(callback func(postID string)) {
+	p.audioQueue.SetPostCompleteCallback(callback)
+}
+
 // NewProcessor creates a new audio processor with queue integration
 func NewProcessor(s3Uploader *storage.S3Uploader) *Processor {
 	tempDir := "/tmp/sidechain_audio"

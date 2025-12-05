@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestNewClient tests Stream.io client initialization
+// TestNewClient tests getstream.io client initialization
 func TestNewClient(t *testing.T) {
 	// Test without credentials - should fail
 	originalKey := os.Getenv("STREAM_API_KEY")
@@ -291,10 +291,10 @@ func TestExtractUserIDFromFeed(t *testing.T) {
 }
 
 // =============================================================================
-// INTEGRATION TESTS (require Stream.io credentials)
+// INTEGRATION TESTS (require getstream.io credentials)
 // =============================================================================
 
-// TestNotificationsIntegration tests notification methods with real Stream.io
+// TestNotificationsIntegration tests notification methods with real getstream.io
 func TestNotificationsIntegration(t *testing.T) {
 	if os.Getenv("STREAM_API_KEY") == "" || os.Getenv("STREAM_API_SECRET") == "" {
 		t.Skip("STREAM_API_KEY and STREAM_API_SECRET not set, skipping integration test")
@@ -304,7 +304,7 @@ func TestNotificationsIntegration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Note: These tests require the "notification" feed group to be configured
-	// in the Stream.io dashboard with aggregation_format set
+	// in the getstream.io dashboard with aggregation_format set
 
 	testUserID := "test_notif_user_" + os.Getenv("TEST_RUN_ID")
 	if testUserID == "test_notif_user_" {
@@ -329,7 +329,7 @@ func TestNotificationsIntegration(t *testing.T) {
 	assert.NotNil(t, notifs.Groups)
 }
 
-// TestAggregatedFeedsIntegration tests aggregated feed methods with real Stream.io
+// TestAggregatedFeedsIntegration tests aggregated feed methods with real getstream.io
 func TestAggregatedFeedsIntegration(t *testing.T) {
 	if os.Getenv("STREAM_API_KEY") == "" || os.Getenv("STREAM_API_SECRET") == "" {
 		t.Skip("STREAM_API_KEY and STREAM_API_SECRET not set, skipping integration test")
@@ -339,7 +339,7 @@ func TestAggregatedFeedsIntegration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Note: These tests require aggregated feed groups to be configured
-	// in the Stream.io dashboard
+	// in the getstream.io dashboard
 
 	testUserID := "test_agg_user_" + os.Getenv("TEST_RUN_ID")
 	if testUserID == "test_agg_user_" {
