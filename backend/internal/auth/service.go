@@ -19,6 +19,7 @@ import (
 var (
 	ErrUserNotFound       = errors.New("user not found")
 	ErrUserExists         = errors.New("user already exists")
+	ErrUsernameExists     = errors.New("username already taken")
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrEmailNotVerified   = errors.New("email not verified")
 )
@@ -98,7 +99,7 @@ func (s *Service) RegisterNativeUser(req RegisterRequest) (*AuthResponse, error)
 	var usernameCheck models.User
 	err = database.DB.Where("LOWER(username) = LOWER(?)", req.Username).First(&usernameCheck).Error
 	if err == nil {
-		return nil, errors.New("username already taken")
+		return nil, ErrUsernameExists
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("database error: %w", err)
 	}

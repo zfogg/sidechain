@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -55,10 +56,13 @@ type DiscordUserInfo struct {
 
 // HandleGoogleCallback processes Google OAuth callback
 func (s *Service) HandleGoogleCallback(code string) (*AuthResponse, error) {
+	log.Printf("[OAuth/Service] HandleGoogleCallback: Starting token exchange")
 	userInfo, err := s.getGoogleUserInfo(code)
 	if err != nil {
+		log.Printf("[OAuth/Service] HandleGoogleCallback: Failed to get user info: %v", err)
 		return nil, fmt.Errorf("failed to get Google user info: %w", err)
 	}
+	log.Printf("[OAuth/Service] HandleGoogleCallback: Got user info - email: %s, name: %s", userInfo.Email, userInfo.Name)
 
 	return s.findOrCreateUserFromOAuth("google", userInfo)
 }
@@ -75,28 +79,37 @@ func (s *Service) HandleDiscordCallback(code string) (*AuthResponse, error) {
 
 // findOrCreateUserFromOAuth implements email-based account unification
 func (s *Service) findOrCreateUserFromOAuth(provider string, userInfo *OAuthUserInfo) (*AuthResponse, error) {
+	log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Looking up OAuth account - provider: %s, providerUserID: %s", provider, userInfo.ID)
+
 	// First, check if this OAuth account is already linked
 	var existingOAuth models.OAuthProvider
 	err := database.DB.Where("provider = ? AND provider_user_id = ?", provider, userInfo.ID).
 		Preload("User").First(&existingOAuth).Error
 
 	if err == nil {
+		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Found existing OAuth link for user: %s", existingOAuth.User.Username)
 		// OAuth account already linked - update tokens and return existing user
 		s.updateOAuthTokens(&existingOAuth, userInfo)
 		return s.generateAuthResponse(&existingOAuth.User)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Database error checking OAuth: %v", err)
 		return nil, fmt.Errorf("database error checking OAuth: %w", err)
 	}
+
+	log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: No existing OAuth link, checking by email: %s", userInfo.Email)
 
 	// Check if user exists by email (account unification)
 	existingUser, err := s.FindUserByEmail(userInfo.Email)
 	if err == nil {
+		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Found existing user by email: %s, linking OAuth", existingUser.Username)
 		// User exists with this email - link OAuth to existing account
 		return s.linkOAuthToExistingUser(existingUser, provider, userInfo)
 	} else if !errors.Is(err, ErrUserNotFound) {
+		log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: Database error finding user: %v", err)
 		return nil, fmt.Errorf("database error finding user: %w", err)
 	}
 
+	log.Printf("[OAuth/Service] findOrCreateUserFromOAuth: No existing user, creating new account")
 	// No existing user - create new account with OAuth
 	return s.createUserWithOAuth(provider, userInfo)
 }
@@ -240,28 +253,38 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 
 // getGoogleUserInfo fetches user info from Google OAuth
 func (s *Service) getGoogleUserInfo(code string) (*OAuthUserInfo, error) {
+	log.Printf("[OAuth/Service] getGoogleUserInfo: Exchanging authorization code for token")
 	token, err := s.googleConfig.Exchange(context.Background(), code)
 	if err != nil {
+		log.Printf("[OAuth/Service] getGoogleUserInfo: Token exchange failed: %v", err)
 		return nil, fmt.Errorf("failed to exchange code: %w", err)
 	}
+	log.Printf("[OAuth/Service] getGoogleUserInfo: Token exchange successful, fetching user info")
 
 	client := s.googleConfig.Client(context.Background(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
+		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to fetch user info: %v", err)
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
 	defer resp.Body.Close()
 
+	log.Printf("[OAuth/Service] getGoogleUserInfo: User info response status: %d", resp.StatusCode)
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
 	var googleUser GoogleUserInfo
 	err = json.Unmarshal(body, &googleUser)
 	if err != nil {
+		log.Printf("[OAuth/Service] getGoogleUserInfo: Failed to parse JSON: %v", err)
 		return nil, fmt.Errorf("failed to parse user info: %w", err)
 	}
+
+	log.Printf("[OAuth/Service] getGoogleUserInfo: Parsed user - sub: %s, email: %s, name: %s", googleUser.Sub, googleUser.Email, googleUser.Name)
 
 	// Extract token expiry time
 	var tokenExpiry *time.Time
