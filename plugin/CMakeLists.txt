@@ -62,7 +62,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Generate Version.h from template
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Source/Version.h.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Version.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/Version.h"
     @ONLY
 )
@@ -305,90 +305,90 @@ juce_generate_juce_header(Sidechain)
 target_sources(Sidechain
     PRIVATE
         # Root level - Plugin entry points
-        Source/PluginProcessor.cpp
-        Source/PluginProcessor.h
-        Source/PluginEditor.cpp
-        Source/PluginEditor.h
+        source/PluginProcessor.cpp
+        source/PluginProcessor.h
+        source/PluginEditor.cpp
+        source/PluginEditor.h
 
         # Stores - State management
-        Source/stores/UserDataStore.cpp
-        Source/stores/UserDataStore.h
+        source/stores/UserDataStore.cpp
+        source/stores/UserDataStore.h
 
         # Models - Data structures and DTOs
-        Source/models/FeedPost.cpp
-        Source/models/FeedPost.h
-        Source/models/FeedResponse.h
-        Source/models/AggregatedFeedGroup.h
-        Source/models/AggregatedFeedResponse.h
+        source/models/FeedPost.cpp
+        source/models/FeedPost.h
+        source/models/FeedResponse.h
+        source/models/AggregatedFeedGroup.h
+        source/models/AggregatedFeedResponse.h
 
         # Audio - Audio capture, playback, and analysis
-        Source/audio/AudioCapture.cpp
-        Source/audio/AudioCapture.h
-        Source/audio/AudioPlayer.cpp
-        Source/audio/AudioPlayer.h
-        Source/audio/KeyDetector.cpp
-        Source/audio/KeyDetector.h
+        source/audio/AudioCapture.cpp
+        source/audio/AudioCapture.h
+        source/audio/AudioPlayer.cpp
+        source/audio/AudioPlayer.h
+        source/audio/KeyDetector.cpp
+        source/audio/KeyDetector.h
 
         # Network - API clients and data managers
-        Source/network/NetworkClient.cpp
-        Source/network/NetworkClient.h
-        Source/network/WebSocketClient.cpp
-        Source/network/WebSocketClient.h
-        Source/network/FeedDataManager.cpp
-        Source/network/FeedDataManager.h
+        source/network/NetworkClient.cpp
+        source/network/NetworkClient.h
+        source/network/WebSocketClient.cpp
+        source/network/WebSocketClient.h
+        source/network/FeedDataManager.cpp
+        source/network/FeedDataManager.h
 
         # UI - Auth
-        Source/ui/auth/AuthComponent.cpp
-        Source/ui/auth/AuthComponent.h
+        source/ui/auth/AuthComponent.cpp
+        source/ui/auth/AuthComponent.h
 
         # UI - Profile
-        Source/ui/profile/ProfileSetupComponent.cpp
-        Source/ui/profile/ProfileSetupComponent.h
-        Source/ui/profile/ProfileComponent.cpp
-        Source/ui/profile/ProfileComponent.h
-        Source/ui/profile/EditProfileComponent.cpp
-        Source/ui/profile/EditProfileComponent.h
+        source/ui/profile/ProfileSetupComponent.cpp
+        source/ui/profile/ProfileSetupComponent.h
+        source/ui/profile/ProfileComponent.cpp
+        source/ui/profile/ProfileComponent.h
+        source/ui/profile/EditProfileComponent.cpp
+        source/ui/profile/EditProfileComponent.h
 
         # UI - Feed
-        Source/ui/feed/PostsFeedComponent.cpp
-        Source/ui/feed/PostsFeedComponent.h
-        Source/ui/feed/PostCardComponent.cpp
-        Source/ui/feed/PostCardComponent.h
-        Source/ui/feed/CommentComponent.cpp
-        Source/ui/feed/CommentComponent.h
-        Source/ui/feed/EmojiReactionsPanel.cpp
-        Source/ui/feed/EmojiReactionsPanel.h
+        source/ui/feed/PostsFeedComponent.cpp
+        source/ui/feed/PostsFeedComponent.h
+        source/ui/feed/PostCardComponent.cpp
+        source/ui/feed/PostCardComponent.h
+        source/ui/feed/CommentComponent.cpp
+        source/ui/feed/CommentComponent.h
+        source/ui/feed/EmojiReactionsPanel.cpp
+        source/ui/feed/EmojiReactionsPanel.h
 
         # UI - Recording
-        Source/ui/recording/RecordingComponent.cpp
-        Source/ui/recording/RecordingComponent.h
-        Source/ui/recording/UploadComponent.cpp
-        Source/ui/recording/UploadComponent.h
+        source/ui/recording/RecordingComponent.cpp
+        source/ui/recording/RecordingComponent.h
+        source/ui/recording/UploadComponent.cpp
+        source/ui/recording/UploadComponent.h
 
         # UI - Notifications
-        Source/ui/notifications/NotificationBellComponent.cpp
-        Source/ui/notifications/NotificationBellComponent.h
-        Source/ui/notifications/NotificationListComponent.cpp
-        Source/ui/notifications/NotificationListComponent.h
+        source/ui/notifications/NotificationBellComponent.cpp
+        source/ui/notifications/NotificationBellComponent.h
+        source/ui/notifications/NotificationListComponent.cpp
+        source/ui/notifications/NotificationListComponent.h
 
         # UI - Social
-        Source/ui/social/UserCardComponent.cpp
-        Source/ui/social/UserCardComponent.h
-        Source/ui/social/UserDiscoveryComponent.cpp
-        Source/ui/social/UserDiscoveryComponent.h
-        Source/ui/social/FollowersListComponent.cpp
-        Source/ui/social/FollowersListComponent.h
+        source/ui/social/UserCardComponent.cpp
+        source/ui/social/UserCardComponent.h
+        source/ui/social/UserDiscoveryComponent.cpp
+        source/ui/social/UserDiscoveryComponent.h
+        source/ui/social/FollowersListComponent.cpp
+        source/ui/social/FollowersListComponent.h
 
         # UI - Common
-        Source/ui/common/HeaderComponent.cpp
-        Source/ui/common/HeaderComponent.h
-        Source/ui/common/ConnectionIndicator.h
+        source/ui/common/HeaderComponent.cpp
+        source/ui/common/HeaderComponent.h
+        source/ui/common/ConnectionIndicator.h
 
         # Utilities
-        Source/util/Time.cpp
-        Source/util/Time.h
-        Source/util/Colors.h
-        Source/util/HttpErrorHandler.h
+        source/util/Time.cpp
+        source/util/Time.h
+        source/util/Colors.h
+        source/util/HttpErrorHandler.h
 )
 
 # Preprocessor definitions
@@ -567,25 +567,25 @@ if(SIDECHAIN_BUILD_TESTS)
     # Create a static library from plugin source for testing (without plugin wrapper)
     # Note: Only include .cpp files that have implementations (not header-only)
     add_library(SidechainTestLib STATIC
-        Source/audio/AudioCapture.cpp
-        Source/audio/AudioCapture.h
-        Source/audio/AudioPlayer.cpp
-        Source/audio/AudioPlayer.h
-        Source/network/NetworkClient.cpp
-        Source/network/NetworkClient.h
-        Source/network/FeedDataManager.cpp
-        Source/network/FeedDataManager.h
-        Source/network/WebSocketClient.cpp
-        Source/network/WebSocketClient.h
-        Source/models/FeedPost.cpp
-        Source/models/FeedPost.h
-        Source/models/FeedResponse.h
-        Source/models/AggregatedFeedGroup.h
-        Source/models/AggregatedFeedResponse.h
-        Source/stores/UserDataStore.cpp
-        Source/stores/UserDataStore.h
-        Source/util/Time.cpp
-        Source/util/Time.h
+        source/audio/AudioCapture.cpp
+        source/audio/AudioCapture.h
+        source/audio/AudioPlayer.cpp
+        source/audio/AudioPlayer.h
+        source/network/NetworkClient.cpp
+        source/network/NetworkClient.h
+        source/network/FeedDataManager.cpp
+        source/network/FeedDataManager.h
+        source/network/WebSocketClient.cpp
+        source/network/WebSocketClient.h
+        source/models/FeedPost.cpp
+        source/models/FeedPost.h
+        source/models/FeedResponse.h
+        source/models/AggregatedFeedGroup.h
+        source/models/AggregatedFeedResponse.h
+        source/stores/UserDataStore.cpp
+        source/stores/UserDataStore.h
+        source/util/Time.cpp
+        source/util/Time.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
@@ -593,7 +593,7 @@ if(SIDECHAIN_BUILD_TESTS)
     add_dependencies(SidechainTestLib Sidechain)
 
     target_include_directories(SidechainTestLib PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/Source
+        ${CMAKE_CURRENT_SOURCE_DIR}/source
         # Use the JuceHeader generated for the main plugin
         ${CMAKE_CURRENT_BINARY_DIR}/Sidechain_artefacts/JuceLibraryCode
     )

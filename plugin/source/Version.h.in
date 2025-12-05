@@ -1,0 +1,17 @@
+#pragma once
+
+// Auto-generated version header - DO NOT EDIT
+// Generated at build time from git tags via scripts/version.sh
+
+#define SIDECHAIN_VERSION "@SIDECHAIN_VERSION@"
+#define SIDECHAIN_VERSION_MAJOR @SIDECHAIN_VERSION_MAJOR@
+#define SIDECHAIN_VERSION_MINOR @SIDECHAIN_VERSION_MINOR@
+#define SIDECHAIN_VERSION_PATCH @SIDECHAIN_VERSION_PATCH@
+
+namespace SidechainVersion
+{
+    inline const char* getVersionString() { return SIDECHAIN_VERSION; }
+    inline int getMajor() { return SIDECHAIN_VERSION_MAJOR; }
+    inline int getMinor() { return SIDECHAIN_VERSION_MINOR; }
+    inline int getPatch() { return SIDECHAIN_VERSION_PATCH; }
+}
