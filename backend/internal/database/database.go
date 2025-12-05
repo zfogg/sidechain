@@ -83,6 +83,8 @@ func Migrate() error {
 		&models.Device{},
 		&models.OAuthProvider{},
 		&models.PasswordReset{},
+		&models.Comment{},
+		&models.CommentMention{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -118,6 +120,16 @@ func createIndexes() error {
 	// OAuth provider indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_oauth_providers_unique ON oauth_providers (provider, provider_user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_oauth_providers_email ON oauth_providers (email)")
+
+	// Comment indexes for efficient retrieval
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_post_created ON comments (post_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_user ON comments (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id) WHERE parent_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_post_not_deleted ON comments (post_id, created_at DESC) WHERE is_deleted = false")
+
+	// Comment mention indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comment_mentions_user ON comment_mentions (mentioned_user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comment_mentions_comment ON comment_mentions (comment_id)")
 
 	return nil
 }
