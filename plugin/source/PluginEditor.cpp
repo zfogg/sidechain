@@ -843,8 +843,8 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
         {
             // Update like count on the affected post (5.5.3)
             auto payload = message.getProperty("payload");
-            auto postId = payload.getProperty("post_id").toString();
-            auto likeCount = static_cast<int>(payload.getProperty("like_count"));
+            auto postId = payload.getProperty("post_id", juce::var()).toString();
+            auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
 
             if (postsFeedComponent && !postId.isEmpty() && likeCount >= 0)
             {
@@ -858,8 +858,8 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
         {
             // Follower count updated (5.5.4)
             auto payload = message.getProperty("payload");
-            auto userId = payload.getProperty("followee_id").toString();
-            auto followerCount = static_cast<int>(payload.getProperty("follower_count"));
+            auto userId = payload.getProperty("followee_id", juce::var()).toString();
+            auto followerCount = static_cast<int>(payload.getProperty("follower_count", juce::var(0)));
 
             if (postsFeedComponent && !userId.isEmpty() && followerCount >= 0)
             {

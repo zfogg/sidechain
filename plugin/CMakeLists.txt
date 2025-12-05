@@ -276,12 +276,16 @@ endif()
 # GitHub: https://github.com/chriskohlhoff/asio
 #==============================================================================
 set(ASIO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/asio")
-if(EXISTS "${ASIO_DIR}/include/asio.hpp")
+# ASIO 1.14.1 has headers in asio/include/ directory
+if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp" OR EXISTS "${ASIO_DIR}/include/asio.hpp")
     message(STATUS "ASIO found at: ${ASIO_DIR}")
     
     # Create an interface library for ASIO (header-only)
     add_library(asio INTERFACE)
-    target_include_directories(asio INTERFACE "${ASIO_DIR}/include")
+    # Try nested path first (ASIO 1.14.1), then flat path (newer versions)
+    if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp")
+        target_include_directories(asio INTERFACE "${ASIO_DIR}/asio/include")
+    endif()
     
     # Define ASIO_STANDALONE so ASIO doesn't require Boost
     target_compile_definitions(asio INTERFACE ASIO_STANDALONE=1)
