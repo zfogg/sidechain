@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include "../../models/FeedPost.h"
 #include "../../util/Animation.h"
+#include "../../util/HoverState.h"
+#include "../../util/LongPressDetector.h"
 #include "EmojiReactionsPanel.h"
 
 //==============================================================================
@@ -83,7 +85,7 @@ private:
     FeedPost post;
 
     // UI state
-    bool isHovered = false;
+    HoverState hoverState;
     bool isPlaying = false;
     bool isLoading = false;
     float playbackProgress = 0.0f;
@@ -91,11 +93,8 @@ private:
     // Like animation
     Animation likeAnimation{400, Animation::Easing::EaseOutCubic};
 
-    // Long-press state for emoji reactions panel
-    bool longPressActive = false;
-    juce::Point<int> longPressPosition;
-    juce::uint32 longPressStartTime = 0;
-    static constexpr int LONG_PRESS_DURATION_MS = 400;  // Time before showing emoji panel
+    // Long-press detector for emoji reactions panel
+    LongPressDetector longPressDetector{400};  // 400ms threshold
 
     // Cached avatar image (loaded via ImageCache)
     juce::Image avatarImage;

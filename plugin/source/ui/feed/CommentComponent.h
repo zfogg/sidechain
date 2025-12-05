@@ -5,6 +5,7 @@
 #include "../../util/Time.h"
 #include "../../util/Colors.h"
 #include "../../util/HoverState.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 /**
@@ -258,8 +259,8 @@ private:
     void insertEmoji(const juce::String& emoji);
 
     // API callbacks
-    void handleCommentsLoaded(bool success, const juce::var& commentsData, int total);
-    void handleCommentCreated(bool success, const juce::var& comment);
+    void handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult);
+    void handleCommentCreated(Outcome<juce::var> commentResult);
     void handleCommentDeleted(bool success, const juce::String& commentId);
     void handleCommentLikeToggled(const Comment& comment, bool liked);
 

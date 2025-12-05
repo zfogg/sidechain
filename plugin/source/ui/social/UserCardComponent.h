@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../util/HoverState.h"
 
 //==============================================================================
 /**
@@ -106,7 +107,7 @@ public:
 
 private:
     DiscoveredUser user;
-    bool isHovered = false;
+    HoverState hoverState;
 
     // Cached avatar image
     juce::Image avatarImage;

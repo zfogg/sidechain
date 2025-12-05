@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../util/HoverState.h"
 
 //==============================================================================
 /**
@@ -56,7 +57,7 @@ private:
     //==============================================================================
     int unseenCount = 0;
     int unreadCount = 0;
-    bool isHovered = false;
+    HoverState hoverState;
 
     //==============================================================================
     // Drawing helpers

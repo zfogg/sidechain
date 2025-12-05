@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 UserDiscoveryComponent::UserDiscoveryComponent()
@@ -520,10 +521,13 @@ void UserDiscoveryComponent::performSearch(const juce::String& query)
     addToRecentSearches(query);
     repaint();
 
-    networkClient->searchUsers(query, 30, 0, [this](bool success, const juce::var& response) {
+    networkClient->searchUsers(query, 30, 0, [this](Outcome<juce::var> responseOutcome) {
         isSearching = false;
 
-        if (success && Json::isObject(response))
+        if (responseOutcome.isOk())
+        {
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
         {
             auto users = Json::getArray(response, "users");
             if (Json::isArray(users))
@@ -533,11 +537,16 @@ void UserDiscoveryComponent::performSearch(const juce::String& query)
                     searchResults.add(DiscoveredUser::fromJson(users[i]));
                 }
             }
-            Log::info("UserDiscoveryComponent: Search completed - results: " + juce::String(searchResults.size()));
+                Log::info("UserDiscoveryComponent: Search completed - results: " + juce::String(searchResults.size()));
+            }
+            else
+            {
+                Log::error("UserDiscoveryComponent: Invalid search response");
+            }
         }
         else
         {
-            Log::error("UserDiscoveryComponent: Search failed");
+            Log::error("UserDiscoveryComponent: Search failed - " + responseOutcome.getError());
         }
 
         rebuildUserCards();
@@ -552,21 +561,33 @@ void UserDiscoveryComponent::fetchTrendingUsers()
 
     isTrendingLoading = true;
 
-    networkClient->getTrendingUsers(10, [this](bool success, const juce::var& response) {
+    networkClient->getTrendingUsers(10, [this](Outcome<juce::var> responseOutcome) {
         isTrendingLoading = false;
 
-        if (success && Json::isObject(response))
+        if (responseOutcome.isOk())
         {
-            auto users = Json::getArray(response, "users");
-            if (Json::isArray(users))
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
             {
-                trendingUsers.clear();
-                for (int i = 0; i < users.size(); ++i)
+                auto users = Json::getArray(response, "users");
+                if (Json::isArray(users))
                 {
-                    trendingUsers.add(DiscoveredUser::fromJson(users[i]));
+                    trendingUsers.clear();
+                    for (int i = 0; i < users.size(); ++i)
+                    {
+                        trendingUsers.add(DiscoveredUser::fromJson(users[i]));
+                    }
+                    Log::info("UserDiscoveryComponent: Loaded " + juce::String(trendingUsers.size()) + " trending users");
                 }
-                Log::info("UserDiscoveryComponent: Loaded " + juce::String(trendingUsers.size()) + " trending users");
             }
+            else
+            {
+                Log::error("UserDiscoveryComponent: Invalid trending users response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscoveryComponent: Failed to load trending users - " + responseOutcome.getError());
         }
 
         rebuildUserCards();
@@ -581,20 +602,32 @@ void UserDiscoveryComponent::fetchFeaturedProducers()
 
     isFeaturedLoading = true;
 
-    networkClient->getFeaturedProducers(10, [this](bool success, const juce::var& response) {
+    networkClient->getFeaturedProducers(10, [this](Outcome<juce::var> responseOutcome) {
         isFeaturedLoading = false;
 
-        if (success && Json::isObject(response))
+        if (responseOutcome.isOk())
         {
-            auto users = Json::getArray(response, "users");
-            if (Json::isArray(users))
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
             {
-                featuredProducers.clear();
-                for (int i = 0; i < users.size(); ++i)
+                auto users = Json::getArray(response, "users");
+                if (Json::isArray(users))
                 {
-                    featuredProducers.add(DiscoveredUser::fromJson(users[i]));
+                    featuredProducers.clear();
+                    for (int i = 0; i < users.size(); ++i)
+                    {
+                        featuredProducers.add(DiscoveredUser::fromJson(users[i]));
+                    }
                 }
             }
+            else
+            {
+                Log::error("UserDiscoveryComponent: Invalid featured producers response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscoveryComponent: Failed to load featured producers - " + responseOutcome.getError());
         }
 
         rebuildUserCards();
@@ -609,20 +642,32 @@ void UserDiscoveryComponent::fetchSuggestedUsers()
 
     isSuggestedLoading = true;
 
-    networkClient->getSuggestedUsers(10, [this](bool success, const juce::var& response) {
+    networkClient->getSuggestedUsers(10, [this](Outcome<juce::var> responseOutcome) {
         isSuggestedLoading = false;
 
-        if (success && Json::isObject(response))
+        if (responseOutcome.isOk())
         {
-            auto users = Json::getArray(response, "users");
-            if (Json::isArray(users))
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
             {
-                suggestedUsers.clear();
-                for (int i = 0; i < users.size(); ++i)
+                auto users = Json::getArray(response, "users");
+                if (Json::isArray(users))
                 {
-                    suggestedUsers.add(DiscoveredUser::fromJson(users[i]));
+                    suggestedUsers.clear();
+                    for (int i = 0; i < users.size(); ++i)
+                    {
+                        suggestedUsers.add(DiscoveredUser::fromJson(users[i]));
+                    }
                 }
             }
+            else
+            {
+                Log::error("UserDiscoveryComponent: Invalid suggested users response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscoveryComponent: Failed to load suggested users - " + responseOutcome.getError());
         }
 
         rebuildUserCards();
@@ -637,20 +682,32 @@ void UserDiscoveryComponent::fetchAvailableGenres()
 
     isGenresLoading = true;
 
-    networkClient->getAvailableGenres([this](bool success, const juce::var& response) {
+    networkClient->getAvailableGenres([this](Outcome<juce::var> responseOutcome) {
         isGenresLoading = false;
 
-        if (success && Json::isObject(response))
+        if (responseOutcome.isOk())
         {
-            auto genres = Json::getArray(response, "genres");
-            if (Json::isArray(genres))
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
             {
-                availableGenres.clear();
-                for (int i = 0; i < Json::arraySize(genres); ++i)
+                auto genres = Json::getArray(response, "genres");
+                if (Json::isArray(genres))
                 {
-                    availableGenres.add(Json::getStringAt(genres, i));
+                    availableGenres.clear();
+                    for (int i = 0; i < Json::arraySize(genres); ++i)
+                    {
+                        availableGenres.add(Json::getStringAt(genres, i));
+                    }
                 }
             }
+            else
+            {
+                Log::error("UserDiscoveryComponent: Invalid genres response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscoveryComponent: Failed to load genres - " + responseOutcome.getError());
         }
 
         repaint();
@@ -665,17 +722,29 @@ void UserDiscoveryComponent::fetchUsersByGenre(const juce::String& genre)
     genreUsers.clear();
     repaint();
 
-    networkClient->getUsersByGenre(genre, 30, 0, [this](bool success, const juce::var& response) {
-        if (success && Json::isObject(response))
+    networkClient->getUsersByGenre(genre, 30, 0, [this](Outcome<juce::var> responseOutcome) {
+        if (responseOutcome.isOk())
         {
-            auto users = Json::getArray(response, "users");
-            if (Json::isArray(users))
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
             {
-                for (int i = 0; i < users.size(); ++i)
+                auto users = Json::getArray(response, "users");
+                if (Json::isArray(users))
                 {
-                    genreUsers.add(DiscoveredUser::fromJson(users[i]));
+                    for (int i = 0; i < users.size(); ++i)
+                    {
+                        genreUsers.add(DiscoveredUser::fromJson(users[i]));
+                    }
                 }
             }
+            else
+            {
+                Log::error("UserDiscoveryComponent: Invalid genre users response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscoveryComponent: Failed to load genre users - " + responseOutcome.getError());
         }
 
         rebuildUserCards();

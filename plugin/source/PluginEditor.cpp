@@ -5,6 +5,7 @@
 #include "util/Json.h"
 #include "util/ImageCache.h"
 #include "util/Log.h"
+#include "util/Result.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -1234,17 +1235,18 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
     }
 
     juce::String endpoint = juce::String(Constants::Endpoints::AUTH_OAUTH_POLL) + "?session_id=" + oauthSessionId;
-    networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](bool success, const juce::var& responseData) {
+    networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](Outcome<juce::var> responseOutcome) {
         // Check if this is still the active session
         if (oauthSessionId != capturedSessionId)
             return;
 
-        if (!success || !responseData.isObject())
+        if (responseOutcome.isError() || !responseOutcome.getValue().isObject())
         {
             Log::warn("OAuth poll: connection failed or invalid response");
             return; // Keep polling, might be temporary network issue
         }
 
+        auto responseData = responseOutcome.getValue();
         juce::String status = Json::getString(responseData, "status");
 
             if (status == "complete")

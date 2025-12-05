@@ -13,6 +13,16 @@
 PostCardComponent::PostCardComponent()
 {
     setSize(600, CARD_HEIGHT);
+    
+    // Set up hover state
+    hoverState.onHoverChanged = [this](bool hovered) {
+        repaint();
+    };
+    
+    // Set up long-press detector for emoji reactions
+    longPressDetector.onLongPress = [this]() {
+        showEmojiReactionsPanel();
+    };
 }
 
 PostCardComponent::~PostCardComponent()
@@ -110,7 +120,7 @@ void PostCardComponent::drawBackground(juce::Graphics& g)
         SidechainColors::backgroundLight(),
         SidechainColors::backgroundLighter(),
         SidechainColors::border(),
-        isHovered);
+        hoverState.isHovered());
 }
 
 void PostCardComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -373,7 +383,7 @@ void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int
 
     // Add to DAW button
     auto addToDAWBounds = getAddToDAWButtonBounds();
-    if (isHovered && addToDAWBounds.contains(getMouseXYRelative()))
+    if (hoverState.isHovered() && addToDAWBounds.contains(getMouseXYRelative()))
     {
         g.setColour(SidechainColors::surfaceHover());
         g.fillRoundedRectangle(addToDAWBounds.toFloat(), 4.0f);
@@ -452,13 +462,10 @@ void PostCardComponent::mouseDown(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
 
-    // Check if pressing on the like button area - start long-press timer
+    // Check if pressing on the like button area - start long-press detection
     if (getLikeButtonBounds().contains(pos))
     {
-        longPressActive = true;
-        longPressPosition = pos;
-        longPressStartTime = juce::Time::getMillisecondCounter();
-        startTimerHz(30);  // Check every ~33ms
+        longPressDetector.start();
     }
 }
 
@@ -466,10 +473,9 @@ void PostCardComponent::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
 
-    // Cancel long-press timer
-    bool wasLongPress = longPressActive &&
-        (juce::Time::getMillisecondCounter() - longPressStartTime >= LONG_PRESS_DURATION_MS);
-    longPressActive = false;
+    // Check if long-press was triggered (before canceling)
+    bool wasLongPress = longPressDetector.wasTriggered();
+    longPressDetector.cancel();
 
     // Check play button
     if (getPlayButtonBounds().contains(pos))
@@ -563,14 +569,14 @@ void PostCardComponent::mouseUp(const juce::MouseEvent& event)
 
 void PostCardComponent::mouseEnter(const juce::MouseEvent& /*event*/)
 {
-    isHovered = true;
-    repaint();
+    hoverState.setHovered(true);
 }
 
 void PostCardComponent::mouseExit(const juce::MouseEvent& /*event*/)
 {
-    isHovered = false;
-    repaint();
+    hoverState.setHovered(false);
+    // Cancel any active long-press when mouse exits
+    longPressDetector.cancel();
 }
 
 //==============================================================================
@@ -644,25 +650,11 @@ void PostCardComponent::startLikeAnimation()
 
 void PostCardComponent::timerCallback()
 {
-    // Check for long-press on like button
-    if (longPressActive)
-    {
-        juce::uint32 elapsed = juce::Time::getMillisecondCounter() - longPressStartTime;
-        if (elapsed >= LONG_PRESS_DURATION_MS)
-        {
-            longPressActive = false;
-            showEmojiReactionsPanel();
-
-            // Stop timer if no animation is running
-            if (!likeAnimation.isRunning())
-                stopTimer();
-
-            return;
-        }
-    }
-
-    // Stop timer if nothing is active
-    if (!likeAnimation.isRunning() && !longPressActive)
+    // Long-press detection is handled by LongPressDetector
+    // Only need to manage animation timer here
+    
+    // Stop timer if animation is not running
+    if (!likeAnimation.isRunning())
     {
         stopTimer();
     }

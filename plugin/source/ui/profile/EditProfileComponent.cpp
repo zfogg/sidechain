@@ -3,6 +3,7 @@
 #include "../../util/ImageCache.h"
 #include "../../util/Validate.h"
 #include "../../util/Log.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 EditProfileComponent::EditProfileComponent()
@@ -485,12 +486,13 @@ void EditProfileComponent::saveProfileData()
 
     juce::var payload(updateData);
 
-    networkClient->put("/profile", payload, [this](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response]() {
+    networkClient->put("/profile", payload, [this](Outcome<juce::var> responseOutcome) {
+        juce::MessageManager::callAsync([this, responseOutcome]() {
             isSaving = false;
 
-            if (success)
+            if (responseOutcome.isOk())
             {
+                auto response = responseOutcome.getValue();
                 // Update original profile to reflect saved state
                 originalProfile = profile;
                 hasChanges = false;
@@ -501,11 +503,7 @@ void EditProfileComponent::saveProfileData()
             }
             else
             {
-                if (response.isObject() && response.hasProperty("message"))
-                    errorMessage = response["message"].toString();
-                else
-                    errorMessage = "Failed to save profile";
-
+                errorMessage = "Failed to save profile: " + responseOutcome.getError();
                 saveButton->setEnabled(true);
             }
 
@@ -519,9 +517,9 @@ void EditProfileComponent::handleUsernameChange()
     if (networkClient == nullptr)
         return;
 
-    networkClient->changeUsername(profile.username, [this](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response]() {
-            if (success)
+    networkClient->changeUsername(profile.username, [this](Outcome<juce::var> responseOutcome) {
+        juce::MessageManager::callAsync([this, responseOutcome]() {
+            if (responseOutcome.isOk())
             {
                 // Username changed successfully, now save other profile data
                 originalProfile.username = profile.username;
@@ -532,10 +530,7 @@ void EditProfileComponent::handleUsernameChange()
                 isSaving = false;
 
                 // Show username-specific error
-                if (response.isObject() && response.hasProperty("message"))
-                    usernameError = response["message"].toString();
-                else
-                    usernameError = "Username not available";
+                usernameError = "Username not available: " + responseOutcome.getError();
 
                 isUsernameValid = false;
                 updateHasChanges();

@@ -3,6 +3,7 @@
 #include "../../util/TextEditorStyler.h"
 #include "../../util/UIHelpers.h"
 #include "../../util/HoverState.h"
+#include "../../util/Result.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
@@ -377,8 +378,8 @@ void CommentsPanelComponent::loadCommentsForPost(const juce::String& postId)
     repaint();
 
     networkClient->getComments(postId, 20, 0,
-        [this](bool success, const juce::var& commentsData, int total) {
-            handleCommentsLoaded(success, commentsData, total);
+        [this](Outcome<std::pair<juce::var, int>> commentsResult) {
+            handleCommentsLoaded(commentsResult);
         });
 }
 
@@ -390,31 +391,39 @@ void CommentsPanelComponent::refreshComments()
     loadCommentsForPost(currentPostId);
 }
 
-void CommentsPanelComponent::handleCommentsLoaded(bool success, const juce::var& commentsData, int total)
+void CommentsPanelComponent::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult)
 {
     isLoading = false;
 
-    if (success && commentsData.isArray())
+    if (commentsResult.isOk())
     {
-        auto* arr = commentsData.getArray();
-        if (arr != nullptr)
+        auto [commentsData, total] = commentsResult.getValue();
+        if (commentsData.isArray())
         {
-            for (const auto& item : *arr)
+            auto* arr = commentsData.getArray();
+            if (arr != nullptr)
             {
-                Comment comment = Comment::fromJson(item);
-                if (comment.isValid())
-                    comments.add(comment);
+                for (const auto& item : *arr)
+                {
+                    Comment comment = Comment::fromJson(item);
+                    if (comment.isValid())
+                        comments.add(comment);
+                }
             }
-        }
 
-        totalCommentCount = total;
-        hasMoreComments = comments.size() < total;
-        currentOffset = comments.size();
-        updateCommentsList();
+            totalCommentCount = total;
+            hasMoreComments = comments.size() < total;
+            currentOffset = comments.size();
+            updateCommentsList();
+        }
+        else
+        {
+            errorMessage = "Invalid comments response";
+        }
     }
     else
     {
-        errorMessage = "Failed to load comments";
+        errorMessage = "Failed to load comments: " + commentsResult.getError();
     }
 
     repaint();
@@ -429,26 +438,38 @@ void CommentsPanelComponent::loadMoreComments()
     repaint();
 
     networkClient->getComments(currentPostId, 20, currentOffset,
-        [this](bool success, const juce::var& commentsData, int total) {
+        [this](Outcome<std::pair<juce::var, int>> commentsResult) {
             isLoading = false;
 
-            if (success && commentsData.isArray())
+            if (commentsResult.isOk())
             {
-                auto* arr = commentsData.getArray();
-                if (arr != nullptr)
+                auto [commentsData, total] = commentsResult.getValue();
+                if (commentsData.isArray())
                 {
-                    for (const auto& item : *arr)
+                    auto* arr = commentsData.getArray();
+                    if (arr != nullptr)
                     {
-                        Comment comment = Comment::fromJson(item);
-                        if (comment.isValid())
-                            comments.add(comment);
+                        for (const auto& item : *arr)
+                        {
+                            Comment comment = Comment::fromJson(item);
+                            if (comment.isValid())
+                                comments.add(comment);
+                        }
                     }
-                }
 
-                totalCommentCount = total;
-                hasMoreComments = comments.size() < total;
-                currentOffset = comments.size();
-                updateCommentsList();
+                    totalCommentCount = total;
+                    hasMoreComments = comments.size() < total;
+                    currentOffset = comments.size();
+                    updateCommentsList();
+                }
+                else
+                {
+                    errorMessage = "Invalid comments response";
+                }
+            }
+            else
+            {
+                errorMessage = "Failed to load more comments: " + commentsResult.getError();
             }
 
             repaint();
@@ -520,8 +541,8 @@ void CommentsPanelComponent::setupRowCallbacks(CommentRowComponent* row)
             if (result == 1 && networkClient != nullptr)
             {
                 networkClient->deleteComment(commentId,
-                    [this, commentId](bool success, const juce::var& /*response*/) {
-                        handleCommentDeleted(success, commentId);
+                    [this, commentId](Outcome<juce::var> responseOutcome) {
+                        handleCommentDeleted(responseOutcome.isOk(), commentId);
                     });
             }
         });
@@ -560,8 +581,8 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
     if (liked)
     {
         Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Calling likeComment API");
-        networkClient->likeComment(comment.id, [this, commentId = comment.id](bool success, const juce::var& /*response*/) {
-            if (!success)
+        networkClient->likeComment(comment.id, [this, commentId = comment.id](Outcome<juce::var> responseOutcome) {
+            if (responseOutcome.isError())
             {
                 Log::warn("CommentsPanelComponent::handleCommentLikeToggled: Like failed, reverting optimistic update");
                 // Revert on failure
@@ -584,8 +605,8 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
     else
     {
         Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Calling unlikeComment API");
-        networkClient->unlikeComment(comment.id, [this, commentId = comment.id](bool success, const juce::var& /*response*/) {
-            if (!success)
+        networkClient->unlikeComment(comment.id, [this, commentId = comment.id](Outcome<juce::var> responseOutcome) {
+            if (responseOutcome.isError())
             {
                 Log::warn("CommentsPanelComponent::handleCommentLikeToggled: Unlike failed, reverting optimistic update");
                 // Revert on failure
@@ -607,12 +628,13 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
     }
 }
 
-void CommentsPanelComponent::handleCommentCreated(bool success, const juce::var& commentData)
+void CommentsPanelComponent::handleCommentCreated(Outcome<juce::var> commentResult)
 {
-    Log::info("CommentsPanelComponent::handleCommentCreated: Comment creation result - success: " + juce::String(success ? "yes" : "no"));
-    
-    if (success)
+    if (commentResult.isOk())
     {
+        auto commentData = commentResult.getValue();
+        Log::info("CommentsPanelComponent::handleCommentCreated: Comment creation successful");
+
         Comment newComment = Comment::fromJson(commentData);
         if (newComment.isValid())
         {
@@ -633,8 +655,8 @@ void CommentsPanelComponent::handleCommentCreated(bool success, const juce::var&
     }
     else
     {
-        errorMessage = "Failed to post comment";
-        Log::error("CommentsPanelComponent::handleCommentCreated: Failed to post comment");
+        errorMessage = "Failed to post comment: " + commentResult.getError();
+        Log::error("CommentsPanelComponent::handleCommentCreated: Failed to post comment - " + commentResult.getError());
     }
 
     repaint();
@@ -690,9 +712,9 @@ void CommentsPanelComponent::submitComment()
               ", content length: " + juce::String(content.length()) + 
               (parentId.isNotEmpty() ? (", replying to: " + parentId) : ", top-level comment"));
 
-    networkClient->createComment(currentPostId, content, parentId,
-        [this](bool success, const juce::var& comment) {
-            handleCommentCreated(success, comment);
+        networkClient->createComment(currentPostId, content, parentId,
+            [this](Outcome<juce::var> commentResult) {
+            handleCommentCreated(commentResult);
         });
 }
 
@@ -999,42 +1021,54 @@ void CommentsPanelComponent::showMentionAutocomplete(const juce::String& query)
     // Search for users (use empty query to get suggestions, or actual query)
     juce::String searchQuery = query.isEmpty() ? "" : query;
     networkClient->searchUsers(searchQuery, 10, 0,
-        [this](bool success, const juce::var& response) {
-            if (success && response.isObject())
+        [this](Outcome<juce::var> responseOutcome) {
+            if (responseOutcome.isOk())
             {
-                auto* users = response.getProperty("users", juce::var()).getArray();
-                if (users != nullptr)
+                auto response = responseOutcome.getValue();
+                if (response.isObject())
                 {
-                    mentionSuggestions.clear();
-                    mentionUserIds.clear();
-                    
-                    for (const auto& user : *users)
+                    auto* users = response.getProperty("users", juce::var()).getArray();
+                    if (users != nullptr)
                     {
-                        if (user.isObject())
+                        mentionSuggestions.clear();
+                        mentionUserIds.clear();
+                        
+                        for (const auto& user : *users)
                         {
-                            juce::String username = user.getProperty("username", "").toString();
-                            juce::String userId = user.getProperty("id", "").toString();
-                            
-                            if (username.isNotEmpty() && userId.isNotEmpty())
+                            if (user.isObject())
                             {
-                                mentionSuggestions.add(username);
-                                mentionUserIds.add(userId);
+                                juce::String username = user.getProperty("username", "").toString();
+                                juce::String userId = user.getProperty("id", "").toString();
+                                
+                                if (username.isNotEmpty() && userId.isNotEmpty())
+                                {
+                                    mentionSuggestions.add(username);
+                                    mentionUserIds.add(userId);
+                                }
                             }
                         }
-                    }
-                    
-                    if (mentionSuggestions.size() > 0)
-                    {
-                        selectedMentionIndex = 0;
-                        mentionAutocompletePanel->setVisible(true);
-                        resized();  // Update panel position
-                        repaint();
-                    }
-                    else
-                    {
-                        hideMentionAutocomplete();
+                        
+                        if (mentionSuggestions.size() > 0)
+                        {
+                            selectedMentionIndex = 0;
+                            mentionAutocompletePanel->setVisible(true);
+                            resized();  // Update panel position
+                            repaint();
+                        }
+                        else
+                        {
+                            hideMentionAutocomplete();
+                        }
                     }
                 }
+                else
+                {
+                    Log::error("CommentsPanelComponent: Invalid search users response");
+                }
+            }
+            else
+            {
+                Log::error("CommentsPanelComponent: Search users failed - " + responseOutcome.getError());
             }
         });
 }

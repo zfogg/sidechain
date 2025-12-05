@@ -6,6 +6,7 @@
 #include "../../util/Log.h"
 #include "../../util/Async.h"
 #include "../../util/Animation.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 PostsFeedComponent::PostsFeedComponent()
@@ -122,7 +123,7 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
             if (networkClient != nullptr)
             {
                 Log::debug("PostsFeedComponent: Tracking play in backend for postId: " + postId);
-                networkClient->trackPlay(postId, [this, postId](bool success, const juce::var& response) {
+                networkClient->trackPlay(postId, [this, postId](Outcome<juce::var> responseOutcome) {
                     if (success)
                     {
                         Log::debug("PostsFeedComponent: Play tracking successful for postId: " + postId);
@@ -191,7 +192,7 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
                 if (durationSeconds >= 1.0)
                 {
                     Log::debug("PostsFeedComponent: Tracking listen duration for postId: " + postId);
-                    networkClient->trackListenDuration(postId, durationSeconds, [postId](bool success, const juce::var& response) {
+                    networkClient->trackListenDuration(postId, durationSeconds, [postId](Outcome<juce::var> responseOutcome) {
                         if (success)
                         {
                             Log::debug("PostsFeedComponent: Listen duration tracked successfully for postId: " + postId);
@@ -687,8 +688,8 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
         // Call backend API with callback to handle conflicts (5.5.5, 5.5.6)
         if (networkClient != nullptr)
         {
-            auto callback = [this, card, post, optimisticCount, liked, originalCount, originalLiked](bool success, const juce::var& response) {
-                if (success)
+            auto callback = [this, card, post, optimisticCount, liked, originalCount, originalLiked](Outcome<juce::var> responseOutcome) {
+                if (responseOutcome.isOk())
                 {
                     // Server confirmed - check if count matches our optimistic update (5.5.6)
                     // Note: likePost API may not return like_count, so we rely on WebSocket updates
@@ -699,7 +700,7 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
                 else
                 {
                     // API call failed - revert optimistic update (5.5.6)
-                    Log::warn("Like API call failed - reverting optimistic update");
+                    Log::warn("Like API call failed - reverting optimistic update: " + responseOutcome.getError());
                     card->updateLikeCount(originalCount, originalLiked);
                 }
             };

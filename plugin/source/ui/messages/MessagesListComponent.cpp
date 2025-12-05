@@ -1,6 +1,7 @@
 #include "MessagesListComponent.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
+#include "../../util/Result.h"
 #include <algorithm>
 
 //==============================================================================
@@ -128,18 +129,18 @@ void MessagesListComponent::loadChannels()
     listState = ListState::Loading;
     repaint();
 
-    streamChatClient->queryChannels([this](bool success, const std::vector<StreamChatClient::Channel>& channelsList) {
-        if (success)
+    streamChatClient->queryChannels([this](Outcome<std::vector<StreamChatClient::Channel>> channelsResult) {
+        if (channelsResult.isOk())
         {
-            channels = channelsList;
+            channels = channelsResult.getValue();
             Log::info("MessagesListComponent: Loaded " + juce::String(channels.size()) + " conversations");
             listState = channels.empty() ? ListState::Empty : ListState::Loaded;
         }
         else
         {
-            Log::error("MessagesListComponent: Failed to load channels");
+            Log::error("MessagesListComponent: Failed to load channels - " + channelsResult.getError());
             listState = ListState::Error;
-            errorMessage = "Failed to load channels";
+            errorMessage = "Failed to load channels: " + channelsResult.getError();
         }
         repaint();
     });

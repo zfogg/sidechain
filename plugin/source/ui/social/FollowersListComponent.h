@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../../util/Colors.h"
 #include "../../util/Time.h"
+#include "../../util/HoverState.h"
 
 class NetworkClient;
 
@@ -72,7 +73,7 @@ public:
 
 private:
     FollowListUser user;
-    bool isHovered = false;
+    HoverState hoverState;
 
     // Cached avatar
     juce::Image avatarImage;
