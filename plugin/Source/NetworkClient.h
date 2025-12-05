@@ -118,6 +118,38 @@ public:
     // Play tracking (must be after ResponseCallback typedef)
     void trackPlay(const juce::String& activityId, ResponseCallback callback = nullptr);
 
+    //==========================================================================
+    // Notification operations
+    using NotificationCallback = std::function<void(bool success, const juce::var& notifications, int unseen, int unread)>;
+
+    void getNotifications(int limit = 20, int offset = 0, NotificationCallback callback = nullptr);
+    void getNotificationCounts(std::function<void(int unseen, int unread)> callback);
+    void markNotificationsRead(ResponseCallback callback = nullptr);
+    void markNotificationsSeen(ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // User Discovery operations
+    // Search users by username or display name
+    void searchUsers(const juce::String& query, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
+
+    // Get trending users (most active/followed recently)
+    void getTrendingUsers(int limit = 20, ResponseCallback callback = nullptr);
+
+    // Get featured producers (high engagement + recent activity)
+    void getFeaturedProducers(int limit = 20, ResponseCallback callback = nullptr);
+
+    // Get suggested users based on shared interests
+    void getSuggestedUsers(int limit = 20, ResponseCallback callback = nullptr);
+
+    // Get users by genre
+    void getUsersByGenre(const juce::String& genre, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
+
+    // Get available genres for filtering
+    void getAvailableGenres(ResponseCallback callback = nullptr);
+
+    // Get users similar to a specific user (by BPM/key preferences)
+    void getSimilarUsers(const juce::String& userId, int limit = 10, ResponseCallback callback = nullptr);
+
     // Authentication state
     void setAuthToken(const juce::String& token);
     bool isAuthenticated() const { return !authToken.isEmpty(); }

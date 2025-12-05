@@ -1009,3 +1009,207 @@ void NetworkClient::del(const juce::String& endpoint, ResponseCallback callback)
         });
     });
 }
+
+//==============================================================================
+// Notification operations
+//==============================================================================
+
+void NetworkClient::getNotifications(int limit, int offset, NotificationCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/notifications?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        int unseen = 0;
+        int unread = 0;
+        juce::var groups;
+
+        if (result.success && result.data.isObject())
+        {
+            unseen = static_cast<int>(result.data.getProperty("unseen", 0));
+            unread = static_cast<int>(result.data.getProperty("unread", 0));
+            groups = result.data.getProperty("groups", juce::var());
+        }
+
+        juce::MessageManager::callAsync([callback, result, groups, unseen, unread]() {
+            callback(result.success, groups, unseen, unread);
+        });
+    });
+}
+
+void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unread)> callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::Thread::launch([this, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/notifications/counts", "GET", juce::var(), true);
+
+        int unseen = 0;
+        int unread = 0;
+
+        if (result.success && result.data.isObject())
+        {
+            unseen = static_cast<int>(result.data.getProperty("unseen", 0));
+            unread = static_cast<int>(result.data.getProperty("unread", 0));
+        }
+
+        juce::MessageManager::callAsync([callback, unseen, unread]() {
+            callback(unseen, unread);
+        });
+    });
+}
+
+void NetworkClient::markNotificationsRead(ResponseCallback callback)
+{
+    juce::Thread::launch([this, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/notifications/read", "POST", juce::var(), true);
+
+        if (callback != nullptr)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                callback(result.success, result.data);
+            });
+        }
+    });
+}
+
+void NetworkClient::markNotificationsSeen(ResponseCallback callback)
+{
+    juce::Thread::launch([this, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/notifications/seen", "POST", juce::var(), true);
+
+        if (callback != nullptr)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                callback(result.success, result.data);
+            });
+        }
+    });
+}
+
+//==============================================================================
+// User Discovery operations
+//==============================================================================
+
+void NetworkClient::searchUsers(const juce::String& query, int limit, int offset, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    // URL-encode the query string
+    juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+    juce::String endpoint = "/api/v1/search/users?q=" + encodedQuery
+                          + "&limit=" + juce::String(limit)
+                          + "&offset=" + juce::String(offset);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getTrendingUsers(int limit, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/discover/trending?limit=" + juce::String(limit);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getFeaturedProducers(int limit, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/discover/featured?limit=" + juce::String(limit);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getSuggestedUsers(int limit, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/discover/suggested?limit=" + juce::String(limit);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getUsersByGenre(const juce::String& genre, int limit, int offset, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    // URL-encode the genre
+    juce::String encodedGenre = juce::URL::addEscapeChars(genre, true);
+    juce::String endpoint = "/api/v1/discover/genre/" + encodedGenre
+                          + "?limit=" + juce::String(limit)
+                          + "&offset=" + juce::String(offset);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getAvailableGenres(ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::Thread::launch([this, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/discover/genres", "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getSimilarUsers(const juce::String& userId, int limit, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/users/" + userId + "/similar?limit=" + juce::String(limit);
+
+    juce::Thread::launch([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}

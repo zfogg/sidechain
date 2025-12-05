@@ -1,6 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <map>
+#include "TimeUtils.h"
 
 //==============================================================================
 /**
@@ -57,6 +59,22 @@ public:
     bool isOwnPost = false;    // Whether this is the current user's own post
 
     //==============================================================================
+    // Emoji reactions - music-themed emojis
+    // Stores counts for each emoji type
+    std::map<juce::String, int> reactionCounts;  // emoji -> count
+    juce::String userReaction;  // The emoji the current user reacted with (empty if none)
+
+    // Standard reaction emojis for music content
+    static inline const juce::StringArray REACTION_EMOJIS = {
+        juce::String(juce::CharPointer_UTF8("\xE2\x9D\xA4\xEF\xB8\x8F")),    // ❤️ - love
+        juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA5")),            // 🔥 - fire/hot
+        juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB5")),            // 🎵 - music note
+        juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAF")),            // 💯 - perfect
+        juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8D")),            // 😍 - heart eyes
+        juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x80"))             // 🚀 - rocket/hype
+    };
+
+    //==============================================================================
     // Processing status
     enum class Status
     {
@@ -78,6 +96,8 @@ public:
     static juce::String extractUserId(const juce::String& actor);
 
     // Format timestamp as "time ago" string
+    // @deprecated Use TimeUtils::formatTimeAgo() instead
+    [[deprecated("Use TimeUtils::formatTimeAgo() instead")]]
     static juce::String formatTimeAgo(const juce::Time& time);
 
     // Check if post is valid (has required fields)

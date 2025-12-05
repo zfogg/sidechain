@@ -171,62 +171,8 @@ juce::String FeedPost::extractUserId(const juce::String& actorString)
 //==============================================================================
 juce::String FeedPost::formatTimeAgo(const juce::Time& time)
 {
-    auto now = juce::Time::getCurrentTime();
-    auto diff = now - time;
-
-    // Use std::round for proper rounding instead of truncation
-    auto seconds = static_cast<juce::int64>(std::round(diff.inSeconds()));
-    auto minutes = static_cast<juce::int64>(std::round(diff.inMinutes()));
-    auto hours = static_cast<juce::int64>(std::round(diff.inHours()));
-    auto days = static_cast<juce::int64>(std::round(diff.inDays()));
-
-    if (seconds < 0)
-        return "just now"; // Future time, probably clock skew
-
-    if (seconds < 60)
-        return "just now";
-
-    if (minutes < 60)
-    {
-        if (minutes == 1)
-            return "1 min ago";
-        return juce::String(minutes) + " mins ago";
-    }
-
-    if (hours < 24)
-    {
-        if (hours == 1)
-            return "1 hour ago";
-        return juce::String(hours) + " hours ago";
-    }
-
-    if (days < 7)
-    {
-        if (days == 1)
-            return "1 day ago";
-        return juce::String(days) + " days ago";
-    }
-
-    if (days < 30)
-    {
-        int weeks = days / 7;
-        if (weeks == 1)
-            return "1 week ago";
-        return juce::String(weeks) + " weeks ago";
-    }
-
-    if (days < 365)
-    {
-        int months = days / 30;
-        if (months == 1)
-            return "1 month ago";
-        return juce::String(months) + " months ago";
-    }
-
-    int years = days / 365;
-    if (years == 1)
-        return "1 year ago";
-    return juce::String(years) + " years ago";
+    // Delegate to TimeUtils
+    return TimeUtils::formatTimeAgo(time);
 }
 
 //==============================================================================
