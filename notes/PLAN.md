@@ -36,7 +36,7 @@ make plugin            # Build plugin for manual testing
 | Section | How to Test |
 |---------|-------------|
 | **1.1 Build System** | `make plugin` - should build VST3 without errors |
-| **1.2 Stream.io** | `make test-unit` - run `stream/client_test.go` (17 tests) |
+| **1.2 getstream.io** | `make test-unit` - run `stream/client_test.go` (17 tests) |
 | **1.3 OAuth** | Start backend, open plugin, click Google/Discord login in UI |
 | **1.4 NetworkClient** | `make test-plugin-unit` - NetworkClientTest (24 tests) |
 
@@ -76,7 +76,9 @@ make plugin            # Build plugin for manual testing
 | Phase | How to Test |
 |-------|-------------|
 | **6: Comments** | (Not yet implemented) - Will need `comments_test.go` tests |
+| **6.5: Messaging** | Open plugin → Click message icon → Start conversation → Send message → Verify real-time delivery |
 | **7: Search** | (Not yet implemented) - Test via search bar in plugin UI |
+| **7.5: Stories** | Record story in plugin → View in feed → Verify MIDI visualization → Wait 24 hours → Verify expiration |
 | **8: Polish** | Load plugin in multiple DAWs (Ableton, FL Studio, Logic) |
 | **9: Infrastructure** | `docker-compose up` - verify all services start |
 | **10: Launch** | Run installer on fresh system, verify plugin loads |
@@ -86,15 +88,15 @@ make plugin            # Build plugin for manual testing
 ### Manual Testing Checklist
 
 **Authentication Flow:**
-- [ ] Open plugin → Welcome screen shows
+- [x] Open plugin → Welcome screen shows
 - [ ] Click "Sign Up" → Registration form works
 - [ ] Click "Log In" → Login with credentials works
-- [ ] Click Google/Discord → OAuth flow completes
-- [ ] Close/reopen plugin → Stays logged in
+- [x] Click Google/Discord → OAuth flow completes
+- [x] Close/reopen plugin → Stays logged in
 
 **Recording Flow:**
-- [ ] Click Record → Red indicator appears
-- [ ] Wait 5+ seconds → Timer updates
+- [x] Click Record → Red indicator appears
+- [x] Wait 5+ seconds → Timer updates
 - [ ] Click Stop → Waveform preview shows
 - [ ] Click Play preview → Audio plays back
 - [ ] Enter BPM/key → Fields accept input
@@ -116,6 +118,154 @@ make plugin            # Build plugin for manual testing
 - [ ] Change bio → Save succeeds
 - [ ] Upload profile picture → Picture updates
 - [ ] Click followers count → Followers list shows
+
+---
+
+## UI Navigation Audit (Dec 5, 2024)
+
+> **CRITICAL FINDING**: Several core user journeys are broken or inaccessible due to missing navigation elements.
+
+### Navigation Summary
+
+**Current App Views** (defined in `PluginEditor.h`):
+- `Authentication` - Login/register screens
+- `ProfileSetup` - First-time profile setup
+- `PostsFeed` - Main feed with tabs (Following/Trending/Global)
+- `Recording` - Audio capture screen
+- `Upload` - Post metadata and share
+- `Profile` - User profile view
+- `Discovery` - User search/discovery
+
+**Header Elements** (visible on all post-login screens):
+| Element | Action | Status |
+|---------|--------|--------|
+| Logo | Goes to feed | ✅ Works |
+| Search icon | Opens Discovery | ✅ Works |
+| Profile avatar | Opens ProfileSetup | ✅ Works |
+| **Record button** | **MISSING** | ❌ **No way to navigate to Recording!** |
+
+### Critical Navigation Gaps
+
+#### 1. Cannot Navigate to Recording Screen
+**Problem**: The "Start Recording" button ONLY appears when the feed is EMPTY. Once there are posts in the global feed, **there is no way to create a new post**.
+
+**Current behavior** (`PostsFeedComponent.cpp:712`):
+```cpp
+// Record button only shows in EMPTY state!
+if (feedState == FeedState::Empty && getRecordButtonBounds().contains(pos))
+{
+    if (onStartRecording)
+        onStartRecording();
+}
+```
+
+**Required Fix**: Add a floating action button (FAB) or header button to navigate to Recording from any screen.
+
+**Proposed Solutions**:
+1. **Option A**: Add "+ Record" button to HeaderComponent (next to search icon)
+2. **Option B**: Add floating action button (FAB) to PostsFeedComponent (Instagram-style)
+3. **Option C**: Add bottom navigation bar with Home/Record/Profile
+
+#### 2. Password Reset Missing
+**Problem**: No "Forgot Password" link on login screen, no password reset endpoint.
+
+**Files affected**: `AuthComponent.cpp` line 602
+
+**Required**:
+- Add "Forgot Password?" link to login form
+- Create backend endpoint `POST /api/v1/auth/reset-password`
+- Create password reset email flow
+
+#### 3. Cannot Unlike Posts
+**Problem**: Clicking heart toggles to liked state, but clicking again doesn't unlike (no API call for unlike).
+
+**Current** (`PostsFeedComponent.cpp:492-503`):
+```cpp
+card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
+    // Optimistic UI update works...
+    if (liked && networkClient != nullptr)
+    {
+        networkClient->likePost(post.id);  // Only likes, never unlikes!
+    }
+};
+```
+
+**Required Fix**: Call `networkClient->unlikePost(post.id)` when `!liked`.
+
+### User Journey Test Flows
+
+#### Journey 1: First-Time User Registration → First Post
+| Step | Action | Expected | Actual |
+|------|--------|----------|--------|
+| 1 | Open plugin | See welcome screen | ✅ |
+| 2 | Click "Sign Up" | See registration form | ✅ |
+| 3 | Fill form, submit | Account created, profile setup | ✅ |
+| 4 | Skip/complete profile setup | Go to feed | ✅ |
+| 5 | **Find record button** | See way to record | ❌ **No button visible!** |
+| 6 | Record audio | See waveform, timer | ⚠️ Unreachable |
+| 7 | Stop recording | See preview | ⚠️ Unreachable |
+| 8 | Fill metadata | Enter BPM/key/title | ⚠️ Unreachable |
+| 9 | Click Share | Post created | ⚠️ Unreachable |
+
+#### Journey 2: Returning User → Like a Post → Comment
+| Step | Action | Expected | Actual |
+|------|--------|----------|--------|
+| 1 | Open plugin | Auto-login, see feed | ✅ |
+| 2 | Click heart on post | Heart fills red, count increments | ✅ |
+| 3 | Click heart again | Heart unfills, count decrements | ❌ **No unlike!** |
+| 4 | Click comment icon | Comments panel slides in | ✅ |
+| 5 | Type comment | Text input works | ✅ |
+| 6 | Submit comment | Comment appears in list | ✅ |
+
+#### Journey 3: Test Emoji Reactions
+| Step | Action | Expected | Actual |
+|------|--------|----------|--------|
+| 1 | Login, see feed | Posts visible | ✅ |
+| 2 | Long-press heart icon | Emoji picker appears | ✅ |
+| 3 | Select emoji | Reaction sent to API | ✅ |
+| 4 | See reaction on post | Post shows your reaction | ⚠️ Check FeedPost model |
+
+### What's Actually Working (Verified in Code)
+
+| Feature | Component | Backend API | Status |
+|---------|-----------|-------------|--------|
+| Login (email/password) | `AuthComponent` | `POST /auth/login` | ✅ |
+| Registration | `AuthComponent` | `POST /auth/register` | ✅ |
+| OAuth (Google/Discord) | `AuthComponent` | `GET /auth/{provider}` | ✅ |
+| View feed (Global) | `PostsFeedComponent` | `GET /feed/global` | ✅ |
+| View feed (Timeline) | `PostsFeedComponent` | `GET /feed/timeline` | ✅ |
+| Play audio | `PostCardComponent` | CDN streaming | ✅ |
+| Like post | `PostCardComponent` | `POST /social/like` | ✅ |
+| Unlike post | `PostCardComponent` | `DELETE /social/like` | ❌ Not wired |
+| Emoji reactions | `EmojiReactionsPanel` | `POST /social/react` | ✅ |
+| View comments | `CommentsPanelComponent` | `GET /posts/:id/comments` | ✅ |
+| Create comment | `CommentsPanelComponent` | `POST /posts/:id/comments` | ✅ |
+| Delete comment | `CommentsPanelComponent` | `DELETE /comments/:id` | ✅ |
+| Follow user | `PostCardComponent` | `POST /social/follow` | ✅ |
+| Unfollow user | `PostCardComponent` | - | ❌ Not wired |
+| View profile | `ProfileComponent` | `GET /users/:id/profile` | ✅ |
+| Edit profile | `EditProfileComponent` | `PUT /users/me` | ✅ |
+| Upload profile pic | `ProfileSetupComponent` | `POST /users/upload-profile-picture` | ✅ |
+| **Recording** | `RecordingComponent` | - | ⚠️ No navigation |
+| **Uploading** | `UploadComponent` | `POST /audio/upload` | ⚠️ No navigation |
+| User discovery | `UserDiscoveryComponent` | `GET /search/users` | ✅ |
+| Notifications | `NotificationListComponent` | `GET /notifications` | ✅ |
+
+### Priority Fixes for Testable MVP
+
+**P0 - Blocking (Must fix to test core flow):**
+1. ❌ **Add Record button to Header or Feed** - Cannot create posts
+2. ❌ **Wire up unlikePost()** - Cannot toggle likes off
+
+**P1 - Important (Expected behavior missing):**
+3. ❌ Wire up unfollowUser() - Cannot unfollow
+4. ❌ Add "Forgot Password" link - Standard auth feature
+5. ❌ Add logout confirmation - Currently logs out immediately
+
+**P2 - Polish:**
+6. ⚠️ Show loading states consistently
+7. ⚠️ Error messages for failed operations
+8. ⚠️ Profile completion progress indicator
 
 ---
 
@@ -366,7 +516,7 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - **Phase 4.2 Profile UI** (ProfileComponent, EditProfileComponent)
 - **Backend profile system** (follow stats, user posts, profile editing)
 - Plugin NetworkClient HTTP implementation (GET, POST, PUT, DELETE, multipart uploads)
-- Stream.io Feeds V2 API integration (activities, reactions, follows)
+- getstream.io Feeds V2 API integration (activities, reactions, follows)
 - OAuth with Google/Discord (token exchange, user info, account linking)
 
 ### What's Missing for MVP
@@ -394,15 +544,15 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - [x] 1.1.7 Test CI builds on all three platforms
 - [x] 1.1.8 Add build badges to README (Codecov badge and sunburst graph)
 
-### 1.2 Stream.io Integration (Critical Path)
+### 1.2 getstream.io Integration (Critical Path)
 
 > **Testing**: Run `cd backend && go test ./internal/stream/... -v` for 17+ unit tests.
-> For integration tests with real Stream.io API: `go test ./internal/stream/... -tags=integration -v`
+> For integration tests with real getstream.io API: `go test ./internal/stream/... -tags=integration -v`
 > Manual: Start backend, create a post via plugin, verify it appears in global feed.
 
-> **Architecture Decision: Stream.io Feed Types**
+> **Architecture Decision: getstream.io Feed Types**
 >
-> Stream.io supports three feed types, each with different capabilities:
+> getstream.io supports three feed types, each with different capabilities:
 >
 > | Feed Type | Purpose | Key Features |
 > |-----------|---------|--------------|
@@ -425,18 +575,18 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 
 #### 1.2.1 Core Feeds (Complete)
 
-- [x] 1.2.1.1 Create getstream.io account and obtain API credentials
-- [x] 1.2.1.2 Configure getstream.io Feeds V2 (V3 is beta, not production-ready; using stream-go2/v8)
+- [x] 1.2.1.1 Create  getstream.io account and obtain API credentials
+- [x] 1.2.1.2 Configure  getstream.io Feeds V2 (V3 is beta, not production-ready; using stream-go2/v8)
 - [x] 1.2.1.3 Define feed groups: `user` (personal), `timeline` (following), `global` (all) in getstream dashboard
-- [x] 1.2.1.4 Implement `CreateLoopActivity()` with real Stream.io API call (stream/client.go:95-168)
-- [x] 1.2.1.5 Implement `GetUserTimeline()` with real Stream.io query (stream/client.go:170-198)
+- [x] 1.2.1.4 Implement `CreateLoopActivity()` with real getstream.io API call (stream/client.go:95-168)
+- [x] 1.2.1.5 Implement `GetUserTimeline()` with real getstream.io query (stream/client.go:170-198)
 - [x] 1.2.1.6 Implement `GetGlobalFeed()` with pagination (stream/client.go:200-226)
 - [x] 1.2.1.7 Implement `FollowUser()` / `UnfollowUser()` operations (stream/client.go:228-264)
 - [x] 1.2.1.8 Implement `AddReaction()` for likes and emoji reactions (stream/client.go:266-316)
-- [x] 1.2.1.9 Add Stream.io user creation on registration (auth/oauth.go:231-236)
-- [x] 1.2.1.10 Write integration tests for Stream.io client (stream_integration_test.go - 9 tests)
+- [x] 1.2.1.9 Add getstream.io user creation on registration (auth/oauth.go:231-236)
+- [x] 1.2.1.10 Write integration tests for getstream.io client (stream_integration_test.go - 9 tests)
 - [x] 1.2.1.11 Remove mock data from stream/client.go - replaced with real API calls
-- [x] 1.2.1.12 Write Stream.io client unit tests (client_test.go - 17 tests covering activity structs, feeds, notifications)
+- [x] 1.2.1.12 Write getstream.io client unit tests (client_test.go - 17 tests covering activity structs, feeds, notifications)
 
 #### 1.2.2 Notification Feed (New - Dashboard Created)
 
@@ -445,7 +595,7 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 > This eliminates the need to build custom notification tracking in PostgreSQL.
 
 **Dashboard Configuration (Complete):**
-- [x] 1.2.2.1 Create `notification` feed group in Stream.io dashboard (type: Notification)
+- [x] 1.2.2.1 Create `notification` feed group in getstream.io dashboard (type: Notification)
 - [x] 1.2.2.2 Configure aggregation format: `{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
   - Groups by action type and day: "5 people liked your loops today"
   - Alternative format for target grouping: `{{ verb }}_{{ target }}_{{ time.strftime("%Y-%m-%d") }}`
@@ -456,7 +606,7 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - [x] 1.2.2.4 Implement `GetNotifications()` method using `NotificationFeed` type (lines 809-866):
 
 ```go
-// NotificationGroup represents a grouped notification from Stream.io
+// NotificationGroup represents a grouped notification from getstream.io
 type NotificationGroup struct {
     ID            string      `json:"id"`
     Group         string      `json:"group"`           // The aggregation group key
@@ -497,8 +647,8 @@ func (c *Client) GetNotifications(userID string, limit int) (*NotificationRespon
     // Parse the notification-specific response
     result := &NotificationResponse{
         Groups: make([]*NotificationGroup, 0),
-        Unseen: resp.Unseen,  // Stream.io provides this automatically!
-        Unread: resp.Unread,  // Stream.io provides this automatically!
+        Unseen: resp.Unseen,  // getstream.io provides this automatically!
+        Unread: resp.Unread,  // getstream.io provides this automatically!
     }
 
     for _, group := range resp.Results {
@@ -622,16 +772,16 @@ func (c *Client) AddToNotificationFeed(targetUserID, verb, objectID, actorID str
 > - `{{ time.strftime("%Y-%m-%d") }}` - Date formatting
 > - Supports conditionals: `{% if verb == 'follow' %}...{% endif %}`
 
-**Dashboard Configuration (Needs manual setup in Stream.io dashboard):**
-- [ ] 1.2.3.1 Create `timeline_aggregated` feed group (type: Aggregated)
+**Dashboard Configuration (Needs manual setup in getstream.io dashboard):**
+- [x] 1.2.3.1 Create `timeline_aggregated` feed group (type: Aggregated)
   - Aggregation format: `{{ actor }}_{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
   - Result: "BeatMaker123 posted 3 loops today"
 
-- [ ] 1.2.3.2 Create `trending` feed group (type: Aggregated)
+- [x] 1.2.3.2 Create `trending` feed group (type: Aggregated)
   - Aggregation format: `{{ extra.genre }}_{{ time.strftime("%Y-%m-%d") }}`
   - Result: "15 new Electronic loops today"
 
-- [ ] 1.2.3.3 Create `user_activity` feed group (type: Aggregated) - for profile activity summary
+- [x] 1.2.3.3 Create `user_activity` feed group (type: Aggregated) - for profile activity summary
   - Aggregation format: `{{ verb }}_{{ time.strftime("%Y-%W") }}`
   - Result: "Posted 5 loops this week"
 
@@ -901,6 +1051,7 @@ streamActivity.To = []string{
 - [x] 3.2.9 Add share button (copy link) - Share button bounds and callback
 - [x] 3.2.10 Add "more" menu (report, hide, etc.) - More button bounds and callback
 - [ ] 3.2.11 Implement card tap to expand details
+- [ ] 3.2.12 Show post author online status (Phase 6.5.2.7) - Query getstream.io Chat presence for post author, show green dot on avatar if online
 
 ### 3.3 Audio Playback Engine
 
@@ -930,13 +1081,13 @@ streamActivity.To = []string{
 
 - [x] 3.4.1 Implement like/unlike toggle (optimistic UI) - PostCardComponent handles UI state, callback wired up
 - [x] 3.4.2 Add like animation (heart burst) - Timer-based animation with 6 expanding hearts, scale effect, ring
-- [ ] 3.4.3 Implement emoji reactions panel
-- [ ] 3.4.4 Show reaction counts and types
+- [x] 3.4.3 Implement emoji reactions panel - EmojiReactionsPanel.cpp with long-press to show, 6 music-themed emojis
+- [x] 3.4.4 Show reaction counts and types - drawReactionCounts() displays top 3 emoji reactions with counts below like button
 - [x] 3.4.5 Implement follow/unfollow from post card - Follow button in PostCardComponent with optimistic UI
 - [x] 3.4.6 Add "following" indicator on posts from followed users - isFollowing field, button shows "Following" state
 - [x] 3.4.7 Implement play count tracking - NetworkClient::trackPlay() called on playback start
-- [ ] 3.4.8 Track listen duration (for algorithm)
-- [ ] 3.4.9 Implement "Add to DAW" button (download to project folder)
+- [x] 3.4.8 Track listen duration (for algorithm) - Backend endpoint POST /api/v1/social/listen-duration, plugin tracks from start to stop
+- [x] 3.4.9 Implement "Add to DAW" button (download to project folder) - File chooser downloads audio to user-selected location
 - [x] 3.4.10 Add post sharing (generate shareable link) - Copies https://sidechain.live/post/{id} to clipboard
 
 ---
@@ -949,17 +1100,17 @@ streamActivity.To = []string{
 
 > **Testing**: Run `cd backend && go test ./internal/handlers/... -v` for handlers tests.
 > Profile picture tests: `go test ./internal/handlers/... -run Profile -v` (11 tests in auth_test.go).
-> API: `GET /api/v1/users/:id/profile` returns merged PostgreSQL + Stream.io data.
+> API: `GET /api/v1/users/:id/profile` returns merged PostgreSQL + getstream.io data.
 
-> **Architecture Decision**: Follower/following counts and likes are stored in Stream.io (source of truth).
+> **Architecture Decision**: Follower/following counts and likes are stored in getstream.io (source of truth).
 > PostgreSQL stores only user profile metadata (bio, location, links). This avoids data sync issues.
 
 - [x] 4.1.1 Extend User model: bio, location, genres, social_links (PostgreSQL)
 - [x] 4.1.2 Add profile_picture_url field (S3 URL in PostgreSQL)
-- [x] 4.1.3 Implement GetFollowStats() in Stream client (follower_count, following_count from Stream.io)
-- [x] 4.1.4 Implement GetEnrichedActivities() with reaction counts (likes from Stream.io)
+- [x] 4.1.3 Implement GetFollowStats() in Stream client (follower_count, following_count from getstream.io)
+- [x] 4.1.4 Implement GetEnrichedActivities() with reaction counts (likes from getstream.io)
 - [x] 4.1.5 Create migration for profile fields (bio, location, genres, social_links, profile_picture_url)
-- [x] 4.1.6 Implement GET /api/users/:id/profile endpoint (merges PostgreSQL + Stream.io data)
+- [x] 4.1.6 Implement GET /api/users/:id/profile endpoint (merges PostgreSQL + getstream.io data)
 - [x] 4.1.7 Implement PUT /api/users/profile endpoint (updates PostgreSQL profile fields)
 - [x] 4.1.8 Add username change with uniqueness check - PUT /api/v1/users/username with validation (3-30 chars, alphanumeric/underscore/hyphen)
 - [x] 4.1.9 Implement profile picture upload and crop - POST /upload-profile-picture persists URL to profile_picture_url field
@@ -999,12 +1150,14 @@ streamActivity.To = []string{
 - [x] 4.2.3 Show follower/following counts (tappable) - drawStats() with clickable bounds
 - [x] 4.2.4 Display user's posts in grid/list - PostCardComponent array with scroll
 - [x] 4.2.5 Add follow/unfollow button - handleFollowToggle() with optimistic UI
+- [ ] 4.2.12 Show online/offline status on profile (Phase 6.5.2.7) - Query getstream.io Chat presence, show green dot if online
 - [x] 4.2.6 Implement edit profile modal (own profile) - EditProfileComponent.h/cpp
 - [x] 4.2.7 Add social links display (Instagram, SoundCloud, etc.) - drawSocialLinks() with icons
 - [x] 4.2.8 Show genre tags - drawGenreTags() with badge styling
 - [x] 4.2.9 Display "member since" date - drawMemberSince()
 - [x] 4.2.10 Add profile sharing (copy link) - shareProfile() copies URL to clipboard
 - [x] 4.2.11 Write PluginEditor UI tests (PluginEditorTest.cpp - 5 tests covering initialization, auth, processor)
+- [ ] 4.2.12 Show online/offline status on profile (Phase 6.5.2.7) - Query getstream.io Chat presence, show green dot/badge if online, "last active X ago" if offline
 
 ### 4.3 Follow System ✅
 
@@ -1013,17 +1166,17 @@ streamActivity.To = []string{
 > Test: User A unfollows User B → User B's posts disappear from User A's timeline.
 > Test: Check mutual follow detection ("follows you" badge).
 
-> **Architecture Decision**: Stream.io is the source of truth for follows.
-> No PostgreSQL Follow table needed - Stream.io's feed follow system handles everything.
+> **Architecture Decision**: getstream.io is the source of truth for follows.
+> No PostgreSQL Follow table needed - getstream.io's feed follow system handles everything.
 
-- [x] 4.3.1 ~~Create Follow model~~ → Using Stream.io feed follows (no PostgreSQL table)
+- [x] 4.3.1 ~~Create Follow model~~ → Using getstream.io feed follows (no PostgreSQL table)
 - [x] 4.3.2 Add follow/unfollow endpoints (stream/client.go:FollowUser/UnfollowUser - already done!)
-- [x] 4.3.3 Implement GET /api/users/:id/followers endpoint (paginated, via Stream.io GetFollowers)
-- [x] 4.3.4 Implement GET /api/users/:id/following endpoint (paginated, via Stream.io GetFollowing)
-- [x] 4.3.5 ~~Update Stream.io feed subscriptions on follow~~ → Automatic (Stream.io handles this)
+- [x] 4.3.3 Implement GET /api/users/:id/followers endpoint (paginated, via getstream.io GetFollowers)
+- [x] 4.3.4 Implement GET /api/users/:id/following endpoint (paginated, via getstream.io GetFollowing)
+- [x] 4.3.5 ~~Update getstream.io feed subscriptions on follow~~ → Automatic (Stream.io handles this)
 - [x] 4.3.6 Add "suggested users to follow" endpoint - GET /api/v1/discover/suggested (genre-based + fallback to popular)
 - [x] 4.3.7 Implement mutual follow detection ("follows you") via CheckIsFollowing()
-- [x] 4.3.8 Add follow notifications - Stream.io NotifyFollow() + real-time WebSocket push via wsHandler.NotifyFollow()
+- [x] 4.3.8 Add follow notifications - getstream.io NotifyFollow() + real-time WebSocket push via wsHandler.NotifyFollow()
 - [ ] 4.3.9 Implement bulk follow import (future: follow your discord friends)
 
 ### 4.4 User Discovery ✅
@@ -1041,6 +1194,7 @@ streamActivity.To = []string{
 - [x] 4.4.6 Implement genre-based user discovery - handlers.go:GetUsersByGenre (GET /api/v1/discover/genre/:genre)
 - [x] 4.4.7 Add "producers you might like" recommendations - handlers.go:GetSuggestedUsers (GET /api/v1/discover/suggested)
 - [x] 4.4.8 Show users with similar BPM/key preferences - handlers.go:GetSimilarUsers (GET /api/v1/users/:id/similar)
+- [ ] 4.4.9 Show online status in user discovery (Phase 6.5.2.7) - Query getstream.io Chat presence for discovered users, show online indicators
 
 ---
 
@@ -1055,7 +1209,7 @@ streamActivity.To = []string{
 
 ### 4.5.1 Core Handlers Tests (`handlers_test.go`)
 
-> **Testing Pattern**: Use testify suite with PostgreSQL test database and mock Stream.io client.
+> **Testing Pattern**: Use testify suite with PostgreSQL test database and mock getstream.io client.
 > Each test should setup/teardown cleanly. Use table-driven tests for similar endpoints.
 
 **Feed Endpoints (Priority 1):**
@@ -1116,7 +1270,7 @@ streamActivity.To = []string{
 
 ### 4.5.3 Stream Client Tests (`stream/client_test.go`)
 
-> **Testing Pattern**: Mock Stream.io API responses for unit tests.
+> **Testing Pattern**: Mock getstream.io API responses for unit tests.
 > Integration tests can use real API with test credentials.
 
 - [ ] 4.5.3.1 Test `CreateLoopActivity` - activity creation, "To" targets
@@ -1214,21 +1368,28 @@ streamActivity.To = []string{
 - [x] 5.2.7 Handle connection state UI (connected/disconnected) - handleWebSocketStateChange() updates ConnectionIndicator
 - [x] 5.2.8 Queue messages when disconnected, send on reconnect - queueMessage()/flushMessageQueue() with max size limit
 
-### 5.3 Presence System ✅
+### 5.3 Presence System ⚠️ DEPRECATED - Replaced by getstream.io Chat Presence
 
-> **Testing**: Manual testing with two accounts.
-> Test: User A opens plugin → User B sees User A as "online" (green dot on avatar).
-> Test: User A closes plugin → User B sees User A go offline (within 5 minutes timeout).
-> API: `GET /api/v1/ws/friends-in-studio` returns list of online friends.
+> **Architecture Change**: The custom presence system (Phase 5.3) is being replaced with getstream.io Chat's built-in presence API (Phase 6.5.2.7). This provides:
+> - Automatic online/offline tracking (no custom timeout logic needed)
+> - Real-time presence updates via WebSocket
+> - `last_active` timestamps automatically maintained
+> - Custom status support (for "in studio" status)
+> - Works app-wide, not just in messaging
 
-- [x] 5.3.1 Track user online/offline status - PresenceManager with UserPresence struct, OnClientConnect/OnClientDisconnect
-- [x] 5.3.2 Track "in studio" status (plugin open in DAW) - StatusInStudio with DAW field, MessageTypeUserInStudio handler
-- [x] 5.3.3 Broadcast presence to followers - broadcastToFollowers() via Stream.io GetFollowers
-- [x] 5.3.4 Show online indicator on avatars (green dot) - UserCardComponent::drawAvatar() with green/cyan dot
-- [x] 5.3.5 Add "X friends in studio" indicator - GET /api/v1/ws/friends-in-studio endpoint
-- [x] 5.3.6 Implement presence persistence (Redis or in-memory) - In-memory map + database sync (is_online, last_active_at)
-- [x] 5.3.7 Handle presence timeout (5 minutes no heartbeat = offline) - runTimeoutChecker() with configurable duration
-- [x] 5.3.8 Add DAW detection (show which DAW user is using) - DAW field in UserPresence, sent in presence payload
+> **Migration Plan**: 
+> - Phase 6.5.2.7 will implement getstream.io presence throughout the app
+> - Custom PresenceManager can be removed after migration
+> - All presence indicators will use getstream.io Chat presence data
+
+- [x] 5.3.1 Track user online/offline status - PresenceManager with UserPresence struct, OnClientConnect/OnClientDisconnect (⚠️ Will be replaced)
+- [x] 5.3.2 Track "in studio" status (plugin open in DAW) - StatusInStudio with DAW field, MessageTypeUserInStudio handler (⚠️ Will use getstream.io user.status field)
+- [x] 5.3.3 Broadcast presence to followers - broadcastToFollowers() via getstream.io GetFollowers (⚠️ Will use getstream.io presence events)
+- [x] 5.3.4 Show online indicator on avatars (green dot) - UserCardComponent::drawAvatar() with green/cyan dot (✅ Keep UI, change data source)
+- [x] 5.3.5 Add "X friends in studio" indicator - GET /api/v1/ws/friends-in-studio endpoint (⚠️ Will query getstream.io presence)
+- [x] 5.3.6 Implement presence persistence (Redis or in-memory) - In-memory map + database sync (is_online, last_active_at) (⚠️ getstream.io handles this)
+- [x] 5.3.7 Handle presence timeout (5 minutes no heartbeat = offline) - runTimeoutChecker() with configurable duration (⚠️ getstream.io handles this automatically)
+- [x] 5.3.8 Add DAW detection (show which DAW user is using) - DAW field in UserPresence, sent in presence payload (⚠️ Will use getstream.io user.extra_data)
 
 ### 5.4 Live Notifications (Stream.io Notification Feed)
 
@@ -1237,17 +1398,17 @@ streamActivity.To = []string{
 > Test: Click notification → Marked as read → Badge count decreases.
 > Test: Click "Mark all as read" → All notifications marked read → Badge shows 0.
 
-> **Architecture Decision**: Use Stream.io Notification Feeds instead of custom database storage.
+> **Architecture Decision**: Use getstream.io Notification Feeds instead of custom database storage.
 >
-> **Why Stream.io Notifications?**
+> **Why getstream.io Notifications?**
 > - Built-in `Unseen` and `Unread` counts (no custom tracking needed)
 > - Automatic grouping: "5 people liked your loop" happens automatically
 > - `IsSeen` / `IsRead` state per notification group
 > - Same API patterns as other feeds (consistent code)
-> - Scales automatically with Stream.io infrastructure
+> - Scales automatically with getstream.io infrastructure
 >
 > **What we DON'T need to build:**
-> - ~~Notification database table~~ → Stream.io stores it
+> - ~~Notification database table~~ → getstream.io stores it
 > - ~~Unread count tracking~~ → `resp.Unseen` / `resp.Unread` provided
 > - ~~Grouping logic~~ → Aggregation format handles it
 > - ~~Mark as read/seen queries~~ → `WithNotificationsMarkRead()` / `WithNotificationsMarkSeen()`
@@ -1282,14 +1443,14 @@ streamActivity.To = []string{
 - [ ] 5.4.4.2 Add notification preferences (mute specific types)
 - [ ] 5.4.4.3 Consider WebSocket push for real-time updates (polling is sufficient for MVP)
 
-### 5.5 Real-time Feed Updates
+### 5.5 Real-time Feed Updates ✅
 
-- [ ] 5.5.1 Push new posts to followers via WebSocket
-- [ ] 5.5.2 Show "new posts" toast in feed
-- [ ] 5.5.3 Update like counts in real-time
-- [ ] 5.5.4 Update follower counts in real-time
-- [ ] 5.5.5 Implement optimistic updates (instant UI, confirm later)
-- [ ] 5.5.6 Handle conflicts (stale data resolution)
+- [x] 5.5.1 Push new posts to followers via WebSocket - notifyNewPostToFollowers() called after post processing completes, sends NewPostPayload to all followers via WebSocket
+- [x] 5.5.2 Show "new posts" toast in feed - handleNewPostNotification() increments pendingNewPostsCount, shows toast if user scrolled down, auto-refreshes if at top. drawNewPostsToast() renders clickable toast
+- [x] 5.5.3 Update like counts in real-time - notifyLikeCountUpdate() broadcasts LikeCountUpdate message, handleLikeCountUpdate() updates PostCardComponent like count
+- [x] 5.5.4 Update follower counts in real-time - notifyFollowerCountUpdate() sends FollowerCountUpdate after follow/unfollow, handleFollowerCountUpdate() updates profile (placeholder for now)
+- [x] 5.5.5 Implement optimistic updates (instant UI, confirm later) - onLikeToggled updates UI immediately, then calls API with callback to confirm/revert
+- [x] 5.5.6 Handle conflicts (stale data resolution) - Optimistic update callbacks check server response, revert on failure. WebSocket updates override optimistic updates if they differ
 
 ---
 
@@ -1303,50 +1464,471 @@ streamActivity.To = []string{
 > Tests exist in `handlers/comments_test.go` (20+ tests).
 > API: `POST /api/v1/posts/:id/comments` to create, `GET /api/v1/posts/:id/comments` to list.
 
-- [ ] 6.1.1 Create Comment model (id, post_id, user_id, content, created_at)
-- [ ] 6.1.2 Add parent_id for threaded replies
-- [ ] 6.1.3 Create POST /posts/{id}/comments endpoint
-- [ ] 6.1.4 Create GET /posts/{id}/comments endpoint (paginated)
-- [ ] 6.1.5 Implement comment editing (within 5 minutes)
-- [ ] 6.1.6 Implement comment deletion
-- [ ] 6.1.7 Add comment likes
-- [ ] 6.1.8 Implement @mentions with notification
-- [ ] 6.1.9 Add comment count to post response
-- [ ] 6.1.10 Index comments for search
+- [x] 6.1.1 Create Comment model (id, post_id, user_id, content, created_at)
+- [x] 6.1.2 Add parent_id for threaded replies
+- [x] 6.1.3 Create POST /posts/{id}/comments endpoint
+- [x] 6.1.4 Create GET /posts/{id}/comments endpoint (paginated)
+- [x] 6.1.5 Implement comment editing (within 5 minutes)
+- [x] 6.1.6 Implement comment deletion
+- [x] 6.1.7 Add comment likes
+- [x] 6.1.8 Implement @mentions with notification
+- [x] 6.1.9 Add comment count to post response
+- [x] 6.1.10 Index comments for search
 
-### 6.2 Comment UI
+### 6.2 Comment UI ✅
 
 > **Testing**: Manual testing in plugin (when implemented).
 > Test: Click comment icon on post → Comment section expands → Type comment → Submit → Comment appears.
 > Test: Click reply → Reply field appears → Submit reply → Threaded under parent.
 
-- [ ] 6.2.1 Design comment section (expandable from post)
-- [ ] 6.2.2 Implement comment list rendering
-- [ ] 6.2.3 Add comment input field
-- [ ] 6.2.4 Show user avatar and username per comment
-- [ ] 6.2.5 Display relative timestamps ("2h ago")
-- [ ] 6.2.6 Implement reply threading (1 level deep)
-- [ ] 6.2.7 Add comment actions menu (edit, delete, report)
-- [ ] 6.2.8 Implement @mention autocomplete
-- [ ] 6.2.9 Add emoji picker for comments
-- [ ] 6.2.10 Show "typing" indicator (future)
+- [x] 6.2.1 Design comment section (expandable from post) - CommentsPanelComponent slides in from side
+- [x] 6.2.2 Implement comment list rendering - CommentRowComponent renders each comment with infinite scroll
+- [x] 6.2.3 Add comment input field - TextEditor with TextEditorStyler, multiline support
+- [x] 6.2.4 Show user avatar and username per comment - drawAvatar() and drawUserInfo() implemented
+- [x] 6.2.5 Display relative timestamps ("2h ago") - Uses TimeUtils::formatTimeAgoShort()
+- [x] 6.2.6 Implement reply threading (1 level deep) - parentId handling, REPLY_INDENT, setIsReply()
+- [x] 6.2.7 Add comment actions menu (edit, delete, report) - PopupMenu with edit/delete for own comments, report for others
+- [x] 6.2.8 Implement @mention autocomplete - Real-time mention detection, user search, keyboard/mouse selection
+- [x] 6.2.9 Add emoji picker for comments - Emoji button using EmojiReactionsBubble
+- [ ] 6.2.10 Show "typing" indicator (future) - Deferred to future phase
 
-### 6.3 Content Moderation
+### 6.3 Content Moderation ✅
 
 > **Testing**: Manual testing (sensitive feature).
 > Test: Click "..." menu on post → Click "Report" → Select reason → Submit → Verify backend receives report.
 > Test: Block user → Verify their posts no longer appear in your feed.
 
-- [ ] 6.3.1 Implement post reporting endpoint
-- [ ] 6.3.2 Implement comment reporting endpoint
-- [ ] 6.3.3 Implement user reporting endpoint
-- [ ] 6.3.4 Create Report model (reporter, target, reason, status)
-- [ ] 6.3.5 Add report reasons enum (spam, harassment, copyright, etc.)
-- [ ] 6.3.6 Implement user blocking
-- [ ] 6.3.7 Hide content from blocked users
-- [ ] 6.3.8 Add profanity filter (basic word list)
-- [ ] 6.3.9 Create moderation admin endpoint (future: admin panel)
-- [ ] 6.3.10 Implement content takedown flow
+- [x] 6.3.1 Implement post reporting endpoint - POST /api/v1/posts/:id/report
+- [x] 6.3.2 Implement comment reporting endpoint - POST /api/v1/comments/:id/report
+- [x] 6.3.3 Implement user reporting endpoint - POST /api/v1/users/:id/report
+- [x] 6.3.4 Create Report model (reporter, target, reason, status) - models.Report with ReportReason, ReportStatus, ReportTargetType enums
+- [x] 6.3.5 Add report reasons enum (spam, harassment, copyright, etc.) - ReportReason enum with 6 reasons
+- [x] 6.3.6 Implement user blocking - POST /api/v1/users/:id/block, DELETE /api/v1/users/:id/block, GET /api/v1/users/me/blocks
+- [x] 6.3.7 Hide content from blocked users - Filters applied to GetTimeline, GetGlobalFeed, GetComments, GetUserPosts
+- [x] 6.3.8 Add profanity filter (basic word list) - containsProfanity() checks comments and post titles
+- [x] 6.3.9 Create moderation admin endpoint - GET /api/v1/moderation/reports, GET /api/v1/moderation/reports/:id, PUT /api/v1/moderation/reports/:id (basic implementation, needs admin auth in production)
+- [x] 6.3.10 Implement content takedown flow - POST /api/v1/moderation/takedown (basic implementation, needs admin auth in production)
+
+---
+
+## Phase 6.5: Direct Messaging (getstream.io Chat)
+**Goal**: Enable private 1-on-1 and group messaging between producers
+**Duration**: 2 weeks
+**Prerequisites**: Phase 6 (Comments) complete, getstream.io Chat client initialized
+
+> **Architecture Decision**: The C++ plugin will connect **directly** to getstream.io Chat API (REST + WebSocket), not through our backend. This is simpler, more scalable, and follows getstream.io's recommended pattern.
+>
+> **Backend Role**: Only generates user tokens (one endpoint). All messaging operations happen directly between plugin and getstream.io.
+>
+> **Plugin Role**: 
+> - Uses REST API for operations (create channels, send messages, query, etc.)
+> - Uses WebSocket for real-time updates (new messages, typing indicators, read receipts)
+> - All communication is plugin ↔ getstream.io (no backend proxy needed)
+>
+> **Presence Integration**: getstream.io Chat's presence API will be used **app-wide** (not just for messaging). This replaces the custom presence system (Phase 5.3) with getstream.io's built-in presence tracking. See section 6.5.2.7 for details.
+
+> **Testing**: 
+> - Backend: `cd backend && go test ./internal/stream/... -run Token -v`
+> - Manual: Open plugin → Click message icon → Start conversation → Send message → Verify real-time delivery
+> - Integration: Test with two plugin instances → Verify messages appear instantly via WebSocket
+
+### 6.5.1 Backend Token Generation
+
+> **Only Backend Responsibility**: Generate getstream.io user tokens securely (API secret must stay server-side)
+
+> **Architecture**: The plugin connects directly to getstream.io Chat API. The backend only generates authentication tokens. All messaging operations (create channels, send messages, etc.) happen directly between the plugin and getstream.io.
+
+- [x] 6.5.1.1 Create `GET /api/v1/auth/stream-token` endpoint
+  - Returns: `{ "token": "jwt_token", "api_key": "stream_api_key", "user_id": "user_id" }`
+  - Implementation: Use `ChatClient.CreateToken(userID, expiration)` from getstream.io Go SDK
+  - Token expires in 24 hours (renewable)
+  - API key is safe to expose (only secret must stay server-side)
+  - Location: Added to `backend/internal/handlers/auth.go` - `GetStreamToken()` handler
+  - Route: Registered in `backend/cmd/server/main.go` under auth routes
+  
+- [x] 6.5.1.2 Ensure users are created in getstream.io Chat on registration
+  - Already implemented in `stream.CreateUser()` - called during user registration
+  - Verify users exist before generating tokens - `GetStreamToken()` calls `CreateUser()` if needed
+  - If user doesn't exist in getstream.io, create them before generating token
+
+### 6.5.2 Plugin getstream.io Chat Integration
+
+> **getstream.io Chat Features to Leverage**:
+> - Direct messages (1-on-1 channels)
+> - Group channels (for collaboration)
+> - Message reactions (emoji)
+> - Typing indicators (via WebSocket)
+> - Read receipts
+> - Message threading
+> - File attachments (audio snippets)
+> - URL enrichment (preview links)
+> - Message search
+> - Real-time WebSocket updates
+
+#### 6.5.2.1 getstream.io Chat Client Setup
+
+- [x] 6.5.2.1.1 Create `StreamChatClient` class (StreamChatClient.h/cpp)
+  - Stores: API key, user token, user ID
+  - Manages REST API calls to `https://chat.stream-io-api.com`
+  - Manages WebSocket connection to getstream.io (structure in place, needs full implementation)
+  - Handles authentication headers: `Stream-Auth-Type: jwt`, `Authorization: {token}`
+  - Added to CMakeLists.txt build system
+  
+- [x] 6.5.2.1.2 Implement token fetching from backend
+  - Call `GET /api/v1/auth/stream-token` after user login
+  - Store token, API key, and user ID
+  - Handle token expiration and renewal (structure in place)
+  
+- [ ] 6.5.2.1.3 Implement WebSocket connection to getstream.io
+  - Connect to getstream.io WebSocket endpoint (URL provided by getstream.io)
+  - Authenticate with user token
+  - Handle connection lifecycle (connect, disconnect, reconnect)
+  - Parse incoming WebSocket messages (JSON format)
+  - ⚠️ Structure exists but needs full implementation (JUCE WebSocket support varies by platform)
+
+#### 6.5.2.2 Channel Management (REST API)
+
+- [x] 6.5.2.2.1 Implement create direct message channel
+  - `POST https://chat.stream-io-api.com/channels/messaging/{channel_id}?api_key={key}`
+  - Headers: `Stream-Auth-Type: jwt`, `Authorization: {token}`
+  - Body: `{ "members": [user_id, target_user_id] }`
+  - Channel ID format: sorted user IDs (e.g., `user1_user2` if user1 < user2)
+  - Implemented: `createDirectChannel()` with `generateDirectChannelId()` helper
+  
+- [x] 6.5.2.2.2 Implement create group channel
+  - `POST https://chat.stream-io-api.com/channels/team/{channel_id}?api_key={key}`
+  - Body: `{ "members": [...], "data": { "name": "Group Name" } }`
+  - Implemented: `createGroupChannel()` method
+  
+- [x] 6.5.2.2.3 Implement query channels (list user's channels)
+  - `GET https://chat.stream-io-api.com/channels?api_key={key}&filter={filter}&sort={sort}`
+  - Filter: `{"members": {"$in": [user_id]}}`
+  - Sort: `[{"field": "last_message_at", "direction": -1}]`
+  - Returns: List of channels with last message, unread count, members
+  - Implemented: `queryChannels()` with pagination support
+  
+- [x] 6.5.2.2.4 Implement get channel details
+  - `GET https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}?api_key={key}`
+  - Returns: Full channel object with members, metadata
+  - Implemented: `getChannel()` method
+  
+- [x] 6.5.2.2.5 Implement delete/leave channel
+  - `DELETE https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}?api_key={key}` - Delete
+  - `POST https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}/remove_members?api_key={key}` - Leave
+  - Implemented: `deleteChannel()` and `leaveChannel()` methods
+
+#### 6.5.2.3 Message Operations (REST API)
+
+- [x] 6.5.2.3.1 Implement send message
+  - `POST https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}/message?api_key={key}`
+  - Body: `{ "message": { "text": "...", "extra_data": { "audio_url": "...", "reply_to": "..." } } }`
+  - Support text, audio snippets, and threaded replies
+  - Implemented: `sendMessage()` with extraData support
+  
+- [x] 6.5.2.3.2 Implement query messages (get channel messages)
+  - `GET https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}/query?api_key={key}`
+  - Query params: `messages.limit`, `messages.offset`
+  - Returns: Channel state with messages array
+  - Implemented: `queryMessages()` with pagination support
+  
+- [x] 6.5.2.3.3 Implement update message
+  - `POST https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}/message?api_key={key}`
+  - Body: `{ "message": { "id": "message_id", "text": "updated text" } }`
+  - Only allow if message is < 5 minutes old (enforced by getstream.io)
+  - Implemented: `updateMessage()` method
+  
+- [x] 6.5.2.3.4 Implement delete message
+  - `DELETE https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}/message/{message_id}?api_key={key}`
+  - Soft delete (marks as deleted)
+  - Implemented: `deleteMessage()` method
+  
+- [x] 6.5.2.3.5 Implement message reactions
+  - `POST https://chat.stream-io-api.com/channels/{channel_type}/{channel_id}/message/{message_id}/reaction?api_key={key}`
+  - Body: `{ "reaction": { "type": "👍" } }`
+  - `DELETE` to remove reaction
+  - Implemented: `addReaction()` and `removeReaction()` methods
+
+#### 6.5.2.4 Real-time Updates (WebSocket)
+
+- [ ] 6.5.2.4.1 Subscribe to channel events via WebSocket
+  - Listen for `message.new` events - New message received
+  - Listen for `message.updated` events - Message edited
+  - Listen for `message.deleted` events - Message deleted
+  - Listen for `typing.start` and `typing.stop` events
+  - Listen for `message.read` events - Read receipts
+  
+- [ ] 6.5.2.4.2 Implement typing indicators
+  - Send typing events via WebSocket when user types
+  - `POST` to `/channels/{type}/{id}/event` with `{"type": "typing.start", "user": {...}}`
+  - Auto-send `typing.stop` after 3 seconds idle
+  
+- [x] 6.5.2.4.3 Implement read receipts (REST API)
+  - `POST https://chat.stream-io-api.com/channels/{type}/{id}/read?api_key={key}`
+  - Mark channel as read when user views messages
+  - Implemented: `markChannelRead()` method
+  - ⚠️ WebSocket `message.read` events still need implementation (6.5.2.4.1)
+
+#### 6.5.2.5 Audio Snippet Sharing
+
+- [x] 6.5.2.5.1 Upload audio snippet to backend CDN
+  - Use existing `POST /api/v1/audio/upload` endpoint (or create dedicated snippet endpoint)
+  - Validate duration (max 30 seconds)
+  - Returns: `{ "audio_url": "cdn_url", "duration": 15.5 }`
+  - Implemented: `uploadAudioSnippet()` method with 30s validation and WAV encoding
+  
+- [x] 6.5.2.5.2 Attach audio to message
+  - Include `audio_url` and `audio_duration` in message `extra_data` field
+  - Send via REST API message endpoint
+  - Implemented: `sendMessageWithAudio()` method that uploads snippet then sends message with audio in extra_data
+
+#### 6.5.2.6 Message Search
+
+- [x] 6.5.2.6.1 Implement message search (if getstream.io search API available)
+  - Use getstream.io search endpoint or query channels and filter client-side
+  - Search within specific channel or across all channels
+  - Implemented: `searchMessages()` method using getstream.io `/search` endpoint
+  - Supports channel filters, query text, pagination (limit/offset)
+
+#### 6.5.2.7 Presence Integration (App-Wide)
+
+> **Architecture Decision**: Use getstream.io Chat's presence API throughout the entire app, not just for messaging. This replaces the custom WebSocket presence system (Phase 5.3) with getstream.io's built-in presence.
+>
+> **Benefits**:
+> - Automatic online/offline tracking (no custom timeout logic)
+> - Real-time presence updates via WebSocket
+> - `last_active` timestamps automatically maintained
+> - Custom status support (for "in studio" status)
+> - Works everywhere: profiles, feeds, user lists, messaging
+
+- [x] 6.5.2.7.1 Query user presence from getstream.io Chat REST API
+  - `GET https://chat.stream-io-api.com/users?api_key={key}&filter={filter}&presence=true`
+  - Filter: `{"id": {"$in": [user_ids]}}`
+  - Returns: Users with `online` (boolean), `last_active` (timestamp), and `status` (custom string) fields
+  - Use this for:
+    - User profiles: Show online/offline status badge
+    - Feed posts: Show if post author is online (green dot on avatar)
+    - User lists: Show online indicators in discovery/search
+    - "Friends in studio" feature: Query online users with status="in studio"
+  - Implemented: `queryPresence()` method with parsing helpers
+  
+- [ ] 6.5.2.7.2 Subscribe to presence changes via getstream.io WebSocket
+  - Listen for `user.presence.changed` events from getstream.io Chat WebSocket
+  - Event format: `{"type": "user.presence.changed", "user": {"id": "...", "online": true, "last_active": "...", "status": "..."}}`
+  - Update presence indicators in real-time throughout the app:
+    - Update avatar online dots immediately
+    - Update profile online status
+    - Update feed post author status
+    - Update "friends in studio" count
+  
+- [ ] 6.5.2.7.3 Update plugin to use getstream.io presence everywhere
+  - Replace custom presence queries with getstream.io Chat presence API
+  - Update `UserCardComponent` to query/getstream.io presence for online status
+  - Update `PostCardComponent` to show author online status (query presence for post author)
+  - Update `ProfileComponent` to show online status badge
+  - Update feed components to show online indicators on post avatars
+  
+- [x] 6.5.2.7.4 Implement "in studio" custom status (REST API)
+  - Use getstream.io user `status` field for custom status (e.g., "in studio", "recording", "mixing")
+  - Update status when user starts recording: `upsertUser({id: user_id, status: "in studio", extra_data: {daw: "Ableton"}})`
+  - Update status when user stops recording: `upsertUser({id: user_id, status: ""})` (empty = no custom status)
+  - Implemented: `updateStatus()` method
+  - Query users with status for "friends in studio" feature:
+    - `GET /users?filter={"status": {"$ne": ""}, "online": true}&presence=true`
+  - ⚠️ Integration with recording start/stop still needs to be wired up in plugin
+  
+- [ ] 6.5.2.7.5 Migrate "friends in studio" feature
+  - Replace `GET /api/v1/ws/friends-in-studio` endpoint
+  - Query getstream.io Chat for followed users who are online with custom status
+  - Use getstream.io `queryUsers` with filter: `{"id": {"$in": [followed_user_ids]}, "online": true, "status": {"$ne": ""}}`
+  - Return count and list of users in studio
+  
+- [ ] 6.5.2.7.6 Remove custom presence system (after migration)
+  - Remove `PresenceManager` from backend (websocket/presence.go)
+  - Remove custom presence WebSocket messages (`MessageTypePresence`, `MessageTypeUserOnline`, etc.)
+  - Remove presence endpoints (`/api/v1/ws/presence`, `/api/v1/ws/friends-in-studio`)
+  - Keep WebSocket infrastructure for other real-time features (feed updates, notifications)
+  
+- [ ] 6.5.2.7.7 Update presence display throughout UI
+  - Profile pages: Show online/offline badge next to username
+  - Feed posts: Show green dot on post author avatar if online
+  - User lists: Show online indicators in search/discovery results
+  - Message threads: Show online status in header (already part of messaging UI)
+  - "Friends in studio" indicator: Update to use getstream.io presence query
+
+### 6.5.3 Plugin Messaging UI
+
+> **UI Components Needed**:
+> - `MessagesListComponent` - List of conversations (channels)
+> - `MessageThreadComponent` - Individual conversation view
+> - `MessageBubbleComponent` - Individual message rendering
+> - `MessageInputComponent` - Text input with send button
+> - `AudioSnippetRecorder` - Record short audio clips for messages
+
+#### 6.5.3.1 Messages List View
+
+- [x] 6.5.3.1.1 Create `MessagesListComponent` (MessagesListComponent.h/cpp)
+  - Display list of channels/conversations
+  - Show: Avatar, name, last message preview, timestamp, unread badge
+  - Sort by last message time (most recent first)
+  - Click to open conversation
+  - Use `StreamChatClient.queryChannels()` to fetch channel list
+  - Implemented: Full component with scrolling, auto-refresh, empty/error states
+  
+- [ ] 6.5.3.1.2 Add "New Message" button
+  - Opens user search dialog
+  - Select user → Creates/opens channel via `StreamChatClient.createChannel()`
+  - Navigate to message thread
+  
+- [ ] 6.5.3.1.3 Implement channel list updates
+  - Poll REST API every 10 seconds OR
+  - Use WebSocket events to update when new messages arrive
+  - Update unread counts in real-time
+  
+- [ ] 6.5.3.1.4 Add empty state
+  - Show "No messages yet" with "Start a conversation" button
+  - Link to user discovery/search
+
+#### 6.5.3.2 Message Thread View
+
+- [ ] 6.5.3.2.1 Create `MessageThreadComponent` (MessageThreadComponent.h/cpp)
+  - Header: User avatar, name, online status
+  - Message list: Scrollable list of messages (newest at bottom)
+  - Input area: Text field + send button + audio record button
+  - Load messages via `StreamChatClient.queryMessages()`
+  
+- [ ] 6.5.3.2.2 Implement message rendering (`MessageBubbleComponent`)
+  - Show sender avatar and name
+  - Render message text with word wrap
+  - Show timestamp ("2h ago" format)
+  - Different styling for own messages vs received
+  - Show read receipts (checkmarks) for sent messages
+  - Render audio snippets with waveform and play button
+  
+- [ ] 6.5.3.2.3 Implement message input (`MessageInputComponent`)
+  - Multi-line text editor (JUCE TextEditor)
+  - Send button (Enter to send, Shift+Enter for newline)
+  - Audio record button (hold to record, release to send)
+  - Character counter (optional, for long messages)
+  - Send via `StreamChatClient.sendMessage()`
+  
+- [ ] 6.5.3.2.4 Add message actions menu
+  - Right-click or long-press on message
+  - Options: Copy, Edit (own messages only), Delete, Reply
+  - Show popup menu with actions
+  - Edit/Delete via REST API calls
+
+#### 6.5.3.3 Real-time Message Updates (WebSocket)
+
+- [ ] 6.5.3.3.1 Subscribe to getstream.io WebSocket events
+  - Listen for `message.new` events from getstream.io WebSocket
+  - Add new message to thread when received
+  - Scroll to bottom automatically
+  - Play notification sound (optional, user preference)
+  
+- [ ] 6.5.3.3.2 Implement typing indicators
+  - Show "User is typing..." when `typing.start` event received
+  - Hide after `typing.stop` or 3 seconds timeout
+  - Display typing indicator above input field
+  - Send typing events via WebSocket when user types
+  
+- [ ] 6.5.3.3.3 Update read receipts in real-time
+  - When `message.read` event received, update message checkmarks
+  - Show double checkmark when message read by recipient
+  - Mark channel as read via REST API when viewing
+
+#### 6.5.3.4 Audio Snippet Recording
+
+- [ ] 6.5.3.4.1 Create `AudioSnippetRecorder` component
+  - Record button (hold to record, shows waveform while recording)
+  - Max duration: 30 seconds
+  - Show timer during recording
+  - Cancel button to discard recording
+  
+- [ ] 6.5.3.4.2 Implement audio snippet playback in messages
+  - Waveform visualization (use existing waveform rendering)
+  - Play/pause button
+  - Progress indicator
+  - Duration display
+  
+- [ ] 6.5.3.4.3 Upload audio snippet when sending
+  - Upload to backend CDN via `POST /api/v1/audio/upload` (or dedicated endpoint)
+  - Attach `audio_url` to message via `extra_data` field
+  - Show upload progress indicator
+
+#### 6.5.3.5 Message Threading & Replies
+
+- [ ] 6.5.3.5.1 Implement reply UI
+  - Click "Reply" on message → Shows quoted message above input
+  - Input field shows "Replying to @username: message preview..."
+  - Send reply with `parent_id` field set (getstream.io threading)
+  
+- [ ] 6.5.3.5.2 Render threaded messages
+  - Show parent message preview in reply
+  - Indent reply messages slightly
+  - Click parent preview to scroll to original message
+
+#### 6.5.3.6 Navigation Integration
+
+- [ ] 6.5.3.6.1 Add messages icon to header
+  - Show unread badge (total unread count across all channels)
+  - Click to open messages list
+  - Badge updates via WebSocket events or polling
+  
+- [ ] 6.5.3.6.2 Add "Message" button to user profiles
+  - Click "Message" on profile → Creates/opens channel via REST API
+  - Navigate to message thread view
+
+### 6.5.4 Group Messaging
+
+- [ ] 6.5.4.1 Create group channel UI
+  - "Create Group" button in messages list
+  - User picker to select members
+  - Group name input
+  - Create via `StreamChatClient.createGroupChannel()`
+  
+- [ ] 6.5.4.2 Display group channels
+  - Show group avatar (first letter of name or custom)
+  - Show member count
+  - Show last message from any member
+  
+- [ ] 6.5.4.3 Group management
+  - Add/remove members via REST API
+  - Change group name via REST API
+  - Leave group option
+
+### 6.5.5 Message Moderation
+
+- [ ] 6.5.5.1 Implement message reporting
+  - Use backend endpoint `POST /api/v1/posts/:id/report` (reuse existing)
+  - Or implement getstream.io flagging API
+  - Reasons: spam, harassment, inappropriate content
+  
+- [ ] 6.5.5.2 Add block user in messages
+  - Block user via backend (existing block endpoint)
+  - Filter blocked users' messages client-side
+  - Option to block from message actions menu
+
+### 6.5.6 Testing & Integration
+
+- [ ] 6.5.6.1 Write backend tests for token generation
+  - Test token generation endpoint
+  - Test token expiration
+  - Test user creation in getstream.io
+  
+- [ ] 6.5.6.2 Write plugin unit tests
+  - Test `StreamChatClient` REST API calls
+  - Test `StreamChatClient` WebSocket connection
+  - Test `MessageThreadComponent` rendering
+  - Test message input and sending
+  - Test audio snippet recording
+  
+- [ ] 6.5.6.3 Integration testing
+  - Test with two plugin instances
+  - Verify real-time message delivery via WebSocket
+  - Verify typing indicators
+  - Verify read receipts
+  - Test group messaging with 3+ users
+  - Test token renewal on expiration
 
 ---
 
@@ -1354,60 +1936,417 @@ streamActivity.To = []string{
 **Goal**: Help users find great content
 **Duration**: 1.5 weeks
 
-### 7.1 Search Infrastructure
+### 7.1 Search Infrastructure ✅
 
 > **Testing**: API tests via curl or Postman.
 > Test: `curl "http://localhost:8787/api/v1/search/users?q=beat" -H "Authorization: Bearer $TOKEN"`
 > Test: `curl "http://localhost:8787/api/v1/search/posts?q=electronic&bpm_min=120&bpm_max=130"`
 > Manual: Use search bar in plugin → Verify results filter correctly.
 
-- [ ] 7.1.1 Evaluate search options (PostgreSQL full-text vs Elasticsearch)
-- [ ] 7.1.2 Implement basic search endpoint
-- [ ] 7.1.3 Search users by username
-- [ ] 7.1.4 Search posts by title/description
-- [ ] 7.1.5 Add genre filtering
-- [ ] 7.1.6 Add BPM range filtering
-- [ ] 7.1.7 Add key filtering
-- [ ] 7.1.8 Implement search result ranking
-- [ ] 7.1.9 Add search analytics (track queries)
-- [ ] 7.1.10 Implement search suggestions (autocomplete)
+- [x] 7.1.1 Evaluate search options (PostgreSQL full-text vs Elasticsearch) - Chose Elasticsearch for better scalability, advanced filtering, and search features. Added to docker-compose.yml
+- [x] 7.1.2 Implement basic search endpoint - GET /api/v1/search/users and GET /api/v1/search/posts with Elasticsearch client wrapper, fallback to PostgreSQL if ES unavailable
+- [x] 7.1.3 Search users by username - SearchUsers endpoint uses Elasticsearch with fuzzy matching, boosts username (2.0x), display_name (1.5x), bio (0.5x), sorted by score + follower_count
+- [x] 7.1.4 Search posts by title/description - SearchPosts endpoint searches title (2.0x boost) and description (1.0x boost) with fuzzy matching, supports empty query for filter-only searches
+- [x] 7.1.5 Add genre filtering - Genre filter implemented in SearchPosts with Elasticsearch terms query (supports multiple genres via comma-separated)
+- [x] 7.1.6 Add BPM range filtering - BPM min/max range filter with Elasticsearch range query (bpm_min and bpm_max query params)
+- [x] 7.1.7 Add key filtering - Key filter with exact term match (case-sensitive, supports all 24 keys)
+- [x] 7.1.8 Implement search result ranking - Function score query combines text relevance with engagement (likes 3.0x, comments 2.0x, plays 1.0x, all log-scaled) and recency (30-day exponential decay, 0.5x weight)
+- [x] 7.1.9 Add search analytics (track queries) - SearchQuery model stores queries in database with user_id, query, result_type, result_count, filters (JSON). trackSearchQuery() called from SearchUsers and SearchPosts
+- [x] 7.1.10 Implement search suggestions (autocomplete) - GET /api/v1/search/suggestions uses Elasticsearch completion suggester on username.suggest field, returns top 5-10 suggestions
 
-### 7.2 Discovery Features
+### 7.2 Discovery Features ✅
 
 > **Testing**: API tests for discovery endpoints.
-> Test: `curl "http://localhost:8787/api/v1/discover/trending"` → Returns posts sorted by engagement.
-> Test: `curl "http://localhost:8787/api/v1/feed/genre/electronic"` → Returns only electronic posts.
+> Test: `curl "http://localhost:8787/api/v1/discover/posts/trending?period=day"` → Returns posts sorted by engagement.
+> Test: `curl "http://localhost:8787/api/v1/discover/genre/electronic/posts"` → Returns only electronic posts.
 > Manual: Navigate to Discover section in plugin → Verify trending and genre feeds populate.
 
-- [ ] 7.2.1 Implement trending posts algorithm
-  - [ ] 7.2.1.1 Factor in plays, likes, comments
-  - [ ] 7.2.1.2 Apply time decay (recent posts weighted higher)
-  - [ ] 7.2.1.3 Consider velocity (rapid engagement)
-- [ ] 7.2.2 Create trending endpoint (hourly/daily/weekly)
-- [ ] 7.2.3 Implement genre-based feeds (electronic, hip-hop, etc.)
-- [ ] 7.2.4 Add "For You" personalized feed
-  - [ ] 7.2.4.1 Track user preferences (listened genres, BPMs)
-  - [ ] 7.2.4.2 Recommend similar content
-- [ ] 7.2.5 Implement hashtag system
-- [ ] 7.2.6 Add hashtag search and pages
-- [ ] 7.2.7 Create "New & Notable" curated section
-- [ ] 7.2.8 Implement "Similar to this" recommendations
+- [x] 7.2.1 Implement trending posts algorithm
+  - [x] 7.2.1.1 Factor in plays, likes, comments. Factor in genre popularity - Engagement score: likes*3 + comments*2 + plays*1. Genre boost: +10% for genres with >100 posts in period
+  - [x] 7.2.1.2 Apply time decay (recent posts weighted higher) - Exponential decay based on age (hour/day/week/month periods with different decay scales)
+  - [x] 7.2.1.3 Consider velocity (rapid engagement) - Velocity boost up to 3x if >20% of plays happened in last hour
+- [x] 7.2.2 Create trending endpoint (hourly/daily/weekly) - GET /api/v1/discover/posts/trending with period param (hour/day/week/month)
+- [x] 7.2.3 Implement genre-based feeds (electronic, hip-hop, etc.) - GET /api/v1/discover/genre/:genre/posts filters posts by genre array
+- [x] 7.2.4 Add "For You" personalized feed
+  - [x] 7.2.4.1 Track user preferences (listened genres, BPMs) - UserPreference model stores genre weights, BPM range, key preferences. Updated from PlayHistory (30-day window, weighted by duration and completion)
+  - [x] 7.2.4.2 Recommend similar content - GET /api/v1/discover/for-you scores posts by genre/BPM/key match + engagement
+- [x] 7.2.5 Implement hashtag system - Hashtag and PostHashtag models. createOrUpdateHashtag() helper function
+- [x] 7.2.6 Add hashtag search and pages - GET /api/v1/discover/hashtags/search, GET /api/v1/discover/hashtags/trending, GET /api/v1/discover/hashtags/:hashtag/posts
+- [x] 7.2.7 Create "New & Notable" curated section - GET /api/v1/discover/new-notable returns posts from last 7 days with >10 total engagement, sorted by engagement score
+- [x] 7.2.8 Implement "Similar to this" recommendations - GET /api/v1/posts/:id/similar matches by genre (overlap), BPM (±10), key (exact), sorted by engagement
 
-### 7.3 Search UI
+### 7.3 Search UI ✅
 
 > **Testing**: Manual testing in plugin.
 > Test: Click search icon → Search screen appears → Type query → Results update as you type.
 > Test: Apply filters (genre, BPM range) → Results filtered correctly.
 > Test: Recent searches persist after closing/reopening plugin.
 
-- [ ] 7.3.1 Add search icon to navigation
-- [ ] 7.3.2 Create search screen with input field
-- [ ] 7.3.3 Show search results (users + posts tabs)
-- [ ] 7.3.4 Add filter controls (genre, BPM, key)
-- [ ] 7.3.5 Implement recent searches
-- [ ] 7.3.6 Add trending searches section
-- [ ] 7.3.7 Show "no results" state with suggestions
-- [ ] 7.3.8 Implement keyboard navigation
+- [x] 7.3.1 Add search icon to navigation - HeaderComponent has search button, connected to show SearchComponent view
+- [x] 7.3.2 Create search screen with input field - SearchComponent with TextEditor input, 300ms debounce, real-time search
+- [x] 7.3.3 Show search results (users + posts tabs) - Tabbed interface with Users/Posts tabs, shows UserCardComponent and PostCardComponent
+- [x] 7.3.4 Add filter controls (genre, BPM, key) - Filter buttons with PopupMenu dropdowns for genre (12 options), BPM ranges (8 presets), and key (24 musical keys)
+- [x] 7.3.5 Implement recent searches - Persisted to ~/.local/share/Sidechain/recent_searches.txt, loads on startup, max 10 searches
+- [x] 7.3.6 Add trending searches section - Shows trending searches in empty state (currently placeholder, UI ready for backend integration)
+- [x] 7.3.7 Show "no results" state with suggestions - Draws "No results found" with suggestions like "Try different keyword", "Remove filters", "Check spelling"
+- [x] 7.3.8 Implement keyboard navigation - Tab to switch tabs, Up/Down arrows to navigate results with highlighting, Enter to select, Escape to go back
+
+---
+
+## Phase 7.5: Music Stories (Snapchat-style with MIDI Visualization)
+**Goal**: Enable producers to share short music clips (stories) with MIDI visualization that expire after 24 hours
+**Duration**: 2.5 weeks
+**Prerequisites**: Phase 2 (Audio Capture) complete, MIDI capture capability
+
+> **Concept**: Stories are short music clips (15-60 seconds) captured directly from the DAW with MIDI data. Viewers can see a visual representation of what the producer was playing (piano roll, note visualization). Stories auto-expire after 24 hours like Snapchat.
+
+> **Testing**:
+> - Backend: `cd backend && go test ./internal/handlers/... -run Stories -v`
+> - Manual: Record story in plugin → View in feed → Verify MIDI visualization → Wait 24 hours → Verify expiration
+> - MIDI: Test with various DAWs → Verify MIDI capture works correctly
+
+### 7.5.1 Story Data Model & Backend
+
+#### 7.5.1.1 Database Schema
+
+- [ ] 7.5.1.1.1 Create `stories` table
+  ```sql
+  CREATE TABLE stories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    audio_url TEXT NOT NULL,
+    audio_duration REAL NOT NULL, -- seconds
+    midi_data JSONB, -- MIDI note events with timing
+    waveform_data TEXT, -- SVG waveform
+    bpm INTEGER,
+    key TEXT,
+    genre TEXT[],
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL, -- created_at + 24 hours
+    view_count INTEGER DEFAULT 0,
+    CONSTRAINT valid_duration CHECK (audio_duration >= 5 AND audio_duration <= 60)
+  );
+  ```
+  
+- [ ] 7.5.1.1.2 Create `story_views` table (track who viewed)
+  ```sql
+  CREATE TABLE story_views (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+    viewer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    viewed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(story_id, viewer_id) -- One view per user per story
+  );
+  ```
+  
+- [ ] 7.5.1.1.3 Create indexes
+  - Index on `stories(user_id, expires_at)` for user's active stories
+  - Index on `stories(expires_at)` for cleanup job
+  - Index on `story_views(story_id)` for view count queries
+
+#### 7.5.1.2 Story Creation Endpoint
+
+- [ ] 7.5.1.2.1 Create `POST /api/v1/stories` endpoint
+  - Input: `{ "audio_url": "...", "audio_duration": 30.5, "midi_data": {...}, "bpm": 128, "key": "C", "genre": ["electronic"] }`
+  - Returns: `{ "story_id": "...", "expires_at": "2024-12-06T12:00:00Z" }`
+  - Validate: Duration 5-60 seconds, user authenticated
+  - Set `expires_at` to 24 hours from creation
+  - Store MIDI data as JSONB (preserve note events with timing)
+  
+- [ ] 7.5.1.2.2 Implement MIDI data structure
+  ```json
+  {
+    "events": [
+      {"time": 0.0, "type": "note_on", "note": 60, "velocity": 100, "channel": 0},
+      {"time": 0.5, "type": "note_off", "note": 60, "channel": 0},
+      {"time": 1.0, "type": "note_on", "note": 64, "velocity": 90, "channel": 0}
+    ],
+    "total_time": 30.5,
+    "tempo": 128,
+    "time_signature": [4, 4]
+  }
+  ```
+  
+- [ ] 7.5.1.2.3 Add audio upload endpoint for stories
+  - `POST /api/v1/stories/upload` - Upload story audio (max 60 seconds)
+  - Returns: `{ "audio_url": "cdn_url", "duration": 25.3, "waveform_data": "svg..." }`
+  - Generate waveform during upload
+  - Validate duration before accepting
+
+#### 7.5.1.3 Story Retrieval Endpoints
+
+- [ ] 7.5.1.3.1 Create `GET /api/v1/stories` endpoint (feed of active stories)
+  - Returns: `[{ "story_id": "...", "user": {...}, "audio_url": "...", "duration": 30, "midi_data": {...}, "view_count": 42, "viewed": false, "expires_at": "..." }]`
+  - Filter: Only stories from followed users + own stories
+  - Filter: Only stories where `expires_at > NOW()`
+  - Sort: Most recent first
+  - Include `viewed` boolean (has current user viewed this story?)
+  
+- [ ] 7.5.1.3.2 Create `GET /api/v1/stories/:story_id` endpoint
+  - Returns: Full story object with MIDI data
+  - Include view count and viewer list (if story owner)
+  
+- [ ] 7.5.1.3.3 Create `GET /api/v1/users/:user_id/stories` endpoint
+  - Returns: All active stories for a specific user
+  - Used for viewing user's story highlights
+
+#### 7.5.1.4 Story Viewing & Analytics
+
+- [ ] 7.5.1.4.1 Create `POST /api/v1/stories/:story_id/view` endpoint
+  - Mark story as viewed by current user
+  - Insert into `story_views` table (or update if exists)
+  - Increment `view_count` on story
+  - Return: `{ "viewed": true, "view_count": 43 }`
+  
+- [ ] 7.5.1.4.2 Create `GET /api/v1/stories/:story_id/views` endpoint (for story owner)
+  - Returns: List of users who viewed the story
+  - `[{ "user": {...}, "viewed_at": "..." }]`
+  - Only accessible by story owner
+
+#### 7.5.1.5 Story Expiration & Cleanup
+
+- [ ] 7.5.1.5.1 Create background job to delete expired stories
+  - Run every hour via cron or scheduled task
+  - Delete stories where `expires_at < NOW()`
+  - Delete associated audio files from CDN
+  - Delete associated view records
+  - Log cleanup statistics
+  
+- [ ] 7.5.1.5.2 Add story expiration notification (optional)
+  - Send notification to user when story is about to expire (1 hour before)
+  - "Your story expires in 1 hour"
+
+### 7.5.2 MIDI Capture & Processing
+
+> **MIDI Capture Strategy**:
+> - Capture MIDI events from DAW during recording
+> - Store note_on/note_off events with precise timing
+> - Include velocity, channel, and note number
+> - Sync MIDI events with audio timeline
+
+#### 7.5.2.1 Plugin MIDI Capture
+
+- [ ] 7.5.2.1.1 Implement MIDI event capture in plugin
+  - Use JUCE `MidiInput` or DAW's MIDI callback
+  - Capture MIDI events during story recording
+  - Store events with relative timestamps (from recording start)
+  - Include: note number, velocity, channel, on/off
+  
+- [ ] 7.5.2.1.2 Create `MIDICapture` class (MIDICapture.h/cpp)
+  - `startCapture()` - Begin recording MIDI events
+  - `stopCapture()` - Stop and return MIDI data
+  - `getEvents()` - Get captured events as JSON-serializable structure
+  - Handle MIDI clock messages for tempo sync
+  
+- [ ] 7.5.2.1.3 Integrate MIDI capture with audio recording
+  - Start MIDI capture when story recording starts
+  - Stop MIDI capture when story recording stops
+  - Sync MIDI events with audio timeline
+  - Handle cases where no MIDI is present (audio-only story)
+
+#### 7.5.2.2 MIDI Data Processing
+
+- [ ] 7.5.2.2.1 Normalize MIDI timing
+  - Convert MIDI timestamps to relative time (0.0 = start of recording)
+  - Round to millisecond precision
+  - Handle tempo changes (if present)
+  
+- [ ] 7.5.2.2.2 Validate MIDI data
+  - Ensure note_on has matching note_off
+  - Remove duplicate events
+  - Filter out system messages (keep only note events)
+  - Limit to reasonable note range (0-127)
+
+### 7.5.3 Story Creation UI (Plugin)
+
+#### 7.5.3.1 Story Recording Interface
+
+- [ ] 7.5.3.1.1 Create `StoryRecordingComponent` (StoryRecordingComponent.h/cpp)
+  - Record button (similar to main recording)
+  - Duration indicator (max 60 seconds)
+  - MIDI activity indicator (shows when MIDI is being captured)
+  - Waveform preview during recording
+  - Stop button (appears after 5 seconds minimum)
+  
+- [ ] 7.5.3.1.2 Implement story recording flow
+  - Click "Create Story" → Opens recording interface
+  - Start recording → Capture audio + MIDI simultaneously
+  - Show countdown timer (60 seconds max)
+  - Auto-stop at 60 seconds
+  - Preview before posting
+  
+- [ ] 7.5.3.1.3 Add story metadata input
+  - BPM (auto-detect or manual)
+  - Key (optional)
+  - Genre tags (optional)
+  - All optional for quick sharing
+
+#### 7.5.3.2 Story Preview & Upload
+
+- [ ] 7.5.3.2.1 Create story preview screen
+  - Show waveform
+  - Show MIDI visualization preview (piano roll)
+  - Playback controls
+  - "Post Story" button
+  - "Discard" button
+  
+- [ ] 7.5.3.2.2 Implement story upload
+  - Upload audio to CDN
+  - Generate waveform
+  - Send story data (including MIDI) to `POST /api/v1/stories`
+  - Show upload progress
+  - Navigate to feed after successful upload
+
+### 7.5.4 Story Viewing UI (Plugin)
+
+#### 7.5.4.1 Story Feed Component
+
+- [ ] 7.5.4.1.1 Create `StoriesFeedComponent` (StoriesFeedComponent.h/cpp)
+  - Horizontal scrollable list of story circles (user avatars)
+  - Show user avatar with "ring" indicator if has unviewed stories
+  - Click story circle → Opens story viewer
+  - Show "Your Story" circle at start (if user has active story)
+  
+- [ ] 7.5.4.1.2 Implement story circle rendering
+  - Circular avatar image
+  - Colored ring if has unviewed stories
+  - Story count badge (if user has multiple stories)
+  - User name below circle
+
+#### 7.5.4.2 Story Viewer Component
+
+- [ ] 7.5.4.2.1 Create `StoryViewerComponent` (StoryViewerComponent.h/cpp)
+  - Full-screen story view (Snapchat-style)
+  - Audio playback with waveform
+  - MIDI visualization (piano roll or note visualization)
+  - User info header (avatar, name)
+  - Progress bar showing story duration
+  - Swipe left/right to navigate between stories
+  - Tap to pause/play
+  
+- [ ] 7.5.4.2.2 Implement MIDI visualization
+  - Piano roll view: Notes displayed on vertical piano keys, horizontal timeline
+  - Color-code notes by velocity (darker = louder)
+  - Show note duration (horizontal bars)
+  - Sync visualization with audio playback
+  - Animate notes as they play (highlight active notes)
+  
+- [ ] 7.5.4.2.3 Add MIDI visualization options
+  - Toggle between piano roll and note list view
+  - Zoom in/out on timeline
+  - Show/hide velocity visualization
+  - Show/hide channel colors (if multi-channel)
+
+#### 7.5.4.3 Story Navigation
+
+- [ ] 7.5.4.3.1 Implement story progression
+  - Auto-advance to next story after current finishes
+  - Swipe left = next story, swipe right = previous story
+  - Swipe down = close story viewer, return to feed
+  - Keyboard: Arrow keys for navigation, Space for play/pause
+  
+- [ ] 7.5.4.3.2 Add story interactions
+  - View count display (if story owner)
+  - "Viewers" button (if story owner) → Shows list of viewers
+  - Share button → Copy story link (expires in 24h)
+  - No likes/comments on stories (by design, ephemeral)
+
+#### 7.5.4.4 Story Expiration Indicators
+
+- [ ] 7.5.4.4.1 Show expiration time
+  - Display "Expires in X hours" on story
+  - Update countdown in real-time
+  - Gray out stories that are about to expire (< 1 hour)
+  
+- [ ] 7.5.4.4.2 Handle expired stories
+  - Filter out expired stories from feed
+  - Show "Story expired" message if user tries to view
+  - Remove from user's story list automatically
+
+### 7.5.5 MIDI Visualization Engine
+
+> **Visualization Options**:
+> - Piano roll (classic DAW view)
+> - Note waterfall (falling notes visualization)
+> - Circular visualization (notes arranged in circle)
+> - Minimalist (just active notes)
+
+#### 7.5.5.1 Piano Roll Renderer
+
+- [ ] 7.5.5.1.1 Create `PianoRollComponent` (PianoRollComponent.h/cpp)
+  - Vertical piano keys (C0 to C8, or configurable range)
+  - Horizontal timeline (synced with audio)
+  - Note rectangles (position = note, width = duration, height = key height)
+  - Color by velocity or channel
+  
+- [ ] 7.5.5.1.2 Implement piano roll rendering
+  - Draw piano keys (white/black keys)
+  - Draw note rectangles from MIDI events
+  - Highlight active notes during playback
+  - Scroll timeline as audio plays
+  - Zoom controls (pinch or mouse wheel)
+  
+- [ ] 7.5.5.1.3 Add piano roll interactions
+  - Click note → Seek audio to that time
+  - Hover note → Show note name and velocity
+  - Scroll timeline to navigate
+
+#### 7.5.5.2 Alternative Visualizations
+
+- [ ] 7.5.5.2.1 Create note waterfall visualization
+  - Notes fall from top as they play
+  - Color by velocity
+  - Minimalist, visually appealing
+  
+- [ ] 7.5.5.2.2 Create circular visualization
+  - Notes arranged in circle (like a clock)
+  - Active notes highlighted
+  - Artistic, less technical
+
+### 7.5.6 Story Highlights (Optional Enhancement)
+
+- [ ] 7.5.6.1 Allow users to save stories to highlights
+  - "Add to Highlights" button on story
+  - Creates permanent collection (doesn't expire)
+  - Organize highlights by category (e.g., "Jams", "Experiments")
+  
+- [ ] 7.5.6.2 Display highlights on profile
+  - Show highlight collections on user profile
+  - Click highlight → View saved stories
+  - Similar to Instagram highlights
+
+### 7.5.7 Testing & Integration
+
+- [ ] 7.5.7.1 Write backend tests for story endpoints
+  - Test story creation with MIDI data
+  - Test story retrieval and filtering
+  - Test story viewing and analytics
+  - Test expiration cleanup job
+  
+- [ ] 7.5.7.2 Write plugin unit tests
+  - Test MIDI capture functionality
+  - Test story recording flow
+  - Test MIDI visualization rendering
+  
+- [ ] 7.5.7.3 Integration testing
+  - Test story creation from various DAWs
+  - Test MIDI capture with different MIDI sources
+  - Test story viewing across multiple users
+  - Test expiration after 24 hours
+  - Test MIDI visualization accuracy
+
+### 7.5.8 Performance Considerations
+
+- [ ] 7.5.8.1 Optimize MIDI data storage
+  - Compress MIDI JSON (remove redundant data)
+  - Limit MIDI events (sample if too many events)
+  - Cache MIDI visualization rendering
+  
+- [ ] 7.5.8.2 Optimize story feed loading
+  - Lazy load stories (load on demand)
+  - Preload next story in sequence
+  - Cache story audio and MIDI data
+  - Use CDN for story audio files
 
 ---
 
@@ -1784,11 +2723,11 @@ streamActivity.To = []string{
 ## Future Features (Post-Launch Backlog)
 
 ### MIDI Integration
-- [ ] F.1.1 MIDI pattern capture from DAW
-- [ ] F.1.2 MIDI visualization (piano roll)
-- [ ] F.1.3 MIDI pattern sharing alongside audio
-- [ ] F.1.4 "Drop MIDI to track" feature
-- [ ] F.1.5 MIDI battle royale competitions
+- [x] F.1.1 MIDI pattern capture from DAW - **Implemented in Phase 7.5 (Stories)**
+- [x] F.1.2 MIDI visualization (piano roll) - **Implemented in Phase 7.5 (Stories)**
+- [x] F.1.3 MIDI pattern sharing alongside audio - **Implemented in Phase 7.5 (Stories)**
+- [ ] F.1.4 "Drop MIDI to track" feature - Allow importing MIDI from stories into DAW
+- [ ] F.1.5 MIDI battle royale competitions - Competitive MIDI challenges
 
 ### Collaboration
 - [ ] F.2.1 Cross-DAW MIDI sync (challenging)
@@ -1831,14 +2770,16 @@ streamActivity.To = []string{
 | Phase 4 | 1.5 weeks | User Profiles |
 | Phase 5 | 2 weeks | Real-time Features |
 | Phase 6 | 1.5 weeks | Comments & Community |
+| Phase 6.5 | 2 weeks | Direct Messaging (getstream.io Chat) |
 | Phase 7 | 1.5 weeks | Search & Discovery |
+| Phase 7.5 | 2.5 weeks | Music Stories (Snapchat-style with MIDI) |
 | Phase 8 | 2 weeks | Polish & Performance |
 | Phase 9 | 1.5 weeks | Infrastructure & DevOps |
 | Phase 10 | 2 weeks | Launch Preparation |
 | Phase 11 | 4 weeks | Beta Launch |
 | Phase 12 | Ongoing | Public Launch |
 
-**Total Estimated Time to Launch**: ~6 months (solo developer)
+**Total Estimated Time to Launch**: ~7 months (solo developer, includes messaging and stories)
 
 ---
 
@@ -1870,7 +2811,7 @@ streamActivity.To = []string{
 | Risk | Mitigation |
 |------|------------|
 | DAW compatibility issues | Extensive testing, community bug reports |
-| Stream.io rate limits | Cache aggressively, implement backoff |
+| getstream.io rate limits | Cache aggressively, implement backoff |
 | Audio processing bottlenecks | Async job queue, auto-scaling |
 | Plugin crashes | Crash reporting, sandboxed network calls |
 

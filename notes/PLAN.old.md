@@ -8,16 +8,16 @@ Install JUCE framework and configure development environment
 Create basic VST3/AU plugin shell that loads in Ableton Live
 Implement simple UI window with placeholder "Connect" button
 Set up backend API server (Node.js/Express recommended)
-Configure Stream.io account and create app with feeds structure
+Configure getstream.io account and create app with feeds structure
 Set up AWS S3 or Cloudflare R2 for audio storage
 
 Core Authentication Flow
 
 Generate unique device ID in VST on first launch
 Build OAuth web flow for account claiming (Google/Discord login)
-Backend creates Stream.io user and returns JWT token to VST
+Backend creates getstream.io user and returns JWT token to VST
 Store auth token securely in plugin state
-Test full auth loop from VST → Web → Backend → Stream.io
+Test full auth loop from VST → Web → Backend → getstream.io
 
 Deliverable: Empty VST that authenticates and shows "Connected as: username"
 
@@ -85,7 +85,7 @@ Deliverable: Full social interaction capability
 ## Phase 5: Real-time Features (Week 9-10)
 WebSocket Integration
 
-Establish WebSocket connection to Stream.io
+Establish WebSocket connection to getstream.io
 Show "🟢 Producing Now" status when DAW open
 Real-time notification for new posts in timeline
 "3 friends are producing" ambient notification
@@ -148,7 +148,7 @@ Week 13: Private Beta
 Launch to 20 producer friends
 Discord server for feedback
 Daily iteration on top issues
-Monitor Stream.io analytics
+Monitor getstream.io analytics
 Gather feature requests
 
 Week 14: Public Beta
@@ -184,7 +184,7 @@ Stream.io downtime: Local cache, queue failed requests
 User Risks:
 
 Copyright concerns: Audio fingerprinting in v2
-Toxic behavior: Report system, Stream.io moderation
+Toxic behavior: Report system, getstream.io moderation
 Ghost town: Seed with quality content, invite key producers
 
 ## MIDI Integration & Creative Features
@@ -264,7 +264,7 @@ Beyond audio loops, Sidechain becomes a playground for MIDI creativity and produ
 - Community playlists of battle submissions
 
 **Implementation:**
-- Challenge system in Stream.io feeds
+- Challenge system in getstream.io feeds
 - Special challenge feed type
 - Voting mechanism via reactions
 - Automated winner selection based on engagement

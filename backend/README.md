@@ -25,7 +25,7 @@ Traditional social platforms don't understand the music production process:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   VST Plugin    │    │  Sidechain API  │    │   Stream.io     │
+│   VST Plugin    │    │  Sidechain API  │    │   getstream.io     │
 │                 │────│    (Go)         │────│   (Social)      │
 │ Audio Capture   │    │ Authentication  │    │ Feeds & Chat    │
 │ Social Feed UI  │    │ Upload Pipeline │    │ Real-time       │
@@ -171,7 +171,7 @@ type Reaction struct {
 
 ### Phase 1: Authentication & Foundation ✅
 - [x] Device ID generation and registration
-- [x] Stream.io client integration 
+- [x] getstream.io client integration 
 - [x] Basic API endpoints
 - [x] JWT token handling
 - [ ] OAuth web flow (Google/Discord)
@@ -186,7 +186,7 @@ type Reaction struct {
 - [ ] Audio metadata extraction
 
 ### Phase 3: Social Engine 🔄
-- [x] Stream.io V3 feeds integration
+- [x] getstream.io V3 feeds integration
 - [x] Emoji reaction system
 - [ ] Feed algorithms and ranking
 - [ ] Content caching layer
@@ -203,7 +203,7 @@ type Reaction struct {
 The backend requires these environment variables:
 
 ```bash
-# Stream.io (Social Engine)
+# getstream.io (Social Engine)
 STREAM_API_KEY=your_stream_api_key
 STREAM_API_SECRET=your_stream_api_secret
 
@@ -309,7 +309,7 @@ go test ./tests/load/...
 - **Network I/O**: Excellent for real-time WebSocket connections
 
 **Stream.io + Go = ❤️**
-- Native Go SDK for Stream.io Feeds V3
+- Native Go SDK for getstream.io Feeds V3
 - Built-in JSON handling for API responses
 - Excellent HTTP client for CDN uploads
 - Goroutines perfect for background audio processing
