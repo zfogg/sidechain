@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -716,4 +717,51 @@ func getOAuthErrorHTML(provider, errorMsg string) string {
     </div>
 </body>
 </html>`, provider, errorMsg)
+}
+
+// ProxyProfilePicture proxies profile pictures from S3 to work around JUCE SSL issues on Linux
+// GET /api/v1/users/:id/profile-picture
+func (h *AuthHandlers) ProxyProfilePicture(c *gin.Context) {
+	userID := c.Param("id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user ID required"})
+		return
+	}
+
+	// Get user from database
+	var user models.User
+	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	if user.ProfilePictureURL == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no profile picture"})
+		return
+	}
+
+	// Fetch the image from S3
+	resp, err := http.Get(user.ProfilePictureURL)
+	if err != nil {
+		log.Printf("Failed to fetch profile picture: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch image"})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		c.JSON(http.StatusNotFound, gin.H{"error": "image not found on S3"})
+		return
+	}
+
+	// Set appropriate headers
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "image/jpeg"
+	}
+	c.Header("Content-Type", contentType)
+	c.Header("Cache-Control", "max-age=3600") // Cache for 1 hour
+
+	// Stream the response
+	io.Copy(c.Writer, resp.Body)
 }

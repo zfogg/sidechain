@@ -393,8 +393,18 @@ target_sources(Sidechain
         source/util/Log.h
         source/util/ImageCache.cpp
         source/util/ImageCache.h
+        source/util/Image.cpp
+        source/util/Image.h
         source/util/Json.cpp
         source/util/Json.h
+        source/util/Validate.cpp
+        source/util/Validate.h
+        source/util/Async.cpp
+        source/util/Async.h
+        source/util/Result.h
+        source/util/UIHelpers.cpp
+        source/util/UIHelpers.h
+        source/util/Constants.h
 )
 
 # Preprocessor definitions
@@ -592,6 +602,12 @@ if(SIDECHAIN_BUILD_TESTS)
         source/stores/UserDataStore.h
         source/util/Time.cpp
         source/util/Time.h
+        source/util/Json.cpp
+        source/util/Json.h
+        source/util/Async.cpp
+        source/util/Async.h
+        source/util/Validate.cpp
+        source/util/Validate.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h

@@ -1,6 +1,8 @@
 #include "HeaderComponent.h"
 #include "../../util/Colors.h"
-#include <thread>
+#include "../../util/ImageCache.h"
+#include "../../util/Async.h"
+#include "../../util/Validate.h"
 
 //==============================================================================
 HeaderComponent::HeaderComponent()
@@ -19,7 +21,7 @@ void HeaderComponent::setUserInfo(const juce::String& user, const juce::String& 
         profilePicUrl = picUrl;
 
         // Only download if we don't have an image and URL is valid
-        if (!cachedProfileImage.isValid() && profilePicUrl.isNotEmpty() && profilePicUrl.startsWith("http"))
+        if (!cachedProfileImage.isValid() && Validate::isUrl(profilePicUrl))
         {
             loadProfileImage(profilePicUrl);
         }
@@ -37,27 +39,35 @@ void HeaderComponent::setProfileImage(const juce::Image& image)
 void HeaderComponent::loadProfileImage(const juce::String& url)
 {
     auto urlObj = juce::URL(url);
-    std::thread([this, urlObj]() {
-        auto inputStream = urlObj.createInputStream(
-            juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                .withConnectionTimeoutMs(5000)
-                .withNumRedirectsToFollow(5));
 
-        if (inputStream != nullptr)
-        {
-            juce::MemoryBlock imageData;
-            inputStream->readIntoMemoryBlock(imageData);
+    // Use Async::run to download image on background thread
+    Async::run<juce::Image>(
+        // Background work: download image
+        [urlObj]() -> juce::Image {
+            auto inputStream = urlObj.createInputStream(
+                juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                    .withConnectionTimeoutMs(5000)
+                    .withNumRedirectsToFollow(5));
 
-            juce::MessageManager::callAsync([this, imageData]() {
-                cachedProfileImage = juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
-                if (cachedProfileImage.isValid())
-                {
-                    DBG("HeaderComponent - loaded profile image");
-                    repaint();
-                }
-            });
+            if (inputStream != nullptr)
+            {
+                juce::MemoryBlock imageData;
+                inputStream->readIntoMemoryBlock(imageData);
+                return juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
+            }
+
+            return {};
+        },
+        // Callback on message thread: update UI
+        [this](const juce::Image& image) {
+            if (image.isValid())
+            {
+                cachedProfileImage = image;
+                DBG("HeaderComponent - loaded profile image");
+                repaint();
+            }
         }
-    }).detach();
+    );
 }
 
 //==============================================================================
@@ -146,32 +156,11 @@ void HeaderComponent::drawProfileSection(juce::Graphics& g, juce::Rectangle<int>
 
 void HeaderComponent::drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Clip to circle
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
-
-    if (cachedProfileImage.isValid())
-    {
-        // Draw image clipped to circle
-        g.saveState();
-        g.reduceClipRegion(circlePath);
-        g.drawImage(cachedProfileImage, bounds.toFloat(),
-                    juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
-        g.restoreState();
-    }
-    else
-    {
-        // Placeholder circle with initial
-        g.setColour(SidechainColors::primary());
-        g.fillEllipse(bounds.toFloat());
-
-        if (username.isNotEmpty())
-        {
-            g.setColour(SidechainColors::textPrimary());
-            g.setFont(14.0f);
-            g.drawText(username.substring(0, 1).toUpperCase(), bounds, juce::Justification::centred);
-        }
-    }
+    ImageLoader::drawCircularAvatar(g, bounds, cachedProfileImage,
+        ImageLoader::getInitials(username),
+        SidechainColors::primary(),
+        SidechainColors::textPrimary(),
+        14.0f);
 
     // Border
     g.setColour(SidechainColors::border());

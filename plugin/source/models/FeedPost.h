@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include <map>
 #include "../util/Time.h"
+#include "../util/Result.h"
 
 //==============================================================================
 /**
@@ -86,8 +87,11 @@ public:
     Status status = Status::Unknown;
 
     //==============================================================================
-    // Factory method to create from JSON
+    // Factory methods to create from JSON
     static FeedPost fromJson(const juce::var& json);
+
+    // Type-safe parsing with validation - returns error if required fields are missing
+    static Outcome<FeedPost> tryFromJson(const juce::var& json);
 
     // Convert to JSON (for caching)
     juce::var toJson() const;

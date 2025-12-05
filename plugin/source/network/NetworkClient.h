@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../util/Constants.h"
 #include <functional>
 #include <atomic>
 #include <memory>
@@ -36,18 +37,18 @@ public:
     struct Config
     {
         juce::String baseUrl;
-        int timeoutMs = 30000;          // Default 30 second timeout
-        int maxRetries = 3;             // Retry failed requests up to 3 times
-        int retryDelayMs = 1000;        // Wait 1 second between retries
+        int timeoutMs = Constants::Api::DEFAULT_TIMEOUT_MS;
+        int maxRetries = Constants::Api::MAX_RETRIES;
+        int retryDelayMs = Constants::Api::RETRY_DELAY_BASE_MS;
 
         static Config development()
         {
-            return { "http://localhost:8787", 30000, 3, 1000 };
+            return { "http://localhost:8787", Constants::Api::DEFAULT_TIMEOUT_MS, Constants::Api::MAX_RETRIES, Constants::Api::RETRY_DELAY_BASE_MS };
         }
 
         static Config production()
         {
-            return { "https://api.sidechain.app", 30000, 3, 2000 };
+            return { "https://api.sidechain.app", Constants::Api::DEFAULT_TIMEOUT_MS, Constants::Api::MAX_RETRIES, Constants::Api::RETRY_DELAY_BASE_MS * 2 };
         }
     };
 

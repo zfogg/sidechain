@@ -1,5 +1,7 @@
 #include "PostCardComponent.h"
 #include "../../util/Colors.h"
+#include "../../util/ImageCache.h"
+#include "../../util/UIHelpers.h"
 
 //==============================================================================
 PostCardComponent::PostCardComponent()
@@ -15,8 +17,17 @@ PostCardComponent::~PostCardComponent()
 void PostCardComponent::setPost(const FeedPost& newPost)
 {
     post = newPost;
-    avatarLoadRequested = false;
     avatarImage = juce::Image();
+
+    // Load avatar via ImageCache
+    if (post.userAvatarUrl.isNotEmpty())
+    {
+        ImageLoader::load(post.userAvatarUrl, [this](const juce::Image& img) {
+            avatarImage = img;
+            repaint();
+        });
+    }
+
     repaint();
 }
 
@@ -85,46 +96,19 @@ void PostCardComponent::paint(juce::Graphics& g)
 
 void PostCardComponent::drawBackground(juce::Graphics& g)
 {
-    auto bounds = getLocalBounds().toFloat();
-
-    // Card background
-    auto bgColor = isHovered ? SidechainColors::backgroundLighter() : SidechainColors::backgroundLight();
-    g.setColour(bgColor);
-    g.fillRoundedRectangle(bounds, 8.0f);
-
-    // Border
-    g.setColour(SidechainColors::border());
-    g.drawRoundedRectangle(bounds, 8.0f, 1.0f);
+    UI::drawCardWithHover(g, getLocalBounds(),
+        SidechainColors::backgroundLight(),
+        SidechainColors::backgroundLighter(),
+        SidechainColors::border(),
+        isHovered);
 }
 
 void PostCardComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Create circular clipping
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
-
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-
-    if (avatarImage.isValid())
-    {
-        // Draw loaded avatar image
-        auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
-        g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-    }
-    else
-    {
-        // Draw placeholder with initial
-        g.setColour(SidechainColors::surface());
-        g.fillEllipse(bounds.toFloat());
-
-        g.setColour(SidechainColors::textPrimary());
-        g.setFont(18.0f);
-        juce::String initial = post.username.isEmpty() ? "?" : post.username.substring(0, 1).toUpperCase();
-        g.drawText(initial, bounds, juce::Justification::centred);
-    }
-
-    g.restoreState();
+    ImageLoader::drawCircularAvatar(g, bounds, avatarImage,
+        ImageLoader::getInitials(post.username),
+        SidechainColors::surface(),
+        SidechainColors::textPrimary());
 
     // Avatar border
     g.setColour(SidechainColors::border());
@@ -297,13 +281,8 @@ void PostCardComponent::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<in
     if (post.bpm > 0)
     {
         auto bpmBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        g.setColour(SidechainColors::surface());
-        g.fillRoundedRectangle(bpmBounds.toFloat(), 4.0f);
-
-        g.setColour(SidechainColors::textPrimary());
-        g.setFont(11.0f);
-        g.drawText(juce::String(post.bpm) + " BPM", bpmBounds, juce::Justification::centred);
-
+        UI::drawBadge(g, bpmBounds, juce::String(post.bpm) + " BPM",
+            SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
         badgeY += BADGE_HEIGHT + 5;
     }
 
@@ -311,13 +290,8 @@ void PostCardComponent::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<in
     if (post.key.isNotEmpty())
     {
         auto keyBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        g.setColour(SidechainColors::surface());
-        g.fillRoundedRectangle(keyBounds.toFloat(), 4.0f);
-
-        g.setColour(SidechainColors::textPrimary());
-        g.setFont(11.0f);
-        g.drawText(post.key, keyBounds, juce::Justification::centred);
-
+        UI::drawBadge(g, keyBounds, post.key,
+            SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
         badgeY += BADGE_HEIGHT + 5;
     }
 
@@ -325,13 +299,8 @@ void PostCardComponent::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<in
     for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i)
     {
         auto genreBounds = juce::Rectangle<int>(bounds.getX(), badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
-        g.setColour(SidechainColors::backgroundLighter());
-        g.fillRoundedRectangle(genreBounds.toFloat(), 3.0f);
-
-        g.setColour(SidechainColors::textSecondary());
-        g.setFont(10.0f);
-        g.drawText(post.genres[i], genreBounds, juce::Justification::centred);
-
+        UI::drawBadge(g, genreBounds, post.genres[i],
+            SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 10.0f, 3.0f);
         badgeY += BADGE_HEIGHT;
     }
 }

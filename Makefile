@@ -14,6 +14,18 @@ UNAME_M := $(shell uname -m)
 JUCE_VERSION = 8.0.8
 JUCE_DIR = ./deps/JUCE
 
+
+Black   = "\e[1;30m"
+Red     = "\e[1;31m"
+Green   = "\e[1;32m"
+Yellow  = "\e[1;33m"
+Blue    = "\e[1;34m"
+Purple  = "\e[1;35m"
+Cyan    = "\e[1;36m"
+White   = "\e[1;37m"
+Reset   = "\e[0m"
+
+
 # Platform-specific settings
 ifeq ($(UNAME_S),Darwin)
 	PLATFORM = macos
@@ -238,3 +250,12 @@ help:
 	@echo "  make              # Build everything"
 	@echo "  make plugin       # Build just the plugin"
 	@echo "  make backend-dev  # Start backend server"
+
+cloc:
+	@printf $(Purple)"documentation:\n"$(Reset)
+	@cloc --progress=1 --force-lang='Markdown,dox' --force-lang='XML,in' README.md docs
+	@printf $(Purple)"\nbackend:\n"$(Reset)
+	@cloc --progress=1 --include-lang='Go,Markdown,Sql,Yaml' backend
+	@printf $(Purple)"\nplugin:\n"$(Reset)
+	@cloc --progress=1 --include-lang='C,C/C++ Header,Objective-C' plugin
+

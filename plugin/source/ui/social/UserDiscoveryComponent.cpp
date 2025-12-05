@@ -1,5 +1,6 @@
 #include "UserDiscoveryComponent.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Json.h"
 
 //==============================================================================
 UserDiscoveryComponent::UserDiscoveryComponent()
@@ -509,10 +510,10 @@ void UserDiscoveryComponent::performSearch(const juce::String& query)
     networkClient->searchUsers(query, 30, 0, [this](bool success, const juce::var& response) {
         isSearching = false;
 
-        if (success && response.isObject())
+        if (success && Json::isObject(response))
         {
-            auto users = response.getProperty("users", juce::var());
-            if (users.isArray())
+            auto users = Json::getArray(response, "users");
+            if (Json::isArray(users))
             {
                 for (int i = 0; i < users.size(); ++i)
                 {
@@ -536,10 +537,10 @@ void UserDiscoveryComponent::fetchTrendingUsers()
     networkClient->getTrendingUsers(10, [this](bool success, const juce::var& response) {
         isTrendingLoading = false;
 
-        if (success && response.isObject())
+        if (success && Json::isObject(response))
         {
-            auto users = response.getProperty("users", juce::var());
-            if (users.isArray())
+            auto users = Json::getArray(response, "users");
+            if (Json::isArray(users))
             {
                 trendingUsers.clear();
                 for (int i = 0; i < users.size(); ++i)
@@ -564,10 +565,10 @@ void UserDiscoveryComponent::fetchFeaturedProducers()
     networkClient->getFeaturedProducers(10, [this](bool success, const juce::var& response) {
         isFeaturedLoading = false;
 
-        if (success && response.isObject())
+        if (success && Json::isObject(response))
         {
-            auto users = response.getProperty("users", juce::var());
-            if (users.isArray())
+            auto users = Json::getArray(response, "users");
+            if (Json::isArray(users))
             {
                 featuredProducers.clear();
                 for (int i = 0; i < users.size(); ++i)
@@ -592,10 +593,10 @@ void UserDiscoveryComponent::fetchSuggestedUsers()
     networkClient->getSuggestedUsers(10, [this](bool success, const juce::var& response) {
         isSuggestedLoading = false;
 
-        if (success && response.isObject())
+        if (success && Json::isObject(response))
         {
-            auto users = response.getProperty("users", juce::var());
-            if (users.isArray())
+            auto users = Json::getArray(response, "users");
+            if (Json::isArray(users))
             {
                 suggestedUsers.clear();
                 for (int i = 0; i < users.size(); ++i)
@@ -620,15 +621,15 @@ void UserDiscoveryComponent::fetchAvailableGenres()
     networkClient->getAvailableGenres([this](bool success, const juce::var& response) {
         isGenresLoading = false;
 
-        if (success && response.isObject())
+        if (success && Json::isObject(response))
         {
-            auto genres = response.getProperty("genres", juce::var());
-            if (genres.isArray())
+            auto genres = Json::getArray(response, "genres");
+            if (Json::isArray(genres))
             {
                 availableGenres.clear();
-                for (int i = 0; i < genres.size(); ++i)
+                for (int i = 0; i < Json::arraySize(genres); ++i)
                 {
-                    availableGenres.add(genres[i].toString());
+                    availableGenres.add(Json::getStringAt(genres, i));
                 }
             }
         }
@@ -646,10 +647,10 @@ void UserDiscoveryComponent::fetchUsersByGenre(const juce::String& genre)
     repaint();
 
     networkClient->getUsersByGenre(genre, 30, 0, [this](bool success, const juce::var& response) {
-        if (success && response.isObject())
+        if (success && Json::isObject(response))
         {
-            auto users = response.getProperty("users", juce::var());
-            if (users.isArray())
+            auto users = Json::getArray(response, "users");
+            if (Json::isArray(users))
             {
                 for (int i = 0; i < users.size(); ++i)
                 {

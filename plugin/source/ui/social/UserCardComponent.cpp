@@ -1,4 +1,6 @@
 #include "UserCardComponent.h"
+#include "../../util/ImageCache.h"
+#include "../../util/UIHelpers.h"
 
 //==============================================================================
 UserCardComponent::UserCardComponent()
@@ -15,7 +17,16 @@ void UserCardComponent::setUser(const DiscoveredUser& newUser)
 {
     user = newUser;
     avatarImage = juce::Image();
-    avatarLoadRequested = false;
+
+    // Load avatar via ImageCache
+    if (user.avatarUrl.isNotEmpty())
+    {
+        ::ImageLoader::load(user.avatarUrl, [this](const juce::Image& img) {
+            avatarImage = img;
+            repaint();
+        });
+    }
+
     repaint();
 }
 
@@ -54,60 +65,23 @@ void UserCardComponent::resized()
 //==============================================================================
 void UserCardComponent::drawBackground(juce::Graphics& g)
 {
-    auto bounds = getLocalBounds().toFloat();
-
-    g.setColour(isHovered ? Colors::backgroundHover : Colors::background);
-    g.fillRoundedRectangle(bounds.reduced(4, 2), 8.0f);
+    UI::drawCardWithHover(g, getLocalBounds().reduced(4, 2),
+        Colors::background,
+        Colors::backgroundHover,
+        juce::Colours::transparentBlack,
+        isHovered);
 }
 
 void UserCardComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     auto avatarArea = bounds.withSizeKeepingCentre(AVATAR_SIZE, AVATAR_SIZE);
-    float cornerRadius = AVATAR_SIZE / 2.0f;
 
-    if (avatarImage.isValid())
-    {
-        // Draw the loaded avatar image
-        juce::Path clipPath;
-        clipPath.addEllipse(avatarArea.toFloat());
-        g.saveState();
-        g.reduceClipRegion(clipPath);
-        g.drawImage(avatarImage, avatarArea.toFloat());
-        g.restoreState();
-    }
-    else
-    {
-        // Draw placeholder with initials
-        g.setColour(Colors::badge);
-        g.fillEllipse(avatarArea.toFloat());
-
-        // Draw initials
-        juce::String initials;
-        auto name = user.getDisplayNameOrUsername();
-        if (name.isNotEmpty())
-        {
-            auto words = juce::StringArray::fromTokens(name, " ", "");
-            for (auto& word : words)
-            {
-                if (word.isNotEmpty() && initials.length() < 2)
-                    initials += word.substring(0, 1).toUpperCase();
-            }
-        }
-        if (initials.isEmpty())
-            initials = "?";
-
-        g.setColour(Colors::textPrimary);
-        g.setFont(juce::Font(16.0f).boldened());
-        g.drawText(initials, avatarArea, juce::Justification::centred);
-
-        // Request avatar load if we have a URL
-        if (!avatarLoadRequested && user.avatarUrl.isNotEmpty())
-        {
-            avatarLoadRequested = true;
-            // Note: In a real implementation, use an image cache/loader
-            // For now, avatars will show initials
-        }
-    }
+    // Use ImageUtils helper for avatar drawing with initials fallback
+    ImageLoader::drawCircularAvatar(g, avatarArea, avatarImage,
+        ImageLoader::getInitials(user.getDisplayNameOrUsername()),
+        Colors::badge,
+        Colors::textPrimary,
+        16.0f);
 
     // Draw online indicator (green/cyan dot in bottom-right corner)
     if (user.isOnline || user.isInStudio)
@@ -182,17 +156,8 @@ void UserCardComponent::drawGenreBadge(juce::Graphics& g, juce::Rectangle<int> b
     if (user.genre.isEmpty())
         return;
 
-    g.setFont(juce::Font(10.0f));
-    auto textWidth = g.getCurrentFont().getStringWidth(user.genre);
-
-    auto badgeBounds = bounds.removeFromLeft(textWidth + 12).withHeight(18);
-    badgeBounds.setY(bounds.getY() + 1);
-
-    g.setColour(Colors::badge);
-    g.fillRoundedRectangle(badgeBounds.toFloat(), 9.0f);
-
-    g.setColour(Colors::textSecondary);
-    g.drawText(user.genre, badgeBounds, juce::Justification::centred);
+    UI::drawPillBadge(g, bounds.getX(), bounds.getY() + 1,
+        user.genre, Colors::badge, Colors::textSecondary, 10.0f, 6, 4);
 }
 
 void UserCardComponent::drawFollowButton(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -202,22 +167,15 @@ void UserCardComponent::drawFollowButton(juce::Graphics& g, juce::Rectangle<int>
     if (user.isFollowing)
     {
         // "Following" button (muted)
-        g.setColour(Colors::followingButton);
-        g.fillRoundedRectangle(buttonBounds.toFloat(), 14.0f);
-
-        g.setColour(Colors::textSecondary);
-        g.setFont(juce::Font(11.0f));
-        g.drawText("Following", buttonBounds, juce::Justification::centred);
+        UI::drawButton(g, buttonBounds, "Following",
+            Colors::followingButton, Colors::textSecondary, false, 14.0f);
     }
     else
     {
         // "Follow" button (accent)
-        g.setColour(Colors::followButton);
-        g.fillRoundedRectangle(buttonBounds.toFloat(), 14.0f);
-
-        g.setColour(juce::Colours::black);
         g.setFont(juce::Font(11.0f).boldened());
-        g.drawText("Follow", buttonBounds, juce::Justification::centred);
+        UI::drawButton(g, buttonBounds, "Follow",
+            Colors::followButton, juce::Colours::black, false, 14.0f);
     }
 }
 

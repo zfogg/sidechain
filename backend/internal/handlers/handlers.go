@@ -675,12 +675,13 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	currentUser := user.(*models.User)
 
 	var req struct {
-		DisplayName   *string              `json:"display_name"`
-		Bio           *string              `json:"bio"`
-		Location      *string              `json:"location"`
-		DAWPreference *string              `json:"daw_preference"`
-		Genre         []string             `json:"genre"`
-		SocialLinks   *models.SocialLinks  `json:"social_links"`
+		DisplayName       *string             `json:"display_name"`
+		Bio               *string             `json:"bio"`
+		Location          *string             `json:"location"`
+		DAWPreference     *string             `json:"daw_preference"`
+		Genre             []string            `json:"genre"`
+		SocialLinks       *models.SocialLinks `json:"social_links"`
+		ProfilePictureURL *string             `json:"profile_picture_url"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -708,6 +709,9 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	if req.SocialLinks != nil {
 		updates["social_links"] = req.SocialLinks
 	}
+	if req.ProfilePictureURL != nil {
+		updates["profile_picture_url"] = *req.ProfilePictureURL
+	}
 
 	if len(updates) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no_fields_to_update"})
@@ -726,13 +730,14 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "profile_updated",
 		"user": gin.H{
-			"id":             currentUser.ID,
-			"display_name":   currentUser.DisplayName,
-			"bio":            currentUser.Bio,
-			"location":       currentUser.Location,
-			"daw_preference": currentUser.DAWPreference,
-			"genre":          currentUser.Genre,
-			"social_links":   currentUser.SocialLinks,
+			"id":                  currentUser.ID,
+			"display_name":        currentUser.DisplayName,
+			"bio":                 currentUser.Bio,
+			"location":            currentUser.Location,
+			"daw_preference":      currentUser.DAWPreference,
+			"genre":               currentUser.Genre,
+			"social_links":        currentUser.SocialLinks,
+			"profile_picture_url": currentUser.ProfilePictureURL,
 		},
 		"updated_at": time.Now().UTC(),
 	})
@@ -1220,9 +1225,45 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 	})
 }
 
-// GetTrendingFeed gets trending loops grouped by genre/time
+// GetTrendingFeed gets trending loops - returns flat activities for the plugin feed
+// Activities are extracted from aggregated groups and sorted by engagement score
 // GET /api/feed/trending
 func (h *Handlers) GetTrendingFeed(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	resp, err := h.stream.GetTrendingFeed(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_trending_feed", "message": err.Error()})
+		return
+	}
+
+	// Flatten groups into activities for the plugin's feed display
+	// Each group contains activities - we extract them for flat display
+	var activities []*stream.Activity
+	for _, group := range resp.Groups {
+		activities = append(activities, group.Activities...)
+	}
+
+	// Limit to requested amount after flattening
+	if len(activities) > limit {
+		activities = activities[:limit]
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+		},
+	})
+}
+
+// GetTrendingFeedGrouped gets trending loops grouped by genre/time
+// Returns aggregated groups for advanced display ("5 new electronic loops this week")
+// GET /api/feed/trending/grouped
+func (h *Handlers) GetTrendingFeedGrouped(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
@@ -1404,12 +1445,13 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 
 	// Find users with most activity (posts) in the time period
 	// Also factor in follower growth and engagement
+	// Use distinct alias 'recent_post_count' to avoid conflict with users.post_count column
 	var users []models.User
 	result := database.DB.
-		Select("users.*, COUNT(audio_posts.id) as post_count").
+		Select("users.*, COUNT(audio_posts.id) as recent_post_count").
 		Joins("LEFT JOIN audio_posts ON audio_posts.user_id = users.id AND audio_posts.created_at > ?", since).
 		Group("users.id").
-		Order("post_count DESC, users.follower_count DESC").
+		Order("recent_post_count DESC, users.follower_count DESC").
 		Limit(limit).
 		Find(&users)
 

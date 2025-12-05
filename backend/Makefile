@@ -120,7 +120,7 @@ test:
 
 test-unit:
 	@echo "⚡ Running unit tests..."
-	@go test ./internal/... -v -race -timeout 10s
+	@go test ./internal/... -v -race -p 1 -timeout 120s
 	@echo "✅ Unit tests passed"
 
 test-integration:
@@ -130,9 +130,8 @@ test-integration:
 
 test-coverage:
 	@echo "📊 Generating test coverage..."
-	@go test ./... -coverprofile=coverage.out -covermode=atomic
+	@go test ./... -p 1 -coverprofile=coverage.out -covermode=atomic
 	@go tool cover -html=coverage.out -o coverage.html
-	@open coverage.html
 	@echo "✅ Coverage report: coverage.html"
 
 bench:

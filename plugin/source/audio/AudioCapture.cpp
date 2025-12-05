@@ -1,4 +1,5 @@
 #include "AudioCapture.h"
+#include "../util/Constants.h"
 
 //==============================================================================
 AudioCapture::AudioCapture()
@@ -15,8 +16,8 @@ void AudioCapture::prepare(double sampleRate, int samplesPerBlock, int numChanne
     currentSampleRate = sampleRate;
     currentNumChannels = juce::jmin(numChannels, MaxChannels);
 
-    // Initialize buffers for 60 seconds of audio maximum
-    maxRecordingSamples = static_cast<int>(sampleRate * 60.0);
+    // Initialize buffers for max recording duration
+    maxRecordingSamples = static_cast<int>(sampleRate * Constants::Audio::MAX_RECORDING_SECONDS);
 
     initializeBuffers();
     resetLevels();

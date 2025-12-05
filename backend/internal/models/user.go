@@ -1,11 +1,60 @@
 package models
 
 import (
+	"database/sql/driver"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+// StringArray is a custom type for PostgreSQL text[] that implements Scanner and Valuer
+type StringArray []string
+
+// Scan implements the sql.Scanner interface for reading from database
+func (a *StringArray) Scan(value interface{}) error {
+	if value == nil {
+		*a = nil
+		return nil
+	}
+
+	// PostgreSQL returns text[] as a string like "{value1,value2,value3}"
+	str, ok := value.(string)
+	if !ok {
+		// Try []byte
+		if bytes, ok := value.([]byte); ok {
+			str = string(bytes)
+		} else {
+			*a = nil
+			return nil
+		}
+	}
+
+	// Remove the curly braces
+	str = strings.TrimPrefix(str, "{")
+	str = strings.TrimSuffix(str, "}")
+
+	if str == "" {
+		*a = []string{}
+		return nil
+	}
+
+	// Split by comma (simple case - doesn't handle quoted values with commas)
+	*a = strings.Split(str, ",")
+	return nil
+}
+
+// Value implements the driver.Valuer interface for writing to database
+func (a StringArray) Value() (driver.Value, error) {
+	if a == nil {
+		return nil, nil
+	}
+	if len(a) == 0 {
+		return "{}", nil
+	}
+	return "{" + strings.Join(a, ",") + "}", nil
+}
 
 // SocialLinks stores user's external profile links
 type SocialLinks struct {
@@ -39,7 +88,7 @@ type User struct {
 	AvatarURL         string       `json:"avatar_url"`
 	ProfilePictureURL string       `json:"profile_picture_url"` // S3 URL for uploaded profile picture
 	DAWPreference     string       `json:"daw_preference"`
-	Genre             []string     `gorm:"type:text[]" json:"genre"`
+	Genre             StringArray  `gorm:"type:text[]" json:"genre"`
 	SocialLinks       *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
 
 	// Social stats (fetched from Stream.io - these are cached values, not source of truth)
@@ -77,9 +126,9 @@ type AudioPost struct {
 	// Audio metadata
 	BPM          int      `json:"bpm"`
 	Key          string   `json:"key"`
-	DurationBars int      `json:"duration_bars"`
-	DAW          string   `json:"daw"`
-	Genre        []string `gorm:"type:text[]" json:"genre"`
+	DurationBars int         `json:"duration_bars"`
+	DAW          string      `json:"daw"`
+	Genre        StringArray `gorm:"type:text[]" json:"genre"`
 
 	// Visual data
 	WaveformSVG string `gorm:"type:text" json:"waveform_svg"`
@@ -245,6 +294,10 @@ func (d *Device) BeforeCreate(tx *gorm.DB) error {
 func (c *Comment) BeforeCreate(tx *gorm.DB) error {
 	if c.ID == "" {
 		c.ID = generateUUID()
+	}
+	// StreamActivityID has a unique index - generate if not provided
+	if c.StreamActivityID == "" {
+		c.StreamActivityID = generateUUID()
 	}
 	return nil
 }

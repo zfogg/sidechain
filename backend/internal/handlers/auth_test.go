@@ -138,10 +138,13 @@ func (suite *AuthTestSuite) SetupSuite() {
 	// Set global DB for database package
 	database.DB = db
 
-	// Create test tables
+	// Create all test tables - ensures tests work regardless of run order
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.OAuthProvider{},
+		&models.AudioPost{},
+		&models.Comment{},
+		&models.CommentMention{},
 	)
 	require.NoError(suite.T(), err)
 
@@ -180,10 +183,10 @@ func (suite *AuthTestSuite) setupRoutes() {
 	users.POST("/upload-profile-picture", suite.authHandlers.UploadProfilePicture)
 }
 
-// TearDownSuite cleans up after tests
+// TearDownSuite cleans up - only closes connection, doesn't drop tables
+// to allow other test suites to run against the same database
 func (suite *AuthTestSuite) TearDownSuite() {
 	if suite.db != nil {
-		suite.db.Exec("DROP TABLE IF EXISTS oauth_providers, users CASCADE")
 		sqlDB, _ := suite.db.DB()
 		sqlDB.Close()
 	}

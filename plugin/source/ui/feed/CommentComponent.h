@@ -125,7 +125,6 @@ private:
 
     // Cached avatar image
     juce::Image avatarImage;
-    bool avatarLoadRequested = false;
 
     //==============================================================================
     // Drawing methods

@@ -1,7 +1,5 @@
 cloud.google.com/go/compute/metadata v0.3.0 h1:Tz+eQXMEqDIKRsmY3cHTL6FVaynIjX2QxYC4trgAKZc=
 cloud.google.com/go/compute/metadata v0.3.0/go.mod h1:zFmK7XCadkQkj6TtorcaGlCW1hT1fIilQDwofLpJ20k=
-github.com/GetStream/getstream-go/v3 v3.7.0 h1:GzpyJ1lUacTHAIGyh0mMrP7f0hd1bQ/UEU1nyrNC9tk=
-github.com/GetStream/getstream-go/v3 v3.7.0/go.mod h1:myW37DwbXEM2DrQy578MsWZcJzw/wjFLF3iPm71wwgg=
 github.com/GetStream/stream-chat-go/v5 v5.8.1 h1:nO3pfa4p4o6KEZOAXaaII3bhdrMrfT2zs6VduchuJws=
 github.com/GetStream/stream-chat-go/v5 v5.8.1/go.mod h1:ET7NyUYplNy8+tyliin6Q3kKwbd/+FHQWMAW6zucisY=
 github.com/GetStream/stream-go2/v8 v8.9.0 h1:N2U2bCReLql4FQrYWVCPWbTN/nILR1QRyf0XxvoH4+I=
@@ -76,7 +74,6 @@ github.com/go-playground/validator/v10 v10.20.0 h1:K9ISHbSaI0lyB2eWMPJo+kOS/FBEx
 github.com/go-playground/validator/v10 v10.20.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/goccy/go-json v0.10.2 h1:CrxCmQqYDkv1z7lO7Wbh2HN93uovUHgrECaO5ZrCXAU=
 github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MGFi0w8I=
-github.com/golang-jwt/jwt/v4 v4.0.0 h1:RAqyYixv1p7uEnocuy8P1nru5wprCh/MH2BIlW5z5/o=
 github.com/golang-jwt/jwt/v4 v4.0.0/go.mod h1:/xlHOz8bRuivTWchD4jCa+NbatV+wEUSzwAxVc6locg=
 github.com/golang-jwt/jwt/v4 v4.5.0 h1:7cYmW1XlMY7h7ii7UhUyChSgS5wUJEnm9uZVTGqOWzg=
 github.com/golang-jwt/jwt/v4 v4.5.0/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=

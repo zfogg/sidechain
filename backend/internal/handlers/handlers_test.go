@@ -1,0 +1,904 @@
+package handlers
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/models"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+)
+
+// HandlersTestSuite contains handler tests that don't require Stream.io
+type HandlersTestSuite struct {
+	suite.Suite
+	db       *gorm.DB
+	router   *gin.Engine
+	handlers *Handlers
+	testUser *models.User
+}
+
+// SetupSuite initializes test database and handlers
+func (suite *HandlersTestSuite) SetupSuite() {
+	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
+	port := getEnvOrDefault("POSTGRES_PORT", "5432")
+	user := getEnvOrDefault("POSTGRES_USER", "postgres")
+	password := getEnvOrDefault("POSTGRES_PASSWORD", "")
+	dbname := getEnvOrDefault("POSTGRES_DB", "sidechain_test")
+
+	testDSN := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", host, port, user, dbname)
+	if password != "" {
+		testDSN = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	}
+
+	db, err := gorm.Open(postgres.Open(testDSN), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+	if err != nil {
+		suite.T().Skipf("Skipping handler tests: database not available (%v)", err)
+		return
+	}
+
+	database.DB = db
+
+	// Create all test tables - ensures tests work regardless of run order
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.OAuthProvider{},
+		&models.AudioPost{},
+		&models.Comment{},
+		&models.CommentMention{},
+	)
+	require.NoError(suite.T(), err)
+
+	suite.db = db
+	suite.handlers = NewHandlers(nil, nil)
+
+	gin.SetMode(gin.TestMode)
+	suite.router = gin.New()
+	suite.setupRoutes()
+}
+
+// setupRoutes configures the test router
+func (suite *HandlersTestSuite) setupRoutes() {
+	// Auth middleware that sets user_id and user from header
+	authMiddleware := func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.Abort()
+			return
+		}
+		c.Set("user_id", userID)
+
+		// Also load the user object for handlers that need it
+		var user models.User
+		if err := database.DB.First(&user, "id = ?", userID).Error; err == nil {
+			c.Set("user", &user)
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+
+	// Public routes (no auth)
+	suite.router.POST("/api/devices/register", suite.handlers.RegisterDevice)
+	// NOTE: ClaimDevice calls stream.CreateUser() which requires stream client
+	// We test it separately or skip when stream is nil
+	suite.router.GET("/api/verify", suite.handlers.VerifyToken)
+	suite.router.GET("/api/search/users", suite.handlers.SearchUsers)
+	suite.router.GET("/api/discover/trending", suite.handlers.GetTrendingUsers)
+	suite.router.GET("/api/discover/featured", suite.handlers.GetFeaturedProducers)
+	suite.router.GET("/api/discover/genre/:genre", suite.handlers.GetUsersByGenre)
+	suite.router.GET("/api/discover/genres", suite.handlers.GetAvailableGenres)
+
+	// Profile routes (some public)
+	suite.router.GET("/api/users/:id/profile", suite.handlers.GetUserProfile)
+	suite.router.GET("/api/users/:id/similar", suite.handlers.GetSimilarUsers)
+
+	// Authenticated routes
+	api := suite.router.Group("/api")
+	api.Use(authMiddleware)
+
+	api.GET("/profile", suite.handlers.GetMyProfile)
+	api.PUT("/profile", suite.handlers.UpdateMyProfile)
+	api.PUT("/users/username", suite.handlers.ChangeUsername)
+	api.GET("/discover/suggested", suite.handlers.GetSuggestedUsers)
+}
+
+// TearDownSuite cleans up - only closes connection, doesn't drop tables
+// to allow other test suites to run against the same database
+func (suite *HandlersTestSuite) TearDownSuite() {
+	sqlDB, _ := suite.db.DB()
+	sqlDB.Close()
+}
+
+// SetupTest creates fresh test data before each test
+func (suite *HandlersTestSuite) SetupTest() {
+	// Only truncate tables that exist from AutoMigrate
+	suite.db.Exec("TRUNCATE TABLE comment_mentions, comments, audio_posts RESTART IDENTITY CASCADE")
+	suite.db.Exec("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
+
+	testID := fmt.Sprintf("%d", time.Now().UnixNano())
+	suite.testUser = &models.User{
+		Email:          fmt.Sprintf("testuser_%s@test.com", testID),
+		Username:       fmt.Sprintf("testuser_%s", testID[:12]),
+		DisplayName:    "Test User",
+		StreamUserID:   fmt.Sprintf("stream_user_%s", testID),
+		Bio:            "Test bio",
+		Location:       "Test City",
+		DAWPreference:  "Ableton",
+		FollowerCount:  10,
+		FollowingCount: 5,
+		PostCount:      3,
+	}
+	err := suite.db.Create(suite.testUser).Error
+	require.NoError(suite.T(), err, "Failed to create test user")
+	require.NotEmpty(suite.T(), suite.testUser.ID, "Test user ID should be populated after create")
+}
+
+// =============================================================================
+// DEVICE REGISTRATION TESTS
+// =============================================================================
+
+func (suite *HandlersTestSuite) TestRegisterDevice() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("POST", "/api/devices/register", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.NotEmpty(t, response["device_id"])
+	assert.Equal(t, "pending_claim", response["status"])
+	assert.Contains(t, response["claim_url"], "/auth/claim/")
+}
+
+// NOTE: ClaimDevice tests are skipped because they require a Stream.io client.
+// The handler calls h.stream.CreateUser() which panics with nil client.
+// These should be tested in integration tests with a real Stream.io connection.
+
+func (suite *HandlersTestSuite) TestClaimDeviceRequiresStreamClient() {
+	// This test documents that ClaimDevice requires Stream.io
+	// In a real setup, you would mock the stream client or use integration tests
+	suite.T().Skip("ClaimDevice requires Stream.io client - test in integration tests")
+}
+
+// =============================================================================
+// TOKEN VERIFICATION TESTS
+// =============================================================================
+
+func (suite *HandlersTestSuite) TestVerifyTokenValid() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/verify", nil)
+	req.Header.Set("Authorization", "Bearer very_long_valid_token_12345")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, true, response["valid"])
+}
+
+func (suite *HandlersTestSuite) TestVerifyTokenMissing() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/verify", nil)
+	// No Authorization header
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func (suite *HandlersTestSuite) TestVerifyTokenTooShort() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/verify", nil)
+	req.Header.Set("Authorization", "short")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, false, response["valid"])
+}
+
+// =============================================================================
+// PROFILE TESTS
+// =============================================================================
+
+func (suite *HandlersTestSuite) TestGetUserProfile() {
+	t := suite.T()
+
+	// Verify the user exists in database before making request
+	var verifyUser models.User
+	err := database.DB.First(&verifyUser, "id = ?", suite.testUser.ID).Error
+	require.NoError(t, err, "User should exist in database.DB before API call")
+	require.Equal(t, suite.testUser.ID, verifyUser.ID, "User ID should match")
+
+	req, _ := http.NewRequest("GET", "/api/users/"+suite.testUser.ID+"/profile", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code, "Response body: %s", w.Body.String())
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, suite.testUser.ID, response["id"])
+	assert.Equal(t, suite.testUser.Username, response["username"])
+	assert.Equal(t, suite.testUser.DisplayName, response["display_name"])
+	assert.Equal(t, suite.testUser.Bio, response["bio"])
+}
+
+func (suite *HandlersTestSuite) TestGetUserProfileNotFound() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/users/nonexistent-user-id/profile", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func (suite *HandlersTestSuite) TestGetMyProfile() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/profile", nil)
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, suite.testUser.ID, response["id"])
+	assert.Equal(t, suite.testUser.Email, response["email"])
+	assert.Equal(t, suite.testUser.Username, response["username"])
+}
+
+func (suite *HandlersTestSuite) TestGetMyProfileUnauthorized() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/profile", nil)
+	// No X-User-ID header
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func (suite *HandlersTestSuite) TestUpdateMyProfile() {
+	t := suite.T()
+
+	body := map[string]interface{}{
+		"display_name":   "Updated Name",
+		"bio":            "Updated bio",
+		"location":       "New City",
+		"daw_preference": "FL Studio",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/profile", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, "profile_updated", response["message"])
+
+	user := response["user"].(map[string]interface{})
+	assert.Equal(t, "Updated Name", user["display_name"])
+	assert.Equal(t, "Updated bio", user["bio"])
+	assert.Equal(t, "New City", user["location"])
+	assert.Equal(t, "FL Studio", user["daw_preference"])
+
+	// Verify in database
+	var dbUser models.User
+	suite.db.First(&dbUser, "id = ?", suite.testUser.ID)
+	assert.Equal(t, "Updated Name", dbUser.DisplayName)
+}
+
+func (suite *HandlersTestSuite) TestUpdateMyProfileNoFields() {
+	t := suite.T()
+
+	body := map[string]interface{}{}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/profile", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "no_fields_to_update", response["error"])
+}
+
+// =============================================================================
+// USERNAME CHANGE TESTS
+// =============================================================================
+
+func (suite *HandlersTestSuite) TestChangeUsernameSuccess() {
+	t := suite.T()
+
+	body := map[string]interface{}{
+		"username": "newusername123",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/users/username", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, "username_changed", response["message"])
+	assert.Equal(t, "newusername123", response["username"])
+	assert.Equal(t, suite.testUser.Username, response["old_username"])
+
+	// Verify in database
+	var dbUser models.User
+	suite.db.First(&dbUser, "id = ?", suite.testUser.ID)
+	assert.Equal(t, "newusername123", dbUser.Username)
+}
+
+func (suite *HandlersTestSuite) TestChangeUsernameTooShort() {
+	t := suite.T()
+
+	body := map[string]interface{}{
+		"username": "ab",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/users/username", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "username_too_short", response["error"])
+}
+
+func (suite *HandlersTestSuite) TestChangeUsernameTooLong() {
+	t := suite.T()
+
+	body := map[string]interface{}{
+		"username": "this_username_is_way_too_long_for_the_system",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/users/username", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "username_too_long", response["error"])
+}
+
+func (suite *HandlersTestSuite) TestChangeUsernameInvalidChars() {
+	t := suite.T()
+
+	body := map[string]interface{}{
+		"username": "user@name!",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/users/username", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "username_invalid_chars", response["error"])
+}
+
+func (suite *HandlersTestSuite) TestChangeUsernameTaken() {
+	t := suite.T()
+
+	// Create another user with a known username
+	otherID := fmt.Sprintf("%d", time.Now().UnixNano())
+	otherUser := &models.User{
+		Email:        fmt.Sprintf("other_%s@test.com", otherID),
+		Username:     "takenusername",
+		DisplayName:  "Other User",
+		StreamUserID: fmt.Sprintf("stream_other_%s", otherID),
+	}
+	require.NoError(t, suite.db.Create(otherUser).Error)
+
+	body := map[string]interface{}{
+		"username": "takenusername",
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/users/username", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusConflict, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "username_taken", response["error"])
+}
+
+func (suite *HandlersTestSuite) TestChangeUsernameUnchanged() {
+	t := suite.T()
+
+	body := map[string]interface{}{
+		"username": suite.testUser.Username,
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", "/api/users/username", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "username_unchanged", response["message"])
+}
+
+// =============================================================================
+// USER SEARCH AND DISCOVERY TESTS
+// =============================================================================
+
+func (suite *HandlersTestSuite) TestSearchUsers() {
+	t := suite.T()
+
+	// Create searchable users
+	for i := 0; i < 5; i++ {
+		user := &models.User{
+			Email:        fmt.Sprintf("searchuser%d_%d@test.com", i, time.Now().UnixNano()),
+			Username:     fmt.Sprintf("beatmaker%d", i),
+			DisplayName:  fmt.Sprintf("Beat Maker %d", i),
+			StreamUserID: fmt.Sprintf("stream_search_%d_%d", i, time.Now().UnixNano()),
+		}
+		require.NoError(t, suite.db.Create(user).Error)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/search/users?q=beatmaker", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	users := response["users"].([]interface{})
+	assert.GreaterOrEqual(t, len(users), 5)
+
+	meta := response["meta"].(map[string]interface{})
+	assert.Equal(t, "beatmaker", meta["query"])
+}
+
+func (suite *HandlersTestSuite) TestSearchUsersMissingQuery() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/search/users", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "search_query_required", response["error"])
+}
+
+func (suite *HandlersTestSuite) TestSearchUsersPagination() {
+	t := suite.T()
+
+	// Create many users
+	for i := 0; i < 30; i++ {
+		user := &models.User{
+			Email:        fmt.Sprintf("producer%d_%d@test.com", i, time.Now().UnixNano()),
+			Username:     fmt.Sprintf("producer%d", i),
+			DisplayName:  fmt.Sprintf("Producer %d", i),
+			StreamUserID: fmt.Sprintf("stream_producer_%d_%d", i, time.Now().UnixNano()),
+		}
+		require.NoError(t, suite.db.Create(user).Error)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/search/users?q=producer&limit=10&offset=0", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	users := response["users"].([]interface{})
+	assert.LessOrEqual(t, len(users), 10)
+
+	meta := response["meta"].(map[string]interface{})
+	assert.Equal(t, float64(10), meta["limit"])
+	assert.Equal(t, float64(0), meta["offset"])
+}
+
+func (suite *HandlersTestSuite) TestGetTrendingUsers() {
+	t := suite.T()
+
+	// Create users with posts
+	for i := 0; i < 5; i++ {
+		user := &models.User{
+			Email:         fmt.Sprintf("trending%d_%d@test.com", i, time.Now().UnixNano()),
+			Username:      fmt.Sprintf("trendinguser%d", i),
+			DisplayName:   fmt.Sprintf("Trending User %d", i),
+			StreamUserID:  fmt.Sprintf("stream_trending_%d_%d", i, time.Now().UnixNano()),
+			FollowerCount: (5 - i) * 100,
+		}
+		require.NoError(t, suite.db.Create(user).Error)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/discover/trending?period=week&limit=10", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, "week", response["period"])
+	assert.NotNil(t, response["users"])
+}
+
+func (suite *HandlersTestSuite) TestGetFeaturedProducers() {
+	t := suite.T()
+
+	// Create featured-worthy users (high follower count, active recently, has posts)
+	now := time.Now()
+	for i := 0; i < 3; i++ {
+		user := &models.User{
+			Email:         fmt.Sprintf("featured%d_%d@test.com", i, time.Now().UnixNano()),
+			Username:      fmt.Sprintf("featureduser%d", i),
+			DisplayName:   fmt.Sprintf("Featured User %d", i),
+			StreamUserID:  fmt.Sprintf("stream_featured_%d_%d", i, time.Now().UnixNano()),
+			FollowerCount: 100 + i*50,
+			PostCount:     5 + i,
+			LastActiveAt:  &now,
+		}
+		require.NoError(t, suite.db.Create(user).Error)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/discover/featured?limit=10", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.NotNil(t, response["users"])
+}
+
+func (suite *HandlersTestSuite) TestGetUsersByGenre() {
+	t := suite.T()
+
+	// Create users with specific genre (using raw SQL for PostgreSQL array)
+	for i := 0; i < 5; i++ {
+		user := &models.User{
+			Email:         fmt.Sprintf("houseuser%d_%d@test.com", i, time.Now().UnixNano()),
+			Username:      fmt.Sprintf("houseprod%d", i),
+			DisplayName:   fmt.Sprintf("House Producer %d", i),
+			StreamUserID:  fmt.Sprintf("stream_house_%d_%d", i, time.Now().UnixNano()),
+			FollowerCount: i * 10,
+		}
+		require.NoError(t, suite.db.Create(user).Error)
+		suite.db.Exec("UPDATE users SET genre = '{House,Techno}' WHERE id = ?", user.ID)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/discover/genre/House", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, "House", response["genre"])
+	users := response["users"].([]interface{})
+	assert.GreaterOrEqual(t, len(users), 5)
+}
+
+func (suite *HandlersTestSuite) TestGetAvailableGenres() {
+	t := suite.T()
+
+	// Create users with various genres (using raw SQL for PostgreSQL array)
+	genres := []string{
+		"{Electronic,House}",
+		"{House,Techno}",
+		"{Hip-Hop,Trap}",
+		"{Electronic,Ambient}",
+	}
+
+	for i, g := range genres {
+		user := &models.User{
+			Email:        fmt.Sprintf("genreuser%d_%d@test.com", i, time.Now().UnixNano()),
+			Username:     fmt.Sprintf("genreuser%d", i),
+			DisplayName:  fmt.Sprintf("Genre User %d", i),
+			StreamUserID: fmt.Sprintf("stream_genre_%d_%d", i, time.Now().UnixNano()),
+		}
+		require.NoError(t, suite.db.Create(user).Error)
+		suite.db.Exec("UPDATE users SET genre = '"+g+"' WHERE id = ?", user.ID)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/discover/genres", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.NotNil(t, response["genres"])
+}
+
+func (suite *HandlersTestSuite) TestGetSimilarUsersNoPosts() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("GET", "/api/users/"+suite.testUser.ID+"/similar", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, "no_posts_to_analyze", response["reason"])
+}
+
+func (suite *HandlersTestSuite) TestGetSimilarUsersWithPosts() {
+	t := suite.T()
+
+	// Create posts for the test user with unique StreamActivityID
+	for i := 0; i < 5; i++ {
+		post := &models.AudioPost{
+			UserID:           suite.testUser.ID,
+			AudioURL:         fmt.Sprintf("https://example.com/audio%d.mp3", i),
+			OriginalFilename: fmt.Sprintf("loop%d.mp3", i),
+			BPM:              120 + i*5,
+			Key:              "C minor",
+			ProcessingStatus: "complete",
+			IsPublic:         true,
+			StreamActivityID: fmt.Sprintf("stream_activity_%d_%d", i, time.Now().UnixNano()),
+		}
+		require.NoError(t, suite.db.Create(post).Error)
+	}
+
+	// Create another user with similar posts
+	otherID := fmt.Sprintf("%d", time.Now().UnixNano())
+	otherUser := &models.User{
+		Email:        fmt.Sprintf("similar_%s@test.com", otherID),
+		Username:     fmt.Sprintf("similaruser%s", otherID[:8]),
+		DisplayName:  "Similar User",
+		StreamUserID: fmt.Sprintf("stream_similar_%s", otherID),
+	}
+	require.NoError(t, suite.db.Create(otherUser).Error)
+
+	for i := 0; i < 3; i++ {
+		post := &models.AudioPost{
+			UserID:           otherUser.ID,
+			AudioURL:         fmt.Sprintf("https://example.com/similar%d.mp3", i),
+			OriginalFilename: fmt.Sprintf("similar%d.mp3", i),
+			BPM:              125, // Within range
+			Key:              "C minor",
+			ProcessingStatus: "complete",
+			IsPublic:         true,
+			StreamActivityID: fmt.Sprintf("stream_activity_similar_%d_%d", i, time.Now().UnixNano()),
+		}
+		require.NoError(t, suite.db.Create(post).Error)
+	}
+
+	req, _ := http.NewRequest("GET", "/api/users/"+suite.testUser.ID+"/similar?limit=5", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	// Should have BPM and key analysis
+	assert.NotNil(t, response["analyzed_bpm"])
+	assert.NotNil(t, response["analyzed_key"])
+}
+
+// =============================================================================
+// HELPER FUNCTION TESTS
+// =============================================================================
+
+func TestIsValidAudioFile(t *testing.T) {
+	testCases := []struct {
+		filename string
+		expected bool
+	}{
+		{"loop.mp3", true},
+		{"loop.wav", true},
+		{"loop.aiff", true},
+		{"loop.aif", true},
+		{"loop.m4a", true},
+		{"loop.flac", true},
+		{"loop.ogg", true},
+		{"loop.txt", false},
+		{"loop.exe", false},
+		{"loop.MP3", true}, // Case insensitive
+		{"loop.WAV", true},
+		{"", false},
+		{"noextension", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.filename, func(t *testing.T) {
+			result := isValidAudioFile(tc.filename)
+			assert.Equal(t, tc.expected, result, "Expected %v for %s", tc.expected, tc.filename)
+		})
+	}
+}
+
+func TestParseInt(t *testing.T) {
+	testCases := []struct {
+		input        string
+		defaultValue int
+		expected     int
+	}{
+		{"123", 0, 123},
+		{"", 100, 100},
+		{"invalid", 50, 50},
+		{"-10", 0, -10},
+		{"0", 100, 0},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			result := parseInt(tc.input, tc.defaultValue)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestParseFloat(t *testing.T) {
+	testCases := []struct {
+		input        string
+		defaultValue float64
+		expected     float64
+	}{
+		{"44100.0", 0, 44100.0},
+		{"", 48000.0, 48000.0},
+		{"invalid", 44100.0, 44100.0},
+		{"48000", 0, 48000.0},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			result := parseFloat(tc.input, tc.defaultValue)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestParseGenreArray(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected []string
+	}{
+		{"Electronic", []string{"Electronic"}},
+		{"", []string{}},
+		{"House, Techno", []string{"House, Techno"}}, // Current impl just wraps
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			result := parseGenreArray(tc.input)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+// =============================================================================
+// RUN SUITE
+// =============================================================================
+
+func TestHandlersSuite(t *testing.T) {
+	if os.Getenv("SKIP_DB_TESTS") == "true" {
+		t.Skip("Skipping database tests")
+	}
+
+	suite.Run(t, new(HandlersTestSuite))
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}

@@ -56,9 +56,10 @@ func (suite *CommentTestSuite) SetupSuite() {
 	// Set global DB for database package
 	database.DB = db
 
-	// Create test tables
+	// Create all test tables - ensures tests work regardless of run order
 	err = db.AutoMigrate(
 		&models.User{},
+		&models.OAuthProvider{},
 		&models.AudioPost{},
 		&models.Comment{},
 		&models.CommentMention{},
@@ -106,18 +107,17 @@ func (suite *CommentTestSuite) setupRoutes() {
 	comments.DELETE("/:id/like", suite.handlers.UnlikeComment)
 }
 
-// TearDownSuite cleans up after tests
+// TearDownSuite cleans up - only closes connection, doesn't drop tables
+// to allow other test suites to run against the same database
 func (suite *CommentTestSuite) TearDownSuite() {
-	suite.db.Exec("DROP TABLE IF EXISTS comment_mentions, comments, audio_posts, users CASCADE")
-
 	sqlDB, _ := suite.db.DB()
 	sqlDB.Close()
 }
 
 // SetupTest creates fresh test data before each test
 func (suite *CommentTestSuite) SetupTest() {
-	// Use TRUNCATE CASCADE for proper cleanup
-	suite.db.Exec("TRUNCATE TABLE comment_mentions, comments, audio_posts, oauth_providers, password_resets, devices RESTART IDENTITY CASCADE")
+	// Use TRUNCATE CASCADE for proper cleanup (only tables from AutoMigrate)
+	suite.db.Exec("TRUNCATE TABLE comment_mentions, comments, audio_posts RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
 
 	// Create test user with unique identifiers per test
