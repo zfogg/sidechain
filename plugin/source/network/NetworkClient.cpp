@@ -1,5 +1,7 @@
 #include "NetworkClient.h"
 #include "../util/HttpErrorHandler.h"
+#include "../util/Log.h"
+#include "../util/Async.h"
 
 //==============================================================================
 // RequestResult helper methods
@@ -69,8 +71,8 @@ int NetworkClient::parseStatusCode(const juce::StringPairArray& headers)
 NetworkClient::NetworkClient(const Config& cfg)
     : config(cfg)
 {
-    DBG("NetworkClient initialized with base URL: " + config.baseUrl);
-    DBG("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
+    Log::info("NetworkClient initialized with base URL: " + config.baseUrl);
+    Log::debug("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
 }
 
 NetworkClient::~NetworkClient()
@@ -100,23 +102,27 @@ void NetworkClient::checkConnection()
 {
     updateConnectionStatus(ConnectionStatus::Connecting);
 
-    juce::Thread::launch([this]() {
-        if (shuttingDown.load())
-            return;
+    Async::runVoid(
+        [this]() {
+            if (shuttingDown.load())
+                return;
 
-        auto result = makeRequestWithRetry("/health", "GET", juce::var(), false);
+            auto result = makeRequestWithRetry("/health", "GET", juce::var(), false);
 
-        if (result.success)
-        {
-            updateConnectionStatus(ConnectionStatus::Connected);
-            DBG("Connection check: Connected to backend");
+            juce::MessageManager::callAsync([this, result]() {
+                if (result.success)
+                {
+                    updateConnectionStatus(ConnectionStatus::Connected);
+                    Log::debug("Connection check: Connected to backend");
+                }
+                else
+                {
+                    updateConnectionStatus(ConnectionStatus::Disconnected);
+                    Log::warn("Connection check: Failed - " + result.errorMessage);
+                }
+            });
         }
-        else
-        {
-            updateConnectionStatus(ConnectionStatus::Disconnected);
-            DBG("Connection check: Failed - " + result.errorMessage);
-        }
-    });
+    );
 }
 
 void NetworkClient::cancelAllRequests()
@@ -135,7 +141,7 @@ void NetworkClient::cancelAllRequests()
 void NetworkClient::setConfig(const Config& newConfig)
 {
     config = newConfig;
-    DBG("NetworkClient config updated - base URL: " + config.baseUrl);
+    Log::info("NetworkClient config updated - base URL: " + config.baseUrl);
 }
 
 //==============================================================================
@@ -143,97 +149,107 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
                                    const juce::String& password, const juce::String& displayName,
                                    AuthenticationCallback callback)
 {
-    juce::Thread::launch([this, email, username, password, displayName, callback]() {
-        juce::var registerData = juce::var(new juce::DynamicObject());
-        registerData.getDynamicObject()->setProperty("email", email);
-        registerData.getDynamicObject()->setProperty("username", username);
-        registerData.getDynamicObject()->setProperty("password", password);
-        registerData.getDynamicObject()->setProperty("display_name", displayName);
-        
-        auto response = makeRequest("/api/v1/auth/register", "POST", registerData, false);
-        
-        if (response.isObject())
-        {
-            auto authData = response.getProperty("auth", juce::var());
-            if (authData.isObject())
+    Async::runVoid(
+        [this, email, username, password, displayName, callback]() {
+            juce::var registerData = juce::var(new juce::DynamicObject());
+            registerData.getDynamicObject()->setProperty("email", email);
+            registerData.getDynamicObject()->setProperty("username", username);
+            registerData.getDynamicObject()->setProperty("password", password);
+            registerData.getDynamicObject()->setProperty("display_name", displayName);
+            
+            auto response = makeRequest("/api/v1/auth/register", "POST", registerData, false);
+            
+            juce::String token, userId, responseUsername;
+            bool success = false;
+            
+            if (response.isObject())
             {
-                auto token = authData.getProperty("token", "").toString();
-                auto user = authData.getProperty("user", juce::var());
-                
-                if (!token.isEmpty() && user.isObject())
+                auto authData = response.getProperty("auth", juce::var());
+                if (authData.isObject())
                 {
-                    auto userId = user.getProperty("id", "").toString();
-                    auto responseUsername = user.getProperty("username", "").toString();
+                    token = authData.getProperty("token", "").toString();
+                    auto user = authData.getProperty("user", juce::var());
                     
+                    if (!token.isEmpty() && user.isObject())
+                    {
+                        userId = user.getProperty("id", "").toString();
+                        responseUsername = user.getProperty("username", "").toString();
+                        success = true;
+                    }
+                }
+            }
+            
+            juce::MessageManager::callAsync([this, callback, token, userId, responseUsername, success]() {
+                if (success)
+                {
                     // Store authentication info
                     authToken = token;
                     currentUserId = userId;
                     currentUsername = responseUsername;
                     
-                    // Call callback on message thread
-                    juce::MessageManager::callAsync([callback, token, userId]() {
-                        callback(token, userId);
-                    });
-                    
-                    DBG("Account registered successfully: " + responseUsername);
-                    return;
+                    callback(token, userId);
+                    Log::info("Account registered successfully: " + responseUsername);
                 }
-            }
+                else
+                {
+                    callback("", "");
+                    Log::error("Account registration failed");
+                }
+            });
         }
-        
-        // Registration failed
-        juce::MessageManager::callAsync([callback]() {
-            callback("", "");
-        });
-        DBG("Account registration failed");
-    });
+    );
 }
 
 void NetworkClient::loginAccount(const juce::String& email, const juce::String& password, 
                                 AuthenticationCallback callback)
 {
-    juce::Thread::launch([this, email, password, callback]() {
-        juce::var loginData = juce::var(new juce::DynamicObject());
-        loginData.getDynamicObject()->setProperty("email", email);
-        loginData.getDynamicObject()->setProperty("password", password);
-        
-        auto response = makeRequest("/api/v1/auth/login", "POST", loginData, false);
-        
-        if (response.isObject())
-        {
-            auto authData = response.getProperty("auth", juce::var());
-            if (authData.isObject())
+    Async::runVoid(
+        [this, email, password, callback]() {
+            juce::var loginData = juce::var(new juce::DynamicObject());
+            loginData.getDynamicObject()->setProperty("email", email);
+            loginData.getDynamicObject()->setProperty("password", password);
+            
+            auto response = makeRequest("/api/v1/auth/login", "POST", loginData, false);
+            
+            juce::String token, userId, username;
+            bool success = false;
+            
+            if (response.isObject())
             {
-                auto token = authData.getProperty("token", "").toString();
-                auto user = authData.getProperty("user", juce::var());
-                
-                if (!token.isEmpty() && user.isObject())
+                auto authData = response.getProperty("auth", juce::var());
+                if (authData.isObject())
                 {
-                    auto userId = user.getProperty("id", "").toString();
-                    auto username = user.getProperty("username", "").toString();
+                    token = authData.getProperty("token", "").toString();
+                    auto user = authData.getProperty("user", juce::var());
                     
+                    if (!token.isEmpty() && user.isObject())
+                    {
+                        userId = user.getProperty("id", "").toString();
+                        username = user.getProperty("username", "").toString();
+                        success = true;
+                    }
+                }
+            }
+            
+            juce::MessageManager::callAsync([this, callback, token, userId, username, success]() {
+                if (success)
+                {
                     // Store authentication info
                     authToken = token;
                     currentUserId = userId;
                     currentUsername = username;
                     
-                    // Call callback on message thread
-                    juce::MessageManager::callAsync([callback, token, userId]() {
-                        callback(token, userId);
-                    });
-                    
-                    DBG("Login successful: " + username);
-                    return;
+                    callback(token, userId);
+                    Log::info("Login successful: " + username);
                 }
-            }
+                else
+                {
+                    callback("", "");
+                    Log::warn("Login failed");
+                }
+            });
         }
-        
-        // Login failed
-        juce::MessageManager::callAsync([callback]() {
-            callback("", "");
-        });
-        DBG("Login failed");
-    });
+    );
 }
 
 void NetworkClient::setAuthenticationCallback(AuthenticationCallback callback)
@@ -249,7 +265,7 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
 {
     if (!isAuthenticated())
     {
-        DBG("Cannot upload audio: not authenticated");
+        Log::warn("Cannot upload audio: not authenticated");
         if (callback)
         {
             juce::MessageManager::callAsync([callback]() {
@@ -262,13 +278,13 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
     // Copy the buffer for the background thread
     juce::AudioBuffer<float> bufferCopy(audioBuffer);
 
-    juce::Thread::launch([this, recordingId, bufferCopy, sampleRate, callback]() {
+    Async::runVoid([this, recordingId, bufferCopy, sampleRate, callback]() {
         // Encode audio to WAV (server will transcode to MP3)
         auto audioData = encodeAudioToWAV(bufferCopy, sampleRate);
 
         if (audioData.getSize() == 0)
         {
-            DBG("Failed to encode audio");
+            Log::error("Failed to encode audio");
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
@@ -323,9 +339,9 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
         }
 
         if (success)
-            DBG("Audio uploaded successfully: " + audioUrl);
+            Log::info("Audio uploaded successfully: " + audioUrl);
         else
-            DBG("Audio upload failed: " + result.getUserFriendlyError());
+            Log::error("Audio upload failed: " + result.getUserFriendlyError());
     });
 }
 
@@ -337,7 +353,7 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
 {
     if (!isAuthenticated())
     {
-        DBG("Cannot upload audio: not authenticated");
+        Log::warn("Cannot upload audio: not authenticated");
         if (callback)
         {
             juce::MessageManager::callAsync([callback]() {
@@ -351,13 +367,13 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
     juce::AudioBuffer<float> bufferCopy(audioBuffer);
     AudioUploadMetadata metadataCopy = metadata;
 
-    juce::Thread::launch([this, bufferCopy, sampleRate, metadataCopy, callback]() {
+    Async::runVoid([this, bufferCopy, sampleRate, metadataCopy, callback]() {
         // Encode audio to WAV (server will transcode to MP3)
         auto audioData = encodeAudioToWAV(bufferCopy, sampleRate);
 
         if (audioData.getSize() == 0)
         {
-            DBG("Failed to encode audio");
+            Log::error("Failed to encode audio");
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
@@ -432,9 +448,9 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
         }
 
         if (success)
-            DBG("Audio with metadata uploaded successfully: " + audioUrl);
+            Log::info("Audio with metadata uploaded successfully: " + audioUrl);
         else
-            DBG("Audio upload failed: " + result.getUserFriendlyError());
+            Log::error("Audio upload failed: " + result.getUserFriendlyError());
     });
 }
 
@@ -444,8 +460,8 @@ void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback)
     if (!isAuthenticated())
         return;
 
-    juce::Thread::launch([this, limit, offset, callback]() {
-        // Use enriched endpoint to get reaction counts and own reactions from Stream.io
+    Async::runVoid([this, limit, offset, callback]() {
+        // Use enriched endpoint to get reaction counts and own reactions from getstream.io
         juce::String endpoint = "/api/feed/global/enriched?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
@@ -463,8 +479,8 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
     if (!isAuthenticated())
         return;
 
-    juce::Thread::launch([this, limit, offset, callback]() {
-        // Use enriched endpoint to get reaction counts and own reactions from Stream.io
+    Async::runVoid([this, limit, offset, callback]() {
+        // Use enriched endpoint to get reaction counts and own reactions from getstream.io
         juce::String endpoint = "/api/feed/timeline/enriched?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
@@ -482,7 +498,7 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
     if (!isAuthenticated())
         return;
 
-    juce::Thread::launch([this, limit, offset, callback]() {
+    Async::runVoid([this, limit, offset, callback]() {
         // Trending feed uses engagement scoring (likes, plays, comments weighted by recency)
         juce::String endpoint = "/api/feed/trending?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
@@ -505,7 +521,7 @@ void NetworkClient::likePost(const juce::String& activityId, const juce::String&
         return;
     }
 
-    juce::Thread::launch([this, activityId, emoji, callback]() {
+    Async::runVoid([this, activityId, emoji, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("activity_id", activityId);
 
@@ -523,7 +539,7 @@ void NetworkClient::likePost(const juce::String& activityId, const juce::String&
         }
 
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-        DBG("Like/reaction response: " + juce::JSON::toString(result.data));
+        Log::debug("Like/reaction response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -543,12 +559,12 @@ void NetworkClient::unlikePost(const juce::String& activityId, ResponseCallback 
         return;
     }
 
-    juce::Thread::launch([this, activityId, callback]() {
+    Async::runVoid([this, activityId, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("activity_id", activityId);
 
         auto result = makeRequestWithRetry("/api/v1/social/like", "DELETE", data, true);
-        DBG("Unlike response: " + juce::JSON::toString(result.data));
+        Log::debug("Unlike response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -568,12 +584,12 @@ void NetworkClient::followUser(const juce::String& userId, ResponseCallback call
         return;
     }
 
-    juce::Thread::launch([this, userId, callback]() {
+    Async::runVoid([this, userId, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("target_user_id", userId);
 
         auto result = makeRequestWithRetry("/api/v1/social/follow", "POST", data, true);
-        DBG("Follow response: " + juce::JSON::toString(result.data));
+        Log::debug("Follow response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -593,12 +609,12 @@ void NetworkClient::unfollowUser(const juce::String& userId, ResponseCallback ca
         return;
     }
 
-    juce::Thread::launch([this, userId, callback]() {
+    Async::runVoid([this, userId, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("target_user_id", userId);
 
         auto result = makeRequestWithRetry("/api/v1/social/unfollow", "POST", data, true);
-        DBG("Unfollow response: " + juce::JSON::toString(result.data));
+        Log::debug("Unfollow response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -618,12 +634,46 @@ void NetworkClient::trackPlay(const juce::String& activityId, ResponseCallback c
         return;
     }
 
-    juce::Thread::launch([this, activityId, callback]() {
+    Async::runVoid([this, activityId, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("activity_id", activityId);
 
         auto result = makeRequestWithRetry("/api/v1/social/play", "POST", data, true);
-        DBG("Track play response: " + juce::JSON::toString(result.data));
+        Log::debug("Track play response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                callback(result.isSuccess(), result.data);
+            });
+        }
+    });
+}
+
+void NetworkClient::trackListenDuration(const juce::String& activityId, double durationSeconds, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(false, juce::var());
+        return;
+    }
+
+    // Only track if duration is meaningful (at least 1 second)
+    if (durationSeconds < 1.0)
+    {
+        if (callback)
+            callback(false, juce::var());
+        return;
+    }
+
+    Async::runVoid([this, activityId, durationSeconds, callback]() {
+        juce::var data = juce::var(new juce::DynamicObject());
+        data.getDynamicObject()->setProperty("activity_id", activityId);
+        data.getDynamicObject()->setProperty("duration", durationSeconds);
+
+        auto result = makeRequestWithRetry("/api/v1/social/listen-duration", "POST", data, true);
+        Log::debug("Track listen duration response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -639,7 +689,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
 {
     if (!isAuthenticated())
     {
-        DBG("Cannot upload profile picture: not authenticated");
+        Log::warn("Cannot upload profile picture: not authenticated");
         if (callback)
             callback(false, "");
         return;
@@ -647,7 +697,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
 
     if (!imageFile.existsAsFile())
     {
-        DBG("Profile picture file does not exist: " + imageFile.getFullPathName());
+        Log::error("Profile picture file does not exist: " + imageFile.getFullPathName());
         if (callback)
         {
             juce::MessageManager::callAsync([callback]() {
@@ -657,7 +707,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         return;
     }
 
-    juce::Thread::launch([this, imageFile, callback]() {
+    Async::runVoid([this, imageFile, callback]() {
         // Helper function for MIME types
         auto getMimeType = [](const juce::String& extension) -> juce::String {
             juce::String ext = extension.toLowerCase();
@@ -692,7 +742,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
 
         if (stream == nullptr)
         {
-            DBG("Failed to create stream for profile picture upload");
+            Log::error("Failed to create stream for profile picture upload");
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
@@ -703,7 +753,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         }
 
         auto response = stream->readEntireStreamAsString();
-        DBG("Profile picture upload response: " + response);
+        Log::debug("Profile picture upload response: " + response);
 
         // Parse response
         auto result = juce::JSON::parse(response);
@@ -724,9 +774,9 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         }
 
         if (success)
-            DBG("Profile picture uploaded successfully: " + pictureUrl);
+            Log::info("Profile picture uploaded successfully: " + pictureUrl);
         else
-            DBG("Profile picture upload failed");
+            Log::error("Profile picture upload failed");
     });
 }
 
@@ -797,7 +847,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
         if (stream == nullptr)
         {
             result.errorMessage = "Failed to connect to server";
-            DBG("Request attempt " + juce::String(attempts) + "/" + juce::String(config.maxRetries)
+            Log::debug("Request attempt " + juce::String(attempts) + "/" + juce::String(config.maxRetries)
                 + " failed for: " + endpoint);
 
             if (attempts < config.maxRetries)
@@ -830,12 +880,12 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
         result.data = juce::JSON::parse(response);
         result.success = result.isSuccess();
 
-        DBG("API Response from " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
+        Log::debug("API Response from " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
 
         // Check for server errors that should trigger retry
         if (result.httpStatus >= 500 && attempts < config.maxRetries)
         {
-            DBG("Server error, retrying...");
+            Log::warn("Server error, retrying...");
             int delay = config.retryDelayMs * attempts;
             juce::Thread::sleep(delay);
             continue;
@@ -861,6 +911,235 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
         }
 
         return result;
+    }
+
+    return result;
+}
+
+NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestWithRetry(const juce::String& absoluteUrl,
+                                                                           const juce::String& method,
+                                                                           const juce::var& data,
+                                                                           bool requireAuth,
+                                                                           const juce::StringPairArray& customHeaders,
+                                                                           juce::MemoryBlock* binaryData)
+{
+    RequestResult result;
+    int attempts = 0;
+
+    while (attempts < config.maxRetries && !shuttingDown.load())
+    {
+        attempts++;
+        activeRequestCount++;
+
+        juce::URL url(absoluteUrl);
+
+        // Build headers string
+        juce::String headers = "Content-Type: application/json\r\n";
+
+        if (requireAuth && !authToken.isEmpty())
+        {
+            headers += "Authorization: Bearer " + authToken + "\r\n";
+        }
+
+        // Add custom headers
+        for (int i = 0; i < customHeaders.size(); i++)
+        {
+            auto key = customHeaders.getAllKeys()[i];
+            auto value = customHeaders[key];
+            headers += key + ": " + value + "\r\n";
+        }
+
+        // Create request options with response headers capture
+        juce::StringPairArray responseHeaders;
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                           .withExtraHeaders(headers)
+                           .withConnectionTimeoutMs(config.timeoutMs)
+                           .withResponseHeaders(&responseHeaders);
+
+        // For POST/PUT/DELETE requests, add data to URL
+        if (method == "POST" || method == "PUT" || method == "DELETE")
+        {
+            if (!data.isVoid())
+            {
+                juce::String jsonData = juce::JSON::toString(data);
+                url = url.withPOSTData(jsonData);
+            }
+            else if (method == "POST")
+            {
+                // Empty POST body
+                url = url.withPOSTData("");
+            }
+        }
+
+        // Make request
+        auto stream = url.createInputStream(options);
+
+        activeRequestCount--;
+
+        if (shuttingDown.load())
+        {
+            result.errorMessage = "Request cancelled";
+            return result;
+        }
+
+        if (stream == nullptr)
+        {
+            result.errorMessage = "Failed to connect to server";
+            Log::debug("Absolute request attempt " + juce::String(attempts) + "/" + juce::String(config.maxRetries)
+                + " failed for: " + absoluteUrl);
+
+            if (attempts < config.maxRetries)
+            {
+                // Wait before retry with exponential backoff
+                int delay = config.retryDelayMs * attempts;
+                juce::Thread::sleep(delay);
+                continue;
+            }
+
+            updateConnectionStatus(ConnectionStatus::Disconnected);
+            return result;
+        }
+
+        // Store response headers and extract status code
+        result.responseHeaders = responseHeaders;
+        result.httpStatus = parseStatusCode(responseHeaders);
+
+        // If we couldn't parse status code, assume 200 for successful stream
+        if (result.httpStatus == 0)
+            result.httpStatus = 200;
+
+        // Read response - either as binary or as string
+        if (binaryData != nullptr)
+        {
+            stream->readIntoMemoryBlock(*binaryData);
+            result.success = result.isSuccess() && binaryData->getSize() > 0;
+        }
+        else
+        {
+            auto response = stream->readEntireStreamAsString();
+            result.data = juce::JSON::parse(response);
+            result.success = result.isSuccess();
+            Log::debug("Absolute URL Response from " + absoluteUrl + " (HTTP " + juce::String(result.httpStatus) + ")");
+        }
+
+        // Check for server errors that should trigger retry
+        if (result.httpStatus >= 500 && attempts < config.maxRetries)
+        {
+            Log::warn("Server error, retrying...");
+            int delay = config.retryDelayMs * attempts;
+            juce::Thread::sleep(delay);
+            continue;
+        }
+
+        // Update connection status based on result
+        if (result.httpStatus >= 200 && result.httpStatus < 500)
+        {
+            updateConnectionStatus(ConnectionStatus::Connected);
+        }
+        else
+        {
+            updateConnectionStatus(ConnectionStatus::Disconnected);
+        }
+
+        return result;
+    }
+
+    return result;
+}
+
+NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::String& absoluteUrl,
+                                                                      const juce::String& method,
+                                                                      const juce::var& data,
+                                                                      bool requireAuth,
+                                                                      const juce::StringPairArray& customHeaders,
+                                                                      juce::MemoryBlock* binaryData)
+{
+    RequestResult result;
+    
+    if (shuttingDown.load())
+    {
+        result.errorMessage = "Request cancelled";
+        return result;
+    }
+
+    activeRequestCount++;
+
+    juce::URL url(absoluteUrl);
+
+    // Build headers string
+    juce::String headers = "Content-Type: application/json\r\n";
+
+    if (requireAuth && !authToken.isEmpty())
+    {
+        headers += "Authorization: Bearer " + authToken + "\r\n";
+    }
+
+    // Add custom headers
+    for (int i = 0; i < customHeaders.size(); i++)
+    {
+        auto key = customHeaders.getAllKeys()[i];
+        auto value = customHeaders[key];
+        headers += key + ": " + value + "\r\n";
+    }
+
+    // Create request options with response headers capture
+    juce::StringPairArray responseHeaders;
+    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                       .withExtraHeaders(headers)
+                       .withConnectionTimeoutMs(config.timeoutMs)
+                       .withResponseHeaders(&responseHeaders);
+
+    // For POST/PUT/DELETE requests, add data to URL
+    if (method == "POST" || method == "PUT" || method == "DELETE")
+    {
+        if (!data.isVoid())
+        {
+            juce::String jsonData = juce::JSON::toString(data);
+            url = url.withPOSTData(jsonData);
+        }
+        else if (method == "POST")
+        {
+            // Empty POST body
+            url = url.withPOSTData("");
+        }
+    }
+
+    // Make request
+    auto stream = url.createInputStream(options);
+
+    activeRequestCount--;
+
+    if (shuttingDown.load())
+    {
+        result.errorMessage = "Request cancelled";
+        return result;
+    }
+
+    if (stream == nullptr)
+    {
+        result.errorMessage = "Failed to connect to server";
+        return result;
+    }
+
+    // Store response headers and extract status code
+    result.responseHeaders = responseHeaders;
+    result.httpStatus = parseStatusCode(responseHeaders);
+
+    // If we couldn't parse status code, assume 200 for successful stream
+    if (result.httpStatus == 0)
+        result.httpStatus = 200;
+
+    // Read response - either as binary or as string
+    if (binaryData != nullptr)
+    {
+        stream->readIntoMemoryBlock(*binaryData);
+        result.success = result.isSuccess() && binaryData->getSize() > 0;
+    }
+    else
+    {
+        auto response = stream->readEntireStreamAsString();
+        result.data = juce::JSON::parse(response);
+        result.success = result.isSuccess();
     }
 
     return result;
@@ -905,7 +1184,7 @@ juce::MemoryBlock NetworkClient::encodeAudioToMP3(const juce::AudioBuffer<float>
 {
     // TODO: Implement MP3 encoding with LAME or similar library
     // For now, fall back to WAV which the server can transcode
-    DBG("MP3 encoding not yet implemented, using WAV format");
+    Log::warn("MP3 encoding not yet implemented, using WAV format");
     return encodeAudioToWAV(buffer, sampleRate);
 }
 
@@ -923,20 +1202,20 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
 
     if (writer == nullptr)
     {
-        DBG("Failed to create WAV writer");
+        Log::error("Failed to create WAV writer");
         return juce::MemoryBlock();
     }
 
     // Write audio data
     if (!writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples()))
     {
-        DBG("Failed to write audio data to WAV");
+        Log::error("Failed to write audio data to WAV");
         return juce::MemoryBlock();
     }
 
     writer.reset(); // Flush and close
 
-    DBG("Encoded " + juce::String(buffer.getNumSamples()) + " samples at "
+    Log::debug("Encoded " + juce::String(buffer.getNumSamples()) + " samples at "
         + juce::String(sampleRate) + "Hz to WAV ("
         + juce::String(outputStream.getDataSize()) + " bytes)");
 
@@ -1029,7 +1308,7 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
     result.data = juce::JSON::parse(response);
     result.success = result.isSuccess();
 
-    DBG("Multipart upload to " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
+    Log::debug("Multipart upload to " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
 
     // Report HTTP errors
     if (result.httpStatus >= 400)
@@ -1045,6 +1324,93 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
     return result;
 }
 
+NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
+    const juce::String& absoluteUrl,
+    const juce::String& fieldName,
+    const juce::MemoryBlock& fileData,
+    const juce::String& fileName,
+    const juce::String& mimeType,
+    const std::map<juce::String, juce::String>& extraFields,
+    const juce::StringPairArray& customHeaders)
+{
+    RequestResult result;
+
+    // Generate unique boundary
+    juce::String boundary = "----SidechainBoundary" + juce::String(juce::Random::getSystemRandom().nextInt64());
+
+    // Build multipart body
+    juce::MemoryOutputStream formData;
+
+    // Add extra text fields first
+    for (const auto& field : extraFields)
+    {
+        formData.writeString("--" + boundary + "\r\n");
+        formData.writeString("Content-Disposition: form-data; name=\"" + field.first + "\"\r\n\r\n");
+        formData.writeString(field.second + "\r\n");
+    }
+
+    // Add file field
+    formData.writeString("--" + boundary + "\r\n");
+    formData.writeString("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n");
+    formData.writeString("Content-Type: " + mimeType + "\r\n\r\n");
+    formData.write(fileData.getData(), fileData.getSize());
+    formData.writeString("\r\n");
+    formData.writeString("--" + boundary + "--\r\n");
+
+    // Create URL
+    juce::URL url(absoluteUrl);
+
+    // Build headers
+    juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+    
+    // Add custom headers
+    for (int i = 0; i < customHeaders.size(); i++)
+    {
+        auto key = customHeaders.getAllKeys()[i];
+        auto value = customHeaders[key];
+        headers += key + ": " + value + "\r\n";
+    }
+
+    // Create request options with response headers capture
+    juce::StringPairArray responseHeaders;
+    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                       .withExtraHeaders(headers)
+                       .withConnectionTimeoutMs(config.timeoutMs)
+                       .withResponseHeaders(&responseHeaders);
+
+    // Add form data to URL
+    url = url.withPOSTData(formData.getMemoryBlock());
+
+    // Make request
+    activeRequestCount++;
+    auto stream = url.createInputStream(options);
+    activeRequestCount--;
+
+    if (stream == nullptr)
+    {
+        result.errorMessage = "Failed to connect to server";
+        updateConnectionStatus(ConnectionStatus::Disconnected);
+        return result;
+    }
+
+    auto response = stream->readEntireStreamAsString();
+
+    // Extract status code and parse response
+    result.responseHeaders = responseHeaders;
+    result.httpStatus = parseStatusCode(responseHeaders);
+    if (result.httpStatus == 0)
+        result.httpStatus = 200;
+
+    result.data = juce::JSON::parse(response);
+    result.success = result.isSuccess();
+
+    Log::debug("Multipart upload to " + absoluteUrl + " (HTTP " + juce::String(result.httpStatus) + ")");
+
+    updateConnectionStatus(result.success ? ConnectionStatus::Connected : ConnectionStatus::Disconnected);
+
+    return result;
+}
+
 //==============================================================================
 // Generic HTTP methods
 //==============================================================================
@@ -1053,7 +1419,7 @@ void NetworkClient::get(const juce::String& endpoint, ResponseCallback callback)
     if (callback == nullptr)
         return;
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1067,7 +1433,7 @@ void NetworkClient::post(const juce::String& endpoint, const juce::var& data, Re
     if (callback == nullptr)
         return;
 
-    juce::Thread::launch([this, endpoint, data, callback]() {
+    Async::runVoid([this, endpoint, data, callback]() {
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1081,7 +1447,7 @@ void NetworkClient::put(const juce::String& endpoint, const juce::var& data, Res
     if (callback == nullptr)
         return;
 
-    juce::Thread::launch([this, endpoint, data, callback]() {
+    Async::runVoid([this, endpoint, data, callback]() {
         auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1095,11 +1461,88 @@ void NetworkClient::del(const juce::String& endpoint, ResponseCallback callback)
     if (callback == nullptr)
         return;
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
             callback(result.success, result.data);
+        });
+    });
+}
+
+//==============================================================================
+// Absolute URL methods (for CDN, external APIs, etc.)
+//==============================================================================
+void NetworkClient::getAbsolute(const juce::String& absoluteUrl, ResponseCallback callback,
+                                 const juce::StringPairArray& customHeaders)
+{
+    if (callback == nullptr)
+        return;
+
+    Async::runVoid([this, absoluteUrl, callback, customHeaders]() {
+        RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "GET", juce::var(), false, customHeaders);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::postAbsolute(const juce::String& absoluteUrl, const juce::var& data, ResponseCallback callback,
+                                  const juce::StringPairArray& customHeaders)
+{
+    if (callback == nullptr)
+        return;
+
+    Async::runVoid([this, absoluteUrl, data, callback, customHeaders]() {
+        RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "POST", data, false, customHeaders);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::uploadMultipartAbsolute(const juce::String& absoluteUrl,
+                                            const juce::String& fieldName,
+                                            const juce::MemoryBlock& fileData,
+                                            const juce::String& fileName,
+                                            const juce::String& mimeType,
+                                            const std::map<juce::String, juce::String>& extraFields,
+                                            MultipartUploadCallback callback,
+                                            const juce::StringPairArray& customHeaders)
+{
+    if (callback == nullptr)
+        return;
+
+    Async::runVoid([this, absoluteUrl, fieldName, fileData, fileName, mimeType, extraFields, callback, customHeaders]() {
+        RequestResult result = uploadMultipartDataAbsolute(absoluteUrl, fieldName, fileData, fileName, mimeType, extraFields, customHeaders);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getBinaryAbsolute(const juce::String& absoluteUrl, BinaryDataCallback callback,
+                                      const juce::StringPairArray& customHeaders)
+{
+    if (callback == nullptr)
+        return;
+
+    Async::runVoid([this, absoluteUrl, callback, customHeaders]() {
+        juce::MemoryBlock data;
+        bool success = false;
+
+        RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "GET", juce::var(), false, customHeaders, &data);
+
+        if (result.success && data.getSize() > 0)
+        {
+            success = true;
+        }
+
+        juce::MessageManager::callAsync([callback, success, data]() {
+            callback(success, data);
         });
     });
 }
@@ -1115,7 +1558,7 @@ void NetworkClient::getNotifications(int limit, int offset, NotificationCallback
 
     juce::String endpoint = "/api/v1/notifications?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         int unseen = 0;
@@ -1140,7 +1583,7 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
     if (callback == nullptr)
         return;
 
-    juce::Thread::launch([this, callback]() {
+    Async::runVoid([this, callback]() {
         auto result = makeRequestWithRetry("/api/v1/notifications/counts", "GET", juce::var(), true);
 
         int unseen = 0;
@@ -1160,7 +1603,7 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
 
 void NetworkClient::markNotificationsRead(ResponseCallback callback)
 {
-    juce::Thread::launch([this, callback]() {
+    Async::runVoid([this, callback]() {
         auto result = makeRequestWithRetry("/api/v1/notifications/read", "POST", juce::var(), true);
 
         if (callback != nullptr)
@@ -1174,7 +1617,7 @@ void NetworkClient::markNotificationsRead(ResponseCallback callback)
 
 void NetworkClient::markNotificationsSeen(ResponseCallback callback)
 {
-    juce::Thread::launch([this, callback]() {
+    Async::runVoid([this, callback]() {
         auto result = makeRequestWithRetry("/api/v1/notifications/seen", "POST", juce::var(), true);
 
         if (callback != nullptr)
@@ -1201,7 +1644,7 @@ void NetworkClient::searchUsers(const juce::String& query, int limit, int offset
                           + "&limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1217,7 +1660,7 @@ void NetworkClient::getTrendingUsers(int limit, ResponseCallback callback)
 
     juce::String endpoint = "/api/v1/discover/trending?limit=" + juce::String(limit);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1233,7 +1676,7 @@ void NetworkClient::getFeaturedProducers(int limit, ResponseCallback callback)
 
     juce::String endpoint = "/api/v1/discover/featured?limit=" + juce::String(limit);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1249,7 +1692,7 @@ void NetworkClient::getSuggestedUsers(int limit, ResponseCallback callback)
 
     juce::String endpoint = "/api/v1/discover/suggested?limit=" + juce::String(limit);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1269,7 +1712,7 @@ void NetworkClient::getUsersByGenre(const juce::String& genre, int limit, int of
                           + "?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1283,7 +1726,7 @@ void NetworkClient::getAvailableGenres(ResponseCallback callback)
     if (callback == nullptr)
         return;
 
-    juce::Thread::launch([this, callback]() {
+    Async::runVoid([this, callback]() {
         auto result = makeRequestWithRetry("/api/v1/discover/genres", "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1299,7 +1742,74 @@ void NetworkClient::getSimilarUsers(const juce::String& userId, int limit, Respo
 
     juce::String endpoint = "/api/v1/users/" + userId + "/similar?limit=" + juce::String(limit);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+//==============================================================================
+// Search operations
+//==============================================================================
+
+void NetworkClient::searchPosts(const juce::String& query,
+                                const juce::String& genre,
+                                int bpmMin,
+                                int bpmMax,
+                                const juce::String& key,
+                                int limit,
+                                int offset,
+                                ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    // Build query string with filters
+    juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+    juce::String endpoint = "/api/v1/search/posts?q=" + encodedQuery
+                          + "&limit=" + juce::String(limit)
+                          + "&offset=" + juce::String(offset);
+
+    if (!genre.isEmpty())
+    {
+        juce::String encodedGenre = juce::URL::addEscapeChars(genre, true);
+        endpoint += "&genre=" + encodedGenre;
+    }
+
+    if (bpmMin > 0)
+        endpoint += "&bpm_min=" + juce::String(bpmMin);
+
+    if (bpmMax < 200)
+        endpoint += "&bpm_max=" + juce::String(bpmMax);
+
+    if (!key.isEmpty())
+    {
+        juce::String encodedKey = juce::URL::addEscapeChars(key, true);
+        endpoint += "&key=" + encodedKey;
+    }
+
+    Async::runVoid([this, endpoint, callback]() {
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        juce::MessageManager::callAsync([callback, result]() {
+            callback(result.success, result.data);
+        });
+    });
+}
+
+void NetworkClient::getSearchSuggestions(const juce::String& query, int limit, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
+    juce::String endpoint = "/api/v1/search/suggestions?q=" + encodedQuery
+                          + "&limit=" + juce::String(limit);
+
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1320,12 +1830,12 @@ void NetworkClient::changeUsername(const juce::String& newUsername, ResponseCall
         return;
     }
 
-    juce::Thread::launch([this, newUsername, callback]() {
+    Async::runVoid([this, newUsername, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("username", newUsername);
 
         auto result = makeRequestWithRetry("/api/v1/users/username", "PUT", data, true);
-        DBG("Change username response: " + juce::JSON::toString(result.data));
+        Log::debug("Change username response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1344,7 +1854,7 @@ void NetworkClient::getFollowers(const juce::String& userId, int limit, int offs
     juce::String endpoint = "/api/v1/users/" + userId + "/followers?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1361,7 +1871,7 @@ void NetworkClient::getFollowing(const juce::String& userId, int limit, int offs
     juce::String endpoint = "/api/v1/users/" + userId + "/following?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
@@ -1381,7 +1891,7 @@ void NetworkClient::getComments(const juce::String& postId, int limit, int offse
     juce::String endpoint = "/api/v1/posts/" + postId + "/comments?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         int totalCount = 0;
@@ -1409,7 +1919,7 @@ void NetworkClient::createComment(const juce::String& postId, const juce::String
         return;
     }
 
-    juce::Thread::launch([this, postId, content, parentId, callback]() {
+    Async::runVoid([this, postId, content, parentId, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("content", content);
 
@@ -1418,7 +1928,7 @@ void NetworkClient::createComment(const juce::String& postId, const juce::String
 
         juce::String endpoint = "/api/v1/posts/" + postId + "/comments";
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-        DBG("Create comment response: " + juce::JSON::toString(result.data));
+        Log::debug("Create comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1437,7 +1947,7 @@ void NetworkClient::getCommentReplies(const juce::String& commentId, int limit, 
     juce::String endpoint = "/api/v1/comments/" + commentId + "/replies?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
-    juce::Thread::launch([this, endpoint, callback]() {
+    Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         int totalCount = 0;
@@ -1464,13 +1974,13 @@ void NetworkClient::updateComment(const juce::String& commentId, const juce::Str
         return;
     }
 
-    juce::Thread::launch([this, commentId, content, callback]() {
+    Async::runVoid([this, commentId, content, callback]() {
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("content", content);
 
         juce::String endpoint = "/api/v1/comments/" + commentId;
         auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
-        DBG("Update comment response: " + juce::JSON::toString(result.data));
+        Log::debug("Update comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1490,10 +2000,10 @@ void NetworkClient::deleteComment(const juce::String& commentId, ResponseCallbac
         return;
     }
 
-    juce::Thread::launch([this, commentId, callback]() {
+    Async::runVoid([this, commentId, callback]() {
         juce::String endpoint = "/api/v1/comments/" + commentId;
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-        DBG("Delete comment response: " + juce::JSON::toString(result.data));
+        Log::debug("Delete comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1513,10 +2023,10 @@ void NetworkClient::likeComment(const juce::String& commentId, ResponseCallback 
         return;
     }
 
-    juce::Thread::launch([this, commentId, callback]() {
+    Async::runVoid([this, commentId, callback]() {
         juce::String endpoint = "/api/v1/comments/" + commentId + "/like";
         auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
-        DBG("Like comment response: " + juce::JSON::toString(result.data));
+        Log::debug("Like comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1536,10 +2046,10 @@ void NetworkClient::unlikeComment(const juce::String& commentId, ResponseCallbac
         return;
     }
 
-    juce::Thread::launch([this, commentId, callback]() {
+    Async::runVoid([this, commentId, callback]() {
         juce::String endpoint = "/api/v1/comments/" + commentId + "/like";
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-        DBG("Unlike comment response: " + juce::JSON::toString(result.data));
+        Log::debug("Unlike comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {

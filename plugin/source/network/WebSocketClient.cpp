@@ -1,10 +1,15 @@
 #include "WebSocketClient.h"
+#include "../util/Log.h"
+#include <websocketpp/common/thread.hpp>
+#include <websocketpp/common/memory.hpp>
+#include <thread>
+#include <chrono>
 
 //==============================================================================
 WebSocketClient::WebSocketClient(const Config& cfg)
     : Thread("WebSocketClient"), config(cfg)
 {
-    DBG("WebSocketClient initialized - host: " + config.host + ":" + juce::String(config.port));
+    Log::info("WebSocketClient initialized - host: " + config.host + ":" + juce::String(config.port));
 }
 
 WebSocketClient::~WebSocketClient()
@@ -19,7 +24,7 @@ void WebSocketClient::connect()
     if (state.load() == ConnectionState::Connected ||
         state.load() == ConnectionState::Connecting)
     {
-        DBG("WebSocket: Already connected or connecting");
+        Log::debug("WebSocket: Already connected or connecting");
         return;
     }
 
@@ -40,10 +45,32 @@ void WebSocketClient::disconnect()
 {
     shouldReconnect.store(false);
 
-    if (socket && socket->isConnected())
+    // Close websocket connection if active
+    if (connectionActive.load() && client)
     {
-        sendCloseFrame(1000, "Client disconnect");
-        socket->close();
+        try
+        {
+            connection_ptr con = client->get_con_from_hdl(currentConnection);
+            if (con && con->get_state() == websocketpp::session::state::open)
+            {
+                client->close(currentConnection, websocketpp::close::status::going_away, "Client disconnect");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            Log::debug("WebSocket: Error during disconnect - " + juce::String(e.what()));
+        }
+        
+        // Stop ASIO event loop
+        try
+        {
+            client->stop_perpetual();
+            client->stop();
+        }
+        catch (const std::exception& e)
+        {
+            Log::debug("WebSocket: Error stopping ASIO - " + juce::String(e.what()));
+        }
     }
 
     setState(ConnectionState::Disconnected);
@@ -54,7 +81,7 @@ void WebSocketClient::disconnect()
 void WebSocketClient::setAuthToken(const juce::String& token)
 {
     authToken = token;
-    DBG("WebSocket: Auth token set");
+    Log::debug("WebSocket: Auth token set");
 }
 
 void WebSocketClient::clearAuthToken()
@@ -72,14 +99,41 @@ bool WebSocketClient::send(const juce::var& message)
 {
     juce::String json = juce::JSON::toString(message);
 
-    if (state.load() != ConnectionState::Connected)
+    if (state.load() != ConnectionState::Connected || !connectionActive.load())
     {
         queueMessage(message);
-        DBG("WebSocket: Message queued (not connected)");
+        Log::debug("WebSocket: Message queued (not connected)");
         return false;
     }
 
-    return sendTextFrame(json);
+    try
+    {
+        connection_ptr con = client->get_con_from_hdl(currentConnection);
+        if (con && con->get_state() == websocketpp::session::state::open)
+        {
+            websocketpp::lib::error_code ec;
+            auto utf8 = json.toUTF8();
+            client->send(currentConnection, utf8.getAddress(), websocketpp::frame::opcode::text, ec);
+            
+            if (ec)
+            {
+                Log::error("WebSocket: Failed to send message - " + juce::String(ec.message().c_str()));
+                return false;
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(statsMutex);
+                stats.messagesSent++;
+            }
+            return true;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        Log::error("WebSocket: Exception sending message - " + juce::String(e.what()));
+    }
+
+    return false;
 }
 
 bool WebSocketClient::send(const juce::String& type, const juce::var& data)
@@ -116,43 +170,7 @@ void WebSocketClient::run()
                 continue;
             }
 
-            setState(ConnectionState::Connecting);
-
-            // Create socket and connect
-            socket = std::make_unique<juce::StreamingSocket>();
-
-            DBG("WebSocket: Connecting to " + config.host + ":" + juce::String(config.port));
-
-            if (socket->connect(config.host, config.port, config.connectTimeoutMs))
-            {
-                if (performHandshake())
-                {
-                    setState(ConnectionState::Connected);
-                    reconnectAttempts.store(0);
-                    nextReconnectTime.store(0);
-
-                    {
-                        std::lock_guard<std::mutex> lock(statsMutex);
-                        stats.connectedTime = juce::Time::currentTimeMillis();
-                    }
-
-                    // Flush queued messages
-                    flushMessageQueue();
-
-                    // Enter the main connection loop
-                    connectionLoop();
-                }
-                else
-                {
-                    DBG("WebSocket: Handshake failed");
-                    handleDisconnect("Handshake failed");
-                }
-            }
-            else
-            {
-                DBG("WebSocket: Connection failed");
-                handleDisconnect("Connection failed");
-            }
+            attemptConnection();
         }
         else
         {
@@ -161,119 +179,162 @@ void WebSocketClient::run()
         }
     }
 
-    // Clean up
-    if (socket)
+    // Clean up - stop any running connections
+    cleanupClient();
+}
+
+//==============================================================================
+void WebSocketClient::cleanupClient()
+{
+    if (client)
     {
-        socket->close();
-        socket.reset();
+        try
+        {
+            // Stop ASIO event loop
+            client->stop_perpetual();
+            
+            // Close connection if open
+            if (connectionActive.load())
+            {
+                try
+                {
+                    connection_ptr con = client->get_con_from_hdl(currentConnection);
+                    if (con && con->get_state() == websocketpp::session::state::open)
+                    {
+                        client->close(currentConnection, websocketpp::close::status::going_away, "Client shutdown");
+                    }
+                }
+                catch (...) {}
+            }
+            
+            client->stop();
+        }
+        catch (const std::exception& e)
+        {
+            Log::debug("WebSocket: Error stopping client - " + juce::String(e.what()));
+        }
+        
+        // Wait for ASIO thread to finish (with timeout)
+        if (asioThread && asioThread->joinable())
+        {
+            // Give it a moment to finish
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (asioThread->joinable())
+            {
+                asioThread->detach();  // Detach if still running after timeout
+            }
+            asioThread.reset();
+        }
+        
+        client.reset();
+        connectionActive.store(false);
     }
 }
 
 //==============================================================================
-bool WebSocketClient::performHandshake()
+void WebSocketClient::attemptConnection()
 {
-    if (!socket || !socket->isConnected())
-        return false;
+    setState(ConnectionState::Connecting);
 
-    // Generate WebSocket key
-    juce::String wsKey = generateWebSocketKey();
-    juce::String expectedAccept = computeAcceptKey(wsKey);
+    // Clean up any existing client before creating a new one
+    cleanupClient();
 
-    // Build HTTP upgrade request
-    juce::String path = config.path;
-    if (!authToken.isEmpty())
+    try
     {
-        path += "?token=" + juce::URL::addEscapeChars(authToken, true);
-    }
+        // Create and initialize client
+        client = std::make_unique<wspp_client>();
 
-    juce::String request;
-    request += "GET " + path + " HTTP/1.1\r\n";
-    request += "Host: " + config.host + ":" + juce::String(config.port) + "\r\n";
-    request += "Upgrade: websocket\r\n";
-    request += "Connection: Upgrade\r\n";
-    request += "Sec-WebSocket-Key: " + wsKey + "\r\n";
-    request += "Sec-WebSocket-Version: 13\r\n";
-    request += "Origin: sidechain-plugin\r\n";
-    request += "\r\n";
+        // Initialize ASIO
+        client->init_asio();
 
-    // Send request
-    if (socket->write(request.toRawUTF8(), static_cast<int>(request.getNumBytesAsUTF8())) < 0)
-    {
-        DBG("WebSocket: Failed to send handshake request");
-        return false;
-    }
+        // Set up event handlers
+        client->set_open_handler([this](connection_hdl hdl) {
+            onWsOpen(hdl);
+        });
 
-    // Read response (max 4KB for headers)
-    char buffer[4096];
-    int bytesRead = 0;
-    int totalRead = 0;
-    juce::String response;
+        client->set_close_handler([this](connection_hdl hdl) {
+            onWsClose(hdl);
+        });
 
-    // Read until we see the end of headers
-    while (totalRead < 4096)
-    {
-        if (!socket->waitUntilReady(true, config.connectTimeoutMs))
+        client->set_message_handler([this](connection_hdl hdl, message_ptr msg) {
+            onWsMessage(hdl, msg);
+        });
+
+        client->set_fail_handler([this](connection_hdl hdl) {
+            onWsFail(hdl);
+        });
+
+        client->set_pong_handler([this](connection_hdl hdl, std::string appData) {
+            onWsPong(hdl, appData);
+        });
+
+        // Build URI
+        juce::String uri = buildUri();
+        Log::info("WebSocket: Connecting to " + uri);
+
+        // Create connection
+        websocketpp::lib::error_code ec;
+        connection_ptr con = client->get_connection(uri.toStdString(), ec);
+
+        if (ec)
         {
-            DBG("WebSocket: Timeout waiting for handshake response");
-            return false;
+            Log::error("WebSocket: Connection error - " + juce::String(ec.message().c_str()));
+            handleDisconnect("Connection error: " + juce::String(ec.message().c_str()));
+            return;
         }
 
-        bytesRead = socket->read(buffer + totalRead, 1, false);
-        if (bytesRead <= 0)
+        currentConnection = con->get_handle();
+
+        // Start ASIO event loop in background (runs until stopped)
+        client->start_perpetual();
+        
+        // Connect (non-blocking)
+        client->connect(con);
+        
+        // Run ASIO event loop in a separate thread context (blocks until stop() is called)
+        asioThread = std::make_unique<std::thread>([this]() {
+            try
+            {
+                client->run();
+            }
+            catch (const std::exception& e)
+            {
+                Log::error("WebSocket: ASIO thread exception - " + juce::String(e.what()));
+            }
+        });
+
+        // Wait for connection to complete or fail
+        int timeout = config.connectTimeoutMs;
+        int waited = 0;
+        while (waited < timeout && !threadShouldExit())
         {
-            DBG("WebSocket: Connection closed during handshake");
-            return false;
+            wait(100);
+            waited += 100;
+
+            if (state.load() == ConnectionState::Connected)
+            {
+                // Connection successful, enter heartbeat/maintenance loop
+                connectionLoop();
+                return;
+            }
+            else if (state.load() == ConnectionState::Disconnected && !connectionActive.load())
+            {
+                // Connection failed, will reconnect
+                return;
+            }
         }
 
-        totalRead += bytesRead;
-        response = juce::String::fromUTF8(buffer, totalRead);
-
-        if (response.contains("\r\n\r\n"))
-            break;
-    }
-
-    DBG("WebSocket handshake response:\n" + response);
-
-    // Verify response
-    if (!response.startsWith("HTTP/1.1 101"))
-    {
-        DBG("WebSocket: Server rejected upgrade - " + response.upToFirstOccurrenceOf("\r\n", false, false));
-
-        // Try to extract error message
-        if (response.contains("401"))
+        if (waited >= timeout)
         {
-            juce::MessageManager::callAsync([this]() {
-                if (onError)
-                    onError("Authentication failed - please log in again");
-            });
-        }
-        return false;
-    }
-
-    // Verify Sec-WebSocket-Accept header
-    juce::String acceptHeader;
-    juce::StringArray lines;
-    lines.addTokens(response, "\r\n", "");
-
-    for (auto& line : lines)
-    {
-        if (line.startsWithIgnoreCase("Sec-WebSocket-Accept:"))
-        {
-            acceptHeader = line.fromFirstOccurrenceOf(":", false, false).trim();
-            break;
+            Log::error("WebSocket: Connection timeout");
+            handleDisconnect("Connection timeout");
         }
     }
-
-    if (acceptHeader != expectedAccept)
+    catch (const std::exception& e)
     {
-        DBG("WebSocket: Invalid Sec-WebSocket-Accept header");
-        DBG("  Expected: " + expectedAccept);
-        DBG("  Got: " + acceptHeader);
-        return false;
+        Log::error("WebSocket: Exception during connection - " + juce::String(e.what()));
+        handleDisconnect("Exception: " + juce::String(e.what()));
     }
-
-    DBG("WebSocket: Handshake successful");
-    return true;
 }
 
 void WebSocketClient::connectionLoop()
@@ -282,18 +343,17 @@ void WebSocketClient::connectionLoop()
     lastPongReceivedTime.store(juce::Time::currentTimeMillis());
     lastHeartbeatSent.store(0);
 
-    while (!threadShouldExit() && shouldReconnect.load())
+    while (!threadShouldExit() && shouldReconnect.load() && connectionActive.load())
     {
-        if (!socket || !socket->isConnected())
+        if (!connectionActive.load() || state.load() != ConnectionState::Connected)
         {
-            handleDisconnect("Socket disconnected");
             return;
         }
 
         // Check for heartbeat timeout
         if (isHeartbeatTimedOut())
         {
-            DBG("WebSocket: Heartbeat timeout");
+            Log::warn("WebSocket: Heartbeat timeout");
             handleDisconnect("Heartbeat timeout");
             return;
         }
@@ -306,110 +366,104 @@ void WebSocketClient::connectionLoop()
             lastHeartbeatSent.store(now);
         }
 
-        // Wait for incoming data
-        if (socket->waitUntilReady(true, 100))
-        {
-            Frame frame;
-            if (readFrame(frame))
-            {
-                switch (frame.opcode)
-                {
-                    case Opcode::Text:
-                    {
-                        juce::String text = juce::String::fromUTF8(
-                            static_cast<const char*>(frame.payload.getData()),
-                            static_cast<int>(frame.payload.getSize())
-                        );
-                        processTextMessage(text);
-                        break;
-                    }
-
-                    case Opcode::Binary:
-                        DBG("WebSocket: Received binary frame (ignored)");
-                        break;
-
-                    case Opcode::Ping:
-                        sendPongFrame(frame.payload.getData(), frame.payload.getSize());
-                        break;
-
-                    case Opcode::Pong:
-                        lastPongReceivedTime.store(juce::Time::currentTimeMillis());
-                        break;
-
-                    case Opcode::Close:
-                    {
-                        uint16_t code = 1000;
-                        juce::String reason;
-
-                        if (frame.payload.getSize() >= 2)
-                        {
-                            auto* data = static_cast<const uint8_t*>(frame.payload.getData());
-                            code = (static_cast<uint16_t>(data[0]) << 8) | data[1];
-
-                            if (frame.payload.getSize() > 2)
-                            {
-                                reason = juce::String::fromUTF8(
-                                    reinterpret_cast<const char*>(data + 2),
-                                    static_cast<int>(frame.payload.getSize() - 2)
-                                );
-                            }
-                        }
-
-                        DBG("WebSocket: Received close frame - code: " + juce::String(code) + ", reason: " + reason);
-                        sendCloseFrame(code);
-                        handleDisconnect("Server closed connection: " + reason);
-                        return;
-                    }
-
-                    case Opcode::Continuation:
-                        // Handle fragmented messages
-                        fragmentBuffer.append(frame.payload.getData(), frame.payload.getSize());
-                        if (frame.fin)
-                        {
-                            if (fragmentOpcode == Opcode::Text)
-                            {
-                                juce::String text = juce::String::fromUTF8(
-                                    static_cast<const char*>(fragmentBuffer.getData()),
-                                    static_cast<int>(fragmentBuffer.getSize())
-                                );
-                                processTextMessage(text);
-                            }
-                            fragmentBuffer.reset();
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-
-                // Update stats
-                {
-                    std::lock_guard<std::mutex> lock(statsMutex);
-                    stats.messagesReceived++;
-                    stats.lastMessageTime = juce::Time::currentTimeMillis();
-                }
-            }
-            else
-            {
-                // Read error
-                handleDisconnect("Read error");
-                return;
-            }
-        }
+        // ASIO event loop runs in separate thread, just check state and send heartbeats
+        wait(100); // Check heartbeat interval periodically
     }
 }
 
-void WebSocketClient::handleDisconnect(const juce::String& reason)
+//==============================================================================
+// websocketpp event handlers
+void WebSocketClient::onWsOpen(connection_hdl hdl)
 {
-    DBG("WebSocket: Disconnected - " + reason);
+    Log::info("WebSocket: Connected");
 
-    if (socket)
+    connectionActive.store(true);
+    setState(ConnectionState::Connected);
+    reconnectAttempts.store(0);
+    nextReconnectTime.store(0);
+
     {
-        socket->close();
-        socket.reset();
+        std::lock_guard<std::mutex> lock(statsMutex);
+        stats.connectedTime = juce::Time::currentTimeMillis();
     }
 
+    // Flush queued messages
+    flushMessageQueue();
+}
+
+void WebSocketClient::onWsClose(connection_hdl hdl)
+{
+    Log::info("WebSocket: Connection closed");
+
+    connectionActive.store(false);
+    currentConnection = connection_hdl();
+
+    connection_ptr con = client->get_con_from_hdl(hdl);
+    if (con)
+    {
+        juce::String reason = juce::String(con->get_remote_close_reason().c_str());
+        juce::String code = juce::String(con->get_remote_close_code());
+        Log::debug("WebSocket: Close code: " + code + ", reason: " + reason);
+    }
+
+    handleDisconnect("Server closed connection");
+}
+
+void WebSocketClient::onWsMessage(connection_hdl hdl, message_ptr msg)
+{
+    std::string payload = msg->get_payload();
+    juce::String text = juce::String::fromUTF8(payload.c_str(), static_cast<int>(payload.length()));
+    processTextMessage(text);
+
+    {
+        std::lock_guard<std::mutex> lock(statsMutex);
+        stats.messagesReceived++;
+        stats.lastMessageTime = juce::Time::currentTimeMillis();
+    }
+}
+
+void WebSocketClient::onWsFail(connection_hdl hdl)
+{
+    Log::error("WebSocket: Connection failed");
+
+    connectionActive.store(false);
+    currentConnection = connection_hdl();
+
+    connection_ptr con = client->get_con_from_hdl(hdl);
+    if (con)
+    {
+        juce::String errorMsg = juce::String(con->get_ec().message().c_str());
+        Log::error("WebSocket: Error - " + errorMsg);
+
+        // Check for authentication error
+        if (errorMsg.contains("401") || errorMsg.contains("Unauthorized"))
+        {
+            juce::MessageManager::callAsync([this]() {
+                if (onError)
+                    onError("Authentication failed - please log in again");
+            });
+        }
+    }
+
+    handleDisconnect("Connection failed");
+}
+
+void WebSocketClient::onWsPong(connection_hdl hdl, std::string appData)
+{
+    lastPongReceivedTime.store(juce::Time::currentTimeMillis());
+}
+
+//==============================================================================
+void WebSocketClient::handleDisconnect(const juce::String& reason)
+{
+    Log::info("WebSocket: Disconnected - " + reason);
+
+    connectionActive.store(false);
     setState(ConnectionState::Disconnected);
+
+    // Note: We don't cleanupClient here because we want to preserve the client
+    // for potential immediate reconnection. cleanupClient will be called in
+    // attemptConnection() before creating a new client, or in destructor.
 
     if (shouldReconnect.load())
     {
@@ -424,7 +478,7 @@ void WebSocketClient::scheduleReconnect()
     // Check max attempts
     if (config.maxReconnectAttempts >= 0 && attempts > config.maxReconnectAttempts)
     {
-        DBG("WebSocket: Max reconnect attempts reached");
+        Log::warn("WebSocket: Max reconnect attempts reached");
         shouldReconnect.store(false);
 
         juce::MessageManager::callAsync([this]() {
@@ -440,7 +494,7 @@ void WebSocketClient::scheduleReconnect()
     int jitter = juce::Random::getSystemRandom().nextInt(maxDelay / 4);
     int delay = maxDelay + jitter;
 
-    DBG("WebSocket: Reconnecting in " + juce::String(delay) + "ms (attempt " + juce::String(attempts) + ")");
+    Log::debug("WebSocket: Reconnecting in " + juce::String(delay) + "ms (attempt " + juce::String(attempts) + ")");
 
     nextReconnectTime.store(juce::Time::currentTimeMillis() + delay);
     setState(ConnectionState::Reconnecting);
@@ -452,186 +506,9 @@ void WebSocketClient::scheduleReconnect()
 }
 
 //==============================================================================
-// WebSocket frame operations
-bool WebSocketClient::sendFrame(Opcode opcode, const void* data, size_t length)
-{
-    if (!socket || !socket->isConnected())
-        return false;
-
-    juce::MemoryOutputStream frame;
-
-    // First byte: FIN + opcode
-    uint8_t byte1 = 0x80 | static_cast<uint8_t>(opcode);  // FIN = 1
-    frame.writeByte(static_cast<char>(byte1));
-
-    // Second byte: MASK + payload length
-    // Client must mask all frames
-    uint8_t byte2 = 0x80;  // MASK = 1
-
-    if (length <= 125)
-    {
-        byte2 |= static_cast<uint8_t>(length);
-        frame.writeByte(static_cast<char>(byte2));
-    }
-    else if (length <= 65535)
-    {
-        byte2 |= 126;
-        frame.writeByte(static_cast<char>(byte2));
-        frame.writeByte(static_cast<char>((length >> 8) & 0xFF));
-        frame.writeByte(static_cast<char>(length & 0xFF));
-    }
-    else
-    {
-        byte2 |= 127;
-        frame.writeByte(static_cast<char>(byte2));
-        for (int i = 7; i >= 0; --i)
-            frame.writeByte(static_cast<char>((length >> (i * 8)) & 0xFF));
-    }
-
-    // Generate masking key
-    uint8_t maskKey[4];
-    for (int i = 0; i < 4; ++i)
-        maskKey[i] = static_cast<uint8_t>(juce::Random::getSystemRandom().nextInt(256));
-
-    frame.write(maskKey, 4);
-
-    // Apply mask and write payload
-    auto* src = static_cast<const uint8_t*>(data);
-    for (size_t i = 0; i < length; ++i)
-    {
-        uint8_t masked = src[i] ^ maskKey[i % 4];
-        frame.writeByte(static_cast<char>(masked));
-    }
-
-    // Send frame
-    int written = socket->write(frame.getData(), static_cast<int>(frame.getDataSize()));
-
-    if (written < 0)
-    {
-        DBG("WebSocket: Failed to send frame");
-        return false;
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(statsMutex);
-        stats.messagesSent++;
-    }
-
-    return true;
-}
-
-bool WebSocketClient::sendTextFrame(const juce::String& text)
-{
-    auto utf8 = text.toUTF8();
-    return sendFrame(Opcode::Text, utf8.getAddress(), utf8.sizeInBytes() - 1);
-}
-
-bool WebSocketClient::sendPingFrame()
-{
-    lastPingSentTime.store(juce::Time::currentTimeMillis());
-    return sendFrame(Opcode::Ping, nullptr, 0);
-}
-
-bool WebSocketClient::sendPongFrame(const void* data, size_t length)
-{
-    return sendFrame(Opcode::Pong, data, length);
-}
-
-bool WebSocketClient::sendCloseFrame(uint16_t code, const juce::String& reason)
-{
-    juce::MemoryOutputStream payload;
-    payload.writeByte(static_cast<char>((code >> 8) & 0xFF));
-    payload.writeByte(static_cast<char>(code & 0xFF));
-
-    if (reason.isNotEmpty())
-    {
-        auto utf8 = reason.toUTF8();
-        payload.write(utf8.getAddress(), utf8.sizeInBytes() - 1);
-    }
-
-    return sendFrame(Opcode::Close, payload.getData(), payload.getDataSize());
-}
-
-bool WebSocketClient::readFrame(Frame& frame)
-{
-    if (!socket || !socket->isConnected())
-        return false;
-
-    uint8_t header[2];
-    int bytesRead = socket->read(header, 2, true);
-    if (bytesRead != 2)
-        return false;
-
-    frame.fin = (header[0] & 0x80) != 0;
-    frame.opcode = static_cast<Opcode>(header[0] & 0x0F);
-
-    bool masked = (header[1] & 0x80) != 0;
-    uint64_t payloadLen = header[1] & 0x7F;
-
-    // Extended payload length
-    if (payloadLen == 126)
-    {
-        uint8_t extLen[2];
-        if (socket->read(extLen, 2, true) != 2)
-            return false;
-        payloadLen = (static_cast<uint64_t>(extLen[0]) << 8) | extLen[1];
-    }
-    else if (payloadLen == 127)
-    {
-        uint8_t extLen[8];
-        if (socket->read(extLen, 8, true) != 8)
-            return false;
-        payloadLen = 0;
-        for (int i = 0; i < 8; ++i)
-            payloadLen = (payloadLen << 8) | extLen[i];
-    }
-
-    // Read masking key if present (servers shouldn't mask, but handle it)
-    uint8_t maskKey[4] = {0, 0, 0, 0};
-    if (masked)
-    {
-        if (socket->read(maskKey, 4, true) != 4)
-            return false;
-    }
-
-    // Read payload
-    frame.payload.setSize(static_cast<size_t>(payloadLen));
-    if (payloadLen > 0)
-    {
-        int totalRead = 0;
-        while (totalRead < static_cast<int>(payloadLen))
-        {
-            int remaining = static_cast<int>(payloadLen) - totalRead;
-            int n = socket->read(static_cast<uint8_t*>(frame.payload.getData()) + totalRead, remaining, true);
-            if (n <= 0)
-                return false;
-            totalRead += n;
-        }
-
-        // Unmask if needed
-        if (masked)
-        {
-            auto* data = static_cast<uint8_t*>(frame.payload.getData());
-            for (uint64_t i = 0; i < payloadLen; ++i)
-                data[i] ^= maskKey[i % 4];
-        }
-    }
-
-    // Handle fragmentation start
-    if (frame.opcode != Opcode::Continuation && !frame.fin)
-    {
-        fragmentOpcode = frame.opcode;
-        fragmentBuffer.reset();
-        fragmentBuffer.append(frame.payload.getData(), frame.payload.getSize());
-    }
-
-    return true;
-}
-
-//==============================================================================
 void WebSocketClient::processTextMessage(const juce::String& text)
 {
-    DBG("WebSocket received: " + text);
+    Log::debug("WebSocket received: " + text);
 
     Message msg;
     msg.rawJson = text;
@@ -639,7 +516,7 @@ void WebSocketClient::processTextMessage(const juce::String& text)
 
     if (!msg.data.isObject())
     {
-        DBG("WebSocket: Invalid JSON message");
+        Log::warn("WebSocket: Invalid JSON message");
         return;
     }
 
@@ -680,6 +557,10 @@ WebSocketClient::MessageType WebSocketClient::parseMessageType(const juce::Strin
         return MessageType::PresenceUpdate;
     if (typeStr == "play_count" || typeStr == "play")
         return MessageType::PlayCount;
+    if (typeStr == "like_count_update")
+        return MessageType::LikeCountUpdate;
+    if (typeStr == "follower_count_update")
+        return MessageType::FollowerCountUpdate;
     if (typeStr == "heartbeat" || typeStr == "pong")
         return MessageType::Heartbeat;
     if (typeStr == "error")
@@ -694,8 +575,23 @@ void WebSocketClient::sendHeartbeat()
     // Send application-level heartbeat
     send("heartbeat", juce::var(new juce::DynamicObject()));
 
-    // Also send WebSocket ping
-    sendPingFrame();
+    // Send WebSocket ping
+    if (connectionActive.load() && client)
+    {
+        try
+        {
+            websocketpp::lib::error_code ec;
+            client->ping(currentConnection, "", ec);
+            if (!ec)
+            {
+                lastPingSentTime.store(juce::Time::currentTimeMillis());
+            }
+        }
+        catch (const std::exception& e)
+        {
+            Log::debug("WebSocket: Exception sending ping - " + juce::String(e.what()));
+        }
+    }
 }
 
 bool WebSocketClient::isHeartbeatTimedOut() const
@@ -718,7 +614,7 @@ void WebSocketClient::queueMessage(const juce::var& message)
     {
         // Remove oldest message
         messageQueue.pop();
-        DBG("WebSocket: Message queue full, dropped oldest message");
+        Log::warn("WebSocket: Message queue full, dropped oldest message");
     }
 
     messageQueue.push(message);
@@ -728,13 +624,12 @@ void WebSocketClient::flushMessageQueue()
 {
     std::lock_guard<std::mutex> lock(queueMutex);
 
-    DBG("WebSocket: Flushing " + juce::String(static_cast<int>(messageQueue.size())) + " queued messages");
+    Log::debug("WebSocket: Flushing " + juce::String(static_cast<int>(messageQueue.size())) + " queued messages");
 
     while (!messageQueue.empty())
     {
         auto& msg = messageQueue.front();
-        juce::String json = juce::JSON::toString(msg);
-        sendTextFrame(json);
+        send(msg); // This will send via websocketpp
         messageQueue.pop();
     }
 }
@@ -752,7 +647,7 @@ void WebSocketClient::setState(ConnectionState newState)
     auto previous = state.exchange(newState);
     if (previous != newState)
     {
-        DBG("WebSocket state: " +
+        Log::debug("WebSocket state: " +
             juce::String(newState == ConnectionState::Disconnected ? "Disconnected" :
                         newState == ConnectionState::Connecting ? "Connecting" :
                         newState == ConnectionState::Connected ? "Connected" : "Reconnecting"));
@@ -765,28 +660,23 @@ void WebSocketClient::setState(ConnectionState newState)
 }
 
 //==============================================================================
-juce::String WebSocketClient::generateWebSocketKey()
+juce::String WebSocketClient::buildUri() const
 {
-    // Generate 16 random bytes and base64 encode
-    uint8_t bytes[16];
-    for (int i = 0; i < 16; ++i)
-        bytes[i] = static_cast<uint8_t>(juce::Random::getSystemRandom().nextInt(256));
+    juce::String scheme = config.useTLS ? "wss://" : "ws://";
+    juce::String uri = scheme + config.host;
 
-    return juce::Base64::toBase64(bytes, 16);
-}
+    if ((config.useTLS && config.port != 443) || (!config.useTLS && config.port != 80))
+    {
+        uri += ":" + juce::String(config.port);
+    }
 
-juce::String WebSocketClient::computeAcceptKey(const juce::String& key)
-{
-    // Concatenate with magic GUID
-    juce::String concat = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    uri += config.path;
 
-    // SHA-1 hash
-    juce::SHA256 sha(concat.toUTF8());
+    // Add auth token as query parameter
+    if (!authToken.isEmpty())
+    {
+        uri += (config.path.contains("?") ? "&" : "?") + juce::String("token=") + juce::URL::addEscapeChars(authToken, true);
+    }
 
-    // We need SHA-1, not SHA-256. JUCE doesn't have SHA-1, so we'll skip verification
-    // In production, you'd want to use a SHA-1 implementation
-    // For now, we'll trust the server's response if we get a 101
-
-    // This is a simplification - proper implementation would verify
-    return juce::String();
+    return uri;
 }
