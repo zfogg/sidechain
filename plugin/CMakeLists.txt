@@ -227,6 +227,8 @@ target_sources(Sidechain
         Source/FeedDataManager.h
         Source/PostCardComponent.cpp
         Source/PostCardComponent.h
+        Source/EmojiReactionsPanel.cpp
+        Source/EmojiReactionsPanel.h
         Source/AuthComponent.cpp
         Source/AuthComponent.h
         Source/AudioPlayer.cpp
@@ -237,6 +239,18 @@ target_sources(Sidechain
         Source/EditProfileComponent.h
         Source/WebSocketClient.cpp
         Source/WebSocketClient.h
+        Source/NotificationBellComponent.cpp
+        Source/NotificationBellComponent.h
+        Source/NotificationListComponent.cpp
+        Source/NotificationListComponent.h
+        Source/UserCardComponent.cpp
+        Source/UserCardComponent.h
+        Source/UserDiscoveryComponent.cpp
+        Source/UserDiscoveryComponent.h
+        Source/TimeUtils.cpp
+        Source/TimeUtils.h
+        Source/CommentComponent.cpp
+        Source/CommentComponent.h
 )
 
 # Preprocessor definitions
@@ -407,6 +421,8 @@ if(SIDECHAIN_BUILD_TESTS)
         Source/FeedPost.h
         Source/FeedDataManager.cpp
         Source/FeedDataManager.h
+        Source/TimeUtils.cpp
+        Source/TimeUtils.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
