@@ -391,6 +391,10 @@ target_sources(Sidechain
         source/util/HttpErrorHandler.h
         source/util/Log.cpp
         source/util/Log.h
+        source/util/ImageCache.cpp
+        source/util/ImageCache.h
+        source/util/Json.cpp
+        source/util/Json.h
 )
 
 # Preprocessor definitions
