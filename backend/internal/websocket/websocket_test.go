@@ -249,4 +249,3 @@ func TestMessageTypes(t *testing.T) {
 		seen[typ] = true
 	}
 }
-
