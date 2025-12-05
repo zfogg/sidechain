@@ -23,6 +23,7 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "SIDECHAIN_BUILD_TESTS": "ON",
                 "SIDECHAIN_BUILD_PLUGIN_HOST": "ON",
+                "SIDECHAIN_BUILD_STANDALONE": "ON",
                 "SIDECHAIN_INSTALL_STANDALONE": "ON"
             }
         },

@@ -25,31 +25,34 @@ Cyan    = "\e[1;36m"
 White   = "\e[1;37m"
 Reset   = "\e[0m"
 
+# Build directory
+BUILD_DIR = plugin/build
+
+# Build type (defaults to Debug, can be overridden: make CMAKE_BUILD_TYPE=Release)
+CMAKE_BUILD_TYPE ?= Debug
+
 
 # Platform-specific settings
 ifeq ($(UNAME_S),Darwin)
 	PLATFORM = macos
-	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/Release/VST3/Sidechain.vst3
-	AU_OUTPUT = plugin/build/Sidechain_artefacts/Release/AU/Sidechain.component
+	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
+	AU_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/AU/Sidechain.component
 	PLUGIN_INSTALL_DIR = ~/Library/Audio/Plug-Ins/VST3
 	AU_INSTALL_DIR = ~/Library/Audio/Plug-Ins/Components
-	CMAKE_GENERATOR =
+	CMAKE_GENERATOR = -G Ninja
 else ifeq ($(UNAME_S),Linux)
 	PLATFORM = linux
-	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/Release/VST3/Sidechain.vst3
+	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = ~/.vst3
-	CMAKE_GENERATOR =
+	CMAKE_GENERATOR = -G Ninja
 else ifeq ($(OS),Windows_NT)
 	PLATFORM = windows
-	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/Release/VST3/Sidechain.vst3
+	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = $(LOCALAPPDATA)/Programs/Common/VST3
 	CMAKE_GENERATOR = -G "Visual Studio 17 2022" -A x64
 else
 	$(error Unsupported platform: $(UNAME_S))
 endif
-
-# Build directory
-BUILD_DIR = plugin/build
 
 # Install JUCE (optional - CMake can fetch it automatically)
 install-deps:
@@ -88,28 +91,23 @@ backend-dev:
 
 # Plugin targets using CMake
 plugin: plugin-configure
-	@echo "🔄 Building VST plugin for $(PLATFORM)..."
-	@cmake --build $(BUILD_DIR) --config Release --parallel
+	@echo "🔄 Building VST plugin for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
+	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
 
 plugin-configure:
-	@echo "🔄 Configuring CMake build for $(PLATFORM)..."
-	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Release
+	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
+	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,)
 	@echo "✅ CMake configuration complete"
-
-plugin-debug: plugin-configure-debug
-	@echo "🔄 Building VST plugin (Debug) for $(PLATFORM)..."
-	@cmake --build $(BUILD_DIR) --config Debug --parallel
-	@echo "✅ Debug plugin built successfully"
-
-plugin-configure-debug:
-	@echo "🔄 Configuring CMake debug build for $(PLATFORM)..."
-	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Debug
+	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
+		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
+		echo "✅ Linked compile_commands.json to project root"; \
+	fi
 
 # Fast build - skip configuration if already done
 plugin-fast:
-	@echo "🔄 Building VST plugin (fast - no reconfigure) for $(PLATFORM)..."
-	@cmake --build $(BUILD_DIR) --config Release --parallel
+	@echo "🔄 Building VST plugin (fast - no reconfigure) for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
+	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
 
 plugin-install: plugin
@@ -227,24 +225,27 @@ help:
 	@echo "Platform: $(PLATFORM)"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  all             - Build backend and plugin (recommended)"
-	@echo "  install-deps    - Show dependency info (CMake fetches automatically)"
-	@echo "  install-juce    - Manually install JUCE to deps/"
-	@echo "  backend         - Build Go backend server"
-	@echo "  backend-run     - Run built backend server"
-	@echo "  backend-dev     - Run backend in development mode"
-	@echo "  plugin          - Build VST plugin via CMake"
-	@echo "  plugin-fast     - Build VST plugin (skip reconfigure)"
-	@echo "  plugin-debug    - Build debug version of plugin"
-	@echo "  plugin-install  - Install plugin to system directory"
-	@echo "  plugin-clean    - Clean plugin build files"
-	@echo "  test            - Run all tests"
+	@echo "  all                   - Build backend and plugin (recommended)"
+	@echo "  install-deps          - Show dependency info (CMake fetches automatically)"
+	@echo "  install-juce          - Manually install JUCE to deps/"
+	@echo "  backend               - Build Go backend server"
+	@echo "  backend-run           - Run built backend server"
+	@echo "  backend-dev           - Run backend in development mode"
+	@echo "  plugin                - Build VST plugin via CMake"
+	@echo "  plugin-fast           - Build VST plugin (skip reconfigure)"
+	@echo "  plugin-install        - Install plugin to system directory"
+	@echo "  plugin-clean          - Clean plugin build files"
+	@echo "  test                  - Run all tests"
 	@echo "  test-plugin-unit      - Run plugin C++ unit tests"
 	@echo "  test-plugin-coverage  - Run tests with coverage report"
-	@echo "  dev             - Start development environment"
-	@echo "  clean           - Clean all build artifacts"
-	@echo "  deps-info       - Show dependency information"
-	@echo "  help            - Show this help message"
+	@echo "  dev                   - Start development environment"
+	@echo "  clean                 - Clean all build artifacts"
+	@echo "  deps-info             - Show dependency information"
+	@echo "  help                  - Show this help message"
+	@echo ""
+	@echo "Build options:"
+	@echo "  make CMAKE_BUILD_TYPE=Release - Build release version"
+	@echo "  make SIDECHAIN_BUILD_STANDALONE=ON - Build Standalone app (in addition to VST3/AU)"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  make              # Build everything"
