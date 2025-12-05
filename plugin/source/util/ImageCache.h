@@ -6,6 +6,8 @@
 #include <mutex>
 #include <functional>
 
+class NetworkClient;
+
 //==============================================================================
 /**
  * ImageLoader - Async image loading with LRU caching
@@ -100,6 +102,11 @@ namespace ImageLoader
      * Remove a specific URL from cache.
      */
     void evict(const juce::String& url);
+
+    /**
+     * Set NetworkClient for HTTP requests (optional - falls back to JUCE URL if not set).
+     */
+    void setNetworkClient(NetworkClient* client);
 
     //==========================================================================
     // Statistics (for debugging)
