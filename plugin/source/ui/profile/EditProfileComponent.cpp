@@ -1,5 +1,7 @@
 #include "EditProfileComponent.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/ImageCache.h"
+#include "../../util/Validate.h"
 
 //==============================================================================
 EditProfileComponent::EditProfileComponent()
@@ -104,6 +106,21 @@ void EditProfileComponent::setProfile(const UserProfile& newProfile)
     hasChanges = false;
     errorMessage = "";
     pendingAvatarPath = "";
+    avatarImage = juce::Image();
+
+    // Load existing avatar from URL via ImageCache
+    juce::String avatarUrl = profile.getAvatarUrl();
+    if (avatarUrl.isNotEmpty())
+    {
+        ImageLoader::load(avatarUrl, [this](const juce::Image& img) {
+            // Only update if no local file has been selected
+            if (pendingAvatarPath.isEmpty())
+            {
+                avatarImage = img;
+                repaint();
+            }
+        });
+    }
 
     populateFromProfile();
     updateHasChanges();
@@ -526,33 +543,6 @@ void EditProfileComponent::handleUsernameChange()
 
 void EditProfileComponent::validateUsername(const juce::String& username)
 {
-    // Basic validation rules
-    if (username.length() < 3)
-    {
-        isUsernameValid = false;
-        usernameError = "Username must be at least 3 characters";
-        return;
-    }
-
-    if (username.length() > 30)
-    {
-        isUsernameValid = false;
-        usernameError = "Username must be 30 characters or less";
-        return;
-    }
-
-    // Check for valid characters (already enforced by setInputRestrictions, but double-check)
-    for (int i = 0; i < username.length(); ++i)
-    {
-        juce::juce_wchar c = username[i];
-        if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'))
-        {
-            isUsernameValid = false;
-            usernameError = "Username can only contain letters, numbers, and underscores";
-            return;
-        }
-    }
-
     // If same as original, always valid
     if (username == originalProfile.username)
     {
@@ -561,7 +551,21 @@ void EditProfileComponent::validateUsername(const juce::String& username)
         return;
     }
 
-    // Basic checks passed
+    // Use centralized validation
+    if (!Validate::isUsername(username))
+    {
+        isUsernameValid = false;
+        // Provide specific error messages based on what's wrong
+        if (username.length() < 3)
+            usernameError = "Username must be at least 3 characters";
+        else if (username.length() > 30)
+            usernameError = "Username must be 30 characters or less";
+        else
+            usernameError = "Username must start with a letter and contain only letters, numbers, and underscores";
+        return;
+    }
+
+    // Validation passed
     isUsernameValid = true;
     usernameError = "";
 }

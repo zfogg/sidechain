@@ -8,27 +8,26 @@
 
 //==============================================================================
 /**
- * ImageCache - Async image loading with LRU caching
+ * ImageLoader - Async image loading with LRU caching
+ *
+ * Named ImageLoader instead of ImageCache to avoid conflict with juce::ImageCache.
  *
  * Features:
  * - Async loading from URLs (doesn't block UI thread)
  * - LRU eviction when cache is full
  * - Placeholder support while loading
  * - Automatic retry on failure
- * - Circular avatar drawing helper
  * - Thread-safe
+ * - Drawing helpers for avatars
  *
  * Usage:
  *   // Load image asynchronously
- *   ImageCache::load(url, [this](const juce::Image& img) {
+ *   ImageLoader::load(url, [this](const juce::Image& img) {
  *       avatarImage = img;
  *       repaint();
  *   });
- *
- *   // Draw circular avatar with placeholder
- *   ImageCache::drawCircularAvatar(g, bounds, avatarImage, "JD");
  */
-namespace ImageCache
+namespace ImageLoader
 {
     //==========================================================================
     // Types
@@ -103,57 +102,6 @@ namespace ImageCache
     void evict(const juce::String& url);
 
     //==========================================================================
-    // Drawing Helpers
-
-    /**
-     * Draw an image clipped to a circle.
-     *
-     * @param g       Graphics context
-     * @param bounds  Rectangle to draw in (will be made square)
-     * @param image   The image to draw
-     */
-    void drawCircular(juce::Graphics& g,
-                      juce::Rectangle<int> bounds,
-                      const juce::Image& image);
-
-    /**
-     * Draw a circular avatar with fallback to initials.
-     * If image is invalid, draws a colored circle with initials.
-     *
-     * @param g              Graphics context
-     * @param bounds         Rectangle to draw in
-     * @param image          The avatar image (can be null/invalid)
-     * @param initials       Fallback initials (e.g., "JD" for John Doe)
-     * @param backgroundColor Background color for initials fallback
-     * @param textColor      Text color for initials
-     */
-    void drawCircularAvatar(juce::Graphics& g,
-                            juce::Rectangle<int> bounds,
-                            const juce::Image& image,
-                            const juce::String& initials,
-                            juce::Colour backgroundColor = juce::Colour(0xff3a3a3e),
-                            juce::Colour textColor = juce::Colours::white);
-
-    /**
-     * Generate initials from a display name.
-     * "John Doe" -> "JD", "alice" -> "A", "" -> "?"
-     */
-    juce::String getInitials(const juce::String& displayName, int maxChars = 2);
-
-    /**
-     * Draw a rounded rectangle image.
-     *
-     * @param g            Graphics context
-     * @param bounds       Rectangle to draw in
-     * @param image        The image to draw
-     * @param cornerRadius Corner radius in pixels
-     */
-    void drawRounded(juce::Graphics& g,
-                     juce::Rectangle<int> bounds,
-                     const juce::Image& image,
-                     float cornerRadius);
-
-    //==========================================================================
     // Statistics (for debugging)
 
     struct Stats
@@ -168,4 +116,31 @@ namespace ImageCache
     Stats getStats();
     void resetStats();
 
-}  // namespace ImageCache
+    //==========================================================================
+    // Drawing Helpers
+
+    /**
+     * Get initials from a name (e.g., "John Doe" -> "JD", "alice" -> "A")
+     */
+    juce::String getInitials(const juce::String& name);
+
+    /**
+     * Draw a circular avatar with image or initials fallback.
+     *
+     * @param g             Graphics context
+     * @param bounds        Rectangle to draw in
+     * @param image         The avatar image (can be null)
+     * @param initials      Initials to show if image is null
+     * @param bgColor       Background color for initials placeholder
+     * @param textColor     Text color for initials
+     * @param fontSize      Font size for initials (default 14.0f)
+     */
+    void drawCircularAvatar(juce::Graphics& g,
+                            juce::Rectangle<int> bounds,
+                            const juce::Image& image,
+                            const juce::String& initials,
+                            juce::Colour bgColor,
+                            juce::Colour textColor,
+                            float fontSize = 14.0f);
+
+}  // namespace ImageLoader

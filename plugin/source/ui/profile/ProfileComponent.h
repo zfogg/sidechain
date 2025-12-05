@@ -114,7 +114,6 @@ private:
 
     // Cached avatar image
     juce::Image avatarImage;
-    bool avatarLoadRequested = false;
 
     // Post cards
     juce::OwnedArray<PostCardComponent> postCards;

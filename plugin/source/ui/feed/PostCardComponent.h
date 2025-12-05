@@ -100,9 +100,8 @@ private:
     static constexpr int LONG_PRESS_TIMER_ID = 1;
     static constexpr int ANIMATION_TIMER_ID = 2;
 
-    // Cached avatar image
+    // Cached avatar image (loaded via ImageCache)
     juce::Image avatarImage;
-    bool avatarLoadRequested = false;
 
     //==============================================================================
     // Drawing methods

@@ -1,6 +1,7 @@
 #include "UploadComponent.h"
 #include "../../PluginProcessor.h"
 #include "../../util/Colors.h"
+#include "../../util/Constants.h"
 
 //==============================================================================
 // Static data: Musical keys (Camelot wheel order is producer-friendly)
@@ -83,7 +84,7 @@ void UploadComponent::setAudioToUpload(const juce::AudioBuffer<float>& audio, do
     }
     else
     {
-        bpm = 120.0; // Default
+        bpm = Constants::Audio::DEFAULT_BPM;
         bpmFromDAW = false;
     }
 
@@ -951,7 +952,7 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
             juce::String bpmStr = bpm > 0 ? juce::String(bpm, 1) : "";
             bpmStr += juce::String::charToString(character);
             double newBpm = bpmStr.getDoubleValue();
-            if (newBpm <= 300.0) // Reasonable BPM limit
+            if (newBpm <= Constants::Audio::MAX_BPM)
             {
                 bpm = newBpm;
                 bpmFromDAW = false;

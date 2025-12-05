@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "util/Colors.h"
+#include "util/Json.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -1141,7 +1142,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
                 return;
             }
 
-            juce::String status = responseData.getProperty("status", "").toString();
+            juce::String status = Json::getString(responseData, "status");
 
             if (status == "complete")
             {
@@ -1181,7 +1182,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
             {
                 // OAuth failed
                 stopOAuthPolling();
-                juce::String errorMsg = responseData.getProperty("message", "Authentication failed").toString();
+                juce::String errorMsg = Json::getString(responseData, "message", "Authentication failed");
                 if (authComponent)
                     authComponent->showError(errorMsg);
             }

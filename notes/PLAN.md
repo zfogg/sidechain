@@ -9,11 +9,286 @@
 
 ---
 
+## How to Test Each Phase
+
+> **Quick Reference**: Commands and UI interactions to verify each phase works correctly.
+
+### Test Commands Summary
+```bash
+# Backend tests (from project root)
+make test              # Run all backend tests
+make test-unit         # Unit tests only
+make test-integration  # Integration tests only (requires database)
+make test-coverage     # Generate coverage report
+
+# Plugin tests (from project root)
+make test-plugin-unit     # Run plugin unit tests (42 test cases)
+make test-plugin-coverage # Generate plugin coverage report
+
+# Manual testing
+make backend-dev       # Start backend at localhost:8787
+make plugin            # Build plugin for manual testing
+```
+
+### Phase-by-Phase Testing
+
+#### Phase 1: Foundation
+| Section | How to Test |
+|---------|-------------|
+| **1.1 Build System** | `make plugin` - should build VST3 without errors |
+| **1.2 Stream.io** | `make test-unit` - run `stream/client_test.go` (17 tests) |
+| **1.3 OAuth** | Start backend, open plugin, click Google/Discord login in UI |
+| **1.4 NetworkClient** | `make test-plugin-unit` - NetworkClientTest (24 tests) |
+
+#### Phase 2: Audio Capture
+| Section | How to Test |
+|---------|-------------|
+| **2.1 DAW Integration** | Load plugin in AudioPluginHost, click Record, verify waveform appears |
+| **2.2 Audio Encoding** | `make test-plugin-unit` - AudioCaptureTest (17 tests) |
+| **2.3 Upload Flow** | Record audio, enter metadata, click Upload - verify success message |
+| **2.4 Backend Processing** | `make test-unit` - `queue/audio_jobs_test.go` (5 tests) + `queue/ffmpeg_test.go` (3 tests) |
+
+#### Phase 3: Feed Experience
+| Section | How to Test |
+|---------|-------------|
+| **3.1 Feed Data** | `make test-plugin-unit` - FeedDataTest (16 tests) |
+| **3.2 Post Card** | Open plugin feed tab, verify posts display with waveform, avatar, metadata |
+| **3.3 Audio Playback** | Click play on any post, verify audio plays with waveform progress |
+| **3.4 Social Interactions** | Click heart icon on post, verify animation plays and count updates |
+
+#### Phase 4: User Profiles
+| Section | How to Test |
+|---------|-------------|
+| **4.1 Profile Data** | `make test-unit` - `handlers/auth_test.go` (11 tests for profile picture) |
+| **4.2 Profile UI** | Click profile avatar in header, verify profile page loads with stats |
+| **4.3 Follow System** | Click Follow button on another user, verify button changes to "Following" |
+| **4.4 User Discovery** | Click search icon, type username, verify results appear |
+
+#### Phase 5: Real-time Features
+| Section | How to Test |
+|---------|-------------|
+| **5.1 WebSocket** | `make test-unit` - `websocket/websocket_test.go` (16 tests) |
+| **5.2 Plugin WS Client** | Check connection indicator (green = connected) in plugin header |
+| **5.3 Presence** | Open plugin, verify your presence shows "in studio" to followers |
+| **5.4 Notifications** | Have another user like your post, verify bell badge increments |
+
+#### Phase 6-12: Advanced Features
+| Phase | How to Test |
+|-------|-------------|
+| **6: Comments** | (Not yet implemented) - Will need `comments_test.go` tests |
+| **7: Search** | (Not yet implemented) - Test via search bar in plugin UI |
+| **8: Polish** | Load plugin in multiple DAWs (Ableton, FL Studio, Logic) |
+| **9: Infrastructure** | `docker-compose up` - verify all services start |
+| **10: Launch** | Run installer on fresh system, verify plugin loads |
+| **11: Beta** | Collect feedback from beta testers |
+| **12: Public** | Monitor error rates in production dashboard |
+
+### Manual Testing Checklist
+
+**Authentication Flow:**
+- [ ] Open plugin → Welcome screen shows
+- [ ] Click "Sign Up" → Registration form works
+- [ ] Click "Log In" → Login with credentials works
+- [ ] Click Google/Discord → OAuth flow completes
+- [ ] Close/reopen plugin → Stays logged in
+
+**Recording Flow:**
+- [ ] Click Record → Red indicator appears
+- [ ] Wait 5+ seconds → Timer updates
+- [ ] Click Stop → Waveform preview shows
+- [ ] Click Play preview → Audio plays back
+- [ ] Enter BPM/key → Fields accept input
+- [ ] Click Upload → Progress bar shows
+- [ ] Upload completes → Success confirmation
+
+**Feed Flow:**
+- [ ] Switch to Global tab → Posts load
+- [ ] Switch to Timeline tab → Following posts show (or empty state)
+- [ ] Scroll down → More posts load (pagination)
+- [ ] Click play on post → Audio plays
+- [ ] Click waveform → Seeks to position
+- [ ] Click heart → Like animation plays
+- [ ] Click share → URL copied to clipboard
+
+**Profile Flow:**
+- [ ] Click profile avatar → Profile page opens
+- [ ] Click Edit Profile → Edit form opens
+- [ ] Change bio → Save succeeds
+- [ ] Upload profile picture → Picture updates
+- [ ] Click followers count → Followers list shows
+
+---
+
+## API Endpoint Testing Reference
+
+> **Complete mapping of all 57 backend endpoints to plugin UI actions.**
+> ✅ = Fully wired up in plugin UI
+> ⚠️ = Partially implemented or TODO in code
+> ❌ = Not yet connected to UI (backend ready, plugin needs work)
+
+### Health & Infrastructure
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/health` | GET | ✅ | Connection indicator in header turns green when backend is reachable |
+
+### Authentication Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/auth/register` | POST | ✅ | Click "Sign Up" → Fill form → Submit → Account created, redirects to profile setup |
+| `/api/v1/auth/login` | POST | ✅ | Click "Log In" → Enter credentials → Submit → Logged in, shows feed |
+| `/api/v1/auth/google` | GET | ✅ | Click Google icon → Browser opens Google OAuth page |
+| `/api/v1/auth/google/callback` | GET | ✅ | (Browser) Complete Google login → Redirects back to callback URL |
+| `/api/v1/auth/discord` | GET | ✅ | Click Discord icon → Browser opens Discord OAuth page |
+| `/api/v1/auth/discord/callback` | GET | ✅ | (Browser) Complete Discord login → Redirects back to callback URL |
+| `/api/v1/auth/oauth/poll` | GET | ✅ | After OAuth redirect, plugin polls this → Shows "Logging in..." → Success |
+| `/api/v1/auth/me` | GET | ✅ | Open plugin when logged in → Header shows username and avatar |
+
+### Audio Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/audio/upload` | POST | ✅ | Record audio → Fill metadata → Click Upload → Progress bar → Success |
+| `/api/v1/audio/status/:job_id` | GET | ⚠️ | After upload, plugin should poll this (check if implemented) |
+| `/api/v1/audio/:id` | GET | ✅ | Click play on any post → Audio streams and plays through DAW |
+
+### Feed Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/feed/timeline` | GET | ✅ | Click "Timeline" tab → Shows posts from users you follow |
+| `/api/v1/feed/timeline/enriched` | GET | ⚠️ | Plugin uses basic timeline endpoint; enriched version available |
+| `/api/v1/feed/timeline/aggregated` | GET | ❌ | Not wired up in plugin UI yet |
+| `/api/v1/feed/global` | GET | ✅ | Click "Global" tab → Shows all public posts |
+| `/api/v1/feed/global/enriched` | GET | ⚠️ | Plugin uses basic global endpoint; enriched version available |
+| `/api/v1/feed/trending` | GET | ❌ | Not wired up in plugin UI yet |
+| `/api/v1/feed/post` | POST | ✅ | Complete upload flow → New post appears in your profile and global feed |
+
+### Notification Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/notifications` | GET | ✅ | Click bell icon → Notification panel opens with list of notifications |
+| `/api/v1/notifications/counts` | GET | ✅ | Bell icon badge shows unseen count (red number) |
+| `/api/v1/notifications/read` | POST | ✅ | Click on a notification → Badge count decreases |
+| `/api/v1/notifications/seen` | POST | ✅ | Open notification panel → All notifications marked as seen → Badge clears |
+
+### Social Interaction Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/social/follow` | POST | ✅ | Click "Follow" button on user card → Button changes to "Following" |
+| `/api/v1/social/unfollow` | POST | ❌ | **NOT IMPLEMENTED** - Plugin has TODO comment, needs `unfollowUser()` method |
+| `/api/v1/social/like` | POST | ✅ | Click heart icon on post → Heart fills red → Like count increments |
+| `/api/v1/social/like` | DELETE | ❌ | **NOT IMPLEMENTED** - Unlike endpoint not wired up, can only like (no toggle off) |
+| `/api/v1/social/react` | POST | ✅ | Emoji reactions work via `likePost(activityId, emoji)` |
+
+### User Profile Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/users/me` | GET | ✅ | Click profile avatar in header → Your profile page loads with all data |
+| `/api/v1/users/me` | PUT | ✅ | EditProfileComponent calls `networkClient->put("/profile", ...)` → Save works |
+| `/api/v1/users/username` | PUT | ❌ | **NOT IMPLEMENTED** - No username change UI in EditProfileComponent |
+| `/api/v1/users/upload-profile-picture` | POST | ✅ | Edit Profile → Click avatar → Select image → Upload → New picture shows |
+| `/api/v1/users/:id/profile` | GET | ⚠️ | ProfileComponent uses this but navigation may be inconsistent |
+| `/api/v1/users/:id/profile-picture` | GET | ✅ | User avatars display throughout the app via proxy endpoint |
+| `/api/v1/users/:id/posts` | GET | ⚠️ | Profile shows user posts but may not use this dedicated endpoint |
+| `/api/v1/users/:id/followers` | GET | ❌ | **NOT IMPLEMENTED** - No followers list UI, just shows count |
+| `/api/v1/users/:id/following` | GET | ❌ | **NOT IMPLEMENTED** - No following list UI, just shows count |
+| `/api/v1/users/:id/activity` | GET | ❌ | **NOT IMPLEMENTED** - Activity summary not shown in profile |
+| `/api/v1/users/:id/similar` | GET | ✅ | NetworkClient has `getSimilarUsers()` method |
+| `/api/v1/users/:id/follow` | POST | ⚠️ | ProfileComponent has follow button using alternate endpoint |
+| `/api/v1/users/:id/follow` | DELETE | ❌ | **NOT IMPLEMENTED** - Unfollow from profile not working |
+
+### Discovery & Search Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/search/users` | GET | ✅ | UserDiscoveryComponent: Type in search → Results appear |
+| `/api/v1/discover/trending` | GET | ✅ | UserDiscoveryComponent: "Trending" section loads on open |
+| `/api/v1/discover/featured` | GET | ✅ | UserDiscoveryComponent: "Featured Producers" section loads |
+| `/api/v1/discover/suggested` | GET | ✅ | UserDiscoveryComponent: "Suggested for You" section loads |
+| `/api/v1/discover/genres` | GET | ✅ | Genre dropdown populates with available genres |
+| `/api/v1/discover/genre/:genre` | GET | ✅ | Select genre filter → Shows only producers in that genre |
+
+### Comment Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/posts/:id/comments` | POST | ❌ | **NOT IMPLEMENTED** - CommentComponent.h exists but not wired to API |
+| `/api/v1/posts/:id/comments` | GET | ❌ | **NOT IMPLEMENTED** - Comments panel has TODO in PostsFeedComponent |
+| `/api/v1/comments/:id/replies` | GET | ❌ | **NOT IMPLEMENTED** - Threaded replies not built |
+| `/api/v1/comments/:id` | PUT | ❌ | **NOT IMPLEMENTED** - Comment editing not built |
+| `/api/v1/comments/:id` | DELETE | ❌ | **NOT IMPLEMENTED** - Comment deletion not built |
+| `/api/v1/comments/:id/like` | POST | ❌ | **NOT IMPLEMENTED** - Comment likes not built |
+| `/api/v1/comments/:id/like` | DELETE | ❌ | **NOT IMPLEMENTED** - Comment unlike not built |
+
+### WebSocket Endpoints
+
+| Endpoint | Method | Status | Plugin UI Test |
+|----------|--------|--------|----------------|
+| `/api/v1/ws` | GET (WS) | ✅ | Plugin connects on login → Connection indicator green |
+| `/api/v1/ws/connect` | GET (WS) | ✅ | Alternative WS endpoint → Same as above |
+| `/api/v1/ws/metrics` | GET | ❌ | Admin only - not exposed in plugin |
+| `/api/v1/ws/online` | POST | ⚠️ | Presence sent via WebSocket, not HTTP POST |
+| `/api/v1/ws/presence` | POST | ⚠️ | Presence sent via WebSocket, not HTTP POST |
+| `/api/v1/ws/friends-in-studio` | GET | ❌ | **NOT IMPLEMENTED** - No "friends in studio" indicator in UI |
+
+---
+
+### Implementation Gaps Summary
+
+**Critical (breaks core functionality):**
+- ❌ `DELETE /api/v1/social/like` - Can't unlike posts (only like)
+- ❌ `POST /api/v1/social/unfollow` - Can't unfollow users
+
+**Important (expected features missing):**
+- ❌ All comment endpoints - Comments icon is clickable but does nothing
+- ❌ Followers/Following lists - Shows counts but can't view who
+- ❌ Username change - No UI for `PUT /api/v1/users/username`
+
+**Nice to have (not critical for MVP):**
+- ❌ Aggregated timeline, Trending feed
+- ❌ Activity summary on profiles
+- ❌ Friends in studio indicator
+
+### Testing Tips
+
+**Two-Account Testing:**
+Many social features require two accounts to test properly:
+1. Create two test accounts (e.g., `testuser1` and `testuser2`)
+2. Log in as `testuser1` in one plugin instance
+3. Log in as `testuser2` in another (or use a second DAW)
+4. Test: `testuser1` follows `testuser2` → `testuser2` gets notification
+
+**Network Tab Debugging:**
+The plugin's `HttpErrorHandler` (debug builds only) shows popups for failed requests:
+- Build with `make plugin-debug`
+- Failed requests show endpoint, status code, and error message
+
+**curl Testing:**
+For direct API testing, get a JWT token first:
+```bash
+# Login and get token
+TOKEN=$(curl -s -X POST http://localhost:8787/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}' | jq -r '.token')
+
+# Use token for authenticated requests
+curl http://localhost:8787/api/v1/users/me -H "Authorization: Bearer $TOKEN"
+curl http://localhost:8787/api/v1/feed/global -H "Authorization: Bearer $TOKEN"
+curl http://localhost:8787/api/v1/notifications -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
 ## Status Report (Dec 5, 2024)
 
 ### Test Results
-- **Plugin tests**: 62 test cases passing (AudioCapture 17, FeedPost/FeedDataManager 16, NetworkClient 24, PluginEditor 5)
-- **Backend tests**: 52+ test functions passing (auth 1 suite, audio 3, queue 5, stream 17+, websocket 16, comments 20+, integration 10)
+- **Plugin tests**: 42 test cases / 390 assertions passing (AudioCapture 17, FeedPost/FeedDataManager 16, NetworkClient 24+14 ProfilePicture, PluginEditor 5)
+- **Backend tests**: 63+ test functions passing (auth 11 new + 1 suite, audio 3, queue 5, stream 17+, websocket 16, comments 20+, integration 10)
 - **CI/CD**: All platform builds succeeding (macOS Intel/ARM64, Linux, Windows)
 
 ### Progress Summary
@@ -28,10 +303,9 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - **Presence system** (online/offline, "in studio" status)
 
 ### Test Coverage Gaps Identified
-- ❌ **Profile picture upload** - Fully working end-to-end but NO tests (see 4.1.11)
-  - Backend: `UploadProfilePicture` handler (auth.go:461-529)
-  - Plugin: `NetworkClient::uploadProfilePicture()` (NetworkClient.cpp:544-664)
-  - S3: `UploadProfilePicture` (storage/s3.go:167-212)
+- ✅ **Profile picture upload** - Tests added (see 4.1.11)
+  - Backend: 11 tests in `handlers/auth_test.go` (MockS3Uploader pattern)
+  - Plugin: 14 tests in `tests/NetworkClientTest.cpp` (MIME types, error cases)
 
 ### Login Flow Issues
 - ❌ `AuthComponent.cpp` has hardcoded `localhost:8787` URLs (should use NetworkClient)
@@ -40,11 +314,25 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - See **8.3.11 Login Flow Improvements** for remediation plan
 
 ### Next Steps
-1. **Phase 4.1.11** (NEW) - Add unit tests for profile picture upload
-2. **Phase 8.3.11** (NEW) - Login flow and UI improvements
-3. **Phase 6** (Comments & Community) - Comment system backend and UI
-4. **Phase 7** (Search & Discovery) - User and content search
+1. ~~**Phase 4.1.11** - Profile picture upload tests~~ ✅ Complete (25 tests added)
+2. **Phase 4.5** (CRITICAL) - Comprehensive backend test coverage (see below)
+3. **Phase 8.3.11** - Login flow and UI improvements
+4. **Phase 6** (Comments & Community) - Comment system backend and UI
 5. **Phase 5.5** (Real-time Feed Updates) - WebSocket push for new posts, likes
+
+### Critical: Test Coverage Gaps (Dec 5, 2024)
+
+| Package | Current | Target | Priority |
+|---------|---------|--------|----------|
+| `handlers` | 1.1% | 60%+ | 🔴 Critical |
+| `stream` | 2.4% | 50%+ | 🔴 Critical |
+| `auth` | 0.0% | 70%+ | 🔴 Critical |
+| `websocket` | 9.4% | 40%+ | 🟡 High |
+| `storage` | 0.0% | 40%+ | 🟡 High |
+| `queue` | 14.2% | 50%+ | 🟡 High |
+| `audio` | 16.8% | 40%+ | 🟢 Medium |
+
+**`handlers.go` (2224 lines, 40+ endpoints) has NO tests** - this is the biggest gap.
 
 ---
 
@@ -94,6 +382,9 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 
 ### 1.1 Build System Finalization
 
+> **Testing**: Run `make plugin` from project root. Success = VST3 builds without errors.
+> Also run `make plugin-debug` to verify debug builds work.
+
 - [x] 1.1.1 Migrate from Projucer to CMake
 - [x] 1.1.2 Add JUCE 8.0.8 as dependency (deps/JUCE)
 - [x] 1.1.3 Configure CMakeLists.txt for VST3/AU/Standalone builds
@@ -104,6 +395,10 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - [x] 1.1.8 Add build badges to README (Codecov badge and sunburst graph)
 
 ### 1.2 Stream.io Integration (Critical Path)
+
+> **Testing**: Run `cd backend && go test ./internal/stream/... -v` for 17+ unit tests.
+> For integration tests with real Stream.io API: `go test ./internal/stream/... -tags=integration -v`
+> Manual: Start backend, create a post via plugin, verify it appears in global feed.
 
 > **Architecture Decision: Stream.io Feed Types**
 >
@@ -151,7 +446,7 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 
 **Dashboard Configuration (Complete):**
 - [x] 1.2.2.1 Create `notification` feed group in Stream.io dashboard (type: Notification)
-- [ ] 1.2.2.2 Configure aggregation format: `{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
+- [x] 1.2.2.2 Configure aggregation format: `{{ verb }}_{{ time.strftime("%Y-%m-%d") }}`
   - Groups by action type and day: "5 people liked your loops today"
   - Alternative format for target grouping: `{{ verb }}_{{ target }}_{{ time.strftime("%Y-%m-%d") }}`
   - This groups: "3 people liked [specific loop] today"
@@ -452,6 +747,10 @@ streamActivity.To = []string{
 
 ### 1.3 OAuth Completion
 
+> **Testing**: Run `cd backend && go test ./internal/auth/... -v` for auth service tests.
+> Manual: Open plugin → Click Google icon → Browser opens → Complete OAuth → Plugin shows logged in.
+> Test account unification: Create account with email, then login with same email via OAuth.
+
 - [x] 1.3.1 Register Google OAuth application (console.developers.google.com) (client secret added to backend/.env)
 - [x] 1.3.2 Register Discord OAuth application (discord.com/developers)
 - [x] 1.3.3 Implement `exchangeGoogleCode()` token exchange (oauth.go:187 - uses oauth2.Config.Exchange)
@@ -464,6 +763,10 @@ streamActivity.To = []string{
 - [x] 1.3.10 Write auth service unit tests (service_test.go - TestAuthServiceSuite with registration, login, account unification)
 
 ### 1.4 Plugin NetworkClient Implementation
+
+> **Testing**: Run `make test-plugin-unit` to run NetworkClientTest.cpp (24 tests + 14 profile picture tests).
+> Tests cover: config, auth token handling, HTTP methods, multipart uploads, MIME type detection.
+> Manual: Check connection indicator in plugin header (green = connected, red = disconnected).
 
 - [x] 1.4.1 Implement HTTP GET method with JUCE URL class (NetworkClient.cpp:513-628)
 - [x] 1.4.2 Implement HTTP POST method with JSON body (NetworkClient.cpp:545-557)
@@ -486,6 +789,10 @@ streamActivity.To = []string{
 
 ### 2.1 DAW Audio Integration ✅
 
+> **Testing**: Run `make test-plugin-unit` to run AudioCaptureTest.cpp (17 tests).
+> Tests cover: recording start/stop, level metering, waveform generation, audio export, buffer processing.
+> Manual: Load plugin in AudioPluginHost → Click Record → Play audio through → Click Stop → Verify waveform.
+
 - [x] 2.1.1 Study JUCE AudioProcessor processBlock() documentation
 - [x] 2.1.2 Create circular buffer for audio capture (30 seconds @ 48kHz) - CircularAudioBuffer class with lock-free design
 - [x] 2.1.3 Wire AudioCapture into PluginProcessor::processBlock() - AudioCapture::processBlock() called from processor
@@ -500,6 +807,10 @@ streamActivity.To = []string{
 
 ### 2.2 Audio Encoding (Plugin Side)
 
+> **Testing**: Included in AudioCaptureTest.cpp.
+> Manual: Record audio → Preview plays back correctly → Export WAV/FLAC creates valid file in temp directory.
+> Verify: Check exported file with audio player, confirm correct sample rate and bit depth.
+
 - [x] 2.2.1 Research JUCE audio format writers (WAV, FLAC)
 - [x] 2.2.2 Implement WAV export from circular buffer - AudioCapture::saveBufferToWavFile() with 16/24/32-bit support
 - [x] 2.2.3 Add FLAC compression option (smaller uploads) - AudioCapture::saveBufferToFlacFile() with quality control
@@ -513,9 +824,13 @@ streamActivity.To = []string{
 
 ### 2.3 Upload Flow ✅
 
+> **Testing**: Manual testing required (UI-heavy feature).
+> Steps: Record audio → Enter title, BPM (tap tempo or manual), key (auto-detect or manual), genre → Upload.
+> Verify: Progress bar shows, success message appears, post appears in your profile and global feed.
+
 - [x] 2.3.1 Design upload UI (title, BPM, key, genre selector) - UploadComponent with dark theme, waveform preview
 - [x] 2.3.2 Implement BPM detection (tap tempo or auto-detect) - handleTapTempo() with 4-tap averaging, DAW BPM via AudioPlayHead
-- [ ] 2.3.3 Implement key detection (basic pitch analysis) - Manual dropdown only (24 keys in Camelot order)
+- [x] 2.3.3 Implement key detection (basic pitch analysis) - libkeyfinder integration with auto-detect button, manual dropdown (24 keys in Camelot order)
 - [x] 2.3.4 Add genre dropdown (electronic, hip-hop, rock, etc.) - 12 producer-friendly genres
 - [x] 2.3.5 Create upload progress indicator (0-100%) - Simulated progress bar with Timer callbacks
 - [ ] 2.3.6 Implement chunked upload for large files - Not needed (backend handles streaming)
@@ -525,6 +840,10 @@ streamActivity.To = []string{
 - [x] 2.3.10 Clear recording buffer after successful upload - onUploadComplete callback triggers navigation
 
 ### 2.4 Backend Audio Processing ✅
+
+> **Testing**: Run `cd backend && go test ./internal/queue/... -v` for audio job tests (5 tests) and FFmpeg tests (3 tests).
+> Manual: Upload audio via plugin → Check backend logs for FFmpeg processing → Verify MP3 output in S3.
+> API: `GET /api/v1/audio/status/:job_id` returns processing status (pending/processing/ready/error).
 
 - [x] 2.4.1 Verify FFmpeg installation in deployment environment - CheckFFmpegAvailable() in queue/ffmpeg_helpers.go
 - [x] 2.4.2 Implement background job queue (goroutines + channels) - AudioQueue with worker pool in queue/audio_jobs.go
@@ -549,6 +868,10 @@ streamActivity.To = []string{
 
 ### 3.1 Feed Data Layer
 
+> **Testing**: Run `make test-plugin-unit` to run FeedDataTest.cpp (16 tests).
+> Tests cover: FeedPost JSON parsing, FeedDataManager caching, pagination, error states.
+> Manual: Open plugin feed → Verify posts load → Scroll down → Verify more posts load (pagination).
+
 - [x] 3.1.1 Create FeedPost model in C++ (id, user, audio_url, waveform, etc.) - FeedPost.h/cpp with full JSON serialization
 - [x] 3.1.2 Implement feed fetch from backend (paginated) - FeedDataManager with NetworkClient integration
 - [x] 3.1.3 Parse JSON response into FeedPost objects - FeedPost::fromJson() with robust parsing
@@ -562,6 +885,10 @@ streamActivity.To = []string{
 - [x] 3.1.11 Write FeedPost and FeedDataManager unit tests (FeedDataTest.cpp - 16 tests)
 
 ### 3.2 Post Card Component
+
+> **Testing**: Manual testing (visual component).
+> Verify: Each post shows avatar (or initials), username, timestamp, waveform, BPM/key badges, social buttons.
+> Test: Click play button → Audio starts → Waveform progress indicator moves.
 
 - [x] 3.2.1 Design post card layout (avatar, username, waveform, controls) - PostCardComponent.h/cpp
 - [x] 3.2.2 Implement user avatar display (circular, with fallback) - drawAvatar() with initials fallback
@@ -577,6 +904,11 @@ streamActivity.To = []string{
 
 ### 3.3 Audio Playback Engine
 
+> **Testing**: Manual testing (audio output required).
+> Test: Click play on post → Audio plays through DAW output → Click waveform to seek → Position updates.
+> Test: Play post → Click another post → First post stops, second plays.
+> Test: Enable auto-play → First post ends → Next post starts automatically.
+
 - [x] 3.3.1 Research JUCE audio playback in plugin context - AudioFormatReaderSource + ResamplingAudioSource mixed into processBlock
 - [x] 3.3.2 Create AudioPlayer class with transport controls - AudioPlayer.h/cpp with play/pause/stop/seek
 - [x] 3.3.3 Implement audio streaming from URL (no full download) - Downloads to memory, caches for replay
@@ -590,6 +922,11 @@ streamActivity.To = []string{
 - [ ] 3.3.11 Pre-buffer next post for seamless playback - preloadAudio() method available
 
 ### 3.4 Social Interactions
+
+> **Testing**: Manual testing with two accounts.
+> Test: Click heart → Animation plays → Count increments → Refresh feed → Like persists.
+> Test: Click Follow → Button changes to "Following" → Check user's profile → Following count increased.
+> Test: Click share → Clipboard contains link → Open link (future: web player).
 
 - [x] 3.4.1 Implement like/unlike toggle (optimistic UI) - PostCardComponent handles UI state, callback wired up
 - [x] 3.4.2 Add like animation (heart burst) - Timer-based animation with 6 expanding hearts, scale effect, ring
@@ -610,6 +947,10 @@ streamActivity.To = []string{
 
 ### 4.1 Profile Data Model ✅
 
+> **Testing**: Run `cd backend && go test ./internal/handlers/... -v` for handlers tests.
+> Profile picture tests: `go test ./internal/handlers/... -run Profile -v` (11 tests in auth_test.go).
+> API: `GET /api/v1/users/:id/profile` returns merged PostgreSQL + Stream.io data.
+
 > **Architecture Decision**: Follower/following counts and likes are stored in Stream.io (source of truth).
 > PostgreSQL stores only user profile metadata (bio, location, links). This avoids data sync issues.
 
@@ -624,30 +965,34 @@ streamActivity.To = []string{
 - [x] 4.1.9 Implement profile picture upload and crop - POST /upload-profile-picture persists URL to profile_picture_url field
 - [ ] 4.1.10 Add profile verification system (future: badges)
 
-#### 4.1.11 Profile Picture Upload Tests (NEW)
+#### 4.1.11 Profile Picture Upload Tests ✅
 
-> **Test Coverage Gap**: Profile picture upload is fully implemented but lacks unit tests.
-> - Plugin: `NetworkClient::uploadProfilePicture()` (NetworkClient.cpp:544-664) - working, no tests
-> - Backend: `UploadProfilePicture` handler (auth.go:461-529) - working, no tests
-> - S3: `UploadProfilePicture` (storage/s3.go:167-212) - working, no tests
+> **Test Coverage**: Profile picture upload now has comprehensive unit tests.
+> - Plugin: `NetworkClient::uploadProfilePicture()` (NetworkClient.cpp:544-664) - 14 tests
+> - Backend: `UploadProfilePicture` handler (auth.go:461-529) - 11 tests
+> - S3: Mock interface `ProfilePictureUploader` (storage/interface.go)
 
-**Backend Unit Tests:**
-- [ ] 4.1.11.1 Create `handlers/auth_test.go` test file for auth handlers
-- [ ] 4.1.11.2 Test `UploadProfilePicture` with valid image (JPEG, PNG)
-- [ ] 4.1.11.3 Test `UploadProfilePicture` with invalid file type rejection
-- [ ] 4.1.11.4 Test `UploadProfilePicture` with file size limits (max 10MB)
-- [ ] 4.1.11.5 Test `UploadProfilePicture` updates user's profile_picture_url in database
-- [ ] 4.1.11.6 Test `UploadProfilePicture` without authentication (401 response)
-- [ ] 4.1.11.7 Mock S3 uploader for isolated unit tests
+**Backend Unit Tests (handlers/auth_test.go):**
+- [x] 4.1.11.1 Create `handlers/auth_test.go` test file for auth handlers
+- [x] 4.1.11.2 Test `UploadProfilePicture` with valid image (JPEG, PNG, GIF, WebP)
+- [x] 4.1.11.3 Test `UploadProfilePicture` with invalid file type rejection (TXT, PDF)
+- [x] 4.1.11.4 Test `UploadProfilePicture` with file size limits (max 10MB)
+- [x] 4.1.11.5 Test `UploadProfilePicture` updates user's profile_picture_url in database
+- [x] 4.1.11.6 Test `UploadProfilePicture` without authentication (401 response)
+- [x] 4.1.11.7 Mock S3 uploader for isolated unit tests (MockS3Uploader struct)
 
-**Plugin Unit Tests:**
-- [ ] 4.1.11.8 Add `uploadProfilePicture` tests to `NetworkClientTest.cpp`
-- [ ] 4.1.11.9 Test unauthenticated upload returns immediately with failure
-- [ ] 4.1.11.10 Test non-existent file returns failure callback
-- [ ] 4.1.11.11 Test MIME type detection for JPEG, PNG, GIF, WebP
-- [ ] 4.1.11.12 Mock HTTP responses for successful upload with S3 URL
+**Plugin Unit Tests (tests/NetworkClientTest.cpp):**
+- [x] 4.1.11.8 Add `uploadProfilePicture` tests to `NetworkClientTest.cpp` (14 new tests)
+- [x] 4.1.11.9 Test unauthenticated upload returns immediately with failure
+- [x] 4.1.11.10 Test non-existent file returns failure callback
+- [x] 4.1.11.11 Test MIME type detection for JPEG, PNG, GIF, WebP
+- [x] 4.1.11.12 Test edge cases: empty file, long filename, spaces, unicode characters
 
 ### 4.2 Profile UI (Plugin) ✅
+
+> **Testing**: Run `make test-plugin-unit` to run PluginEditorTest.cpp (5 tests).
+> Manual: Click profile avatar in header → Profile page loads → Verify stats, bio, social links display.
+> Test: Click "Edit Profile" → Modal opens → Change bio → Save → Verify changes persist.
 
 - [x] 4.2.1 Design profile view layout - ProfileComponent.h/cpp with full layout
 - [x] 4.2.2 Display profile header (avatar, name, bio) - drawHeader(), drawAvatar(), drawUserInfo()
@@ -662,6 +1007,11 @@ streamActivity.To = []string{
 - [x] 4.2.11 Write PluginEditor UI tests (PluginEditorTest.cpp - 5 tests covering initialization, auth, processor)
 
 ### 4.3 Follow System ✅
+
+> **Testing**: Manual testing with two accounts.
+> Test: User A follows User B → User A's timeline shows User B's posts.
+> Test: User A unfollows User B → User B's posts disappear from User A's timeline.
+> Test: Check mutual follow detection ("follows you" badge).
 
 > **Architecture Decision**: Stream.io is the source of truth for follows.
 > No PostgreSQL Follow table needed - Stream.io's feed follow system handles everything.
@@ -678,6 +1028,11 @@ streamActivity.To = []string{
 
 ### 4.4 User Discovery ✅
 
+> **Testing**: Manual testing via plugin UI.
+> Test: Click search icon → Type username → Results appear → Click result → Profile opens.
+> API tests: `curl http://localhost:8787/api/v1/search/users?q=test` (requires auth header).
+> Test trending: `curl http://localhost:8787/api/v1/discover/trending`
+
 - [x] 4.4.1 Implement user search endpoint (by username) - handlers.go:SearchUsers (GET /api/v1/search/users?q=)
 - [x] 4.4.2 Add search UI in plugin (search bar) - UserDiscoveryComponent.h/cpp with TextEditor search box
 - [x] 4.4.3 Show recent searches - Persisted to ~/.local/share/Sidechain/recent_searches.txt
@@ -689,11 +1044,147 @@ streamActivity.To = []string{
 
 ---
 
+## Phase 4.5: Comprehensive Backend Testing (NEW - CRITICAL)
+**Goal**: Achieve 50%+ code coverage across all backend packages
+**Priority**: CRITICAL - Low test coverage is a deployment blocker
+
+> **Current State (Dec 5, 2024)**:
+> - `handlers.go` (2224 lines, 40+ endpoints) has **NO tests**
+> - Overall backend coverage is under 10%
+> - Only `comments_test.go` and `auth_test.go` exist for handlers
+
+### 4.5.1 Core Handlers Tests (`handlers_test.go`)
+
+> **Testing Pattern**: Use testify suite with PostgreSQL test database and mock Stream.io client.
+> Each test should setup/teardown cleanly. Use table-driven tests for similar endpoints.
+
+**Feed Endpoints (Priority 1):**
+- [ ] 4.5.1.1 Test `GetTimeline` - authenticated user, pagination, empty feed
+- [ ] 4.5.1.2 Test `GetGlobalFeed` - pagination, ordering
+- [ ] 4.5.1.3 Test `CreatePost` - valid post, missing fields, audio URL validation
+- [ ] 4.5.1.4 Test `GetEnrichedTimeline` - enrichment with user data
+- [ ] 4.5.1.5 Test `GetEnrichedGlobalFeed` - enrichment with reactions
+
+**Social Endpoints (Priority 1):**
+- [ ] 4.5.1.6 Test `FollowUser` - follow, already following, self-follow rejection
+- [ ] 4.5.1.7 Test `UnfollowUser` - unfollow, not following error
+- [ ] 4.5.1.8 Test `FollowUserByID` / `UnfollowUserByID` - path param versions
+- [ ] 4.5.1.9 Test `LikePost` - like, already liked, invalid post
+- [ ] 4.5.1.10 Test `UnlikePost` - unlike, not liked error
+- [ ] 4.5.1.11 Test `EmojiReact` - various emoji types
+
+**Profile Endpoints (Priority 2):**
+- [ ] 4.5.1.12 Test `GetProfile` / `GetMyProfile` - own profile vs other user
+- [ ] 4.5.1.13 Test `UpdateProfile` - valid update, validation errors
+- [ ] 4.5.1.14 Test `ChangeUsername` - unique check, format validation
+- [ ] 4.5.1.15 Test `GetUserProfile` - public profile data
+- [ ] 4.5.1.16 Test `GetUserFollowers` / `GetUserFollowing` - pagination
+
+**Notification Endpoints (Priority 2):**
+- [ ] 4.5.1.17 Test `GetNotifications` - unseen/unread counts
+- [ ] 4.5.1.18 Test `GetNotificationCounts` - badge count
+- [ ] 4.5.1.19 Test `MarkNotificationsRead` / `MarkNotificationsSeen`
+
+**Discovery Endpoints (Priority 3):**
+- [ ] 4.5.1.20 Test `SearchUsers` - query, empty results
+- [ ] 4.5.1.21 Test `GetTrendingUsers` - ordering, limits
+- [ ] 4.5.1.22 Test `GetFeaturedProducers` - curated list
+- [ ] 4.5.1.23 Test `GetSuggestedUsers` - recommendations
+- [ ] 4.5.1.24 Test `GetUsersByGenre` - genre filter
+
+**Audio Endpoints (Priority 3):**
+- [ ] 4.5.1.25 Test `UploadAudio` - valid upload, invalid file type
+- [ ] 4.5.1.26 Test `GetAudioProcessingStatus` - pending, complete, error states
+- [ ] 4.5.1.27 Test `GetAudio` - existing audio, 404 for missing
+
+**Aggregated Feed Endpoints (Priority 3):**
+- [ ] 4.5.1.28 Test `GetAggregatedTimeline` - grouping
+- [ ] 4.5.1.29 Test `GetTrendingFeed` - trending algorithm
+- [ ] 4.5.1.30 Test `GetUserActivitySummary` - activity grouping
+
+### 4.5.2 Auth Service Tests (`auth/service_test.go`)
+
+> **Note**: `auth_test.go` in handlers tests the HTTP layer. This tests the service logic.
+
+- [ ] 4.5.2.1 Test `RegisterNativeUser` - success, duplicate email, duplicate username
+- [ ] 4.5.2.2 Test `AuthenticateNativeUser` - correct password, wrong password, non-existent user
+- [ ] 4.5.2.3 Test `GenerateJWT` - token structure, claims, expiry
+- [ ] 4.5.2.4 Test `ValidateJWT` - valid token, expired token, tampered token
+- [ ] 4.5.2.5 Test `FindUserByEmail` - found, not found
+- [ ] 4.5.2.6 Test `GetUserFromToken` - valid, invalid, expired
+- [ ] 4.5.2.7 Test OAuth token storage and refresh
+
+### 4.5.3 Stream Client Tests (`stream/client_test.go`)
+
+> **Testing Pattern**: Mock Stream.io API responses for unit tests.
+> Integration tests can use real API with test credentials.
+
+- [ ] 4.5.3.1 Test `CreateLoopActivity` - activity creation, "To" targets
+- [ ] 4.5.3.2 Test `GetUserTimeline` / `GetGlobalFeed` - response parsing
+- [ ] 4.5.3.3 Test `FollowUser` / `UnfollowUser` - feed follow operations
+- [ ] 4.5.3.4 Test `AddReaction` / `RemoveReaction` - like/unlike
+- [ ] 4.5.3.5 Test `GetNotifications` - notification parsing, unseen/unread
+- [ ] 4.5.3.6 Test `MarkNotificationsRead` / `MarkNotificationsSeen`
+- [ ] 4.5.3.7 Test `GetFollowStats` - follower/following counts
+- [ ] 4.5.3.8 Test `GetAggregatedTimeline` - aggregation grouping
+- [ ] 4.5.3.9 Test error handling - network errors, API errors
+
+### 4.5.4 WebSocket Tests (`websocket/websocket_test.go`)
+
+> Existing tests cover 9.4%. Extend coverage.
+
+- [ ] 4.5.4.1 Test presence broadcast - online/offline notifications
+- [ ] 4.5.4.2 Test message routing - handler registration and dispatch
+- [ ] 4.5.4.3 Test rate limiting - token bucket behavior
+- [ ] 4.5.4.4 Test reconnection handling - state cleanup
+
+### 4.5.5 Storage Tests (`storage/s3_test.go`)
+
+> Use mock S3 client or localstack for isolated tests.
+
+- [ ] 4.5.5.1 Test `UploadAudio` - key generation, content type
+- [ ] 4.5.5.2 Test `UploadWaveform` - SVG upload
+- [ ] 4.5.5.3 Test `UploadProfilePicture` - extension validation
+- [ ] 4.5.5.4 Test `DeleteFile` - deletion
+- [ ] 4.5.5.5 Test URL generation - CDN base URL
+
+### 4.5.6 Audio Queue Tests (`queue/audio_jobs_test.go`)
+
+> Existing tests cover 14.2%. Extend coverage.
+
+- [ ] 4.5.6.1 Test job submission and processing
+- [ ] 4.5.6.2 Test FFmpeg normalization - command generation
+- [ ] 4.5.6.3 Test waveform generation - peak extraction
+- [ ] 4.5.6.4 Test error handling - FFmpeg failures
+- [ ] 4.5.6.5 Test job status updates
+
+### 4.5.7 Plugin Tests (Target: 80+ test cases)
+
+> Currently: 42 test cases / 390 assertions
+
+**NetworkClient Tests:**
+- [ ] 4.5.7.1 Test `fetchTimeline` - JSON parsing, error handling
+- [ ] 4.5.7.2 Test `fetchGlobalFeed` - pagination
+- [ ] 4.5.7.3 Test `createPost` - post creation flow
+- [ ] 4.5.7.4 Test `followUser` / `unfollowUser` - state changes
+- [ ] 4.5.7.5 Test `likePost` / `unlikePost` - optimistic updates
+
+**Component Tests:**
+- [ ] 4.5.7.6 Test `PostCardComponent` - rendering, interactions
+- [ ] 4.5.7.7 Test `ProfileComponent` - data display
+- [ ] 4.5.7.8 Test `NotificationBellComponent` - badge updates
+
+---
+
 ## Phase 5: Real-time Features
 **Goal**: Live updates and presence
 **Duration**: 2 weeks
 
 ### 5.1 WebSocket Infrastructure ✅
+
+> **Testing**: Run `cd backend && go test ./internal/websocket/... -v` for WebSocket tests (16 tests).
+> Tests cover: message types, hub, rate limiting, client lifecycle.
+> Manual: Open plugin → Check connection indicator (green = connected).
 
 - [x] 5.1.1 Choose WebSocket library (coder/websocket - modern alternative to gorilla/websocket)
 - [x] 5.1.2 Create WebSocket server handler (internal/websocket/handler.go)
@@ -709,6 +1200,11 @@ streamActivity.To = []string{
 
 ### 5.2 Plugin WebSocket Client ✅
 
+> **Testing**: Manual testing (requires backend running).
+> Test: Open plugin → Connection indicator turns green within 5 seconds.
+> Test: Stop backend → Indicator turns red → Restart backend → Indicator turns green (auto-reconnect).
+> Test: Check backend logs for WebSocket heartbeat messages.
+
 - [x] 5.2.1 Implement WebSocket client in C++ (JUCE StreamingSocket with RFC 6455 framing) - WebSocketClient.h/cpp
 - [x] 5.2.2 Connect on plugin load (after auth) - PluginEditor::connectWebSocket() called in onLoginSuccess/loadLoginState
 - [x] 5.2.3 Implement reconnection with exponential backoff - scheduleReconnect() with 2^n delay, jitter, max delay cap
@@ -720,6 +1216,11 @@ streamActivity.To = []string{
 
 ### 5.3 Presence System ✅
 
+> **Testing**: Manual testing with two accounts.
+> Test: User A opens plugin → User B sees User A as "online" (green dot on avatar).
+> Test: User A closes plugin → User B sees User A go offline (within 5 minutes timeout).
+> API: `GET /api/v1/ws/friends-in-studio` returns list of online friends.
+
 - [x] 5.3.1 Track user online/offline status - PresenceManager with UserPresence struct, OnClientConnect/OnClientDisconnect
 - [x] 5.3.2 Track "in studio" status (plugin open in DAW) - StatusInStudio with DAW field, MessageTypeUserInStudio handler
 - [x] 5.3.3 Broadcast presence to followers - broadcastToFollowers() via Stream.io GetFollowers
@@ -730,6 +1231,11 @@ streamActivity.To = []string{
 - [x] 5.3.8 Add DAW detection (show which DAW user is using) - DAW field in UserPresence, sent in presence payload
 
 ### 5.4 Live Notifications (Stream.io Notification Feed)
+
+> **Testing**: Manual testing with two accounts.
+> Test: User B likes User A's post → User A sees bell badge increment → Click bell → Notification shows.
+> Test: Click notification → Marked as read → Badge count decreases.
+> Test: Click "Mark all as read" → All notifications marked read → Badge shows 0.
 
 > **Architecture Decision**: Use Stream.io Notification Feeds instead of custom database storage.
 >
@@ -793,6 +1299,10 @@ streamActivity.To = []string{
 
 ### 6.1 Comment System Backend
 
+> **Testing**: Run `cd backend && go test ./internal/handlers/... -run Comment -v` for comment handler tests.
+> Tests exist in `handlers/comments_test.go` (20+ tests).
+> API: `POST /api/v1/posts/:id/comments` to create, `GET /api/v1/posts/:id/comments` to list.
+
 - [ ] 6.1.1 Create Comment model (id, post_id, user_id, content, created_at)
 - [ ] 6.1.2 Add parent_id for threaded replies
 - [ ] 6.1.3 Create POST /posts/{id}/comments endpoint
@@ -806,6 +1316,10 @@ streamActivity.To = []string{
 
 ### 6.2 Comment UI
 
+> **Testing**: Manual testing in plugin (when implemented).
+> Test: Click comment icon on post → Comment section expands → Type comment → Submit → Comment appears.
+> Test: Click reply → Reply field appears → Submit reply → Threaded under parent.
+
 - [ ] 6.2.1 Design comment section (expandable from post)
 - [ ] 6.2.2 Implement comment list rendering
 - [ ] 6.2.3 Add comment input field
@@ -818,6 +1332,10 @@ streamActivity.To = []string{
 - [ ] 6.2.10 Show "typing" indicator (future)
 
 ### 6.3 Content Moderation
+
+> **Testing**: Manual testing (sensitive feature).
+> Test: Click "..." menu on post → Click "Report" → Select reason → Submit → Verify backend receives report.
+> Test: Block user → Verify their posts no longer appear in your feed.
 
 - [ ] 6.3.1 Implement post reporting endpoint
 - [ ] 6.3.2 Implement comment reporting endpoint
@@ -838,6 +1356,11 @@ streamActivity.To = []string{
 
 ### 7.1 Search Infrastructure
 
+> **Testing**: API tests via curl or Postman.
+> Test: `curl "http://localhost:8787/api/v1/search/users?q=beat" -H "Authorization: Bearer $TOKEN"`
+> Test: `curl "http://localhost:8787/api/v1/search/posts?q=electronic&bpm_min=120&bpm_max=130"`
+> Manual: Use search bar in plugin → Verify results filter correctly.
+
 - [ ] 7.1.1 Evaluate search options (PostgreSQL full-text vs Elasticsearch)
 - [ ] 7.1.2 Implement basic search endpoint
 - [ ] 7.1.3 Search users by username
@@ -850,6 +1373,11 @@ streamActivity.To = []string{
 - [ ] 7.1.10 Implement search suggestions (autocomplete)
 
 ### 7.2 Discovery Features
+
+> **Testing**: API tests for discovery endpoints.
+> Test: `curl "http://localhost:8787/api/v1/discover/trending"` → Returns posts sorted by engagement.
+> Test: `curl "http://localhost:8787/api/v1/feed/genre/electronic"` → Returns only electronic posts.
+> Manual: Navigate to Discover section in plugin → Verify trending and genre feeds populate.
 
 - [ ] 7.2.1 Implement trending posts algorithm
   - [ ] 7.2.1.1 Factor in plays, likes, comments
@@ -866,6 +1394,11 @@ streamActivity.To = []string{
 - [ ] 7.2.8 Implement "Similar to this" recommendations
 
 ### 7.3 Search UI
+
+> **Testing**: Manual testing in plugin.
+> Test: Click search icon → Search screen appears → Type query → Results update as you type.
+> Test: Apply filters (genre, BPM range) → Results filtered correctly.
+> Test: Recent searches persist after closing/reopening plugin.
 
 - [ ] 7.3.1 Add search icon to navigation
 - [ ] 7.3.2 Create search screen with input field
@@ -884,6 +1417,11 @@ streamActivity.To = []string{
 
 ### 8.1 Performance Optimization
 
+> **Testing**: Profiling and benchmarks.
+> Plugin CPU: Load in DAW → Monitor CPU usage in DAW's performance meter → Should be <5% idle.
+> Backend: `go test -bench=. ./...` for any benchmark tests.
+> API latency: `time curl http://localhost:8787/api/v1/health` → Should be <50ms.
+
 - [ ] 8.1.1 Profile plugin CPU usage during playback
 - [ ] 8.1.2 Optimize UI rendering (reduce repaints)
 - [ ] 8.1.3 Implement image lazy loading
@@ -897,6 +1435,11 @@ streamActivity.To = []string{
 
 ### 8.2 Plugin Stability
 
+> **Testing**: Manual DAW testing matrix.
+> **Critical DAWs**: Ableton Live, FL Studio, Logic Pro, Reaper, Studio One.
+> For each DAW: Load plugin → Record → Upload → Browse feed → Close/reopen project → Verify state persists.
+> Stress test: Open in project with 50+ tracks → Verify no audio dropouts or crashes.
+
 - [ ] 8.2.1 Test in Ableton Live (Mac + Windows)
 - [ ] 8.2.2 Test in FL Studio (Windows)
 - [ ] 8.2.3 Test in Logic Pro (Mac)
@@ -909,6 +1452,11 @@ streamActivity.To = []string{
 - [ ] 8.2.10 Add crash reporting (Sentry or similar)
 
 ### 8.3 UI Polish
+
+> **Testing**: Visual inspection and UX testing.
+> Test at different window sizes: Resize plugin window → All elements should reflow correctly.
+> Test loading states: Disconnect network → Verify loading spinners and error messages display.
+> Test empty states: New account with no posts → Helpful prompts should appear.
 
 - [ ] 8.3.1 Finalize color scheme and typography
 - [ ] 8.3.2 Add loading states and skeletons
@@ -963,6 +1511,11 @@ streamActivity.To = []string{
 
 ### 8.4 Backend Hardening
 
+> **Testing**: Security testing.
+> Rate limiting: Send 100 rapid requests → Verify 429 errors after threshold.
+> Input validation: Send malformed JSON → Verify 400 errors with clear messages.
+> SQL injection: Test with `'; DROP TABLE users; --` in search queries → Should be escaped.
+
 - [ ] 8.4.1 Add rate limiting (per user, per IP)
 - [ ] 8.4.2 Implement request validation (input sanitization)
 - [ ] 8.4.3 Add SQL injection protection (verify ORM usage)
@@ -982,6 +1535,11 @@ streamActivity.To = []string{
 
 ### 9.1 Containerization
 
+> **Testing**: Docker build and run tests.
+> Build: `docker build -t sidechain-backend ./backend` → Should complete without errors.
+> Run: `docker-compose up` → All services start → API responds at localhost:8787.
+> Health: `curl http://localhost:8787/health` → Returns 200 OK.
+
 - [ ] 9.1.1 Create Dockerfile for Go backend
 - [ ] 9.1.2 Create docker-compose.yml for local dev
 - [ ] 9.1.3 Add PostgreSQL container
@@ -994,6 +1552,11 @@ streamActivity.To = []string{
 - [ ] 9.1.10 Document container deployment
 
 ### 9.2 Cloud Infrastructure
+
+> **Testing**: Production deployment verification.
+> Deploy: Push to main → GitHub Actions deploys → API responds at api.sidechain.live.
+> SSL: `curl https://api.sidechain.live/health` → Valid certificate, 200 OK.
+> CDN: Upload audio → Verify CDN URL returns audio file with correct headers.
 
 - [ ] 9.2.1 Choose hosting provider (Railway, Fly.io, AWS)
 - [ ] 9.2.2 Set up production PostgreSQL (managed)
@@ -1008,6 +1571,11 @@ streamActivity.To = []string{
 
 ### 9.3 CI/CD Pipeline
 
+> **Testing**: GitHub Actions verification.
+> Push to branch → Verify Actions run → All tests pass → Builds succeed.
+> Create release tag `v1.0.0` → Verify release workflow creates artifacts.
+> Download artifacts → Verify plugin binaries work on each platform.
+
 - [x] 9.3.1 Configure GitHub Actions for backend tests - build.yml with PostgreSQL service container
 - [x] 9.3.2 Configure GitHub Actions for plugin builds - macOS/Linux/Windows matrix builds
 - [ ] 9.3.3 Add automated deployment on merge to main
@@ -1020,6 +1588,11 @@ streamActivity.To = []string{
 - [ ] 9.3.10 Add deployment notifications (Slack/Discord)
 
 ### 9.4 Monitoring & Alerting
+
+> **Testing**: Monitoring verification.
+> Uptime: Configure UptimeRobot → Intentionally stop server → Verify alert received.
+> Errors: Trigger 500 error → Verify Sentry captures error → Alert sent to Slack.
+> Performance: Check APM dashboard → Verify request latencies are being tracked.
 
 - [ ] 9.4.1 Set up uptime monitoring (UptimeRobot or similar)
 - [ ] 9.4.2 Configure error alerting (Sentry → Slack)
@@ -1038,6 +1611,11 @@ streamActivity.To = []string{
 
 ### 10.1 Plugin Distribution
 
+> **Testing**: Fresh install testing.
+> macOS: Run .pkg installer on clean Mac → Plugin appears in /Library/Audio/Plug-Ins/VST3.
+> Windows: Run .exe installer on clean Windows → Plugin appears in C:\Program Files\Common Files\VST3.
+> DAW scan: Open DAW → Plugin discovered → Loads without errors.
+
 - [ ] 10.1.1 Create plugin installer (macOS .pkg)
 - [ ] 10.1.2 Create plugin installer (Windows .exe)
 - [ ] 10.1.3 Code sign macOS plugin (Developer ID)
@@ -1050,6 +1628,11 @@ streamActivity.To = []string{
 - [ ] 10.1.10 Create uninstaller
 
 ### 10.2 Legal & Compliance
+
+> **Testing**: Compliance verification.
+> GDPR export: Request data export → Verify JSON file contains all user data.
+> Account deletion: Delete account → Verify all user data removed from database and S3.
+> Age verification: Register with birthdate < 13 years ago → Should be blocked.
 
 - [ ] 10.2.1 Draft Terms of Service
 - [ ] 10.2.2 Draft Privacy Policy
@@ -1094,6 +1677,11 @@ streamActivity.To = []string{
 
 ### 11.1 Beta Program Setup
 
+> **Testing**: Beta infrastructure verification.
+> Invite system: Generate invite code → New user registers with code → Account created successfully.
+> Feedback: User submits feedback → Appears in feedback collection system.
+> Discord/Slack: Join community → Verify bot posts new user announcements.
+
 - [ ] 11.1.1 Create beta signup form
 - [ ] 11.1.2 Set up beta user invite system
 - [ ] 11.1.3 Create beta user onboarding flow
@@ -1107,6 +1695,11 @@ streamActivity.To = []string{
 
 ### 11.2 Beta Testing Rounds
 
+> **Testing**: Structured beta test plan.
+> **Round 1**: 10 users test core flow (record → upload → view) → Collect crash reports and UX feedback.
+> **Round 2**: 30 users test social features (follow, like, comment) → Measure engagement metrics.
+> **Round 3**: 100 users full feature test → Load testing, security audit.
+
 - [ ] 11.2.1 **Round 1**: Core flow testing (record → upload → view)
 - [ ] 11.2.2 Collect Round 1 feedback
 - [ ] 11.2.3 Fix critical issues from Round 1
@@ -1119,6 +1712,11 @@ streamActivity.To = []string{
 - [ ] 11.2.10 Final polish based on feedback
 
 ### 11.3 Metrics & Analytics
+
+> **Testing**: Analytics verification.
+> Dashboard: Open analytics dashboard → Verify DAU/WAU/MAU charts populate.
+> Events: Create post → Verify "post_created" event logged → Appears in funnel.
+> Retention: Check D1/D7/D30 cohort charts → Data looks reasonable.
 
 - [ ] 11.3.1 Track DAU/WAU/MAU
 - [ ] 11.3.2 Track posts created per day
@@ -1138,6 +1736,11 @@ streamActivity.To = []string{
 **Duration**: Ongoing
 
 ### 12.1 Launch Checklist
+
+> **Testing**: Pre-launch verification.
+> Full QA pass: Run through all manual testing checklists (auth, recording, feed, profile).
+> Load test: Simulate 1000 concurrent users → API responds within SLO (<200ms).
+> Incident response: Team knows escalation path → Runbook documented.
 
 - [ ] 12.1.1 Final QA pass
 - [ ] 12.1.2 Database backup before launch

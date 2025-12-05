@@ -1,8 +1,9 @@
 #include "ImageCache.h"
+#include "Async.h"
+#include "Constants.h"
 #include "Log.h"
-#include <thread>
 
-namespace ImageCache
+namespace ImageLoader
 {
 
 //==============================================================================
@@ -20,7 +21,7 @@ namespace
     std::mutex cacheMutex;
     std::map<juce::String, std::list<CacheEntry>::iterator> cacheMap;
     std::list<CacheEntry> cacheList;  // Front = most recently used
-    size_t maxCacheSize = 100;
+    size_t maxCacheSize = Constants::Cache::IMAGE_CACHE_MAX_ITEMS;
 
     // Pending downloads (URL -> list of callbacks waiting)
     std::mutex pendingMutex;
@@ -77,73 +78,76 @@ namespace
     }
 
     //==========================================================================
-    // Download image in background
+    // Download image in background using Async utility
     void downloadImage(const juce::String& url, int targetWidth, int targetHeight)
     {
-        std::thread([url, targetWidth, targetHeight]()
-        {
-            juce::Image loadedImage;
+        // Use Async::run to download image on background thread and deliver to message thread
+        Async::run<juce::Image>(
+            // Background work: download and decode image
+            [url, targetWidth, targetHeight]() -> juce::Image {
+                juce::Image loadedImage;
 
-            try
-            {
-                juce::URL imageUrl(url);
-
-                // Create input stream with timeout
-                auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                    .withConnectionTimeoutMs(10000)
-                    .withResponseHeaders(nullptr);
-
-                auto stream = imageUrl.createInputStream(options);
-
-                if (stream != nullptr)
+                try
                 {
-                    // Read image data
-                    juce::MemoryBlock data;
-                    stream->readIntoMemoryBlock(data);
+                    juce::URL imageUrl(url);
 
-                    if (data.getSize() > 0)
+                    // Create input stream with timeout
+                    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                        .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS)
+                        .withResponseHeaders(nullptr);
+
+                    auto stream = imageUrl.createInputStream(options);
+
+                    if (stream != nullptr)
                     {
-                        // Decode image
-                        loadedImage = juce::ImageFileFormat::loadFrom(data.getData(), data.getSize());
+                        // Read image data
+                        juce::MemoryBlock data;
+                        stream->readIntoMemoryBlock(data);
 
-                        // Resize if requested
-                        if (loadedImage.isValid() && (targetWidth > 0 || targetHeight > 0))
+                        if (data.getSize() > 0)
                         {
-                            int newWidth = targetWidth > 0 ? targetWidth : loadedImage.getWidth();
-                            int newHeight = targetHeight > 0 ? targetHeight : loadedImage.getHeight();
+                            // Decode image
+                            loadedImage = juce::ImageFileFormat::loadFrom(data.getData(), data.getSize());
 
-                            if (newWidth != loadedImage.getWidth() || newHeight != loadedImage.getHeight())
+                            // Resize if requested
+                            if (loadedImage.isValid() && (targetWidth > 0 || targetHeight > 0))
                             {
-                                loadedImage = loadedImage.rescaled(newWidth, newHeight,
-                                    juce::Graphics::highResamplingQuality);
+                                int newWidth = targetWidth > 0 ? targetWidth : loadedImage.getWidth();
+                                int newHeight = targetHeight > 0 ? targetHeight : loadedImage.getHeight();
+
+                                if (newWidth != loadedImage.getWidth() || newHeight != loadedImage.getHeight())
+                                {
+                                    loadedImage = loadedImage.rescaled(newWidth, newHeight,
+                                        juce::Graphics::highResamplingQuality);
+                                }
                             }
                         }
                     }
                 }
-            }
-            catch (...)
-            {
-                Log::warn("ImageCache: Exception loading image from " + url);
-            }
-
-            // Update stats
-            {
-                std::lock_guard<std::mutex> lock(cacheMutex);
-                if (loadedImage.isValid())
+                catch (...)
                 {
-                    stats.downloadSuccesses++;
-                    addToCache(url, loadedImage);
+                    Log::warn("ImageCache: Exception loading image from " + url);
                 }
-                else
-                {
-                    stats.downloadFailures++;
-                    Log::warn("ImageCache: Failed to load image from " + url);
-                }
-            }
 
-            // Notify all waiting callbacks on message thread
-            juce::MessageManager::callAsync([url, loadedImage]()
-            {
+                // Update stats (mutex protected)
+                {
+                    std::lock_guard<std::mutex> lock(cacheMutex);
+                    if (loadedImage.isValid())
+                    {
+                        stats.downloadSuccesses++;
+                        addToCache(url, loadedImage);
+                    }
+                    else
+                    {
+                        stats.downloadFailures++;
+                        Log::warn("ImageCache: Failed to load image from " + url);
+                    }
+                }
+
+                return loadedImage;
+            },
+            // Callback on message thread: notify all waiting callbacks
+            [url](const juce::Image& loadedImage) {
                 std::vector<ImageCallback> callbacks;
 
                 {
@@ -161,8 +165,8 @@ namespace
                     if (callback)
                         callback(loadedImage);
                 }
-            });
-        }).detach();
+            }
+        );
     }
 
 }  // anonymous namespace
@@ -246,7 +250,7 @@ juce::Image loadSync(const juce::String& url)
     {
         juce::URL imageUrl(url);
         auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-            .withConnectionTimeoutMs(10000);
+            .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS);
 
         auto stream = imageUrl.createInputStream(options);
 
@@ -348,103 +352,6 @@ void evict(const juce::String& url)
 }
 
 //==============================================================================
-// Drawing Helpers
-
-void drawCircular(juce::Graphics& g, juce::Rectangle<int> bounds, const juce::Image& image)
-{
-    if (!image.isValid())
-        return;
-
-    // Make bounds square (use smaller dimension)
-    int size = juce::jmin(bounds.getWidth(), bounds.getHeight());
-    auto squareBounds = bounds.withSizeKeepingCentre(size, size);
-
-    // Create circular clip path
-    juce::Path clipPath;
-    clipPath.addEllipse(squareBounds.toFloat());
-
-    g.saveState();
-    g.reduceClipRegion(clipPath);
-
-    // Scale image to fit
-    auto scaledImage = image.rescaled(size, size, juce::Graphics::highResamplingQuality);
-    g.drawImageAt(scaledImage, squareBounds.getX(), squareBounds.getY());
-
-    g.restoreState();
-}
-
-void drawCircularAvatar(juce::Graphics& g,
-                        juce::Rectangle<int> bounds,
-                        const juce::Image& image,
-                        const juce::String& initials,
-                        juce::Colour backgroundColor,
-                        juce::Colour textColor)
-{
-    // Make bounds square
-    int size = juce::jmin(bounds.getWidth(), bounds.getHeight());
-    auto squareBounds = bounds.withSizeKeepingCentre(size, size);
-
-    if (image.isValid())
-    {
-        drawCircular(g, squareBounds, image);
-    }
-    else
-    {
-        // Draw placeholder circle with initials
-        g.setColour(backgroundColor);
-        g.fillEllipse(squareBounds.toFloat());
-
-        // Draw initials
-        g.setColour(textColor);
-        float fontSize = size * 0.4f;
-        g.setFont(juce::Font(fontSize).boldened());
-
-        juce::String displayInitials = initials.isEmpty() ? "?" : initials.toUpperCase();
-        g.drawText(displayInitials, squareBounds, juce::Justification::centred);
-    }
-}
-
-juce::String getInitials(const juce::String& displayName, int maxChars)
-{
-    if (displayName.isEmpty())
-        return "?";
-
-    juce::String initials;
-    auto words = juce::StringArray::fromTokens(displayName.trim(), " ", "");
-
-    for (const auto& word : words)
-    {
-        if (word.isNotEmpty() && initials.length() < maxChars)
-        {
-            initials += word.substring(0, 1).toUpperCase();
-        }
-    }
-
-    return initials.isEmpty() ? displayName.substring(0, 1).toUpperCase() : initials;
-}
-
-void drawRounded(juce::Graphics& g,
-                 juce::Rectangle<int> bounds,
-                 const juce::Image& image,
-                 float cornerRadius)
-{
-    if (!image.isValid())
-        return;
-
-    juce::Path clipPath;
-    clipPath.addRoundedRectangle(bounds.toFloat(), cornerRadius);
-
-    g.saveState();
-    g.reduceClipRegion(clipPath);
-
-    auto scaledImage = image.rescaled(bounds.getWidth(), bounds.getHeight(),
-                                       juce::Graphics::highResamplingQuality);
-    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-
-    g.restoreState();
-}
-
-//==============================================================================
 // Statistics
 
 Stats getStats()
@@ -459,4 +366,63 @@ void resetStats()
     stats = Stats();
 }
 
-}  // namespace ImageCache
+//==============================================================================
+// Drawing Helpers
+
+juce::String getInitials(const juce::String& name)
+{
+    if (name.isEmpty())
+        return "?";
+
+    juce::String initials;
+    auto words = juce::StringArray::fromTokens(name, " ", "");
+
+    for (const auto& word : words)
+    {
+        if (word.isNotEmpty() && initials.length() < 2)
+            initials += word.substring(0, 1).toUpperCase();
+    }
+
+    if (initials.isEmpty())
+        initials = name.substring(0, 1).toUpperCase();
+
+    return initials;
+}
+
+void drawCircularAvatar(juce::Graphics& g,
+                        juce::Rectangle<int> bounds,
+                        const juce::Image& image,
+                        const juce::String& initials,
+                        juce::Colour bgColor,
+                        juce::Colour textColor,
+                        float fontSize)
+{
+    // Create circular clipping path
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+
+    if (image.isValid())
+    {
+        // Draw the image scaled to fit
+        auto scaledImage = image.rescaled(bounds.getWidth(), bounds.getHeight(),
+                                          juce::Graphics::highResamplingQuality);
+        g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
+    }
+    else
+    {
+        // Draw placeholder with initials
+        g.setColour(bgColor);
+        g.fillEllipse(bounds.toFloat());
+
+        g.setColour(textColor);
+        g.setFont(fontSize);
+        g.drawText(initials, bounds, juce::Justification::centred);
+    }
+
+    g.restoreState();
+}
+
+}  // namespace ImageLoader

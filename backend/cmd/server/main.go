@@ -24,7 +24,7 @@ import (
 
 func main() {
 	// Setup file logging
-	logFile, err := os.OpenFile("sidechain.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("server.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
@@ -184,6 +184,7 @@ func main() {
 			feed.GET("/global", h.GetGlobalFeed)
 			feed.GET("/global/enriched", h.GetEnrichedGlobalFeed)
 			feed.GET("/trending", h.GetTrendingFeed)
+			feed.GET("/trending/grouped", h.GetTrendingFeedGrouped)
 			feed.POST("/post", h.CreatePost)
 		}
 
@@ -208,6 +209,11 @@ func main() {
 			social.POST("/react", h.EmojiReact)
 		}
 
+		// Public profile picture proxy (no auth required - works around JUCE SSL issues on Linux)
+		// This must be outside the authenticated users group since JUCE may download
+		// profile pictures before auth is fully established
+		api.GET("/users/:id/profile-picture", authHandlers.ProxyProfilePicture)
+
 		// User routes
 		users := api.Group("/users")
 		{
@@ -217,7 +223,7 @@ func main() {
 			users.PUT("/username", h.ChangeUsername)
 			users.POST("/upload-profile-picture", authHandlers.UploadProfilePicture)
 
-			// Public user profile endpoints (require auth for following checks)
+			// User profile endpoints (require auth for following checks)
 			users.GET("/:id/profile", h.GetUserProfile)
 			users.GET("/:id/posts", h.GetUserPosts)
 			users.GET("/:id/followers", h.GetUserFollowers)

@@ -1,6 +1,7 @@
 #include "PostsFeedComponent.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Colors.h"
+#include "../../util/Json.h"
 
 //==============================================================================
 PostsFeedComponent::PostsFeedComponent()
@@ -85,7 +86,7 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
                     if (success)
                     {
                         // Update play count in UI if returned in response
-                        int newPlayCount = static_cast<int>(response.getProperty("play_count", -1));
+                        int newPlayCount = Json::getInt(response, "play_count", -1);
                         if (newPlayCount >= 0)
                         {
                             for (auto* card : postCards)

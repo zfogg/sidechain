@@ -1,5 +1,6 @@
 #include "AuthComponent.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Validate.h"
 
 //==============================================================================
 AuthComponent::AuthComponent()
@@ -564,21 +565,21 @@ void AuthComponent::handleLogin()
     auto password = loginPasswordEditor->getText();
 
     // Validation
-    if (email.isEmpty())
+    if (Validate::isBlank(email))
     {
         showError("Please enter your email address");
         loginEmailEditor->grabKeyboardFocus();
         return;
     }
 
-    if (!email.contains("@") || !email.contains("."))
+    if (!Validate::isEmail(email))
     {
         showError("Please enter a valid email address");
         loginEmailEditor->grabKeyboardFocus();
         return;
     }
 
-    if (password.isEmpty())
+    if (Validate::isBlank(password))
     {
         showError("Please enter your password");
         loginPasswordEditor->grabKeyboardFocus();
@@ -659,49 +660,49 @@ void AuthComponent::handleSignup()
     auto confirmPassword = signupConfirmPasswordEditor->getText();
 
     // Validation
-    if (email.isEmpty())
+    if (Validate::isBlank(email))
     {
         showError("Please enter your email address");
         signupEmailEditor->grabKeyboardFocus();
         return;
     }
 
-    if (!email.contains("@") || !email.contains("."))
+    if (!Validate::isEmail(email))
     {
         showError("Please enter a valid email address");
         signupEmailEditor->grabKeyboardFocus();
         return;
     }
 
-    if (username.isEmpty())
+    if (Validate::isBlank(username))
     {
         showError("Please choose a username");
         signupUsernameEditor->grabKeyboardFocus();
         return;
     }
 
-    if (username.length() < 3)
+    if (!Validate::isUsername(username))
     {
-        showError("Username must be at least 3 characters");
+        showError("Username must be 3-30 characters, letters/numbers/underscores only");
         signupUsernameEditor->grabKeyboardFocus();
         return;
     }
 
-    if (displayName.isEmpty())
+    if (Validate::isBlank(displayName))
     {
         showError("Please enter your display name");
         signupDisplayNameEditor->grabKeyboardFocus();
         return;
     }
 
-    if (password.isEmpty())
+    if (Validate::isBlank(password))
     {
         showError("Please create a password");
         signupPasswordEditor->grabKeyboardFocus();
         return;
     }
 
-    if (password.length() < 8)
+    if (!Validate::lengthInRange(password, 8, 128))
     {
         showError("Password must be at least 8 characters");
         signupPasswordEditor->grabKeyboardFocus();

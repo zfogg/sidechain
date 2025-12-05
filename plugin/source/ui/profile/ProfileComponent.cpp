@@ -1,5 +1,7 @@
 #include "ProfileComponent.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Json.h"
+#include "../../util/ImageCache.h"
 #include "../feed/PostCardComponent.h"
 
 //==============================================================================
@@ -9,27 +11,27 @@ UserProfile UserProfile::fromJson(const juce::var& json)
 {
     UserProfile profile;
 
-    if (!json.isObject())
+    if (!Json::isObject(json))
         return profile;
 
-    profile.id = json.getProperty("id", "").toString();
-    profile.username = json.getProperty("username", "").toString();
-    profile.displayName = json.getProperty("display_name", "").toString();
-    profile.bio = json.getProperty("bio", "").toString();
-    profile.location = json.getProperty("location", "").toString();
-    profile.avatarUrl = json.getProperty("avatar_url", "").toString();
-    profile.profilePictureUrl = json.getProperty("profile_picture_url", "").toString();
-    profile.dawPreference = json.getProperty("daw_preference", "").toString();
-    profile.genre = json.getProperty("genre", "").toString();
-    profile.socialLinks = json.getProperty("social_links", juce::var());
-    profile.followerCount = static_cast<int>(json.getProperty("follower_count", 0));
-    profile.followingCount = static_cast<int>(json.getProperty("following_count", 0));
-    profile.postCount = static_cast<int>(json.getProperty("post_count", 0));
-    profile.isFollowing = static_cast<bool>(json.getProperty("is_following", false));
-    profile.isFollowedBy = static_cast<bool>(json.getProperty("is_followed_by", false));
+    profile.id = Json::getString(json, "id");
+    profile.username = Json::getString(json, "username");
+    profile.displayName = Json::getString(json, "display_name");
+    profile.bio = Json::getString(json, "bio");
+    profile.location = Json::getString(json, "location");
+    profile.avatarUrl = Json::getString(json, "avatar_url");
+    profile.profilePictureUrl = Json::getString(json, "profile_picture_url");
+    profile.dawPreference = Json::getString(json, "daw_preference");
+    profile.genre = Json::getString(json, "genre");
+    profile.socialLinks = Json::getObject(json, "social_links");
+    profile.followerCount = Json::getInt(json, "follower_count");
+    profile.followingCount = Json::getInt(json, "following_count");
+    profile.postCount = Json::getInt(json, "post_count");
+    profile.isFollowing = Json::getBool(json, "is_following");
+    profile.isFollowedBy = Json::getBool(json, "is_followed_by");
 
     // Parse created_at timestamp
-    juce::String createdAtStr = json.getProperty("created_at", "").toString();
+    juce::String createdAtStr = Json::getString(json, "created_at");
     if (createdAtStr.isNotEmpty())
     {
         // Try to parse ISO 8601 format
@@ -124,8 +126,18 @@ void ProfileComponent::setProfile(const UserProfile& newProfile)
     profile = newProfile;
     isLoading = false;
     hasError = false;
-    avatarLoadRequested = false;
     avatarImage = juce::Image();
+
+    // Load avatar via ImageCache
+    juce::String avatarUrl = profile.getAvatarUrl();
+    if (avatarUrl.isNotEmpty())
+    {
+        ImageLoader::load(avatarUrl, [this](const juce::Image& img) {
+            avatarImage = img;
+            repaint();
+        });
+    }
+
     repaint();
 
     // Fetch user's posts
@@ -241,41 +253,14 @@ void ProfileComponent::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds
 
 void ProfileComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Create circular clipping path
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
+    // Use the display name for initials, falling back to username
+    juce::String name = profile.displayName.isEmpty() ? profile.username : profile.displayName;
 
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-
-    if (avatarImage.isValid())
-    {
-        auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(),
-                                                 juce::Graphics::highResamplingQuality);
-        g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-    }
-    else
-    {
-        // Draw placeholder with gradient
-        g.setGradientFill(juce::ColourGradient(
-            Colors::accent.darker(0.3f),
-            static_cast<float>(bounds.getX()), static_cast<float>(bounds.getY()),
-            Colors::accent.darker(0.6f),
-            static_cast<float>(bounds.getRight()), static_cast<float>(bounds.getBottom()),
-            true
-        ));
-        g.fillEllipse(bounds.toFloat());
-
-        // Draw initial
-        g.setColour(Colors::textPrimary);
-        g.setFont(juce::Font(36.0f, juce::Font::bold));
-        juce::String initial = profile.displayName.isEmpty()
-            ? (profile.username.isEmpty() ? "?" : profile.username.substring(0, 1).toUpperCase())
-            : profile.displayName.substring(0, 1).toUpperCase();
-        g.drawText(initial, bounds, juce::Justification::centred);
-    }
-
-    g.restoreState();
+    ImageLoader::drawCircularAvatar(g, bounds, avatarImage,
+        ImageLoader::getInitials(name),
+        Colors::accent.darker(0.5f),
+        Colors::textPrimary,
+        36.0f);
 
     // Avatar border
     g.setColour(Colors::accent.withAlpha(0.5f));
@@ -720,7 +705,7 @@ void ProfileComponent::fetchProfile(const juce::String& userId)
         return;
     }
 
-    juce::String endpoint = "/users/" + userId + "/profile";
+    juce::String endpoint = "/api/v1/users/" + userId + "/profile";
 
     networkClient->get(endpoint, [this](bool success, const juce::var& response) {
         juce::MessageManager::callAsync([this, success, response]() {
@@ -749,7 +734,7 @@ void ProfileComponent::fetchUserPosts(const juce::String& userId)
     if (networkClient == nullptr)
         return;
 
-    juce::String endpoint = "/users/" + userId + "/posts?limit=20";
+    juce::String endpoint = "/api/v1/users/" + userId + "/posts?limit=20";
 
     networkClient->get(endpoint, [this](bool success, const juce::var& response) {
         juce::MessageManager::callAsync([this, success, response]() {
@@ -757,8 +742,8 @@ void ProfileComponent::fetchUserPosts(const juce::String& userId)
             {
                 userPosts.clear();
 
-                auto postsArray = response.getProperty("posts", juce::var());
-                if (postsArray.isArray())
+                auto postsArray = Json::getArray(response, "posts");
+                if (Json::isArray(postsArray))
                 {
                     for (int i = 0; i < postsArray.size(); ++i)
                     {

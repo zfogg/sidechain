@@ -1,5 +1,9 @@
 #include "FollowersListComponent.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Json.h"
+#include "../../util/ImageCache.h"
+#include "../../util/Colors.h"
+#include "../../util/UIHelpers.h"
 
 //==============================================================================
 // FollowUserRowComponent Implementation
@@ -14,6 +18,16 @@ void FollowUserRowComponent::setUser(const FollowListUser& newUser)
 {
     user = newUser;
     avatarImage = juce::Image();
+
+    // Load avatar via ImageCache
+    if (user.avatarUrl.isNotEmpty())
+    {
+        ImageLoader::load(user.avatarUrl, [this](const juce::Image& img) {
+            avatarImage = img;
+            repaint();
+        });
+    }
+
     repaint();
 }
 
@@ -36,30 +50,12 @@ void FollowUserRowComponent::paint(juce::Graphics& g)
     auto avatarBounds = getAvatarBounds();
 
     // Avatar
-    juce::Path circlePath;
-    circlePath.addEllipse(avatarBounds.toFloat());
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-
-    if (avatarImage.isValid())
-    {
-        auto scaledImage = avatarImage.rescaled(avatarBounds.getWidth(), avatarBounds.getHeight(),
-                                                 juce::Graphics::highResamplingQuality);
-        g.drawImageAt(scaledImage, avatarBounds.getX(), avatarBounds.getY());
-    }
-    else
-    {
-        // Placeholder with initial
-        g.setColour(SidechainColors::surface());
-        g.fillEllipse(avatarBounds.toFloat());
-
-        g.setColour(SidechainColors::textPrimary());
-        g.setFont(18.0f);
-        juce::String initial = user.username.isEmpty() ? "?" : user.username.substring(0, 1).toUpperCase();
-        g.drawText(initial, avatarBounds, juce::Justification::centred);
-    }
-
-    g.restoreState();
+    juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
+    ImageLoader::drawCircularAvatar(g, avatarBounds, avatarImage,
+        ImageLoader::getInitials(name),
+        SidechainColors::surface(),
+        SidechainColors::textPrimary(),
+        18.0f);
 
     // Avatar border
     g.setColour(SidechainColors::border());
@@ -72,7 +68,6 @@ void FollowUserRowComponent::paint(juce::Graphics& g)
     // Display name or username
     g.setColour(SidechainColors::textPrimary());
     g.setFont(15.0f);
-    juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
     g.drawText(name, textX, 12, textWidth, 20, juce::Justification::centredLeft);
 
     // @username (if display name is different)
@@ -95,21 +90,16 @@ void FollowUserRowComponent::paint(juce::Graphics& g)
     // Follow button (don't show for current user)
     auto followBounds = getFollowButtonBounds();
 
-    juce::Colour buttonBg = user.isFollowing ? SidechainColors::surface() : SidechainColors::accent();
-    juce::Colour buttonText = user.isFollowing ? SidechainColors::textPrimary() : SidechainColors::background();
-
-    g.setColour(buttonBg);
-    g.fillRoundedRectangle(followBounds.toFloat(), 4.0f);
-
     if (user.isFollowing)
     {
-        g.setColour(SidechainColors::border());
-        g.drawRoundedRectangle(followBounds.toFloat(), 4.0f, 1.0f);
+        UI::drawOutlineButton(g, followBounds, "Following",
+            SidechainColors::border(), SidechainColors::textPrimary(), false, 4.0f);
     }
-
-    g.setColour(buttonText);
-    g.setFont(12.0f);
-    g.drawText(user.isFollowing ? "Following" : "Follow", followBounds, juce::Justification::centred);
+    else
+    {
+        UI::drawButton(g, followBounds, "Follow",
+            SidechainColors::accent(), SidechainColors::background(), false, 4.0f);
+    }
 }
 
 void FollowUserRowComponent::resized()
@@ -224,13 +214,13 @@ void FollowersListComponent::handleUsersLoaded(bool success, const juce::var& us
 {
     isLoading = false;
 
-    if (success && usersData.isObject())
+    if (success && Json::isObject(usersData))
     {
         // Parse users array
         juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
-        auto usersArray = usersData.getProperty(usersKey, juce::var());
+        auto usersArray = Json::getArray(usersData, usersKey.toRawUTF8());
 
-        if (usersArray.isArray())
+        if (Json::isArray(usersArray))
         {
             auto* arr = usersArray.getArray();
             if (arr != nullptr)
@@ -244,7 +234,7 @@ void FollowersListComponent::handleUsersLoaded(bool success, const juce::var& us
             }
         }
 
-        totalCount = static_cast<int>(usersData.getProperty("total_count", users.size()));
+        totalCount = Json::getInt(usersData, "total_count", users.size());
         hasMore = users.size() < totalCount;
         currentOffset = users.size();
 
@@ -269,12 +259,12 @@ void FollowersListComponent::loadMoreUsers()
     auto callback = [this](bool success, const juce::var& data) {
         isLoading = false;
 
-        if (success && data.isObject())
+        if (success && Json::isObject(data))
         {
             juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
-            auto usersArray = data.getProperty(usersKey, juce::var());
+            auto usersArray = Json::getArray(data, usersKey.toRawUTF8());
 
-            if (usersArray.isArray())
+            if (Json::isArray(usersArray))
             {
                 auto* arr = usersArray.getArray();
                 if (arr != nullptr)
@@ -288,7 +278,7 @@ void FollowersListComponent::loadMoreUsers()
                 }
             }
 
-            totalCount = static_cast<int>(data.getProperty("total_count", users.size()));
+            totalCount = Json::getInt(data, "total_count", users.size());
             hasMore = users.size() < totalCount;
             currentOffset = users.size();
 
@@ -386,8 +376,7 @@ void FollowersListComponent::paint(juce::Graphics& g)
 
     // Header
     auto headerBounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
-    g.setColour(SidechainColors::backgroundLight());
-    g.fillRect(headerBounds);
+    UI::drawCard(g, headerBounds, SidechainColors::backgroundLight());
 
     // Header title
     g.setColour(SidechainColors::textPrimary());

@@ -1,4 +1,6 @@
 #include "FeedPost.h"
+#include "../util/Json.h"
+#include "../util/Log.h"
 
 //==============================================================================
 FeedPost FeedPost::fromJson(const juce::var& json)
@@ -6,17 +8,17 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     FeedPost post;
 
     // Core identifiers
-    post.id = json.getProperty("id", "").toString();
-    post.foreignId = json.getProperty("foreign_id", "").toString();
-    post.actor = json.getProperty("actor", "").toString();
-    post.verb = json.getProperty("verb", "").toString();
-    post.object = json.getProperty("object", "").toString();
+    post.id = Json::getString(json, "id");
+    post.foreignId = Json::getString(json, "foreign_id");
+    post.actor = Json::getString(json, "actor");
+    post.verb = Json::getString(json, "verb");
+    post.object = Json::getString(json, "object");
 
     // Extract user ID from actor string
     post.userId = extractUserId(post.actor);
 
     // Parse timestamp
-    juce::String timeStr = json.getProperty("time", "").toString();
+    juce::String timeStr = Json::getString(json, "time");
     if (timeStr.isNotEmpty())
     {
         // Stream.io uses ISO 8601 format: "2024-01-15T10:30:00.000Z"
@@ -25,93 +27,85 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     }
 
     // User info (may be nested in actor_data or user object)
-    if (json.hasProperty("actor_data"))
+    if (Json::hasKey(json, "actor_data"))
     {
-        auto actorData = json.getProperty("actor_data", juce::var());
-        post.username = actorData.getProperty("username", "").toString();
-        post.userAvatarUrl = actorData.getProperty("avatar_url", "").toString();
+        auto actorData = Json::getObject(json, "actor_data");
+        post.username = Json::getString(actorData, "username");
+        post.userAvatarUrl = Json::getString(actorData, "avatar_url");
     }
-    else if (json.hasProperty("user"))
+    else if (Json::hasKey(json, "user"))
     {
-        auto userData = json.getProperty("user", juce::var());
-        post.username = userData.getProperty("username", "").toString();
-        post.userAvatarUrl = userData.getProperty("avatar_url", "").toString();
+        auto userData = Json::getObject(json, "user");
+        post.username = Json::getString(userData, "username");
+        post.userAvatarUrl = Json::getString(userData, "avatar_url");
     }
 
     // Audio metadata
-    post.audioUrl = json.getProperty("audio_url", "").toString();
-    post.waveformSvg = json.getProperty("waveform", "").toString();
-    post.durationSeconds = static_cast<float>(json.getProperty("duration_seconds", 0.0));
-    post.durationBars = static_cast<int>(json.getProperty("duration_bars", 0));
-    post.bpm = static_cast<int>(json.getProperty("bpm", 0));
-    post.key = json.getProperty("key", "").toString();
-    post.daw = json.getProperty("daw", "").toString();
+    post.audioUrl = Json::getString(json, "audio_url");
+    post.waveformSvg = Json::getString(json, "waveform");
+    post.durationSeconds = Json::getFloat(json, "duration_seconds");
+    post.durationBars = Json::getInt(json, "duration_bars");
+    post.bpm = Json::getInt(json, "bpm");
+    post.key = Json::getString(json, "key");
+    post.daw = Json::getString(json, "daw");
 
     // Parse genres array
-    if (json.hasProperty("genre"))
+    auto genreVar = Json::getArray(json, "genre");
+    if (Json::isArray(genreVar))
     {
-        auto genreVar = json.getProperty("genre", juce::var());
-        if (genreVar.isArray())
-        {
-            for (int i = 0; i < genreVar.size(); ++i)
-                post.genres.add(genreVar[i].toString());
-        }
-        else if (genreVar.isString())
-        {
-            post.genres.add(genreVar.toString());
-        }
+        for (int i = 0; i < Json::arraySize(genreVar); ++i)
+            post.genres.add(Json::getStringAt(genreVar, i));
+    }
+    else if (Json::hasKey(json, "genre"))
+    {
+        // Single genre as string
+        post.genres.add(Json::getString(json, "genre"));
     }
 
     // Social metrics - first try enriched data from Stream.io
     // Enriched endpoints return reaction_counts: {"like": 5, "🔥": 3, "❤️": 2}
-    if (json.hasProperty("reaction_counts"))
+    auto reactionCounts = Json::getObject(json, "reaction_counts");
+    if (Json::isObject(reactionCounts))
     {
-        auto reactionCounts = json.getProperty("reaction_counts", juce::var());
-        if (reactionCounts.isObject())
+        auto* dynObj = reactionCounts.getDynamicObject();
+        if (dynObj != nullptr)
         {
-            auto* dynObj = reactionCounts.getDynamicObject();
-            if (dynObj != nullptr)
+            for (const auto& prop : dynObj->getProperties())
             {
-                for (const auto& prop : dynObj->getProperties())
-                {
-                    juce::String key = prop.name.toString();
-                    int count = static_cast<int>(prop.value);
-                    post.reactionCounts[key] = count;
+                juce::String key = prop.name.toString();
+                int count = static_cast<int>(prop.value);
+                post.reactionCounts[key] = count;
 
-                    // Sum up "like" reactions for backwards compatibility
-                    if (key == "like")
-                        post.likeCount += count;
-                }
+                // Sum up "like" reactions for backwards compatibility
+                if (key == "like")
+                    post.likeCount += count;
             }
         }
     }
     else
     {
         // Fallback to traditional like_count field
-        post.likeCount = static_cast<int>(json.getProperty("like_count", 0));
+        post.likeCount = Json::getInt(json, "like_count");
     }
 
     // Check own_reactions to determine if current user has liked/reacted
     // Format: {"like": ["reaction_id1"], "🔥": ["reaction_id2"]}
-    if (json.hasProperty("own_reactions"))
+    auto ownReactions = Json::getObject(json, "own_reactions");
+    if (Json::isObject(ownReactions))
     {
-        auto ownReactions = json.getProperty("own_reactions", juce::var());
-        if (ownReactions.isObject())
+        auto* dynObj = ownReactions.getDynamicObject();
+        if (dynObj != nullptr)
         {
-            auto* dynObj = ownReactions.getDynamicObject();
-            if (dynObj != nullptr)
+            for (const auto& prop : dynObj->getProperties())
             {
-                for (const auto& prop : dynObj->getProperties())
+                juce::String kind = prop.name.toString();
+                if (prop.value.isArray() && prop.value.size() > 0)
                 {
-                    juce::String kind = prop.name.toString();
-                    if (prop.value.isArray() && prop.value.size() > 0)
-                    {
-                        // User has reacted with this type
-                        if (kind == "like")
-                            post.isLiked = true;
-                        else
-                            post.userReaction = kind;  // Store the emoji reaction
-                    }
+                    // User has reacted with this type
+                    if (kind == "like")
+                        post.isLiked = true;
+                    else
+                        post.userReaction = kind;  // Store the emoji reaction
                 }
             }
         }
@@ -119,16 +113,16 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     else
     {
         // Fallback to traditional is_liked field
-        post.isLiked = static_cast<bool>(json.getProperty("is_liked", false));
+        post.isLiked = Json::getBool(json, "is_liked");
     }
 
-    post.playCount = static_cast<int>(json.getProperty("play_count", 0));
-    post.commentCount = static_cast<int>(json.getProperty("comment_count", 0));
-    post.isFollowing = static_cast<bool>(json.getProperty("is_following", false));
-    post.isOwnPost = static_cast<bool>(json.getProperty("is_own_post", false));
+    post.playCount = Json::getInt(json, "play_count");
+    post.commentCount = Json::getInt(json, "comment_count");
+    post.isFollowing = Json::getBool(json, "is_following");
+    post.isOwnPost = Json::getBool(json, "is_own_post");
 
     // Processing status
-    juce::String statusStr = json.getProperty("status", "").toString().toLowerCase();
+    juce::String statusStr = Json::getString(json, "status").toLowerCase();
     if (statusStr == "ready")
         post.status = Status::Ready;
     else if (statusStr == "processing")
@@ -249,6 +243,32 @@ juce::String FeedPost::formatTimeAgo(const juce::Time& time)
 {
     // Delegate to TimeUtils
     return TimeUtils::formatTimeAgo(time);
+}
+
+//==============================================================================
+Outcome<FeedPost> FeedPost::tryFromJson(const juce::var& json)
+{
+    // Validate input
+    if (!Json::isObject(json))
+        return Outcome<FeedPost>::error("Invalid JSON: expected object");
+
+    // Parse using existing method
+    FeedPost post = fromJson(json);
+
+    // Validate required fields
+    if (post.id.isEmpty())
+        return Outcome<FeedPost>::error("Missing required field: id");
+
+    if (post.audioUrl.isEmpty())
+        return Outcome<FeedPost>::error("Missing required field: audio_url");
+
+    if (post.actor.isEmpty())
+        return Outcome<FeedPost>::error("Missing required field: actor");
+
+    // Log successful parse at debug level
+    Log::debug("Parsed FeedPost: " + post.id + " by " + post.username);
+
+    return Outcome<FeedPost>::ok(std::move(post));
 }
 
 //==============================================================================

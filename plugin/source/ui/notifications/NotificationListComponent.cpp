@@ -1,6 +1,8 @@
 #include "NotificationListComponent.h"
 #include "../../util/Time.h"
 #include "../../util/Colors.h"
+#include "../../util/Json.h"
+#include "../../util/UIHelpers.h"
 
 //==============================================================================
 // NotificationItem implementation
@@ -10,22 +12,22 @@ NotificationItem NotificationItem::fromJson(const juce::var& json)
 {
     NotificationItem item;
 
-    item.id = json.getProperty("id", "").toString();
-    item.groupKey = json.getProperty("group", "").toString();
-    item.verb = json.getProperty("verb", "").toString();
-    item.activityCount = static_cast<int>(json.getProperty("activity_count", 1));
-    item.actorCount = static_cast<int>(json.getProperty("actor_count", 1));
-    item.isRead = static_cast<bool>(json.getProperty("is_read", false));
-    item.isSeen = static_cast<bool>(json.getProperty("is_seen", false));
-    item.createdAt = json.getProperty("created_at", "").toString();
-    item.updatedAt = json.getProperty("updated_at", "").toString();
+    item.id = Json::getString(json, "id");
+    item.groupKey = Json::getString(json, "group");
+    item.verb = Json::getString(json, "verb");
+    item.activityCount = Json::getInt(json, "activity_count", 1);
+    item.actorCount = Json::getInt(json, "actor_count", 1);
+    item.isRead = Json::getBool(json, "is_read");
+    item.isSeen = Json::getBool(json, "is_seen");
+    item.createdAt = Json::getString(json, "created_at");
+    item.updatedAt = Json::getString(json, "updated_at");
 
     // Parse activities array to get actor info
-    auto activities = json.getProperty("activities", juce::var());
-    if (activities.isArray() && activities.size() > 0)
+    auto activities = Json::getArray(json, "activities");
+    if (Json::isArray(activities) && Json::arraySize(activities) > 0)
     {
-        auto firstActivity = activities[0];
-        juce::String actor = firstActivity.getProperty("actor", "").toString();
+        auto firstActivity = Json::getObjectAt(activities, 0);
+        juce::String actor = Json::getString(firstActivity, "actor");
 
         // Actor format is "user:username" or just the ID
         if (actor.startsWith("user:"))
@@ -34,19 +36,19 @@ NotificationItem NotificationItem::fromJson(const juce::var& json)
             item.actorId = actor;
 
         // Get actor name from extra data if available
-        auto extra = firstActivity.getProperty("extra", juce::var());
-        if (extra.isObject())
+        auto extra = Json::getObject(firstActivity, "extra");
+        if (Json::isObject(extra))
         {
-            item.actorName = extra.getProperty("actor_name", item.actorId).toString();
-            item.targetId = extra.getProperty("loop_id", "").toString();
-            item.targetPreview = extra.getProperty("preview", "").toString();
+            item.actorName = Json::getString(extra, "actor_name", item.actorId);
+            item.targetId = Json::getString(extra, "loop_id");
+            item.targetPreview = Json::getString(extra, "preview");
 
             if (item.targetId.isEmpty())
-                item.targetId = extra.getProperty("target_id", "").toString();
+                item.targetId = Json::getString(extra, "target_id");
         }
 
         // Parse object (target)
-        juce::String object = firstActivity.getProperty("object", "").toString();
+        juce::String object = Json::getString(firstActivity, "object");
         if (object.startsWith("loop:"))
         {
             item.targetType = "loop";
@@ -408,8 +410,8 @@ void NotificationListComponent::paint(juce::Graphics& g)
     drawHeader(g, headerBounds);
 
     // Separator line
-    g.setColour(SidechainColors::border());
-    g.fillRect(bounds.removeFromTop(1));
+    UI::drawDivider(g, bounds.getX(), bounds.getY(), bounds.getWidth(), SidechainColors::border());
+    bounds.removeFromTop(1);
 
     // Content area - viewport handles the scrolling
     if (isLoading)
@@ -429,8 +431,7 @@ void NotificationListComponent::paint(juce::Graphics& g)
 void NotificationListComponent::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Header background
-    g.setColour(SidechainColors::backgroundLight());
-    g.fillRect(bounds);
+    UI::drawCard(g, bounds, SidechainColors::backgroundLight());
 
     bounds = bounds.reduced(16, 0);
 

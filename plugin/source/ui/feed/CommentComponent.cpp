@@ -1,5 +1,6 @@
 #include "CommentComponent.h"
 #include "../../util/Colors.h"
+#include "../../util/ImageCache.h"
 #include "../../network/NetworkClient.h"
 
 //==============================================================================
@@ -12,8 +13,17 @@ CommentRowComponent::CommentRowComponent()
 void CommentRowComponent::setComment(const Comment& newComment)
 {
     comment = newComment;
-    avatarLoadRequested = false;
     avatarImage = juce::Image();
+
+    // Load avatar via ImageCache
+    if (comment.userAvatarUrl.isNotEmpty())
+    {
+        ImageLoader::load(comment.userAvatarUrl, [this](const juce::Image& img) {
+            avatarImage = img;
+            repaint();
+        });
+    }
+
     repaint();
 }
 
@@ -55,32 +65,10 @@ void CommentRowComponent::paint(juce::Graphics& g)
 
 void CommentRowComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Create circular clipping
-    juce::Path circlePath;
-    circlePath.addEllipse(bounds.toFloat());
-
-    g.saveState();
-    g.reduceClipRegion(circlePath);
-
-    if (avatarImage.isValid())
-    {
-        auto scaledImage = avatarImage.rescaled(bounds.getWidth(), bounds.getHeight(),
-                                                 juce::Graphics::highResamplingQuality);
-        g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-    }
-    else
-    {
-        // Placeholder with initial
-        g.setColour(SidechainColors::surface());
-        g.fillEllipse(bounds.toFloat());
-
-        g.setColour(SidechainColors::textPrimary());
-        g.setFont(14.0f);
-        juce::String initial = comment.username.isEmpty() ? "?" : comment.username.substring(0, 1).toUpperCase();
-        g.drawText(initial, bounds, juce::Justification::centred);
-    }
-
-    g.restoreState();
+    ImageLoader::drawCircularAvatar(g, bounds, avatarImage,
+        ImageLoader::getInitials(comment.username),
+        SidechainColors::surface(),
+        SidechainColors::textPrimary());
 
     // Avatar border
     g.setColour(SidechainColors::border());
