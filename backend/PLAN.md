@@ -32,7 +32,7 @@ The backend is the social nervous system that connects isolated producers into a
 ### 3. **Social Graph Engine (Stream.io Integration)**
 **Problem**: Building social features from scratch is complex and doesn't scale.
 
-**Solution**: Stream.io Feeds V3 as the social backbone
+**Solution**: getstream.io Feeds V3 as the social backbone
 - Activity feeds for posting and discovery
 - Follow/unfollow relationships
 - Emoji reactions with custom data (🎵❤️🔥😍🚀💯)
@@ -42,10 +42,10 @@ The backend is the social nervous system that connects isolated producers into a
 ### 4. **Real-time Features (Stream.io Handles This)**
 **Problem**: Producers want live updates and presence awareness.
 
-**Solution**: Use Stream.io's built-in real-time capabilities
-- Stream.io Chat provides presence (online/offline/last_active)
-- Stream.io Feeds provide real-time activity updates  
-- Stream.io handles WebSocket connections and scaling
+**Solution**: Use getstream.io's built-in real-time capabilities
+- getstream.io Chat provides presence (online/offline/last_active)
+- getstream.io Feeds provide real-time activity updates  
+- getstream.io handles WebSocket connections and scaling
 - No custom real-time server needed
 
 ## Implementation Phases
@@ -213,12 +213,12 @@ type CDNUploader interface {
 5. Create CDN upload interface (R2/S3)
 6. Store metadata in database
 
-### Phase 2: Stream.io Integration (Real API) 🔄
+### Phase 2: getstream.io Integration (Real API) 🔄
 **Current Status**: V3 SDK added but methods are stubbed
 
 **Missing Components:**
 ```go
-// Proper Stream.io V3 implementation
+// Proper getstream.io V3 implementation
 func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
     ctx := context.Background()
     
@@ -245,7 +245,7 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 3. Add proper follow/unfollow with V3 API
 4. Implement emoji reactions with custom data
 5. Add feed pagination and caching
-6. Test with real Stream.io dashboard
+6. Test with real getstream.io dashboard
 
 ### Phase 3: Database Layer 📊
 **Current Status**: No persistence layer
@@ -283,9 +283,9 @@ type AudioPost struct {
 6. Add indexes for feed queries
 
 ### Phase 4: Real-time Features (Stream.io Only) ✅
-**Current Status**: Stream.io handles all real-time needs
+**Current Status**: getstream.io handles all real-time needs
 
-**What Stream.io Provides:**
+**What getstream.io Provides:**
 - Real-time feed updates (new posts appear instantly)
 - Presence tracking (who's online/offline)
 - Real-time reactions and notifications
@@ -293,10 +293,10 @@ type AudioPost struct {
 - Automatic reconnection and scaling
 
 **No Custom Implementation Needed:**
-- VST connects directly to Stream.io WebSocket
-- Frontend uses Stream.io React SDK
+- VST connects directly to getstream.io WebSocket
+- Frontend uses getstream.io React SDK
 - Backend just provides authentication tokens
-- Stream.io handles all the complexity
+- getstream.io handles all the complexity
 
 ## Critical Backend Decisions
 
@@ -312,16 +312,16 @@ type AudioPost struct {
 - **Background Processing**: Queue system for heavy operations
 
 ### 3. **Stream.io Integration Pattern**
-- **Single Source of Truth**: Stream.io owns social relationships
+- **Single Source of Truth**: getstream.io owns social relationships
 - **Metadata Enrichment**: Backend adds audio-specific data
-- **Hybrid Approach**: Database for search, Stream.io for feeds
+- **Hybrid Approach**: Database for search, getstream.io for feeds
 - **Real-time Sync**: Keep local cache fresh via webhooks
 
 ### 4. **Security Model**
 - **Device-Based Auth**: Unique device IDs, not passwords
 - **JWT with Refresh**: Short-lived tokens, automatic refresh
 - **OAuth Only**: No custom user/password system
-- **Stream.io Delegation**: Let Stream.io handle permissions
+- **Stream.io Delegation**: Let getstream.io handle permissions
 
 ## Backend Service Architecture
 
@@ -338,7 +338,7 @@ type AudioPost struct {
                       │
 ┌─────────────────────┴───────────────────────────────────┐
 │                Integration Layer                        │
-│  Stream.io Client │ Database │ CDN │ OAuth Providers    │
+│  getstream.io Client │ Database │ CDN │ OAuth Providers    │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -351,7 +351,7 @@ type AudioPost struct {
 4. **JWT tokens** - Authenticate VST requests
 5. **User database** - PostgreSQL for account management
 
-### **What Stream.io Still Handles:**
+### **What getstream.io Still Handles:**
 ✅ **Social feeds** - Global, timeline, user feeds
 ✅ **Real-time updates** - New posts, reactions appear instantly
 ✅ **Presence system** - Online/offline status built-in
@@ -379,7 +379,7 @@ type AudioPost struct {
 **MVP Definition (Week 1):**
 - VST shows login options: "Email/Password" OR "Google" OR "Discord"
 - All methods create/link to same account if emails match
-- VST uploads loops → Backend processes → Posts to Stream.io
+- VST uploads loops → Backend processes → Posts to getstream.io
 - **Total backend code: ~800 lines Go** (auth is more complex now)
 
 ### **Week 2: Audio Pipeline** 🎵
@@ -388,7 +388,7 @@ Focus: VST can upload audio and see it processed
 **MVP Definition**:
 - VST uploads 8-bar MP3 to backend
 - Backend normalizes and stores on CDN
-- Backend creates Stream.io activity with audio URL
+- Backend creates getstream.io activity with audio URL
 - VST shows upload success
 
 ### **Week 3: Social Feed** 📱
@@ -429,7 +429,7 @@ Focus: Live producer presence and notifications
 "golang.org/x/crypto/bcrypt"          // Password hashing
 "github.com/golang-jwt/jwt/v5"        // JWT tokens
 
-// Stream.io
+// getstream.io
 "github.com/GetStream/getstream-go/v3" // Feeds V3
 "github.com/GetStream/stream-chat-go/v5" // Chat
 

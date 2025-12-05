@@ -67,7 +67,7 @@ cd sidechain
 cd backend
 go mod download
 cp .env.example .env
-# Add your Stream.io credentials to .env
+# Add your getstream.io credentials to .env
 go run cmd/server/main.go
 
 # Set up the VST plugin
@@ -87,16 +87,16 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development instructions.
 - Embedded social feed UI with audio preview
 - WebSocket connection for real-time updates
 
-### Backend (Go + Stream.io)
+### Backend (Go + getstream.io)
 - RESTful API for authentication and audio upload
-- Stream.io integration for social feeds and engagement
+- getstream.io integration for social feeds and engagement
 - Audio processing pipeline (normalization, compression)
 - WebSocket server for live presence features
 
 ### Infrastructure
 - **Audio Storage**: Cloudflare R2 / AWS S3
 - **CDN**: Cloudflare for global distribution
-- **Social Engine**: Stream.io Activity Feeds
+- **Social Engine**: getstream.io Activity Feeds
 - **Database**: PostgreSQL for metadata
 - **Deployment**: Docker + Railway/Vercel
 
@@ -115,7 +115,7 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development instructions.
 - Loudness normalization (-14 LUFS)
 
 ### Phase 3: Social Features
-- Stream.io feed integration
+- getstream.io feed integration
 - Like/follow system
 - Real-time updates via WebSockets
 - Basic producer profiles
@@ -137,7 +137,7 @@ See [CLAUDE.md](./CLAUDE.md) for detailed development instructions.
 ### Backend
 - **Language**: Go 1.21+
 - **Framework**: Gin (HTTP) + Gorilla (WebSockets)
-- **Social**: Stream.io Activity Feeds SDK
+- **Social**: getstream.io Activity Feeds SDK
 - **Database**: PostgreSQL with GORM
 - **Storage**: Cloudflare R2 / AWS S3
 
@@ -159,7 +159,7 @@ We're building in public! Check out our [development plan](./PLAN.md) and [Claud
 
 ### Areas We Need Help With
 - **C++/JUCE Experts**: VST compatibility and performance
-- **Go Backend**: API design and Stream.io integration
+- **Go Backend**: API design and getstream.io integration
 - **Audio Processing**: Loudness normalization and encoding
 - **UI/UX**: Producer-focused interface design
 - **Testing**: Cross-DAW compatibility

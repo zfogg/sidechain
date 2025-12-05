@@ -1,6 +1,6 @@
 # Sidechain Frontend Implementation Plan
 
-> Modern React app with Vite, pnpm, Turbo, and Stream.io V3
+> Modern React app with Vite, pnpm, Turbo, and getstream.io V3
 
 ## Tech Stack Rationale
 
@@ -36,7 +36,7 @@
 - 🔧 **Task orchestration**: Complex workflow management
 
 ### **Stream.io V3 Browser SDK**
-**Why Stream.io V3:**
+**Why getstream.io V3:**
 - 🌊 **Real-time feeds**: Live updates without polling
 - 😀 **Emoji reactions**: Built-in support for 🎵❤️🔥😍🚀💯
 - 📱 **Mobile optimized**: Touch-friendly interactions
@@ -59,7 +59,7 @@ frontend/
 │       └── package.json
 ├── packages/
 │   ├── ui/                     # Shared UI components
-│   ├── stream-client/          # Stream.io V3 wrapper
+│   ├── stream-client/          # getstream.io V3 wrapper
 │   └── types/                  # Shared TypeScript types
 ├── turbo.json                  # Turborepo configuration
 ├── pnpm-workspace.yaml         # pnpm workspace config
@@ -73,7 +73,7 @@ frontend/
 
 **Goals:** 
 - Lightning-fast development environment
-- Stream.io V3 integration working
+- getstream.io V3 integration working
 - Device claiming page functional
 
 **Implementation:**
@@ -83,7 +83,7 @@ echo 'packageManager="pnpm@9.0.0"' >> package.json  # corepack
 pnpm create turbo@latest sidechain-frontend --package-manager pnpm
 cd sidechain-frontend && pnpm install
 
-# Add Stream.io V3 browser SDK
+# Add getstream.io V3 browser SDK
 pnpm add @stream-io/feeds-client @stream-io/feeds-react-sdk
 
 # Setup Vite with audio optimizations
@@ -254,7 +254,7 @@ export default function ProducerProfile({ username }: ProfileProps) {
 }
 ```
 
-## Stream.io V3 Integration Strategy
+## getstream.io V3 Integration Strategy
 
 ### **Client-Side Real-time**
 ```typescript
@@ -282,7 +282,7 @@ export const initializeStreamClient = (apiKey: string) => {
 };
 ```
 
-### **React Hooks for Stream.io**
+### **React Hooks for getstream.io**
 ```typescript
 // hooks/useStreamFeed.ts
 export function useGlobalFeed() {
@@ -352,7 +352,7 @@ turbo run dev
 # Install dependencies
 pnpm install
 
-# Add Stream.io V3 dependencies
+# Add getstream.io V3 dependencies
 pnpm add @stream-io/feeds-client @stream-io/feeds-react-sdk
 
 # Build for production
@@ -511,7 +511,7 @@ export default function ClaimDevice() {
     // 1. Claim device with backend
     await api.claimDevice(deviceId, 'google', authCode);
     
-    // 2. Connect to Stream.io with user token
+    // 2. Connect to getstream.io with user token
     await streamClient.connectUser({ 
       id: userInfo.id,
       name: userInfo.name 

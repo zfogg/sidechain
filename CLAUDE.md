@@ -3,7 +3,7 @@
 ## Project Overview
 Sidechain is a social VST plugin that enables music producers to share and discover loops directly from their DAW. It consists of:
 - **VST Plugin**: C++ with JUCE framework for audio capture and social feed UI
-- **Backend**: Go server with Stream.io integration for social features
+- **Backend**: Go server with getstream.io integration for social features
 - **Infrastructure**: Audio CDN, authentication, and real-time updates
 
 ## Development Commands
@@ -92,7 +92,7 @@ make install-deps
 
 # Setup environment variables
 cp backend/.env.example backend/.env
-# Edit backend/.env with your Stream.io credentials
+# Edit backend/.env with your getstream.io credentials
 
 # Check what was installed
 make deps-info
@@ -149,7 +149,7 @@ make package
 - **Background Threads**: Network requests, file I/O
 
 ### Security
-- Never expose Stream.io server keys to VST
+- Never expose getstream.io server keys to VST
 - Use JWT tokens for VST authentication
 - Validate all audio uploads server-side
 

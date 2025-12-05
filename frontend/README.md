@@ -52,7 +52,7 @@ The frontend is **intentionally minimal**. The VST is where producers spend thei
 - Fast development for interactive UI
 - Great audio playback libraries
 - Mobile-responsive components
-- Stream.io has React SDK
+- getstream.io has React SDK
 
 **Why Next.js:**
 - Server-side rendering for fast initial loads
