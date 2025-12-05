@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../util/Constants.h"
 #include <functional>
 #include <atomic>
 #include <memory>
@@ -11,11 +12,7 @@
 // This tells websocketpp to use standalone ASIO (not Boost.Asio)
 #define ASIO_STANDALONE 1
 
-// Include ASIO compatibility layer before websocketpp
-// This provides io_service alias for io_context (websocketpp compatibility)
-#include "asio_compat.h"
-
-// websocketpp headers
+// websocketpp headers (ASIO 1.14.1 provides native io_service support)
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
@@ -89,26 +86,31 @@ public:
     // Configuration
     struct Config
     {
-        juce::String host = "localhost";
-        int port = 8787;
-        juce::String path = "/api/v1/ws";
+        juce::String host = Constants::Endpoints::DEV_WS_HOST;
+        int port = Constants::Endpoints::DEV_WS_PORT;
+        juce::String path = Constants::Endpoints::WS_PATH;
         bool useTLS = false;
 
-        int connectTimeoutMs = 10000;
+        int connectTimeoutMs = Constants::Api::WEBSOCKET_TIMEOUT_MS;
         int heartbeatIntervalMs = 30000;
-        int reconnectBaseDelayMs = 1000;
+        int reconnectBaseDelayMs = Constants::Api::RETRY_DELAY_BASE_MS;
         int reconnectMaxDelayMs = 30000;
         int maxReconnectAttempts = -1;  // -1 = unlimited
         int messageQueueMaxSize = 100;
 
         static Config development()
         {
-            return { "localhost", 8787, "/api/v1/ws", false, 10000, 30000, 1000, 30000, -1, 100 };
+            return { Constants::Endpoints::DEV_WS_HOST, Constants::Endpoints::DEV_WS_PORT, 
+                     Constants::Endpoints::WS_PATH, false, 
+                     Constants::Api::WEBSOCKET_TIMEOUT_MS, 30000, 
+                     Constants::Api::RETRY_DELAY_BASE_MS, 30000, -1, 100 };
         }
 
         static Config production()
         {
-            return { "api.sidechain.app", 443, "/api/v1/ws", true, 15000, 30000, 2000, 60000, -1, 100 };
+            return { Constants::Endpoints::PROD_WS_HOST, Constants::Endpoints::PROD_WS_PORT, 
+                     Constants::Endpoints::WS_PATH, true, 
+                     15000, 30000, 2000, 60000, -1, 100 };
         }
     };
 
@@ -160,7 +162,7 @@ public:
 private:
     //==========================================================================
     // websocketpp types
-    typedef websocketpp::client<websocketpp::config::asio_no_tls_client> wspp_client;
+    typedef websocketpp::client<websocketpp::config::asio_client> wspp_client;
     typedef websocketpp::connection_hdl connection_hdl;
     typedef typename wspp_client::message_ptr message_ptr;
     typedef typename wspp_client::connection_ptr connection_ptr;
@@ -175,6 +177,7 @@ private:
     void handleDisconnect(const juce::String& reason);
     void scheduleReconnect();
     void cleanupClient();
+    void connectionLoop();
 
     //==========================================================================
     // websocketpp event handlers
