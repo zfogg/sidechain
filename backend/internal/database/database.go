@@ -85,6 +85,13 @@ func Migrate() error {
 		&models.PasswordReset{},
 		&models.Comment{},
 		&models.CommentMention{},
+		&models.Report{},
+		&models.UserBlock{},
+		&models.SearchQuery{},
+		&models.UserPreference{},
+		&models.PlayHistory{},
+		&models.Hashtag{},
+		&models.PostHashtag{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -127,9 +134,45 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id) WHERE parent_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_post_not_deleted ON comments (post_id, created_at DESC) WHERE is_deleted = false")
 
+	// Full-text search index for comment content (6.1.10)
+	// Using PostgreSQL GIN index with tsvector for fast full-text search
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comments_content_search ON comments USING gin(to_tsvector('english', content)) WHERE is_deleted = false")
+
 	// Comment mention indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comment_mentions_user ON comment_mentions (mentioned_user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_comment_mentions_comment ON comment_mentions (comment_id)")
+
+	// Report indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reports_reporter ON reports (reporter_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reports_target ON reports (target_type, target_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reports_target_user ON reports (target_user_id) WHERE target_user_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_unique ON reports (reporter_id, target_type, target_id) WHERE deleted_at IS NULL")
+
+	// User block indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks (blocker_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks (blocked_id)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_blocks_unique ON user_blocks (blocker_id, blocked_id) WHERE deleted_at IS NULL")
+
+	// Search query analytics indexes (7.1.9)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_search_queries_user ON search_queries (user_id) WHERE user_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_search_queries_result_type ON search_queries (result_type)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_search_queries_created ON search_queries (created_at DESC)")
+
+	// User preference indexes (7.2.4)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_preferences_user ON user_preferences (user_id)")
+
+	// Play history indexes (7.2.1.3, 7.2.4)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_play_history_user ON play_history (user_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_play_history_post ON play_history (post_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_play_history_user_post ON play_history (user_id, post_id)")
+
+	// Hashtag indexes (7.2.5, 7.2.6)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_hashtags_name ON hashtags (name)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_hashtags_post_count ON hashtags (post_count DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_post_hashtags_post ON post_hashtags (post_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_post_hashtags_hashtag ON post_hashtags (hashtag_id)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_post_hashtags_unique ON post_hashtags (post_id, hashtag_id)")
 
 	return nil
 }

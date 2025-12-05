@@ -240,11 +240,11 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 		return nil, fmt.Errorf("failed to create user with OAuth: %w", err)
 	}
 
-	// Create Stream.io user for social features (feeds + chat)
+	// Create getstream.io user for social features (feeds + chat)
 	if s.streamClient != nil {
 		if err := s.streamClient.CreateUser(user.StreamUserID, user.Username); err != nil {
-			// Log but don't fail registration - Stream.io user can be created later
-			fmt.Printf("Warning: failed to create Stream.io user: %v\n", err)
+			// Log but don't fail registration - getstream.io user can be created later
+			fmt.Printf("Warning: failed to create getstream.io user: %v\n", err)
 		}
 	}
 

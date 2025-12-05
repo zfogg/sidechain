@@ -121,7 +121,7 @@ func main() {
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
-	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader)
+	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -163,6 +163,9 @@ func main() {
 
 			// User info (protected)
 			authGroup.GET("/me", authHandlers.AuthMiddleware(), authHandlers.Me)
+
+			// getstream.io Chat token generation (protected)
+			authGroup.GET("/stream-token", authHandlers.AuthMiddleware(), authHandlers.GetStreamToken)
 		}
 
 		// Audio routes

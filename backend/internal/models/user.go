@@ -91,7 +91,7 @@ type User struct {
 	Genre             StringArray  `gorm:"type:text[]" json:"genre"`
 	SocialLinks       *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
 
-	// Social stats (fetched from Stream.io - these are cached values, not source of truth)
+	// Social stats (fetched from getstream.io - these are cached values, not source of truth)
 	// Use stream.Client.GetFollowStats() for real-time counts
 	FollowerCount  int `gorm:"default:0" json:"follower_count"`
 	FollowingCount int `gorm:"default:0" json:"following_count"`
@@ -101,7 +101,7 @@ type User struct {
 	LastActiveAt *time.Time `json:"last_active_at"`
 	IsOnline     bool       `gorm:"default:false" json:"is_online"`
 
-	// Stream.io integration
+	// getstream.io integration
 	StreamUserID string  `gorm:"uniqueIndex" json:"stream_user_id"`
 	StreamToken  *string `gorm:"type:text" json:"-"`
 
@@ -124,8 +124,8 @@ type AudioPost struct {
 	Duration         float64 `json:"duration"` // seconds
 
 	// Audio metadata
-	BPM          int      `json:"bpm"`
-	Key          string   `json:"key"`
+	BPM          int         `json:"bpm"`
+	Key          string      `json:"key"`
 	DurationBars int         `json:"duration_bars"`
 	DAW          string      `json:"daw"`
 	Genre        StringArray `gorm:"type:text[]" json:"genre"`
@@ -133,12 +133,12 @@ type AudioPost struct {
 	// Visual data
 	WaveformSVG string `gorm:"type:text" json:"waveform_svg"`
 
-	// Engagement metrics (cached from Stream.io)
+	// Engagement metrics (cached from getstream.io)
 	LikeCount    int `gorm:"default:0" json:"like_count"`
 	PlayCount    int `gorm:"default:0" json:"play_count"`
 	CommentCount int `gorm:"default:0" json:"comment_count"`
 
-	// Stream.io integration
+	// getstream.io integration
 	StreamActivityID string `gorm:"uniqueIndex" json:"stream_activity_id"`
 
 	// Status
@@ -203,11 +203,11 @@ func (OAuthProvider) TableName() string {
 
 // Comment represents a comment on an AudioPost
 type Comment struct {
-	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	PostID string `gorm:"not null;index" json:"post_id"`
+	ID     string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	PostID string    `gorm:"not null;index" json:"post_id"`
 	Post   AudioPost `gorm:"foreignKey:PostID" json:"-"`
-	UserID string `gorm:"not null;index" json:"user_id"`
-	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	UserID string    `gorm:"not null;index" json:"user_id"`
+	User   User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 
 	// Content
 	Content string `gorm:"type:text;not null" json:"content"`
@@ -217,10 +217,10 @@ type Comment struct {
 	Parent   *Comment   `gorm:"foreignKey:ParentID" json:"-"`
 	Replies  []*Comment `gorm:"foreignKey:ParentID" json:"replies,omitempty"`
 
-	// Engagement (cached from Stream.io reactions)
+	// Engagement (cached from getstream.io reactions)
 	LikeCount int `gorm:"default:0" json:"like_count"`
 
-	// Stream.io integration for reactions
+	// getstream.io integration for reactions
 	StreamActivityID string `gorm:"uniqueIndex" json:"stream_activity_id,omitempty"`
 
 	// Edit tracking
@@ -238,11 +238,11 @@ type Comment struct {
 
 // CommentMention tracks @mentions in comments for notifications
 type CommentMention struct {
-	ID              string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	CommentID       string `gorm:"not null;index" json:"comment_id"`
+	ID              string  `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	CommentID       string  `gorm:"not null;index" json:"comment_id"`
 	Comment         Comment `gorm:"foreignKey:CommentID" json:"-"`
-	MentionedUserID string `gorm:"not null;index" json:"mentioned_user_id"`
-	MentionedUser   User   `gorm:"foreignKey:MentionedUserID" json:"mentioned_user,omitempty"`
+	MentionedUserID string  `gorm:"not null;index" json:"mentioned_user_id"`
+	MentionedUser   User    `gorm:"foreignKey:MentionedUserID" json:"mentioned_user,omitempty"`
 
 	// Whether the notification was sent
 	NotificationSent bool `gorm:"default:false" json:"notification_sent"`
@@ -266,13 +266,156 @@ type PasswordReset struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// ReportReason represents the reason for a report
+type ReportReason string
+
+const (
+	ReportReasonSpam          ReportReason = "spam"
+	ReportReasonHarassment    ReportReason = "harassment"
+	ReportReasonCopyright     ReportReason = "copyright"
+	ReportReasonInappropriate ReportReason = "inappropriate"
+	ReportReasonViolence      ReportReason = "violence"
+	ReportReasonOther         ReportReason = "other"
+)
+
+// ReportStatus represents the status of a report
+type ReportStatus string
+
+const (
+	ReportStatusPending   ReportStatus = "pending"
+	ReportStatusReviewing ReportStatus = "reviewing"
+	ReportStatusResolved  ReportStatus = "resolved"
+	ReportStatusDismissed ReportStatus = "dismissed"
+)
+
+// ReportTargetType represents what type of content is being reported
+type ReportTargetType string
+
+const (
+	ReportTargetPost    ReportTargetType = "post"
+	ReportTargetComment ReportTargetType = "comment"
+	ReportTargetUser    ReportTargetType = "user"
+)
+
+// Report represents a user report for moderation
+type Report struct {
+	ID         string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	ReporterID string `gorm:"not null;index" json:"reporter_id"`
+	Reporter   User   `gorm:"foreignKey:ReporterID" json:"reporter,omitempty"`
+
+	// Target of the report
+	TargetType   ReportTargetType `gorm:"not null" json:"target_type"`     // "post", "comment", "user"
+	TargetID     string           `gorm:"not null;index" json:"target_id"` // ID of the post/comment/user
+	TargetUserID *string          `gorm:"index" json:"target_user_id"`     // User who created the content (for posts/comments)
+
+	// Report details
+	Reason      ReportReason `gorm:"not null" json:"reason"`
+	Description string       `gorm:"type:text" json:"description"` // Optional additional context
+	Status      ReportStatus `gorm:"default:pending" json:"status"`
+
+	// Moderation action
+	ModeratorID *string `gorm:"index" json:"moderator_id"` // Admin who reviewed
+	Moderator   *User   `gorm:"foreignKey:ModeratorID" json:"moderator,omitempty"`
+	ActionTaken string  `gorm:"type:text" json:"action_taken"` // "warned", "removed", "banned", etc.
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// UserBlock represents a user blocking another user
+type UserBlock struct {
+	ID        string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	BlockerID string `gorm:"not null;index" json:"blocker_id"` // User who is blocking
+	Blocker   User   `gorm:"foreignKey:BlockerID" json:"blocker,omitempty"`
+	BlockedID string `gorm:"not null;index" json:"blocked_id"` // User who is blocked
+	Blocked   User   `gorm:"foreignKey:BlockedID" json:"blocked,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// Ensure unique constraint: one block per user pair
+func (UserBlock) TableName() string {
+	return "user_blocks"
+}
+
+// SearchQuery represents a tracked search query for analytics (7.1.9)
+type SearchQuery struct {
+	ID          string  `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID      *string `gorm:"index" json:"user_id"` // Nullable for anonymous searches
+	User        *User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Query       string  `gorm:"type:text;not null" json:"query"`
+	ResultType  string  `gorm:"type:varchar(20);not null" json:"result_type"` // "users", "posts"
+	ResultCount int     `gorm:"default:0" json:"result_count"`
+	Filters     string  `gorm:"type:jsonb" json:"filters"` // JSON string of filters applied
+
+	// GORM fields
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// UserPreference tracks user listening preferences for recommendations (7.2.4)
+type UserPreference struct {
+	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID string `gorm:"not null;index" json:"user_id"`
+	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+
+	// Preference data (aggregated from play history)
+	GenreWeights map[string]float64 `gorm:"type:jsonb;serializer:json" json:"genre_weights"` // Genre -> weight (0-1)
+	BPMRange     *struct {
+		Min int `json:"min"`
+		Max int `json:"max"`
+	} `gorm:"type:jsonb;serializer:json" json:"bpm_range"`
+	KeyPreferences StringArray `gorm:"type:text[]" json:"key_preferences"` // Most listened keys
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// PlayHistory tracks individual play events for velocity calculation (7.2.1.3, 7.2.4)
+type PlayHistory struct {
+	ID        string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID    string    `gorm:"not null;index" json:"user_id"`
+	User      User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	PostID    string    `gorm:"not null;index" json:"post_id"`
+	Post      AudioPost `gorm:"foreignKey:PostID" json:"post,omitempty"`
+	Duration  float64   `gorm:"default:0" json:"duration"`      // Seconds listened
+	Completed bool      `gorm:"default:false" json:"completed"` // Did they listen to the full track?
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Hashtag represents a hashtag used in posts (7.2.5)
+type Hashtag struct {
+	ID         string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	Name       string    `gorm:"uniqueIndex;not null" json:"name"` // e.g., "house", "techno"
+	PostCount  int       `gorm:"default:0" json:"post_count"`      // Number of posts using this hashtag
+	LastUsedAt time.Time `json:"last_used_at"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+// PostHashtag links posts to hashtags (many-to-many) (7.2.5)
+type PostHashtag struct {
+	ID        string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	PostID    string    `gorm:"not null;index" json:"post_id"`
+	Post      AudioPost `gorm:"foreignKey:PostID" json:"post,omitempty"`
+	HashtagID string    `gorm:"not null;index" json:"hashtag_id"`
+	Hashtag   Hashtag   `gorm:"foreignKey:HashtagID" json:"hashtag,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // BeforeCreate hooks for GORM
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
 		u.ID = generateUUID()
 	}
 	if u.StreamUserID == "" {
-		u.StreamUserID = u.ID // Use same ID for Stream.io
+		u.StreamUserID = u.ID // Use same ID for getstream.io
 	}
 	return nil
 }
@@ -305,6 +448,48 @@ func (c *Comment) BeforeCreate(tx *gorm.DB) error {
 func (m *CommentMention) BeforeCreate(tx *gorm.DB) error {
 	if m.ID == "" {
 		m.ID = generateUUID()
+	}
+	return nil
+}
+
+func (r *Report) BeforeCreate(tx *gorm.DB) error {
+	if r.ID == "" {
+		r.ID = generateUUID()
+	}
+	return nil
+}
+
+func (b *UserBlock) BeforeCreate(tx *gorm.DB) error {
+	if b.ID == "" {
+		b.ID = generateUUID()
+	}
+	return nil
+}
+
+func (p *UserPreference) BeforeCreate(tx *gorm.DB) error {
+	if p.ID == "" {
+		p.ID = generateUUID()
+	}
+	return nil
+}
+
+func (ph *PlayHistory) BeforeCreate(tx *gorm.DB) error {
+	if ph.ID == "" {
+		ph.ID = generateUUID()
+	}
+	return nil
+}
+
+func (h *Hashtag) BeforeCreate(tx *gorm.DB) error {
+	if h.ID == "" {
+		h.ID = generateUUID()
+	}
+	return nil
+}
+
+func (ph *PostHashtag) BeforeCreate(tx *gorm.DB) error {
+	if ph.ID == "" {
+		ph.ID = generateUUID()
 	}
 	return nil
 }

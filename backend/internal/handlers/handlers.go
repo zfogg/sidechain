@@ -1463,15 +1463,15 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 	userResults := make([]gin.H, 0, len(users))
 	for _, user := range users {
 		userResults = append(userResults, gin.H{
-			"id":              user.ID,
-			"username":        user.Username,
-			"display_name":    user.DisplayName,
-			"avatar_url":      user.AvatarURL,
-			"bio":             user.Bio,
-			"follower_count":  user.FollowerCount,
-			"post_count":      user.PostCount,
-			"genre":           user.Genre,
-			"daw_preference":  user.DAWPreference,
+			"id":             user.ID,
+			"username":       user.Username,
+			"display_name":   user.DisplayName,
+			"avatar_url":     user.AvatarURL,
+			"bio":            user.Bio,
+			"follower_count": user.FollowerCount,
+			"post_count":     user.PostCount,
+			"genre":          user.Genre,
+			"daw_preference": user.DAWPreference,
 		})
 	}
 
@@ -1748,10 +1748,10 @@ func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 
 	if len(similarUserIDs) == 0 {
 		c.JSON(http.StatusOK, gin.H{
-			"users":         []gin.H{},
-			"analyzed_bpm":  avgBPM,
-			"analyzed_key":  commonKey,
-			"reason":        "no_similar_users_found",
+			"users":        []gin.H{},
+			"analyzed_bpm": avgBPM,
+			"analyzed_key": commonKey,
+			"reason":       "no_similar_users_found",
 			"meta": gin.H{
 				"limit": limit,
 				"count": 0,
