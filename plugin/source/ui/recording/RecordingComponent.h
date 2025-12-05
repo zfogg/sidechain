@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../util/Animation.h"
 
 // Forward declaration to avoid circular includes
 class SidechainAudioProcessor;
@@ -61,8 +62,7 @@ private:
     double recordedSampleRate = 44100.0;
 
     // Animation state
-    int animationFrame = 0;
-    float recordingDotOpacity = 1.0f;
+    Animation recordingDotAnimation{2000, Animation::Easing::EaseInOut};  // 2 second ping-pong
 
     // UI areas (calculated in resized())
     juce::Rectangle<int> recordButtonArea;

@@ -16,6 +16,7 @@
 #include "ui/notifications/NotificationBellComponent.h"
 #include "ui/notifications/NotificationListComponent.h"
 #include "ui/social/UserDiscoveryComponent.h"
+#include "ui/search/SearchComponent.h"
 
 //==============================================================================
 /**
@@ -47,7 +48,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
@@ -79,6 +80,7 @@ private:
     std::unique_ptr<UploadComponent> uploadComponent;
     std::unique_ptr<UserDiscoveryComponent> userDiscoveryComponent;
     std::unique_ptr<ProfileComponent> profileComponent;
+    std::unique_ptr<SearchComponent> searchComponent;
 
     // Network client for API calls
     std::unique_ptr<NetworkClient> networkClient;
@@ -114,6 +116,11 @@ private:
     // Persistent state
     void saveLoginState();
     void loadLoginState();
+    
+    //==============================================================================
+    // Crash detection
+    void checkForPreviousCrash();
+    void markCleanShutdown();
 
     //==============================================================================
     // OAuth polling for plugin-based OAuth flow

@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../models/FeedPost.h"
+#include "../../util/Animation.h"
 #include "EmojiReactionsPanel.h"
 
 //==============================================================================
@@ -56,6 +57,7 @@ public:
     std::function<void(const FeedPost&)> onMoreClicked;
     std::function<void(const FeedPost&, float position)> onWaveformClicked; // Seek position
     std::function<void(const FeedPost&, bool willFollow)> onFollowToggled; // Follow/unfollow user
+    std::function<void(const FeedPost&)> onAddToDAWClicked; // Download audio to DAW project folder
 
     //==============================================================================
     // Component overrides
@@ -86,19 +88,14 @@ private:
     bool isLoading = false;
     float playbackProgress = 0.0f;
 
-    // Like animation state
-    bool likeAnimationActive = false;
-    float likeAnimationProgress = 0.0f;  // 0.0 to 1.0
-    static constexpr float LIKE_ANIMATION_DURATION_MS = 400.0f;
-    static constexpr int LIKE_ANIMATION_FPS = 60;
+    // Like animation
+    Animation likeAnimation{400, Animation::Easing::EaseOutCubic};
 
     // Long-press state for emoji reactions panel
     bool longPressActive = false;
     juce::Point<int> longPressPosition;
     juce::uint32 longPressStartTime = 0;
     static constexpr int LONG_PRESS_DURATION_MS = 400;  // Time before showing emoji panel
-    static constexpr int LONG_PRESS_TIMER_ID = 1;
-    static constexpr int ANIMATION_TIMER_ID = 2;
 
     // Cached avatar image (loaded via ImageCache)
     juce::Image avatarImage;
@@ -113,6 +110,7 @@ private:
     void drawPlayButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawReactionCounts(juce::Graphics& g, juce::Rectangle<int> likeBounds);
     void drawLikeAnimation(juce::Graphics& g);
 
     // Animation helpers
@@ -133,6 +131,7 @@ private:
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getMoreButtonBounds() const;
     juce::Rectangle<int> getFollowButtonBounds() const;
+    juce::Rectangle<int> getAddToDAWButtonBounds() const;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCardComponent)

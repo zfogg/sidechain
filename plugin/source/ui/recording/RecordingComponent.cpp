@@ -1,36 +1,42 @@
 #include "RecordingComponent.h"
 #include "../../PluginProcessor.h"
 #include "../../util/Colors.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 RecordingComponent::RecordingComponent(SidechainAudioProcessor& processor)
     : audioProcessor(processor)
 {
+    Log::info("RecordingComponent: Initializing recording component");
+    
+    // Set up recording dot animation (ping-pong for pulsing effect)
+    recordingDotAnimation.setPingPong(true);
+    recordingDotAnimation.setRepeatCount(-1);  // Infinite repeat
+    recordingDotAnimation.onUpdate = [this](float progress) {
+        if (currentState == State::Recording)
+            repaint();
+    };
+    
     // Start timer for UI updates (~30fps)
     startTimerHz(30);
+    Log::debug("RecordingComponent: Timer started at 30Hz for UI updates");
+    Log::info("RecordingComponent: Initialization complete");
 }
 
 RecordingComponent::~RecordingComponent()
 {
+    Log::debug("RecordingComponent: Destroying recording component");
     stopTimer();
 }
 
 //==============================================================================
 void RecordingComponent::timerCallback()
 {
-    // Update animation frame
-    animationFrame++;
-
-    // Pulsing recording dot
-    if (currentState == State::Recording)
-    {
-        recordingDotOpacity = 0.5f + 0.5f * std::sin(animationFrame * 0.15f);
-    }
-
     // Check if recording stopped externally (e.g., max length reached)
     if (currentState == State::Recording && !audioProcessor.isRecording())
     {
         // Recording stopped (likely hit max length)
+        Log::info("RecordingComponent::timerCallback: Recording stopped externally (likely max length reached)");
         stopRecording();
     }
 
@@ -63,6 +69,7 @@ void RecordingComponent::paint(juce::Graphics& g)
 
 void RecordingComponent::resized()
 {
+    Log::debug("RecordingComponent::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
     auto bounds = getLocalBounds().reduced(20);
 
     // Calculate areas based on component size
@@ -105,12 +112,15 @@ void RecordingComponent::resized()
 void RecordingComponent::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
+    Log::debug("RecordingComponent::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + "), state: " + 
+               juce::String(currentState == State::Idle ? "Idle" : currentState == State::Recording ? "Recording" : "Preview"));
 
     switch (currentState)
     {
         case State::Idle:
             if (recordButtonArea.contains(pos))
             {
+                Log::info("RecordingComponent::mouseUp: Record button clicked in Idle state");
                 startRecording();
             }
             break;
@@ -118,6 +128,7 @@ void RecordingComponent::mouseUp(const juce::MouseEvent& event)
         case State::Recording:
             if (recordButtonArea.contains(pos))
             {
+                Log::info("RecordingComponent::mouseUp: Stop button clicked in Recording state");
                 stopRecording();
             }
             break;
@@ -131,10 +142,12 @@ void RecordingComponent::mouseUp(const juce::MouseEvent& event)
 
             if (discardButton.contains(pos))
             {
+                Log::info("RecordingComponent::mouseUp: Discard button clicked");
                 discardRecording();
             }
             else if (uploadButton.contains(pos))
             {
+                Log::info("RecordingComponent::mouseUp: Upload/Share button clicked");
                 confirmRecording();
             }
             break;
@@ -212,7 +225,9 @@ void RecordingComponent::drawRecordButton(juce::Graphics& g)
     if (isRecording)
     {
         // Pulsing red with square shape (stop indicator)
-        g.setColour(SidechainColors::recording().withAlpha(recordingDotOpacity));
+        // Use animation progress for smooth pulsing (0.5 to 1.0 opacity)
+        float opacity = 0.5f + 0.5f * recordingDotAnimation.getProgress();
+        g.setColour(SidechainColors::recording().withAlpha(opacity));
         auto innerRect = recordButtonArea.reduced(recordButtonArea.getWidth() / 4);
         g.fillRoundedRectangle(innerRect.toFloat(), 4.0f);
     }
@@ -227,6 +242,14 @@ void RecordingComponent::drawRecordButton(juce::Graphics& g)
 void RecordingComponent::drawTimeDisplay(juce::Graphics& g)
 {
     double seconds = audioProcessor.getRecordingLengthSeconds();
+    
+    // Log periodically to avoid spam (every 5 seconds)
+    static double lastLoggedTime = -1.0;
+    if (seconds - lastLoggedTime >= 5.0)
+    {
+        Log::debug("RecordingComponent::drawTimeDisplay: Recording time: " + formatTime(seconds));
+        lastLoggedTime = seconds;
+    }
 
     // Large time display
     g.setColour(SidechainColors::textPrimary());
@@ -235,7 +258,8 @@ void RecordingComponent::drawTimeDisplay(juce::Graphics& g)
                juce::Justification::centredLeft);
 
     // Recording indicator text
-    g.setColour(SidechainColors::recording().withAlpha(recordingDotOpacity));
+    float opacity = 0.5f + 0.5f * recordingDotAnimation.getProgress();
+    g.setColour(SidechainColors::recording().withAlpha(opacity));
     g.setFont(14.0f);
     g.drawText("RECORDING", timeDisplayArea, juce::Justification::centredLeft);
 }
@@ -247,6 +271,18 @@ void RecordingComponent::drawLevelMeters(juce::Graphics& g)
     float peakR = audioProcessor.getPeakLevel(1);
     float rmsL = audioProcessor.getRMSLevel(0);
     float rmsR = audioProcessor.getRMSLevel(1);
+    
+    // Log peak levels periodically to avoid spam (when levels are significant)
+    static float lastLoggedPeakL = -1.0f;
+    static float lastLoggedPeakR = -1.0f;
+    if (std::abs(peakL - lastLoggedPeakL) > 0.1f || std::abs(peakR - lastLoggedPeakR) > 0.1f)
+    {
+        Log::debug("RecordingComponent::drawLevelMeters: Peak levels - L: " + juce::String(peakL, 2) + 
+                   ", R: " + juce::String(peakR, 2) + ", RMS - L: " + juce::String(rmsL, 2) + 
+                   ", R: " + juce::String(rmsR, 2));
+        lastLoggedPeakL = peakL;
+        lastLoggedPeakR = peakR;
+    }
 
     // Draw background
     g.setColour(SidechainColors::backgroundLight());
@@ -393,12 +429,18 @@ juce::Path RecordingComponent::generateWaveformPath(const juce::AudioBuffer<floa
     juce::Path path;
 
     if (buffer.getNumSamples() == 0)
+    {
+        Log::warn("RecordingComponent::generateWaveformPath: Empty buffer, returning empty path");
         return path;
+    }
 
     int numSamples = buffer.getNumSamples();
     int width = bounds.getWidth();
     float height = bounds.getHeight();
     float centerY = bounds.getCentreY();
+
+    Log::debug("RecordingComponent::generateWaveformPath: Generating waveform - samples: " + juce::String(numSamples) + 
+               ", width: " + juce::String(width) + ", channels: " + juce::String(buffer.getNumChannels()));
 
     // Samples per pixel
     int samplesPerPixel = juce::jmax(1, numSamples / width);
@@ -424,36 +466,53 @@ juce::Path RecordingComponent::generateWaveformPath(const juce::AudioBuffer<floa
         path.lineTo(bounds.getX() + x, y);
     }
 
+    Log::debug("RecordingComponent::generateWaveformPath: Waveform path generated with " + juce::String(width) + " points");
     return path;
 }
 
 //==============================================================================
 void RecordingComponent::startRecording()
 {
+    Log::info("RecordingComponent::startRecording: Starting recording");
     audioProcessor.startRecording();
     currentState = State::Recording;
-    animationFrame = 0;
+    
+    // Start pulsing animation
+    recordingDotAnimation.start();
+    
+    Log::debug("RecordingComponent::startRecording: State changed to Recording, animation started");
     repaint();
-
-    DBG("RecordingComponent: Started recording");
 }
 
 void RecordingComponent::stopRecording()
 {
+    Log::info("RecordingComponent::stopRecording: Stopping recording");
+    
+    // Stop pulsing animation
+    recordingDotAnimation.stop();
+    
     audioProcessor.stopRecording();
     recordedAudio = audioProcessor.getRecordedAudio();
     recordedSampleRate = audioProcessor.getCurrentSampleRate();
+    
+    int numSamples = recordedAudio.getNumSamples();
+    int numChannels = recordedAudio.getNumChannels();
+    double duration = static_cast<double>(numSamples) / recordedSampleRate;
+    
+    Log::debug("RecordingComponent::stopRecording: Recording stopped - samples: " + juce::String(numSamples) + 
+               ", channels: " + juce::String(numChannels) + ", sampleRate: " + juce::String(recordedSampleRate, 1) + 
+               "Hz, duration: " + juce::String(duration, 2) + "s");
 
     if (recordedAudio.getNumSamples() > 0)
     {
         currentState = State::Preview;
-        DBG("RecordingComponent: Stopped recording, " +
-            juce::String(recordedAudio.getNumSamples()) + " samples captured");
+        Log::info("RecordingComponent::stopRecording: Recording complete, showing preview - " +
+            juce::String(recordedAudio.getNumSamples()) + " samples captured, duration: " + formatTime(duration));
     }
     else
     {
         currentState = State::Idle;
-        DBG("RecordingComponent: Recording stopped but no audio captured");
+        Log::warn("RecordingComponent::stopRecording: Recording stopped but no audio captured");
     }
 
     repaint();
@@ -461,42 +520,66 @@ void RecordingComponent::stopRecording()
 
 void RecordingComponent::discardRecording()
 {
+    Log::info("RecordingComponent::discardRecording: Discarding recording");
+    int discardedSamples = recordedAudio.getNumSamples();
     recordedAudio.setSize(0, 0);
     currentState = State::Idle;
+    Log::debug("RecordingComponent::discardRecording: State reset to Idle, discarded " + juce::String(discardedSamples) + " samples");
 
     if (onRecordingDiscarded)
+    {
+        Log::debug("RecordingComponent::discardRecording: Calling onRecordingDiscarded callback");
         onRecordingDiscarded();
+    }
+    else
+    {
+        Log::warn("RecordingComponent::discardRecording: onRecordingDiscarded callback not set");
+    }
 
     repaint();
-
-    DBG("RecordingComponent: Recording discarded");
 }
 
 void RecordingComponent::confirmRecording()
 {
+    int numSamples = recordedAudio.getNumSamples();
+    int numChannels = recordedAudio.getNumChannels();
+    double duration = static_cast<double>(numSamples) / recordedSampleRate;
+    
+    Log::info("RecordingComponent::confirmRecording: Confirming recording for upload - samples: " + juce::String(numSamples) + 
+              ", channels: " + juce::String(numChannels) + ", duration: " + formatTime(duration));
+    
     if (onRecordingComplete && recordedAudio.getNumSamples() > 0)
     {
         // Make a copy of the audio data before any state changes
         // This prevents potential race conditions with async repaints
         juce::AudioBuffer<float> audioCopy(recordedAudio);
+        Log::debug("RecordingComponent::confirmRecording: Created audio copy for callback");
 
         // Reset state BEFORE calling callback to prevent any repaint
         // from accessing the original buffer while it's being modified
         recordedAudio.setSize(0, 0);
         currentState = State::Idle;
+        Log::debug("RecordingComponent::confirmRecording: State reset to Idle before callback");
 
         // Now call the callback with the copy - safe even if callback
         // triggers view changes that cause repaints
+        Log::info("RecordingComponent::confirmRecording: Calling onRecordingComplete callback");
         onRecordingComplete(audioCopy);
     }
     else
     {
+        if (!onRecordingComplete)
+        {
+            Log::warn("RecordingComponent::confirmRecording: onRecordingComplete callback not set");
+        }
+        if (recordedAudio.getNumSamples() == 0)
+        {
+            Log::warn("RecordingComponent::confirmRecording: No audio to share");
+        }
         // No audio to share, just reset state
         recordedAudio.setSize(0, 0);
         currentState = State::Idle;
     }
 
     repaint();
-
-    DBG("RecordingComponent: Recording confirmed for upload");
 }

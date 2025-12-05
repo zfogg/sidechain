@@ -1,12 +1,22 @@
 #include "CommentComponent.h"
-#include "../../util/Colors.h"
 #include "../../util/ImageCache.h"
+#include "../../util/TextEditorStyler.h"
+#include "../../util/UIHelpers.h"
+#include "../../util/HoverState.h"
+#include "../../ui/feed/EmojiReactionsPanel.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 CommentRowComponent::CommentRowComponent()
 {
+    Log::debug("CommentRowComponent: Initializing comment row");
     setSize(400, ROW_HEIGHT);
+    
+    // Set up hover state
+    hoverState.onHoverChanged = [this](bool hovered) {
+        repaint();
+    };
 }
 
 //==============================================================================
@@ -29,6 +39,8 @@ void CommentRowComponent::setComment(const Comment& newComment)
 
 void CommentRowComponent::updateLikeCount(int count, bool liked)
 {
+    Log::debug("CommentRowComponent::updateLikeCount: Updating like count - id: " + comment.id + 
+               ", count: " + juce::String(count) + ", liked: " + juce::String(liked ? "yes" : "no"));
     comment.likeCount = count;
     comment.isLiked = liked;
     repaint();
@@ -37,15 +49,14 @@ void CommentRowComponent::updateLikeCount(int count, bool liked)
 //==============================================================================
 void CommentRowComponent::paint(juce::Graphics& g)
 {
-    // Background
-    g.setColour(isHovered ? SidechainColors::backgroundLighter() : SidechainColors::backgroundLight());
-    g.fillRect(getLocalBounds());
+    // Background - use UI::drawCardWithHover for consistent styling
+    UI::drawCardWithHover(g, getLocalBounds(),
+        SidechainColors::backgroundLight(),
+        SidechainColors::backgroundLighter(),
+        juce::Colours::transparentBlack,
+        hoverState.isHovered());
 
-    // Calculate indent for replies
-    int indent = isReply ? REPLY_INDENT : 0;
-    auto contentArea = getLocalBounds().withTrimmedLeft(indent);
-
-    // Draw avatar
+    // Draw avatar (indentation handled in getAvatarBounds)
     drawAvatar(g, getAvatarBounds());
 
     // Draw user info (name + timestamp)
@@ -110,8 +121,6 @@ void CommentRowComponent::drawContent(juce::Graphics& g, juce::Rectangle<int> bo
 
 void CommentRowComponent::drawActions(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    int buttonX = bounds.getX();
-
     // Like button
     auto likeBounds = getLikeButtonBounds();
     juce::Colour likeColor = comment.isLiked ? SidechainColors::like() : SidechainColors::textMuted();
@@ -138,7 +147,7 @@ void CommentRowComponent::drawActions(juce::Graphics& g, juce::Rectangle<int> bo
     g.drawText("Reply", replyBounds, juce::Justification::centredLeft);
 
     // More button (for own comments or to report)
-    if (isHovered)
+    if (hoverState.isHovered())
     {
         auto moreBounds = getMoreButtonBounds();
         g.setColour(SidechainColors::textMuted());
@@ -156,10 +165,13 @@ void CommentRowComponent::resized()
 void CommentRowComponent::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
+    Log::debug("CommentRowComponent::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + 
+               ") on comment: " + comment.id);
 
     // Check avatar/username for user click
     if (getAvatarBounds().contains(pos) || getUserInfoBounds().contains(pos))
     {
+        Log::info("CommentRowComponent::mouseUp: User clicked on avatar/username");
         if (onUserClicked)
             onUserClicked(comment);
         return;
@@ -169,6 +181,7 @@ void CommentRowComponent::mouseUp(const juce::MouseEvent& event)
     if (getLikeButtonBounds().contains(pos))
     {
         bool willBeLiked = !comment.isLiked;
+        Log::info("CommentRowComponent::mouseUp: Like button clicked - will be liked: " + juce::String(willBeLiked ? "yes" : "no"));
         if (onLikeToggled)
             onLikeToggled(comment, willBeLiked);
         return;
@@ -177,6 +190,7 @@ void CommentRowComponent::mouseUp(const juce::MouseEvent& event)
     // Check reply button
     if (getReplyButtonBounds().contains(pos))
     {
+        Log::info("CommentRowComponent::mouseUp: Reply button clicked");
         if (onReplyClicked)
             onReplyClicked(comment);
         return;
@@ -185,6 +199,7 @@ void CommentRowComponent::mouseUp(const juce::MouseEvent& event)
     // Check more button
     if (getMoreButtonBounds().contains(pos))
     {
+        Log::info("CommentRowComponent::mouseUp: More button clicked, showing context menu");
         // Show context menu
         juce::PopupMenu menu;
 
@@ -202,11 +217,20 @@ void CommentRowComponent::mouseUp(const juce::MouseEvent& event)
         menu.showMenuAsync(juce::PopupMenu::Options(),
             [this](int result) {
                 if (result == 1 && onEditClicked)
+                {
+                    Log::info("CommentRowComponent::mouseUp: Edit menu item selected");
                     onEditClicked(comment);
+                }
                 else if (result == 2 && onDeleteClicked)
+                {
+                    Log::info("CommentRowComponent::mouseUp: Delete menu item selected");
                     onDeleteClicked(comment);
+                }
                 else if (result == 3 && onReportClicked)
+                {
+                    Log::info("CommentRowComponent::mouseUp: Report menu item selected");
                     onReportClicked(comment);
+                }
             });
         return;
     }
@@ -214,14 +238,12 @@ void CommentRowComponent::mouseUp(const juce::MouseEvent& event)
 
 void CommentRowComponent::mouseEnter(const juce::MouseEvent& /*event*/)
 {
-    isHovered = true;
-    repaint();
+    hoverState.setHovered(true);
 }
 
 void CommentRowComponent::mouseExit(const juce::MouseEvent& /*event*/)
 {
-    isHovered = false;
-    repaint();
+    hoverState.setHovered(false);
 }
 
 //==============================================================================
@@ -297,34 +319,61 @@ void CommentsPanelComponent::setupUI()
     viewport->setScrollBarsShown(true, false);
     addAndMakeVisible(viewport.get());
 
-    // Input field
+    // Input field with TextEditorStyler
     inputField = std::make_unique<juce::TextEditor>();
-    inputField->setMultiLine(false);
-    inputField->setReturnKeyStartsNewLine(false);
-    inputField->setTextToShowWhenEmpty("Add a comment...", SidechainColors::textMuted());
-    inputField->setColour(juce::TextEditor::backgroundColourId, SidechainColors::surface());
-    inputField->setColour(juce::TextEditor::textColourId, SidechainColors::textPrimary());
-    inputField->setColour(juce::TextEditor::outlineColourId, SidechainColors::border());
-    inputField->onReturnKey = [this]() { submitComment(); };
+    TextEditorStyler::style(*inputField, "Add a comment...");
+    inputField->setMultiLine(true);  // Allow multiline for longer comments
+    inputField->setReturnKeyStartsNewLine(true);
+    inputField->setInputRestrictions(1000);  // Max comment length
+    inputField->onReturnKey = [this]() {
+        // If showing mentions, select first mention; otherwise submit
+        if (isShowingMentions && mentionSuggestions.size() > 0)
+        {
+            selectMention(0);
+        }
+        else
+        {
+            submitComment();
+        }
+    };
+    
+    // Add mention listener
+    mentionListener = std::make_unique<MentionListener>(this);
+    inputField->addListener(mentionListener.get());
     addAndMakeVisible(inputField.get());
+
+    // Emoji button
+    emojiButton = std::make_unique<juce::TextButton>("😊");
+    emojiButton->onClick = [this]() { showEmojiPicker(); };
+    addAndMakeVisible(emojiButton.get());
 
     // Send button
     sendButton = std::make_unique<juce::TextButton>("Send");
     sendButton->onClick = [this]() { submitComment(); };
     addAndMakeVisible(sendButton.get());
+    
+    // Mention autocomplete panel (initially hidden)
+    mentionAutocompletePanel = std::make_unique<juce::Component>();
+    mentionAutocompletePanel->setVisible(false);
+    addChildComponent(mentionAutocompletePanel.get());
 }
 
 void CommentsPanelComponent::loadCommentsForPost(const juce::String& postId)
 {
     if (postId.isEmpty() || networkClient == nullptr)
+    {
+        Log::warn("CommentsPanelComponent::loadCommentsForPost: Cannot load - postId empty or networkClient null");
         return;
+    }
 
+    Log::info("CommentsPanelComponent::loadCommentsForPost: Loading comments for post: " + postId);
     currentPostId = postId;
     currentOffset = 0;
     comments.clear();
     commentRows.clear();
     errorMessage = "";
     isLoading = true;
+    Log::debug("CommentsPanelComponent::loadCommentsForPost: State reset, loading started");
     repaint();
 
     networkClient->getComments(postId, 20, 0,
@@ -478,16 +527,22 @@ void CommentsPanelComponent::setupRowCallbacks(CommentRowComponent* row)
         });
     };
 
-    row->onReportClicked = [this](const Comment& /*comment*/) {
+    row->onReportClicked = [](const Comment& comment) {
         // TODO: Implement report flow
-        DBG("Report comment clicked");
+        Log::info("CommentsPanelComponent::setupRowCallbacks: Report comment clicked - commentId: " + comment.id);
     };
 }
 
 void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bool liked)
 {
     if (networkClient == nullptr)
+    {
+        Log::warn("CommentsPanelComponent::handleCommentLikeToggled: networkClient is null");
         return;
+    }
+
+    Log::info("CommentsPanelComponent::handleCommentLikeToggled: Toggling like - commentId: " + comment.id + 
+              ", liked: " + juce::String(liked ? "yes" : "no") + ", current count: " + juce::String(comment.likeCount));
 
     // Optimistic update
     for (auto* row : commentRows)
@@ -496,6 +551,7 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
         {
             int newCount = liked ? comment.likeCount + 1 : juce::jmax(0, comment.likeCount - 1);
             row->updateLikeCount(newCount, liked);
+            Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Optimistic update - new count: " + juce::String(newCount));
             break;
         }
     }
@@ -503,9 +559,11 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
     // Send to server
     if (liked)
     {
+        Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Calling likeComment API");
         networkClient->likeComment(comment.id, [this, commentId = comment.id](bool success, const juce::var& /*response*/) {
             if (!success)
             {
+                Log::warn("CommentsPanelComponent::handleCommentLikeToggled: Like failed, reverting optimistic update");
                 // Revert on failure
                 for (auto* row : commentRows)
                 {
@@ -517,13 +575,19 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
                     }
                 }
             }
+            else
+            {
+                Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Like successful");
+            }
         });
     }
     else
     {
+        Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Calling unlikeComment API");
         networkClient->unlikeComment(comment.id, [this, commentId = comment.id](bool success, const juce::var& /*response*/) {
             if (!success)
             {
+                Log::warn("CommentsPanelComponent::handleCommentLikeToggled: Unlike failed, reverting optimistic update");
                 // Revert on failure
                 for (auto* row : commentRows)
                 {
@@ -534,6 +598,10 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
                         break;
                     }
                 }
+            }
+            else
+            {
+                Log::debug("CommentsPanelComponent::handleCommentLikeToggled: Unlike successful");
             }
         });
     }
@@ -541,22 +609,32 @@ void CommentsPanelComponent::handleCommentLikeToggled(const Comment& comment, bo
 
 void CommentsPanelComponent::handleCommentCreated(bool success, const juce::var& commentData)
 {
+    Log::info("CommentsPanelComponent::handleCommentCreated: Comment creation result - success: " + juce::String(success ? "yes" : "no"));
+    
     if (success)
     {
         Comment newComment = Comment::fromJson(commentData);
         if (newComment.isValid())
         {
+            Log::info("CommentsPanelComponent::handleCommentCreated: Adding new comment - id: " + newComment.id + 
+                     ", username: " + newComment.username);
             comments.insert(0, newComment); // Add at top
             totalCommentCount++;
             updateCommentsList();
         }
+        else
+        {
+            Log::warn("CommentsPanelComponent::handleCommentCreated: Comment data invalid");
+        }
 
         inputField->clear();
         cancelReply();
+        Log::debug("CommentsPanelComponent::handleCommentCreated: Input cleared, reply cancelled");
     }
     else
     {
         errorMessage = "Failed to post comment";
+        Log::error("CommentsPanelComponent::handleCommentCreated: Failed to post comment");
     }
 
     repaint();
@@ -564,6 +642,9 @@ void CommentsPanelComponent::handleCommentCreated(bool success, const juce::var&
 
 void CommentsPanelComponent::handleCommentDeleted(bool success, const juce::String& commentId)
 {
+    Log::info("CommentsPanelComponent::handleCommentDeleted: Comment deletion result - success: " + juce::String(success ? "yes" : "no") + 
+              ", commentId: " + commentId);
+    
     if (success)
     {
         // Remove from list
@@ -571,12 +652,17 @@ void CommentsPanelComponent::handleCommentDeleted(bool success, const juce::Stri
         {
             if (comments[i].id == commentId)
             {
+                Log::debug("CommentsPanelComponent::handleCommentDeleted: Removing comment from list");
                 comments.remove(i);
                 totalCommentCount--;
                 break;
             }
         }
         updateCommentsList();
+    }
+    else
+    {
+        Log::error("CommentsPanelComponent::handleCommentDeleted: Failed to delete comment");
     }
 
     repaint();
@@ -585,14 +671,24 @@ void CommentsPanelComponent::handleCommentDeleted(bool success, const juce::Stri
 void CommentsPanelComponent::submitComment()
 {
     if (networkClient == nullptr || currentPostId.isEmpty())
+    {
+        Log::warn("CommentsPanelComponent::submitComment: Cannot submit - networkClient null or postId empty");
         return;
+    }
 
     juce::String content = inputField->getText().trim();
     if (content.isEmpty())
+    {
+        Log::debug("CommentsPanelComponent::submitComment: Content is empty, not submitting");
         return;
+    }
 
     // Determine if this is a reply
     juce::String parentId = replyingToCommentId;
+    
+    Log::info("CommentsPanelComponent::submitComment: Submitting comment - postId: " + currentPostId + 
+              ", content length: " + juce::String(content.length()) + 
+              (parentId.isNotEmpty() ? (", replying to: " + parentId) : ", top-level comment"));
 
     networkClient->createComment(currentPostId, content, parentId,
         [this](bool success, const juce::var& comment) {
@@ -609,6 +705,7 @@ void CommentsPanelComponent::cancelReply()
 void CommentsPanelComponent::timerCallback()
 {
     // Auto-refresh every 30 seconds
+    Log::debug("CommentsPanelComponent::timerCallback: Auto-refreshing comments");
     refreshComments();
 }
 
@@ -668,6 +765,41 @@ void CommentsPanelComponent::paint(juce::Graphics& g)
         g.setFont(14.0f);
         g.drawText("No comments yet. Be the first!", getLocalBounds(), juce::Justification::centred);
     }
+    
+    // Draw mention autocomplete panel
+    if (isShowingMentions && mentionAutocompletePanel != nullptr && mentionAutocompletePanel->isVisible())
+    {
+        auto panelBounds = mentionAutocompletePanel->getBounds();
+        
+        // Background
+        g.setColour(SidechainColors::backgroundLight());
+        g.fillRoundedRectangle(panelBounds.toFloat(), 8.0f);
+        
+        // Border
+        g.setColour(SidechainColors::border());
+        g.drawRoundedRectangle(panelBounds.toFloat(), 8.0f, 1.0f);
+        
+        // Draw suggestions
+        int yPos = 5;
+        for (int i = 0; i < mentionSuggestions.size(); ++i)
+        {
+            auto itemBounds = juce::Rectangle<int>(5, yPos, panelBounds.getWidth() - 10, 35);
+            
+            // Highlight selected item
+            if (i == selectedMentionIndex)
+            {
+                g.setColour(SidechainColors::surface());
+                g.fillRoundedRectangle(itemBounds.toFloat(), 4.0f);
+            }
+            
+            // Username
+            g.setColour(SidechainColors::textPrimary());
+            g.setFont(13.0f);
+            g.drawText("@" + mentionSuggestions[i], itemBounds.reduced(10, 0), juce::Justification::centredLeft);
+            
+            yPos += 35;
+        }
+    }
 }
 
 void CommentsPanelComponent::resized()
@@ -684,8 +816,24 @@ void CommentsPanelComponent::resized()
     if (replyingToUsername.isNotEmpty())
         inputBounds.removeFromTop(20);
 
-    sendButton->setBounds(inputBounds.removeFromRight(70).reduced(5));
+    // Button area (emoji + send)
+    auto buttonArea = inputBounds.removeFromRight(90);
+    sendButton->setBounds(buttonArea.removeFromRight(70).reduced(5));
+    emojiButton->setBounds(buttonArea.removeFromRight(30).reduced(5));
+    
     inputField->setBounds(inputBounds.reduced(10, 15));
+
+    // Position mention autocomplete panel above input field
+    if (isShowingMentions && mentionAutocompletePanel != nullptr)
+    {
+        int panelHeight = juce::jmin(200, mentionSuggestions.size() * 40 + 10);
+        mentionAutocompletePanel->setBounds(
+            inputBounds.getX(),
+            inputBounds.getY() - panelHeight - 5,
+            inputBounds.getWidth(),
+            panelHeight
+        );
+    }
 
     // Header at top
     bounds.removeFromTop(HEADER_HEIGHT);
@@ -694,4 +842,283 @@ void CommentsPanelComponent::resized()
     viewport->setBounds(bounds);
     contentContainer->setSize(viewport->getWidth() - 10, contentContainer->getHeight());
     updateCommentsList();
+}
+
+//==============================================================================
+// Mouse and Keyboard Handling
+
+void CommentsPanelComponent::mouseUp(const juce::MouseEvent& event)
+{
+    auto pos = event.getPosition();
+    
+    // Check if clicking on mention autocomplete
+    if (isShowingMentions && mentionAutocompletePanel != nullptr && mentionAutocompletePanel->isVisible())
+    {
+        auto panelBounds = mentionAutocompletePanel->getBounds();
+        if (panelBounds.contains(pos))
+        {
+            int relativeY = pos.y - panelBounds.getY();
+            int index = (relativeY - 5) / 35;
+            if (index >= 0 && index < mentionSuggestions.size())
+            {
+                selectMention(index);
+                return;
+            }
+        }
+        else
+        {
+            // Clicked outside, hide autocomplete
+            hideMentionAutocomplete();
+        }
+    }
+}
+
+bool CommentsPanelComponent::keyPressed(const juce::KeyPress& key)
+{
+    if (!isShowingMentions || mentionSuggestions.isEmpty())
+        return false;
+    
+    // Arrow keys for navigation
+    if (key == juce::KeyPress::upKey)
+    {
+        selectedMentionIndex = selectedMentionIndex > 0 ? selectedMentionIndex - 1 : mentionSuggestions.size() - 1;
+        repaint();
+        return true;
+    }
+    else if (key == juce::KeyPress::downKey)
+    {
+        selectedMentionIndex = (selectedMentionIndex + 1) % mentionSuggestions.size();
+        repaint();
+        return true;
+    }
+    else if (key == juce::KeyPress::escapeKey)
+    {
+        hideMentionAutocomplete();
+        return true;
+    }
+    else if (key == juce::KeyPress::returnKey || key == juce::KeyPress::tabKey)
+    {
+        if (selectedMentionIndex >= 0 && selectedMentionIndex < mentionSuggestions.size())
+        {
+            selectMention(selectedMentionIndex);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+//==============================================================================
+// Mention Autocomplete Implementation
+
+void CommentsPanelComponent::MentionListener::textEditorTextChanged(juce::TextEditor& editor)
+{
+    if (parent != nullptr)
+        parent->checkForMention();
+}
+
+void CommentsPanelComponent::MentionListener::textEditorReturnKeyPressed(juce::TextEditor& editor)
+{
+    // Handled in onReturnKey callback
+}
+
+void CommentsPanelComponent::checkForMention()
+{
+    if (inputField == nullptr || networkClient == nullptr)
+        return;
+
+    juce::String text = inputField->getText();
+    int caretPos = inputField->getCaretPosition();
+    
+    // Find the @ symbol before the caret
+    int atPos = -1;
+    for (int i = caretPos - 1; i >= 0; --i)
+    {
+        if (text[i] == '@')
+        {
+            atPos = i;
+            break;
+        }
+        // Stop if we hit a space or newline (not part of mention)
+        if (text[i] == ' ' || text[i] == '\n')
+            break;
+    }
+    
+    if (atPos == -1)
+    {
+        // No @ found, hide autocomplete
+        hideMentionAutocomplete();
+        return;
+    }
+    
+    // Check if there's a space after @ (not a mention)
+    if (atPos < text.length() - 1 && text[atPos + 1] == ' ')
+    {
+        hideMentionAutocomplete();
+        return;
+    }
+    
+    // Extract the query after @
+    int queryStart = atPos + 1;
+    int queryEnd = caretPos;
+    
+    // Find end of query (space or end of text)
+    for (int i = caretPos; i < text.length(); ++i)
+    {
+        if (text[i] == ' ' || text[i] == '\n')
+        {
+            queryEnd = i;
+            break;
+        }
+    }
+    
+    juce::String query = text.substring(queryStart, queryEnd);
+    
+    // Only show autocomplete if query is at least 1 character or empty (show suggestions)
+    if (query.length() >= 0)
+    {
+        mentionQueryStart = atPos;
+        showMentionAutocomplete(query);
+    }
+    else
+    {
+        hideMentionAutocomplete();
+    }
+}
+
+void CommentsPanelComponent::showMentionAutocomplete(const juce::String& query)
+{
+    if (networkClient == nullptr)
+        return;
+    
+    isShowingMentions = true;
+    mentionSuggestions.clear();
+    mentionUserIds.clear();
+    selectedMentionIndex = -1;
+    
+    // Search for users (use empty query to get suggestions, or actual query)
+    juce::String searchQuery = query.isEmpty() ? "" : query;
+    networkClient->searchUsers(searchQuery, 10, 0,
+        [this](bool success, const juce::var& response) {
+            if (success && response.isObject())
+            {
+                auto* users = response.getProperty("users", juce::var()).getArray();
+                if (users != nullptr)
+                {
+                    mentionSuggestions.clear();
+                    mentionUserIds.clear();
+                    
+                    for (const auto& user : *users)
+                    {
+                        if (user.isObject())
+                        {
+                            juce::String username = user.getProperty("username", "").toString();
+                            juce::String userId = user.getProperty("id", "").toString();
+                            
+                            if (username.isNotEmpty() && userId.isNotEmpty())
+                            {
+                                mentionSuggestions.add(username);
+                                mentionUserIds.add(userId);
+                            }
+                        }
+                    }
+                    
+                    if (mentionSuggestions.size() > 0)
+                    {
+                        selectedMentionIndex = 0;
+                        mentionAutocompletePanel->setVisible(true);
+                        resized();  // Update panel position
+                        repaint();
+                    }
+                    else
+                    {
+                        hideMentionAutocomplete();
+                    }
+                }
+            }
+        });
+}
+
+void CommentsPanelComponent::hideMentionAutocomplete()
+{
+    isShowingMentions = false;
+    mentionSuggestions.clear();
+    mentionUserIds.clear();
+    selectedMentionIndex = -1;
+    mentionQueryStart = -1;
+    
+    if (mentionAutocompletePanel != nullptr)
+        mentionAutocompletePanel->setVisible(false);
+    
+    repaint();
+}
+
+void CommentsPanelComponent::selectMention(int index)
+{
+    if (index < 0 || index >= mentionSuggestions.size() || inputField == nullptr)
+        return;
+    
+    juce::String username = mentionSuggestions[index];
+    juce::String text = inputField->getText();
+    
+    // Replace @query with @username
+    if (mentionQueryStart >= 0 && mentionQueryStart < text.length())
+    {
+        int queryEnd = mentionQueryStart + 1;
+        while (queryEnd < text.length() && text[queryEnd] != ' ' && text[queryEnd] != '\n')
+            queryEnd++;
+        
+        text = text.substring(0, mentionQueryStart + 1) + username + " " + text.substring(queryEnd);
+        inputField->setText(text);
+        inputField->setCaretPosition(mentionQueryStart + 1 + username.length() + 1);
+    }
+    
+    hideMentionAutocomplete();
+}
+
+void CommentsPanelComponent::insertMention(const juce::String& username)
+{
+    if (inputField == nullptr)
+        return;
+    
+    juce::String text = inputField->getText();
+    int caretPos = inputField->getCaretPosition();
+    
+    text = text.substring(0, caretPos) + "@" + username + " " + text.substring(caretPos);
+    inputField->setText(text);
+    inputField->setCaretPosition(caretPos + username.length() + 2);
+}
+
+//==============================================================================
+// Emoji Picker Implementation
+
+void CommentsPanelComponent::showEmojiPicker()
+{
+    if (inputField == nullptr)
+        return;
+    
+    // Create emoji picker bubble similar to EmojiReactionsBubble
+    auto* bubble = new EmojiReactionsBubble(this);
+    
+    // Handle emoji selection
+    bubble->onEmojiSelected = [this](const juce::String& emoji) {
+        insertEmoji(emoji);
+    };
+    
+    // Position near the emoji button
+    bubble->show();
+}
+
+void CommentsPanelComponent::insertEmoji(const juce::String& emoji)
+{
+    if (inputField == nullptr)
+        return;
+    
+    juce::String text = inputField->getText();
+    int caretPos = inputField->getCaretPosition();
+    
+    text = text.substring(0, caretPos) + emoji + text.substring(caretPos);
+    inputField->setText(text);
+    inputField->setCaretPosition(caretPos + emoji.length());
+    inputField->grabKeyboardFocus();
 }

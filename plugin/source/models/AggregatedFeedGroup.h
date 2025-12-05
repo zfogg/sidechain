@@ -8,7 +8,7 @@
  * AggregatedFeedGroup represents a group of activities from an aggregated feed
  * Used for displaying grouped notifications like "X and 3 others posted today"
  *
- * Stream.io groups activities based on aggregation_format configured in dashboard:
+ * getstream.io groups activities based on aggregation_format configured in dashboard:
  * - {{ actor }}_{{ verb }}_{{ time.strftime('%Y-%m-%d') }} groups by user+action+day
  * - {{ verb }}_{{ time.strftime('%Y-%m-%d') }} groups by action+day (across users)
  */

@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "util/Log.h"
 
 //==============================================================================
 SidechainAudioProcessor::SidechainAudioProcessor()
@@ -15,11 +16,12 @@ SidechainAudioProcessor::SidechainAudioProcessor()
 #endif
 {
     // Simple initialization for now
-    DBG("Sidechain plugin initialized");
+    Log::info("SidechainAudioProcessor: Plugin initialized");
 }
 
 SidechainAudioProcessor::~SidechainAudioProcessor()
 {
+    Log::debug("SidechainAudioProcessor: Destroying");
 }
 
 //==============================================================================
@@ -97,13 +99,14 @@ void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     // Prepare audio player for feed playback
     audioPlayer.prepareToPlay(sampleRate, samplesPerBlock);
 
-    DBG("Sidechain prepared: " + juce::String(sampleRate) + "Hz, " +
+    Log::info("SidechainAudioProcessor: Prepared - " + juce::String(sampleRate) + "Hz, " +
         juce::String(samplesPerBlock) + " samples, " +
         juce::String(numChannels) + " channels");
 }
 
 void SidechainAudioProcessor::releaseResources()
 {
+    Log::debug("SidechainAudioProcessor: Releasing resources");
     audioPlayer.releaseResources();
 }
 
@@ -164,6 +167,7 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             if (isDAWPlaying != wasDAWPlaying)
             {
                 dawTransportPlaying.store(isDAWPlaying);
+                Log::debug("SidechainAudioProcessor: DAW transport state changed - playing: " + juce::String(isDAWPlaying ? "true" : "false"));
 
                 // Notify audio player on message thread (not audio thread)
                 juce::MessageManager::callAsync([this, isDAWPlaying]()
@@ -196,6 +200,7 @@ bool SidechainAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SidechainAudioProcessor::createEditor()
 {
+    Log::info("SidechainAudioProcessor: Creating editor");
     return new SidechainAudioProcessorEditor (*this);
 }
 
@@ -203,6 +208,7 @@ juce::AudioProcessorEditor* SidechainAudioProcessor::createEditor()
 void SidechainAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // Save plugin state (simplified)
+    Log::debug("SidechainAudioProcessor: Saving state");
     auto state = juce::ValueTree("SidechainState");
     state.setProperty("authenticated", authenticated, nullptr);
     
@@ -213,13 +219,23 @@ void SidechainAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 void SidechainAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // Restore plugin state (simplified)
+    Log::debug("SidechainAudioProcessor: Restoring state");
     if (auto xml = getXmlFromBinary (data, sizeInBytes))
     {
         auto state = juce::ValueTree::fromXml (*xml);
         if (state.isValid())
         {
             authenticated = state.getProperty("authenticated", false);
+            Log::debug("SidechainAudioProcessor: State restored - authenticated: " + juce::String(authenticated ? "true" : "false"));
         }
+        else
+        {
+            Log::warn("SidechainAudioProcessor: Invalid state data");
+        }
+    }
+    else
+    {
+        Log::warn("SidechainAudioProcessor: Failed to parse state data");
     }
 }
 
@@ -231,13 +247,16 @@ void SidechainAudioProcessor::startRecording()
     // Generate a unique recording ID
     juce::String recordingId = juce::Uuid().toString();
     audioCapture.startRecording(recordingId);
-    DBG("Started recording: " + recordingId);
+    Log::info("SidechainAudioProcessor: Started recording - ID: " + recordingId);
 }
 
 void SidechainAudioProcessor::stopRecording()
 {
     lastRecordedAudio = audioCapture.stopRecording();
-    DBG("Stopped recording: " + juce::String(lastRecordedAudio.getNumSamples()) + " samples");
+    double duration = static_cast<double>(lastRecordedAudio.getNumSamples()) / currentSampleRate;
+    Log::info("SidechainAudioProcessor: Stopped recording - " + 
+              juce::String(lastRecordedAudio.getNumSamples()) + " samples, " +
+              juce::String(duration, 2) + " seconds");
 }
 
 juce::AudioBuffer<float> SidechainAudioProcessor::getRecordedAudio()

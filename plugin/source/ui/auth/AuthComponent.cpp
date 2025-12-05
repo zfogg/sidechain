@@ -1,23 +1,43 @@
 #include "AuthComponent.h"
 #include "../../network/NetworkClient.h"
+#include "../../util/Constants.h"
 #include "../../util/Validate.h"
+#include "../../util/TextEditorStyler.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 AuthComponent::AuthComponent()
 {
+    Log::info("AuthComponent: Initializing authentication component");
+    
     // Create all UI components BEFORE calling setSize() because setSize() triggers resized()
+    Log::debug("AuthComponent: Setting up welcome components");
     setupWelcomeComponents();
+    
+    Log::debug("AuthComponent: Setting up login components");
     setupLoginComponents();
+    
+    Log::debug("AuthComponent: Setting up signup components");
     setupSignupComponents();
 
+    Log::debug("AuthComponent: Showing welcome screen");
     showWelcome();
 
     // Set size last - this triggers resized() which requires components to exist
     setSize(1000, 800);
+    Log::info("AuthComponent: Initialization complete");
 }
 
 AuthComponent::~AuthComponent()
 {
+    Log::debug("AuthComponent: Destroying authentication component");
+}
+
+//==============================================================================
+void AuthComponent::setNetworkClient(NetworkClient* client)
+{
+    networkClient = client;
+    Log::info("AuthComponent: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
 //==============================================================================
@@ -327,6 +347,7 @@ void AuthComponent::drawDivider(juce::Graphics& g, int y, const juce::String& te
 //==============================================================================
 void AuthComponent::resized()
 {
+    Log::debug("AuthComponent: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
     auto cardBounds = getLocalBounds().withSizeKeepingCentre(CARD_WIDTH, 600);
     cardBounds = cardBounds.withCentre(getLocalBounds().getCentre());
 
@@ -415,6 +436,7 @@ void AuthComponent::hideAllComponents()
 
 void AuthComponent::showWelcome()
 {
+    Log::info("AuthComponent: Switching to welcome mode");
     currentMode = AuthMode::Welcome;
     hideAllComponents();
     clearError();
@@ -426,10 +448,12 @@ void AuthComponent::showWelcome()
 
     resized();
     repaint();
+    Log::debug("AuthComponent: Welcome screen displayed");
 }
 
 void AuthComponent::showLogin()
 {
+    Log::info("AuthComponent: Switching to login mode");
     currentMode = AuthMode::Login;
     hideAllComponents();
     clearError();
@@ -445,10 +469,12 @@ void AuthComponent::showLogin()
 
     resized();
     repaint();
+    Log::debug("AuthComponent: Login form displayed");
 }
 
 void AuthComponent::showSignup()
 {
+    Log::info("AuthComponent: Switching to signup mode");
     currentMode = AuthMode::Signup;
     hideAllComponents();
     clearError();
@@ -470,16 +496,19 @@ void AuthComponent::showSignup()
 
     resized();
     repaint();
+    Log::debug("AuthComponent: Signup form displayed");
 }
 
 void AuthComponent::reset()
 {
+    Log::info("AuthComponent: Resetting to initial state");
     isLoading = false;
     showWelcome();
 }
 
 void AuthComponent::showError(const juce::String& message)
 {
+    Log::warn("AuthComponent: Showing error - " + message);
     errorMessage = message;
     isLoading = false;
     resized();
@@ -488,8 +517,12 @@ void AuthComponent::showError(const juce::String& message)
 
 void AuthComponent::clearError()
 {
-    errorMessage = "";
-    repaint();
+    if (errorMessage.isNotEmpty())
+    {
+        Log::debug("AuthComponent: Clearing error message");
+        errorMessage = "";
+        repaint();
+    }
 }
 
 //==============================================================================
@@ -497,32 +530,43 @@ void AuthComponent::buttonClicked(juce::Button* button)
 {
     if (button == loginButton.get())
     {
+        Log::debug("AuthComponent: Login button clicked");
         showLogin();
     }
     else if (button == signupButton.get())
     {
+        Log::debug("AuthComponent: Signup button clicked");
         showSignup();
     }
     else if (button == googleButton.get())
     {
+        Log::info("AuthComponent: Google OAuth button clicked");
         if (onOAuthRequested)
             onOAuthRequested("google");
+        else
+            Log::warn("AuthComponent: OAuth callback not set");
     }
     else if (button == discordButton.get())
     {
+        Log::info("AuthComponent: Discord OAuth button clicked");
         if (onOAuthRequested)
             onOAuthRequested("discord");
+        else
+            Log::warn("AuthComponent: OAuth callback not set");
     }
     else if (button == loginBackButton.get() || button == signupBackButton.get())
     {
+        Log::debug("AuthComponent: Back button clicked");
         showWelcome();
     }
     else if (button == loginSubmitButton.get())
     {
+        Log::info("AuthComponent: Login submit button clicked");
         handleLogin();
     }
     else if (button == signupSubmitButton.get())
     {
+        Log::info("AuthComponent: Signup submit button clicked");
         handleSignup();
     }
 }
@@ -532,41 +576,69 @@ void AuthComponent::textEditorReturnKeyPressed(juce::TextEditor& editor)
     if (currentMode == AuthMode::Login)
     {
         if (&editor == loginEmailEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in login email field, moving to password");
             loginPasswordEditor->grabKeyboardFocus();
+        }
         else if (&editor == loginPasswordEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in login password field, submitting");
             handleLogin();
+        }
     }
     else if (currentMode == AuthMode::Signup)
     {
         if (&editor == signupEmailEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in signup email field, moving to username");
             signupUsernameEditor->grabKeyboardFocus();
+        }
         else if (&editor == signupUsernameEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in signup username field, moving to display name");
             signupDisplayNameEditor->grabKeyboardFocus();
+        }
         else if (&editor == signupDisplayNameEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in signup display name field, moving to password");
             signupPasswordEditor->grabKeyboardFocus();
+        }
         else if (&editor == signupPasswordEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in signup password field, moving to confirm password");
             signupConfirmPasswordEditor->grabKeyboardFocus();
+        }
         else if (&editor == signupConfirmPasswordEditor.get())
+        {
+            Log::debug("AuthComponent: Return key pressed in signup confirm password field, submitting");
             handleSignup();
+        }
     }
 }
 
-void AuthComponent::textEditorTextChanged(juce::TextEditor&)
+void AuthComponent::textEditorTextChanged(juce::TextEditor& editor)
 {
     // Clear error when user starts typing
     if (errorMessage.isNotEmpty())
+    {
+        Log::debug("AuthComponent: User typing, clearing error message");
         clearError();
+    }
 }
 
 //==============================================================================
 void AuthComponent::handleLogin()
 {
+    Log::info("AuthComponent: Handling login request");
     auto email = loginEmailEditor->getText().trim();
     auto password = loginPasswordEditor->getText();
+
+    Log::debug("AuthComponent: Login attempt for email: " + email);
 
     // Validation
     if (Validate::isBlank(email))
     {
+        Log::warn("AuthComponent: Login validation failed - blank email");
         showError("Please enter your email address");
         loginEmailEditor->grabKeyboardFocus();
         return;
@@ -574,6 +646,7 @@ void AuthComponent::handleLogin()
 
     if (!Validate::isEmail(email))
     {
+        Log::warn("AuthComponent: Login validation failed - invalid email format: " + email);
         showError("Please enter a valid email address");
         loginEmailEditor->grabKeyboardFocus();
         return;
@@ -581,10 +654,13 @@ void AuthComponent::handleLogin()
 
     if (Validate::isBlank(password))
     {
+        Log::warn("AuthComponent: Login validation failed - blank password");
         showError("Please enter your password");
         loginPasswordEditor->grabKeyboardFocus();
         return;
     }
+
+    Log::debug("AuthComponent: Login validation passed, initiating API call");
 
     // Show loading state
     isLoading = true;
@@ -592,76 +668,69 @@ void AuthComponent::handleLogin()
     repaint();
 
     // Make API call
-    juce::Thread::launch([this, email, password]() {
-        juce::var loginData = juce::var(new juce::DynamicObject());
-        loginData.getDynamicObject()->setProperty("email", email);
-        loginData.getDynamicObject()->setProperty("password", password);
+    if (networkClient == nullptr)
+    {
+        Log::error("AuthComponent: Cannot login - NetworkClient is null");
+        isLoading = false;
+        loginSubmitButton->setEnabled(true);
+        showError("Network client not available");
+        repaint();
+        return;
+    }
 
-        juce::String jsonData = juce::JSON::toString(loginData);
+    juce::var loginData = juce::var(new juce::DynamicObject());
+    loginData.getDynamicObject()->setProperty("email", email);
+    loginData.getDynamicObject()->setProperty("password", password);
 
-        juce::URL url("http://localhost:8787/api/v1/auth/login");
-        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                           .withExtraHeaders("Content-Type: application/json\r\n")
-                           .withConnectionTimeoutMs(10000);
+    Log::info("AuthComponent: Calling NetworkClient::loginAccount for: " + email);
+    networkClient->loginAccount(email, password, [this, email](const juce::String& token, const juce::String& userId) {
+        isLoading = false;
+        loginSubmitButton->setEnabled(true);
 
-        url = url.withPOSTData(jsonData);
-        auto stream = url.createInputStream(options);
-
-        juce::MessageManager::callAsync([this, stream = std::move(stream), email]() {
-            isLoading = false;
-            loginSubmitButton->setEnabled(true);
-
-            if (stream != nullptr)
+        if (!token.isEmpty())
+        {
+            Log::info("AuthComponent: Login successful for: " + email + ", userId: " + userId);
+            juce::String username = email.upToFirstOccurrenceOf("@", false, false);
+            if (networkClient)
             {
-                juce::String response = stream->readEntireStreamAsString();
-                juce::var responseData = juce::JSON::parse(response);
+                username = networkClient->getCurrentUsername();
+                Log::debug("AuthComponent: Retrieved username from NetworkClient: " + username);
+            }
 
-                if (responseData.isObject() && responseData.hasProperty("auth"))
-                {
-                    juce::var authData = responseData["auth"];
-                    if (authData.isObject() && authData.hasProperty("token"))
-                    {
-                        juce::String token = authData["token"].toString();
-                        juce::String username = email.upToFirstOccurrenceOf("@", false, false);
-
-                        if (authData.hasProperty("user"))
-                        {
-                            juce::var userData = authData["user"];
-                            if (userData.hasProperty("username"))
-                                username = userData["username"].toString();
-                        }
-
-                        if (onLoginSuccess)
-                            onLoginSuccess(username, email, token);
-                        return;
-                    }
-                }
-
-                juce::String errorMsg = responseData.hasProperty("error")
-                                      ? responseData["error"].toString()
-                                      : "Invalid email or password";
-                showError(errorMsg);
+            if (onLoginSuccess)
+            {
+                Log::info("AuthComponent: Calling onLoginSuccess callback");
+                onLoginSuccess(username, email, token);
             }
             else
             {
-                showError("Unable to connect to server");
+                Log::warn("AuthComponent: Login succeeded but onLoginSuccess callback not set");
             }
-            repaint();
-        });
+        }
+        else
+        {
+            Log::warn("AuthComponent: Login failed - invalid credentials for: " + email);
+            showError("Invalid email or password");
+        }
+        repaint();
     });
 }
 
 void AuthComponent::handleSignup()
 {
+    Log::info("AuthComponent: Handling signup request");
     auto email = signupEmailEditor->getText().trim();
     auto username = signupUsernameEditor->getText().trim();
     auto displayName = signupDisplayNameEditor->getText().trim();
     auto password = signupPasswordEditor->getText();
     auto confirmPassword = signupConfirmPasswordEditor->getText();
 
+    Log::debug("AuthComponent: Signup attempt - email: " + email + ", username: " + username + ", displayName: " + displayName);
+
     // Validation
     if (Validate::isBlank(email))
     {
+        Log::warn("AuthComponent: Signup validation failed - blank email");
         showError("Please enter your email address");
         signupEmailEditor->grabKeyboardFocus();
         return;
@@ -669,6 +738,7 @@ void AuthComponent::handleSignup()
 
     if (!Validate::isEmail(email))
     {
+        Log::warn("AuthComponent: Signup validation failed - invalid email format: " + email);
         showError("Please enter a valid email address");
         signupEmailEditor->grabKeyboardFocus();
         return;
@@ -676,6 +746,7 @@ void AuthComponent::handleSignup()
 
     if (Validate::isBlank(username))
     {
+        Log::warn("AuthComponent: Signup validation failed - blank username");
         showError("Please choose a username");
         signupUsernameEditor->grabKeyboardFocus();
         return;
@@ -683,6 +754,7 @@ void AuthComponent::handleSignup()
 
     if (!Validate::isUsername(username))
     {
+        Log::warn("AuthComponent: Signup validation failed - invalid username format: " + username);
         showError("Username must be 3-30 characters, letters/numbers/underscores only");
         signupUsernameEditor->grabKeyboardFocus();
         return;
@@ -690,6 +762,7 @@ void AuthComponent::handleSignup()
 
     if (Validate::isBlank(displayName))
     {
+        Log::warn("AuthComponent: Signup validation failed - blank display name");
         showError("Please enter your display name");
         signupDisplayNameEditor->grabKeyboardFocus();
         return;
@@ -697,6 +770,7 @@ void AuthComponent::handleSignup()
 
     if (Validate::isBlank(password))
     {
+        Log::warn("AuthComponent: Signup validation failed - blank password");
         showError("Please create a password");
         signupPasswordEditor->grabKeyboardFocus();
         return;
@@ -704,6 +778,7 @@ void AuthComponent::handleSignup()
 
     if (!Validate::lengthInRange(password, 8, 128))
     {
+        Log::warn("AuthComponent: Signup validation failed - password too short (length: " + juce::String(password.length()) + ")");
         showError("Password must be at least 8 characters");
         signupPasswordEditor->grabKeyboardFocus();
         return;
@@ -711,10 +786,13 @@ void AuthComponent::handleSignup()
 
     if (password != confirmPassword)
     {
+        Log::warn("AuthComponent: Signup validation failed - passwords do not match");
         showError("Passwords do not match");
         signupConfirmPasswordEditor->grabKeyboardFocus();
         return;
     }
+
+    Log::debug("AuthComponent: Signup validation passed, initiating API call");
 
     // Show loading state
     isLoading = true;
@@ -722,83 +800,39 @@ void AuthComponent::handleSignup()
     repaint();
 
     // Make API call
-    juce::Thread::launch([this, email, username, displayName, password]() {
-        juce::var registerData = juce::var(new juce::DynamicObject());
-        registerData.getDynamicObject()->setProperty("email", email);
-        registerData.getDynamicObject()->setProperty("username", username);
-        registerData.getDynamicObject()->setProperty("display_name", displayName);
-        registerData.getDynamicObject()->setProperty("password", password);
+    if (networkClient == nullptr)
+    {
+        Log::error("AuthComponent: Cannot signup - NetworkClient is null");
+        isLoading = false;
+        signupSubmitButton->setEnabled(true);
+        showError("Network client not available");
+        repaint();
+        return;
+    }
 
-        juce::String jsonData = juce::JSON::toString(registerData);
+    Log::info("AuthComponent: Calling NetworkClient::registerAccount - email: " + email + ", username: " + username);
+    networkClient->registerAccount(email, username, password, displayName, [this, email, username](const juce::String& token, const juce::String& userId) {
+        isLoading = false;
+        signupSubmitButton->setEnabled(true);
 
-        juce::URL url("http://localhost:8787/api/v1/auth/register");
-        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                           .withExtraHeaders("Content-Type: application/json\r\n")
-                           .withConnectionTimeoutMs(10000);
-
-        url = url.withPOSTData(jsonData);
-        auto stream = url.createInputStream(options);
-
-        juce::MessageManager::callAsync([this, stream = std::move(stream), email, username]() {
-            isLoading = false;
-            signupSubmitButton->setEnabled(true);
-
-            if (stream != nullptr)
+        if (!token.isEmpty())
+        {
+            Log::info("AuthComponent: Signup successful - email: " + email + ", username: " + username + ", userId: " + userId);
+            if (onLoginSuccess)
             {
-                juce::String response = stream->readEntireStreamAsString();
-                
-                // Debug logging
-                DBG("Registration response: " + response);
-                
-                // Handle empty response
-                if (response.isEmpty())
-                {
-                    showError("Server returned empty response");
-                    repaint();
-                    return;
-                }
-                
-                juce::var responseData = juce::JSON::parse(response);
-
-                // Check if JSON parsing succeeded
-                if (!responseData.isObject())
-                {
-                    // JSON parsing failed - response might be an error string
-                    DBG("JSON parse failed, response was: " + response);
-                    showError("Invalid server response");
-                    repaint();
-                    return;
-                }
-
-                if (responseData.hasProperty("auth"))
-                {
-                    juce::var authData = responseData["auth"];
-                    if (authData.isObject() && authData.hasProperty("token"))
-                    {
-                        juce::String token = authData["token"].toString();
-
-                        if (onLoginSuccess)
-                            onLoginSuccess(username, email, token);
-                        return;
-                    }
-                }
-
-                // Extract error message from response
-                juce::String errorMsg;
-                if (responseData.hasProperty("message"))
-                    errorMsg = responseData["message"].toString();
-                else if (responseData.hasProperty("error"))
-                    errorMsg = responseData["error"].toString();
-                else
-                    errorMsg = "Registration failed";
-                    
-                showError(errorMsg);
+                Log::info("AuthComponent: Calling onLoginSuccess callback");
+                onLoginSuccess(username, email, token);
             }
             else
             {
-                showError("Unable to connect to server");
+                Log::warn("AuthComponent: Signup succeeded but onLoginSuccess callback not set");
             }
-            repaint();
-        });
+        }
+        else
+        {
+            Log::warn("AuthComponent: Signup failed - no token returned for: " + email);
+            showError("Registration failed. Please try again.");
+        }
+        repaint();
     });
 }

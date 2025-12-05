@@ -1,6 +1,9 @@
 #include "UserCardComponent.h"
 #include "../../util/ImageCache.h"
 #include "../../util/UIHelpers.h"
+#include "../../util/StringFormatter.h"
+#include "../../util/HoverState.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 UserCardComponent::UserCardComponent()
@@ -17,6 +20,7 @@ void UserCardComponent::setUser(const DiscoveredUser& newUser)
 {
     user = newUser;
     avatarImage = juce::Image();
+    Log::debug("UserCardComponent: Setting user - ID: " + user.id + ", username: " + user.username);
 
     // Load avatar via ImageCache
     if (user.avatarUrl.isNotEmpty())
@@ -35,6 +39,7 @@ void UserCardComponent::setIsFollowing(bool following)
     if (user.isFollowing != following)
     {
         user.isFollowing = following;
+        Log::debug("UserCardComponent: Follow state changed - user: " + user.id + ", following: " + juce::String(following ? "true" : "false"));
         repaint();
     }
 }
@@ -134,10 +139,7 @@ void UserCardComponent::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bou
         if (subtitle.isNotEmpty())
             subtitle += " · ";
 
-        if (user.followerCount >= 1000)
-            subtitle += juce::String(user.followerCount / 1000.0f, 1) + "K followers";
-        else
-            subtitle += juce::String(user.followerCount) + " followers";
+        subtitle += StringFormatter::formatFollowers(user.followerCount);
     }
 
     auto subtitleBounds = bounds.removeFromTop(16);

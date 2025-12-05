@@ -4,6 +4,7 @@
 #include "../../util/ImageCache.h"
 #include "../../util/Colors.h"
 #include "../../util/UIHelpers.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 // FollowUserRowComponent Implementation
@@ -152,11 +153,13 @@ juce::Rectangle<int> FollowUserRowComponent::getFollowButtonBounds() const
 
 FollowersListComponent::FollowersListComponent()
 {
+    Log::info("FollowersListComponent: Initializing");
     setupUI();
 }
 
 FollowersListComponent::~FollowersListComponent()
 {
+    Log::debug("FollowersListComponent: Destroying");
     stopTimer();
 }
 
@@ -181,7 +184,13 @@ void FollowersListComponent::setupUI()
 void FollowersListComponent::loadList(const juce::String& userId, ListType type)
 {
     if (userId.isEmpty() || networkClient == nullptr)
+    {
+        Log::warn("FollowersListComponent: Cannot load list - userId empty or network client null");
         return;
+    }
+
+    juce::String typeStr = type == ListType::Followers ? "followers" : "following";
+    Log::info("FollowersListComponent: Loading " + typeStr + " for user: " + userId);
 
     targetUserId = userId;
     listType = type;
@@ -213,6 +222,7 @@ void FollowersListComponent::refresh()
 void FollowersListComponent::handleUsersLoaded(bool success, const juce::var& usersData)
 {
     isLoading = false;
+    juce::String typeStr = listType == ListType::Followers ? "followers" : "following";
 
     if (success && Json::isObject(usersData))
     {
@@ -238,11 +248,13 @@ void FollowersListComponent::handleUsersLoaded(bool success, const juce::var& us
         hasMore = users.size() < totalCount;
         currentOffset = users.size();
 
+        Log::info("FollowersListComponent: Loaded " + juce::String(users.size()) + " " + typeStr + " (total: " + juce::String(totalCount) + ")");
         updateUsersList();
     }
     else
     {
-        errorMessage = "Failed to load " + juce::String(listType == ListType::Followers ? "followers" : "following");
+        Log::error("FollowersListComponent: Failed to load " + typeStr);
+        errorMessage = "Failed to load " + typeStr;
     }
 
     repaint();

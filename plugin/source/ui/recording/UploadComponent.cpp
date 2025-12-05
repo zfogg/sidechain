@@ -2,6 +2,9 @@
 #include "../../PluginProcessor.h"
 #include "../../util/Colors.h"
 #include "../../util/Constants.h"
+#include "../../util/StringFormatter.h"
+#include "../../util/Async.h"
+#include "../../util/Log.h"
 
 //==============================================================================
 // Static data: Musical keys (Camelot wheel order is producer-friendly)
@@ -61,12 +64,16 @@ const std::array<juce::String, UploadComponent::NUM_GENRES>& UploadComponent::ge
 UploadComponent::UploadComponent(SidechainAudioProcessor& processor, NetworkClient& network)
     : audioProcessor(processor), networkClient(network)
 {
+    Log::info("UploadComponent: Initializing upload component");
     setWantsKeyboardFocus(true);
     startTimerHz(30);
+    Log::debug("UploadComponent: Timer started at 30Hz, keyboard focus enabled");
+    Log::info("UploadComponent: Initialization complete");
 }
 
 UploadComponent::~UploadComponent()
 {
+    Log::debug("UploadComponent: Destroying upload component");
     stopTimer();
 }
 
@@ -113,6 +120,7 @@ void UploadComponent::reset()
     errorMessage = "";
     activeField = -1;
     tapTimes.clear();
+    Log::debug("UploadComponent::reset: All state cleared");
 
     repaint();
 }
@@ -126,6 +134,7 @@ void UploadComponent::timerCallback()
         double newBpm = audioProcessor.getCurrentBPM();
         if (std::abs(newBpm - bpm) > 0.1)
         {
+            Log::debug("UploadComponent::timerCallback: BPM updated from DAW: " + juce::String(bpm, 1) + " -> " + juce::String(newBpm, 1));
             bpm = newBpm;
             repaint();
         }
@@ -170,6 +179,7 @@ void UploadComponent::paint(juce::Graphics& g)
 
 void UploadComponent::resized()
 {
+    Log::debug("UploadComponent::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
     auto bounds = getLocalBounds().reduced(24);
     int rowHeight = 48;
     int fieldSpacing = 16;
@@ -223,12 +233,17 @@ void UploadComponent::resized()
 void UploadComponent::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
+    Log::debug("UploadComponent::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + 
+               "), state: " + juce::String(uploadState == UploadState::Editing ? "Editing" : 
+                                           uploadState == UploadState::Uploading ? "Uploading" :
+                                           uploadState == UploadState::Success ? "Success" : "Error"));
 
     if (uploadState == UploadState::Editing)
     {
         // Title field
         if (titleFieldArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Title field clicked");
             activeField = 0;
             grabKeyboardFocus();
             repaint();
@@ -238,8 +253,10 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // BPM field
         if (bpmFieldArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: BPM field clicked");
             activeField = 1;
             bpmFromDAW = false; // Manual override
+            Log::debug("UploadComponent::mouseUp: BPM manual override enabled");
             grabKeyboardFocus();
             repaint();
             return;
@@ -248,6 +265,7 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Tap tempo
         if (tapTempoButtonArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Tap tempo button clicked");
             handleTapTempo();
             return;
         }
@@ -255,6 +273,7 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Key dropdown
         if (keyDropdownArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Key dropdown clicked");
             showKeyPicker();
             return;
         }
@@ -262,6 +281,7 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Detect key button
         if (detectKeyButtonArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Detect key button clicked");
             detectKey();
             return;
         }
@@ -269,6 +289,7 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Genre dropdown
         if (genreDropdownArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Genre dropdown clicked");
             showGenrePicker();
             return;
         }
@@ -276,6 +297,7 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Cancel button
         if (cancelButtonArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Cancel button clicked");
             cancelUpload();
             return;
         }
@@ -283,11 +305,13 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Share button
         if (shareButtonArea.contains(pos))
         {
+            Log::info("UploadComponent::mouseUp: Share button clicked");
             startUpload();
             return;
         }
 
         // Clicked elsewhere - clear field focus
+        Log::debug("UploadComponent::mouseUp: Clicked outside fields, clearing focus");
         activeField = -1;
         repaint();
     }
@@ -296,10 +320,12 @@ void UploadComponent::mouseUp(const juce::MouseEvent& event)
         // Any click dismisses
         if (uploadState == UploadState::Success && onUploadComplete)
         {
+            Log::info("UploadComponent::mouseUp: Success state clicked, calling onUploadComplete");
             onUploadComplete();
         }
         else if (uploadState == UploadState::Error)
         {
+            Log::info("UploadComponent::mouseUp: Error state clicked, returning to Editing");
             uploadState = UploadState::Editing;
             repaint();
         }
@@ -614,9 +640,7 @@ juce::String UploadComponent::formatDuration() const
         return "0:00";
 
     double seconds = static_cast<double>(audioBuffer.getNumSamples()) / audioSampleRate;
-    int mins = static_cast<int>(seconds) / 60;
-    int secs = static_cast<int>(seconds) % 60;
-    return juce::String::formatted("%d:%02d", mins, secs);
+    return StringFormatter::formatDuration(seconds);
 }
 
 //==============================================================================
@@ -662,8 +686,11 @@ void UploadComponent::handleTapTempo()
 
 void UploadComponent::detectKey()
 {
+    Log::info("UploadComponent::detectKey: Starting key detection");
+    
     if (!KeyDetector::isAvailable())
     {
+        Log::warn("UploadComponent::detectKey: Key detection not available");
         keyDetectionStatus = "Key detection not available";
         repaint();
         return;
@@ -671,24 +698,35 @@ void UploadComponent::detectKey()
 
     if (audioBuffer.getNumSamples() == 0)
     {
+        Log::warn("UploadComponent::detectKey: No audio to analyze");
         keyDetectionStatus = "No audio to analyze";
         repaint();
         return;
     }
 
     if (isDetectingKey)
+    {
+        Log::debug("UploadComponent::detectKey: Key detection already in progress");
         return;
+    }
 
     isDetectingKey = true;
     keyDetectionStatus = "Analyzing...";
+    Log::debug("UploadComponent::detectKey: Starting analysis - samples: " + juce::String(audioBuffer.getNumSamples()) + 
+               ", sampleRate: " + juce::String(audioSampleRate, 1) + "Hz");
     repaint();
 
     // Run detection on background thread to avoid UI blocking
-    juce::Thread::launch([this]() {
+    Async::runVoid([this]() {
+        Log::debug("UploadComponent::detectKey: Running key detection on background thread");
         auto detectedKey = keyDetector.detectKey(
             audioBuffer,
             audioSampleRate,
             audioBuffer.getNumChannels());
+
+        Log::debug("UploadComponent::detectKey: Detection complete - valid: " + juce::String(detectedKey.isValid() ? "yes" : "no") +
+                   (detectedKey.isValid() ? (", name: " + detectedKey.name + ", Camelot: " + detectedKey.camelot + 
+                    ", confidence: " + juce::String(detectedKey.confidence, 2)) : ""));
 
         // Map detected key to our key index
         int keyIndex = 0;  // "Not set"
@@ -702,12 +740,14 @@ void UploadComponent::detectKey()
                 if (keys[i].shortName.equalsIgnoreCase(detectedKey.shortName))
                 {
                     keyIndex = i;
+                    Log::debug("UploadComponent::detectKey: Matched key by shortName: " + keys[i].name);
                     break;
                 }
                 // Also try matching by standard name prefix
                 if (detectedKey.name.containsIgnoreCase(keys[i].shortName.replace("m", " Minor").replace("#", "# /")))
                 {
                     keyIndex = i;
+                    Log::debug("UploadComponent::detectKey: Matched key by name prefix: " + keys[i].name);
                     break;
                 }
             }
@@ -725,11 +765,13 @@ void UploadComponent::detectKey()
                 {
                     keyDetectionStatus += " (" + juce::String(int(detectedKey.confidence * 100)) + "% confidence)";
                 }
-                DBG("Key detected: " + detectedKey.name + " (Camelot: " + detectedKey.camelot + ")");
+                Log::info("UploadComponent::detectKey: Key detected: " + detectedKey.name + " (Camelot: " + detectedKey.camelot + 
+                          "), confidence: " + juce::String(detectedKey.confidence, 2) + ", mapped to index: " + juce::String(keyIndex));
             }
             else
             {
                 keyDetectionStatus = "Could not detect key";
+                Log::warn("UploadComponent::detectKey: Could not detect key");
             }
             repaint();
 
@@ -744,6 +786,7 @@ void UploadComponent::detectKey()
 
 void UploadComponent::showKeyPicker()
 {
+    Log::debug("UploadComponent::showKeyPicker: Showing key picker menu");
     juce::PopupMenu menu;
     auto& keys = getMusicalKeys();
 
@@ -758,7 +801,10 @@ void UploadComponent::showKeyPicker()
         [this](int result) {
             if (result > 0)
             {
-                selectedKeyIndex = result - 1;
+                auto& keys = getMusicalKeys();
+                int newIndex = result - 1;
+                Log::info("UploadComponent::showKeyPicker: Key selected: " + keys[newIndex].name + " (index: " + juce::String(newIndex) + ")");
+                selectedKeyIndex = newIndex;
                 repaint();
             }
         });
@@ -766,6 +812,7 @@ void UploadComponent::showKeyPicker()
 
 void UploadComponent::showGenrePicker()
 {
+    Log::debug("UploadComponent::showGenrePicker: Showing genre picker menu");
     juce::PopupMenu menu;
     auto& genres = getGenres();
 
@@ -780,7 +827,10 @@ void UploadComponent::showGenrePicker()
         [this](int result) {
             if (result > 0)
             {
-                selectedGenreIndex = result - 1;
+                auto& genres = getGenres();
+                int newIndex = result - 1;
+                Log::info("UploadComponent::showGenrePicker: Genre selected: " + genres[newIndex] + " (index: " + juce::String(newIndex) + ")");
+                selectedGenreIndex = newIndex;
                 repaint();
             }
         });
@@ -788,14 +838,25 @@ void UploadComponent::showGenrePicker()
 
 void UploadComponent::cancelUpload()
 {
+    Log::info("UploadComponent::cancelUpload: Upload cancelled by user");
     if (onCancel)
+    {
+        Log::debug("UploadComponent::cancelUpload: Calling onCancel callback");
         onCancel();
+    }
+    else
+    {
+        Log::warn("UploadComponent::cancelUpload: onCancel callback not set");
+    }
 }
 
 void UploadComponent::startUpload()
 {
+    Log::info("UploadComponent::startUpload: Starting upload process");
+    
     if (title.isEmpty())
     {
+        Log::warn("UploadComponent::startUpload: Validation failed - title is empty");
         errorMessage = "Please enter a title";
         uploadState = UploadState::Error;
         repaint();
@@ -804,6 +865,7 @@ void UploadComponent::startUpload()
 
     if (audioBuffer.getNumSamples() == 0)
     {
+        Log::warn("UploadComponent::startUpload: Validation failed - no audio to upload");
         errorMessage = "No audio to upload";
         uploadState = UploadState::Error;
         repaint();
@@ -813,6 +875,7 @@ void UploadComponent::startUpload()
     uploadState = UploadState::Uploading;
     uploadProgress = 0.1f;  // Show initial progress
     errorMessage = "";
+    Log::debug("UploadComponent::startUpload: State changed to Uploading, progress: 10%");
     repaint();
 
     // Build metadata struct for uploadAudioWithMetadata
@@ -829,6 +892,11 @@ void UploadComponent::startUpload()
     metadata.durationSeconds = static_cast<double>(audioBuffer.getNumSamples()) / audioSampleRate;
     metadata.sampleRate = static_cast<int>(audioSampleRate);
     metadata.numChannels = audioBuffer.getNumChannels();
+    
+    Log::info("UploadComponent::startUpload: Upload metadata - title: \"" + title + "\", BPM: " + juce::String(bpm, 1) + 
+              ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " + 
+              juce::String(metadata.durationSeconds, 2) + "s, sampleRate: " + juce::String(metadata.sampleRate) + 
+              "Hz, channels: " + juce::String(metadata.numChannels));
 
     // Simulate progress updates while waiting for upload
     // (JUCE's URL class doesn't provide progress callbacks)
@@ -836,6 +904,7 @@ void UploadComponent::startUpload()
         if (uploadState == UploadState::Uploading)
         {
             uploadProgress = 0.3f;
+            Log::debug("UploadComponent::startUpload: Progress update: 30%");
             repaint();
         }
     });
@@ -843,11 +912,13 @@ void UploadComponent::startUpload()
         if (uploadState == UploadState::Uploading)
         {
             uploadProgress = 0.6f;
+            Log::debug("UploadComponent::startUpload: Progress update: 60%");
             repaint();
         }
     });
 
     // Start async upload with full metadata
+    Log::info("UploadComponent::startUpload: Calling networkClient.uploadAudioWithMetadata");
     networkClient.uploadAudioWithMetadata(audioBuffer, audioSampleRate, metadata,
         [this, savedTitle = title, savedGenre = metadata.genre, savedBpm = bpm](bool success, const juce::String& audioUrl) {
             juce::MessageManager::callAsync([this, success, audioUrl, savedTitle, savedGenre, savedBpm]() {
@@ -859,13 +930,17 @@ void UploadComponent::startUpload()
                     lastUploadedGenre = savedGenre;
                     lastUploadedBpm = savedBpm;
                     lastUploadedUrl = audioUrl;
-                    DBG("Upload successful: " + audioUrl);
-                    DBG("  Title: " + savedTitle + ", Genre: " + savedGenre + ", BPM: " + juce::String(savedBpm));
+                    Log::info("UploadComponent::startUpload: Upload successful - URL: " + audioUrl);
+                    Log::info("UploadComponent::startUpload: Upload details - Title: \"" + savedTitle + 
+                             "\", Genre: " + savedGenre + ", BPM: " + juce::String(savedBpm, 1));
 
                     // Auto-dismiss after 3 seconds (longer to show success preview)
                     juce::Timer::callAfterDelay(3000, [this]() {
                         if (uploadState == UploadState::Success && onUploadComplete)
+                        {
+                            Log::debug("UploadComponent::startUpload: Auto-dismissing success state, calling onUploadComplete");
                             onUploadComplete();
+                        }
                     });
                 }
                 else
@@ -873,6 +948,7 @@ void UploadComponent::startUpload()
                     uploadState = UploadState::Error;
                     errorMessage = "Upload failed. Tap to try again.";
                     uploadProgress = 0.0f;
+                    Log::error("UploadComponent::startUpload: Upload failed");
                 }
                 repaint();
             });
@@ -887,6 +963,7 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
     // Handle special keys
     if (key == juce::KeyPress::escapeKey)
     {
+        Log::debug("UploadComponent::keyPressed: Escape key pressed, clearing field focus");
         activeField = -1;
         repaint();
         return true;
@@ -894,13 +971,16 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
 
     if (key == juce::KeyPress::tabKey)
     {
-        activeField = (activeField + 1) % 2;
+        int newField = (activeField + 1) % 2;
+        Log::debug("UploadComponent::keyPressed: Tab key pressed, switching field: " + juce::String(activeField) + " -> " + juce::String(newField));
+        activeField = newField;
         repaint();
         return true;
     }
 
     if (key == juce::KeyPress::returnKey)
     {
+        Log::debug("UploadComponent::keyPressed: Return key pressed, clearing field focus");
         activeField = -1;
         repaint();
         return true;
@@ -913,6 +993,7 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
             if (!title.isEmpty())
             {
                 title = title.dropLastCharacters(1);
+                Log::debug("UploadComponent::keyPressed: Backspace in title field, new length: " + juce::String(title.length()));
                 repaint();
             }
             return true;
@@ -925,7 +1006,12 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
             if (title.length() < 100) // Max title length
             {
                 title += juce::String::charToString(character);
+                Log::debug("UploadComponent::keyPressed: Character added to title, new length: " + juce::String(title.length()));
                 repaint();
+            }
+            else
+            {
+                Log::debug("UploadComponent::keyPressed: Title max length (100) reached");
             }
             return true;
         }
@@ -940,6 +1026,7 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
                 bpmStr = bpmStr.dropLastCharacters(1);
                 bpm = bpmStr.isEmpty() ? 0.0 : bpmStr.getDoubleValue();
                 bpmFromDAW = false;
+                Log::debug("UploadComponent::keyPressed: Backspace in BPM field, new BPM: " + juce::String(bpm, 1));
                 repaint();
             }
             return true;
@@ -956,7 +1043,12 @@ bool UploadComponent::keyPressed(const juce::KeyPress& key)
             {
                 bpm = newBpm;
                 bpmFromDAW = false;
+                Log::debug("UploadComponent::keyPressed: BPM updated: " + juce::String(bpm, 1));
                 repaint();
+            }
+            else
+            {
+                Log::debug("UploadComponent::keyPressed: BPM exceeds max (" + juce::String(Constants::Audio::MAX_BPM) + ")");
             }
             return true;
         }
@@ -970,6 +1062,7 @@ void UploadComponent::focusGained(FocusChangeType /*cause*/)
     // When component gains focus, activate title field if nothing is active
     if (activeField < 0)
     {
+        Log::debug("UploadComponent::focusGained: Component gained focus, activating title field");
         activeField = 0;
         repaint();
     }

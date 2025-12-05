@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include <functional>
 
+class NetworkClient;
+
 /**
  * HeaderComponent - Central header bar shown on all post-login pages
  *
@@ -30,15 +32,20 @@ public:
     // Set profile image directly (from UserDataStore) - avoids redundant downloads
     void setProfileImage(const juce::Image& image);
 
+    // Set NetworkClient for HTTP requests
+    void setNetworkClient(NetworkClient* client);
+
     // Callbacks for header interactions
     std::function<void()> onSearchClicked;
     std::function<void()> onProfileClicked;
     std::function<void()> onLogoClicked;
+    std::function<void()> onRecordClicked;
 
 private:
     juce::String username;
     juce::String profilePicUrl;
     juce::Image cachedProfileImage;
+    NetworkClient* networkClient = nullptr;
 
     // Load profile image from URL
     void loadProfileImage(const juce::String& url);
@@ -46,12 +53,14 @@ private:
     // Draw helper methods
     void drawLogo(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawSearchButton(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawRecordButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawProfileSection(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds);
 
     // Hit test bounds
     juce::Rectangle<int> getLogoBounds() const;
     juce::Rectangle<int> getSearchButtonBounds() const;
+    juce::Rectangle<int> getRecordButtonBounds() const;
     juce::Rectangle<int> getProfileBounds() const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeaderComponent)

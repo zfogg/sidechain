@@ -31,7 +31,7 @@ public:
 
     //==============================================================================
     // Network client for API calls
-    void setNetworkClient(NetworkClient* client) { networkClient = client; }
+    void setNetworkClient(NetworkClient* client);
 
     //==============================================================================
     // Component overrides

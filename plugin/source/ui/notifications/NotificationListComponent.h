@@ -1,12 +1,13 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../../util/HoverState.h"
 
 //==============================================================================
 /**
- * NotificationItem represents a single notification group from Stream.io
+ * NotificationItem represents a single notification group from getstream.io
  *
- * Stream.io groups notifications by aggregation format, so we get things like:
+ * getstream.io groups notifications by aggregation format, so we get things like:
  * - "Alice and 3 others liked your loop" (grouped by verb+target+day)
  * - "Bob started following you" (single follow notification)
  */
@@ -71,7 +72,7 @@ public:
 
 private:
     NotificationItem notification;
-    bool isHovered = false;
+    HoverState hoverState;
 
     void drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawVerbIcon(juce::Graphics& g, juce::Rectangle<int> bounds);

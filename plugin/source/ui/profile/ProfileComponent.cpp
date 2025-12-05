@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/Json.h"
 #include "../../util/ImageCache.h"
+#include "../../util/Log.h"
 #include "../feed/PostCardComponent.h"
 
 //==============================================================================
@@ -12,7 +13,10 @@ UserProfile UserProfile::fromJson(const juce::var& json)
     UserProfile profile;
 
     if (!Json::isObject(json))
+    {
+        Log::warn("UserProfile::fromJson: Invalid JSON - not an object");
         return profile;
+    }
 
     profile.id = Json::getString(json, "id");
     profile.username = Json::getString(json, "username");
@@ -36,8 +40,11 @@ UserProfile UserProfile::fromJson(const juce::var& json)
     {
         // Try to parse ISO 8601 format
         profile.createdAt = juce::Time::fromISO8601(createdAtStr);
+        if (profile.createdAt.toMilliseconds() == 0)
+            Log::warn("UserProfile::fromJson: Failed to parse created_at timestamp: " + createdAtStr);
     }
 
+    Log::debug("UserProfile::fromJson: Parsed profile - id: " + profile.id + ", username: " + profile.username);
     return profile;
 }
 
@@ -69,39 +76,64 @@ bool UserProfile::isOwnProfile(const juce::String& currentUserId) const
 //==============================================================================
 ProfileComponent::ProfileComponent()
 {
+    Log::info("ProfileComponent: Initializing profile component");
+    
     scrollBar = std::make_unique<juce::ScrollBar>(true);
     scrollBar->addListener(this);
     scrollBar->setAutoHide(true);
     addAndMakeVisible(scrollBar.get());
+    Log::debug("ProfileComponent: Scroll bar created and added");
 
     // Create followers list panel (initially hidden)
     followersListPanel = std::make_unique<FollowersListComponent>();
     followersListPanel->onClose = [this]() {
+        Log::debug("ProfileComponent: Followers list close requested");
         hideFollowersList();
     };
     followersListPanel->onUserClicked = [this](const juce::String& userId) {
+        Log::info("ProfileComponent: User clicked in followers list - userId: " + userId);
         hideFollowersList();
         // Navigate to the clicked user's profile
         loadProfile(userId);
     };
     addChildComponent(followersListPanel.get());
+    Log::debug("ProfileComponent: Followers list panel created");
 
     // IMPORTANT: setSize must be called LAST because it triggers resized()
     // which uses scrollBar and other child components
     setSize(600, 800);
+    Log::info("ProfileComponent: Initialization complete");
 }
 
 ProfileComponent::~ProfileComponent()
 {
+    Log::debug("ProfileComponent: Destroying profile component");
     scrollBar->removeListener(this);
+}
+
+//==============================================================================
+void ProfileComponent::setNetworkClient(NetworkClient* client)
+{
+    networkClient = client;
+    Log::info("ProfileComponent: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void ProfileComponent::setCurrentUserId(const juce::String& userId)
+{
+    currentUserId = userId;
+    Log::info("ProfileComponent: Current user ID set to: " + userId);
 }
 
 //==============================================================================
 void ProfileComponent::loadProfile(const juce::String& userId)
 {
     if (userId.isEmpty())
+    {
+        Log::warn("ProfileComponent::loadProfile: Empty userId provided");
         return;
+    }
 
+    Log::info("ProfileComponent::loadProfile: Loading profile for userId: " + userId);
     isLoading = true;
     hasError = false;
     errorMessage = "";
@@ -116,13 +148,18 @@ void ProfileComponent::loadProfile(const juce::String& userId)
 void ProfileComponent::loadOwnProfile()
 {
     if (currentUserId.isEmpty())
+    {
+        Log::warn("ProfileComponent::loadOwnProfile: currentUserId is empty");
         return;
+    }
 
+    Log::info("ProfileComponent::loadOwnProfile: Loading own profile - userId: " + currentUserId);
     loadProfile(currentUserId);
 }
 
 void ProfileComponent::setProfile(const UserProfile& newProfile)
 {
+    Log::info("ProfileComponent::setProfile: Setting profile - id: " + newProfile.id + ", username: " + newProfile.username);
     profile = newProfile;
     isLoading = false;
     hasError = false;
@@ -132,23 +169,50 @@ void ProfileComponent::setProfile(const UserProfile& newProfile)
     juce::String avatarUrl = profile.getAvatarUrl();
     if (avatarUrl.isNotEmpty())
     {
+        Log::debug("ProfileComponent::setProfile: Loading avatar from: " + avatarUrl);
         ImageLoader::load(avatarUrl, [this](const juce::Image& img) {
-            avatarImage = img;
+            if (img.isValid())
+            {
+                Log::debug("ProfileComponent::setProfile: Avatar loaded successfully");
+                avatarImage = img;
+            }
+            else
+            {
+                Log::warn("ProfileComponent::setProfile: Failed to load avatar image");
+            }
             repaint();
         });
+    }
+    else
+    {
+        Log::debug("ProfileComponent::setProfile: No avatar URL available");
     }
 
     repaint();
 
     // Fetch user's posts
     if (profile.id.isNotEmpty())
+    {
+        Log::debug("ProfileComponent::setProfile: Fetching user posts for: " + profile.id);
         fetchUserPosts(profile.id);
+    }
+    else
+    {
+        Log::warn("ProfileComponent::setProfile: Profile ID is empty, skipping post fetch");
+    }
 }
 
 void ProfileComponent::refresh()
 {
     if (profile.id.isNotEmpty())
+    {
+        Log::info("ProfileComponent::refresh: Refreshing profile - id: " + profile.id);
         loadProfile(profile.id);
+    }
+    else
+    {
+        Log::warn("ProfileComponent::refresh: Cannot refresh - profile ID is empty");
+    }
 }
 
 //==============================================================================
@@ -549,6 +613,7 @@ void ProfileComponent::drawEmptyState(juce::Graphics& g, juce::Rectangle<int> bo
 //==============================================================================
 void ProfileComponent::resized()
 {
+    Log::debug("ProfileComponent::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
     auto bounds = getLocalBounds();
 
     // Position scroll bar
@@ -559,6 +624,7 @@ void ProfileComponent::resized()
     int visibleHeight = bounds.getHeight() - HEADER_HEIGHT;
     scrollBar->setRangeLimits(0.0, static_cast<double>(contentHeight));
     scrollBar->setCurrentRange(static_cast<double>(scrollOffset), static_cast<double>(visibleHeight));
+    Log::debug("ProfileComponent::resized: Scroll range updated - contentHeight: " + juce::String(contentHeight) + ", visibleHeight: " + juce::String(visibleHeight));
 
     // Position post cards
     updatePostCards();
@@ -568,24 +634,30 @@ void ProfileComponent::resized()
     {
         int panelWidth = juce::jmin(350, static_cast<int>(getWidth() * 0.4f));
         followersListPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
+        Log::debug("ProfileComponent::resized: Followers list panel repositioned - width: " + juce::String(panelWidth));
     }
 }
 
 void ProfileComponent::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
+    Log::debug("ProfileComponent::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
 
     // Back button
     if (getBackButtonBounds().contains(pos))
     {
+        Log::debug("ProfileComponent::mouseUp: Back button clicked");
         if (onBackPressed)
             onBackPressed();
+        else
+            Log::warn("ProfileComponent::mouseUp: Back button clicked but callback not set");
         return;
     }
 
     // Share button
     if (getShareButtonBounds().contains(pos))
     {
+        Log::info("ProfileComponent::mouseUp: Share button clicked");
         shareProfile();
         return;
     }
@@ -593,18 +665,24 @@ void ProfileComponent::mouseUp(const juce::MouseEvent& event)
     // Followers stat
     if (getFollowersBounds().contains(pos))
     {
+        Log::info("ProfileComponent::mouseUp: Followers stat clicked - userId: " + profile.id);
         showFollowersList(profile.id, FollowersListComponent::ListType::Followers);
         if (onFollowersClicked)
             onFollowersClicked(profile.id);
+        else
+            Log::warn("ProfileComponent::mouseUp: Followers clicked but callback not set");
         return;
     }
 
     // Following stat
     if (getFollowingBounds().contains(pos))
     {
+        Log::info("ProfileComponent::mouseUp: Following stat clicked - userId: " + profile.id);
         showFollowersList(profile.id, FollowersListComponent::ListType::Following);
         if (onFollowingClicked)
             onFollowingClicked(profile.id);
+        else
+            Log::warn("ProfileComponent::mouseUp: Following clicked but callback not set");
         return;
     }
 
@@ -613,8 +691,11 @@ void ProfileComponent::mouseUp(const juce::MouseEvent& event)
     {
         if (getEditButtonBounds().contains(pos))
         {
+            Log::info("ProfileComponent::mouseUp: Edit profile button clicked");
             if (onEditProfile)
                 onEditProfile();
+            else
+                Log::warn("ProfileComponent::mouseUp: Edit profile clicked but callback not set");
             return;
         }
     }
@@ -622,6 +703,7 @@ void ProfileComponent::mouseUp(const juce::MouseEvent& event)
     {
         if (getFollowButtonBounds().contains(pos))
         {
+            Log::info("ProfileComponent::mouseUp: Follow/Unfollow button clicked - userId: " + profile.id);
             handleFollowToggle();
             return;
         }
@@ -634,6 +716,7 @@ void ProfileComponent::mouseUp(const juce::MouseEvent& event)
             .withCentre(juce::Point<int>(getWidth() / 2, getHeight() / 2 + 40));
         if (retryBounds.contains(pos))
         {
+            Log::info("ProfileComponent::mouseUp: Retry button clicked");
             refresh();
             return;
         }
@@ -642,7 +725,9 @@ void ProfileComponent::mouseUp(const juce::MouseEvent& event)
 
 void ProfileComponent::scrollBarMoved(juce::ScrollBar* /*scrollBarThatHasMoved*/, double newRangeStart)
 {
+    int oldOffset = scrollOffset;
     scrollOffset = static_cast<int>(newRangeStart);
+    Log::debug("ProfileComponent::scrollBarMoved: Scroll offset changed from " + juce::String(oldOffset) + " to " + juce::String(scrollOffset));
     updatePostCards();
     repaint();
 }
@@ -698,6 +783,7 @@ void ProfileComponent::fetchProfile(const juce::String& userId)
 {
     if (networkClient == nullptr)
     {
+        Log::error("ProfileComponent::fetchProfile: NetworkClient is null");
         hasError = true;
         errorMessage = "Network not available";
         isLoading = false;
@@ -706,22 +792,31 @@ void ProfileComponent::fetchProfile(const juce::String& userId)
     }
 
     juce::String endpoint = "/api/v1/users/" + userId + "/profile";
+    Log::info("ProfileComponent::fetchProfile: Fetching profile from: " + endpoint);
 
-    networkClient->get(endpoint, [this](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response]() {
+    networkClient->get(endpoint, [this, userId](bool success, const juce::var& response) {
+        juce::MessageManager::callAsync([this, success, response, userId]() {
             isLoading = false;
 
             if (success && response.isObject())
             {
+                Log::info("ProfileComponent::fetchProfile: Profile fetch successful for userId: " + userId);
                 setProfile(UserProfile::fromJson(response));
             }
             else
             {
+                Log::error("ProfileComponent::fetchProfile: Profile fetch failed for userId: " + userId);
                 hasError = true;
                 if (response.isObject() && response.hasProperty("error"))
+                {
                     errorMessage = response["error"].toString();
+                    Log::warn("ProfileComponent::fetchProfile: Error message: " + errorMessage);
+                }
                 else
+                {
                     errorMessage = "Failed to load profile";
+                    Log::warn("ProfileComponent::fetchProfile: No error message in response");
+                }
             }
 
             repaint();
@@ -732,28 +827,46 @@ void ProfileComponent::fetchProfile(const juce::String& userId)
 void ProfileComponent::fetchUserPosts(const juce::String& userId)
 {
     if (networkClient == nullptr)
+    {
+        Log::warn("ProfileComponent::fetchUserPosts: NetworkClient is null");
         return;
+    }
 
     juce::String endpoint = "/api/v1/users/" + userId + "/posts?limit=20";
+    Log::info("ProfileComponent::fetchUserPosts: Fetching posts from: " + endpoint);
 
-    networkClient->get(endpoint, [this](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response]() {
+    networkClient->get(endpoint, [this, userId](bool success, const juce::var& response) {
+        juce::MessageManager::callAsync([this, success, response, userId]() {
             if (success && response.isObject())
             {
+                Log::debug("ProfileComponent::fetchUserPosts: Posts fetch successful for userId: " + userId);
                 userPosts.clear();
 
                 auto postsArray = Json::getArray(response, "posts");
                 if (Json::isArray(postsArray))
                 {
+                    int validPosts = 0;
                     for (int i = 0; i < postsArray.size(); ++i)
                     {
                         FeedPost post = FeedPost::fromJson(postsArray[i]);
                         if (post.isValid())
+                        {
                             userPosts.add(post);
+                            validPosts++;
+                        }
                     }
+                    Log::info("ProfileComponent::fetchUserPosts: Loaded " + juce::String(validPosts) + " valid posts out of " + juce::String(postsArray.size()) + " total");
+                }
+                else
+                {
+                    Log::warn("ProfileComponent::fetchUserPosts: No posts array in response");
                 }
 
                 updatePostCards();
+            }
+            else
+            {
+                Log::error("ProfileComponent::fetchUserPosts: Posts fetch failed for userId: " + userId);
             }
 
             repaint();
@@ -764,29 +877,46 @@ void ProfileComponent::fetchUserPosts(const juce::String& userId)
 void ProfileComponent::handleFollowToggle()
 {
     if (networkClient == nullptr || profile.id.isEmpty())
+    {
+        Log::warn("ProfileComponent::handleFollowToggle: Cannot toggle follow - NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
         return;
+    }
 
     bool wasFollowing = profile.isFollowing;
+    bool willFollow = !wasFollowing;
+
+    Log::info("ProfileComponent::handleFollowToggle: Toggling follow for userId: " + profile.id + " - wasFollowing: " + juce::String(wasFollowing ? "true" : "false") + ", willFollow: " + juce::String(willFollow ? "true" : "false"));
 
     // Optimistic UI update
-    profile.isFollowing = !profile.isFollowing;
-    profile.followerCount += profile.isFollowing ? 1 : -1;
+    profile.isFollowing = willFollow;
+    profile.followerCount += willFollow ? 1 : -1;
     repaint();
 
     juce::String endpoint = "/users/" + profile.id + (wasFollowing ? "/unfollow" : "/follow");
+    Log::debug("ProfileComponent::handleFollowToggle: Calling endpoint: " + endpoint);
 
-    networkClient->post(endpoint, juce::var(), [this, wasFollowing](bool success, const juce::var& /*response*/) {
-        juce::MessageManager::callAsync([this, success, wasFollowing]() {
+    networkClient->post(endpoint, juce::var(), [this, wasFollowing, willFollow](bool success, const juce::var& /*response*/) {
+        juce::MessageManager::callAsync([this, success, wasFollowing, willFollow]() {
             if (!success)
             {
+                Log::error("ProfileComponent::handleFollowToggle: Follow toggle failed, reverting optimistic update");
                 // Revert on failure
                 profile.isFollowing = wasFollowing;
                 profile.followerCount += wasFollowing ? 1 : -1;
                 repaint();
             }
-            else if (onFollowToggled)
+            else
             {
-                onFollowToggled(profile.id);
+                Log::info("ProfileComponent::handleFollowToggle: Follow toggle successful - isFollowing: " + juce::String(profile.isFollowing ? "true" : "false"));
+                if (onFollowToggled)
+                {
+                    Log::debug("ProfileComponent::handleFollowToggle: Calling onFollowToggled callback");
+                    onFollowToggled(profile.id);
+                }
+                else
+                {
+                    Log::warn("ProfileComponent::handleFollowToggle: Follow toggle succeeded but callback not set");
+                }
             }
         });
     });
@@ -795,43 +925,54 @@ void ProfileComponent::handleFollowToggle()
 void ProfileComponent::shareProfile()
 {
     juce::String profileUrl = "https://sidechain.live/user/" + profile.username;
+    Log::info("ProfileComponent::shareProfile: Sharing profile - username: " + profile.username + ", URL: " + profileUrl);
     juce::SystemClipboard::copyTextToClipboard(profileUrl);
-
-    // Could show a toast notification here
-    DBG("Profile link copied: " + profileUrl);
+    Log::debug("ProfileComponent::shareProfile: Profile link copied to clipboard");
 }
 
 //==============================================================================
 void ProfileComponent::updatePostCards()
 {
+    Log::debug("ProfileComponent::updatePostCards: Updating post cards - current: " + juce::String(postCards.size()) + ", needed: " + juce::String(userPosts.size()));
+    
     // Create or update post cards
     while (postCards.size() < userPosts.size())
     {
         auto* card = new PostCardComponent();
         card->onPlayClicked = [this](const FeedPost& post) {
+            Log::debug("ProfileComponent::updatePostCards: Play clicked for post: " + post.id);
             if (onPlayClicked)
                 onPlayClicked(post);
+            else
+                Log::warn("ProfileComponent::updatePostCards: Play clicked but callback not set");
         };
         card->onPauseClicked = [this](const FeedPost& post) {
+            Log::debug("ProfileComponent::updatePostCards: Pause clicked for post: " + post.id);
             if (onPauseClicked)
                 onPauseClicked(post);
+            else
+                Log::warn("ProfileComponent::updatePostCards: Pause clicked but callback not set");
         };
         card->onUserClicked = [this](const FeedPost& /*post*/) {
             // Already on profile, do nothing or scroll to top
+            Log::debug("ProfileComponent::updatePostCards: User clicked on post card (already on profile)");
         };
         postCards.add(card);
         addAndMakeVisible(card);
+        Log::debug("ProfileComponent::updatePostCards: Created new post card #" + juce::String(postCards.size()));
     }
 
     // Remove extra cards
     while (postCards.size() > userPosts.size())
     {
+        Log::debug("ProfileComponent::updatePostCards: Removing extra post card");
         postCards.removeLast();
     }
 
     // Update card data and positions
     auto postsArea = getPostsAreaBounds();
     int y = HEADER_HEIGHT - scrollOffset;
+    int visibleCount = 0;
 
     for (int i = 0; i < userPosts.size(); ++i)
     {
@@ -844,6 +985,7 @@ void ProfileComponent::updatePostCards()
         {
             card->setIsPlaying(true);
             card->setPlaybackProgress(currentPlaybackProgress);
+            Log::debug("ProfileComponent::updatePostCards: Post " + userPosts[i].id + " is currently playing");
         }
         else
         {
@@ -854,9 +996,13 @@ void ProfileComponent::updatePostCards()
         // Show/hide based on visibility
         bool isVisible = (y + POST_CARD_HEIGHT > HEADER_HEIGHT) && (y < getHeight());
         card->setVisible(isVisible);
+        if (isVisible)
+            visibleCount++;
 
         y += POST_CARD_HEIGHT + 10;
     }
+    
+    Log::debug("ProfileComponent::updatePostCards: Updated " + juce::String(userPosts.size()) + " post cards, " + juce::String(visibleCount) + " visible");
 }
 
 int ProfileComponent::calculateContentHeight() const
@@ -867,6 +1013,7 @@ int ProfileComponent::calculateContentHeight() const
 //==============================================================================
 void ProfileComponent::setCurrentlyPlayingPost(const juce::String& postId)
 {
+    Log::debug("ProfileComponent::setCurrentlyPlayingPost: Setting playing post - postId: " + postId);
     currentlyPlayingPostId = postId;
     updatePostCards();
 }
@@ -887,6 +1034,7 @@ void ProfileComponent::setPlaybackProgress(float progress)
 
 void ProfileComponent::clearPlayingState()
 {
+    Log::debug("ProfileComponent::clearPlayingState: Clearing playing state");
     currentlyPlayingPostId = "";
     currentPlaybackProgress = 0.0f;
 
@@ -901,7 +1049,13 @@ void ProfileComponent::clearPlayingState()
 void ProfileComponent::showFollowersList(const juce::String& userId, FollowersListComponent::ListType type)
 {
     if (followersListPanel == nullptr || userId.isEmpty())
+    {
+        Log::warn("ProfileComponent::showFollowersList: Cannot show list - panel: " + juce::String(followersListPanel != nullptr ? "valid" : "null") + ", userId: " + userId);
         return;
+    }
+
+    juce::String typeStr = type == FollowersListComponent::ListType::Followers ? "Followers" : "Following";
+    Log::info("ProfileComponent::showFollowersList: Showing " + typeStr + " list for userId: " + userId);
 
     // Set up the panel
     followersListPanel->setNetworkClient(networkClient);
@@ -910,6 +1064,7 @@ void ProfileComponent::showFollowersList(const juce::String& userId, FollowersLi
     // Position panel on right side (40% of width, max 350px)
     int panelWidth = juce::jmin(350, static_cast<int>(getWidth() * 0.4f));
     followersListPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
+    Log::debug("ProfileComponent::showFollowersList: Panel positioned - width: " + juce::String(panelWidth));
 
     // Load the list
     followersListPanel->loadList(userId, type);
@@ -917,10 +1072,12 @@ void ProfileComponent::showFollowersList(const juce::String& userId, FollowersLi
     followersListPanel->setVisible(true);
     followersListPanel->toFront(true);
     followersListVisible = true;
+    Log::debug("ProfileComponent::showFollowersList: Followers list panel shown");
 }
 
 void ProfileComponent::hideFollowersList()
 {
+    Log::debug("ProfileComponent::hideFollowersList: Hiding followers list panel");
     if (followersListPanel)
     {
         followersListPanel->setVisible(false);
