@@ -57,6 +57,25 @@ namespace Constants
         // User endpoints
         constexpr const char* USERS_PROFILE_PICTURE = "/api/v1/users/upload-profile-picture";
     }
+
+    //==========================================================================
+    // Error Messages
+    //==========================================================================
+    namespace Errors
+    {
+        // Authentication errors
+        constexpr const char* NOT_AUTHENTICATED = "🚫 Not authenticated";
+        constexpr const char* AUTH_REQUIRED = "🔒 Authentication required";
+        
+        // Network errors
+        constexpr const char* NETWORK_ERROR = "🚨 Network error occurred";
+        constexpr const char* REQUEST_FAILED = "🔴 Request failed";
+        constexpr const char* TIMEOUT = "⌛ Request timed out";
+        
+        // Validation errors
+        constexpr const char* INVALID_INPUT = "❌ Invalid input";
+        constexpr const char* MISSING_REQUIRED_FIELD = "⛔ Missing required field";
+    }
     //==========================================================================
     // API Configuration
     //==========================================================================

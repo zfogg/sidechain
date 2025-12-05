@@ -1,3 +1,5 @@
+#!/usr/bin/env make -f
+
 # Sidechain Makefile
 # Builds both the VST plugin (via CMake) and Go backend
 

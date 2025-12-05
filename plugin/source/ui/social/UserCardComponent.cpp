@@ -9,6 +9,11 @@
 UserCardComponent::UserCardComponent()
 {
     setInterceptsMouseClicks(true, true);
+    
+    // Set up hover state
+    hoverState.onHoverChanged = [this](bool hovered) {
+        repaint();
+    };
 }
 
 UserCardComponent::~UserCardComponent()
@@ -74,7 +79,7 @@ void UserCardComponent::drawBackground(juce::Graphics& g)
         Colors::background,
         Colors::backgroundHover,
         juce::Colours::transparentBlack,
-        isHovered);
+        hoverState.isHovered());
 }
 
 void UserCardComponent::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -221,12 +226,10 @@ void UserCardComponent::mouseUp(const juce::MouseEvent& event)
 
 void UserCardComponent::mouseEnter(const juce::MouseEvent&)
 {
-    isHovered = true;
-    repaint();
+    hoverState.setHovered(true);
 }
 
 void UserCardComponent::mouseExit(const juce::MouseEvent&)
 {
-    isHovered = false;
-    repaint();
+    hoverState.setHovered(false);
 }

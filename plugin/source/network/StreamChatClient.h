@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "NetworkClient.h"
+#include "../util/Result.h"
 #include <functional>
 #include <atomic>
 #include <vector>
@@ -92,12 +93,18 @@ public:
     };
 
     //==========================================================================
-    // Callback types
-    using TokenCallback = std::function<void(bool success, const juce::String& token, const juce::String& apiKey, const juce::String& userId)>;
-    using ChannelsCallback = std::function<void(bool success, const std::vector<Channel>& channels)>;
-    using MessagesCallback = std::function<void(bool success, const std::vector<Message>& messages)>;
-    using MessageCallback = std::function<void(bool success, const Message& message)>;
-    using PresenceCallback = std::function<void(bool success, const std::vector<UserPresence>& presence)>;
+    // Callback types - using Outcome<T> for type-safe error handling
+    struct TokenResult
+    {
+        juce::String token;
+        juce::String apiKey;
+        juce::String userId;
+    };
+    using TokenCallback = std::function<void(Outcome<TokenResult>)>;
+    using ChannelsCallback = std::function<void(Outcome<std::vector<Channel>>)>;
+    using MessagesCallback = std::function<void(Outcome<std::vector<Message>>)>;
+    using MessageCallback = std::function<void(Outcome<Message>)>;
+    using PresenceCallback = std::function<void(Outcome<std::vector<UserPresence>>)>;
     using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
     using MessageReceivedCallback = std::function<void(const Message& message, const juce::String& channelId)>;
     using TypingCallback = std::function<void(const juce::String& userId, bool isTyping)>;
@@ -116,17 +123,17 @@ public:
 
     //==========================================================================
     // Channel Management (REST API)
-    void createDirectChannel(const juce::String& targetUserId, std::function<void(bool, const Channel&)> callback);
+    void createDirectChannel(const juce::String& targetUserId, std::function<void(Outcome<Channel>)> callback);
     void createGroupChannel(const juce::String& channelId, const juce::String& name, 
                            const std::vector<juce::String>& memberIds, 
-                           std::function<void(bool, const Channel&)> callback);
+                           std::function<void(Outcome<Channel>)> callback);
     void queryChannels(ChannelsCallback callback, int limit = 20, int offset = 0);
     void getChannel(const juce::String& channelType, const juce::String& channelId, 
-                   std::function<void(bool, const Channel&)> callback);
+                   std::function<void(Outcome<Channel>)> callback);
     void deleteChannel(const juce::String& channelType, const juce::String& channelId, 
-                      std::function<void(bool)> callback);
+                      std::function<void(Outcome<void>)> callback);
     void leaveChannel(const juce::String& channelType, const juce::String& channelId, 
-                    std::function<void(bool)> callback);
+                    std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
     // Message Operations (REST API)
@@ -139,22 +146,27 @@ public:
                       const juce::String& messageId, const juce::String& newText,
                       MessageCallback callback);
     void deleteMessage(const juce::String& channelType, const juce::String& channelId,
-                      const juce::String& messageId, std::function<void(bool)> callback);
+                      const juce::String& messageId, std::function<void(Outcome<void>)> callback);
     void addReaction(const juce::String& channelType, const juce::String& channelId,
                     const juce::String& messageId, const juce::String& reactionType,
-                    std::function<void(bool)> callback);
+                    std::function<void(Outcome<void>)> callback);
     void removeReaction(const juce::String& channelType, const juce::String& channelId,
                        const juce::String& messageId, const juce::String& reactionType,
-                       std::function<void(bool)> callback);
+                       std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
     // Read Receipts
     void markChannelRead(const juce::String& channelType, const juce::String& channelId,
-                        std::function<void(bool)> callback);
+                        std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
     // Audio Snippet Sharing
-    using AudioSnippetCallback = std::function<void(bool success, const juce::String& audioUrl, double duration)>;
+    struct AudioSnippetResult
+    {
+        juce::String audioUrl;
+        double duration = 0.0;
+    };
+    using AudioSnippetCallback = std::function<void(Outcome<AudioSnippetResult>)>;
     void uploadAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate,
                            AudioSnippetCallback callback);
     void sendMessageWithAudio(const juce::String& channelType, const juce::String& channelId,
@@ -170,7 +182,7 @@ public:
     // Presence (App-Wide)
     void queryPresence(const std::vector<juce::String>& userIds, PresenceCallback callback);
     void updateStatus(const juce::String& status, const juce::var& extraData, 
-                     std::function<void(bool)> callback);
+                     std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
     // Real-time Updates (WebSocket)

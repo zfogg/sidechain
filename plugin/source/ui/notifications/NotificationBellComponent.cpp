@@ -5,6 +5,11 @@
 NotificationBellComponent::NotificationBellComponent()
 {
     setSize(PREFERRED_SIZE, PREFERRED_SIZE);
+    
+    // Set up hover state
+    hoverState.onHoverChanged = [this](bool hovered) {
+        repaint();
+    };
 }
 
 //==============================================================================
@@ -43,7 +48,7 @@ void NotificationBellComponent::paint(juce::Graphics& g)
     auto bounds = getLocalBounds().toFloat();
 
     // Draw background on hover
-    if (isHovered)
+    if (hoverState.isHovered())
     {
         g.setColour(juce::Colours::white.withAlpha(0.1f));
         g.fillRoundedRectangle(bounds, 6.0f);
@@ -66,7 +71,7 @@ void NotificationBellComponent::drawBell(juce::Graphics& g, juce::Rectangle<floa
     juce::Colour bellColor;
     if (unseenCount > 0)
         bellColor = juce::Colours::white;
-    else if (isHovered)
+    else if (hoverState.isHovered())
         bellColor = juce::Colours::white.withAlpha(0.9f);
     else
         bellColor = juce::Colours::white.withAlpha(0.7f);
@@ -170,14 +175,12 @@ void NotificationBellComponent::resized()
 
 void NotificationBellComponent::mouseEnter(const juce::MouseEvent&)
 {
-    isHovered = true;
-    repaint();
+    hoverState.setHovered(true);
 }
 
 void NotificationBellComponent::mouseExit(const juce::MouseEvent&)
 {
-    isHovered = false;
-    repaint();
+    hoverState.setHovered(false);
 }
 
 void NotificationBellComponent::mouseDown(const juce::MouseEvent&)

@@ -4,6 +4,7 @@
 #include "../../util/Validate.h"
 #include "../../util/TextEditorStyler.h"
 #include "../../util/Log.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 AuthComponent::AuthComponent()
@@ -683,12 +684,13 @@ void AuthComponent::handleLogin()
     loginData.getDynamicObject()->setProperty("password", password);
 
     Log::info("AuthComponent: Calling NetworkClient::loginAccount for: " + email);
-    networkClient->loginAccount(email, password, [this, email](const juce::String& token, const juce::String& userId) {
+    networkClient->loginAccount(email, password, [this, email](Outcome<std::pair<juce::String, juce::String>> authResult) {
         isLoading = false;
         loginSubmitButton->setEnabled(true);
 
-        if (!token.isEmpty())
+        if (authResult.isOk())
         {
+            auto [token, userId] = authResult.getValue();
             Log::info("AuthComponent: Login successful for: " + email + ", userId: " + userId);
             juce::String username = email.upToFirstOccurrenceOf("@", false, false);
             if (networkClient)
@@ -811,12 +813,13 @@ void AuthComponent::handleSignup()
     }
 
     Log::info("AuthComponent: Calling NetworkClient::registerAccount - email: " + email + ", username: " + username);
-    networkClient->registerAccount(email, username, password, displayName, [this, email, username](const juce::String& token, const juce::String& userId) {
+    networkClient->registerAccount(email, username, password, displayName, [this, email, username](Outcome<std::pair<juce::String, juce::String>> authResult) {
         isLoading = false;
         signupSubmitButton->setEnabled(true);
 
-        if (!token.isEmpty())
+        if (authResult.isOk())
         {
+            auto [token, userId] = authResult.getValue();
             Log::info("AuthComponent: Signup successful - email: " + email + ", username: " + username + ", userId: " + userId);
             if (onLoginSuccess)
             {
@@ -830,7 +833,7 @@ void AuthComponent::handleSignup()
         }
         else
         {
-            Log::warn("AuthComponent: Signup failed - no token returned for: " + email);
+            Log::warn("AuthComponent: Signup failed for: " + email + " - " + authResult.getError());
             showError("Registration failed. Please try again.");
         }
         repaint();

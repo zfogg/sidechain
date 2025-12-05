@@ -2,6 +2,24 @@
 #include "../util/HttpErrorHandler.h"
 #include "../util/Log.h"
 #include "../util/Async.h"
+#include "../util/Result.h"
+
+//==============================================================================
+// Helper to convert RequestResult to Outcome<juce::var>
+static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult& result)
+{
+    if (result.success && result.isSuccess())
+    {
+        return Outcome<juce::var>::ok(result.data);
+    }
+    else
+    {
+        juce::String errorMsg = result.getUserFriendlyError();
+        if (errorMsg.isEmpty())
+            errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
+        return Outcome<juce::var>::error(errorMsg);
+    }
+}
 
 //==============================================================================
 // RequestResult helper methods
@@ -157,7 +175,7 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
             registerData.getDynamicObject()->setProperty("password", password);
             registerData.getDynamicObject()->setProperty("display_name", displayName);
             
-            auto response = makeRequest("/api/v1/auth/register", "POST", registerData, false);
+            auto response = makeRequest(buildApiPath("/auth/register"), "POST", registerData, false);
             
             juce::String token, userId, responseUsername;
             bool success = false;
@@ -187,12 +205,14 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
                     currentUserId = userId;
                     currentUsername = responseUsername;
                     
-                    callback(token, userId);
+                    auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, userId});
+                    callback(authResult);
                     Log::info("Account registered successfully: " + responseUsername);
                 }
                 else
                 {
-                    callback("", "");
+                    auto authResult = Outcome<std::pair<juce::String, juce::String>>::error("Registration failed - invalid input or username already taken");
+                    callback(authResult);
                     Log::error("Account registration failed");
                 }
             });
@@ -209,7 +229,7 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
             loginData.getDynamicObject()->setProperty("email", email);
             loginData.getDynamicObject()->setProperty("password", password);
             
-            auto response = makeRequest("/api/v1/auth/login", "POST", loginData, false);
+            auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
             
             juce::String token, userId, username;
             bool success = false;
@@ -239,12 +259,14 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
                     currentUserId = userId;
                     currentUsername = username;
                     
-                    callback(token, userId);
+                    auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, userId});
+                    callback(authResult);
                     Log::info("Login successful: " + username);
                 }
                 else
                 {
-                    callback("", "");
+                    auto authResult = Outcome<std::pair<juce::String, juce::String>>::error("Login failed - invalid credentials");
+                    callback(authResult);
                     Log::warn("Login failed");
                 }
             });
@@ -265,11 +287,11 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
 {
     if (!isAuthenticated())
     {
-        Log::warn("Cannot upload audio: not authenticated");
+        Log::warn("Cannot upload audio: " + juce::String(Constants::Errors::NOT_AUTHENTICATED));
         if (callback)
         {
             juce::MessageManager::callAsync([callback]() {
-                callback(false, "");
+                callback(Outcome<juce::String>::error(Constants::Errors::NOT_AUTHENTICATED));
             });
         }
         return;
@@ -288,7 +310,7 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
-                    callback(false, "");
+                    callback(Outcome<juce::String>::error("Failed to encode audio"));
                 });
             }
             return;
@@ -333,8 +355,11 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
 
         if (callback)
         {
-            juce::MessageManager::callAsync([callback, success, audioUrl]() {
-                callback(success, audioUrl);
+            juce::MessageManager::callAsync([callback, success, audioUrl, result]() {
+                if (success)
+                    callback(Outcome<juce::String>::ok(audioUrl));
+                else
+                    callback(Outcome<juce::String>::error(result.getUserFriendlyError()));
             });
         }
 
@@ -353,17 +378,17 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
 {
     if (!isAuthenticated())
     {
-        Log::warn("Cannot upload audio: not authenticated");
+        Log::warn("Cannot upload audio: " + juce::String(Constants::Errors::NOT_AUTHENTICATED));
         if (callback)
         {
             juce::MessageManager::callAsync([callback]() {
-                callback(false, "");
+                callback(Outcome<juce::String>::error(Constants::Errors::NOT_AUTHENTICATED));
             });
         }
         return;
     }
 
-    // Copy the buffer and metadata for the background thread
+        // Copy the buffer and metadata for the background thread
     juce::AudioBuffer<float> bufferCopy(audioBuffer);
     AudioUploadMetadata metadataCopy = metadata;
 
@@ -377,7 +402,7 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
-                    callback(false, "");
+                    callback(Outcome<juce::String>::error("Failed to encode audio"));
                 });
             }
             return;
@@ -442,8 +467,11 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
 
         if (callback)
         {
-            juce::MessageManager::callAsync([callback, success, audioUrl]() {
-                callback(success, audioUrl);
+            juce::MessageManager::callAsync([callback, success, audioUrl, result]() {
+                if (success)
+                    callback(Outcome<juce::String>::ok(audioUrl));
+                else
+                    callback(Outcome<juce::String>::error(result.getUserFriendlyError()));
             });
         }
 
@@ -462,13 +490,16 @@ void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback)
 
     Async::runVoid([this, limit, offset, callback]() {
         // Use enriched endpoint to get reaction counts and own reactions from getstream.io
-        juce::String endpoint = "/api/feed/global/enriched?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+        juce::String endpoint = buildApiPath("/feed/global/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                callback(response);
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid feed response"));
             });
         }
     });
@@ -487,7 +518,10 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                callback(response);
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid feed response"));
             });
         }
     });
@@ -500,13 +534,16 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
 
     Async::runVoid([this, limit, offset, callback]() {
         // Trending feed uses engagement scoring (likes, plays, comments weighted by recency)
-        juce::String endpoint = "/api/feed/trending?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+        juce::String endpoint = buildApiPath("/feed/trending") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                callback(response);
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid feed response"));
             });
         }
     });
@@ -517,7 +554,7 @@ void NetworkClient::likePost(const juce::String& activityId, const juce::String&
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -530,12 +567,12 @@ void NetworkClient::likePost(const juce::String& activityId, const juce::String&
         {
             // Use emoji reaction endpoint
             data.getDynamicObject()->setProperty("emoji", emoji);
-            endpoint = "/api/v1/social/react";
+            endpoint = buildApiPath("/social/react");
         }
         else
         {
             // Use standard like endpoint
-            endpoint = "/api/v1/social/like";
+            endpoint = buildApiPath("/social/like");
         }
 
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
@@ -544,7 +581,8 @@ void NetworkClient::likePost(const juce::String& activityId, const juce::String&
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -555,7 +593,7 @@ void NetworkClient::unlikePost(const juce::String& activityId, ResponseCallback 
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -563,13 +601,14 @@ void NetworkClient::unlikePost(const juce::String& activityId, ResponseCallback 
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("activity_id", activityId);
 
-        auto result = makeRequestWithRetry("/api/v1/social/like", "DELETE", data, true);
+        auto result = makeRequestWithRetry(buildApiPath("/social/like"), "DELETE", data, true);
         Log::debug("Unlike response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -580,7 +619,7 @@ void NetworkClient::followUser(const juce::String& userId, ResponseCallback call
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -588,13 +627,14 @@ void NetworkClient::followUser(const juce::String& userId, ResponseCallback call
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("target_user_id", userId);
 
-        auto result = makeRequestWithRetry("/api/v1/social/follow", "POST", data, true);
+        auto result = makeRequestWithRetry(buildApiPath("/social/follow"), "POST", data, true);
         Log::debug("Follow response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -605,7 +645,7 @@ void NetworkClient::unfollowUser(const juce::String& userId, ResponseCallback ca
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -613,13 +653,14 @@ void NetworkClient::unfollowUser(const juce::String& userId, ResponseCallback ca
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("target_user_id", userId);
 
-        auto result = makeRequestWithRetry("/api/v1/social/unfollow", "POST", data, true);
+        auto result = makeRequestWithRetry(buildApiPath("/social/unfollow"), "POST", data, true);
         Log::debug("Unfollow response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -630,7 +671,7 @@ void NetworkClient::trackPlay(const juce::String& activityId, ResponseCallback c
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -638,13 +679,14 @@ void NetworkClient::trackPlay(const juce::String& activityId, ResponseCallback c
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("activity_id", activityId);
 
-        auto result = makeRequestWithRetry("/api/v1/social/play", "POST", data, true);
+        auto result = makeRequestWithRetry(buildApiPath("/social/play"), "POST", data, true);
         Log::debug("Track play response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -655,7 +697,7 @@ void NetworkClient::trackListenDuration(const juce::String& activityId, double d
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -663,7 +705,7 @@ void NetworkClient::trackListenDuration(const juce::String& activityId, double d
     if (durationSeconds < 1.0)
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -672,13 +714,14 @@ void NetworkClient::trackListenDuration(const juce::String& activityId, double d
         data.getDynamicObject()->setProperty("activity_id", activityId);
         data.getDynamicObject()->setProperty("duration", durationSeconds);
 
-        auto result = makeRequestWithRetry("/api/v1/social/listen-duration", "POST", data, true);
+        auto result = makeRequestWithRetry(buildApiPath("/social/listen-duration"), "POST", data, true);
         Log::debug("Track listen duration response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -689,9 +732,9 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
 {
     if (!isAuthenticated())
     {
-        Log::warn("Cannot upload profile picture: not authenticated");
+        Log::warn("Cannot upload profile picture: " + juce::String(Constants::Errors::NOT_AUTHENTICATED));
         if (callback)
-            callback(false, "");
+            callback(Outcome<juce::String>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -701,7 +744,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         if (callback)
         {
             juce::MessageManager::callAsync([callback]() {
-                callback(false, "");
+                callback(Outcome<juce::String>::error("File does not exist"));
             });
         }
         return;
@@ -724,7 +767,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         };
 
         // Create URL with file upload using JUCE's built-in multipart form handling
-        juce::URL url(config.baseUrl + "/api/v1/users/upload-profile-picture");
+        juce::URL url(config.baseUrl + buildApiPath("/users/upload-profile-picture"));
 
         // Use withFileToUpload - JUCE will automatically create proper multipart/form-data
         url = url.withFileToUpload("profile_picture", imageFile, getMimeType(imageFile.getFileExtension()));
@@ -746,7 +789,7 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
             if (callback)
             {
                 juce::MessageManager::callAsync([callback]() {
-                    callback(false, "");
+                    callback(Outcome<juce::String>::error("Failed to encode audio"));
                 });
             }
             return;
@@ -769,7 +812,10 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         if (callback)
         {
             juce::MessageManager::callAsync([callback, success, pictureUrl]() {
-                callback(success, pictureUrl);
+                if (success)
+                    callback(Outcome<juce::String>::ok(pictureUrl));
+                else
+                    callback(Outcome<juce::String>::error("Failed to upload profile picture"));
             });
         }
 
@@ -1159,6 +1205,26 @@ juce::String NetworkClient::getAuthHeader() const
     return "Bearer " + authToken;
 }
 
+//==============================================================================
+// Helper to build API endpoint paths consistently
+juce::String NetworkClient::buildApiPath(const char* path)
+{
+    juce::String pathStr(path);
+    
+    // If path already starts with /api/v1, return as-is
+    if (pathStr.startsWith("/api/v1"))
+        return pathStr;
+    
+    // If path starts with /api/, replace with /api/v1/
+    if (pathStr.startsWith("/api/"))
+        return pathStr.replace("/api/", "/api/v1/");
+    
+    // Otherwise, prepend /api/v1
+    if (pathStr.startsWith("/"))
+        return juce::String(Constants::Endpoints::API_VERSION) + pathStr;
+    return juce::String(Constants::Endpoints::API_VERSION) + "/" + pathStr;
+}
+
 void NetworkClient::handleAuthResponse(const juce::var& response)
 {
     if (response.isObject())
@@ -1173,7 +1239,8 @@ void NetworkClient::handleAuthResponse(const juce::var& response)
             if (authCallback)
             {
                 juce::MessageManager::callAsync([this, token, userId]() {
-                    authCallback(token, userId);
+                    auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, userId});
+                    authCallback(authResult);
                 });
             }
         }
@@ -1236,7 +1303,7 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
 
     if (!isAuthenticated())
     {
-        result.errorMessage = "Not authenticated";
+        result.errorMessage = Constants::Errors::NOT_AUTHENTICATED;
         result.httpStatus = 401;
         return result;
     }
@@ -1421,9 +1488,10 @@ void NetworkClient::get(const juce::String& endpoint, ResponseCallback callback)
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        auto outcome = requestResultToOutcome(result);
 
-        juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
         });
     });
 }
@@ -1435,9 +1503,10 @@ void NetworkClient::post(const juce::String& endpoint, const juce::var& data, Re
 
     Async::runVoid([this, endpoint, data, callback]() {
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+        auto outcome = requestResultToOutcome(result);
 
-        juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
         });
     });
 }
@@ -1449,9 +1518,10 @@ void NetworkClient::put(const juce::String& endpoint, const juce::var& data, Res
 
     Async::runVoid([this, endpoint, data, callback]() {
         auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
+        auto outcome = requestResultToOutcome(result);
 
-        juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
         });
     });
 }
@@ -1463,9 +1533,10 @@ void NetworkClient::del(const juce::String& endpoint, ResponseCallback callback)
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+        auto outcome = requestResultToOutcome(result);
 
-        juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
         });
     });
 }
@@ -1481,9 +1552,10 @@ void NetworkClient::getAbsolute(const juce::String& absoluteUrl, ResponseCallbac
 
     Async::runVoid([this, absoluteUrl, callback, customHeaders]() {
         RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "GET", juce::var(), false, customHeaders);
+        auto outcome = requestResultToOutcome(result);
 
-        juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
         });
     });
 }
@@ -1496,9 +1568,10 @@ void NetworkClient::postAbsolute(const juce::String& absoluteUrl, const juce::va
 
     Async::runVoid([this, absoluteUrl, data, callback, customHeaders]() {
         RequestResult result = makeAbsoluteRequestWithRetry(absoluteUrl, "POST", data, false, customHeaders);
+        auto outcome = requestResultToOutcome(result);
 
-        juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
         });
     });
 }
@@ -1519,7 +1592,8 @@ void NetworkClient::uploadMultipartAbsolute(const juce::String& absoluteUrl,
         RequestResult result = uploadMultipartDataAbsolute(absoluteUrl, fieldName, fileData, fileName, mimeType, extraFields, customHeaders);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1541,8 +1615,11 @@ void NetworkClient::getBinaryAbsolute(const juce::String& absoluteUrl, BinaryDat
             success = true;
         }
 
-        juce::MessageManager::callAsync([callback, success, data]() {
-            callback(success, data);
+        juce::MessageManager::callAsync([callback, success, data, result]() {
+            if (success)
+                callback(Outcome<juce::MemoryBlock>::ok(data));
+            else
+                callback(Outcome<juce::MemoryBlock>::error(result.getUserFriendlyError()));
         });
     });
 }
@@ -1556,7 +1633,7 @@ void NetworkClient::getNotifications(int limit, int offset, NotificationCallback
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/notifications?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    juce::String endpoint = buildApiPath("/notifications") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
@@ -1573,7 +1650,18 @@ void NetworkClient::getNotifications(int limit, int offset, NotificationCallback
         }
 
         juce::MessageManager::callAsync([callback, result, groups, unseen, unread]() {
-            callback(result.success, groups, unseen, unread);
+            if (result.isSuccess())
+            {
+                NotificationResult notifResult;
+                notifResult.notifications = groups;
+                notifResult.unseen = unseen;
+                notifResult.unread = unread;
+                callback(Outcome<NotificationResult>::ok(notifResult));
+            }
+            else
+            {
+                callback(Outcome<NotificationResult>::error(result.getUserFriendlyError()));
+            }
         });
     });
 }
@@ -1584,7 +1672,7 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
         return;
 
     Async::runVoid([this, callback]() {
-        auto result = makeRequestWithRetry("/api/v1/notifications/counts", "GET", juce::var(), true);
+        auto result = makeRequestWithRetry(buildApiPath("/notifications/counts"), "GET", juce::var(), true);
 
         int unseen = 0;
         int unread = 0;
@@ -1604,12 +1692,13 @@ void NetworkClient::getNotificationCounts(std::function<void(int unseen, int unr
 void NetworkClient::markNotificationsRead(ResponseCallback callback)
 {
     Async::runVoid([this, callback]() {
-        auto result = makeRequestWithRetry("/api/v1/notifications/read", "POST", juce::var(), true);
+        auto result = makeRequestWithRetry(buildApiPath("/notifications/read"), "POST", juce::var(), true);
 
         if (callback != nullptr)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.success, result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -1618,12 +1707,13 @@ void NetworkClient::markNotificationsRead(ResponseCallback callback)
 void NetworkClient::markNotificationsSeen(ResponseCallback callback)
 {
     Async::runVoid([this, callback]() {
-        auto result = makeRequestWithRetry("/api/v1/notifications/seen", "POST", juce::var(), true);
+        auto result = makeRequestWithRetry(buildApiPath("/notifications/seen"), "POST", juce::var(), true);
 
         if (callback != nullptr)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.success, result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -1640,7 +1730,7 @@ void NetworkClient::searchUsers(const juce::String& query, int limit, int offset
 
     // URL-encode the query string
     juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
-    juce::String endpoint = "/api/v1/search/users?q=" + encodedQuery
+    juce::String endpoint = buildApiPath("/search/users") + "?q=" + encodedQuery
                           + "&limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
@@ -1648,7 +1738,8 @@ void NetworkClient::searchUsers(const juce::String& query, int limit, int offset
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1658,13 +1749,14 @@ void NetworkClient::getTrendingUsers(int limit, ResponseCallback callback)
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/discover/trending?limit=" + juce::String(limit);
+    juce::String endpoint = buildApiPath("/discover/trending") + "?limit=" + juce::String(limit);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1674,13 +1766,14 @@ void NetworkClient::getFeaturedProducers(int limit, ResponseCallback callback)
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/discover/featured?limit=" + juce::String(limit);
+    juce::String endpoint = buildApiPath("/discover/featured") + "?limit=" + juce::String(limit);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1690,13 +1783,14 @@ void NetworkClient::getSuggestedUsers(int limit, ResponseCallback callback)
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/discover/suggested?limit=" + juce::String(limit);
+    juce::String endpoint = buildApiPath("/discover/suggested") + "?limit=" + juce::String(limit);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1708,7 +1802,7 @@ void NetworkClient::getUsersByGenre(const juce::String& genre, int limit, int of
 
     // URL-encode the genre
     juce::String encodedGenre = juce::URL::addEscapeChars(genre, true);
-    juce::String endpoint = "/api/v1/discover/genre/" + encodedGenre
+    juce::String endpoint = buildApiPath("/discover/genre") + "/" + encodedGenre
                           + "?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
@@ -1716,7 +1810,8 @@ void NetworkClient::getUsersByGenre(const juce::String& genre, int limit, int of
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1727,10 +1822,11 @@ void NetworkClient::getAvailableGenres(ResponseCallback callback)
         return;
 
     Async::runVoid([this, callback]() {
-        auto result = makeRequestWithRetry("/api/v1/discover/genres", "GET", juce::var(), true);
+        auto result = makeRequestWithRetry(buildApiPath("/discover/genres"), "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1740,13 +1836,14 @@ void NetworkClient::getSimilarUsers(const juce::String& userId, int limit, Respo
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/users/" + userId + "/similar?limit=" + juce::String(limit);
+    juce::String endpoint = buildApiPath("/users") + "/" + userId + "/similar?limit=" + juce::String(limit);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1769,7 +1866,7 @@ void NetworkClient::searchPosts(const juce::String& query,
 
     // Build query string with filters
     juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
-    juce::String endpoint = "/api/v1/search/posts?q=" + encodedQuery
+    juce::String endpoint = buildApiPath("/search/posts") + "?q=" + encodedQuery
                           + "&limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
@@ -1795,7 +1892,8 @@ void NetworkClient::searchPosts(const juce::String& query,
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1806,14 +1904,15 @@ void NetworkClient::getSearchSuggestions(const juce::String& query, int limit, R
         return;
 
     juce::String encodedQuery = juce::URL::addEscapeChars(query, true);
-    juce::String endpoint = "/api/v1/search/suggestions?q=" + encodedQuery
+    juce::String endpoint = buildApiPath("/search/suggestions") + "?q=" + encodedQuery
                           + "&limit=" + juce::String(limit);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1826,7 +1925,7 @@ void NetworkClient::changeUsername(const juce::String& newUsername, ResponseCall
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -1834,13 +1933,14 @@ void NetworkClient::changeUsername(const juce::String& newUsername, ResponseCall
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("username", newUsername);
 
-        auto result = makeRequestWithRetry("/api/v1/users/username", "PUT", data, true);
+        auto result = makeRequestWithRetry(buildApiPath("/users/username"), "PUT", data, true);
         Log::debug("Change username response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -1851,14 +1951,15 @@ void NetworkClient::getFollowers(const juce::String& userId, int limit, int offs
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/users/" + userId + "/followers?limit=" + juce::String(limit)
+    juce::String endpoint = buildApiPath("/users") + "/" + userId + "/followers?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1868,14 +1969,15 @@ void NetworkClient::getFollowing(const juce::String& userId, int limit, int offs
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/users/" + userId + "/following?limit=" + juce::String(limit)
+    juce::String endpoint = buildApiPath("/users") + "/" + userId + "/following?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, callback]() {
         auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
 
         juce::MessageManager::callAsync([callback, result]() {
-            callback(result.success, result.data);
+            auto outcome = requestResultToOutcome(result);
+            callback(outcome);
         });
     });
 }
@@ -1888,7 +1990,7 @@ void NetworkClient::getComments(const juce::String& postId, int limit, int offse
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/posts/" + postId + "/comments?limit=" + juce::String(limit)
+    juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, callback]() {
@@ -1904,7 +2006,10 @@ void NetworkClient::getComments(const juce::String& postId, int limit, int offse
         }
 
         juce::MessageManager::callAsync([callback, result, comments, totalCount]() {
-            callback(result.isSuccess(), comments, totalCount);
+            if (result.isSuccess())
+                callback(Outcome<std::pair<juce::var, int>>::ok({comments, totalCount}));
+            else
+                callback(Outcome<std::pair<juce::var, int>>::error(result.getUserFriendlyError()));
         });
     });
 }
@@ -1915,7 +2020,7 @@ void NetworkClient::createComment(const juce::String& postId, const juce::String
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -1926,14 +2031,15 @@ void NetworkClient::createComment(const juce::String& postId, const juce::String
         if (parentId.isNotEmpty())
             data.getDynamicObject()->setProperty("parent_id", parentId);
 
-        juce::String endpoint = "/api/v1/posts/" + postId + "/comments";
+        juce::String endpoint = buildApiPath("/posts") + "/" + postId + "/comments";
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
         Log::debug("Create comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -1944,7 +2050,7 @@ void NetworkClient::getCommentReplies(const juce::String& commentId, int limit, 
     if (callback == nullptr)
         return;
 
-    juce::String endpoint = "/api/v1/comments/" + commentId + "/replies?limit=" + juce::String(limit)
+    juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/replies?limit=" + juce::String(limit)
                           + "&offset=" + juce::String(offset);
 
     Async::runVoid([this, endpoint, callback]() {
@@ -1960,7 +2066,10 @@ void NetworkClient::getCommentReplies(const juce::String& commentId, int limit, 
         }
 
         juce::MessageManager::callAsync([callback, result, replies, totalCount]() {
-            callback(result.isSuccess(), replies, totalCount);
+            if (result.isSuccess())
+                callback(Outcome<std::pair<juce::var, int>>::ok({replies, totalCount}));
+            else
+                callback(Outcome<std::pair<juce::var, int>>::error(result.getUserFriendlyError()));
         });
     });
 }
@@ -1970,7 +2079,7 @@ void NetworkClient::updateComment(const juce::String& commentId, const juce::Str
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
@@ -1978,14 +2087,15 @@ void NetworkClient::updateComment(const juce::String& commentId, const juce::Str
         juce::var data = juce::var(new juce::DynamicObject());
         data.getDynamicObject()->setProperty("content", content);
 
-        juce::String endpoint = "/api/v1/comments/" + commentId;
+        juce::String endpoint = buildApiPath("/comments") + "/" + commentId;
         auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
         Log::debug("Update comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -1996,19 +2106,20 @@ void NetworkClient::deleteComment(const juce::String& commentId, ResponseCallbac
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
     Async::runVoid([this, commentId, callback]() {
-        juce::String endpoint = "/api/v1/comments/" + commentId;
+        juce::String endpoint = buildApiPath("/comments") + "/" + commentId;
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
         Log::debug("Delete comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -2019,19 +2130,20 @@ void NetworkClient::likeComment(const juce::String& commentId, ResponseCallback 
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
     Async::runVoid([this, commentId, callback]() {
-        juce::String endpoint = "/api/v1/comments/" + commentId + "/like";
+        juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/like";
         auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
         Log::debug("Like comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });
@@ -2042,19 +2154,20 @@ void NetworkClient::unlikeComment(const juce::String& commentId, ResponseCallbac
     if (!isAuthenticated())
     {
         if (callback)
-            callback(false, juce::var());
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
         return;
     }
 
     Async::runVoid([this, commentId, callback]() {
-        juce::String endpoint = "/api/v1/comments/" + commentId + "/like";
+        juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/like";
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
         Log::debug("Unlike comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
             juce::MessageManager::callAsync([callback, result]() {
-                callback(result.isSuccess(), result.data);
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
             });
         }
     });

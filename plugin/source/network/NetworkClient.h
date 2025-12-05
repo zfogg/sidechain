@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../util/Constants.h"
+#include "../util/Result.h"
 #include <functional>
 #include <atomic>
 #include <memory>
@@ -55,14 +56,15 @@ public:
     NetworkClient(const Config& config = Config::development());
     ~NetworkClient();
 
-    // Callback types
-    using DeviceRegistrationCallback = std::function<void(const juce::String& deviceId)>;
-    using AuthenticationCallback = std::function<void(const juce::String& token, const juce::String& userId)>;
-    using UploadCallback = std::function<void(bool success, const juce::String& audioUrl)>;
-    using FeedCallback = std::function<void(const juce::var& feedData)>;
-    using ProfilePictureCallback = std::function<void(bool success, const juce::String& pictureUrl)>;
+    // Callback types - using Outcome<T> for type-safe error handling
+    using DeviceRegistrationCallback = std::function<void(Outcome<juce::String>)>;
+    // Authentication callback: returns Outcome with pair<token, userId> or error
+    using AuthenticationCallback = std::function<void(Outcome<std::pair<juce::String, juce::String>>)>;
+    using UploadCallback = std::function<void(Outcome<juce::String> audioUrl)>;
+    using FeedCallback = std::function<void(Outcome<juce::var> feedData)>;
+    using ProfilePictureCallback = std::function<void(Outcome<juce::String> pictureUrl)>;
     using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
-    using ResponseCallback = std::function<void(bool success, const juce::var& response)>;
+    using ResponseCallback = std::function<void(Outcome<juce::var> response)>;
 
     //==========================================================================
     // Metadata for audio uploads
@@ -116,8 +118,9 @@ public:
 
     //==========================================================================
     // Comment operations
-    using CommentCallback = std::function<void(bool success, const juce::var& comment)>;
-    using CommentsListCallback = std::function<void(bool success, const juce::var& comments, int totalCount)>;
+    using CommentCallback = std::function<void(Outcome<juce::var> comment)>;
+    // CommentsListCallback: returns Outcome with pair<comments, totalCount> or error
+    using CommentsListCallback = std::function<void(Outcome<std::pair<juce::var, int>>)>;
 
     void getComments(const juce::String& postId, int limit = 20, int offset = 0, CommentsListCallback callback = nullptr);
     void createComment(const juce::String& postId, const juce::String& content, const juce::String& parentId = "", CommentCallback callback = nullptr);
@@ -137,7 +140,7 @@ public:
     //==========================================================================
     // Absolute URL methods (for CDN, external APIs, etc.)
     // These methods accept full URLs instead of relative endpoints
-    using BinaryDataCallback = std::function<void(bool success, const juce::MemoryBlock& data)>;
+    using BinaryDataCallback = std::function<void(Outcome<juce::MemoryBlock> data)>;
     
     void getAbsolute(const juce::String& absoluteUrl, ResponseCallback callback, 
                      const juce::StringPairArray& customHeaders = juce::StringPairArray());
@@ -147,7 +150,7 @@ public:
                            const juce::StringPairArray& customHeaders = juce::StringPairArray());
     
     // Multipart form upload to absolute URL (for external APIs like getstream.io, CDN uploads, etc.)
-    using MultipartUploadCallback = std::function<void(bool success, const juce::var& response)>;
+    using MultipartUploadCallback = std::function<void(Outcome<juce::var> response)>;
     void uploadMultipartAbsolute(const juce::String& absoluteUrl,
                                 const juce::String& fieldName,
                                 const juce::MemoryBlock& fileData,
@@ -163,7 +166,14 @@ public:
 
     //==========================================================================
     // Notification operations
-    using NotificationCallback = std::function<void(bool success, const juce::var& notifications, int unseen, int unread)>;
+    // NotificationCallback: returns Outcome with struct containing notifications, unseen, unread
+    struct NotificationResult
+    {
+        juce::var notifications;
+        int unseen = 0;
+        int unread = 0;
+    };
+    using NotificationCallback = std::function<void(Outcome<NotificationResult>)>;
 
     void getNotifications(int limit = 20, int offset = 0, NotificationCallback callback = nullptr);
     void getNotificationCounts(std::function<void(int unseen, int unread)> callback);
@@ -308,6 +318,13 @@ private:
     juce::String getAuthHeader() const;
     void handleAuthResponse(const juce::var& response);
     void updateConnectionStatus(ConnectionStatus status);
+    
+    // Helper to check authentication and return error if not authenticated
+    template<typename Callback>
+    bool requireAuth(Callback&& callback) const;
+    
+    // Helper to build API endpoint paths consistently
+    static juce::String buildApiPath(const char* path);
 
     // Parse HTTP status code from response headers
     static int parseStatusCode(const juce::StringPairArray& headers);

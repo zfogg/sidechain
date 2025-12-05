@@ -1,5 +1,6 @@
 #include "FeedDataManager.h"
 #include "../util/Log.h"
+#include "../util/Result.h"
 
 //==============================================================================
 FeedDataManager::FeedDataManager()
@@ -108,17 +109,17 @@ void FeedDataManager::performFetch(FeedType feedType, int limit, int offset, Fee
     pendingCallback = callback;
 
     // Use existing NetworkClient methods
-    auto networkCallback = [this, feedType, limit, offset, callback](const juce::var& feedData)
+    auto networkCallback = [this, feedType, limit, offset, callback](Outcome<juce::var> feedResult)
     {
         fetchingInProgress = false;
 
-        if (feedData.isVoid())
+        if (feedResult.isOk())
         {
-            handleFetchError("Failed to fetch feed data", callback);
+            handleFetchResponse(feedResult.getValue(), feedType, limit, offset, callback);
         }
         else
         {
-            handleFetchResponse(feedData, feedType, limit, offset, callback);
+            handleFetchError("Failed to fetch feed data: " + feedResult.getError(), callback);
         }
     };
 

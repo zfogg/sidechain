@@ -5,6 +5,7 @@
 #include "../../util/Colors.h"
 #include "../../util/UIHelpers.h"
 #include "../../util/Log.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 // FollowUserRowComponent Implementation
@@ -13,6 +14,11 @@
 FollowUserRowComponent::FollowUserRowComponent()
 {
     setSize(400, ROW_HEIGHT);
+    
+    // Set up hover state
+    hoverState.onHoverChanged = [this](bool hovered) {
+        repaint();
+    };
 }
 
 void FollowUserRowComponent::setUser(const FollowListUser& newUser)
@@ -41,7 +47,7 @@ void FollowUserRowComponent::setFollowing(bool following)
 void FollowUserRowComponent::paint(juce::Graphics& g)
 {
     // Background
-    g.setColour(isHovered ? SidechainColors::backgroundLighter() : SidechainColors::backgroundLight());
+    g.setColour(hoverState.isHovered() ? SidechainColors::backgroundLighter() : SidechainColors::backgroundLight());
     g.fillRect(getLocalBounds());
 
     // Border at bottom
@@ -127,14 +133,12 @@ void FollowUserRowComponent::mouseUp(const juce::MouseEvent& event)
 
 void FollowUserRowComponent::mouseEnter(const juce::MouseEvent& /*event*/)
 {
-    isHovered = true;
-    repaint();
+    hoverState.setHovered(true);
 }
 
 void FollowUserRowComponent::mouseExit(const juce::MouseEvent& /*event*/)
 {
-    isHovered = false;
-    repaint();
+    hoverState.setHovered(false);
 }
 
 juce::Rectangle<int> FollowUserRowComponent::getAvatarBounds() const
@@ -201,8 +205,11 @@ void FollowersListComponent::loadList(const juce::String& userId, ListType type)
     isLoading = true;
     repaint();
 
-    auto callback = [this](bool success, const juce::var& data) {
-        handleUsersLoaded(success, data);
+    auto callback = [this](Outcome<juce::var> responseOutcome) {
+        if (responseOutcome.isOk())
+            handleUsersLoaded(true, responseOutcome.getValue());
+        else
+            handleUsersLoaded(false, juce::var());
     };
 
     if (type == ListType::Followers)
@@ -268,10 +275,13 @@ void FollowersListComponent::loadMoreUsers()
     isLoading = true;
     repaint();
 
-    auto callback = [this](bool success, const juce::var& data) {
+    auto callback = [this](Outcome<juce::var> responseOutcome) {
         isLoading = false;
 
-        if (success && Json::isObject(data))
+        if (responseOutcome.isOk())
+        {
+            auto data = responseOutcome.getValue();
+            if (Json::isObject(data))
         {
             juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
             auto usersArray = Json::getArray(data, usersKey.toRawUTF8());
@@ -354,7 +364,8 @@ void FollowersListComponent::handleFollowToggled(const FollowListUser& user, boo
     }
 
     // Send to server
-    auto revertCallback = [this, userId = user.id, wasFollowing = user.isFollowing](bool success, const juce::var& /*response*/) {
+    auto revertCallback = [this, userId = user.id, wasFollowing = user.isFollowing](Outcome<juce::var> responseOutcome) {
+        bool success = responseOutcome.isOk();
         if (!success)
         {
             // Revert on failure

@@ -1,6 +1,7 @@
 #include "StreamChatClient.h"
 #include "../util/Log.h"
 #include "../util/Async.h"
+#include "../util/Result.h"
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -23,7 +24,7 @@ void StreamChatClient::fetchToken(const juce::String& backendAuthToken, TokenCal
     if (networkClient == nullptr)
     {
         Log::warn("StreamChatClient: NetworkClient not set");
-        if (callback) callback(false, "", "", "");
+        if (callback) callback(Outcome<TokenResult>::error("NetworkClient not set"));
         return;
     }
     
@@ -32,23 +33,31 @@ void StreamChatClient::fetchToken(const juce::String& backendAuthToken, TokenCal
     
     networkClient->getAbsolute(
         config.backendBaseUrl + "/api/v1/auth/stream-token",
-        [this, callback](bool success, const juce::var& response) {
-            if (success && response.isObject())
+        [this, callback](Outcome<juce::var> responseOutcome) {
+            if (responseOutcome.isOk())
             {
-                auto token = response.getProperty("token", "").toString();
-                auto apiKey = response.getProperty("api_key", "").toString();
-                auto userId = response.getProperty("user_id", "").toString();
-                
-                if (!token.isEmpty() && !apiKey.isEmpty() && !userId.isEmpty())
+                auto response = responseOutcome.getValue();
+                if (response.isObject())
                 {
-                    setToken(token, apiKey, userId);
-                    if (callback) callback(true, token, apiKey, userId);
-                    return;
+                    auto token = response.getProperty("token", "").toString();
+                    auto apiKey = response.getProperty("api_key", "").toString();
+                    auto userId = response.getProperty("user_id", "").toString();
+                    
+                    if (!token.isEmpty() && !apiKey.isEmpty() && !userId.isEmpty())
+                    {
+                        setToken(token, apiKey, userId);
+                        TokenResult result;
+                        result.token = token;
+                        result.apiKey = apiKey;
+                        result.userId = userId;
+                        if (callback) callback(Outcome<TokenResult>::ok(result));
+                        return;
+                    }
                 }
             }
             
             Log::error("Failed to parse stream token response");
-            if (callback) callback(false, "", "", "");
+            if (callback) callback(Outcome<TokenResult>::error(responseOutcome.isError() ? responseOutcome.getError() : "Invalid token response"));
         },
         headers
     );
@@ -119,11 +128,11 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String& endpoint, cons
 
 //==============================================================================
 void StreamChatClient::createDirectChannel(const juce::String& targetUserId, 
-                                          std::function<void(bool, const Channel&)> callback)
+                                          std::function<void(Outcome<Channel>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, Channel{});
+        if (callback) callback(Outcome<Channel>::error("Not authenticated"));
         return;
     }
     
@@ -156,8 +165,10 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
         [callback](const Channel& channel) {
             if (callback)
             {
-                bool success = !channel.id.isEmpty();
-                callback(success, channel);
+                if (!channel.id.isEmpty())
+                    callback(Outcome<Channel>::ok(channel));
+                else
+                    callback(Outcome<Channel>::error("Failed to create channel"));
             }
         }
     );
@@ -165,11 +176,11 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
 
 void StreamChatClient::createGroupChannel(const juce::String& channelId, const juce::String& name,
                                         const std::vector<juce::String>& memberIds,
-                                        std::function<void(bool, const Channel&)> callback)
+                                        std::function<void(Outcome<Channel>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, Channel{});
+        if (callback) callback(Outcome<Channel>::error("Not authenticated"));
         return;
     }
     
@@ -207,8 +218,10 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
         [callback](const Channel& channel) {
             if (callback)
             {
-                bool success = !channel.id.isEmpty();
-                callback(success, channel);
+                if (!channel.id.isEmpty())
+                    callback(Outcome<Channel>::ok(channel));
+                else
+                    callback(Outcome<Channel>::error("Failed to create channel"));
             }
         }
     );
@@ -218,7 +231,7 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, {});
+        if (callback) callback(Outcome<std::vector<Channel>>::error("Not authenticated"));
         return;
     }
     
@@ -262,7 +275,7 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         [callback](const std::vector<Channel>& channels) {
             if (callback)
             {
-                callback(true, channels);
+                callback(Outcome<std::vector<Channel>>::ok(channels));
             }
         }
     );
@@ -275,7 +288,7 @@ void StreamChatClient::sendMessage(const juce::String& channelType, const juce::
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, Message{});
+        if (callback) callback(Outcome<Message>::error("Not authenticated"));
         return;
     }
     
@@ -313,8 +326,10 @@ void StreamChatClient::sendMessage(const juce::String& channelType, const juce::
         [callback](const Message& msg) {
             if (callback)
             {
-                bool success = !msg.id.isEmpty();
-                callback(success, msg);
+                if (!msg.id.isEmpty())
+                    callback(Outcome<Message>::ok(msg));
+                else
+                    callback(Outcome<Message>::error("Failed to send message"));
             }
         }
     );
@@ -325,7 +340,7 @@ void StreamChatClient::queryMessages(const juce::String& channelType, const juce
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, {});
+        if (callback) callback(Outcome<std::vector<Message>>::error("Not authenticated"));
         return;
     }
     
@@ -361,7 +376,7 @@ void StreamChatClient::queryMessages(const juce::String& channelType, const juce
         [callback](const std::vector<Message>& messages) {
             if (callback)
             {
-                callback(true, messages);
+                callback(Outcome<std::vector<Message>>::ok(messages));
             }
         }
     );
@@ -373,7 +388,7 @@ void StreamChatClient::searchMessages(const juce::String& query, const juce::var
 {
     if (!isAuthenticated() || query.isEmpty())
     {
-        if (callback) callback(false, {});
+        if (callback) callback(Outcome<std::vector<Message>>::error("Not authenticated or query is empty"));
         return;
     }
     
@@ -413,7 +428,7 @@ void StreamChatClient::searchMessages(const juce::String& query, const juce::var
         [callback](const std::vector<Message>& messages) {
             if (callback)
             {
-                callback(true, messages);
+                callback(Outcome<std::vector<Message>>::ok(messages));
             }
         }
     );
@@ -424,7 +439,7 @@ void StreamChatClient::queryPresence(const std::vector<juce::String>& userIds, P
 {
     if (!isAuthenticated() || userIds.empty())
     {
-        if (callback) callback(false, {});
+        if (callback) callback(Outcome<std::vector<UserPresence>>::error("Not authenticated or empty user list"));
         return;
     }
     
@@ -469,7 +484,7 @@ void StreamChatClient::queryPresence(const std::vector<juce::String>& userIds, P
         [callback](const std::vector<UserPresence>& presenceList) {
             if (callback)
             {
-                callback(true, presenceList);
+                callback(Outcome<std::vector<UserPresence>>::ok(presenceList));
             }
         }
     );
@@ -604,11 +619,11 @@ void StreamChatClient::updateConnectionStatus(ConnectionStatus status)
 
 //==============================================================================
 void StreamChatClient::getChannel(const juce::String& channelType, const juce::String& channelId,
-                                  std::function<void(bool, const Channel&)> callback)
+                                  std::function<void(Outcome<Channel>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, Channel{});
+        if (callback) callback(Outcome<Channel>::error("Not authenticated"));
         return;
     }
     
@@ -632,19 +647,21 @@ void StreamChatClient::getChannel(const juce::String& channelType, const juce::S
         [callback](const Channel& channel) {
             if (callback)
             {
-                bool success = !channel.id.isEmpty();
-                callback(success, channel);
+                if (!channel.id.isEmpty())
+                    callback(Outcome<Channel>::ok(channel));
+                else
+                    callback(Outcome<Channel>::error("Failed to create channel"));
             }
         }
     );
 }
 
 void StreamChatClient::deleteChannel(const juce::String& channelType, const juce::String& channelId,
-                                    std::function<void(bool)> callback)
+                                    std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -659,18 +676,21 @@ void StreamChatClient::deleteChannel(const juce::String& channelType, const juce
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
 }
 
 void StreamChatClient::leaveChannel(const juce::String& channelType, const juce::String& channelId,
-                                   std::function<void(bool)> callback)
+                                   std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -691,7 +711,10 @@ void StreamChatClient::leaveChannel(const juce::String& channelType, const juce:
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
@@ -703,7 +726,7 @@ void StreamChatClient::updateMessage(const juce::String& channelType, const juce
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false, Message{});
+        if (callback) callback(Outcome<Message>::error("Not authenticated"));
         return;
     }
     
@@ -737,19 +760,21 @@ void StreamChatClient::updateMessage(const juce::String& channelType, const juce
         [callback](const Message& msg) {
             if (callback)
             {
-                bool success = !msg.id.isEmpty();
-                callback(success, msg);
+                if (!msg.id.isEmpty())
+                    callback(Outcome<Message>::ok(msg));
+                else
+                    callback(Outcome<Message>::error("Failed to update message"));
             }
         }
     );
 }
 
 void StreamChatClient::deleteMessage(const juce::String& channelType, const juce::String& channelId,
-                                    const juce::String& messageId, std::function<void(bool)> callback)
+                                    const juce::String& messageId, std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -764,7 +789,10 @@ void StreamChatClient::deleteMessage(const juce::String& channelType, const juce
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
@@ -772,11 +800,11 @@ void StreamChatClient::deleteMessage(const juce::String& channelType, const juce
 
 void StreamChatClient::addReaction(const juce::String& channelType, const juce::String& channelId,
                                   const juce::String& messageId, const juce::String& reactionType,
-                                  std::function<void(bool)> callback)
+                                  std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -798,7 +826,10 @@ void StreamChatClient::addReaction(const juce::String& channelType, const juce::
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
@@ -806,11 +837,11 @@ void StreamChatClient::addReaction(const juce::String& channelType, const juce::
 
 void StreamChatClient::removeReaction(const juce::String& channelType, const juce::String& channelId,
                                      const juce::String& messageId, const juce::String& reactionType,
-                                     std::function<void(bool)> callback)
+                                     std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -825,18 +856,21 @@ void StreamChatClient::removeReaction(const juce::String& channelType, const juc
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
 }
 
 void StreamChatClient::markChannelRead(const juce::String& channelType, const juce::String& channelId,
-                                      std::function<void(bool)> callback)
+                                      std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -851,18 +885,21 @@ void StreamChatClient::markChannelRead(const juce::String& channelType, const ju
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
 }
 
 void StreamChatClient::updateStatus(const juce::String& status, const juce::var& extraData,
-                                   std::function<void(bool)> callback)
+                                   std::function<void(Outcome<void>)> callback)
 {
     if (!isAuthenticated())
     {
-        if (callback) callback(false);
+        if (callback) callback(Outcome<void>::error("Not authenticated"));
         return;
     }
     
@@ -886,7 +923,10 @@ void StreamChatClient::updateStatus(const juce::String& status, const juce::var&
         [callback](bool success) {
             if (callback)
             {
-                callback(success);
+                if (success)
+                    callback(Outcome<void>::ok());
+                else
+                    callback(Outcome<void>::error("Operation failed"));
             }
         }
     );
@@ -913,7 +953,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
 {
     if (!isAuthenticated() || backendAuthToken.isEmpty())
     {
-        if (callback) callback(false, "", 0.0);
+        if (callback) callback(Outcome<AudioSnippetResult>::error("Not authenticated"));
         return;
     }
     
@@ -922,7 +962,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
     if (durationSecs > 30.0)
     {
         Log::warn("Audio snippet too long: " + juce::String(durationSecs) + "s (max 30s)");
-        if (callback) callback(false, "", 0.0);
+        if (callback) callback(Outcome<AudioSnippetResult>::error("Audio snippet too long (max 30s)"));
         return;
     }
     
@@ -940,7 +980,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
             {
                 Log::error("Failed to create WAV writer");
                 juce::MessageManager::callAsync([callback]() {
-                    if (callback) callback(false, "", 0.0);
+                    if (callback) callback(Outcome<AudioSnippetResult>::error("Failed to create WAV writer"));
                 });
                 return;
             }
@@ -954,7 +994,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
             {
                 Log::warn("StreamChatClient: NetworkClient not set");
                 juce::MessageManager::callAsync([callback]() {
-                    if (callback) callback(false, "", 0.0);
+                    if (callback) callback(Outcome<AudioSnippetResult>::error("Failed to create WAV writer"));
                 });
                 return;
             }
@@ -978,21 +1018,28 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
                 "snippet.wav",
                 "audio/wav",
                 metadata,
-                [callback, durationSecs](bool success, const juce::var& response) {
-                    if (success && response.isObject())
+                [callback, durationSecs](Outcome<juce::var> responseOutcome) {
+                    if (responseOutcome.isOk())
                     {
-                        auto audioUrl = response.getProperty("audio_url", "").toString();
-                        if (audioUrl.isEmpty())
-                            audioUrl = response.getProperty("url", "").toString();
-                        
-                        if (!audioUrl.isEmpty())
+                        auto response = responseOutcome.getValue();
+                        if (response.isObject())
                         {
-                            if (callback) callback(true, audioUrl, durationSecs);
-                            return;
+                            auto audioUrl = response.getProperty("audio_url", "").toString();
+                            if (audioUrl.isEmpty())
+                                audioUrl = response.getProperty("url", "").toString();
+                            
+                            if (!audioUrl.isEmpty())
+                            {
+                                AudioSnippetResult result;
+                                result.audioUrl = audioUrl;
+                                result.duration = durationSecs;
+                                if (callback) callback(Outcome<AudioSnippetResult>::ok(result));
+                                return;
+                            }
                         }
                     }
                     
-                    if (callback) callback(false, "", 0.0);
+                    if (callback) callback(Outcome<AudioSnippetResult>::error(responseOutcome.isError() ? responseOutcome.getError() : "Failed to upload audio snippet"));
                 },
                 headers
             );
@@ -1006,18 +1053,19 @@ void StreamChatClient::sendMessageWithAudio(const juce::String& channelType, con
 {
     // First upload the audio snippet
     uploadAudioSnippet(audioBuffer, sampleRate, [this, channelType, channelId, text, callback]
-                      (bool uploadSuccess, const juce::String& audioUrl, double duration) {
-        if (!uploadSuccess || audioUrl.isEmpty())
+                      (Outcome<AudioSnippetResult> uploadResult) {
+        if (uploadResult.isError() || uploadResult.getValue().audioUrl.isEmpty())
         {
-            if (callback) callback(false, Message{});
+            if (callback) callback(Outcome<Message>::error(uploadResult.isError() ? uploadResult.getError() : "Audio upload failed"));
             return;
         }
         
+        auto audioResult = uploadResult.getValue();
         // Then send message with audio URL in extra_data
         juce::var extraData = juce::var(new juce::DynamicObject());
         auto* obj = extraData.getDynamicObject();
-        obj->setProperty("audio_url", audioUrl);
-        obj->setProperty("audio_duration", duration);
+        obj->setProperty("audio_url", audioResult.audioUrl);
+        obj->setProperty("audio_duration", audioResult.duration);
         
         sendMessage(channelType, channelId, text, extraData, callback);
     });

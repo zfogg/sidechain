@@ -161,8 +161,10 @@ if (feedState == FeedState::Empty && getRecordButtonBounds().contains(pos))
 
 **Required Fix**: Add a floating action button (FAB) or header button to navigate to Recording from any screen.
 
+**Status**: See **Phase 1.5.1** for detailed implementation plan.
+
 **Proposed Solutions**:
-1. **Option A**: Add "+ Record" button to HeaderComponent (next to search icon)
+1. **Option A**: Add "+ Record" button to HeaderComponent (next to search icon) - **Recommended**
 2. **Option B**: Add floating action button (FAB) to PostsFeedComponent (Instagram-style)
 3. **Option C**: Add bottom navigation bar with Home/Record/Profile
 
@@ -191,6 +193,8 @@ card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
 ```
 
 **Required Fix**: Call `networkClient->unlikePost(post.id)` when `!liked`.
+
+**Status**: See **Phase 1.5.2** for detailed implementation plan.
 
 ### User Journey Test Flows
 
@@ -254,18 +258,20 @@ card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
 ### Priority Fixes for Testable MVP
 
 **P0 - Blocking (Must fix to test core flow):**
-1. ❌ **Add Record button to Header or Feed** - Cannot create posts
-2. ❌ **Wire up unlikePost()** - Cannot toggle likes off
+1. ❌ **Add Record button to Header or Feed** - Cannot create posts (see Phase 3.4.11)
+2. ❌ **Wire up unlikePost()** - Cannot toggle likes off (see Phase 3.4.12)
+3. ❌ **Auto-seed development data** - Fresh users see empty feed (see Phase 1.5)
+4. ❌ **Wire Messages UI into navigation** - Messages component exists but inaccessible (see Phase 6.5.3.6)
 
 **P1 - Important (Expected behavior missing):**
-3. ❌ Wire up unfollowUser() - Cannot unfollow
-4. ❌ Add "Forgot Password" link - Standard auth feature
-5. ❌ Add logout confirmation - Currently logs out immediately
+5. ❌ Wire up unfollowUser() - Cannot unfollow
+6. ❌ Add "Forgot Password" link - Standard auth feature
+7. ❌ Add logout confirmation - Currently logs out immediately
 
 **P2 - Polish:**
-6. ⚠️ Show loading states consistently
-7. ⚠️ Error messages for failed operations
-8. ⚠️ Profile completion progress indicator
+8. ⚠️ Show loading states consistently
+9. ⚠️ Error messages for failed operations
+10. ⚠️ Profile completion progress indicator
 
 ---
 
@@ -465,10 +471,11 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 
 ### Next Steps
 1. ~~**Phase 4.1.11** - Profile picture upload tests~~ ✅ Complete (25 tests added)
-2. **Phase 4.5** (CRITICAL) - Comprehensive backend test coverage (see below)
-3. **Phase 8.3.11** - Login flow and UI improvements
-4. **Phase 6** (Comments & Community) - Comment system backend and UI
-5. **Phase 5.5** (Real-time Feed Updates) - WebSocket push for new posts, likes
+2. **Phase 1.5** (CRITICAL) - Critical bug fixes for testable MVP (see below)
+3. **Phase 4.5** (CRITICAL) - Comprehensive backend test coverage (see below)
+4. **Phase 8.3.11** - Login flow and UI improvements
+5. **Phase 6** (Comments & Community) - Comment system backend and UI
+6. **Phase 5.5** (Real-time Feed Updates) - WebSocket push for new posts, likes
 
 ### Critical: Test Coverage Gaps (Dec 5, 2024)
 
@@ -483,6 +490,168 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 | `audio` | 16.8% | 40%+ | 🟢 Medium |
 
 **`handlers.go` (2224 lines, 40+ endpoints) has NO tests** - this is the biggest gap.
+
+---
+
+## Phase 1.5: Critical Bug Fixes for Testable MVP (NEW - PRIORITY)
+
+> **Status**: These fixes are blocking core user flows and must be completed before meaningful testing can occur.
+> **Duration**: 1-2 days
+> **Priority**: 🔴 CRITICAL - Blocks all user testing
+
+### 1.5.1 Fix Recording Navigation (CRITICAL)
+
+> **Problem**: The "Start Recording" button ONLY appears when the feed is EMPTY. Once there are posts in the global feed, **there is no way to create a new post**.
+> 
+> **Current behavior** (`PostsFeedComponent.cpp:712`):
+> ```cpp
+> // Record button only shows in EMPTY state!
+> if (feedState == FeedState::Empty && getRecordButtonBounds().contains(pos))
+> {
+>     if (onStartRecording)
+>         onStartRecording();
+> }
+> ```
+> 
+> **Impact**: 
+> - Fresh user logs in → sees empty feed → can record ✅
+> - User runs seed data → feed has posts → **cannot record** ❌
+> - User follows others → feed has posts → **cannot record** ❌
+
+**Required Fix**: Add navigation to Recording screen from header or floating action button.
+
+- [ ] 1.5.1.1 Add "Record" button to `HeaderComponent` (next to search icon)
+  - File: `plugin/source/ui/common/HeaderComponent.cpp`
+  - Add button with microphone icon
+  - Position: Right side of header, between search and profile avatar
+  - Style: Match existing header button styling
+  
+- [ ] 1.5.1.2 Wire up record button callback in `PluginEditor.cpp`
+  - File: `plugin/source/PluginEditor.cpp`
+  - Connect button click to `showView(AppView::Recording)`
+  - Ensure button is visible on all post-login screens (Feed, Profile, Discovery)
+  
+- [ ] 1.5.1.3 Test recording flow from populated feed
+  - Start with seed data loaded (feed has posts)
+  - Click record button in header
+  - Verify Recording screen opens
+  - Complete recording and upload flow
+  - Verify new post appears in feed
+
+**Alternative Options** (if header button doesn't fit design):
+- Option B: Add floating action button (FAB) to `PostsFeedComponent` (Instagram-style)
+- Option C: Add bottom navigation bar with Home/Record/Profile/Messages
+
+### 1.5.2 Fix Unlike Posts (MEDIUM)
+
+> **Problem**: Clicking the heart icon toggles the UI to "liked" state, but clicking again doesn't unlike. The code only calls `likePost()`, never `unlikePost()`.
+> 
+> **Current Code** (`PostsFeedComponent.cpp:492-503`):
+> ```cpp
+> card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
+>     // Optimistic UI update works...
+>     if (liked && networkClient != nullptr)
+>     {
+>         networkClient->likePost(post.id);  // Only likes, never unlikes!
+>     }
+> };
+> ```
+
+**Required Fix**: Call `unlikePost()` when `liked == false`.
+
+- [ ] 1.5.2.1 Update like toggle handler in `PostsFeedComponent.cpp`
+  - File: `plugin/source/ui/feed/PostsFeedComponent.cpp`
+  - Add `else if (!liked && networkClient != nullptr)` branch
+  - Call `networkClient->unlikePost(post.id)` when unliking
+  - Ensure optimistic UI update works for both like and unlike
+  
+- [ ] 1.5.2.2 Verify `NetworkClient::unlikePost()` method exists
+  - File: `plugin/source/network/NetworkClient.cpp`
+  - If missing, implement `DELETE /api/v1/social/like/:post_id` call
+  - Add error handling for unlike failures
+  
+- [ ] 1.5.2.3 Test like/unlike toggle
+  - Click heart on post → Verify like API called, count increments
+  - Click heart again → Verify unlike API called, count decrements
+  - Refresh feed → Verify like state persists correctly
+
+### 1.5.3 Auto-seed Development Data (HIGH)
+
+> **Problem**: When a fresh user logs in, they see an **empty feed** with no posts. There's no seed data by default, so:
+> - Cannot test feed scrolling
+> - Cannot test post interactions (like, comment)
+> - Cannot test audio playback
+> - Cannot see what the app looks like with content
+> 
+> **Current State**:
+> - Seed data system exists (`backend/cmd/seed/main.go`)
+> - Must be run manually: `cd backend && go run cmd/seed/main.go dev`
+> - Seed data creates: 20 users, 50 posts, 100 comments, follow relationships, hashtags
+
+**Required Fix**: Auto-seed on first backend startup (development only).
+
+- [ ] 1.5.3.1 Add seed check to backend startup (development mode only)
+  - File: `backend/cmd/server/main.go`
+  - Check if running in development mode (`ENV=development` or `--dev` flag)
+  - On first startup, check if seed data exists (query user count)
+  - If no seed data, automatically run seed command
+  - Log seed status: "Seed data found" or "Seeding database..."
+  
+- [ ] 1.5.3.2 Alternative: Add seed to `make dev` command
+  - File: `backend/Makefile` or root `Makefile`
+  - Add `seed-dev` target that runs seed command
+  - Update `dev` target to run seed before starting server
+  - Example: `make dev` → `make seed-dev && go run cmd/server/main.go`
+  
+- [ ] 1.5.3.3 Document seed data in README
+  - File: `backend/README.md` or root `README.md`
+  - Add section: "Development Setup"
+  - Explain that seed data auto-loads in dev mode
+  - Document manual seed commands for testing
+  
+- [ ] 1.5.3.4 Test auto-seed flow
+  - Fresh database (no users)
+  - Start backend in dev mode
+  - Verify seed data is created automatically
+  - Verify plugin shows populated feed after login
+
+**Note**: Seed data should be **idempotent** - running it multiple times won't create duplicates (checks for existing data).
+
+### 1.5.4 Wire Messages UI into Navigation (MEDIUM)
+
+> **Problem**: `MessagesListComponent` exists but is **not instantiated** in `PluginEditor.cpp`. There's no way to access chat from the UI.
+> 
+> **Files**:
+> - `plugin/source/ui/messages/MessagesListComponent.cpp` - Exists ✅
+> - `plugin/source/network/StreamChatClient.cpp` - Exists ✅
+> - **Missing**: Integration in `PluginEditor.cpp` ❌
+
+**Required Fix**: Add Messages to navigation and instantiate component.
+
+- [ ] 1.5.4.1 Add messages icon to `HeaderComponent`
+  - File: `plugin/source/ui/common/HeaderComponent.cpp`
+  - Add message icon button (next to search icon)
+  - Show unread badge (total unread count across all channels)
+  - Click to open messages list view
+  
+- [ ] 1.5.4.2 Instantiate `MessagesListComponent` in `PluginEditor.cpp`
+  - File: `plugin/source/PluginEditor.cpp`
+  - Add `MessagesListComponent` member variable
+  - Initialize in constructor with `StreamChatClient` reference
+  - Add to view switching logic (new `AppView::Messages`)
+  
+- [ ] 1.5.4.3 Wire up navigation to messages view
+  - Connect header message icon click to `showView(AppView::Messages)`
+  - Ensure messages view is accessible from all screens
+  - Test navigation: Header → Messages → Back to Feed
+  
+- [ ] 1.5.4.4 Test messages functionality
+  - Open messages view
+  - Verify conversations list loads
+  - Start conversation with another user
+  - Send message and verify real-time delivery
+
+**Note**: This is a partial implementation. Full messaging features are in Phase 6.5. This fix just makes the existing UI accessible.
 
 ---
 
@@ -524,11 +693,19 @@ Completed through **Phase 5.4** (Notifications UI). The core functionality is ta
 - Basic search (users, posts)
 - Production deployment
 
+### Critical Bugs Blocking Testing (See Phase 1.5)
+- ❌ **Cannot navigate to Recording when feed has posts** - Record button only appears in empty state
+- ❌ **Unlike posts doesn't work** - UI toggles but API call missing
+- ❌ **Fresh users see empty feed** - Seed data must be run manually
+- ❌ **Messages UI not accessible** - Component exists but not wired into navigation
+
 ---
 
 ## Phase 1: Foundation Completion
 **Goal**: Get real data flowing through the system
 **Duration**: 2 weeks
+
+> **Note**: See **Phase 1.5** for critical bug fixes that must be completed before testing.
 
 ### 1.1 Build System Finalization
 
@@ -1089,6 +1266,8 @@ streamActivity.To = []string{
 - [x] 3.4.8 Track listen duration (for algorithm) - Backend endpoint POST /api/v1/social/listen-duration, plugin tracks from start to stop
 - [x] 3.4.9 Implement "Add to DAW" button (download to project folder) - File chooser downloads audio to user-selected location
 - [x] 3.4.10 Add post sharing (generate shareable link) - Copies https://sidechain.live/post/{id} to clipboard
+- [ ] 3.4.11 Add Record button to HeaderComponent (CRITICAL - see Phase 1.5.1) - Cannot navigate to Recording when feed has posts
+- [ ] 3.4.12 Fix unlike posts functionality (see Phase 1.5.2) - Unlike API call missing when toggling like off
 
 ---
 
@@ -1867,14 +2046,26 @@ streamActivity.To = []string{
   - Indent reply messages slightly
   - Click parent preview to scroll to original message
 
-#### 6.5.3.6 Navigation Integration
+#### 6.5.3.6 Navigation Integration (CRITICAL - Blocking Messages Access)
 
-- [ ] 6.5.3.6.1 Add messages icon to header
+> **Status**: Messages UI component exists but is not accessible in the plugin. This is a critical bug that prevents testing of messaging functionality.
+> **See Phase 1.5.4 for immediate fix.**
+
+- [ ] 6.5.3.6.1 Add messages icon to header (CRITICAL - see Phase 1.5.4.1)
   - Show unread badge (total unread count across all channels)
   - Click to open messages list
   - Badge updates via WebSocket events or polling
   
-- [ ] 6.5.3.6.2 Add "Message" button to user profiles
+- [ ] 6.5.3.6.2 Instantiate MessagesListComponent in PluginEditor (CRITICAL - see Phase 1.5.4.2)
+  - Component exists but not wired up
+  - Add to PluginEditor view switching logic
+  - Initialize with StreamChatClient reference
+  
+- [ ] 6.5.3.6.3 Wire up navigation to messages view (CRITICAL - see Phase 1.5.4.3)
+  - Connect header message icon click to showView(AppView::Messages)
+  - Ensure messages view is accessible from all screens
+  
+- [ ] 6.5.3.6.4 Add "Message" button to user profiles
   - Click "Message" on profile → Creates/opens channel via REST API
   - Navigate to message thread view
 

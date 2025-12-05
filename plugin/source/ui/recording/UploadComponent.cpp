@@ -5,6 +5,7 @@
 #include "../../util/StringFormatter.h"
 #include "../../util/Async.h"
 #include "../../util/Log.h"
+#include "../../util/Result.h"
 
 //==============================================================================
 // Static data: Musical keys (Camelot wheel order is producer-friendly)
@@ -920,10 +921,11 @@ void UploadComponent::startUpload()
     // Start async upload with full metadata
     Log::info("UploadComponent::startUpload: Calling networkClient.uploadAudioWithMetadata");
     networkClient.uploadAudioWithMetadata(audioBuffer, audioSampleRate, metadata,
-        [this, savedTitle = title, savedGenre = metadata.genre, savedBpm = bpm](bool success, const juce::String& audioUrl) {
-            juce::MessageManager::callAsync([this, success, audioUrl, savedTitle, savedGenre, savedBpm]() {
-                if (success)
+        [this, savedTitle = title, savedGenre = metadata.genre, savedBpm = bpm](Outcome<juce::String> uploadResult) {
+            juce::MessageManager::callAsync([this, uploadResult, savedTitle, savedGenre, savedBpm]() {
+                if (uploadResult.isOk())
                 {
+                    auto audioUrl = uploadResult.getValue();
                     uploadState = UploadState::Success;
                     uploadProgress = 1.0f;
                     lastUploadedTitle = savedTitle;
@@ -946,7 +948,7 @@ void UploadComponent::startUpload()
                 else
                 {
                     uploadState = UploadState::Error;
-                    errorMessage = "Upload failed. Tap to try again.";
+                    errorMessage = "Upload failed: " + uploadResult.getError();
                     uploadProgress = 0.0f;
                     Log::error("UploadComponent::startUpload: Upload failed");
                 }
