@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../network/NetworkClient.h"
-#include "../../KeyDetector.h"
+#include "../../audio/KeyDetector.h"
 
 // Forward declarations
 class SidechainAudioProcessor;

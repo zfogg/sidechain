@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "UserDataStore.h"
+#include "stores/UserDataStore.h"
 #include "network/NetworkClient.h"
 #include "network/WebSocketClient.h"
 #include "ui/auth/AuthComponent.h"
