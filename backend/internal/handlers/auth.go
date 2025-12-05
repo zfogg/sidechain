@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -14,7 +16,9 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/auth"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/search"
 	"github.com/zfogg/sidechain/backend/internal/storage"
+	"github.com/zfogg/sidechain/backend/internal/stream"
 )
 
 // OAuthSession stores pending OAuth session data
@@ -34,16 +38,24 @@ var (
 
 // AuthHandlers contains authentication-related HTTP handlers
 type AuthHandlers struct {
-	authService *auth.Service
-	s3Uploader  storage.ProfilePictureUploader
+	authService  *auth.Service
+	s3Uploader   storage.ProfilePictureUploader
+	search       *search.Client
+	streamClient *stream.Client
 }
 
 // NewAuthHandlers creates new auth handlers
-func NewAuthHandlers(authService *auth.Service, s3Uploader storage.ProfilePictureUploader) *AuthHandlers {
+func NewAuthHandlers(authService *auth.Service, s3Uploader storage.ProfilePictureUploader, streamClient *stream.Client) *AuthHandlers {
 	return &AuthHandlers{
-		authService: authService,
-		s3Uploader:  s3Uploader,
+		authService:  authService,
+		s3Uploader:   s3Uploader,
+		streamClient: streamClient,
 	}
+}
+
+// SetSearchClient sets the search client for indexing users
+func (h *AuthHandlers) SetSearchClient(searchClient *search.Client) {
+	h.search = searchClient
 }
 
 // Register handles native user registration
@@ -82,6 +94,11 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 			"message": "Failed to create account: " + err.Error(),
 		})
 		return
+	}
+
+	// Index user in Elasticsearch for search (7.1.3)
+	if h.search != nil {
+		go h.indexUserForSearch(&authResp.User)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -238,6 +255,11 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 
 	log.Printf("[OAuth] GoogleCallback: SUCCESS - User authenticated: %s (ID: %s)", authResp.User.Username, authResp.User.ID)
 
+	// Index user in Elasticsearch for search (7.1.3)
+	if h.search != nil {
+		go h.indexUserForSearch(&authResp.User)
+	}
+
 	// Store auth response in session for plugin polling
 	oauthSessionMutex.Lock()
 	if session, ok := oauthSessions[state]; ok {
@@ -342,6 +364,11 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		return
 	}
 
+	// Index user in Elasticsearch for search (7.1.3)
+	if h.search != nil {
+		go h.indexUserForSearch(&authResp.User)
+	}
+
 	// Store auth response in session for plugin polling
 	oauthSessionMutex.Lock()
 	if session, ok := oauthSessions[state]; ok {
@@ -415,6 +442,106 @@ func (h *AuthHandlers) Me(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"user": user,
 	})
+}
+
+// GetStreamToken generates a getstream.io Chat token for the authenticated user
+// Returns token, API key, and user ID for direct plugin-to-getstream.io communication
+func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "unauthorized",
+			"message": "User not authenticated",
+		})
+		return
+	}
+
+	// Extract user ID from user object
+	userObj, ok := user.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "internal_error",
+			"message": "Invalid user object",
+		})
+		return
+	}
+
+	// Ensure user exists in getstream.io Chat (create if needed)
+	if h.streamClient != nil {
+		err := h.streamClient.CreateUser(userObj.ID, userObj.Username)
+		if err != nil {
+			log.Printf("Warning: Failed to ensure user exists in getstream.io Chat: %v", err)
+			// Continue anyway - user might already exist
+		}
+	}
+
+	if h.streamClient == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "internal_error",
+			"message": "Stream client not configured",
+		})
+		return
+	}
+
+	// Generate token with 24 hour expiration
+	expiration := time.Now().Add(24 * time.Hour)
+	token, err := h.streamClient.CreateToken(userObj.ID, expiration)
+	if err != nil {
+		log.Printf("Failed to create getstream.io token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "token_generation_failed",
+			"message": "Failed to generate authentication token",
+		})
+		return
+	}
+
+	// Get API key from environment
+	// Note: API key is safe to expose to clients (it's a public identifier)
+	// Only the API secret (used server-side for token generation) must be protected
+	apiKey := os.Getenv("STREAM_API_KEY")
+	if apiKey == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "configuration_error",
+			"message": "Stream API key not configured",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":   token,
+		"api_key": apiKey,
+		"user_id": userObj.ID,
+	})
+}
+
+// indexUserForSearch indexes a user in Elasticsearch for search (7.1.3)
+func (h *AuthHandlers) indexUserForSearch(user *models.User) {
+	if h.search == nil {
+		return
+	}
+
+	ctx := context.Background()
+	doc := map[string]interface{}{
+		"id":             user.ID,
+		"username":       user.Username,
+		"display_name":   user.DisplayName,
+		"bio":            user.Bio,
+		"genre":          user.Genre,
+		"follower_count": user.FollowerCount,
+		"created_at":     user.CreatedAt.Format(time.RFC3339),
+	}
+
+	// Add completion suggest field for autocomplete (7.1.10)
+	if user.Username != "" {
+		doc["username_suggest"] = map[string]interface{}{
+			"input": []string{user.Username},
+		}
+	}
+
+	if err := h.search.IndexUser(ctx, user.ID, doc); err != nil {
+		// Log but don't fail - search indexing is non-critical
+		log.Printf("Warning: Failed to index user %s in Elasticsearch: %v", user.ID, err)
+	}
 }
 
 // AuthMiddleware validates JWT tokens
