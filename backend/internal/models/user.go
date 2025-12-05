@@ -152,6 +152,56 @@ func (OAuthProvider) TableName() string {
 	return "oauth_providers"
 }
 
+// Comment represents a comment on an AudioPost
+type Comment struct {
+	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	PostID string `gorm:"not null;index" json:"post_id"`
+	Post   AudioPost `gorm:"foreignKey:PostID" json:"-"`
+	UserID string `gorm:"not null;index" json:"user_id"`
+	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+
+	// Content
+	Content string `gorm:"type:text;not null" json:"content"`
+
+	// Threading - parent_id is null for top-level comments
+	ParentID *string    `gorm:"type:uuid;index" json:"parent_id,omitempty"`
+	Parent   *Comment   `gorm:"foreignKey:ParentID" json:"-"`
+	Replies  []*Comment `gorm:"foreignKey:ParentID" json:"replies,omitempty"`
+
+	// Engagement (cached from Stream.io reactions)
+	LikeCount int `gorm:"default:0" json:"like_count"`
+
+	// Stream.io integration for reactions
+	StreamActivityID string `gorm:"uniqueIndex" json:"stream_activity_id,omitempty"`
+
+	// Edit tracking
+	IsEdited bool       `gorm:"default:false" json:"is_edited"`
+	EditedAt *time.Time `json:"edited_at,omitempty"`
+
+	// Moderation
+	IsDeleted bool `gorm:"default:false" json:"is_deleted"` // Soft delete for "comment removed"
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// CommentMention tracks @mentions in comments for notifications
+type CommentMention struct {
+	ID              string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	CommentID       string `gorm:"not null;index" json:"comment_id"`
+	Comment         Comment `gorm:"foreignKey:CommentID" json:"-"`
+	MentionedUserID string `gorm:"not null;index" json:"mentioned_user_id"`
+	MentionedUser   User   `gorm:"foreignKey:MentionedUserID" json:"mentioned_user,omitempty"`
+
+	// Whether the notification was sent
+	NotificationSent bool `gorm:"default:false" json:"notification_sent"`
+
+	// GORM fields
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // PasswordReset represents password reset tokens
 type PasswordReset struct {
 	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
@@ -188,6 +238,20 @@ func (p *AudioPost) BeforeCreate(tx *gorm.DB) error {
 func (d *Device) BeforeCreate(tx *gorm.DB) error {
 	if d.ID == "" {
 		d.ID = generateUUID()
+	}
+	return nil
+}
+
+func (c *Comment) BeforeCreate(tx *gorm.DB) error {
+	if c.ID == "" {
+		c.ID = generateUUID()
+	}
+	return nil
+}
+
+func (m *CommentMention) BeforeCreate(tx *gorm.DB) error {
+	if m.ID == "" {
+		m.ID = generateUUID()
 	}
 	return nil
 }
