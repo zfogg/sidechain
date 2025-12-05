@@ -67,8 +67,6 @@ bool UserProfile::isOwnProfile(const juce::String& currentUserId) const
 //==============================================================================
 ProfileComponent::ProfileComponent()
 {
-    setSize(600, 800);
-
     scrollBar = std::make_unique<juce::ScrollBar>(true);
     scrollBar->addListener(this);
     scrollBar->setAutoHide(true);
@@ -85,6 +83,10 @@ ProfileComponent::ProfileComponent()
         loadProfile(userId);
     };
     addChildComponent(followersListPanel.get());
+
+    // IMPORTANT: setSize must be called LAST because it triggers resized()
+    // which uses scrollBar and other child components
+    setSize(600, 800);
 }
 
 ProfileComponent::~ProfileComponent()

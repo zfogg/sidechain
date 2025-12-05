@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../network/FeedDataManager.h"
-#include "../../FeedPost.h"
+#include "../../models/FeedResponse.h"
 #include "PostCardComponent.h"
 #include "CommentComponent.h"
 #include "../../audio/AudioPlayer.h"

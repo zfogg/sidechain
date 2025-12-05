@@ -304,23 +304,30 @@ juce_generate_juce_header(Sidechain)
 # Source files organized by folder
 target_sources(Sidechain
     PRIVATE
-        # Root level - Plugin entry points and core types
+        # Root level - Plugin entry points
         Source/PluginProcessor.cpp
         Source/PluginProcessor.h
         Source/PluginEditor.cpp
         Source/PluginEditor.h
-        Source/FeedPost.cpp
-        Source/FeedPost.h
-        Source/KeyDetector.cpp
-        Source/KeyDetector.h
-        Source/UserDataStore.cpp
-        Source/UserDataStore.h
 
-        # Audio - Audio capture and playback
+        # Stores - State management
+        Source/stores/UserDataStore.cpp
+        Source/stores/UserDataStore.h
+
+        # Models - Data structures and DTOs
+        Source/models/FeedPost.cpp
+        Source/models/FeedPost.h
+        Source/models/FeedResponse.h
+        Source/models/AggregatedFeedGroup.h
+        Source/models/AggregatedFeedResponse.h
+
+        # Audio - Audio capture, playback, and analysis
         Source/audio/AudioCapture.cpp
         Source/audio/AudioCapture.h
         Source/audio/AudioPlayer.cpp
         Source/audio/AudioPlayer.h
+        Source/audio/KeyDetector.cpp
+        Source/audio/KeyDetector.h
 
         # Network - API clients and data managers
         Source/network/NetworkClient.cpp
@@ -570,10 +577,13 @@ if(SIDECHAIN_BUILD_TESTS)
         Source/network/FeedDataManager.h
         Source/network/WebSocketClient.cpp
         Source/network/WebSocketClient.h
-        Source/FeedPost.cpp
-        Source/FeedPost.h
-        Source/UserDataStore.cpp
-        Source/UserDataStore.h
+        Source/models/FeedPost.cpp
+        Source/models/FeedPost.h
+        Source/models/FeedResponse.h
+        Source/models/AggregatedFeedGroup.h
+        Source/models/AggregatedFeedResponse.h
+        Source/stores/UserDataStore.cpp
+        Source/stores/UserDataStore.h
         Source/util/Time.cpp
         Source/util/Time.h
     )
