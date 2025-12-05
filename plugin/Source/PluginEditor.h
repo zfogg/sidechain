@@ -96,6 +96,18 @@ private:
     void loadLoginState();
 
     //==============================================================================
+    // OAuth polling for plugin-based OAuth flow
+    void startOAuthPolling(const juce::String& sessionId, const juce::String& provider);
+    void stopOAuthPolling();
+    void pollOAuthStatus();
+
+    juce::String oauthSessionId;
+    juce::String oauthProvider;
+    std::unique_ptr<juce::Timer> oauthPollTimer;
+    int oauthPollCount = 0;
+    static constexpr int MAX_OAUTH_POLLS = 300; // 5 minutes at 1 second intervals
+
+    //==============================================================================
     // WebSocket handling
     void connectWebSocket();
     void disconnectWebSocket();

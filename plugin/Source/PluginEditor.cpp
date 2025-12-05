@@ -47,9 +47,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         onLoginSuccess(user, mail, token);
     };
     authComponent->onOAuthRequested = [this](const juce::String& provider) {
-        // Open OAuth URL in system browser
-        juce::String oauthUrl = "http://localhost:8787/api/v1/auth/" + provider;
+        // Generate a unique session ID for this OAuth attempt
+        juce::String sessionId = juce::Uuid().toString().removeCharacters("-");
+
+        // Open OAuth URL in system browser with session_id
+        juce::String oauthUrl = "http://localhost:8787/api/v1/auth/" + provider + "?session_id=" + sessionId;
         juce::URL(oauthUrl).launchInDefaultBrowser();
+
+        // Start polling for OAuth completion
+        startOAuthPolling(sessionId, provider);
     };
     addChildComponent(authComponent.get());
 
@@ -142,6 +148,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
 SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
 {
+    // Stop OAuth polling
+    stopOAuthPolling();
+
     // Stop notification polling
     stopNotificationPolling();
 
@@ -289,6 +298,9 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
 
 void SidechainAudioProcessorEditor::logout()
 {
+    // Stop OAuth polling if in progress
+    stopOAuthPolling();
+
     // Stop notification polling
     stopNotificationPolling();
 
@@ -700,4 +712,157 @@ void SidechainAudioProcessorEditor::stopNotificationPolling()
     {
         static_cast<NotificationPollTimer*>(notificationPollTimer.get())->stopTimer();
     }
+}
+
+//==============================================================================
+// OAuth Polling for plugin-based OAuth flow
+//==============================================================================
+
+// Helper class for OAuth polling timer
+class OAuthPollTimer : public juce::Timer
+{
+public:
+    OAuthPollTimer(std::function<void()> callback) : onTick(callback) {}
+    void timerCallback() override { if (onTick) onTick(); }
+    std::function<void()> onTick;
+};
+
+void SidechainAudioProcessorEditor::startOAuthPolling(const juce::String& sessionId, const juce::String& provider)
+{
+    // Store session info
+    oauthSessionId = sessionId;
+    oauthProvider = provider;
+    oauthPollCount = 0;
+
+    // Show loading state in auth component
+    if (authComponent)
+    {
+        authComponent->showError("Waiting for " + provider + " authentication...");
+    }
+
+    // Create and start polling timer
+    oauthPollTimer = std::make_unique<OAuthPollTimer>([this]() {
+        pollOAuthStatus();
+    });
+    static_cast<OAuthPollTimer*>(oauthPollTimer.get())->startTimer(1000); // Poll every 1 second
+
+    DBG("Started OAuth polling for session: " + sessionId);
+}
+
+void SidechainAudioProcessorEditor::stopOAuthPolling()
+{
+    if (oauthPollTimer)
+    {
+        static_cast<OAuthPollTimer*>(oauthPollTimer.get())->stopTimer();
+        oauthPollTimer.reset();
+    }
+    oauthSessionId = "";
+    oauthProvider = "";
+    oauthPollCount = 0;
+}
+
+void SidechainAudioProcessorEditor::pollOAuthStatus()
+{
+    if (oauthSessionId.isEmpty())
+    {
+        stopOAuthPolling();
+        return;
+    }
+
+    oauthPollCount++;
+
+    // Check if we've exceeded max polls (5 minutes)
+    if (oauthPollCount > MAX_OAUTH_POLLS)
+    {
+        stopOAuthPolling();
+        if (authComponent)
+        {
+            authComponent->showError("Authentication timed out. Please try again.");
+        }
+        return;
+    }
+
+    // Make polling request
+    juce::Thread::launch([this, sessionId = oauthSessionId]() {
+        juce::URL url("http://localhost:8787/api/v1/auth/oauth/poll?session_id=" + sessionId);
+
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                           .withConnectionTimeoutMs(5000);
+
+        auto stream = url.createInputStream(options);
+
+        juce::MessageManager::callAsync([this, stream = std::move(stream), sessionId]() {
+            // Check if this is still the active session
+            if (oauthSessionId != sessionId)
+                return;
+
+            if (stream == nullptr)
+            {
+                DBG("OAuth poll: connection failed");
+                return; // Keep polling, might be temporary network issue
+            }
+
+            juce::String response = stream->readEntireStreamAsString();
+            juce::var responseData = juce::JSON::parse(response);
+
+            if (!responseData.isObject())
+            {
+                DBG("OAuth poll: invalid response");
+                return;
+            }
+
+            juce::String status = responseData.getProperty("status", "").toString();
+
+            if (status == "complete")
+            {
+                // Success! Extract auth data
+                stopOAuthPolling();
+
+                juce::var authData = responseData["auth"];
+                if (authData.isObject() && authData.hasProperty("token"))
+                {
+                    juce::String token = authData["token"].toString();
+                    juce::String userEmail = "";
+                    juce::String userName = "";
+
+                    if (authData.hasProperty("user"))
+                    {
+                        juce::var userData = authData["user"];
+                        if (userData.hasProperty("email"))
+                            userEmail = userData["email"].toString();
+                        if (userData.hasProperty("username"))
+                            userName = userData["username"].toString();
+                        else if (userData.hasProperty("display_name"))
+                            userName = userData["display_name"].toString();
+                    }
+
+                    if (userName.isEmpty() && userEmail.isNotEmpty())
+                        userName = userEmail.upToFirstOccurrenceOf("@", false, false);
+
+                    DBG("OAuth success! User: " + userName);
+
+                    if (authComponent)
+                        authComponent->clearError();
+
+                    onLoginSuccess(userName, userEmail, token);
+                }
+            }
+            else if (status == "error")
+            {
+                // OAuth failed
+                stopOAuthPolling();
+                juce::String errorMsg = responseData.getProperty("message", "Authentication failed").toString();
+                if (authComponent)
+                    authComponent->showError(errorMsg);
+            }
+            else if (status == "expired" || status == "not_found")
+            {
+                // Session expired or invalid
+                stopOAuthPolling();
+                if (authComponent)
+                    authComponent->showError("Authentication session expired. Please try again.");
+            }
+            // status == "pending" -> keep polling
+        });
+    });
 }

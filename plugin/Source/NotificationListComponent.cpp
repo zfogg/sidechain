@@ -1,4 +1,5 @@
 #include "NotificationListComponent.h"
+#include "TimeUtils.h"
 
 //==============================================================================
 // NotificationItem implementation
@@ -129,42 +130,9 @@ juce::String NotificationItem::getRelativeTime() const
     if (timeStr.isEmpty())
         return "";
 
-    // Simple relative time calculation
-    // In production, you'd use proper date parsing
-    auto now = juce::Time::getCurrentTime();
-
-    // Try to parse ISO format: 2024-01-15T10:30:00Z
-    int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
-
-    if (timeStr.length() >= 19)
-    {
-        year = timeStr.substring(0, 4).getIntValue();
-        month = timeStr.substring(5, 7).getIntValue();
-        day = timeStr.substring(8, 10).getIntValue();
-        hour = timeStr.substring(11, 13).getIntValue();
-        minute = timeStr.substring(14, 16).getIntValue();
-        second = timeStr.substring(17, 19).getIntValue();
-
-        juce::Time notifTime(year, month - 1, day, hour, minute, second, 0, false);
-        auto diffMs = now.toMilliseconds() - notifTime.toMilliseconds();
-        auto diffSeconds = diffMs / 1000;
-        auto diffMinutes = diffSeconds / 60;
-        auto diffHours = diffMinutes / 60;
-        auto diffDays = diffHours / 24;
-
-        if (diffMinutes < 1)
-            return "just now";
-        else if (diffMinutes < 60)
-            return juce::String(static_cast<int>(diffMinutes)) + "m";
-        else if (diffHours < 24)
-            return juce::String(static_cast<int>(diffHours)) + "h";
-        else if (diffDays < 7)
-            return juce::String(static_cast<int>(diffDays)) + "d";
-        else
-            return juce::String(static_cast<int>(diffDays / 7)) + "w";
-    }
-
-    return "";
+    // Parse ISO 8601 timestamp
+    juce::Time notifTime = juce::Time::fromISO8601(timeStr);
+    return TimeUtils::formatTimeAgoShort(notifTime);
 }
 
 juce::String NotificationItem::getVerbIcon() const
