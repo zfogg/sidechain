@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,24 @@ import (
 )
 
 func main() {
+	// Setup file logging
+	logFile, err := os.OpenFile("sidechain.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer logFile.Close()
+
+	// Write to both stdout and log file
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(multiWriter)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+
+	// Also configure Gin to log to the file
+	gin.DefaultWriter = multiWriter
+	gin.DefaultErrorWriter = multiWriter
+
+	log.Println("=== Sidechain server starting ===")
+
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found, using system environment variables")
@@ -101,6 +120,7 @@ func main() {
 
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
+	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader)
 
 	// Setup Gin router
@@ -137,6 +157,9 @@ func main() {
 			authGroup.GET("/google/callback", authHandlers.GoogleCallback)
 			authGroup.GET("/discord", authHandlers.DiscordOAuth)
 			authGroup.GET("/discord/callback", authHandlers.DiscordCallback)
+
+			// OAuth polling endpoint for plugin flow
+			authGroup.GET("/oauth/poll", authHandlers.OAuthPoll)
 
 			// User info (protected)
 			authGroup.GET("/me", authHandlers.AuthMiddleware(), authHandlers.Me)
@@ -221,6 +244,25 @@ func main() {
 			discover.GET("/suggested", h.GetSuggestedUsers)
 			discover.GET("/genres", h.GetAvailableGenres)
 			discover.GET("/genre/:genre", h.GetUsersByGenre)
+		}
+
+		// Post routes (for comments)
+		posts := api.Group("/posts")
+		{
+			posts.Use(authHandlers.AuthMiddleware())
+			posts.POST("/:id/comments", h.CreateComment)
+			posts.GET("/:id/comments", h.GetComments)
+		}
+
+		// Comment routes
+		comments := api.Group("/comments")
+		{
+			comments.Use(authHandlers.AuthMiddleware())
+			comments.GET("/:id/replies", h.GetCommentReplies)
+			comments.PUT("/:id", h.UpdateComment)
+			comments.DELETE("/:id", h.DeleteComment)
+			comments.POST("/:id/like", h.LikeComment)
+			comments.DELETE("/:id/like", h.UnlikeComment)
 		}
 
 		// WebSocket routes

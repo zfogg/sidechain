@@ -1014,6 +1014,21 @@ func (c *Client) NotifyComment(actorUserID, targetUserID, loopID, commentText st
 	return c.AddToNotificationFeed(targetUserID, activity)
 }
 
+// NotifyMention sends a mention notification when a user is @mentioned in a comment
+func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID string) error {
+	activity := &Activity{
+		Actor:  fmt.Sprintf("user:%s", actorUserID),
+		Verb:   NotifVerbMention,
+		Object: fmt.Sprintf("comment:%s", commentID),
+		Extra: map[string]interface{}{
+			"actor_id":   actorUserID,
+			"loop_id":    loopID,
+			"comment_id": commentID,
+		},
+	}
+	return c.AddToNotificationFeed(targetUserID, activity)
+}
+
 // =============================================================================
 // AGGREGATED FEED TYPES AND METHODS
 // =============================================================================
