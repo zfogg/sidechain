@@ -1,26 +1,33 @@
 #include "FeedDataManager.h"
+#include "../util/Log.h"
 
 //==============================================================================
 FeedDataManager::FeedDataManager()
 {
     // Start timer to periodically check cache validity (every 60 seconds)
     startTimer(60000);
+    Log::info("FeedDataManager: Initialized");
 }
 
 FeedDataManager::~FeedDataManager()
 {
+    Log::debug("FeedDataManager: Destroying");
     stopTimer();
 }
 
 //==============================================================================
 void FeedDataManager::fetchFeed(FeedType feedType, int limit, int offset, FeedCallback callback)
 {
+    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : (feedType == FeedType::Global ? "Global" : "Trending");
+    Log::debug("FeedDataManager: Fetching feed - type: " + feedTypeStr + ", limit: " + juce::String(limit) + ", offset: " + juce::String(offset));
+
     // Check cache first (only for offset 0, i.e., first page)
     if (offset == 0 && isCacheValid(feedType))
     {
         auto cached = getCachedFeed(feedType);
         if (!cached.posts.isEmpty())
         {
+            Log::info("FeedDataManager: Using cached feed - type: " + feedTypeStr + ", posts: " + juce::String(cached.posts.size()));
             // Use cached data
             juce::MessageManager::callAsync([callback, cached]()
             {
@@ -87,11 +94,15 @@ void FeedDataManager::performFetch(FeedType feedType, int limit, int offset, Fee
 {
     if (networkClient == nullptr)
     {
+        Log::error("FeedDataManager: Cannot fetch - network client not configured");
         FeedResponse errorResponse;
         errorResponse.error = "Network client not configured";
         callback(errorResponse);
         return;
     }
+
+    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : (feedType == FeedType::Global ? "Global" : "Trending");
+    Log::info("FeedDataManager: Performing network fetch - type: " + feedTypeStr + ", limit: " + juce::String(limit) + ", offset: " + juce::String(offset));
 
     fetchingInProgress = true;
     pendingCallback = callback;
@@ -133,6 +144,9 @@ void FeedDataManager::handleFetchResponse(const juce::var& feedData, FeedType fe
     feedResponse.limit = limit;
     feedResponse.offset = offset;
 
+    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : (feedType == FeedType::Global ? "Global" : "Trending");
+    Log::info("FeedDataManager: Fetch response received - type: " + feedTypeStr + ", posts: " + juce::String(feedResponse.posts.size()) + ", hasMore: " + juce::String(feedResponse.hasMore ? "true" : "false"));
+
     // Update pagination state
     currentFeedType = feedType;
     currentOffset = offset;
@@ -167,6 +181,7 @@ void FeedDataManager::handleFetchResponse(const juce::var& feedData, FeedType fe
 //==============================================================================
 void FeedDataManager::handleFetchError(const juce::String& error, FeedCallback callback)
 {
+    Log::error("FeedDataManager: Fetch error - " + error);
     FeedResponse errorResponse;
     errorResponse.error = error;
 
@@ -196,8 +211,9 @@ FeedResponse FeedDataManager::parseJsonResponse(const juce::var& json)
             activities = json;
         else
         {
-            response.error = "No activities found in response";
-            return response;
+            // If activities is null/missing, treat as empty feed (not an error)
+            // This happens when the user has no posts or follows no one
+            return response;  // Empty response with no error
         }
     }
 

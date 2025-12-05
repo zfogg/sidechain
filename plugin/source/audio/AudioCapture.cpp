@@ -1,4 +1,5 @@
 #include "AudioCapture.h"
+#include "../util/Log.h"
 #include "../util/Constants.h"
 
 //==============================================================================
@@ -22,7 +23,7 @@ void AudioCapture::prepare(double sampleRate, int samplesPerBlock, int numChanne
     initializeBuffers();
     resetLevels();
 
-    DBG("AudioCapture prepared: " + juce::String(sampleRate) + "Hz, " +
+    Log::info("AudioCapture prepared: " + juce::String(sampleRate) + "Hz, " +
         juce::String(currentNumChannels) + " channels, " +
         juce::String(maxRecordingSamples) + " max samples (" +
         juce::String(maxRecordingSamples / sampleRate) + "s)");
@@ -42,7 +43,7 @@ void AudioCapture::startRecording(const juce::String& recordingId)
 {
     if (recording.load())
     {
-        DBG("Already recording, ignoring start request");
+        Log::warn("Already recording, ignoring start request");
         return;
     }
 
@@ -62,14 +63,14 @@ void AudioCapture::startRecording(const juce::String& recordingId)
     recordingPosition.store(0);
     recording.store(true);
 
-    DBG("Started audio capture: " + recordingId);
+    Log::info("Started audio capture: " + recordingId);
 }
 
 juce::AudioBuffer<float> AudioCapture::stopRecording()
 {
     if (!recording.load())
     {
-        DBG("Not recording, returning empty buffer");
+        Log::warn("Not recording, returning empty buffer");
         return juce::AudioBuffer<float>();
     }
 
@@ -91,7 +92,7 @@ juce::AudioBuffer<float> AudioCapture::stopRecording()
 
         hasRecordedData = true;
 
-        DBG("Stopped recording: " + juce::String(finalPosition) + " samples, " +
+        Log::info("Stopped recording: " + juce::String(finalPosition) + " samples, " +
             juce::String(finalPosition / currentSampleRate) + " seconds");
     }
 
@@ -311,13 +312,13 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
 {
     if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
     {
-        DBG("saveBufferToWavFile: Empty buffer, nothing to save");
+        Log::warn("saveBufferToWavFile: Empty buffer, nothing to save");
         return false;
     }
 
     if (sampleRate <= 0)
     {
-        DBG("saveBufferToWavFile: Invalid sample rate: " + juce::String(sampleRate));
+        Log::error("saveBufferToWavFile: Invalid sample rate: " + juce::String(sampleRate));
         return false;
     }
 
@@ -326,7 +327,7 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     {
         if (!file.deleteFile())
         {
-            DBG("saveBufferToWavFile: Could not delete existing file: " + file.getFullPathName());
+            Log::warn("saveBufferToWavFile: Could not delete existing file: " + file.getFullPathName());
             return false;
         }
     }
@@ -337,7 +338,7 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     {
         if (!parentDir.createDirectory())
         {
-            DBG("saveBufferToWavFile: Could not create directory: " + parentDir.getFullPathName());
+            Log::error("saveBufferToWavFile: Could not create directory: " + parentDir.getFullPathName());
             return false;
         }
     }
@@ -346,7 +347,7 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     auto outputStream = std::make_unique<juce::FileOutputStream>(file);
     if (!outputStream->openedOk())
     {
-        DBG("saveBufferToWavFile: Could not open file for writing: " + file.getFullPathName());
+        Log::error("saveBufferToWavFile: Could not open file for writing: " + file.getFullPathName());
         return false;
     }
 
@@ -375,26 +376,26 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
 
     if (writer == nullptr)
     {
-        DBG("saveBufferToWavFile: Could not create WAV writer");
+        Log::error("saveBufferToWavFile: Could not create WAV writer");
         return false;
     }
 
     // Writer takes ownership of the stream on success
-    outputStream.release();
+    (void)outputStream.release();
 
     // Write the audio buffer
     bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
 
     if (success)
     {
-        DBG("saveBufferToWavFile: Successfully saved " + juce::String(buffer.getNumSamples()) +
+        Log::info("saveBufferToWavFile: Successfully saved " + juce::String(buffer.getNumSamples()) +
             " samples to " + file.getFullPathName() +
             " (" + juce::String(bitsPerSample) + "-bit, " +
             juce::String(sampleRate) + "Hz)");
     }
     else
     {
-        DBG("saveBufferToWavFile: Failed to write audio data");
+        Log::error("saveBufferToWavFile: Failed to write audio data");
     }
 
     return success;
@@ -404,7 +405,7 @@ bool AudioCapture::saveRecordedAudioToWavFile(const juce::File& file, ExportForm
 {
     if (!hasRecordedData || recordedAudio.getNumSamples() == 0)
     {
-        DBG("saveRecordedAudioToWavFile: No recorded audio to save");
+        Log::warn("saveRecordedAudioToWavFile: No recorded audio to save");
         return false;
     }
 
@@ -451,13 +452,13 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File& file,
 {
     if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
     {
-        DBG("saveBufferToFlacFile: Empty buffer, nothing to save");
+        Log::warn("saveBufferToFlacFile: Empty buffer, nothing to save");
         return false;
     }
 
     if (sampleRate <= 0)
     {
-        DBG("saveBufferToFlacFile: Invalid sample rate: " + juce::String(sampleRate));
+        Log::error("saveBufferToFlacFile: Invalid sample rate: " + juce::String(sampleRate));
         return false;
     }
 
@@ -466,7 +467,7 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File& file,
     {
         if (!file.deleteFile())
         {
-            DBG("saveBufferToFlacFile: Could not delete existing file: " + file.getFullPathName());
+            Log::warn("saveBufferToFlacFile: Could not delete existing file: " + file.getFullPathName());
             return false;
         }
     }
@@ -477,7 +478,7 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File& file,
     {
         if (!parentDir.createDirectory())
         {
-            DBG("saveBufferToFlacFile: Could not create directory: " + parentDir.getFullPathName());
+            Log::error("saveBufferToFlacFile: Could not create directory: " + parentDir.getFullPathName());
             return false;
         }
     }
@@ -486,7 +487,7 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File& file,
     auto outputStream = std::make_unique<juce::FileOutputStream>(file);
     if (!outputStream->openedOk())
     {
-        DBG("saveBufferToFlacFile: Could not open file for writing: " + file.getFullPathName());
+        Log::error("saveBufferToFlacFile: Could not open file for writing: " + file.getFullPathName());
         return false;
     }
 
@@ -517,26 +518,26 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File& file,
 
     if (writer == nullptr)
     {
-        DBG("saveBufferToFlacFile: Could not create FLAC writer");
+        Log::error("saveBufferToFlacFile: Could not create FLAC writer");
         return false;
     }
 
     // Writer takes ownership of the stream on success
-    outputStream.release();
+    (void)outputStream.release();
 
     // Write the audio buffer
     bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
 
     if (success)
     {
-        DBG("saveBufferToFlacFile: Successfully saved " + juce::String(buffer.getNumSamples()) +
+        Log::info("saveBufferToFlacFile: Successfully saved " + juce::String(buffer.getNumSamples()) +
             " samples to " + file.getFullPathName() +
             " (" + juce::String(bitsPerSample) + "-bit, " +
             juce::String(sampleRate) + "Hz, quality=" + juce::String(quality) + ")");
     }
     else
     {
-        DBG("saveBufferToFlacFile: Failed to write audio data");
+        Log::error("saveBufferToFlacFile: Failed to write audio data");
     }
 
     return success;
@@ -546,7 +547,7 @@ bool AudioCapture::saveRecordedAudioToFile(const juce::File& file, ExportFormat 
 {
     if (!hasRecordedData || recordedAudio.getNumSamples() == 0)
     {
-        DBG("saveRecordedAudioToFile: No recorded audio to save");
+        Log::warn("saveRecordedAudioToFile: No recorded audio to save");
         return false;
     }
 
@@ -900,7 +901,7 @@ float AudioCapture::normalizeBuffer(juce::AudioBuffer<float>& buffer, float targ
         }
     }
 
-    DBG("normalizeBuffer: peak " + juce::String(linearToDb(currentPeak), 1) + " dB -> " +
+    Log::debug("normalizeBuffer: peak " + juce::String(linearToDb(currentPeak), 1) + " dB -> " +
         juce::String(targetPeakDB, 1) + " dB (gain: " + juce::String(linearToDb(gain), 1) + " dB)");
 
     return gain;

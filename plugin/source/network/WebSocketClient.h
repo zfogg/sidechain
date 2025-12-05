@@ -7,12 +7,24 @@
 #include <queue>
 #include <mutex>
 
+// Define ASIO_STANDALONE before including websocketpp headers
+// This tells websocketpp to use standalone ASIO (not Boost.Asio)
+#define ASIO_STANDALONE 1
+
+// Include ASIO compatibility layer before websocketpp
+// This provides io_service alias for io_context (websocketpp compatibility)
+#include "asio_compat.h"
+
+// websocketpp headers
+#include <websocketpp/config/asio_no_tls_client.hpp>
+#include <websocketpp/client.hpp>
+
 //==============================================================================
 /**
  * WebSocketClient provides real-time communication with the Sidechain backend.
  *
  * Features:
- * - WebSocket RFC 6455 compliant framing
+ * - WebSocket RFC 6455 compliant framing (via websocketpp)
  * - Automatic reconnection with exponential backoff
  * - Heartbeat/ping-pong for connection health
  * - Message queueing when disconnected
@@ -49,6 +61,8 @@ public:
         Notification,      // Generic notification
         PresenceUpdate,    // User online/offline status
         PlayCount,         // Play count update
+        LikeCountUpdate,   // Like count updated (5.5.3)
+        FollowerCountUpdate, // Follower count updated (5.5.4)
         Heartbeat,         // Server heartbeat response
         Error              // Server error message
     };
@@ -145,41 +159,30 @@ public:
 
 private:
     //==========================================================================
+    // websocketpp types
+    typedef websocketpp::client<websocketpp::config::asio_no_tls_client> wspp_client;
+    typedef websocketpp::connection_hdl connection_hdl;
+    typedef typename wspp_client::message_ptr message_ptr;
+    typedef typename wspp_client::connection_ptr connection_ptr;
+
+    //==========================================================================
     // Thread implementation
     void run() override;
 
     //==========================================================================
     // Connection helpers
-    bool performHandshake();
-    void connectionLoop();
+    void attemptConnection();
     void handleDisconnect(const juce::String& reason);
     void scheduleReconnect();
+    void cleanupClient();
 
     //==========================================================================
-    // WebSocket frame operations (RFC 6455)
-    enum class Opcode : uint8_t
-    {
-        Continuation = 0x0,
-        Text = 0x1,
-        Binary = 0x2,
-        Close = 0x8,
-        Ping = 0x9,
-        Pong = 0xA
-    };
-
-    bool sendFrame(Opcode opcode, const void* data, size_t length);
-    bool sendTextFrame(const juce::String& text);
-    bool sendPingFrame();
-    bool sendPongFrame(const void* data, size_t length);
-    bool sendCloseFrame(uint16_t code = 1000, const juce::String& reason = "");
-
-    struct Frame
-    {
-        Opcode opcode;
-        bool fin;
-        juce::MemoryBlock payload;
-    };
-    bool readFrame(Frame& frame);
+    // websocketpp event handlers
+    void onWsOpen(connection_hdl hdl);
+    void onWsClose(connection_hdl hdl);
+    void onWsMessage(connection_hdl hdl, message_ptr msg);
+    void onWsFail(connection_hdl hdl);
+    void onWsPong(connection_hdl hdl, std::string appData);
 
     //==========================================================================
     // Message handling
@@ -203,15 +206,19 @@ private:
     void setState(ConnectionState newState);
 
     //==========================================================================
-    // Base64 encoding for WebSocket key
-    static juce::String generateWebSocketKey();
-    static juce::String computeAcceptKey(const juce::String& key);
+    // Build WebSocket URI
+    juce::String buildUri() const;
 
     //==========================================================================
     Config config;
     juce::String authToken;
 
-    std::unique_ptr<juce::StreamingSocket> socket;
+    // websocketpp client
+    std::unique_ptr<wspp_client> client;
+    connection_hdl currentConnection;
+    std::atomic<bool> connectionActive{ false };
+    std::unique_ptr<std::thread> asioThread;  // ASIO event loop thread
+
     std::atomic<ConnectionState> state { ConnectionState::Disconnected };
 
     // Reconnection
@@ -231,10 +238,6 @@ private:
     // Statistics
     mutable std::mutex statsMutex;
     Stats stats;
-
-    // Fragment reassembly
-    juce::MemoryBlock fragmentBuffer;
-    Opcode fragmentOpcode = Opcode::Text;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WebSocketClient)
 };

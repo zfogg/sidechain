@@ -1,5 +1,7 @@
 #include "UserDataStore.h"
+#include "../util/Log.h"
 #include "../network/NetworkClient.h"
+#include "../util/Constants.h"
 #include "../util/Json.h"
 #include "../util/Async.h"
 #include "../util/Validate.h"
@@ -63,9 +65,8 @@ juce::String UserDataStore::getProxyUrl() const
     // If we have a user ID, use the backend proxy endpoint
     if (userId.isNotEmpty() && networkClient != nullptr)
     {
-        // Get base URL from network client config (e.g., http://localhost:8787)
-        // Construct proxy URL: /api/v1/users/{userId}/profile-picture
-        return "http://localhost:8787/api/v1/users/" + userId + "/profile-picture";
+        // Construct proxy URL using constant: /api/v1/users/{userId}/profile-picture
+        return juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION + "/users/" + userId + "/profile-picture";
     }
     return "";
 }
@@ -77,7 +78,7 @@ void UserDataStore::setLocalPreviewImage(const juce::File& imageFile)
         cachedProfileImage = juce::ImageFileFormat::loadFrom(imageFile);
         if (cachedProfileImage.isValid())
         {
-            DBG("UserDataStore: Loaded local preview image");
+            Log::debug("UserDataStore: Loaded local preview image");
             sendChangeMessage();
         }
     }
@@ -88,55 +89,75 @@ void UserDataStore::downloadProfileImage(const juce::String& url)
 {
     if (isDownloadingImage)
     {
-        DBG("UserDataStore: Already downloading, skipping request for " + url);
+        Log::debug("UserDataStore: Already downloading, skipping request for " + url);
         return;
     }
 
     isDownloadingImage = true;
-    DBG("UserDataStore: *** Starting profile image download from " + url);
+    Log::info("UserDataStore: Starting profile image download from " + url);
 
     // Capture auth token and current profile picture URL for the background thread
     // Note: We capture profilePictureUrl (not the download url) because we may be using
     // a proxy URL for download, but want to verify the original URL hasn't changed
     juce::String token = authToken;
     juce::String originalUrl = profilePictureUrl;
+    NetworkClient* client = networkClient;  // Capture pointer locally to avoid 'this' capture issues
 
-    // Use Async::run to download image on background thread
-    Async::run<juce::Image>(
-        // Background work: download and decode image
-        [url, token]() -> juce::Image {
-            DBG("UserDataStore: Download thread started");
-            auto juceUrl = juce::URL(url);
+    // Create function objects for Async::run
+    std::function<juce::Image()> workFunc = [client, url, token]() -> juce::Image {
+            Log::debug("UserDataStore: Download thread started");
+            juce::MemoryBlock imageData;
+            bool success = false;
 
-            // Build headers - include auth token if we have one and this is a localhost URL (proxy)
-            juce::String headers;
-            if (token.isNotEmpty() && url.contains("localhost"))
+            // Use NetworkClient if available, otherwise fall back to JUCE URL
+            if (client != nullptr)
             {
-                headers = "Authorization: Bearer " + token;
-                DBG("UserDataStore: Adding auth header for proxy request");
+                juce::StringPairArray headers;
+                if (token.isNotEmpty() && url.contains("localhost"))
+                {
+                    headers.set("Authorization", "Bearer " + token);
+                    Log::debug("UserDataStore: Adding auth header for proxy request");
+                }
+
+                auto result = client->makeAbsoluteRequestSync(url, "GET", juce::var(), false, headers, &imageData);
+                success = result.success && imageData.getSize() > 0;
+            }
+            else
+            {
+                // Fallback to JUCE URL
+                auto juceUrl = juce::URL(url);
+                juce::String headersStr;
+                if (token.isNotEmpty() && url.contains("localhost"))
+                {
+                    headersStr = "Authorization: Bearer " + token;
+                    Log::debug("UserDataStore: Adding auth header for proxy request");
+                }
+
+                auto inputStream = juceUrl.createInputStream(
+                    juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                        .withExtraHeaders(headersStr)
+                        .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS)
+                        .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS));
+
+                if (inputStream != nullptr)
+                {
+                    inputStream->readIntoMemoryBlock(imageData);
+                    success = imageData.getSize() > 0;
+                }
             }
 
-            auto inputStream = juceUrl.createInputStream(
-                juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                    .withExtraHeaders(headers)
-                    .withConnectionTimeoutMs(10000)
-                    .withNumRedirectsToFollow(5));
-
-            if (inputStream != nullptr)
+            if (success)
             {
-                juce::MemoryBlock imageData;
-                inputStream->readIntoMemoryBlock(imageData);
-                DBG("UserDataStore: Downloaded " + juce::String((int)imageData.getSize()) + " bytes");
-
+                Log::debug("UserDataStore: Downloaded " + juce::String((int)imageData.getSize()) + " bytes");
                 return juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
             }
 
-            DBG("UserDataStore: *** FAILED to create input stream for " + url);
-            return {};
-        },
-        // Callback on message thread: update state
-        [this, originalUrl](const juce::Image& image) {
-            DBG("UserDataStore: Processing image on main thread");
+            Log::error("UserDataStore: Failed to download image from " + url);
+            return juce::Image();
+        };
+
+    std::function<void(juce::Image)> completeFunc = [this, originalUrl](const juce::Image& image) {
+            Log::debug("UserDataStore: Processing image on main thread");
 
             // Only update if the original URL hasn't changed while downloading
             // (we compare against originalUrl, not the download URL which may be a proxy)
@@ -146,25 +167,27 @@ void UserDataStore::downloadProfileImage(const juce::String& url)
 
                 if (cachedProfileImage.isValid())
                 {
-                    DBG("UserDataStore: *** Image loaded OK (" +
+                    Log::info("UserDataStore: Image loaded OK (" +
                         juce::String(cachedProfileImage.getWidth()) + "x" +
                         juce::String(cachedProfileImage.getHeight()) + ") - sending change message");
                 }
                 else
                 {
-                    DBG("UserDataStore: *** FAILED to decode image");
+                    Log::error("UserDataStore: Failed to decode image");
                 }
 
                 sendChangeMessage();
             }
             else
             {
-                DBG("UserDataStore: URL changed during download, ignoring (orig=" + originalUrl + ", current=" + profilePictureUrl + ")");
+                Log::warn("UserDataStore: URL changed during download, ignoring (orig=" + originalUrl + ", current=" + profilePictureUrl + ")");
             }
 
             isDownloadingImage = false;
-        }
-    );
+        };
+
+    // Use Async::run to download image on background thread
+    Async::run<juce::Image>(std::move(workFunc), std::move(completeFunc));
 }
 
 void UserDataStore::refreshProfileImage()
@@ -181,13 +204,13 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
 {
     if (!networkClient || authToken.isEmpty())
     {
-        DBG("UserDataStore: Cannot fetch profile - no network client or auth token");
+        Log::warn("UserDataStore: Cannot fetch profile - no network client or auth token");
         if (callback)
             callback(false);
         return;
     }
 
-    DBG("UserDataStore: Fetching user profile from /api/v1/users/me");
+    Log::info("UserDataStore: Fetching user profile from /api/v1/users/me");
 
     networkClient->get("/api/v1/users/me", [this, callback](bool success, const juce::var& response) {
         juce::MessageManager::callAsync([this, success, response, callback]() {
@@ -203,7 +226,7 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
 
                 juce::String newPicUrl = Json::getString(response, "profile_picture_url");
 
-                DBG("UserDataStore: Profile fetched - username: " + username +
+                Log::info("UserDataStore: Profile fetched - username: " + username +
                     ", profilePicUrl: " + newPicUrl);
 
                 // Update profile picture if URL changed
@@ -220,7 +243,7 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
             }
             else
             {
-                DBG("UserDataStore: Failed to fetch profile");
+                Log::error("UserDataStore: Failed to fetch profile");
                 if (callback)
                     callback(false);
             }
@@ -258,7 +281,7 @@ void UserDataStore::saveToSettings()
     }
 
     appProperties->save();
-    DBG("UserDataStore: Saved settings");
+    Log::debug("UserDataStore: Saved settings");
 }
 
 void UserDataStore::loadFromSettings()
@@ -281,7 +304,7 @@ void UserDataStore::loadFromSettings()
             setProfilePictureUrl(savedPicUrl);
         }
 
-        DBG("UserDataStore: Loaded settings - username: " + username);
+        Log::debug("UserDataStore: Loaded settings - username: " + username);
     }
 
     sendChangeMessage();
@@ -310,5 +333,5 @@ void UserDataStore::clearAll()
     appProperties->save();
 
     sendChangeMessage();
-    DBG("UserDataStore: Cleared all user data");
+    Log::info("UserDataStore: Cleared all user data");
 }
