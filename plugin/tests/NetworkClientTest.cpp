@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "NetworkClient.h"
+#include "network/NetworkClient.h"
 
 //==============================================================================
 TEST_CASE("NetworkClient Config", "[NetworkClient]")

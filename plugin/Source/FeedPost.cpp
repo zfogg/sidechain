@@ -62,11 +62,68 @@ FeedPost FeedPost::fromJson(const juce::var& json)
         }
     }
 
-    // Social metrics
-    post.likeCount = static_cast<int>(json.getProperty("like_count", 0));
+    // Social metrics - first try enriched data from Stream.io
+    // Enriched endpoints return reaction_counts: {"like": 5, "🔥": 3, "❤️": 2}
+    if (json.hasProperty("reaction_counts"))
+    {
+        auto reactionCounts = json.getProperty("reaction_counts", juce::var());
+        if (reactionCounts.isObject())
+        {
+            auto* dynObj = reactionCounts.getDynamicObject();
+            if (dynObj != nullptr)
+            {
+                for (const auto& prop : dynObj->getProperties())
+                {
+                    juce::String key = prop.name.toString();
+                    int count = static_cast<int>(prop.value);
+                    post.reactionCounts[key] = count;
+
+                    // Sum up "like" reactions for backwards compatibility
+                    if (key == "like")
+                        post.likeCount += count;
+                }
+            }
+        }
+    }
+    else
+    {
+        // Fallback to traditional like_count field
+        post.likeCount = static_cast<int>(json.getProperty("like_count", 0));
+    }
+
+    // Check own_reactions to determine if current user has liked/reacted
+    // Format: {"like": ["reaction_id1"], "🔥": ["reaction_id2"]}
+    if (json.hasProperty("own_reactions"))
+    {
+        auto ownReactions = json.getProperty("own_reactions", juce::var());
+        if (ownReactions.isObject())
+        {
+            auto* dynObj = ownReactions.getDynamicObject();
+            if (dynObj != nullptr)
+            {
+                for (const auto& prop : dynObj->getProperties())
+                {
+                    juce::String kind = prop.name.toString();
+                    if (prop.value.isArray() && prop.value.size() > 0)
+                    {
+                        // User has reacted with this type
+                        if (kind == "like")
+                            post.isLiked = true;
+                        else
+                            post.userReaction = kind;  // Store the emoji reaction
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        // Fallback to traditional is_liked field
+        post.isLiked = static_cast<bool>(json.getProperty("is_liked", false));
+    }
+
     post.playCount = static_cast<int>(json.getProperty("play_count", 0));
     post.commentCount = static_cast<int>(json.getProperty("comment_count", 0));
-    post.isLiked = static_cast<bool>(json.getProperty("is_liked", false));
     post.isFollowing = static_cast<bool>(json.getProperty("is_following", false));
     post.isOwnPost = static_cast<bool>(json.getProperty("is_own_post", false));
 
@@ -129,6 +186,25 @@ juce::var FeedPost::toJson() const
     obj->setProperty("is_liked", isLiked);
     obj->setProperty("is_following", isFollowing);
     obj->setProperty("is_own_post", isOwnPost);
+
+    // Serialize reaction counts for caching enriched data
+    if (!reactionCounts.empty())
+    {
+        auto reactionCountsObj = new juce::DynamicObject();
+        for (const auto& [key, count] : reactionCounts)
+            reactionCountsObj->setProperty(key, count);
+        obj->setProperty("reaction_counts", juce::var(reactionCountsObj));
+    }
+
+    // Serialize user's own reaction
+    if (userReaction.isNotEmpty())
+    {
+        auto ownReactionsObj = new juce::DynamicObject();
+        juce::Array<juce::var> reactionIds;
+        reactionIds.add("cached_reaction");
+        ownReactionsObj->setProperty(userReaction, reactionIds);
+        obj->setProperty("own_reactions", juce::var(ownReactionsObj));
+    }
 
     // Status
     juce::String statusStr;

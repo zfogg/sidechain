@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "FeedPost.h"
-#include "FeedDataManager.h"
+#include "network/FeedDataManager.h"
 
 using Catch::Approx;
 
