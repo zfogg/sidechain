@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "audio/BufferAudioPlayer.h"
 #include "util/Log.h"
 
 //==============================================================================
@@ -96,6 +97,9 @@ void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     int numChannels = getTotalNumInputChannels();
     audioCapture.prepare(sampleRate, samplesPerBlock, numChannels);
 
+    // Prepare MIDI capture
+    midiCapture.prepare(sampleRate, samplesPerBlock);
+
     // Prepare audio player for feed playback
     audioPlayer.prepareToPlay(sampleRate, samplesPerBlock);
 
@@ -185,11 +189,18 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // This captures the incoming audio before any processing
     audioCapture.captureAudio(buffer);
 
+    // Capture MIDI events for stories (lock-free, called on audio thread)
+    midiCapture.captureMIDI(midiMessages, buffer.getNumSamples(), currentSampleRate);
+
     // Mix in feed audio playback (adds to the output buffer)
     // This allows users to hear posts while working in their DAW
     audioPlayer.processBlock(buffer, buffer.getNumSamples());
 
-    juce::ignoreUnused(midiMessages);
+    // Mix in buffer audio player (for story preview)
+    if (bufferAudioPlayer != nullptr)
+    {
+        bufferAudioPlayer->processBlock(buffer, buffer.getNumSamples());
+    }
 }
 
 //==============================================================================
@@ -211,7 +222,7 @@ void SidechainAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     Log::debug("SidechainAudioProcessor: Saving state");
     auto state = juce::ValueTree("SidechainState");
     state.setProperty("authenticated", authenticated, nullptr);
-    
+
     if (auto xml = state.createXml())
         copyXmlToBinary (*xml, destData);
 }
@@ -247,16 +258,25 @@ void SidechainAudioProcessor::startRecording()
     // Generate a unique recording ID
     juce::String recordingId = juce::Uuid().toString();
     audioCapture.startRecording(recordingId);
+
+    // Start MIDI capture simultaneously
+    midiCapture.startCapture();
+
     Log::info("SidechainAudioProcessor: Started recording - ID: " + recordingId);
 }
 
 void SidechainAudioProcessor::stopRecording()
 {
     lastRecordedAudio = audioCapture.stopRecording();
+
+    // Stop MIDI capture
+    auto midiEvents = midiCapture.stopCapture();
+
     double duration = static_cast<double>(lastRecordedAudio.getNumSamples()) / currentSampleRate;
-    Log::info("SidechainAudioProcessor: Stopped recording - " + 
+    Log::info("SidechainAudioProcessor: Stopped recording - " +
               juce::String(lastRecordedAudio.getNumSamples()) + " samples, " +
-              juce::String(duration, 2) + " seconds");
+              juce::String(duration, 2) + " seconds, " +
+              juce::String(midiEvents.size()) + " MIDI events");
 }
 
 juce::AudioBuffer<float> SidechainAudioProcessor::getRecordedAudio()

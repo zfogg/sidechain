@@ -282,29 +282,30 @@ void FollowersListComponent::loadMoreUsers()
         {
             auto data = responseOutcome.getValue();
             if (Json::isObject(data))
-        {
-            juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
-            auto usersArray = Json::getArray(data, usersKey.toRawUTF8());
-
-            if (Json::isArray(usersArray))
             {
-                auto* arr = usersArray.getArray();
-                if (arr != nullptr)
+                juce::String usersKey = (listType == ListType::Followers) ? "followers" : "following";
+                auto usersArray = Json::getArray(data, usersKey.toRawUTF8());
+
+                if (Json::isArray(usersArray))
                 {
-                    for (const auto& item : *arr)
+                    auto* arr = usersArray.getArray();
+                    if (arr != nullptr)
                     {
-                        FollowListUser user = FollowListUser::fromJson(item);
-                        if (user.isValid())
-                            users.add(user);
+                        for (const auto& item : *arr)
+                        {
+                            FollowListUser user = FollowListUser::fromJson(item);
+                            if (user.isValid())
+                                users.add(user);
+                        }
                     }
                 }
+
+                totalCount = Json::getInt(data, "total_count", users.size());
+                hasMore = users.size() < totalCount;
+                currentOffset = users.size();
+
+                updateUsersList();
             }
-
-            totalCount = Json::getInt(data, "total_count", users.size());
-            hasMore = users.size() < totalCount;
-            currentOffset = users.size();
-
-            updateUsersList();
         }
 
         repaint();

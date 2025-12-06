@@ -4,6 +4,7 @@
 #include "../../util/UIHelpers.h"
 #include "../../util/HoverState.h"
 #include "../../util/Result.h"
+#include "../../util/StringFormatter.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
@@ -136,7 +137,7 @@ void CommentRowComponent::drawActions(juce::Graphics& g, juce::Rectangle<int> bo
     // Like count
     if (comment.likeCount > 0)
     {
-        g.drawText(juce::String(comment.likeCount),
+        g.drawText(StringFormatter::formatCount(comment.likeCount),
                    likeBounds.withX(likeBounds.getX() + 18).withWidth(25),
                    juce::Justification::centredLeft);
     }
@@ -746,7 +747,7 @@ void CommentsPanelComponent::paint(juce::Graphics& g)
     g.setFont(16.0f);
     juce::String title = "Comments";
     if (totalCommentCount > 0)
-        title += " (" + juce::String(totalCommentCount) + ")";
+        title += " (" + StringFormatter::formatCount(totalCommentCount) + ")";
     g.drawText(title, headerBounds.withTrimmedLeft(15), juce::Justification::centredLeft);
 
     // Reply indicator

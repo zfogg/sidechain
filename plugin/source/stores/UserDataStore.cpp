@@ -212,10 +212,11 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
 
     Log::info("UserDataStore: Fetching user profile from /api/v1/users/me");
 
-    networkClient->get("/api/v1/users/me", [this, callback](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response, callback]() {
-            if (success && Json::isObject(response))
+    networkClient->get("/api/v1/users/me", [this, callback](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, callback]() {
+            if (result.isOk() && Json::isObject(result.getValue()))
             {
+                auto response = result.getValue();
                 // Update all user data from response
                 userId = Json::getString(response, "id");
                 username = Json::getString(response, "username");

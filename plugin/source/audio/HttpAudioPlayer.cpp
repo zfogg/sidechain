@@ -1,4 +1,4 @@
-#include "AudioPlayer.h"
+#include "HttpAudioPlayer.h"
 #include "../network/NetworkClient.h"
 #include "../util/Constants.h"
 #include "../util/Async.h"
@@ -6,20 +6,20 @@
 #include <memory>
 
 //==============================================================================
-AudioPlayer::AudioPlayer()
+HttpAudioPlayer::HttpAudioPlayer()
 {
     // Register common audio formats
     formatManager.registerBasicFormats();
 
     // Create progress timer
-    progressTimer = std::make_unique<AudioPlayer::ProgressTimer>(*this);
-    
-    Log::info("AudioPlayer: Initialized");
+    progressTimer = std::make_unique<HttpAudioPlayer::ProgressTimer>(*this);
+
+    Log::info("HttpAudioPlayer: Initialized");
 }
 
-AudioPlayer::~AudioPlayer()
+HttpAudioPlayer::~HttpAudioPlayer()
 {
-    Log::debug("AudioPlayer: Destroying");
+    Log::debug("HttpAudioPlayer: Destroying");
     progressTimer->stopTimer();
     stop();
 }
@@ -27,12 +27,12 @@ AudioPlayer::~AudioPlayer()
 //==============================================================================
 // Transport Controls
 
-void AudioPlayer::loadAndPlay(const juce::String& postId, const juce::String& audioUrl)
+void HttpAudioPlayer::loadAndPlay(const juce::String& postId, const juce::String& audioUrl)
 {
     // If same post is already playing, just toggle play/pause
     if (postId == currentPostId && readerSource != nullptr)
     {
-        Log::debug("AudioPlayer: Toggling play/pause for post: " + postId);
+        Log::debug("HttpAudioPlayer: Toggling play/pause for post: " + postId);
         if (playing)
             pause();
         else
@@ -40,7 +40,7 @@ void AudioPlayer::loadAndPlay(const juce::String& postId, const juce::String& au
         return;
     }
 
-    Log::info("AudioPlayer: Loading and playing post: " + postId);
+    Log::info("HttpAudioPlayer: Loading and playing post: " + postId);
 
     // Stop current playback
     stop();
@@ -51,7 +51,7 @@ void AudioPlayer::loadAndPlay(const juce::String& postId, const juce::String& au
     // Check if we have this audio cached
     if (auto* cachedData = getFromCache(postId))
     {
-        Log::debug("AudioPlayer: Using cached audio for post: " + postId);
+        Log::debug("HttpAudioPlayer: Using cached audio for post: " + postId);
         loadFromMemory(postId, *cachedData);
         play();
         return;
@@ -59,23 +59,23 @@ void AudioPlayer::loadAndPlay(const juce::String& postId, const juce::String& au
 
     // Download the audio
     loading = true;
-    Log::info("AudioPlayer: Downloading audio for post: " + postId);
+    Log::info("HttpAudioPlayer: Downloading audio for post: " + postId);
     if (onLoadingStarted)
         onLoadingStarted(postId);
 
     downloadAudio(postId, audioUrl);
 }
 
-void AudioPlayer::play()
+void HttpAudioPlayer::play()
 {
     if (readerSource == nullptr)
     {
-        Log::warn("AudioPlayer: Cannot play - no audio source loaded");
+        Log::warn("HttpAudioPlayer: Cannot play - no audio source loaded");
         return;
     }
 
     playing = true;
-    Log::info("AudioPlayer: Playback started - post: " + currentPostId);
+    Log::info("HttpAudioPlayer: Playback started - post: " + currentPostId);
 
     // Start progress timer
     progressTimer->startTimer(50); // Update every 50ms
@@ -84,21 +84,21 @@ void AudioPlayer::play()
         onPlaybackStarted(currentPostId);
 }
 
-void AudioPlayer::pause()
+void HttpAudioPlayer::pause()
 {
     playing = false;
     progressTimer->stopTimer();
-    Log::debug("AudioPlayer: Playback paused - post: " + currentPostId);
+    Log::debug("HttpAudioPlayer: Playback paused - post: " + currentPostId);
 
     if (onPlaybackPaused)
         onPlaybackPaused(currentPostId);
 }
 
-void AudioPlayer::stop()
+void HttpAudioPlayer::stop()
 {
     if (playing || !currentPostId.isEmpty())
     {
-        Log::info("AudioPlayer: Playback stopped - post: " + currentPostId);
+        Log::info("HttpAudioPlayer: Playback stopped - post: " + currentPostId);
     }
 
     playing = false;
@@ -121,7 +121,7 @@ void AudioPlayer::stop()
     currentAudioUrl = "";
 }
 
-void AudioPlayer::togglePlayPause()
+void HttpAudioPlayer::togglePlayPause()
 {
     if (playing)
         pause();
@@ -129,7 +129,7 @@ void AudioPlayer::togglePlayPause()
         play();
 }
 
-void AudioPlayer::seekToPosition(double positionSeconds)
+void HttpAudioPlayer::seekToPosition(double positionSeconds)
 {
     const juce::ScopedLock sl(audioLock);
 
@@ -146,7 +146,7 @@ void AudioPlayer::seekToPosition(double positionSeconds)
     readerSource->setNextReadPosition(samplePosition);
 }
 
-void AudioPlayer::seekToNormalizedPosition(double normalizedPosition)
+void HttpAudioPlayer::seekToNormalizedPosition(double normalizedPosition)
 {
     double duration = getDurationSeconds();
     if (duration > 0)
@@ -156,7 +156,7 @@ void AudioPlayer::seekToNormalizedPosition(double normalizedPosition)
 //==============================================================================
 // State Queries
 
-double AudioPlayer::getPositionSeconds() const
+double HttpAudioPlayer::getPositionSeconds() const
 {
     const juce::ScopedLock sl(audioLock);
 
@@ -170,7 +170,7 @@ double AudioPlayer::getPositionSeconds() const
     return static_cast<double>(readerSource->getNextReadPosition()) / reader->sampleRate;
 }
 
-double AudioPlayer::getDurationSeconds() const
+double HttpAudioPlayer::getDurationSeconds() const
 {
     const juce::ScopedLock sl(audioLock);
 
@@ -184,7 +184,7 @@ double AudioPlayer::getDurationSeconds() const
     return static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
 }
 
-double AudioPlayer::getPlaybackProgress() const
+double HttpAudioPlayer::getPlaybackProgress() const
 {
     double duration = getDurationSeconds();
     if (duration <= 0)
@@ -193,7 +193,7 @@ double AudioPlayer::getPlaybackProgress() const
     return getPositionSeconds() / duration;
 }
 
-bool AudioPlayer::isPostPlaying(const juce::String& postId) const
+bool HttpAudioPlayer::isPostPlaying(const juce::String& postId) const
 {
     return playing && currentPostId == postId;
 }
@@ -201,12 +201,12 @@ bool AudioPlayer::isPostPlaying(const juce::String& postId) const
 //==============================================================================
 // Volume Control
 
-void AudioPlayer::setVolume(float newVolume)
+void HttpAudioPlayer::setVolume(float newVolume)
 {
     volume = juce::jlimit(0.0f, 1.0f, newVolume);
 }
 
-void AudioPlayer::setMuted(bool shouldMute)
+void HttpAudioPlayer::setMuted(bool shouldMute)
 {
     muted = shouldMute;
 }
@@ -214,7 +214,7 @@ void AudioPlayer::setMuted(bool shouldMute)
 //==============================================================================
 // Audio Processing
 
-void AudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
+void HttpAudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
 {
     if (!playing || muted)
         return;
@@ -252,7 +252,7 @@ void AudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
                 juce::MessageManager::callAsync([this]()
                 {
                     juce::String finishedPostId = currentPostId;
-                    Log::info("AudioPlayer: Playback finished - post: " + finishedPostId);
+                    Log::info("HttpAudioPlayer: Playback finished - post: " + finishedPostId);
 
                     // Notify that playback finished
                     if (onPlaybackFinished)
@@ -269,7 +269,7 @@ void AudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
                             juce::String nextPostId = playlistPostIds[nextIndex];
                             juce::String nextUrl = playlistAudioUrls[nextIndex];
 
-                            Log::debug("AudioPlayer: Auto-playing next post: " + nextPostId);
+                            Log::debug("HttpAudioPlayer: Auto-playing next post: " + nextPostId);
 
                             if (onAutoPlayNext)
                                 onAutoPlayNext(nextPostId);
@@ -279,7 +279,7 @@ void AudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
                         }
                         else
                         {
-                            Log::debug("AudioPlayer: End of playlist reached");
+                            Log::debug("HttpAudioPlayer: End of playlist reached");
                         }
                     }
 
@@ -290,11 +290,11 @@ void AudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
     }
 }
 
-void AudioPlayer::prepareToPlay(double sampleRate, int blockSize)
+void HttpAudioPlayer::prepareToPlay(double sampleRate, int blockSize)
 {
     currentSampleRate = sampleRate;
     currentBlockSize = blockSize;
-    Log::info("AudioPlayer: Prepared - " + juce::String(sampleRate) + "Hz, block size: " + juce::String(blockSize));
+    Log::info("HttpAudioPlayer: Prepared - " + juce::String(sampleRate) + "Hz, block size: " + juce::String(blockSize));
 
     const juce::ScopedLock sl(audioLock);
 
@@ -302,7 +302,7 @@ void AudioPlayer::prepareToPlay(double sampleRate, int blockSize)
         resamplingSource->prepareToPlay(blockSize, sampleRate);
 }
 
-void AudioPlayer::releaseResources()
+void HttpAudioPlayer::releaseResources()
 {
     const juce::ScopedLock sl(audioLock);
 
@@ -313,27 +313,27 @@ void AudioPlayer::releaseResources()
 //==============================================================================
 // Cache Management
 
-void AudioPlayer::clearCache()
+void HttpAudioPlayer::clearCache()
 {
     const juce::ScopedLock sl(cacheLock);
     size_t oldSize = currentCacheSize;
     audioCache.clear();
     currentCacheSize = 0;
-    Log::info("AudioPlayer: Cache cleared - freed " + juce::String((int)oldSize) + " bytes");
+    Log::info("HttpAudioPlayer: Cache cleared - freed " + juce::String((int)oldSize) + " bytes");
 }
 
-void AudioPlayer::setMaxCacheSize(size_t bytes)
+void HttpAudioPlayer::setMaxCacheSize(size_t bytes)
 {
     maxCacheSize = bytes;
     evictCacheIfNeeded(0);
 }
 
-size_t AudioPlayer::getCurrentCacheSize() const
+size_t HttpAudioPlayer::getCurrentCacheSize() const
 {
     return currentCacheSize;
 }
 
-void AudioPlayer::preloadAudio(const juce::String& postId, const juce::String& audioUrl)
+void HttpAudioPlayer::preloadAudio(const juce::String& postId, const juce::String& audioUrl)
 {
     // Don't preload if already cached
     if (getFromCache(postId) != nullptr)
@@ -374,7 +374,7 @@ void AudioPlayer::preloadAudio(const juce::String& postId, const juce::String& a
     });
 }
 
-void AudioPlayer::evictCacheIfNeeded(size_t bytesNeeded)
+void HttpAudioPlayer::evictCacheIfNeeded(size_t bytesNeeded)
 {
     const juce::ScopedLock sl(cacheLock);
 
@@ -401,7 +401,7 @@ void AudioPlayer::evictCacheIfNeeded(size_t bytesNeeded)
     }
 }
 
-void AudioPlayer::addToCache(const juce::String& postId, std::unique_ptr<juce::MemoryBlock> data)
+void HttpAudioPlayer::addToCache(const juce::String& postId, std::unique_ptr<juce::MemoryBlock> data)
 {
     const juce::ScopedLock sl(cacheLock);
 
@@ -417,7 +417,7 @@ void AudioPlayer::addToCache(const juce::String& postId, std::unique_ptr<juce::M
     currentCacheSize += dataSize;
 }
 
-juce::MemoryBlock* AudioPlayer::getFromCache(const juce::String& postId)
+juce::MemoryBlock* HttpAudioPlayer::getFromCache(const juce::String& postId)
 {
     const juce::ScopedLock sl(cacheLock);
 
@@ -433,10 +433,10 @@ juce::MemoryBlock* AudioPlayer::getFromCache(const juce::String& postId)
 //==============================================================================
 // Loading
 
-void AudioPlayer::downloadAudio(const juce::String& postId, const juce::String& url)
+void HttpAudioPlayer::downloadAudio(const juce::String& postId, const juce::String& url)
 {
-    Log::debug("AudioPlayer: Starting download - post: " + postId + ", url: " + url);
-    
+    Log::debug("HttpAudioPlayer: Starting download - post: " + postId + ", url: " + url);
+
     Async::runVoid([this, postId, url]()
     {
         juce::URL audioUrl(url);
@@ -460,8 +460,8 @@ void AudioPlayer::downloadAudio(const juce::String& postId, const juce::String& 
 
             if (success && postId == currentPostId)
             {
-                Log::info("AudioPlayer: Download successful - post: " + postId + ", size: " + juce::String((int)data->getSize()) + " bytes");
-                
+                Log::info("HttpAudioPlayer: Download successful - post: " + postId + ", size: " + juce::String((int)data->getSize()) + " bytes");
+
                 // Add to cache
                 addToCache(postId, std::make_unique<juce::MemoryBlock>(*data));
 
@@ -471,11 +471,11 @@ void AudioPlayer::downloadAudio(const juce::String& postId, const juce::String& 
             }
             else if (!success)
             {
-                Log::error("AudioPlayer: Download failed - post: " + postId);
+                Log::error("HttpAudioPlayer: Download failed - post: " + postId);
             }
             else
             {
-                Log::warn("AudioPlayer: Download completed but post changed - post: " + postId + ", current: " + currentPostId);
+                Log::warn("HttpAudioPlayer: Download completed but post changed - post: " + postId + ", current: " + currentPostId);
             }
 
             if (onLoadingComplete)
@@ -484,7 +484,7 @@ void AudioPlayer::downloadAudio(const juce::String& postId, const juce::String& 
     });
 }
 
-void AudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlock& audioData)
+void HttpAudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlock& audioData)
 {
     const juce::ScopedLock sl(audioLock);
 
@@ -495,7 +495,7 @@ void AudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlock& 
     auto* reader = formatManager.createReaderFor(std::unique_ptr<juce::InputStream>(memStream));
     if (reader == nullptr)
     {
-        Log::error("AudioPlayer: Failed to create reader for audio data - post: " + postId);
+        Log::error("HttpAudioPlayer: Failed to create reader for audio data - post: " + postId);
         return;
     }
 
@@ -508,7 +508,7 @@ void AudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlock& 
     resamplingSource->prepareToPlay(currentBlockSize, currentSampleRate);
 
     double duration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
-    Log::info("AudioPlayer: Loaded audio from memory - post: " + postId + 
+    Log::info("HttpAudioPlayer: Loaded audio from memory - post: " + postId +
               ", duration: " + juce::String(duration, 2) + "s, " +
               "sample rate: " + juce::String(reader->sampleRate) + "Hz, " +
               "channels: " + juce::String(reader->numChannels));
@@ -517,7 +517,7 @@ void AudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlock& 
 //==============================================================================
 // Playlist and Auto-play
 
-void AudioPlayer::setPlaylist(const juce::StringArray& postIds, const juce::StringArray& audioUrls)
+void HttpAudioPlayer::setPlaylist(const juce::StringArray& postIds, const juce::StringArray& audioUrls)
 {
     const juce::ScopedLock sl(playlistLock);
     playlistPostIds = postIds;
@@ -534,13 +534,13 @@ void AudioPlayer::setPlaylist(const juce::StringArray& postIds, const juce::Stri
     }
 }
 
-int AudioPlayer::getCurrentPlaylistIndex() const
+int HttpAudioPlayer::getCurrentPlaylistIndex() const
 {
     const juce::ScopedLock sl(playlistLock);
     return playlistPostIds.indexOf(currentPostId);
 }
 
-void AudioPlayer::playNext()
+void HttpAudioPlayer::playNext()
 {
     int currentIndex = getCurrentPlaylistIndex();
     const juce::ScopedLock sl(playlistLock);
@@ -551,7 +551,7 @@ void AudioPlayer::playNext()
     }
 }
 
-void AudioPlayer::playPrevious()
+void HttpAudioPlayer::playPrevious()
 {
     // If we're more than 3 seconds in, restart current track
     if (getPositionSeconds() > 3.0)
@@ -577,7 +577,7 @@ void AudioPlayer::playPrevious()
 //==============================================================================
 // Audio Focus (DAW awareness)
 
-void AudioPlayer::onDAWTransportStarted()
+void HttpAudioPlayer::onDAWTransportStarted()
 {
     if (!audioFocusEnabled)
         return;
@@ -587,11 +587,11 @@ void AudioPlayer::onDAWTransportStarted()
         wasPlayingBeforeDAW = true;
         pausedByDAW = true;
         pause();
-        Log::info("AudioPlayer: Paused due to DAW transport start");
+        Log::info("HttpAudioPlayer: Paused due to DAW transport start");
     }
 }
 
-void AudioPlayer::onDAWTransportStopped()
+void HttpAudioPlayer::onDAWTransportStopped()
 {
     if (!audioFocusEnabled)
         return;
@@ -601,14 +601,14 @@ void AudioPlayer::onDAWTransportStopped()
         pausedByDAW = false;
         wasPlayingBeforeDAW = false;
         play();
-        Log::info("AudioPlayer: Resumed after DAW transport stop");
+        Log::info("HttpAudioPlayer: Resumed after DAW transport stop");
     }
 }
 
 //==============================================================================
 // ChangeListener
 
-void AudioPlayer::changeListenerCallback(juce::ChangeBroadcaster* /*source*/)
+void HttpAudioPlayer::changeListenerCallback(juce::ChangeBroadcaster* /*source*/)
 {
     // Not currently used, but available for future extensions
 }
@@ -616,7 +616,7 @@ void AudioPlayer::changeListenerCallback(juce::ChangeBroadcaster* /*source*/)
 //==============================================================================
 // Progress Timer
 
-void AudioPlayer::ProgressTimer::timerCallback()
+void HttpAudioPlayer::ProgressTimer::timerCallback()
 {
     if (player.playing && player.onProgressUpdate)
     {

@@ -57,7 +57,7 @@ message(STATUS "Sidechain version: ${SIDECHAIN_VERSION}")
 # Use the git-derived version for the CMake project
 project(Sidechain VERSION ${SIDECHAIN_VERSION} LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Generate Version.h from template
@@ -188,10 +188,13 @@ option(SIDECHAIN_BUILD_TESTS "Build unit tests with Catch2" OFF)
 option(SIDECHAIN_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 
 # Option to build Standalone app (default OFF - only build VST3/AU by default)
-option(SIDECHAIN_BUILD_STANDALONE "Build Standalone app (in addition to VST3/AU)" OFF)
+option(SIDECHAIN_BUILD_STANDALONE "Build Standalone app (in addition to VST3/AU)" ON)
 
 # Option to install standalone app alongside VST3
 option(SIDECHAIN_INSTALL_STANDALONE "Install Standalone app with cmake --install" OFF)
+
+# Option to build documentation (Doxygen + Sphinx)
+option(SIDECHAIN_BUILD_DOCS "Build documentation with Doxygen and Sphinx" OFF)
 
 # JUCE is added as a subdirectory from the deps folder
 # EXCLUDE_FROM_ALL prevents JUCE from being installed with cmake --install
@@ -203,7 +206,7 @@ else()
     FetchContent_Declare(
         JUCE
         GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG 8.0.8
+        GIT_TAG 8.0.11
         GIT_SHALLOW TRUE
         EXCLUDE_FROM_ALL
     )
@@ -279,20 +282,24 @@ set(ASIO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/asio")
 # ASIO 1.14.1 has headers in asio/include/ directory
 if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp" OR EXISTS "${ASIO_DIR}/include/asio.hpp")
     message(STATUS "ASIO found at: ${ASIO_DIR}")
-    
+
     # Create an interface library for ASIO (header-only)
     add_library(asio INTERFACE)
     # Try nested path first (ASIO 1.14.1), then flat path (newer versions)
     if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp")
         target_include_directories(asio INTERFACE "${ASIO_DIR}/asio/include")
     endif()
-    
+
     # Define ASIO_STANDALONE so ASIO doesn't require Boost
-    target_compile_definitions(asio INTERFACE ASIO_STANDALONE=1)
-    
+    # Define ASIO_HAS_STD_INVOKE_RESULT for C++17+ (std::result_of removed in C++20)
+    target_compile_definitions(asio INTERFACE
+        ASIO_STANDALONE=1
+        ASIO_HAS_STD_INVOKE_RESULT=1
+    )
+
     # ASIO requires C++11 or later (we're using C++23)
     target_compile_features(asio INTERFACE cxx_std_11)
-    
+
     # Platform-specific requirements for ASIO
     if(WIN32)
         # Windows: ASIO needs Windows sockets
@@ -303,7 +310,7 @@ if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp" OR EXISTS "${ASIO_DIR}/include/asi
         # Linux/Unix: ASIO uses pthread
         target_link_libraries(asio INTERFACE pthread)
     endif()
-    
+
     set(SIDECHAIN_HAS_ASIO TRUE)
     message(STATUS "ASIO will be available as an interface library (standalone mode)")
 else()
@@ -338,11 +345,11 @@ endif()
 set(WEBSOCKETPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/websocketpp")
 if(EXISTS "${WEBSOCKETPP_DIR}/websocketpp")
     message(STATUS "websocketpp found at: ${WEBSOCKETPP_DIR}")
-    
+
     # Create an interface library for websocketpp (header-only)
     add_library(websocketpp INTERFACE)
     target_include_directories(websocketpp INTERFACE "${WEBSOCKETPP_DIR}")
-    
+
     # Link ASIO if available (websocketpp needs it for ASIO backend)
     if(SIDECHAIN_HAS_ASIO)
         target_link_libraries(websocketpp INTERFACE asio)
@@ -350,7 +357,7 @@ if(EXISTS "${WEBSOCKETPP_DIR}/websocketpp")
     else()
         message(WARNING "websocketpp found but ASIO not available - ASIO backend will not work")
     endif()
-    
+
     set(SIDECHAIN_HAS_WEBSOCKETPP TRUE)
     message(STATUS "websocketpp will be available as an interface library")
 else()
@@ -371,6 +378,205 @@ if(SIDECHAIN_BUILD_STANDALONE)
 else()
     message(STATUS "Standalone app disabled (enable with -DSIDECHAIN_BUILD_STANDALONE=ON)")
 endif()
+
+#==============================================================================
+# Source File Modules
+#==============================================================================
+
+# Plugin entry points
+set(SIDECHAIN_CORE_SOURCES
+    source/PluginProcessor.cpp
+    source/PluginProcessor.h
+    source/PluginEditor.cpp
+    source/PluginEditor.h
+)
+
+# State management
+set(SIDECHAIN_STORES_SOURCES
+    source/stores/UserDataStore.cpp
+    source/stores/UserDataStore.h
+)
+
+# Data structures and DTOs
+set(SIDECHAIN_MODELS_SOURCES
+    source/models/FeedPost.cpp
+    source/models/FeedPost.h
+    source/models/FeedResponse.h
+    source/models/AggregatedFeedGroup.h
+    source/models/AggregatedFeedResponse.h
+    # Story.cpp/Story.h - TODO: Enable when story APIs are implemented
+)
+
+# Audio capture, playback, and analysis
+set(SIDECHAIN_AUDIO_SOURCES
+    source/audio/AudioCapture.cpp
+    source/audio/AudioCapture.h
+    source/audio/MIDICapture.cpp
+    source/audio/MIDICapture.h
+    source/audio/HttpAudioPlayer.cpp
+    source/audio/HttpAudioPlayer.h
+    source/audio/BufferAudioPlayer.cpp
+    source/audio/BufferAudioPlayer.h
+    source/audio/KeyDetector.cpp
+    source/audio/KeyDetector.h
+)
+
+# API clients and data managers
+set(SIDECHAIN_NETWORK_SOURCES
+    source/network/NetworkClient.cpp
+    source/network/NetworkClient.h
+    source/network/WebSocketClient.cpp
+    source/network/WebSocketClient.h
+    source/network/StreamChatClient.cpp
+    source/network/StreamChatClient.h
+    source/network/FeedDataManager.cpp
+    source/network/FeedDataManager.h
+)
+
+# UI - Auth
+set(SIDECHAIN_UI_AUTH_SOURCES
+    source/ui/auth/AuthComponent.cpp
+    source/ui/auth/AuthComponent.h
+)
+
+# UI - Messages
+set(SIDECHAIN_UI_MESSAGES_SOURCES
+    source/ui/messages/MessagesListComponent.cpp
+    source/ui/messages/MessagesListComponent.h
+    source/ui/messages/MessageThreadComponent.cpp
+    source/ui/messages/MessageThreadComponent.h
+    source/ui/messages/AudioSnippetRecorder.cpp
+    source/ui/messages/AudioSnippetRecorder.h
+)
+
+# UI - Profile
+set(SIDECHAIN_UI_PROFILE_SOURCES
+    source/ui/profile/ProfileSetupComponent.cpp
+    source/ui/profile/ProfileSetupComponent.h
+    source/ui/profile/ProfileComponent.cpp
+    source/ui/profile/ProfileComponent.h
+    source/ui/profile/EditProfileComponent.cpp
+    source/ui/profile/EditProfileComponent.h
+)
+
+# UI - Feed
+set(SIDECHAIN_UI_FEED_SOURCES
+    source/ui/feed/PostsFeedComponent.cpp
+    source/ui/feed/PostsFeedComponent.h
+    source/ui/feed/PostCardComponent.cpp
+    source/ui/feed/PostCardComponent.h
+    source/ui/feed/CommentComponent.cpp
+    source/ui/feed/CommentComponent.h
+    source/ui/feed/EmojiReactionsPanel.cpp
+    source/ui/feed/EmojiReactionsPanel.h
+)
+
+# UI - Recording
+set(SIDECHAIN_UI_RECORDING_SOURCES
+    source/ui/recording/RecordingComponent.cpp
+    source/ui/recording/RecordingComponent.h
+    source/ui/recording/UploadComponent.cpp
+    source/ui/recording/UploadComponent.h
+)
+
+# UI - Notifications
+set(SIDECHAIN_UI_NOTIFICATIONS_SOURCES
+    source/ui/notifications/NotificationBellComponent.cpp
+    source/ui/notifications/NotificationBellComponent.h
+    source/ui/notifications/NotificationListComponent.cpp
+    source/ui/notifications/NotificationListComponent.h
+)
+
+# UI - Social
+set(SIDECHAIN_UI_SOCIAL_SOURCES
+    source/ui/social/UserCardComponent.cpp
+    source/ui/social/UserCardComponent.h
+    source/ui/social/UserDiscoveryComponent.cpp
+    source/ui/social/UserDiscoveryComponent.h
+    source/ui/search/SearchComponent.cpp
+    source/ui/search/SearchComponent.h
+    source/ui/social/FollowersListComponent.cpp
+    source/ui/social/FollowersListComponent.h
+)
+
+# UI - Stories (Phase 7.5)
+set(SIDECHAIN_UI_STORIES_SOURCES
+    source/ui/stories/StoryRecordingComponent.cpp
+    source/ui/stories/StoryRecordingComponent.h
+    source/ui/stories/StoriesFeedComponent.cpp
+    source/ui/stories/StoriesFeedComponent.h
+    source/ui/stories/StoryViewerComponent.cpp
+    source/ui/stories/StoryViewerComponent.h
+    source/ui/stories/PianoRollComponent.cpp
+    source/ui/stories/PianoRollComponent.h
+)
+
+# UI - Common
+set(SIDECHAIN_UI_COMMON_SOURCES
+    source/ui/common/HeaderComponent.cpp
+    source/ui/common/HeaderComponent.h
+    source/ui/common/ConnectionIndicator.h
+)
+
+# Utilities
+set(SIDECHAIN_UTIL_SOURCES
+    source/util/Time.cpp
+    source/util/Time.h
+    source/util/Colors.h
+    source/util/HttpErrorHandler.h
+    source/util/Log.cpp
+    source/util/Log.h
+    source/util/ImageCache.cpp
+    source/util/ImageCache.h
+    source/util/Image.cpp
+    source/util/Image.h
+    source/util/Json.cpp
+    source/util/Json.h
+    source/util/Validate.cpp
+    source/util/Validate.h
+    source/util/Async.cpp
+    source/util/Async.h
+    source/util/Result.h
+    source/util/UIHelpers.cpp
+    source/util/UIHelpers.h
+    source/util/Constants.h
+    source/util/StringFormatter.cpp
+    source/util/StringFormatter.h
+    source/util/TextEditorStyler.cpp
+    source/util/TextEditorStyler.h
+    source/util/Animation.cpp
+    source/util/Animation.h
+    source/util/HoverState.h
+    source/util/LongPressDetector.h
+)
+
+# Combined UI sources
+set(SIDECHAIN_UI_SOURCES
+    ${SIDECHAIN_UI_AUTH_SOURCES}
+    ${SIDECHAIN_UI_MESSAGES_SOURCES}
+    ${SIDECHAIN_UI_PROFILE_SOURCES}
+    ${SIDECHAIN_UI_FEED_SOURCES}
+    ${SIDECHAIN_UI_RECORDING_SOURCES}
+    ${SIDECHAIN_UI_NOTIFICATIONS_SOURCES}
+    ${SIDECHAIN_UI_SOCIAL_SOURCES}
+    ${SIDECHAIN_UI_STORIES_SOURCES}
+    ${SIDECHAIN_UI_COMMON_SOURCES}
+)
+
+# All plugin sources
+set(SIDECHAIN_ALL_SOURCES
+    ${SIDECHAIN_CORE_SOURCES}
+    ${SIDECHAIN_STORES_SOURCES}
+    ${SIDECHAIN_MODELS_SOURCES}
+    ${SIDECHAIN_AUDIO_SOURCES}
+    ${SIDECHAIN_NETWORK_SOURCES}
+    ${SIDECHAIN_UI_SOURCES}
+    ${SIDECHAIN_UTIL_SOURCES}
+)
+
+#==============================================================================
+# Plugin Target
+#==============================================================================
 
 # Plugin target
 juce_add_plugin(Sidechain
@@ -419,127 +625,8 @@ juce_add_plugin(Sidechain
 # This allows existing source files that use #include <JuceHeader.h> to work
 juce_generate_juce_header(Sidechain)
 
-# Source files organized by folder
-target_sources(Sidechain
-    PRIVATE
-        # Root level - Plugin entry points
-        source/PluginProcessor.cpp
-        source/PluginProcessor.h
-        source/PluginEditor.cpp
-        source/PluginEditor.h
-
-        # Stores - State management
-        source/stores/UserDataStore.cpp
-        source/stores/UserDataStore.h
-
-        # Models - Data structures and DTOs
-        source/models/FeedPost.cpp
-        source/models/FeedPost.h
-        source/models/FeedResponse.h
-        source/models/AggregatedFeedGroup.h
-        source/models/AggregatedFeedResponse.h
-
-        # Audio - Audio capture, playback, and analysis
-        source/audio/AudioCapture.cpp
-        source/audio/AudioCapture.h
-        source/audio/AudioPlayer.cpp
-        source/audio/AudioPlayer.h
-        source/audio/KeyDetector.cpp
-        source/audio/KeyDetector.h
-
-        # Network - API clients and data managers
-        source/network/NetworkClient.cpp
-        source/network/NetworkClient.h
-        source/network/WebSocketClient.cpp
-        source/network/WebSocketClient.h
-        source/network/StreamChatClient.cpp
-        source/network/StreamChatClient.h
-        source/network/FeedDataManager.cpp
-        source/network/FeedDataManager.h
-
-        # UI - Auth
-        source/ui/auth/AuthComponent.cpp
-        source/ui/auth/AuthComponent.h
-
-        # UI - Messages
-        source/ui/messages/MessagesListComponent.cpp
-        source/ui/messages/MessagesListComponent.h
-
-        # UI - Profile
-        source/ui/profile/ProfileSetupComponent.cpp
-        source/ui/profile/ProfileSetupComponent.h
-        source/ui/profile/ProfileComponent.cpp
-        source/ui/profile/ProfileComponent.h
-        source/ui/profile/EditProfileComponent.cpp
-        source/ui/profile/EditProfileComponent.h
-
-        # UI - Feed
-        source/ui/feed/PostsFeedComponent.cpp
-        source/ui/feed/PostsFeedComponent.h
-        source/ui/feed/PostCardComponent.cpp
-        source/ui/feed/PostCardComponent.h
-        source/ui/feed/CommentComponent.cpp
-        source/ui/feed/CommentComponent.h
-        source/ui/feed/EmojiReactionsPanel.cpp
-        source/ui/feed/EmojiReactionsPanel.h
-
-        # UI - Recording
-        source/ui/recording/RecordingComponent.cpp
-        source/ui/recording/RecordingComponent.h
-        source/ui/recording/UploadComponent.cpp
-        source/ui/recording/UploadComponent.h
-
-        # UI - Notifications
-        source/ui/notifications/NotificationBellComponent.cpp
-        source/ui/notifications/NotificationBellComponent.h
-        source/ui/notifications/NotificationListComponent.cpp
-        source/ui/notifications/NotificationListComponent.h
-
-        # UI - Social
-        source/ui/social/UserCardComponent.cpp
-        source/ui/social/UserCardComponent.h
-        source/ui/social/UserDiscoveryComponent.cpp
-        source/ui/social/UserDiscoveryComponent.h
-        source/ui/search/SearchComponent.cpp
-        source/ui/search/SearchComponent.h
-        source/ui/social/FollowersListComponent.cpp
-        source/ui/social/FollowersListComponent.h
-
-        # UI - Common
-        source/ui/common/HeaderComponent.cpp
-        source/ui/common/HeaderComponent.h
-        source/ui/common/ConnectionIndicator.h
-
-        # Utilities
-        source/util/Time.cpp
-        source/util/Time.h
-        source/util/Colors.h
-        source/util/HttpErrorHandler.h
-        source/util/Log.cpp
-        source/util/Log.h
-        source/util/ImageCache.cpp
-        source/util/ImageCache.h
-        source/util/Image.cpp
-        source/util/Image.h
-        source/util/Json.cpp
-        source/util/Json.h
-        source/util/Validate.cpp
-        source/util/Validate.h
-        source/util/Async.cpp
-        source/util/Async.h
-        source/util/Result.h
-        source/util/UIHelpers.cpp
-        source/util/UIHelpers.h
-        source/util/Constants.h
-        source/util/StringFormatter.cpp
-        source/util/StringFormatter.h
-        source/util/TextEditorStyler.cpp
-        source/util/TextEditorStyler.h
-        source/util/Animation.cpp
-        source/util/Animation.h
-        source/util/HoverState.h
-        source/util/LongPressDetector.h
-)
+# Add source files to plugin target
+target_sources(Sidechain PRIVATE ${SIDECHAIN_ALL_SOURCES})
 
 # Preprocessor definitions
 target_compile_definitions(Sidechain
@@ -720,28 +807,20 @@ if(SIDECHAIN_BUILD_TESTS)
     include(CTest)
     include(Catch)
 
-    # Create a static library from plugin source for testing (without plugin wrapper)
-    # Note: Only include .cpp files that have implementations (not header-only)
-    add_library(SidechainTestLib STATIC
+    # Audio sources for tests (excludes KeyDetector which requires libkeyfinder)
+    set(SIDECHAIN_TEST_AUDIO_SOURCES
         source/audio/AudioCapture.cpp
         source/audio/AudioCapture.h
-        source/audio/AudioPlayer.cpp
-        source/audio/AudioPlayer.h
-        source/network/NetworkClient.cpp
-        source/network/NetworkClient.h
-        source/network/FeedDataManager.cpp
-        source/network/FeedDataManager.h
-        source/network/WebSocketClient.cpp
-        source/network/WebSocketClient.h
-        source/network/StreamChatClient.cpp
-        source/network/StreamChatClient.h
-        source/models/FeedPost.cpp
-        source/models/FeedPost.h
-        source/models/FeedResponse.h
-        source/models/AggregatedFeedGroup.h
-        source/models/AggregatedFeedResponse.h
-        source/stores/UserDataStore.cpp
-        source/stores/UserDataStore.h
+        source/audio/MIDICapture.cpp
+        source/audio/MIDICapture.h
+        source/audio/HttpAudioPlayer.cpp
+        source/audio/HttpAudioPlayer.h
+        source/audio/BufferAudioPlayer.cpp
+        source/audio/BufferAudioPlayer.h
+    )
+
+    # Utility sources for tests (subset needed by test lib)
+    set(SIDECHAIN_TEST_UTIL_SOURCES
         source/util/Time.cpp
         source/util/Time.h
         source/util/Json.cpp
@@ -754,6 +833,17 @@ if(SIDECHAIN_BUILD_TESTS)
         source/util/StringFormatter.h
         source/util/Animation.cpp
         source/util/Animation.h
+        source/util/Log.cpp
+        source/util/Log.h
+    )
+
+    # Create a static library from plugin source for testing (without plugin wrapper)
+    add_library(SidechainTestLib STATIC
+        ${SIDECHAIN_TEST_AUDIO_SOURCES}
+        ${SIDECHAIN_NETWORK_SOURCES}
+        ${SIDECHAIN_MODELS_SOURCES}
+        ${SIDECHAIN_STORES_SOURCES}
+        ${SIDECHAIN_TEST_UTIL_SOURCES}
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
@@ -780,6 +870,7 @@ if(SIDECHAIN_BUILD_TESTS)
         juce::juce_events
         juce::juce_graphics
         juce::juce_data_structures
+        juce::juce_gui_basics
     )
 
     # Link websocketpp and asio if available (needed for WebSocketClient tests)
@@ -798,12 +889,15 @@ if(SIDECHAIN_BUILD_TESTS)
         endif()
     endif()
 
-    # Test executable
-    add_executable(SidechainTests
+    # Test source files
+    set(SIDECHAIN_TEST_SOURCES
         tests/AudioCaptureTest.cpp
         tests/NetworkClientTest.cpp
         tests/FeedDataTest.cpp
     )
+
+    # Test executable
+    add_executable(SidechainTests ${SIDECHAIN_TEST_SOURCES})
 
     target_link_libraries(SidechainTests PRIVATE
         SidechainTestLib
@@ -859,4 +953,14 @@ if(SIDECHAIN_BUILD_TESTS)
     message(STATUS "  JUnit output:    ${CMAKE_BINARY_DIR}/test-results/")
     message(STATUS "========================================")
     message(STATUS "")
+endif()
+
+#==============================================================================
+# Documentation (Doxygen + Sphinx)
+#==============================================================================
+if(SIDECHAIN_BUILD_DOCS)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../docs" "${CMAKE_BINARY_DIR}/docs" EXCLUDE_FROM_ALL)
+    message(STATUS "Documentation build enabled")
+else()
+    message(STATUS "Documentation build disabled (enable with -DSIDECHAIN_BUILD_DOCS=ON)")
 endif()

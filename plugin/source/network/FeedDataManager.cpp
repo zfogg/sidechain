@@ -59,7 +59,7 @@ void FeedDataManager::refreshFeed(RefreshCallback callback)
     hasMore = true;
     loadedPosts[currentFeedType].clear();
 
-    fetchFeed(currentFeedType, currentLimit, 0, [this, callback](const FeedResponse& response)
+    fetchFeed(currentFeedType, currentLimit, 0, [callback](const FeedResponse& response)
     {
         if (response.error.isNotEmpty())
         {

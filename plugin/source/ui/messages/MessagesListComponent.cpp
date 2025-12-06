@@ -2,7 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
-#include <algorithm>
+#include "../../util/StringFormatter.h"
 
 //==============================================================================
 MessagesListComponent::MessagesListComponent()
@@ -12,7 +12,7 @@ MessagesListComponent::MessagesListComponent()
     addAndMakeVisible(scrollBar);
     scrollBar.setRangeLimits(0.0, 0.0);
     scrollBar.addListener(this);
-    
+
     startTimer(10000); // Refresh every 10 seconds
 }
 
@@ -44,7 +44,7 @@ void MessagesListComponent::paint(juce::Graphics& g)
 
         case ListState::Loaded:
             drawHeader(g);
-            
+
             int y = HEADER_HEIGHT;
             for (size_t i = 0; i < channels.size(); i++)
             {
@@ -53,10 +53,10 @@ void MessagesListComponent::paint(juce::Graphics& g)
                     y += ITEM_HEIGHT;
                     continue; // Item is above visible area
                 }
-                
+
                 if (y - scrollPosition > getHeight())
                     break; // Past visible area
-                
+
                 drawChannelItem(g, channels[i], static_cast<int>(y - scrollPosition), getWidth() - scrollBar.getWidth());
                 y += ITEM_HEIGHT;
             }
@@ -67,7 +67,7 @@ void MessagesListComponent::paint(juce::Graphics& g)
 void MessagesListComponent::resized()
 {
     scrollBar.setBounds(getWidth() - 12, 0, 12, getHeight());
-    
+
     // Update scrollbar range
     int totalHeight = HEADER_HEIGHT + static_cast<int>(channels.size() * ITEM_HEIGHT);
     scrollBar.setRangeLimits(0.0, static_cast<double>(juce::jmax(0, totalHeight - getHeight())));
@@ -81,6 +81,14 @@ void MessagesListComponent::mouseUp(const juce::MouseEvent& event)
     {
         if (onNewMessage)
             onNewMessage();
+        return;
+    }
+
+    auto createGroupBounds = getCreateGroupButtonBounds();
+    if (createGroupBounds.getWidth() > 0 && createGroupBounds.contains(event.getPosition()))
+    {
+        if (onCreateGroup)
+            onCreateGroup();
         return;
     }
 
@@ -170,12 +178,23 @@ void MessagesListComponent::drawHeader(juce::Graphics& g)
     g.drawText("Messages", 10, 0, 200, HEADER_HEIGHT, juce::Justification::centredLeft);
 
     // Draw "New Message" button
-    auto buttonBounds = getNewMessageButtonBounds();
+    auto newMessageBounds = getNewMessageButtonBounds();
     g.setColour(juce::Colour(0xff4a9eff));
-    g.fillRoundedRectangle(buttonBounds.toFloat(), 6.0f);
+    g.fillRoundedRectangle(newMessageBounds.toFloat(), 6.0f);
     g.setColour(juce::Colours::white);
     g.setFont(14.0f);
-    g.drawText("New Message", buttonBounds, juce::Justification::centred);
+    g.drawText("New Message", newMessageBounds, juce::Justification::centred);
+
+    // Draw "Create Group" button (if space allows)
+    auto createGroupBounds = getCreateGroupButtonBounds();
+    if (createGroupBounds.getWidth() > 0)
+    {
+        g.setColour(juce::Colour(0xff3a3a3a));
+        g.fillRoundedRectangle(createGroupBounds.toFloat(), 6.0f);
+        g.setColour(juce::Colours::white);
+        g.setFont(14.0f);
+        g.drawText("Create Group", createGroupBounds, juce::Justification::centred);
+    }
 }
 
 void MessagesListComponent::drawChannelItem(juce::Graphics& g, const StreamChatClient::Channel& channel, int y, int width)
@@ -184,12 +203,29 @@ void MessagesListComponent::drawChannelItem(juce::Graphics& g, const StreamChatC
     g.setColour(juce::Colour(0xff252525));
     g.fillRect(0, y, width, ITEM_HEIGHT);
 
-    // Avatar placeholder (circular)
+    // Avatar (circular)
     int avatarSize = 50;
     int avatarX = 10;
     int avatarY = y + (ITEM_HEIGHT - avatarSize) / 2;
-    g.setColour(juce::Colour(0xff4a4a4a));
-    g.fillEllipse(avatarX, avatarY, avatarSize, avatarSize);
+
+    bool isGroup = isGroupChannel(channel);
+    if (isGroup)
+    {
+        // Group avatar - show first letter of name or "G" for group
+        juce::String channelName = getChannelName(channel);
+        juce::String initial = channelName.isNotEmpty() ? channelName.substring(0, 1).toUpperCase() : "G";
+        g.setColour(juce::Colour(0xff4a9eff));  // Group color
+        g.fillEllipse(avatarX, avatarY, avatarSize, avatarSize);
+        g.setColour(juce::Colours::white);
+        g.setFont(20.0f);
+        g.drawText(initial, avatarX, avatarY, avatarSize, avatarSize, juce::Justification::centred);
+    }
+    else
+    {
+        // Direct message avatar placeholder
+        g.setColour(juce::Colour(0xff4a4a4a));
+        g.fillEllipse(avatarX, avatarY, avatarSize, avatarSize);
+    }
 
     // Unread badge
     int unread = getUnreadCount(channel);
@@ -209,13 +245,25 @@ void MessagesListComponent::drawChannelItem(juce::Graphics& g, const StreamChatC
     int textWidth = width - textX - 100;
     g.setColour(juce::Colours::white);
     g.setFont(16.0f);
-    g.drawText(getChannelName(channel), textX, y + 10, textWidth, 20, juce::Justification::topLeft);
+    juce::String channelName = getChannelName(channel);
+    g.drawText(channelName, textX, y + 10, textWidth, 20, juce::Justification::topLeft);
 
-    // Last message preview
+    // Member count for groups
+    if (isGroup)
+    {
+        int memberCount = getMemberCount(channel);
+        juce::String memberText = juce::String(memberCount) + (memberCount == 1 ? " member" : " members");
+        g.setColour(juce::Colour(0xff888888));
+        g.setFont(12.0f);
+        g.drawText(memberText, textX, y + 32, textWidth, 16, juce::Justification::topLeft);
+    }
+
+    // Last message preview (below member count for groups, or at y+30 for DMs)
+    int previewY = isGroup ? y + 48 : y + 30;
     g.setColour(juce::Colour(0xffaaaaaa));
     g.setFont(14.0f);
     juce::String preview = getLastMessagePreview(channel);
-    g.drawText(preview, textX, y + 30, textWidth, 20, juce::Justification::topLeft, true);
+    g.drawText(preview, textX, previewY, textWidth, 20, juce::Justification::topLeft, true);
 
     // Timestamp
     juce::String timestamp = formatTimestamp(channel.lastMessageAt);
@@ -248,10 +296,7 @@ juce::String MessagesListComponent::formatTimestamp(const juce::String& timestam
     if (timestamp.isEmpty())
         return "";
 
-    // Parse ISO 8601 timestamp and format as relative time
-    // For now, return as-is or parse if needed
-    // TODO: Implement proper relative time formatting ("2h ago", "Yesterday", etc.)
-    return timestamp.substring(0, 10); // Just return date for now
+    return StringFormatter::formatTimeAgo(timestamp);
 }
 
 juce::String MessagesListComponent::getChannelName(const StreamChatClient::Channel& channel)
@@ -293,16 +338,35 @@ int MessagesListComponent::getChannelIndexAtY(int y)
 
     int itemY = y - HEADER_HEIGHT;
     int index = itemY / ITEM_HEIGHT;
-    
+
     if (index >= 0 && index < static_cast<int>(channels.size()))
         return index;
-    
+
     return -1;
 }
 
 juce::Rectangle<int> MessagesListComponent::getNewMessageButtonBounds() const
 {
-    return juce::Rectangle<int>(getWidth() - 150, 10, 140, BUTTON_HEIGHT);
+    // Position to the right, leaving space for Create Group button if there's room
+    int buttonWidth = 120;
+    int rightMargin = 10;
+    return juce::Rectangle<int>(getWidth() - buttonWidth - rightMargin, 10, buttonWidth, BUTTON_HEIGHT);
+}
+
+juce::Rectangle<int> MessagesListComponent::getCreateGroupButtonBounds() const
+{
+    // Show Create Group button if there's enough space (next to New Message)
+    int newMessageWidth = 120;
+    int buttonWidth = 120;
+    int spacing = 10;
+    int rightMargin = 10;
+    int totalWidth = newMessageWidth + spacing + buttonWidth + rightMargin;
+
+    if (getWidth() < totalWidth)
+        return juce::Rectangle<int>();  // Not enough space, hide button
+
+    return juce::Rectangle<int>(getWidth() - newMessageWidth - spacing - buttonWidth - rightMargin,
+                               10, buttonWidth, BUTTON_HEIGHT);
 }
 
 juce::Rectangle<int> MessagesListComponent::getChannelItemBounds(int index) const
@@ -314,4 +378,18 @@ void MessagesListComponent::scrollBarMoved(juce::ScrollBar* scrollBar, double ne
 {
     scrollPosition = newRangeStart;
     repaint();
+}
+
+bool MessagesListComponent::isGroupChannel(const StreamChatClient::Channel& channel) const
+{
+    return channel.type == "team" || (!channel.name.isEmpty() && channel.members.isArray());
+}
+
+int MessagesListComponent::getMemberCount(const StreamChatClient::Channel& channel) const
+{
+    if (channel.members.isArray())
+    {
+        return static_cast<int>(channel.members.size());
+    }
+    return 0;
 }

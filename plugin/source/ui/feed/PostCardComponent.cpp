@@ -295,7 +295,7 @@ void PostCardComponent::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<in
     if (post.bpm > 0)
     {
         auto bpmBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        UI::drawBadge(g, bpmBounds, juce::String(post.bpm) + " BPM",
+        UI::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
             SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
         badgeY += BADGE_HEIGHT + 5;
     }
@@ -355,7 +355,7 @@ void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int
     {
         g.setColour(post.isLiked || post.userReaction.isNotEmpty() ? SidechainColors::like() : SidechainColors::textMuted());
         g.setFont(11.0f);
-        g.drawText(juce::String(totalReactions),
+        g.drawText(StringFormatter::formatCount(totalReactions),
                    likeBounds.withX(likeBounds.getX() + 20).withWidth(30),
                    juce::Justification::centredLeft);
     }
@@ -370,14 +370,14 @@ void PostCardComponent::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int
     g.drawText("💬", commentBounds.withWidth(20), juce::Justification::centred);
 
     g.setFont(11.0f);
-    g.drawText(juce::String(post.commentCount),
+    g.drawText(StringFormatter::formatCount(post.commentCount),
                commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
                juce::Justification::centredLeft);
 
     // Play count (views)
     g.setColour(SidechainColors::textMuted());
     g.setFont(10.0f);
-    g.drawText(juce::String(post.playCount) + " plays",
+    g.drawText(StringFormatter::formatPlays(post.playCount),
                bounds.getX(), bounds.getY() - 15, 60, 12,
                juce::Justification::centredLeft);
 
@@ -445,7 +445,7 @@ void PostCardComponent::drawReactionCounts(juce::Graphics& g, juce::Rectangle<in
         g.setFont(9.0f);
         g.setColour(SidechainColors::textMuted());
         auto countBounds = juce::Rectangle<int>(reactionX + emojiSize + 2, reactionY, 20, emojiSize);
-        g.drawText(juce::String(reaction.count), countBounds, juce::Justification::centredLeft);
+        g.drawText(StringFormatter::formatCount(reaction.count), countBounds, juce::Justification::centredLeft);
 
         // Move to next position
         reactionX += emojiSize + spacing + 22;  // emoji + spacing + count width

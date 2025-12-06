@@ -124,6 +124,12 @@ namespace StringFormatter
      */
     juce::String formatComments(int count);
 
+    /**
+     * Format play count.
+     * Examples: 42 → "42 plays", 1200 → "1.2K plays"
+     */
+    juce::String formatPlays(int count);
+
     //==========================================================================
     // Time Ago Formatting
 

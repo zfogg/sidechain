@@ -77,6 +77,7 @@ public:
     std::function<void(const FeedPost&)> onPlayClicked;
     std::function<void(const FeedPost&)> onPauseClicked;
     std::function<void(const juce::String& userId)> onFollowToggled;
+    std::function<void(const juce::String& userId)> onMessageClicked;  // Opens DM with user
 
     //==============================================================================
     // Component overrides
@@ -144,6 +145,7 @@ private:
     juce::Rectangle<int> getFollowersBounds() const;
     juce::Rectangle<int> getFollowingBounds() const;
     juce::Rectangle<int> getFollowButtonBounds() const;
+    juce::Rectangle<int> getMessageButtonBounds() const;
     juce::Rectangle<int> getEditButtonBounds() const;
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getSocialLinkBounds(int index) const;

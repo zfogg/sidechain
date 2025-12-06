@@ -9,7 +9,7 @@ class NetworkClient;
 
 //==============================================================================
 /**
- * AudioPlayer - Handles audio playback for the feed
+ * HttpAudioPlayer - Handles HTTP/URL-based audio playback for the feed
  *
  * In a VST plugin context, we can't use standard audio output devices.
  * Instead, this class:
@@ -24,11 +24,11 @@ class NetworkClient;
  * - Volume control
  * - Audio caching (LRU with memory limit)
  */
-class AudioPlayer : public juce::ChangeListener
+class HttpAudioPlayer : public juce::ChangeListener
 {
 public:
-    AudioPlayer();
-    ~AudioPlayer() override;
+    HttpAudioPlayer();
+    ~HttpAudioPlayer() override;
 
     //==============================================================================
     // Transport Controls
@@ -247,7 +247,7 @@ private:
     juce::String currentAudioUrl;
     double currentSampleRate = 44100.0;
     int currentBlockSize = 512;
-    
+
     // Listen duration tracking
     juce::Time playbackStartTime;
     bool playbackStarted = false;
@@ -287,13 +287,13 @@ private:
     class ProgressTimer : public juce::Timer
     {
     public:
-        ProgressTimer(AudioPlayer& p) : player(p) {}
+        ProgressTimer(HttpAudioPlayer& p) : player(p) {}
         void timerCallback() override;
     private:
-        AudioPlayer& player;
+        HttpAudioPlayer& player;
     };
 
     std::unique_ptr<ProgressTimer> progressTimer;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPlayer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HttpAudioPlayer)
 };

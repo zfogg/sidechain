@@ -3,6 +3,7 @@
 #include "../../util/Json.h"
 #include "../../util/ImageCache.h"
 #include "../../util/Log.h"
+#include "../../util/StringFormatter.h"
 #include "../feed/PostCardComponent.h"
 
 //==============================================================================
@@ -385,7 +386,7 @@ void ProfileComponent::drawStats(juce::Graphics& g, juce::Rectangle<int> bounds)
     auto postsBounds = juce::Rectangle<int>(bounds.getX(), bounds.getY(), statSpacing, bounds.getHeight());
     g.setColour(Colors::textPrimary);
     g.setFont(juce::Font(18.0f, juce::Font::bold));
-    g.drawText(juce::String(profile.postCount), postsBounds.withHeight(22), juce::Justification::centred);
+    g.drawText(StringFormatter::formatCount(profile.postCount), postsBounds.withHeight(22), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(12.0f);
     g.drawText("Posts", postsBounds.withY(postsBounds.getY() + 22).withHeight(20), juce::Justification::centred);
@@ -394,7 +395,7 @@ void ProfileComponent::drawStats(juce::Graphics& g, juce::Rectangle<int> bounds)
     auto followersBounds = juce::Rectangle<int>(bounds.getX() + statSpacing, bounds.getY(), statSpacing, bounds.getHeight());
     g.setColour(Colors::textPrimary);
     g.setFont(juce::Font(18.0f, juce::Font::bold));
-    g.drawText(juce::String(profile.followerCount), followersBounds.withHeight(22), juce::Justification::centred);
+    g.drawText(StringFormatter::formatCount(profile.followerCount), followersBounds.withHeight(22), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(12.0f);
     g.drawText("Followers", followersBounds.withY(followersBounds.getY() + 22).withHeight(20), juce::Justification::centred);
@@ -403,7 +404,7 @@ void ProfileComponent::drawStats(juce::Graphics& g, juce::Rectangle<int> bounds)
     auto followingBounds = juce::Rectangle<int>(bounds.getX() + statSpacing * 2, bounds.getY(), statSpacing, bounds.getHeight());
     g.setColour(Colors::textPrimary);
     g.setFont(juce::Font(18.0f, juce::Font::bold));
-    g.drawText(juce::String(profile.followingCount), followingBounds.withHeight(22), juce::Justification::centred);
+    g.drawText(StringFormatter::formatCount(profile.followingCount), followingBounds.withHeight(22), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(12.0f);
     g.drawText("Following", followingBounds.withY(followingBounds.getY() + 22).withHeight(20), juce::Justification::centred);
@@ -425,7 +426,7 @@ void ProfileComponent::drawActionButtons(juce::Graphics& g, juce::Rectangle<int>
     }
     else
     {
-        // Follow/Following button
+        // Follow/Following button (left side)
         auto followBounds = getFollowButtonBounds();
         if (profile.isFollowing)
         {
@@ -443,6 +444,14 @@ void ProfileComponent::drawActionButtons(juce::Graphics& g, juce::Rectangle<int>
             g.setFont(14.0f);
             g.drawText("Follow", followBounds, juce::Justification::centred);
         }
+
+        // Message button (right side)
+        auto messageBounds = getMessageButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(messageBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Message", messageBounds, juce::Justification::centred);
     }
 }
 
@@ -707,6 +716,16 @@ void ProfileComponent::mouseUp(const juce::MouseEvent& event)
             handleFollowToggle();
             return;
         }
+
+        if (getMessageButtonBounds().contains(pos))
+        {
+            Log::info("ProfileComponent::mouseUp: Message button clicked - userId: " + profile.id);
+            if (onMessageClicked)
+                onMessageClicked(profile.id);
+            else
+                Log::warn("ProfileComponent::mouseUp: Message clicked but callback not set");
+            return;
+        }
     }
 
     // Check for retry button in error state
@@ -760,7 +779,15 @@ juce::Rectangle<int> ProfileComponent::getFollowingBounds() const
 juce::Rectangle<int> ProfileComponent::getFollowButtonBounds() const
 {
     int buttonsY = getAvatarBounds().getBottom() + 70;
-    return juce::Rectangle<int>(PADDING, buttonsY, getWidth() - PADDING * 2, BUTTON_HEIGHT);
+    int buttonWidth = (getWidth() - PADDING * 3) / 2;  // Half width minus spacing
+    return juce::Rectangle<int>(PADDING, buttonsY, buttonWidth, BUTTON_HEIGHT);
+}
+
+juce::Rectangle<int> ProfileComponent::getMessageButtonBounds() const
+{
+    int buttonsY = getAvatarBounds().getBottom() + 70;
+    int buttonWidth = (getWidth() - PADDING * 3) / 2;  // Half width minus spacing
+    return juce::Rectangle<int>(PADDING * 2 + buttonWidth, buttonsY, buttonWidth, BUTTON_HEIGHT);
 }
 
 juce::Rectangle<int> ProfileComponent::getEditButtonBounds() const
@@ -794,12 +821,13 @@ void ProfileComponent::fetchProfile(const juce::String& userId)
     juce::String endpoint = "/api/v1/users/" + userId + "/profile";
     Log::info("ProfileComponent::fetchProfile: Fetching profile from: " + endpoint);
 
-    networkClient->get(endpoint, [this, userId](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response, userId]() {
+    networkClient->get(endpoint, [this, userId](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, userId]() {
             isLoading = false;
 
-            if (success && response.isObject())
+            if (result.isOk() && result.getValue().isObject())
             {
+                auto response = result.getValue();
                 Log::info("ProfileComponent::fetchProfile: Profile fetch successful for userId: " + userId);
                 setProfile(UserProfile::fromJson(response));
             }
@@ -807,15 +835,24 @@ void ProfileComponent::fetchProfile(const juce::String& userId)
             {
                 Log::error("ProfileComponent::fetchProfile: Profile fetch failed for userId: " + userId);
                 hasError = true;
-                if (response.isObject() && response.hasProperty("error"))
+                if (result.isOk())
                 {
-                    errorMessage = response["error"].toString();
-                    Log::warn("ProfileComponent::fetchProfile: Error message: " + errorMessage);
+                    auto response = result.getValue();
+                    if (response.isObject() && response.hasProperty("error"))
+                    {
+                        errorMessage = response["error"].toString();
+                        Log::warn("ProfileComponent::fetchProfile: Error message: " + errorMessage);
+                    }
+                    else
+                    {
+                        errorMessage = "Failed to load profile";
+                        Log::warn("ProfileComponent::fetchProfile: No error message in response");
+                    }
                 }
                 else
                 {
-                    errorMessage = "Failed to load profile";
-                    Log::warn("ProfileComponent::fetchProfile: No error message in response");
+                    errorMessage = result.getError();
+                    Log::warn("ProfileComponent::fetchProfile: Error: " + errorMessage);
                 }
             }
 
@@ -835,10 +872,11 @@ void ProfileComponent::fetchUserPosts(const juce::String& userId)
     juce::String endpoint = "/api/v1/users/" + userId + "/posts?limit=20";
     Log::info("ProfileComponent::fetchUserPosts: Fetching posts from: " + endpoint);
 
-    networkClient->get(endpoint, [this, userId](bool success, const juce::var& response) {
-        juce::MessageManager::callAsync([this, success, response, userId]() {
-            if (success && response.isObject())
+    networkClient->get(endpoint, [this, userId](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, userId]() {
+            if (result.isOk() && result.getValue().isObject())
             {
+                auto response = result.getValue();
                 Log::debug("ProfileComponent::fetchUserPosts: Posts fetch successful for userId: " + userId);
                 userPosts.clear();
 
@@ -895,9 +933,9 @@ void ProfileComponent::handleFollowToggle()
     juce::String endpoint = "/users/" + profile.id + (wasFollowing ? "/unfollow" : "/follow");
     Log::debug("ProfileComponent::handleFollowToggle: Calling endpoint: " + endpoint);
 
-    networkClient->post(endpoint, juce::var(), [this, wasFollowing, willFollow](bool success, const juce::var& /*response*/) {
-        juce::MessageManager::callAsync([this, success, wasFollowing, willFollow]() {
-            if (!success)
+    networkClient->post(endpoint, juce::var(), [this, wasFollowing](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, wasFollowing]() {
+            if (result.isError())
             {
                 Log::error("ProfileComponent::handleFollowToggle: Follow toggle failed, reverting optimistic update");
                 // Revert on failure
@@ -953,7 +991,7 @@ void ProfileComponent::updatePostCards()
             else
                 Log::warn("ProfileComponent::updatePostCards: Pause clicked but callback not set");
         };
-        card->onUserClicked = [this](const FeedPost& /*post*/) {
+        card->onUserClicked = [](const FeedPost& /*post*/) {
             // Already on profile, do nothing or scroll to top
             Log::debug("ProfileComponent::updatePostCards: User clicked on post card (already on profile)");
         };

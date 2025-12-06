@@ -6,7 +6,7 @@
 #include "../../util/Animation.h"
 #include "PostCardComponent.h"
 #include "CommentComponent.h"
-#include "../../audio/AudioPlayer.h"
+#include "../../audio/HttpAudioPlayer.h"
 
 class NetworkClient;
 
@@ -23,6 +23,9 @@ public:
     void resized() override;
     void mouseUp(const juce::MouseEvent& event) override;
     void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override;
+
+    // Bring Component::keyPressed into scope to avoid hiding warning
+    using juce::Component::keyPressed;
 
     // KeyListener override for keyboard shortcuts
     bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
@@ -49,7 +52,7 @@ public:
     void setNetworkClient(NetworkClient* client);
 
     // Audio player integration
-    void setAudioPlayer(AudioPlayer* player);
+    void setAudioPlayer(HttpAudioPlayer* player);
 
     // Feed control
     void loadFeed();
@@ -105,7 +108,7 @@ private:
 
     //==============================================================================
     // Audio playback
-    AudioPlayer* audioPlayer = nullptr;
+    HttpAudioPlayer* audioPlayer = nullptr;
 
     //==============================================================================
     // Network client for play tracking

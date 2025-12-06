@@ -94,10 +94,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             if (userDataStore)
                 userDataStore->setLocalPreviewImage(imageFile);
 
-            networkClient->uploadProfilePicture(imageFile, [this](bool success, const juce::String& s3Url) {
-                juce::MessageManager::callAsync([this, success, s3Url]() {
-                    if (success && s3Url.isNotEmpty())
+            networkClient->uploadProfilePicture(imageFile, [this](Outcome<juce::String> result) {
+                juce::MessageManager::callAsync([this, result]() {
+                    if (result.isOk() && result.getValue().isNotEmpty())
                     {
+                        auto s3Url = result.getValue();
                         // Update UserDataStore with the S3 URL (will trigger image download)
                         if (userDataStore)
                         {
@@ -197,6 +198,83 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(searchComponent.get());
 
     //==========================================================================
+    // Create StoryRecordingComponent
+    storyRecordingComponent = std::make_unique<StoryRecordingComponent>(audioProcessor);
+    storyRecordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio, const juce::var& midiData, int bpm, const juce::String& key, const juce::StringArray& genres) {
+        // Upload story
+        if (networkClient && recordedAudio.getNumSamples() > 0)
+        {
+            networkClient->uploadStory(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData, bpm, key, genres,
+                [this](Outcome<juce::var> result) {
+                    juce::MessageManager::callAsync([this, result]() {
+                        if (result.isOk())
+                        {
+                            Log::info("Story uploaded successfully");
+                            // Navigate back to feed
+                            showView(AppView::PostsFeed);
+                        }
+                        else
+                        {
+                            Log::error("Story upload failed: " + result.getError());
+                            // TODO: Show error message to user
+                        }
+                    });
+                });
+        }
+    };
+    storyRecordingComponent->onRecordingDiscarded = [this]() {
+        showView(AppView::PostsFeed);
+    };
+    storyRecordingComponent->onCancel = [this]() {
+        showView(AppView::PostsFeed);
+    };
+    addChildComponent(storyRecordingComponent.get());
+
+    //==========================================================================
+    // Create StreamChatClient for getstream.io messaging
+    streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
+
+    // Wire up unread count callback to update header badge
+    streamChatClient->setUnreadCountCallback([this](int totalUnread) {
+        if (headerComponent)
+            headerComponent->setUnreadMessageCount(totalUnread);
+    });
+
+    //==========================================================================
+    // Create MessagesListComponent
+    messagesListComponent = std::make_unique<MessagesListComponent>();
+    messagesListComponent->setStreamChatClient(streamChatClient.get());
+    messagesListComponent->setNetworkClient(networkClient.get());
+    messagesListComponent->onChannelSelected = [this](const juce::String& channelType, const juce::String& channelId) {
+        showMessageThread(channelType, channelId);
+    };
+    messagesListComponent->onNewMessage = [this]() {
+        // TODO: Open new message dialog / user search
+        showView(AppView::Discovery);
+    };
+    messagesListComponent->onGoToDiscovery = [this]() {
+        showView(AppView::Discovery);
+    };
+    messagesListComponent->onCreateGroup = [this]() {
+        // TODO: Open group creation dialog with user picker
+        // For now, navigate to discovery to select users
+        showView(AppView::Discovery);
+        Log::info("PluginEditor: Create Group clicked - navigating to Discovery (full UI pending)");
+    };
+    addChildComponent(messagesListComponent.get());
+
+    //==========================================================================
+    // Create MessageThreadComponent
+    messageThreadComponent = std::make_unique<MessageThreadComponent>();
+    messageThreadComponent->setStreamChatClient(streamChatClient.get());
+    messageThreadComponent->setNetworkClient(networkClient.get());
+    messageThreadComponent->setAudioProcessor(&audioProcessor);
+    messageThreadComponent->onBackPressed = [this]() {
+        showView(AppView::Messages);
+    };
+    addChildComponent(messageThreadComponent.get());
+
+    //==========================================================================
     // Create ProfileComponent
     profileComponent = std::make_unique<ProfileComponent>();
     profileComponent->setNetworkClient(networkClient.get());
@@ -212,6 +290,30 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     profileComponent->onPauseClicked = [this](const FeedPost& /*post*/) {
         audioProcessor.getAudioPlayer().stop();
+    };
+    profileComponent->onMessageClicked = [this](const juce::String& userId) {
+        // Create direct channel with user and navigate to message thread
+        if (streamChatClient && streamChatClient->isAuthenticated())
+        {
+            streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
+                juce::MessageManager::callAsync([this, result]() {
+                    if (result.isOk())
+                    {
+                        auto channel = result.getValue();
+                        showMessageThread(channel.type, channel.id);
+                    }
+                    else
+                    {
+                        Log::error("PluginEditor: Failed to create DM channel: " + result.getError());
+                    }
+                });
+            });
+        }
+        else
+        {
+            // Fall back to messages view if stream chat not ready
+            showView(AppView::Messages);
+        }
     };
     addChildComponent(profileComponent.get());
 
@@ -239,12 +341,18 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     headerComponent->onRecordClicked = [this]() {
         showView(AppView::Recording);
     };
+    headerComponent->onStoryClicked = [this]() {
+        showView(AppView::StoryRecording);
+    };
+    headerComponent->onMessagesClicked = [this]() {
+        showView(AppView::Messages);
+    };
     addChildComponent(headerComponent.get()); // Initially hidden until logged in
 
     //==========================================================================
     // Check for previous crash before loading state
     checkForPreviousCrash();
-    
+
     //==========================================================================
     // Load persistent state and show appropriate view
     loadLoginState();
@@ -329,6 +437,18 @@ void SidechainAudioProcessorEditor::resized()
 
     if (profileComponent)
         profileComponent->setBounds(contentBounds);
+
+    if (searchComponent)
+        searchComponent->setBounds(contentBounds);
+
+    if (messagesListComponent)
+        messagesListComponent->setBounds(contentBounds);
+
+    if (messageThreadComponent)
+        messageThreadComponent->setBounds(contentBounds);
+
+    if (storyRecordingComponent)
+        storyRecordingComponent->setBounds(contentBounds);
 }
 
 //==============================================================================
@@ -349,6 +469,14 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         userDiscoveryComponent->setVisible(false);
     if (profileComponent)
         profileComponent->setVisible(false);
+    if (searchComponent)
+        searchComponent->setVisible(false);
+    if (messagesListComponent)
+        messagesListComponent->setVisible(false);
+    if (messageThreadComponent)
+        messageThreadComponent->setVisible(false);
+    if (storyRecordingComponent)
+        storyRecordingComponent->setVisible(false);
 
     // Push current view to navigation stack (except when going back)
     if (currentView != view && currentView != AppView::Authentication)
@@ -425,6 +553,11 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 uploadComponent->setVisible(true);
             break;
 
+        case AppView::StoryRecording:
+            if (storyRecordingComponent)
+                storyRecordingComponent->setVisible(true);
+            break;
+
         case AppView::Discovery:
             if (userDiscoveryComponent)
             {
@@ -456,6 +589,24 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 searchComponent->focusSearchInput();
             }
             break;
+
+        case AppView::Messages:
+            if (messagesListComponent)
+            {
+                messagesListComponent->setVisible(true);
+                messagesListComponent->loadChannels();
+            }
+            break;
+
+        case AppView::MessageThread:
+            if (messageThreadComponent)
+            {
+                if (userDataStore)
+                    messageThreadComponent->setCurrentUserId(userDataStore->getUserId());
+                messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
+                messageThreadComponent->setVisible(true);
+            }
+            break;
     }
 
     repaint();
@@ -465,6 +616,13 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String& userId)
 {
     profileUserIdToView = userId;
     showView(AppView::Profile);
+}
+
+void SidechainAudioProcessorEditor::showMessageThread(const juce::String& channelType, const juce::String& channelId)
+{
+    messageChannelType = channelType;
+    messageChannelId = channelId;
+    showView(AppView::MessageThread);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()
@@ -480,11 +638,10 @@ void SidechainAudioProcessorEditor::navigateBack()
     AppView previousView = navigationStack.getLast();
     navigationStack.removeLast();
 
-    // Temporarily set currentView to prevent double-push
-    AppView savedCurrent = currentView;
-    currentView = previousView;  // Prevent push in showView
+    // Set currentView to prevent double-push
+    currentView = previousView;
 
-    // Actually show the view (this will push savedCurrent, so we prevent that above)
+    // Actually show the view
     // Hide all views first
     if (authComponent) authComponent->setVisible(false);
     if (profileSetupComponent) profileSetupComponent->setVisible(false);
@@ -527,6 +684,27 @@ void SidechainAudioProcessorEditor::navigateBack()
                 profileSetupComponent->setVisible(true);
             }
             break;
+        case AppView::Search:
+            if (searchComponent)
+            {
+                searchComponent->setVisible(true);
+            }
+            break;
+        case AppView::Messages:
+            if (messagesListComponent)
+            {
+                messagesListComponent->setVisible(true);
+            }
+            break;
+        case AppView::MessageThread:
+            if (messageThreadComponent)
+            {
+                if (userDataStore)
+                    messageThreadComponent->setCurrentUserId(userDataStore->getUserId());
+                messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
+                messageThreadComponent->setVisible(true);
+            }
+            break;
         default:
             if (postsFeedComponent)
             {
@@ -556,6 +734,21 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     if (networkClient && !token.isEmpty())
         networkClient->setAuthToken(token);
 
+    // Fetch getstream.io chat token for messaging
+    if (streamChatClient && !token.isEmpty())
+    {
+        streamChatClient->fetchToken(token, [](Outcome<StreamChatClient::TokenResult> result) {
+            if (result.isOk())
+            {
+                Log::info("Stream chat token fetched successfully for user: " + result.getValue().userId);
+            }
+            else
+            {
+                Log::warn("Failed to fetch stream chat token: " + result.getError());
+            }
+        });
+    }
+
     // Connect WebSocket with auth token
     connectWebSocket();
 
@@ -565,8 +758,8 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     // Fetch full user profile (including profile picture) via UserDataStore
     if (userDataStore)
     {
-        userDataStore->fetchUserProfile([this](bool success) {
-            juce::MessageManager::callAsync([this, success]() {
+        userDataStore->fetchUserProfile([this](bool /*success*/) {
+            juce::MessageManager::callAsync([this]() {
                 // Sync legacy state from UserDataStore
                 if (userDataStore)
                 {
@@ -683,6 +876,21 @@ void SidechainAudioProcessorEditor::loadLoginState()
             if (!authToken.isEmpty() && networkClient)
                 networkClient->setAuthToken(authToken);
 
+            // Fetch getstream.io chat token for messaging
+            if (streamChatClient && !authToken.isEmpty())
+            {
+                streamChatClient->fetchToken(authToken, [](Outcome<StreamChatClient::TokenResult> result) {
+                    if (result.isOk())
+                    {
+                        Log::info("Stream chat token fetched successfully for user: " + result.getValue().userId);
+                    }
+                    else
+                    {
+                        Log::warn("Failed to fetch stream chat token: " + result.getError());
+                    }
+                });
+            }
+
             // Connect WebSocket with saved auth token
             connectWebSocket();
 
@@ -704,7 +912,7 @@ void SidechainAudioProcessorEditor::loadLoginState()
             // Fetch fresh profile to get latest data (including profile picture)
             userDataStore->fetchUserProfile([this](bool success) {
                 Log::debug("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
-                juce::MessageManager::callAsync([this, success]() {
+                juce::MessageManager::callAsync([this]() {
                     // Sync profile URL from UserDataStore
                     if (userDataStore)
                     {
@@ -746,18 +954,18 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash()
     properties.folderName = "SidechainPlugin";
 
     auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
-    
+
     // Check if clean shutdown flag exists (if it doesn't exist, this is first run)
     if (appProperties->containsKey("cleanShutdown"))
     {
         // Flag exists - check its value
         bool cleanShutdown = appProperties->getBoolValue("cleanShutdown", false);
-        
+
         if (!cleanShutdown)
         {
             // App didn't shut down cleanly - it likely crashed
             // Show notification after a short delay to ensure UI is ready
-            juce::MessageManager::callAsync([this]() {
+            juce::MessageManager::callAsync([]() {
                 juce::AlertWindow::showMessageBoxAsync(
                     juce::AlertWindow::WarningIcon,
                     "Previous Session Ended Unexpectedly",
@@ -767,12 +975,12 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash()
                     "OK"
                 );
             });
-            
+
             Log::warn("Detected previous crash - clean shutdown flag was not set");
         }
     }
     // If flag doesn't exist, this is the first run - no crash to report
-    
+
     // Clear the flag now (we'll set it again on clean shutdown)
     appProperties->setValue("cleanShutdown", false);
     appProperties->save();
@@ -786,11 +994,11 @@ void SidechainAudioProcessorEditor::markCleanShutdown()
     properties.folderName = "SidechainPlugin";
 
     auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
-    
+
     // Set clean shutdown flag
     appProperties->setValue("cleanShutdown", true);
     appProperties->save();
-    
+
     Log::debug("Marked clean shutdown");
 }
 
@@ -1018,8 +1226,8 @@ void SidechainAudioProcessorEditor::setupNotifications()
     notificationList->onMarkAllReadClicked = [this]() {
         if (networkClient)
         {
-            networkClient->markNotificationsRead([this](bool success, const juce::var&) {
-                if (success)
+            networkClient->markNotificationsRead([this](Outcome<juce::var> response) {
+                if (response.isOk())
                 {
                     // Refresh notifications to update read state
                     fetchNotifications();
@@ -1056,8 +1264,8 @@ void SidechainAudioProcessorEditor::showNotificationPanel()
     // Mark notifications as seen (clears badge)
     if (networkClient)
     {
-        networkClient->markNotificationsSeen([this](bool success, const juce::var&) {
-            if (success && notificationBell)
+        networkClient->markNotificationsSeen([this](Outcome<juce::var> response) {
+            if (response.isOk() && notificationBell)
             {
                 notificationBell->clearBadge();
             }
@@ -1090,33 +1298,35 @@ void SidechainAudioProcessorEditor::fetchNotifications()
     if (notificationList)
         notificationList->setLoading(true);
 
-    networkClient->getNotifications(20, 0, [this](bool success, const juce::var& groups, int unseen, int unread) {
-        if (!success)
+    networkClient->getNotifications(20, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
+        if (result.isError())
         {
             if (notificationList)
                 notificationList->setError("Failed to load notifications");
             return;
         }
 
+        auto notifResult = result.getValue();
+
         // Update counts
         if (notificationBell)
         {
-            notificationBell->setUnseenCount(unseen);
-            notificationBell->setUnreadCount(unread);
+            notificationBell->setUnseenCount(notifResult.unseen);
+            notificationBell->setUnreadCount(notifResult.unread);
         }
         if (notificationList)
         {
-            notificationList->setUnseenCount(unseen);
-            notificationList->setUnreadCount(unread);
+            notificationList->setUnseenCount(notifResult.unseen);
+            notificationList->setUnreadCount(notifResult.unread);
         }
 
         // Parse notification groups
         juce::Array<NotificationItem> items;
-        if (groups.isArray())
+        if (notifResult.notifications.isArray())
         {
-            for (int i = 0; i < groups.size(); ++i)
+            for (int i = 0; i < notifResult.notifications.size(); ++i)
             {
-                items.add(NotificationItem::fromJson(groups[i]));
+                items.add(NotificationItem::fromJson(notifResult.notifications[i]));
             }
         }
 
