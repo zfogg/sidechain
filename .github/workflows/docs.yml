@@ -173,8 +173,17 @@ jobs:
             
             # Also explicitly download internal packages
             echo "Downloading internal packages..."
+            mkdir -p docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal
             for pkg in handlers models database auth stream storage websocket; do
-              curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/internal/$pkg/ > docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html 2>/dev/null || echo "Note: $pkg package not found"
+              echo "  Downloading internal/$pkg..."
+              mkdir -p docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg
+              curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/internal/$pkg/ > docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html 2>&1
+              if [ -s docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html ]; then
+                echo "    ✓ Downloaded internal/$pkg"
+              else
+                echo "    ✗ Failed to download internal/$pkg"
+                rm -f docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html
+              fi
             done
             
             echo "Package download completed"
