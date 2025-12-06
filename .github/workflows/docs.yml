@@ -53,7 +53,7 @@ jobs:
 
       - name: Install Go documentation tool
         run: |
-          go install golang.org/x/tools/cmd/godoc@latest
+          go install golang.org/x/pkgsite/cmd/pkgsite@latest
 
       - name: Set up Node.js (for plugin build tools if needed)
         uses: actions/setup-node@v4
@@ -88,39 +88,40 @@ jobs:
 
       - name: Generate Go package documentation
         run: |
-          # Install wget and curl for downloading godoc pages
+          # Install wget and curl for downloading pkgsite pages
           sudo apt-get install -y wget curl
           
-          # Generate godoc HTML documentation
+          # Generate pkgsite HTML documentation (pkg.go.dev style)
           mkdir -p docs/_build/html/backend/godoc
           
-          # Change to backend directory so godoc can find the Go modules
+          # Change to backend directory so pkgsite can find the Go modules
           cd backend
           
-          # Start godoc server in background from backend directory
+          # Start pkgsite server in background from backend directory
+          # Use -cache flag to serve from module cache (works for local packages)
           # Redirect output to see any errors
-          ~/go/bin/godoc -http=:6060 > /tmp/godoc.log 2>&1 &
-          GODOC_PID=$!
+          ~/go/bin/pkgsite -cache -http=:8080 . > /tmp/pkgsite.log 2>&1 &
+          PKGSITE_PID=$!
           
           # Wait for server to start and verify it's running
-          echo "Waiting for godoc server to start..."
-          for i in {1..15}; do
+          echo "Waiting for pkgsite server to start..."
+          for i in {1..20}; do
             sleep 1
-            if curl -s http://localhost:6060/ > /dev/null 2>&1; then
-              echo "✓ Godoc server is running"
+            if curl -s http://localhost:8080/ > /dev/null 2>&1; then
+              echo "✓ Pkgsite server is running"
               break
             fi
-            if [ $i -eq 15 ]; then
-              echo "✗ Godoc server failed to start after 15 seconds"
-              echo "Godoc log:"
-              cat /tmp/godoc.log 2>/dev/null || echo "(no log available)"
+            if [ $i -eq 20 ]; then
+              echo "✗ Pkgsite server failed to start after 20 seconds"
+              echo "Pkgsite log:"
+              cat /tmp/pkgsite.log 2>/dev/null || echo "(no log available)"
               # Check if process is still running
-              if ps -p $GODOC_PID > /dev/null 2>&1; then
-                echo "Godoc process is running but not responding"
+              if ps -p $PKGSITE_PID > /dev/null 2>&1; then
+                echo "Pkgsite process is running but not responding"
               else
-                echo "Godoc process exited"
+                echo "Pkgsite process exited"
               fi
-              kill $GODOC_PID 2>/dev/null || true
+              kill $PKGSITE_PID 2>/dev/null || true
               exit 1
             fi
           done
@@ -128,119 +129,89 @@ jobs:
           # Go back to workspace root
           cd ${{ github.workspace }}
           
-          # Download all package pages using wget with proper options
-          # Create lib directory for assets
-          mkdir -p docs/_build/html/backend/godoc/lib
-          
-          # Download CSS and JS assets (with error handling - some may not exist)
-          echo "Downloading godoc assets..."
-          # Create lib/godoc directory structure that matches what godoc expects
-          mkdir -p docs/_build/html/backend/godoc/lib/godoc
-          
-          # Download assets - godoc serves them from /lib/godoc/
-          # Try both possible paths (godoc may serve from different locations)
-          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/godocs.js || \
-            wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc.js || echo "Note: godocs.js not available"
-          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/jquery.js || \
-            wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/jquery.js || echo "Note: jquery.js not available"
-          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/jquery.treeview.css || \
-            wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/jquery.treeview.css || echo "Note: jquery.treeview.css not available"
-          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/jquery.treeview.js || \
-            wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/jquery.treeview.js || echo "Note: jquery.treeview.js not available"
-          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/playground.js || \
-            wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/playground.js || echo "Note: playground.js not available"
-          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/style.css || \
-            wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/style.css || echo "Note: style.css not available"
+          # Download static assets (pkgsite uses /static/ path)
+          echo "Downloading pkgsite assets..."
+          # Download static assets recursively
+          wget -q \
+            --recursive \
+            --level=2 \
+            --no-parent \
+            --no-host-directories \
+            --cut-dirs=1 \
+            --convert-links \
+            --directory-prefix=docs/_build/html/backend/godoc \
+            --accept="*.css,*.js,*.woff,*.woff2,*.ttf,*.svg,*.png,*.ico" \
+            --reject="*.html" \
+            http://localhost:8080/static/ || echo "Note: Some static assets may not be available"
           
           # Download main pages
-          echo "Downloading godoc pages..."
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html || echo "Warning: Failed to download index.html"
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html || echo "Warning: Failed to download pkg.html"
+          echo "Downloading pkgsite pages..."
+          wget -q -P docs/_build/html/backend/godoc http://localhost:8080/ --output-document=index.html || echo "Warning: Failed to download index.html"
           
           # Download our backend packages recursively
           echo "Downloading backend package documentation..."
+          # pkgsite uses /github.com/username/repo/... path structure
+          PACKAGE_PATH="github.com/zfogg/sidechain/backend"
+          
           # First verify the package exists and test a direct download
-          TEST_DOWNLOAD=$(curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ | head -20)
+          TEST_DOWNLOAD=$(curl -s http://localhost:8080/${PACKAGE_PATH}/ | head -20)
           if [ -n "$TEST_DOWNLOAD" ]; then
             echo "Package path verified, downloading..."
-            # Download the main package page first
-            mkdir -p docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend
-            curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ > docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend/index.html || echo "Warning: Failed to download package index"
             
             # Use wget to download ALL package pages recursively (including internal packages)
-            # Increase level to get all subdirectories
             wget \
               --recursive \
               --level=10 \
               --no-parent \
               --no-host-directories \
-              --cut-dirs=2 \
+              --cut-dirs=0 \
               --convert-links \
               --adjust-extension \
+              --page-requisites \
               --directory-prefix=docs/_build/html/backend/godoc \
               --accept="*.html" \
-              --reject="robots.txt,*.png,*.ico,*.jpg,*.gif,*.css,*.js" \
+              --reject="robots.txt" \
               --no-verbose \
-              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ 2>&1 | grep -E "(saved|Downloaded|ERROR|Rejecting)" | head -30 || true
-            
-            # Also explicitly download internal packages
-            echo "Downloading internal packages..."
-            mkdir -p docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal
-            for pkg in handlers models database auth stream storage websocket; do
-              echo "  Downloading internal/$pkg..."
-              mkdir -p docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg
-              curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/internal/$pkg/ > docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html 2>&1
-              if [ -s docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html ]; then
-                echo "    ✓ Downloaded internal/$pkg"
-              else
-                echo "    ✗ Failed to download internal/$pkg"
-                rm -f docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/$pkg/index.html
-              fi
-            done
+              http://localhost:8080/${PACKAGE_PATH}/ 2>&1 | grep -E "(saved|Downloaded|ERROR|Rejecting)" | head -30 || true
             
             echo "Package download completed"
             # List what we got
             echo "Downloaded files:"
             find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | head -15 || echo "No HTML files found"
           else
-            echo "Warning: Package path not accessible at http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/"
+            echo "Warning: Package path not accessible at http://localhost:8080/${PACKAGE_PATH}/"
           fi
           
           # Fix paths in downloaded HTML files to use relative paths
           echo "Fixing paths in downloaded HTML files..."
           find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
-            # Calculate relative depth (how many directories deep this file is from godoc root)
-            # File path: docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/handlers/index.html
-            # We want: ../../../../../../lib/godoc/ (6 levels up)
+            # Calculate relative depth
             REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
-            if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ] && [ "$REL_PATH" != "pkg.html" ]; then
+            if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
               REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
-              # Add 1 if it's not a directory (has a filename)
               if [[ "$REL_PATH" == *"/"* ]]; then
                 REL_DEPTH=$((REL_DEPTH + 1))
               fi
-              # Build relative path prefix (../../ for each level)
               if [ $REL_DEPTH -gt 0 ]; then
                 REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
               else
                 REL_PREFIX=""
               fi
             else
-              # Files at root level
               REL_PREFIX=""
             fi
             
             sed -i \
-              -e 's|href="/lib/godoc/|href="'${REL_PREFIX}'lib/godoc/|g' \
-              -e 's|src="/lib/godoc/|src="'${REL_PREFIX}'lib/godoc/|g' \
-              -e 's|href="/pkg/|href="'${REL_PREFIX}pkg'/|g' \
-              -e 's|action="/search|action="'${REL_PREFIX}'search|g' \
-              -e 's|href="/src/|href="'${REL_PREFIX}'src/|g' \
+              -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
+              -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
+              -e 's|href="/github.com/|href="'${REL_PREFIX}'github.com/|g' \
+              -e 's|href="/|href="'${REL_PREFIX}'|g' \
+              -e 's|src="/|src="'${REL_PREFIX}'|g' \
               "$f" || true
           done
           
           # Verify we got the files (check for package pages even if index.html failed)
-          if [ -f "docs/_build/html/backend/godoc/index.html" ] || [ -f "docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend/index.html" ]; then
+          if [ -f "docs/_build/html/backend/godoc/index.html" ] || [ -f "docs/_build/html/backend/godoc/${PACKAGE_PATH}/index.html" ]; then
             echo "✓ Go documentation generated successfully"
             HTML_COUNT=$(find docs/_build/html/backend/godoc -name "*.html" 2>/dev/null | wc -l)
             echo "  Downloaded $HTML_COUNT HTML files"
@@ -249,9 +220,9 @@ jobs:
             exit 1
           fi
           
-          # Stop godoc
-          kill $GODOC_PID || true
-          wait $GODOC_PID 2>/dev/null || true
+          # Stop pkgsite
+          kill $PKGSITE_PID || true
+          wait $PKGSITE_PID 2>/dev/null || true
 
       - name: Build Sphinx documentation
         working-directory: docs
