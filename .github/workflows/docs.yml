@@ -93,19 +93,22 @@ jobs:
           sleep 5
           
           # Download all package pages using wget with proper options
-          # Download CSS and JS assets
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js
+          # Create lib directory for assets
+          mkdir -p docs/_build/html/backend/godoc/lib
+          
+          # Download CSS and JS assets (with error handling)
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js || echo "Warning: Failed to download godoc.js"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js || echo "Warning: Failed to download jquery.js"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css || echo "Warning: Failed to download jquery.treeview.css"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js || echo "Warning: Failed to download jquery.treeview.js"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js || echo "Warning: Failed to download playground.js"
           
           # Download main pages
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html
+          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html || echo "Warning: Failed to download index.html"
+          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html || echo "Warning: Failed to download pkg.html"
           
           # Download our backend packages recursively
-          wget -q -P docs/_build/html/backend/godoc \
+          wget -q \
             --recursive \
             --level=10 \
             --no-parent \
@@ -115,15 +118,17 @@ jobs:
             --adjust-extension \
             --page-requisites \
             --directory-prefix=docs/_build/html/backend/godoc \
-            http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/
+            http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ || echo "Warning: Failed to download some package pages"
           
           # Fix paths in downloaded HTML files to use relative paths
-          find docs/_build/html/backend/godoc -name "*.html" -type f -exec sed -i \
-            -e 's|href="/lib/|href="lib/|g' \
-            -e 's|src="/lib/|src="lib/|g' \
-            -e 's|href="/pkg/|href="pkg/|g' \
-            -e 's|action="/search|action="search|g' \
-            {} \;
+          find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
+            sed -i \
+              -e 's|href="/lib/|href="lib/|g' \
+              -e 's|src="/lib/|src="lib/|g' \
+              -e 's|href="/pkg/|href="pkg/|g' \
+              -e 's|action="/search|action="search|g' \
+              "$f" || true
+          done
           
           # Stop godoc
           kill $GODOC_PID || true
