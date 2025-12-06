@@ -40,6 +40,22 @@ make plugin-clean
 
 **Development Tip**: Use `make plugin-fast` for iterative development - it's ~40% faster by skipping project file regeneration. Only use `make plugin` when you add new source files.
 
+**CMake Presets**: The project includes CMake presets for easier configuration:
+```bash
+# List available presets
+cmake --list-presets -S plugin
+
+# Configure using a preset (automatically uses Ninja generator)
+cmake --preset default -S plugin -B plugin/build
+cmake --preset debug -S plugin -B plugin/build
+cmake --preset release -S plugin -B plugin/build
+
+# Build using a preset
+cmake --build --preset default
+```
+
+**Generator Note**: The Makefile automatically detects and uses Ninja if available for faster parallel builds. CMake presets also default to Ninja. If you run `cmake` directly, specify `-G Ninja` or use a preset.
+
 ### Backend (Go)
 ```bash
 # Build backend
