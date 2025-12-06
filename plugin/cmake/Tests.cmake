@@ -1,0 +1,152 @@
+#==============================================================================
+# Tests Configuration
+# Catch2-based unit test setup
+#==============================================================================
+
+if(SIDECHAIN_BUILD_TESTS)
+    # Enable CTest
+    enable_testing()
+
+    # Fetch Catch2
+    include(FetchContent)
+    FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.5.2
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(Catch2)
+
+    # Include Catch2's CMake helpers
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+    include(CTest)
+    include(Catch)
+
+    # Create a test library that uses the modular libraries
+    # Instead of duplicating sources, we link against the libraries
+    # Note: We create a subset for tests that excludes some components
+    add_library(SidechainTestLib STATIC
+        # Audio sources for tests (excludes KeyDetector which requires libkeyfinder)
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/AudioCapture.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/AudioCapture.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/MIDICapture.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/MIDICapture.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/HttpAudioPlayer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/HttpAudioPlayer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/BufferAudioPlayer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/BufferAudioPlayer.h
+    )
+
+    # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
+    # We need to build Sidechain first to generate the header
+    add_dependencies(SidechainTestLib Sidechain)
+
+    target_include_directories(SidechainTestLib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/source
+        # Use the JuceHeader generated early
+        ${CMAKE_CURRENT_BINARY_DIR}/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode
+    )
+
+    # Link to JuceHeader target to ensure it's built first
+    target_link_libraries(SidechainTestLib PUBLIC SidechainJuceHeader)
+    add_dependencies(SidechainTestLib SidechainJuceHeaderHelper)
+
+    target_compile_definitions(SidechainTestLib PUBLIC
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_STANDALONE_APPLICATION=1
+    )
+
+    # Link against modular libraries instead of duplicating sources
+    target_link_libraries(SidechainTestLib PUBLIC
+        SidechainUtil
+        SidechainModels
+        SidechainNetwork
+        # Use test audio lib for subset of audio sources
+        juce::juce_audio_basics
+        juce::juce_audio_formats
+        juce::juce_core
+        juce::juce_events
+        juce::juce_graphics
+        juce::juce_data_structures
+        juce::juce_gui_basics
+    )
+
+    # Link websocketpp and asio if available (needed for WebSocketClient tests)
+    if(SIDECHAIN_HAS_WEBSOCKETPP)
+        target_link_libraries(SidechainTestLib PRIVATE websocketpp)
+    endif()
+    if(SIDECHAIN_HAS_ASIO)
+        target_link_libraries(SidechainTestLib PRIVATE asio)
+    endif()
+
+    # Coverage flags
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+            target_compile_options(SidechainTestLib PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+            target_link_options(SidechainTestLib PRIVATE --coverage)
+        endif()
+    endif()
+
+    # Test source files
+    set(SIDECHAIN_TEST_SOURCES
+        tests/AudioCaptureTest.cpp
+        tests/NetworkClientTest.cpp
+        tests/FeedDataTest.cpp
+    )
+
+    # Test executable
+    add_executable(SidechainTests ${SIDECHAIN_TEST_SOURCES})
+
+    target_link_libraries(SidechainTests PRIVATE
+        SidechainTestLib
+        Catch2::Catch2WithMain
+    )
+
+    # Coverage flags for test executable
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+            target_compile_options(SidechainTests PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+            target_link_options(SidechainTests PRIVATE --coverage)
+        endif()
+    endif()
+
+    # Create test-results directory for JUnit XML output
+    # Use both file(MAKE_DIRECTORY) at configure time AND a POST_BUILD command
+    # to ensure directory exists when tests run (fixes CI race condition)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/test-results)
+    add_custom_command(TARGET SidechainTests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test-results
+        COMMENT "Ensuring test-results directory exists"
+    )
+
+    # Register tests with CTest
+    catch_discover_tests(SidechainTests
+        REPORTER junit
+        OUTPUT_DIR ${CMAKE_BINARY_DIR}/test-results
+        OUTPUT_PREFIX "test-"
+        OUTPUT_SUFFIX ".xml"
+    )
+
+    # Custom target for running tests with coverage
+    if(SIDECHAIN_ENABLE_COVERAGE)
+        add_custom_target(coverage
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
+            COMMAND SidechainTests
+            COMMAND lcov --capture --directory ${CMAKE_BINARY_DIR} --output-file ${CMAKE_BINARY_DIR}/coverage/coverage.info --ignore-errors mismatch
+            COMMAND lcov --remove ${CMAKE_BINARY_DIR}/coverage/coverage.info '/usr/*' '*/deps/*' '*/Catch2/*' '*/build/*' --output-file ${CMAKE_BINARY_DIR}/coverage/coverage.info --ignore-errors unused
+            COMMAND genhtml ${CMAKE_BINARY_DIR}/coverage/coverage.info --output-directory ${CMAKE_BINARY_DIR}/coverage/html
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Running tests and generating coverage report"
+            DEPENDS SidechainTests
+        )
+    endif()
+
+    message(STATUS "Test Configuration:")
+    message(STATUS "  Tests enabled:   ON")
+    message(STATUS "  Coverage:        ${SIDECHAIN_ENABLE_COVERAGE}")
+    message(STATUS "  Test binary:     ${CMAKE_BINARY_DIR}/SidechainTests")
+    message(STATUS "  JUnit output:    ${CMAKE_BINARY_DIR}/test-results/")
+endif()
+
