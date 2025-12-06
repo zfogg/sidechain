@@ -173,7 +173,11 @@ EXCLUDE_SYMBOLS         = juce::* \
                           fmt::* \
                           ::fmt::* \
                           spdlog::* \
-                          ::spdlog::*
+                          ::spdlog::* \
+                          websocketpp::* \
+                          ::websocketpp::* \
+                          asio::* \
+                          ::asio::*
 EXAMPLE_PATH            =
 EXAMPLE_PATTERNS        = *
 EXAMPLE_RECURSIVE       = NO
