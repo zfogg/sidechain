@@ -10,6 +10,10 @@ on:
       - 'plugin/**/*.h'
       - 'backend/**/*.go'
       - '.github/workflows/docs.yml'
+      - 'docs/CMakeLists.txt'
+      - 'docs/conf.py'
+      - 'docs/**/*.rst'
+      - 'docs/**/*.md'
   workflow_dispatch:
 
 permissions:
@@ -146,8 +150,9 @@ jobs:
           # First verify the package exists
           if curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ > /dev/null 2>&1; then
             echo "Package path verified, downloading..."
-            # Use wget with error handling - ignore 404s for missing assets
-            wget -q \
+            # Use wget to download package pages
+            # Note: wget may show errors for missing toolchain files, but should still download HTML
+            wget \
               --recursive \
               --level=10 \
               --no-parent \
@@ -158,10 +163,14 @@ jobs:
               --directory-prefix=docs/_build/html/backend/godoc \
               --reject="robots.txt,*.png,*.ico" \
               --accept="*.html" \
-              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ 2>&1 | grep -v "lstat.*no such file" || true
+              --no-verbose \
+              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ 2>&1 | grep -v "lstat.*no such file" | grep -v "File.*robots.txt" | grep -v "File.*\.png" || true
             echo "Package download completed"
+            # List what we got
+            echo "Downloaded files:"
+            find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | head -10 || echo "No HTML files found"
           else
-            echo "Warning: Package path not accessible"
+            echo "Warning: Package path not accessible at http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/"
           fi
           
           # Fix paths in downloaded HTML files to use relative paths
