@@ -1148,3 +1148,161 @@ TEST_CASE("AudioCapture processing pipeline", "[AudioCapture][Processing][Integr
         tempFile.deleteFile();
     }
 }
+
+//==============================================================================
+TEST_CASE("AudioCapture channel configurations", "[AudioCapture][Channels]")
+{
+    AudioCapture capture;
+
+    SECTION("mono configuration (1 channel)")
+    {
+        capture.prepare(44100.0, 512, 1);
+        REQUIRE(capture.getNumChannels() == 1);
+
+        capture.startRecording();
+        
+        // Create mono buffer
+        juce::AudioBuffer<float> monoBuffer(1, 1024);
+        for (int i = 0; i < 1024; ++i)
+        {
+            monoBuffer.setSample(0, i, 0.5f * std::sin(2.0f * juce::MathConstants<float>::pi * 440.0f * i / 44100.0f));
+        }
+
+        capture.captureAudio(monoBuffer);
+        
+        REQUIRE(capture.getRecordingLengthSamples() == 1024);
+        REQUIRE(capture.getPeakLevel(0) > 0.0f);
+        
+        auto result = capture.stopRecording();
+        REQUIRE(result.getNumChannels() == 1);
+        REQUIRE(result.getNumSamples() == 1024);
+    }
+
+    SECTION("stereo configuration (2 channels)")
+    {
+        capture.prepare(44100.0, 512, 2);
+        REQUIRE(capture.getNumChannels() == 2);
+
+        capture.startRecording();
+        
+        // Create stereo buffer
+        juce::AudioBuffer<float> stereoBuffer(2, 1024);
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            for (int i = 0; i < 1024; ++i)
+            {
+                float sample = 0.5f * std::sin(2.0f * juce::MathConstants<float>::pi * 440.0f * i / 44100.0f);
+                stereoBuffer.setSample(ch, i, sample);
+            }
+        }
+
+        capture.captureAudio(stereoBuffer);
+        
+        REQUIRE(capture.getRecordingLengthSamples() == 1024);
+        REQUIRE(capture.getPeakLevel(0) > 0.0f);
+        REQUIRE(capture.getPeakLevel(1) > 0.0f);
+        
+        auto result = capture.stopRecording();
+        REQUIRE(result.getNumChannels() == 2);
+        REQUIRE(result.getNumSamples() == 1024);
+    }
+
+    SECTION("multi-channel input (4 channels) clamps to stereo")
+    {
+        capture.prepare(44100.0, 512, 4);
+        // AudioCapture should clamp to MaxChannels (2)
+        REQUIRE(capture.getNumChannels() == 2);
+
+        capture.startRecording();
+        
+        // Create 4-channel buffer
+        juce::AudioBuffer<float> quadBuffer(4, 1024);
+        for (int ch = 0; ch < 4; ++ch)
+        {
+            for (int i = 0; i < 1024; ++i)
+            {
+                float sample = 0.5f * std::sin(2.0f * juce::MathConstants<float>::pi * 440.0f * i / 44100.0f);
+                quadBuffer.setSample(ch, i, sample);
+            }
+        }
+
+        capture.captureAudio(quadBuffer);
+        
+        REQUIRE(capture.getRecordingLengthSamples() == 1024);
+        // Should only meter first 2 channels
+        REQUIRE(capture.getPeakLevel(0) > 0.0f);
+        REQUIRE(capture.getPeakLevel(1) > 0.0f);
+        
+        auto result = capture.stopRecording();
+        // Result should be stereo (clamped)
+        REQUIRE(result.getNumChannels() == 2);
+        REQUIRE(result.getNumSamples() == 1024);
+    }
+
+    SECTION("surround input (6 channels) clamps to stereo")
+    {
+        capture.prepare(44100.0, 512, 6);
+        // AudioCapture should clamp to MaxChannels (2)
+        REQUIRE(capture.getNumChannels() == 2);
+
+        capture.startRecording();
+        
+        // Create 6-channel (5.1 surround) buffer
+        juce::AudioBuffer<float> surroundBuffer(6, 1024);
+        for (int ch = 0; ch < 6; ++ch)
+        {
+            for (int i = 0; i < 1024; ++i)
+            {
+                float sample = 0.5f * std::sin(2.0f * juce::MathConstants<float>::pi * 440.0f * i / 44100.0f);
+                surroundBuffer.setSample(ch, i, sample);
+            }
+        }
+
+        capture.captureAudio(surroundBuffer);
+        
+        REQUIRE(capture.getRecordingLengthSamples() == 1024);
+        // Should only meter first 2 channels (L/R)
+        REQUIRE(capture.getPeakLevel(0) > 0.0f);
+        REQUIRE(capture.getPeakLevel(1) > 0.0f);
+        
+        auto result = capture.stopRecording();
+        // Result should be stereo (clamped)
+        REQUIRE(result.getNumChannels() == 2);
+        REQUIRE(result.getNumSamples() == 1024);
+    }
+
+    SECTION("mono to stereo conversion during capture")
+    {
+        capture.prepare(44100.0, 512, 2);
+        capture.startRecording();
+        
+        // Feed mono input to stereo capture
+        juce::AudioBuffer<float> monoInput(1, 1024);
+        for (int i = 0; i < 1024; ++i)
+        {
+            monoInput.setSample(0, i, 0.5f * std::sin(2.0f * juce::MathConstants<float>::pi * 440.0f * i / 44100.0f));
+        }
+
+        capture.captureAudio(monoInput);
+        
+        auto result = capture.stopRecording();
+        // Should capture as stereo (mono input copied to both channels)
+        REQUIRE(result.getNumChannels() == 2);
+        REQUIRE(result.getNumSamples() == 1024);
+    }
+
+    SECTION("channel configuration change requires re-prepare")
+    {
+        // Start with mono
+        capture.prepare(44100.0, 512, 1);
+        REQUIRE(capture.getNumChannels() == 1);
+        
+        // Change to stereo
+        capture.prepare(44100.0, 512, 2);
+        REQUIRE(capture.getNumChannels() == 2);
+        
+        // Change to quad (should clamp)
+        capture.prepare(44100.0, 512, 4);
+        REQUIRE(capture.getNumChannels() == 2);
+    }
+}
