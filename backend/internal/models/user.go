@@ -474,6 +474,44 @@ func (StoryView) TableName() string {
 	return "story_views"
 }
 
+// StoryHighlight represents a collection of saved stories (7.5.6)
+// Highlights are permanent - they don't expire like regular stories
+type StoryHighlight struct {
+	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID      string `gorm:"not null;index" json:"user_id"`
+	User        User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Name        string `gorm:"not null" json:"name"`                               // e.g., "Jams", "Experiments"
+	CoverImage  string `json:"cover_image,omitempty"`                              // Optional cover image URL
+	Description string `gorm:"type:text" json:"description,omitempty"`             // Optional description
+	SortOrder   int    `gorm:"default:0" json:"sort_order"`                        // Order on profile
+	StoryCount  int    `gorm:"default:0" json:"story_count"`                       // Cached count
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// HighlightedStory is the join table between highlights and stories
+type HighlightedStory struct {
+	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	HighlightID string `gorm:"not null;index" json:"highlight_id"`
+	StoryID     string `gorm:"not null;index" json:"story_id"`
+	SortOrder   int    `gorm:"default:0" json:"sort_order"` // Order within highlight
+
+	// Relations
+	Highlight StoryHighlight `gorm:"foreignKey:HighlightID" json:"highlight,omitempty"`
+	Story     Story          `gorm:"foreignKey:StoryID" json:"story,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// TableName for highlighted stories
+func (HighlightedStory) TableName() string {
+	return "highlighted_stories"
+}
+
 // BeforeCreate hooks for GORM
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
@@ -566,6 +604,20 @@ func (s *Story) BeforeCreate(tx *gorm.DB) error {
 	// Set expires_at to 24 hours from now if not already set
 	if s.ExpiresAt.IsZero() {
 		s.ExpiresAt = time.Now().UTC().Add(24 * time.Hour)
+	}
+	return nil
+}
+
+func (h *StoryHighlight) BeforeCreate(tx *gorm.DB) error {
+	if h.ID == "" {
+		h.ID = generateUUID()
+	}
+	return nil
+}
+
+func (hs *HighlightedStory) BeforeCreate(tx *gorm.DB) error {
+	if hs.ID == "" {
+		hs.ID = generateUUID()
 	}
 	return nil
 }

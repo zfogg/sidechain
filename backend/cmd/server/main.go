@@ -359,6 +359,21 @@ func main() {
 		// User stories route (7.5.1.3.3)
 		users.GET("/:id/stories", h.GetUserStories)
 
+		// Story highlight routes (7.5.6)
+		highlights := api.Group("/highlights")
+		{
+			highlights.Use(authHandlers.AuthMiddleware())
+			highlights.POST("", h.CreateHighlight)
+			highlights.GET("/:id", h.GetHighlight)
+			highlights.PUT("/:id", h.UpdateHighlight)
+			highlights.DELETE("/:id", h.DeleteHighlight)
+			highlights.POST("/:id/stories", h.AddStoryToHighlight)
+			highlights.DELETE("/:id/stories/:story_id", h.RemoveStoryFromHighlight)
+		}
+
+		// User highlights route (7.5.6.2)
+		users.GET("/:id/highlights", h.GetHighlights)
+
 		// WebSocket routes
 		ws := api.Group("/ws")
 		{

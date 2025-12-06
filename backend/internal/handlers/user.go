@@ -209,6 +209,10 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	var postCount int64
 	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true", user.ID).Count(&postCount)
 
+	// Fetch story highlights (7.5.6.2)
+	var highlights []models.StoryHighlight
+	database.DB.Where("user_id = ?", user.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
+
 	c.JSON(http.StatusOK, gin.H{
 		"id":                  user.ID,
 		"username":            user.Username,
@@ -225,6 +229,7 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		"post_count":          postCount,
 		"is_following":        isFollowing,
 		"is_followed_by":      isFollowedBy,
+		"highlights":          highlights,
 		"created_at":          user.CreatedAt,
 	})
 }
@@ -256,6 +261,10 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 	var postCount int64
 	database.DB.Model(&models.AudioPost{}).Where("user_id = ?", currentUser.ID).Count(&postCount)
 
+	// Fetch story highlights (7.5.6.2)
+	var highlights []models.StoryHighlight
+	database.DB.Where("user_id = ?", currentUser.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
+
 	c.JSON(http.StatusOK, gin.H{
 		"id":                  currentUser.ID,
 		"email":               currentUser.Email,
@@ -272,6 +281,7 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 		"following_count":     followingCount,
 		"post_count":          postCount,
 		"email_verified":      currentUser.EmailVerified,
+		"highlights":          highlights,
 		"created_at":          currentUser.CreatedAt,
 	})
 }
