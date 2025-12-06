@@ -30,7 +30,10 @@ help:
 	@echo "  test        - Run all tests"
 	@echo "  test-unit   - Run fast unit tests only"
 	@echo "  test-integration - Run integration tests"
-	@echo "  test-coverage - Generate test coverage report"
+	@echo "  test-coverage - Generate test coverage report (HTML + summary)"
+	@echo "  test-coverage-detail - Detailed coverage by package"
+	@echo "  test-db     - Set up test database (PostgreSQL)"
+	@echo "  test-db-clean - Drop test database"
 	@echo "  bench       - Run benchmark tests"
 	@echo ""
 	@echo "Code Quality:"
@@ -149,7 +152,28 @@ test-coverage:
 	@echo "📊 Generating test coverage..."
 	@go test ./... -p 1 -coverprofile=coverage.out -covermode=atomic
 	@go tool cover -html=coverage.out -o coverage.html
+	@go tool cover -func=coverage.out | tail -1
 	@echo "✅ Coverage report: coverage.html"
+
+test-coverage-detail:
+	@echo "📊 Generating detailed coverage by package..."
+	@go test ./... -p 1 -coverprofile=coverage.out -covermode=atomic
+	@go tool cover -func=coverage.out | grep -E "^github" | head -30
+	@echo ""
+	@go tool cover -func=coverage.out | tail -1
+
+# Test database setup
+test-db:
+	@echo "🧪 Setting up test database..."
+	@psql -U postgres -c "DROP DATABASE IF EXISTS sidechain_test;" 2>/dev/null || true
+	@psql -U postgres -c "CREATE DATABASE sidechain_test;" 2>/dev/null || echo "Test database exists"
+	@POSTGRES_DB=sidechain_test go run ./cmd/migrate/main.go up
+	@echo "✅ Test database ready"
+
+test-db-clean:
+	@echo "🧹 Dropping test database..."
+	@psql -U postgres -c "DROP DATABASE IF EXISTS sidechain_test;" 2>/dev/null || true
+	@echo "✅ Test database dropped"
 
 bench:
 	@echo "⚡ Running benchmarks..."

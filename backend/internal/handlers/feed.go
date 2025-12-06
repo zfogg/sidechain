@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -307,15 +306,9 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 	// Delete from Stream.io if it has a stream activity ID
 	// Remove from origin feed (user feed) - this will cascade to all other feeds
 	if h.stream != nil && post.StreamActivityID != "" {
-		ctx := context.Background()
-		feedsClient := h.stream.FeedsClient()
-		userFeed, err := feedsClient.FlatFeed("user", post.UserID)
-		if err == nil {
-			_, err := userFeed.RemoveActivityByID(ctx, post.StreamActivityID)
-			if err != nil {
-				// Log but don't fail - post is already deleted in database
-				fmt.Printf("Failed to delete Stream.io activity: %v\n", err)
-			}
+		if err := h.stream.DeleteLoopActivity(post.UserID, post.StreamActivityID); err != nil {
+			// Log but don't fail - post is already deleted in database
+			fmt.Printf("Failed to delete Stream.io activity: %v\n", err)
 		}
 	}
 

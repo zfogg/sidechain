@@ -207,6 +207,25 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	return nil
 }
 
+// DeleteLoopActivity removes an activity from a user's feed
+// This cascades to all feeds the activity was fanned out to
+func (c *Client) DeleteLoopActivity(userID, activityID string) error {
+	ctx := context.Background()
+
+	userFeed, err := c.feedsClient.FlatFeed(FeedGroupUser, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user feed: %w", err)
+	}
+
+	_, err = userFeed.RemoveActivityByID(ctx, activityID)
+	if err != nil {
+		return fmt.Errorf("failed to delete activity: %w", err)
+	}
+
+	fmt.Printf("🗑️ Deleted activity %s from user:%s feed\n", activityID, userID)
+	return nil
+}
+
 // GetUserTimeline gets the timeline feed for a user (posts from people they follow)
 func (c *Client) GetUserTimeline(userID string, limit int, offset int) ([]*Activity, error) {
 	ctx := context.Background()
