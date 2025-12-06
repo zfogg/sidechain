@@ -87,6 +87,11 @@ private:
     UploadState uploadState = UploadState::Editing;
     float uploadProgress = 0.0f;
     juce::String errorMessage;
+    
+    // Timer IDs for progress simulation (to allow cancellation)
+    int progressTimer500ms = 0;
+    int progressTimer1000ms = 0;
+    int successDismissTimer = 0;
 
     // Form data
     juce::String title;
