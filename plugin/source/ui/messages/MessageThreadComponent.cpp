@@ -1635,79 +1635,54 @@ void MessageThreadComponent::showRemoveMembersDialog()
         return;
     }
 
-    // Multiple members - for now, just show info that multi-select is pending
-    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-        "Remove Members",
-        "Multi-member removal UI is pending. Please remove members one at a time for now.");
+    // Multiple members - show popup menu to select which member to remove
+    juce::PopupMenu menu;
+    for (int i = 0; i < memberIds.size(); ++i)
+    {
+        menu.addItem(i + 1, "Remove " + memberNames[i]);
+    }
 
-    // Original multi-select code (commented out until proper dialog component is created):
-    /*
-    juce::AlertWindow alert("Remove Members", "Select members to remove:", juce::MessageBoxIconType::QuestionIcon);
-    alert.addButton("Remove", 1);
-    alert.addButton("Cancel", 0);
-    alert.enterModalState(true, juce::ModalCallbackFunction::create([this, memberIds](int result) {
-        if (result == 1)
+    menu.showMenuAsync(juce::PopupMenu::Options(), [this, memberIds, memberNames](int selectedIndex) {
+        if (selectedIndex > 0 && selectedIndex <= memberIds.size())
         {
-            // Collect selected member IDs
-            std::vector<juce::String> idsToRemove;
-            for (int i = 0; i < memberIds.size(); ++i)
-            {
-                // Check if this member was selected (we'd need to track the alert window state)
-                // For now, use a simpler approach: show individual confirmation dialogs
-            }
+            int index = selectedIndex - 1;
+            juce::String memberId = memberIds[index];
+            juce::String memberName = memberNames[index];
 
-            // For simplicity, show a menu to select one member at a time
-            juce::PopupMenu menu;
-            for (int i = 0; i < memberIds.size(); ++i)
-            {
-                menu.addItem(i + 1, "Remove " + memberIds[i]);
-            }
-
-            menu.showMenuAsync(juce::PopupMenu::Options(), [this, memberIds](int selectedIndex) {
-                if (selectedIndex > 0 && selectedIndex <= memberIds.size())
-                {
-                    int index = selectedIndex - 1;
-                    juce::String memberId = memberIds[index];
-
-                    // Confirm removal
-                    auto options = juce::MessageBoxOptions()
-                        .withTitle("Remove Member")
-                        .withMessage("Are you sure you want to remove this member from the group?")
-                        .withButton("Remove")
-                        .withButton("Cancel");
-
-                    juce::AlertWindow::showAsync(options, [this, memberId](int confirmResult) {
-                        if (confirmResult == 1 && streamChatClient)
-                        {
-                            std::vector<juce::String> idsToRemove = {memberId};
-                            streamChatClient->removeMembers(channelType, channelId, idsToRemove,
-                                [this](Outcome<void> result) {
-                                    if (result.isOk())
-                                    {
-                                        Log::info("MessageThreadComponent: Member removed successfully");
-                                        // Reload channel
-                                        loadChannel(channelType, channelId);
-                                        juce::MessageManager::callAsync([this]() {
-                                            repaint();
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Log::error("MessageThreadComponent: Failed to remove member - " + result.getError());
-                                        juce::MessageManager::callAsync([result]() {
-                                            juce::AlertWindow::showMessageBoxAsync(
-                                                juce::MessageBoxIconType::WarningIcon,
-                                                "Error",
-                                                "Failed to remove member: " + result.getError());
-                                        });
-                                    }
-                                });
-                        }
-                    });
-                }
-            });
+            // Confirm removal
+            juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+                .withIconType(juce::MessageBoxIconType::QuestionIcon)
+                .withTitle("Remove Member")
+                .withMessage("Remove " + memberName + " from this group?")
+                .withButton("Remove")
+                .withButton("Cancel"),
+                [this, memberId](int confirmResult) {
+                    if (confirmResult == 1 && streamChatClient)
+                    {
+                        std::vector<juce::String> idsToRemove = {memberId};
+                        streamChatClient->removeMembers(channelType, channelId, idsToRemove,
+                            [this](Outcome<void> result) {
+                                if (result.isOk())
+                                {
+                                    Log::info("MessageThreadComponent: Member removed successfully");
+                                    // Reload channel to update member list
+                                    loadChannel(channelType, channelId);
+                                }
+                                else
+                                {
+                                    Log::error("MessageThreadComponent: Failed to remove member - " + result.getError());
+                                    juce::MessageManager::callAsync([result]() {
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::MessageBoxIconType::WarningIcon,
+                                            "Error",
+                                            "Failed to remove member: " + result.getError());
+                                    });
+                                }
+                            });
+                    }
+                });
         }
-    }));
+    });
 }
 
 void MessageThreadComponent::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate)
