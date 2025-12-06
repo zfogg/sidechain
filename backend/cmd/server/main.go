@@ -19,6 +19,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/handlers"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/stories"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 )
 
@@ -114,6 +115,11 @@ func main() {
 	wsHandler.SetPresenceManager(presenceManager)
 	presenceManager.Start()
 	defer presenceManager.Stop()
+
+	// Initialize story cleanup service (runs every hour)
+	storyCleanup := stories.NewCleanupService(s3Uploader, 1*time.Hour)
+	storyCleanup.Start()
+	defer storyCleanup.Stop()
 
 	// Start WebSocket hub in background
 	go wsHub.Run()
@@ -273,6 +279,20 @@ func main() {
 			comments.POST("/:id/like", h.LikeComment)
 			comments.DELETE("/:id/like", h.UnlikeComment)
 		}
+
+		// Story routes (7.5)
+		stories := api.Group("/stories")
+		{
+			stories.Use(authHandlers.AuthMiddleware())
+			stories.POST("", h.CreateStory)
+			stories.GET("", h.GetStories)
+			stories.GET("/:id", h.GetStory)
+			stories.POST("/:id/view", h.ViewStory)
+			stories.GET("/:id/views", h.GetStoryViews)
+		}
+
+		// User stories route (7.5.1.3.3)
+		users.GET("/:id/stories", h.GetUserStories)
 
 		// WebSocket routes
 		ws := api.Group("/ws")
