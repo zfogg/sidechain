@@ -14,24 +14,39 @@ if(NOT DOXYGEN_FOUND)
 endif()
 
 # Check if Sphinx is available
-# Try multiple Python executables in case Sphinx is installed in a different Python
+# Priority: 1) Virtual environment (.venv), 2) System Python
 set(SPHINX_FOUND FALSE)
-set(PYTHON_EXECUTABLES ${Python3_EXECUTABLE} python3 python)
+set(VENV_PYTHON "${CMAKE_CURRENT_SOURCE_DIR}/.venv/bin/python3")
+set(VENV_PYTHON_ALT "${CMAKE_CURRENT_SOURCE_DIR}/.venv/bin/python")
+
+# Build list of Python executables to try (venv first, then system)
+set(PYTHON_EXECUTABLES)
+if(EXISTS ${VENV_PYTHON})
+    list(APPEND PYTHON_EXECUTABLES ${VENV_PYTHON})
+    message(STATUS "Found virtual environment at ${CMAKE_CURRENT_SOURCE_DIR}/.venv")
+elseif(EXISTS ${VENV_PYTHON_ALT})
+    list(APPEND PYTHON_EXECUTABLES ${VENV_PYTHON_ALT})
+    message(STATUS "Found virtual environment at ${CMAKE_CURRENT_SOURCE_DIR}/.venv")
+endif()
+# Add system Python executables
+list(APPEND PYTHON_EXECUTABLES ${Python3_EXECUTABLE} python3 python)
 
 foreach(PYTHON_EXE ${PYTHON_EXECUTABLES})
-    execute_process(
-        COMMAND ${PYTHON_EXE} -m sphinx --version
-        OUTPUT_VARIABLE SPHINX_VERSION
-        ERROR_VARIABLE SPHINX_ERROR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE SPHINX_RESULT
-    )
-    if(SPHINX_RESULT EQUAL 0)
-        set(SPHINX_FOUND TRUE)
-        set(SPHINX_PYTHON ${PYTHON_EXE})
-        message(STATUS "Found Sphinx: ${SPHINX_VERSION} (using ${PYTHON_EXE})")
-        break()
+    if(EXISTS ${PYTHON_EXE})
+        execute_process(
+            COMMAND ${PYTHON_EXE} -m sphinx --version
+            OUTPUT_VARIABLE SPHINX_VERSION
+            ERROR_VARIABLE SPHINX_ERROR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE SPHINX_RESULT
+        )
+        if(SPHINX_RESULT EQUAL 0)
+            set(SPHINX_FOUND TRUE)
+            set(SPHINX_PYTHON ${PYTHON_EXE})
+            message(STATUS "Found Sphinx: ${SPHINX_VERSION} (using ${PYTHON_EXE})")
+            break()
+        endif()
     endif()
 endforeach()
 
