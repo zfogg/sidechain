@@ -18,7 +18,7 @@ project_root = Path(__file__).parent.parent
 
 # -- Project information -----------------------------------------------------
 
-project = 'Sidechain Plugin'
+project = 'Sidechain'
 copyright = '2025, Joopal'
 author = 'Joopal'
 

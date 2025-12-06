@@ -1,7 +1,9 @@
-Sidechain Plugin Documentation
-==============================
+Sidechain Documentation
+=======================
 
-Welcome to the Sidechain Plugin documentation. Sidechain is a social VST plugin for music producers that enables sharing, collaboration, and discovery within your DAW.
+Welcome to the Sidechain documentation. Sidechain is a social VST plugin for
+music producers that enables sharing, collaboration, and discovery within your
+DAW.
 
 .. toctree::
    :maxdepth: 2
@@ -10,7 +12,8 @@ Welcome to the Sidechain Plugin documentation. Sidechain is a social VST plugin 
    getting-started
    architecture
    development
-   api/library_root
+   plugin/api/library_root
+   backend/index
 
 Indices and tables
 ==================
