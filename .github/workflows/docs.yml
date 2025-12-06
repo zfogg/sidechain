@@ -210,12 +210,23 @@ jobs:
           echo "Fixing paths in downloaded HTML files..."
           find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
             # Calculate relative depth (how many directories deep this file is from godoc root)
+            # File path: docs/_build/html/backend/godoc/zfogg/sidechain/backend/internal/handlers/index.html
+            # We want: ../../../../../../lib/godoc/ (6 levels up)
             REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
-            REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
-            # Build relative path prefix (../../ for each level)
-            if [ $REL_DEPTH -gt 0 ]; then
-              REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+            if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ] && [ "$REL_PATH" != "pkg.html" ]; then
+              REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
+              # Add 1 if it's not a directory (has a filename)
+              if [[ "$REL_PATH" == *"/"* ]]; then
+                REL_DEPTH=$((REL_DEPTH + 1))
+              fi
+              # Build relative path prefix (../../ for each level)
+              if [ $REL_DEPTH -gt 0 ]; then
+                REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+              else
+                REL_PREFIX=""
+              fi
             else
+              # Files at root level
               REL_PREFIX=""
             fi
             
