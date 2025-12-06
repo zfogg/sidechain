@@ -409,6 +409,71 @@ type PostHashtag struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// MIDIEvent represents a single MIDI note event (7.5.1.2.2)
+type MIDIEvent struct {
+	Time     float64 `json:"time"`     // Relative time in seconds from start
+	Type     string  `json:"type"`     // "note_on" or "note_off"
+	Note     int     `json:"note"`     // MIDI note number (0-127)
+	Velocity int     `json:"velocity"` // Note velocity (0-127)
+	Channel  int     `json:"channel"`  // MIDI channel (0-15)
+}
+
+// MIDIData represents the complete MIDI data for a story (7.5.1.2.2)
+type MIDIData struct {
+	Events        []MIDIEvent `json:"events"`
+	TotalTime     float64     `json:"total_time"`     // Total duration in seconds
+	Tempo         int         `json:"tempo"`          // BPM
+	TimeSignature []int       `json:"time_signature"` // [numerator, denominator], e.g., [4, 4]
+}
+
+// Story represents a short music clip (15-60 seconds) with MIDI visualization (7.5.1.1.1)
+type Story struct {
+	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID string `gorm:"not null;index" json:"user_id"`
+	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+
+	// Audio file data
+	AudioURL      string  `gorm:"not null" json:"audio_url"`
+	AudioDuration float64 `gorm:"not null" json:"audio_duration"` // seconds
+
+	// MIDI data (optional - stories can be audio-only)
+	MIDIData *MIDIData `gorm:"type:jsonb;serializer:json" json:"midi_data,omitempty"`
+
+	// Visual data
+	WaveformData string `gorm:"type:text" json:"waveform_data"` // SVG waveform
+
+	// Audio metadata (optional for quick sharing)
+	BPM   *int        `json:"bpm,omitempty"`
+	Key   *string     `json:"key,omitempty"`
+	Genre StringArray `gorm:"type:text[]" json:"genre,omitempty"`
+
+	// Expiration
+	ExpiresAt time.Time `gorm:"not null;index" json:"expires_at"` // created_at + 24 hours
+
+	// Analytics
+	ViewCount int `gorm:"default:0" json:"view_count"`
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// StoryView tracks who viewed a story (7.5.1.1.2)
+type StoryView struct {
+	ID       string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	StoryID  string    `gorm:"not null;index" json:"story_id"`
+	Story    Story     `gorm:"foreignKey:StoryID" json:"story,omitempty"`
+	ViewerID string    `gorm:"not null;index" json:"viewer_id"`
+	Viewer   User      `gorm:"foreignKey:ViewerID" json:"viewer,omitempty"`
+	ViewedAt time.Time `gorm:"not null;default:now()" json:"viewed_at"`
+}
+
+// TableName ensures unique constraint: one view per user per story
+func (StoryView) TableName() string {
+	return "story_views"
+}
+
 // BeforeCreate hooks for GORM
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
@@ -490,6 +555,24 @@ func (h *Hashtag) BeforeCreate(tx *gorm.DB) error {
 func (ph *PostHashtag) BeforeCreate(tx *gorm.DB) error {
 	if ph.ID == "" {
 		ph.ID = generateUUID()
+	}
+	return nil
+}
+
+func (s *Story) BeforeCreate(tx *gorm.DB) error {
+	if s.ID == "" {
+		s.ID = generateUUID()
+	}
+	// Set expires_at to 24 hours from now if not already set
+	if s.ExpiresAt.IsZero() {
+		s.ExpiresAt = time.Now().UTC().Add(24 * time.Hour)
+	}
+	return nil
+}
+
+func (sv *StoryView) BeforeCreate(tx *gorm.DB) error {
+	if sv.ID == "" {
+		sv.ID = generateUUID()
 	}
 	return nil
 }
