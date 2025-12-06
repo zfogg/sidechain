@@ -134,11 +134,17 @@ jobs:
           
           # Download CSS and JS assets (with error handling - some may not exist)
           echo "Downloading godoc assets..."
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js || echo "Note: godoc.js not available (may be embedded)"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js || echo "Note: jquery.js not available (may be embedded)"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css || echo "Note: jquery.treeview.css not available"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js || echo "Note: jquery.treeview.js not available"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js || echo "Note: playground.js not available"
+          # Create lib/godoc directory structure that matches what godoc expects
+          mkdir -p docs/_build/html/backend/godoc/lib/godoc
+          mkdir -p docs/_build/html/backend/godoc/lib/godoc/jquery
+          
+          # Download assets to the correct location
+          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/godocs.js || echo "Note: godocs.js not available"
+          wget -q -P docs/_build/html/backend/godoc/lib/godoc/jquery http://localhost:6060/lib/godoc/jquery/jquery.js || echo "Note: jquery.js not available"
+          wget -q -P docs/_build/html/backend/godoc/lib/godoc/jquery http://localhost:6060/lib/godoc/jquery/jquery.treeview.css || echo "Note: jquery.treeview.css not available"
+          wget -q -P docs/_build/html/backend/godoc/lib/godoc/jquery http://localhost:6060/lib/godoc/jquery/jquery.treeview.js || echo "Note: jquery.treeview.js not available"
+          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/playground.js || echo "Note: playground.js not available"
+          wget -q -P docs/_build/html/backend/godoc/lib/godoc http://localhost:6060/lib/godoc/style.css || echo "Note: style.css not available"
           
           # Download main pages
           echo "Downloading godoc pages..."
