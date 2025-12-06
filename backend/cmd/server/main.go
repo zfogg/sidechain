@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/zfogg/sidechain/backend/internal/audio"
@@ -18,6 +19,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
+	"github.com/zfogg/sidechain/backend/internal/middleware"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/seed"
 	"github.com/zfogg/sidechain/backend/internal/storage"
@@ -180,6 +182,12 @@ func main() {
 	// Setup Gin router
 	r := gin.Default()
 
+	// Gzip compression middleware (compress responses > 1KB)
+	r.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{
+		"/api/v1/ws",         // Don't compress WebSocket connections
+		"/api/v1/ws/connect", // Don't compress WebSocket connections
+	})))
+
 	// CORS middleware
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"} // Configure properly for production
@@ -198,9 +206,11 @@ func main() {
 
 	// API routes
 	api := r.Group("/api/v1")
+	api.Use(middleware.RateLimit()) // Global rate limit: 100 req/min per IP
 	{
-		// Authentication routes (public)
+		// Authentication routes (public) - stricter rate limit
 		authGroup := api.Group("/auth")
+		authGroup.Use(middleware.RateLimitAuth()) // Auth rate limit: 10 req/min per IP
 		{
 			// Native auth
 			authGroup.POST("/register", authHandlers.Register)
@@ -226,11 +236,11 @@ func main() {
 			authGroup.GET("/stream-token", authHandlers.AuthMiddleware(), authHandlers.GetStreamToken)
 		}
 
-		// Audio routes
+		// Audio routes - with upload rate limiting
 		audioGroup := api.Group("/audio")
 		{
 			audioGroup.Use(authHandlers.AuthMiddleware())
-			audioGroup.POST("/upload", h.UploadAudio)
+			audioGroup.POST("/upload", middleware.RateLimitUpload(), h.UploadAudio)
 			audioGroup.GET("/status/:job_id", h.GetAudioProcessingStatus)
 			audioGroup.GET("/:id", h.GetAudio)
 		}
@@ -282,7 +292,7 @@ func main() {
 			users.GET("/me", h.GetProfile)
 			users.PUT("/me", h.UpdateProfile)
 			users.PUT("/username", h.ChangeUsername)
-			users.POST("/upload-profile-picture", authHandlers.UploadProfilePicture)
+			users.POST("/upload-profile-picture", middleware.RateLimitUpload(), authHandlers.UploadProfilePicture)
 
 			// User profile endpoints (require auth for following checks)
 			users.GET("/:id/profile", h.GetUserProfile)
@@ -335,11 +345,11 @@ func main() {
 			comments.POST("/:id/report", h.ReportComment)
 		}
 
-		// Story routes (7.5)
+		// Story routes (7.5) - with upload rate limiting for creation
 		stories := api.Group("/stories")
 		{
 			stories.Use(authHandlers.AuthMiddleware())
-			stories.POST("", h.CreateStory)
+			stories.POST("", middleware.RateLimitUpload(), h.CreateStory)
 			stories.GET("", h.GetStories)
 			stories.GET("/:id", h.GetStory)
 			stories.POST("/:id/view", h.ViewStory)

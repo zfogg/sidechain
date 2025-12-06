@@ -3652,7 +3652,7 @@ streamActivity.To = []string{
   - Cache API responses (user profiles, post metadata)
   - Prefetch data for likely next actions
 
-- [ ] 8.1.2.2 Add response compression (gzip)
+- [x] 8.1.2.2 Add response compression (gzip) ✓ (gin-contrib/gzip middleware added)
   - Enable gzip compression in Go HTTP server
   - Compress JSON responses >1KB
   - Compress audio metadata responses
@@ -3667,7 +3667,7 @@ streamActivity.To = []string{
   - Use CDN for story audio files
   - Monitor CDN hit rates
 
-- [ ] 8.1.2.4 Add database query optimization
+- [x] 8.1.2.4 Add database query optimization ✓ (comprehensive indexes in database.go)
   - Add indexes on frequently queried columns
     - `posts(user_id, created_at)` for user posts
     - `posts(created_at DESC)` for feed queries
@@ -3678,7 +3678,7 @@ streamActivity.To = []string{
   - Use prepared statements to avoid SQL parsing overhead
   - Batch database operations where possible
 
-- [ ] 8.1.2.5 Implement connection pooling tuning
+- [x] 8.1.2.5 Implement connection pooling tuning ✓ (already configured in database.go)
   - Configure PostgreSQL connection pool size (max 25 connections)
   - Set appropriate `max_idle_conns` and `max_open_conns`
   - Monitor connection pool metrics
@@ -3708,7 +3708,7 @@ streamActivity.To = []string{
   - Prefetch next page on scroll
   - Return pagination metadata (has_more, next_cursor)
 
-- [ ] 8.1.3.3 Add request rate limiting
+- [x] 8.1.3.3 Add request rate limiting ✓ (middleware/ratelimit.go - global, auth, and upload limits)
   - Implement per-user rate limits (e.g., 100 req/min)
   - Implement per-IP rate limits (e.g., 200 req/min)
   - Return 429 with Retry-After header

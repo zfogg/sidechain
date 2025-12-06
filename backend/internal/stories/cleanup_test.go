@@ -94,7 +94,10 @@ func (suite *CleanupTestSuite) TearDownSuite() {
 
 // SetupTest creates fresh test data before each test
 func (suite *CleanupTestSuite) SetupTest() {
-	// Truncate tables
+	// Ensure tables exist before truncating (handles parallel test runs)
+	suite.db.AutoMigrate(&models.User{}, &models.Story{}, &models.StoryView{})
+
+	// Truncate tables (safe now that we know they exist)
 	suite.db.Exec("TRUNCATE TABLE story_views, stories RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
 
