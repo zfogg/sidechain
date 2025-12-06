@@ -94,22 +94,31 @@ jobs:
           cd backend
           
           # Start godoc server in background from backend directory
-          ~/go/bin/godoc -http=:6060 &
+          # Redirect output to see any errors
+          ~/go/bin/godoc -http=:6060 > /tmp/godoc.log 2>&1 &
           GODOC_PID=$!
           
           # Wait for server to start and verify it's running
           echo "Waiting for godoc server to start..."
-          for i in {1..10}; do
+          for i in {1..15}; do
+            sleep 1
             if curl -s http://localhost:6060/ > /dev/null 2>&1; then
               echo "✓ Godoc server is running"
               break
             fi
-            if [ $i -eq 10 ]; then
-              echo "✗ Godoc server failed to start"
+            if [ $i -eq 15 ]; then
+              echo "✗ Godoc server failed to start after 15 seconds"
+              echo "Godoc log:"
+              cat /tmp/godoc.log 2>/dev/null || echo "(no log available)"
+              # Check if process is still running
+              if ps -p $GODOC_PID > /dev/null 2>&1; then
+                echo "Godoc process is running but not responding"
+              else
+                echo "Godoc process exited"
+              fi
               kill $GODOC_PID 2>/dev/null || true
               exit 1
             fi
-            sleep 1
           done
           
           # Go back to workspace root
