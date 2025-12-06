@@ -12,21 +12,14 @@ echo ""
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
-# Step 0: Setup virtual environment if it doesn't exist
-if [ ! -d ".venv" ]; then
-    echo "Step 0: Creating virtual environment..."
-    python3 -m venv .venv
-    echo "✓ Virtual environment created"
-    
-    echo ""
-    echo "Installing Python dependencies..."
-    .venv/bin/pip install --upgrade pip
-    .venv/bin/pip install -r requirements.txt
-    echo "✓ Dependencies installed"
-else
-    echo "Step 0: Using existing virtual environment"
-    # Activate venv for this script (though CMake will find it automatically)
+# Step 0: Check for virtual environment (optional)
+if [ -d ".venv" ]; then
+    echo "Step 0: Using virtual environment (.venv)"
     source .venv/bin/activate
+    echo "✓ Virtual environment activated"
+else
+    echo "Step 0: No virtual environment found - using system Python"
+    echo "  (To use a venv, create it with: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)"
 fi
 
 echo ""
