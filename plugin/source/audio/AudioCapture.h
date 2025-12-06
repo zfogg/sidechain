@@ -36,7 +36,32 @@ public:
 
     //==============================================================================
     // Audio capture - call from AUDIO THREAD (processBlock) only
-    // MUST be lock-free and allocation-free
+
+    /**
+     * Capture audio from the DAW's processBlock callback.
+     *
+     * @warning CRITICAL: This function MUST be called from the AUDIO THREAD only.
+     *          Calling from any other thread will cause audio dropouts and crashes.
+     *
+     * @warning MUST be lock-free and allocation-free. This function uses atomic
+     *          operations and lock-free circular buffer writes to ensure real-time
+     *          audio performance. Any blocking operations or memory allocations
+     *          will cause audio glitches.
+     *
+     * @param buffer Audio buffer from processBlock (must be valid during call)
+     *
+     * @note This function is designed to be called every audio block during
+     *       recording. It writes to a lock-free circular buffer that can hold
+     *       up to 60 seconds of audio at the configured sample rate.
+     *
+     * @note If the recording buffer is full, new audio will overwrite the oldest
+     *       data (circular buffer behavior). Check isBufferFull() from the message
+     *       thread to detect this condition.
+     *
+     * @see startRecording() To begin recording (call from message thread)
+     * @see stopRecording() To end recording and get the captured audio (call from message thread)
+     * @see PluginProcessor::processBlock() For typical usage in audio callback
+     */
     void captureAudio(const juce::AudioBuffer<float>& buffer);
 
     //==============================================================================

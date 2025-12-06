@@ -252,6 +252,7 @@ void Header::drawSearchButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void Header::drawRecordButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
+    // Record button is wired up in PluginEditor.cpp (line 355-356) - navigates to Recording screen
     // Use UI::drawButton for base button, then add custom recording dot
     UI::drawButton(g, bounds, "Record",
         SidechainColors::primary(), juce::Colours::white, false, 8.0f);

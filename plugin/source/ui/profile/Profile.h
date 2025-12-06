@@ -5,6 +5,7 @@
 #include "../social/FollowersList.h"
 
 class NetworkClient;
+class StreamChatClient;
 class PostCard;
 
 //==============================================================================
@@ -29,6 +30,11 @@ struct UserProfile
     bool isFollowing = false;
     bool isFollowedBy = false;
     juce::Time createdAt;
+
+    // Online status (presence)
+    bool isOnline = false;
+    bool isInStudio = false;
+    juce::String lastActive;
 
     static UserProfile fromJson(const juce::var& json);
     juce::String getAvatarUrl() const;
@@ -61,6 +67,7 @@ public:
     //==============================================================================
     // Data binding
     void setNetworkClient(NetworkClient* client);
+    void setStreamChatClient(StreamChatClient* client);
     void setCurrentUserId(const juce::String& userId);
     void loadProfile(const juce::String& userId);
     void loadOwnProfile();
@@ -103,6 +110,7 @@ private:
     juce::String currentUserId;
     juce::Array<FeedPost> userPosts;
     NetworkClient* networkClient = nullptr;
+    StreamChatClient* streamChatClient = nullptr;
 
     // Loading/error states
     bool isLoading = false;
@@ -117,7 +125,7 @@ private:
     juce::Image avatarImage;
 
     // Post cards
-    juce::OwnedArray<PostCardComponent> postCards;
+    juce::OwnedArray<PostCard> postCards;
     juce::String currentlyPlayingPostId;
     float currentPlaybackProgress = 0.0f;
 
@@ -158,6 +166,9 @@ private:
     void handleFollowToggle();
     void shareProfile();
 
+    // Presence querying
+    void queryPresenceForProfile();
+
     //==============================================================================
     // Helpers
     void updatePostCards();
@@ -192,10 +203,10 @@ private:
 
     //==============================================================================
     // Followers/Following list panel
-    std::unique_ptr<FollowersListComponent> followersListPanel;
+    std::unique_ptr<FollowersList> followersListPanel;
     bool followersListVisible = false;
 
-    void showFollowersList(const juce::String& userId, FollowersListComponent::ListType type);
+    void showFollowersList(const juce::String& userId, FollowersList::ListType type);
     void hideFollowersList();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Profile)

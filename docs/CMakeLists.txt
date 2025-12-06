@@ -59,15 +59,12 @@ configure_file(
 )
 
 # Custom command to generate Doxygen XML
-# Use quiet mode and limit verbosity for faster builds
-# Only regenerate if Doxyfile or source files changed
 add_custom_command(
     OUTPUT ${DOXYGEN_XML_DIR}/index.xml
-    COMMAND ${DOXYGEN_EXECUTABLE} -q ${DOXYFILE_OUT}
+    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating Doxygen XML documentation..."
     DEPENDS ${DOXYFILE_OUT}
-    # Don't depend on all source files - let Doxygen handle that internally
     VERBATIM
 )
 
@@ -78,15 +75,12 @@ add_custom_target(docs-doxygen
 )
 
 # Custom command to generate Sphinx HTML
-# Use -q for quiet mode, -j auto for parallel builds
 add_custom_command(
     OUTPUT ${SPHINX_BUILD_DIR}/index.html
     COMMAND ${CMAKE_COMMAND} -E env DOXYGEN_XML_DIR=${DOXYGEN_XML_DIR}
         ${SPHINX_PYTHON} -m sphinx
         -b html
         -d ${CMAKE_CURRENT_BINARY_DIR}/doctrees
-        -q
-        -j auto
         ${SPHINX_SOURCE_DIR}
         ${SPHINX_BUILD_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

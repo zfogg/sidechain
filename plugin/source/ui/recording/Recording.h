@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../util/Animation.h"
+#include "../../audio/ProgressiveKeyDetector.h"
 
 // Forward declaration to avoid circular includes
 class SidechainAudioProcessor;
@@ -64,6 +65,14 @@ private:
     // Animation state
     Animation recordingDotAnimation{2000, Animation::Easing::EaseInOut};  // 2 second ping-pong
 
+    // Progressive key detection
+    ProgressiveKeyDetector progressiveKeyDetector;
+    KeyDetector::Key detectedKey;
+    bool isDetectingKey = false;
+    juce::AudioBuffer<float> keyDetectionBuffer;  // Accumulate audio for periodic processing
+    int keyDetectionSamplesAccumulated = 0;
+    static constexpr int KEY_DETECTION_INTERVAL_SAMPLES = 88200;  // ~2 seconds @ 44.1kHz
+
     // UI areas (calculated in resized())
     juce::Rectangle<int> recordButtonArea;
     juce::Rectangle<int> timeDisplayArea;
@@ -76,6 +85,7 @@ private:
     // Drawing helpers
     void drawRecordButton(juce::Graphics& g);
     void drawTimeDisplay(juce::Graphics& g);
+    void drawKeyDisplay(juce::Graphics& g);
     void drawLevelMeters(juce::Graphics& g);
     void drawSingleMeter(juce::Graphics& g, juce::Rectangle<int> bounds,
                          float peak, float rms, const juce::String& label);
@@ -99,6 +109,11 @@ private:
     void stopRecording();
     void discardRecording();
     void confirmRecording();
+
+    //==============================================================================
+    // Progressive key detection
+    void processKeyDetectionChunk(const juce::AudioBuffer<float>& buffer);
+    void updateKeyDetection();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Recording)
 };

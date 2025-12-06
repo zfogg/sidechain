@@ -171,7 +171,7 @@ type Reaction struct {
 
 ### Phase 1: Authentication & Foundation ✅
 - [x] Device ID generation and registration
-- [x] getstream.io client integration 
+- [x] getstream.io client integration
 - [x] Basic API endpoints
 - [x] JWT token handling
 - [ ] OAuth web flow (Google/Discord)
@@ -232,6 +232,11 @@ DISCORD_CLIENT_SECRET=
 # Security
 JWT_SECRET=your_jwt_secret_here
 CORS_ORIGINS=*
+
+# AWS SES Email Configuration
+SES_FROM_EMAIL=noreply@sidechain.live
+SES_FROM_NAME=Sidechain
+BASE_URL=https://sidechain.live
 
 # Performance
 MAX_UPLOAD_SIZE=50MB
@@ -303,7 +308,7 @@ go test ./tests/load/...
 
 **Perfect for Audio Social Network:**
 - **Concurrency**: Handle thousands of simultaneous uploads
-- **Performance**: Process audio without blocking other requests  
+- **Performance**: Process audio without blocking other requests
 - **Memory Efficiency**: Critical when handling large audio buffers
 - **Binary Deployment**: Single executable, no dependency hell
 - **Network I/O**: Excellent for real-time WebSocket connections

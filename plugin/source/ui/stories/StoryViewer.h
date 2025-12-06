@@ -85,7 +85,7 @@ private:
     double storyDuration = 0.0;
 
     // Piano roll component for MIDI visualization
-    std::unique_ptr<PianoRollComponent> pianoRoll;
+    std::unique_ptr<PianoRoll> pianoRoll;
 
     // Swipe detection
     juce::Point<int> dragStartPoint;

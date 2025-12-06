@@ -97,6 +97,9 @@ private:
     bool showAudioRecorder = false;
     SidechainAudioProcessor* audioProcessor = nullptr;
 
+    // User picker dialog
+    std::unique_ptr<class UserPickerDialog> userPickerDialog;
+
     // Drawing helpers
     void drawHeader(juce::Graphics& g);
     void drawMessages(juce::Graphics& g);

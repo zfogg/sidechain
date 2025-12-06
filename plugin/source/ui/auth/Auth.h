@@ -118,6 +118,8 @@ private:
     // Login form components
     std::unique_ptr<juce::TextEditor> loginEmailEditor;
     std::unique_ptr<juce::TextEditor> loginPasswordEditor;
+    std::unique_ptr<juce::ToggleButton> rememberMeCheckbox;
+    std::unique_ptr<juce::TextButton> loginForgotPasswordLink;
     std::unique_ptr<juce::TextButton> loginSubmitButton;
     std::unique_ptr<juce::TextButton> loginBackButton;
 
@@ -145,6 +147,7 @@ private:
 
     void handleLogin();
     void handleSignup();
+    void handleForgotPassword();
 
     // Styling helpers
     void styleTextEditor(juce::TextEditor& editor, const juce::String& placeholder, bool isPassword = false);
@@ -156,6 +159,11 @@ private:
     void drawCard(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawLogo(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawDivider(juce::Graphics& g, int y, const juce::String& text);
+    void drawPasswordStrengthIndicator(juce::Graphics& g, juce::Rectangle<int> bounds);
+
+    // Password strength calculation
+    void updatePasswordStrengthIndicator();
+    int calculatePasswordStrength(const juce::String& password) const;  // Returns 0-4 (weak to very strong)
 
     // Layout constants
     static constexpr int CARD_WIDTH = 420;

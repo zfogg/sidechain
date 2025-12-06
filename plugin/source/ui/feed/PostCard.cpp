@@ -133,6 +133,30 @@ void PostCard::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Avatar border
     g.setColour(SidechainColors::border());
     g.drawEllipse(bounds.toFloat(), 1.0f);
+
+    // Draw online indicator (green/cyan dot in bottom-right corner)
+    if (post.isOnline || post.isInStudio)
+    {
+        const int indicatorSize = 14;
+        const int borderWidth = 2;
+
+        // Position at bottom-right of avatar
+        auto indicatorBounds = juce::Rectangle<int>(
+            bounds.getRight() - indicatorSize + 2,
+            bounds.getBottom() - indicatorSize + 2,
+            indicatorSize,
+            indicatorSize
+        ).toFloat();
+
+        // Draw dark border (matches card background)
+        g.setColour(SidechainColors::background());
+        g.fillEllipse(indicatorBounds);
+
+        // Draw indicator (cyan for in_studio, green for just online)
+        auto innerBounds = indicatorBounds.reduced(borderWidth);
+        g.setColour(post.isInStudio ? SidechainColors::inStudioIndicator() : SidechainColors::onlineIndicator());
+        g.fillEllipse(innerBounds);
+    }
 }
 
 void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -493,8 +517,86 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
-    // Check like button - only handle as click if not a long-press
-    if (getLikeButtonBounds().contains(pos) && !wasLongPress)
+    // Check like button
+    if (getLikeButtonBounds().contains(pos))
+    {
+        if (!wasLongPress)
+        {
+            if (onLikeToggled)
+                onLikeToggled(post, !post.isLiked);
+        }
+        return;
+    }
+
+    // Check comment button
+    if (getCommentButtonBounds().contains(pos))
+    {
+        if (onCommentClicked)
+            onCommentClicked(post);
+        return;
+    }
+
+    // Check share button
+    if (getShareButtonBounds().contains(pos))
+    {
+        if (onShareClicked)
+            onShareClicked(post);
+        return;
+    }
+
+    // Check follow button
+    if (getFollowButtonBounds().contains(pos))
+    {
+        if (onFollowToggled)
+            onFollowToggled(post, !post.isFollowing);
+        return;
+    }
+
+    // Check more button
+    if (getMoreButtonBounds().contains(pos))
+    {
+        if (onMoreClicked)
+            onMoreClicked(post);
+        return;
+    }
+
+    // Check avatar (navigate to profile)
+    if (getAvatarBounds().contains(pos))
+    {
+        if (onUserClicked)
+            onUserClicked(post);
+        return;
+    }
+
+    // Check waveform (seek)
+    if (getWaveformBounds().contains(pos))
+    {
+        auto waveformBounds = getWaveformBounds();
+        float normalizedPos = static_cast<float>(pos.x - waveformBounds.getX()) / static_cast<float>(waveformBounds.getWidth());
+        normalizedPos = juce::jlimit(0.0f, 1.0f, normalizedPos);
+        if (onWaveformClicked)
+            onWaveformClicked(post, normalizedPos);
+        return;
+    }
+
+    // If this was a simple click on the card (not on any interactive element), trigger card tap
+    if (event.mouseWasClicked() && !event.mods.isAnyModifierKeyDown())
+    {
+        if (onCardTapped)
+        {
+            onCardTapped(post);
+        }
+    }
+
+    // If this was a simple click on the card (not on any interactive element), trigger card tap
+    if (event.mouseWasClicked() && !event.mods.isAnyModifierKeyDown())
+    {
+        if (onCardTapped)
+        {
+            onCardTapped(post);
+        }
+    }
+}
     {
         bool willBeLiked = !post.isLiked;
 

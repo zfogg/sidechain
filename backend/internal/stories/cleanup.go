@@ -9,10 +9,10 @@ import (
 
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
-	"github.com/zfogg/sidechain/backend/internal/storage"
 )
 
 // FileDeleter interface for deleting files from storage
+// Note: storage package import removed - interface is defined here to avoid dependency
 type FileDeleter interface {
 	DeleteFile(ctx context.Context, key string) error
 }
@@ -165,4 +165,3 @@ func extractS3KeyFromURL(url string) string {
 
 	return ""
 }
-

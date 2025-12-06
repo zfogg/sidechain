@@ -60,7 +60,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     //==========================================================================
     // Create AuthComponent
-    authComponent = std::make_unique<AuthComponent>();
+    authComponent = std::make_unique<Auth>();
     authComponent->setNetworkClient(networkClient.get());
     authComponent->onLoginSuccess = [this](const juce::String& user, const juce::String& mail, const juce::String& token) {
         onLoginSuccess(user, mail, token);
@@ -142,7 +142,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     //==========================================================================
     // Create RecordingComponent
-    recordingComponent = std::make_unique<RecordingComponent>(audioProcessor);
+    recordingComponent = std::make_unique<Recording>(audioProcessor);
     recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio) {
         if (uploadComponent)
         {
@@ -168,7 +168,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     //==========================================================================
     // Create UserDiscoveryComponent
-    userDiscoveryComponent = std::make_unique<UserDiscoveryComponent>();
+    userDiscoveryComponent = std::make_unique<UserDiscovery>();
     userDiscoveryComponent->setNetworkClient(networkClient.get());
     userDiscoveryComponent->onBackPressed = [this]() {
         navigateBack();
@@ -192,7 +192,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         showProfile(userId);
     };
     searchComponent->onPostSelected = [this](const FeedPost& post) {
-        // TODO: Navigate to post details or play post
+        // Handle notification click action.
+        // NOT YET IMPLEMENTED - Navigation to post details or playback.
+        // See notes/PLAN.md for post detail view implementation plan.
+        // TODO: Navigate to post details or play post - see PLAN.md Phase 4
         audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
     };
     addChildComponent(searchComponent.get());
@@ -216,7 +219,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
                         else
                         {
                             Log::error("Story upload failed: " + result.getError());
-                            // TODO: Show error message to user
+                            juce::MessageManager::callAsync([result]() {
+                                juce::AlertWindow::showMessageBoxAsync(
+                                    juce::AlertWindow::WarningIcon,
+                                    "Upload Error",
+                                    "Failed to upload story: " + result.getError());
+                            });
                         }
                     });
                 });
@@ -249,14 +257,20 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         showMessageThread(channelType, channelId);
     };
     messagesListComponent->onNewMessage = [this]() {
-        // TODO: Open new message dialog / user search
+        // Handle new message action from header.
+        // NOT YET IMPLEMENTED - See notes/PLAN.md Phase 7 for messaging features.
+        // Should open user search/picker dialog to start new conversation.
+        // TODO: Open new message dialog / user search - see PLAN.md Phase 7
         showView(AppView::Discovery);
     };
     messagesListComponent->onGoToDiscovery = [this]() {
         showView(AppView::Discovery);
     };
     messagesListComponent->onCreateGroup = [this]() {
-        // TODO: Open group creation dialog with user picker
+        // Handle create group action from header.
+        // NOT YET IMPLEMENTED - See notes/PLAN.md Phase 7 for group messaging.
+        // Should open dialog with user picker to create new group channel.
+        // TODO: Open group creation dialog with user picker - see PLAN.md Phase 7
         // For now, navigate to discovery to select users
         showView(AppView::Discovery);
         Log::info("PluginEditor: Create Group clicked - navigating to Discovery (full UI pending)");
@@ -1189,12 +1203,24 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
 // Notification handling
 //==============================================================================
 
-// Helper class for notification polling timer
+/**
+ * NotificationPollTimer - Helper timer for polling notifications
+ *
+ * Simple timer wrapper that calls a callback on each tick.
+ * Used for periodic notification updates from the server.
+ */
 class NotificationPollTimer : public juce::Timer
 {
 public:
+    /**
+     * Create a notification poll timer with callback
+     * @param callback Function to call on each timer tick
+     */
     NotificationPollTimer(std::function<void()> callback) : onTick(callback) {}
+
     void timerCallback() override { if (onTick) onTick(); }
+
+    /** Callback function called on each timer tick */
     std::function<void()> onTick;
 };
 
@@ -1373,12 +1399,24 @@ void SidechainAudioProcessorEditor::stopNotificationPolling()
 // OAuth Polling for plugin-based OAuth flow
 //==============================================================================
 
-// Helper class for OAuth polling timer
+/**
+ * OAuthPollTimer - Helper timer for OAuth authentication polling
+ *
+ * Simple timer wrapper that calls a callback on each tick.
+ * Used during OAuth flow to periodically check if authentication completed.
+ */
 class OAuthPollTimer : public juce::Timer
 {
 public:
+    /**
+     * Create an OAuth poll timer with callback
+     * @param callback Function to call on each timer tick
+     */
     OAuthPollTimer(std::function<void()> callback) : onTick(callback) {}
+
     void timerCallback() override { if (onTick) onTick(); }
+
+    /** Callback function called on each timer tick */
     std::function<void()> onTick;
 };
 

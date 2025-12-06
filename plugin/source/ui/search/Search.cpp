@@ -38,6 +38,10 @@ Search::Search()
 
     // Start timer for debouncing search
     startTimer(300); // 300ms debounce
+
+    // TODO: Phase 7 - Advanced Search - Search by BPM, key, genre
+    // TODO: Phase 7 - Filter posts by metadata (BPM, key, genre, DAW)
+    // TODO: Phase 7 - Search hashtags
 }
 
 Search::~Search()
@@ -494,9 +498,114 @@ void Search::addToRecentSearches(const juce::String& query)
 
 void Search::loadTrendingSearches()
 {
-    // TODO: Load from backend endpoint /api/v1/search/trending
-    // For now, use placeholder
-    trendingSearches = { "electronic", "hip-hop", "techno", "house", "trap" };
+    // Load trending search terms from backend endpoint
+    if (networkClient == nullptr)
+    {
+        // Fallback to placeholder if no network client
+        trendingSearches = { "electronic", "hip-hop", "techno", "house", "trap" };
+        return;
+    }
+
+    // Try to fetch trending search terms from backend
+    juce::String url = networkClient->getBaseUrl() + "/api/v1/search/trending";
+    networkClient->getAbsolute(url, [this](Outcome<juce::var> result) {
+        if (result.isOk())
+        {
+            auto data = result.getValue();
+            trendingSearches.clear();
+
+            // Check if response has a "terms" or "searches" array
+            if (data.isObject())
+            {
+                auto terms = data.getProperty("terms", juce::var());
+                if (terms.isArray())
+                {
+                    auto* arr = terms.getArray();
+                    if (arr != nullptr)
+                    {
+                        for (int i = 0; i < arr->size() && i < 10; ++i)
+                        {
+                            juce::String term = (*arr)[i].toString().trim();
+                            if (term.isNotEmpty())
+                                trendingSearches.add(term);
+                        }
+                    }
+                }
+                else
+                {
+                    // Try "searches" property
+                    terms = data.getProperty("searches", juce::var());
+                    if (terms.isArray())
+                    {
+                        auto* arr = terms.getArray();
+                        if (arr != nullptr)
+                        {
+                            for (int i = 0; i < arr->size() && i < 10; ++i)
+                            {
+                                juce::String term = (*arr)[i].toString().trim();
+                                if (term.isNotEmpty())
+                                    trendingSearches.add(term);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (data.isArray())
+            {
+                // Response is directly an array
+                auto* arr = data.getArray();
+                if (arr != nullptr)
+                {
+                    for (int i = 0; i < arr->size() && i < 10; ++i)
+                    {
+                        juce::String term = (*arr)[i].toString().trim();
+                        if (term.isNotEmpty())
+                            trendingSearches.add(term);
+                    }
+                }
+            }
+
+            // If we got results, update UI
+            if (trendingSearches.size() > 0)
+            {
+                juce::MessageManager::callAsync([this]() {
+                    repaint();
+                });
+            }
+            else
+            {
+                // Fallback to available genres if no trending terms
+                useGenresAsTrendingFallback();
+            }
+        }
+        else
+        {
+            // Endpoint doesn't exist or error - use fallback
+            Log::debug("Search: Trending endpoint not available, using fallback");
+            useGenresAsTrendingFallback();
+        }
+    });
+}
+
+void Search::useGenresAsTrendingFallback()
+{
+    // Use available genres as trending searches fallback
+    trendingSearches.clear();
+    if (availableGenres.size() > 0)
+    {
+        for (int i = 0; i < juce::jmin(5, availableGenres.size()); ++i)
+        {
+            trendingSearches.add(availableGenres[i]);
+        }
+    }
+    else
+    {
+        // Final fallback to hardcoded genres
+        trendingSearches = { "electronic", "hip-hop", "techno", "house", "trap" };
+    }
+    juce::MessageManager::callAsync([this]() {
+        repaint();
+    });
 }
 
 void Search::loadAvailableGenres()
@@ -656,7 +765,7 @@ void Search::drawResults(juce::Graphics& g)
             // Create user card if needed
             while (userCards.size() <= i)
             {
-                auto* card = new UserCardComponent();
+                auto* card = new UserCard();
                 // Setup callbacks for user interactions
                 card->onUserClicked = [this](const DiscoveredUser& user) {
                     if (onUserSelected)
@@ -1009,7 +1118,7 @@ void Search::showBPMPicker()
                 { 120, 130 },    // House/Techno
                 { 130, 150 },    // Techno/Trance
                 { 150, 180 },    // Drum & Bass
-                { -1, -1 }       // Custom (TODO: implement custom dialog)
+                { -1, -1 }       // Custom (TODO: implement custom dialog - see PLAN.md Phase 7)
             }};
 
             if (result > 0 && result <= (int)presets.size())
@@ -1022,9 +1131,59 @@ void Search::showBPMPicker()
                     applyFilters();
                     repaint();
                 }
-                // TODO: For custom, show a dialog to input min/max
+                else
+                {
+                    // Custom BPM range - show dialog
+                    showCustomBPMDialog();
+                }
             }
         });
+}
+
+void Search::showCustomBPMDialog()
+{
+    juce::AlertWindow alert("Custom BPM Range", "Enter minimum and maximum BPM values:", juce::AlertWindow::QuestionIcon);
+
+    alert.addTextEditor("bpmMin", juce::String(bpmMin), "Minimum BPM:", false);
+    alert.addTextEditor("bpmMax", juce::String(bpmMax), "Maximum BPM:", false);
+
+    auto* minEditor = alert.getTextEditor("bpmMin");
+    auto* maxEditor = alert.getTextEditor("bpmMax");
+
+    if (minEditor != nullptr)
+        minEditor->setInputRestrictions(3, "0123456789");
+    if (maxEditor != nullptr)
+        maxEditor->setInputRestrictions(3, "0123456789");
+
+    alert.addButton("Apply", 1, juce::KeyPress(juce::KeyPress::returnKey));
+    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+
+    alert.enterModalState(true, juce::ModalCallbackFunction::create([this, &alert](int result) {
+        if (result == 1)
+        {
+            juce::String minText = alert.getTextEditorContents("bpmMin").trim();
+            juce::String maxText = alert.getTextEditorContents("bpmMax").trim();
+
+            int newMin = minText.getIntValue();
+            int newMax = maxText.getIntValue();
+
+            // Validate range
+            if (newMin >= 0 && newMax > newMin && newMax <= 300)
+            {
+                bpmMin = newMin;
+                bpmMax = newMax;
+                applyFilters();
+                repaint();
+            }
+            else
+            {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::AlertWindow::WarningIcon,
+                    "Invalid Range",
+                    "Please enter a valid BPM range:\n- Minimum: 0-299\n- Maximum: 1-300\n- Maximum must be greater than minimum");
+            }
+        }
+    }));
 }
 
 void Search::showKeyPicker()

@@ -4,6 +4,7 @@
 #include "UserCard.h"
 
 class NetworkClient;
+class StreamChatClient;
 
 //==============================================================================
 /**
@@ -28,6 +29,7 @@ public:
     //==============================================================================
     // Network client integration
     void setNetworkClient(NetworkClient* client);
+    void setStreamChatClient(StreamChatClient* client);
     void setCurrentUserId(const juce::String& userId) { currentUserId = userId; }
 
     //==============================================================================
@@ -68,6 +70,7 @@ private:
     //==============================================================================
     // Data
     NetworkClient* networkClient = nullptr;
+    StreamChatClient* streamChatClient = nullptr;
     juce::String currentUserId;
 
     // Search state
@@ -102,7 +105,7 @@ private:
     // UI Components
     std::unique_ptr<juce::TextEditor> searchBox;
     juce::ScrollBar scrollBar { true };  // vertical
-    juce::OwnedArray<UserCardComponent> userCards;
+    juce::OwnedArray<UserCard> userCards;
 
     // Scroll state
     int scrollOffset = 0;
@@ -160,7 +163,10 @@ private:
     // User card management
     void rebuildUserCards();
     void updateUserCardPositions();
-    void setupUserCardCallbacks(UserCardComponent* card);
+    void setupUserCardCallbacks(UserCard* card);
+
+    // Presence querying
+    void queryPresenceForUsers(const juce::Array<DiscoveredUser>& users);
 
     //==============================================================================
     // Helper methods

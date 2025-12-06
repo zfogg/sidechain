@@ -1,11 +1,352 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/zfogg/sidechain/backend/internal/auth"
+	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/email"
+	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/storage"
+	"github.com/zfogg/sidechain/backend/internal/stream"
 )
+
+// Note: Password reset endpoints are implemented (RequestPasswordReset, ResetPassword)
+// Note: Password reset email sending is now implemented using AWS SES
+// Configure SES_FROM_EMAIL, SES_FROM_NAME, and BASE_URL in .env to enable
+// Note: "Forgot Password" is now fully wired up in plugin (Auth.cpp) - calls backend API
+
+// AuthHandlers wraps the auth service and provides HTTP handlers
+type AuthHandlers struct {
+	authService  *auth.Service
+	uploader     storage.ProfilePictureUploader
+	stream       *stream.Client
+	emailService *email.EmailService
+	jwtSecret    []byte
+}
+
+// NewAuthHandlers creates a new auth handlers instance
+func NewAuthHandlers(authService *auth.Service, uploader storage.ProfilePictureUploader, streamClient *stream.Client) *AuthHandlers {
+	var jwtSecret []byte
+	if authService != nil {
+		// Extract JWT secret from auth service if possible
+		// For now, we'll need to pass it separately or extract from env
+		jwtSecret = []byte("default-secret") // This should come from config
+	}
+	return &AuthHandlers{
+		authService: authService,
+		uploader:    uploader,
+		stream:      streamClient,
+		jwtSecret:   jwtSecret,
+	}
+}
+
+// SetJWTSecret sets the JWT secret for token validation
+func (h *AuthHandlers) SetJWTSecret(secret []byte) {
+	h.jwtSecret = secret
+}
+
+// SetEmailService sets the email service for sending emails
+func (h *AuthHandlers) SetEmailService(service *email.EmailService) {
+	h.emailService = service
+}
+
+// Register handles user registration
+// POST /api/v1/auth/register
+func (h *AuthHandlers) Register(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	var req auth.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		return
+	}
+
+	authResp, err := h.authService.RegisterNativeUser(req)
+	if err != nil {
+		if err == auth.ErrUserExists {
+			c.JSON(http.StatusConflict, gin.H{"error": "user_exists"})
+			return
+		}
+		if err == auth.ErrUsernameExists {
+			c.JSON(http.StatusConflict, gin.H{"error": "username_taken"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "registration_failed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"auth": gin.H{
+			"token":      authResp.Token,
+			"user":       authResp.User,
+			"expires_at": authResp.ExpiresAt,
+		},
+	})
+}
+
+// Login handles user login
+// POST /api/v1/auth/login
+func (h *AuthHandlers) Login(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	var req auth.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		return
+	}
+
+	authResp, err := h.authService.LoginNativeUser(req)
+	if err != nil {
+		if err == auth.ErrUserNotFound || err == auth.ErrInvalidCredentials {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_credentials"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "login_failed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"auth": gin.H{
+			"token":      authResp.Token,
+			"user":       authResp.User,
+			"expires_at": authResp.ExpiresAt,
+		},
+	})
+}
+
+// GoogleOAuth initiates Google OAuth flow
+// GET /api/v1/auth/google
+func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	state := c.Query("state")
+	if state == "" {
+		state = uuid.New().String()
+	}
+
+	url := h.authService.GetGoogleOAuthURL(state)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+// GoogleCallback handles Google OAuth callback
+// GET /api/v1/auth/google/callback
+func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	code := c.Query("code")
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing_code"})
+		return
+	}
+
+	authResp, err := h.authService.HandleGoogleCallback(code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "oauth_failed", "message": err.Error()})
+		return
+	}
+
+	// Redirect to plugin callback URL with token
+	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+}
+
+// DiscordOAuth initiates Discord OAuth flow
+// GET /api/v1/auth/discord
+func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	state := c.Query("state")
+	if state == "" {
+		state = uuid.New().String()
+	}
+
+	url := h.authService.GetDiscordOAuthURL(state)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+// DiscordCallback handles Discord OAuth callback
+// GET /api/v1/auth/discord/callback
+func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	code := c.Query("code")
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing_code"})
+		return
+	}
+
+	authResp, err := h.authService.HandleDiscordCallback(code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "oauth_failed", "message": err.Error()})
+		return
+	}
+
+	// Redirect to plugin callback URL with token
+	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+}
+
+// OAuthPoll polls for OAuth completion (for plugin flow)
+// GET /api/v1/auth/oauth/poll
+func (h *AuthHandlers) OAuthPoll(c *gin.Context) {
+	// For now, return not implemented - OAuth polling needs session storage
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "oauth_polling_not_implemented"})
+}
+
+// Me returns current user info
+// GET /api/v1/auth/me
+func (h *AuthHandlers) Me(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
+}
+
+// GetStreamToken generates a getstream.io Chat token
+// GET /api/v1/auth/stream-token
+func (h *AuthHandlers) GetStreamToken(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	if h.stream == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "stream_client_not_configured"})
+		return
+	}
+
+	// Ensure user exists in getstream.io
+	var user models.User
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	// Create user in getstream.io if needed
+	if err := h.stream.CreateUser(user.StreamUserID, user.Username); err != nil {
+		// Log but continue - user might already exist
+		fmt.Printf("Warning: failed to create/getstream.io user: %v\n", err)
+	}
+
+	// Generate token (24 hour expiration)
+	expiration := time.Now().Add(24 * time.Hour)
+	token, err := h.stream.CreateToken(user.StreamUserID, expiration)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_generation_failed", "message": err.Error()})
+		return
+	}
+
+	// Get API key from stream client (needed for plugin)
+	apiKey := os.Getenv("STREAM_API_KEY")
+	if apiKey == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "stream_api_key_not_configured"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":      token,
+		"api_key":    apiKey,
+		"user_id":    user.StreamUserID,
+		"expires_at": expiration,
+	})
+}
+
+// UploadProfilePicture handles profile picture upload
+// POST /api/v1/users/upload-profile-picture
+func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	if h.uploader == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "uploader_not_configured"})
+		return
+	}
+
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no_file_provided"})
+		return
+	}
+	defer file.Close()
+
+	result, err := h.uploader.UploadProfilePicture(context.Background(), file, header, userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "upload_failed", "message": err.Error()})
+		return
+	}
+
+	// Update user's avatar URL in database
+	database.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", result.URL)
+
+	c.JSON(http.StatusOK, gin.H{
+		"url": result.URL,
+	})
+}
+
+// ProxyProfilePicture proxies profile picture requests (works around JUCE SSL issues on Linux)
+// GET /api/v1/users/:id/profile-picture
+func (h *AuthHandlers) ProxyProfilePicture(c *gin.Context) {
+	userID := c.Param("id")
+
+	var user models.User
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	avatarURL := user.AvatarURL
+	if avatarURL == "" {
+		avatarURL = user.ProfilePictureURL
+	}
+	if avatarURL == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no_profile_picture"})
+		return
+	}
+
+	// Redirect to the actual CDN URL
+	c.Redirect(http.StatusTemporaryRedirect, avatarURL)
+}
 
 // RegisterDevice creates a new device ID for VST authentication
 func (h *Handlers) RegisterDevice(c *gin.Context) {
@@ -65,25 +406,134 @@ func (h *Handlers) VerifyToken(c *gin.Context) {
 }
 
 // AuthMiddleware validates requests with JWT tokens
-func (h *Handlers) AuthMiddleware() gin.HandlerFunc {
+func (h *AuthHandlers) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.GetHeader("Authorization")
-		if token == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "no token provided"})
+		// Extract token from Authorization header (Bearer token)
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "no_token_provided"})
 			c.Abort()
 			return
 		}
 
-		// Simple validation - in production use proper JWT parsing
-		if len(token) < 20 {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		// Remove "Bearer " prefix if present
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		tokenString = strings.TrimSpace(tokenString)
+
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_token_format"})
 			c.Abort()
 			return
 		}
 
-		// Extract user ID from token (simplified)
-		userID := "user_123" // In production, extract from JWT
-		c.Set("user_id", userID)
+		// Validate token using auth service
+		if h.authService == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+			c.Abort()
+			return
+		}
+
+		user, err := h.authService.ValidateToken(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid_token", "message": err.Error()})
+			c.Abort()
+			return
+		}
+
+		// Set user info in context
+		c.Set("user_id", user.ID)
+		c.Set("user", user)
 		c.Next()
 	}
+}
+
+// RequestPasswordReset creates a password reset token
+// POST /api/v1/auth/reset-password
+func (h *AuthHandlers) RequestPasswordReset(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		return
+	}
+
+	// Create reset token (don't reveal if user exists for security)
+	token, err := h.authService.RequestPasswordReset(req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "reset_request_failed", "message": err.Error()})
+		return
+	}
+
+	// Always return success (don't reveal if user exists)
+	if token != nil {
+		// Send password reset email if email service is configured
+		if h.emailService != nil {
+			err := h.emailService.SendPasswordResetEmail(c.Request.Context(), req.Email, token.Token)
+			if err != nil {
+				// Log error but don't fail the request (security: don't reveal if email was sent)
+				fmt.Printf("Warning: Failed to send password reset email to %s: %v\n", req.Email, err)
+				// In development, still return token for testing
+				if os.Getenv("ENVIRONMENT") == "development" {
+					c.JSON(http.StatusOK, gin.H{
+						"message": "password_reset_email_sent",
+						"token":   token.Token, // Dev mode only
+					})
+					return
+				}
+			}
+		} else {
+			// Email service not configured - return token in dev mode only
+			if os.Getenv("ENVIRONMENT") == "development" {
+				c.JSON(http.StatusOK, gin.H{
+					"message": "password_reset_email_sent",
+					"token":   token.Token, // Dev mode only
+				})
+				return
+			}
+		}
+
+		// Production mode or email sent successfully - don't return token
+		c.JSON(http.StatusOK, gin.H{
+			"message": "password_reset_email_sent",
+		})
+	} else {
+		// User doesn't exist or has no password - still return success
+		c.JSON(http.StatusOK, gin.H{
+			"message": "password_reset_email_sent",
+		})
+	}
+}
+
+// ResetPassword validates token and updates password
+// POST /api/v1/auth/reset-password/confirm
+func (h *AuthHandlers) ResetPassword(c *gin.Context) {
+	if h.authService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
+		return
+	}
+
+	var req struct {
+		Token       string `json:"token" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required,min=8"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		return
+	}
+
+	err := h.authService.ResetPassword(req.Token, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "reset_failed", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "password_reset_successful",
+	})
 }

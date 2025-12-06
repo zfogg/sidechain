@@ -78,6 +78,10 @@ NotificationItem NotificationItem::fromJson(const juce::var& json)
     return item;
 }
 
+// TODO: Phase 5.4.4.1 - Implement notification sound option (user preference)
+// TODO: Phase 5.4.4.2 - Add notification preferences (mute specific types)
+// TODO: Phase 5.4.4.3 - Consider WebSocket push for real-time updates (polling is sufficient for MVP)
+
 juce::String NotificationItem::getDisplayText() const
 {
     juce::String text;

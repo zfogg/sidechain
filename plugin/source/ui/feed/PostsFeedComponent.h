@@ -9,11 +9,10 @@
 #include "../../audio/HttpAudioPlayer.h"
 
 class NetworkClient;
-class StreamChatClient;
 
 //==============================================================================
 /**
- * PostsFeed displays the main social feed of audio posts
+ * PostsFeedComponent displays the main social feed of audio posts
  *
  * Features:
  * - Multiple feed types (Timeline, Trending, Global)
@@ -29,14 +28,14 @@ class StreamChatClient;
  * - All UI operations must be on the message thread
  * - Network callbacks are automatically marshalled to message thread
  */
-class PostsFeed : public juce::Component,
+class PostsFeedComponent : public juce::Component,
                            public juce::ScrollBar::Listener,
                            public juce::KeyListener,
                            public juce::Timer
 {
 public:
-    PostsFeed();
-    ~PostsFeed() override;
+    PostsFeedComponent();
+    ~PostsFeedComponent() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -69,9 +68,6 @@ public:
 
     // Network client integration
     void setNetworkClient(NetworkClient* client);
-
-    // Stream chat client for presence queries
-    void setStreamChatClient(StreamChatClient* client);
 
     // Audio player integration
     void setAudioPlayer(HttpAudioPlayer* player);
@@ -136,9 +132,6 @@ private:
     // Network client for play tracking
     NetworkClient* networkClient = nullptr;
 
-    // Stream chat client for presence queries
-    StreamChatClient* streamChatClient = nullptr;
-
     //==============================================================================
     // Listen duration tracking (postId -> start time)
     std::map<juce::String, juce::Time> playbackStartTimes;
@@ -180,9 +173,6 @@ private:
     void onFeedLoaded(const FeedResponse& response);
     void onFeedError(const juce::String& error);
 
-    // Presence querying
-    void queryPresenceForPosts();
-
     // Infinite scroll
     void checkLoadMore();
     void updateScrollBounds();
@@ -196,5 +186,5 @@ private:
     juce::Rectangle<int> getRecordButtonBounds() const;
     juce::Rectangle<int> getFeedContentBounds() const;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostsFeed)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostsFeedComponent)
 };

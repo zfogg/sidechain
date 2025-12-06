@@ -95,17 +95,68 @@ public:
 
     //==============================================================================
     // Callbacks for user actions
+
+    /** Called when play button is clicked */
     std::function<void(const FeedPost&)> onPlayClicked;
+
+    /** Called when pause button is clicked */
     std::function<void(const FeedPost&)> onPauseClicked;
+
+    /** Called when like button is toggled
+     * @param post The post that was liked/unliked
+     * @param liked true if post is now liked, false if unliked
+     */
     std::function<void(const FeedPost&, bool liked)> onLikeToggled;
-    std::function<void(const FeedPost&, const juce::String& emoji)> onEmojiReaction;  // Emoji reaction
+
+    /** Called when user selects an emoji reaction
+     * @param post The post being reacted to
+     * @param emoji The emoji string (empty to clear reaction)
+     */
+    std::function<void(const FeedPost&, const juce::String& emoji)> onEmojiReaction;
+
+    /** Called when user avatar/name is clicked (navigate to profile) */
     std::function<void(const FeedPost&)> onUserClicked;
+
+    /** Called when comment button is clicked
+     * @note Currently not fully implemented - comment UI exists but not wired to API
+     *       See @ref notes/PLAN.md for comment system implementation status
+     */
     std::function<void(const FeedPost&)> onCommentClicked;
+
+    /** Called when share button is clicked (copies post URL to clipboard) */
     std::function<void(const FeedPost&)> onShareClicked;
+
+    /** Called when "more" menu button is clicked
+     * @warning NOT IMPLEMENTED - Currently only logs the action, no context menu shown
+     *          See @ref notes/PLAN.md for planned context menu features
+     */
     std::function<void(const FeedPost&)> onMoreClicked;
-    std::function<void(const FeedPost&, float position)> onWaveformClicked; // Seek position
-    std::function<void(const FeedPost&, bool willFollow)> onFollowToggled; // Follow/unfollow user
-    std::function<void(const FeedPost&)> onAddToDAWClicked; // Download audio to DAW project folder
+
+    /** Called when waveform is clicked (seek to position)
+     * @param post The post being seeked
+     * @param position Normalized position (0.0 to 1.0) where waveform was clicked
+     */
+    std::function<void(const FeedPost&, float position)> onWaveformClicked;
+
+    /** Called when follow/unfollow button is toggled
+     * @param post The post whose author should be followed/unfollowed
+     * @param willFollow true to follow, false to unfollow
+     * @note UI updates optimistically and backend API call is implemented in PostsFeed.cpp.
+     *       Success/error notifications are shown to the user.
+     */
+    std::function<void(const FeedPost&, bool willFollow)> onFollowToggled;
+
+    /** Called when "Add to DAW" button is clicked
+     * @param post The post to download
+     * @note Downloads audio file and saves to user-selected location.
+     *       Success/error notifications are shown to the user (already implemented).
+     */
+    std::function<void(const FeedPost&)> onAddToDAWClicked;
+
+    /** Called when card is tapped (for expanding details)
+     * @param post The post that was tapped
+     */
+    std::function<void(const FeedPost&)> onCardTapped;
 
     //==============================================================================
     // Component overrides

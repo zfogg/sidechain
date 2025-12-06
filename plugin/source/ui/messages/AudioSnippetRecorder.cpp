@@ -303,13 +303,24 @@ juce::String AudioSnippetRecorder::formatTime(double seconds)
 //==============================================================================
 void AudioSnippetRecorder::startRecording()
 {
+    // Start recording an audio snippet for message sending.
+    // IMPORTANT GOTCHAS:
+    // - Cannot start if processor is already recording (e.g., for a full post upload)
+    // - Shows error alert if processor is busy (already implemented below)
+    // - Maximum duration is 30 seconds (enforced automatically)
+    // - Recording state is managed by SidechainAudioProcessor
     Log::info("AudioSnippetRecorder::startRecording: Starting recording");
 
     // Check if processor is already recording (e.g., for a full post)
     if (audioProcessor.isRecording())
     {
         Log::warn("AudioSnippetRecorder::startRecording: Processor already recording, cannot start snippet");
-        // TODO: Show error to user
+        juce::MessageManager::callAsync([]() {
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::AlertWindow::WarningIcon,
+                "Recording Busy",
+                "Cannot start audio snippet recording. The audio processor is already recording.");
+        });
         return;
     }
 
@@ -323,6 +334,12 @@ void AudioSnippetRecorder::startRecording()
 
 void AudioSnippetRecorder::stopRecording()
 {
+    // Stop recording and transition to preview state.
+    // IMPORTANT GOTCHAS:
+    // - Sample rate is captured before stopping (may change during recording)
+    // - Audio buffer is copied from processor (processor may continue recording for other purposes)
+    // - Automatically transitions to Preview state if recording was successful
+    // - If recording failed or was empty, returns to Idle state
     Log::info("AudioSnippetRecorder::stopRecording: Stopping recording");
 
     // Get sample rate before stopping (in case it changes)

@@ -38,6 +38,7 @@ public:
     // Set StreamChatClient
     void setStreamChatClient(StreamChatClient* client);
     void setNetworkClient(NetworkClient* client);  // For user search
+    void setCurrentUserId(const juce::String& userId) { currentUserId = userId; }
 
     // Load channels
     void loadChannels();
@@ -62,6 +63,7 @@ private:
 
     StreamChatClient* streamChatClient = nullptr;
     NetworkClient* networkClient = nullptr;
+    juce::String currentUserId;  // Current user ID for filtering members
 
     // UI elements
     juce::ScrollBar scrollBar;

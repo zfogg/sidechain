@@ -221,6 +221,9 @@ private:
     juce::String replyingToCommentId;
     juce::String replyingToUsername;
 
+    // Edit state
+    juce::String editCommentId;  // ID of comment being edited (empty if creating new)
+
     //==============================================================================
     // UI Components
     std::unique_ptr<juce::Viewport> viewport;

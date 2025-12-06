@@ -358,6 +358,21 @@ if(EXISTS "${WEBSOCKETPP_DIR}/websocketpp")
         message(WARNING "websocketpp found but ASIO not available - ASIO backend will not work")
     endif()
 
+    # Find OpenSSL for TLS support (required for wss:// connections)
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND)
+        target_link_libraries(websocketpp INTERFACE OpenSSL::SSL OpenSSL::Crypto)
+        message(STATUS "OpenSSL found - TLS support enabled for websocketpp")
+        set(SIDECHAIN_HAS_OPENSSL TRUE)
+    else()
+        message(WARNING "OpenSSL not found - TLS WebSocket connections (wss://) will not work")
+        message(STATUS "Install OpenSSL:")
+        message(STATUS "  macOS:   brew install openssl")
+        message(STATUS "  Ubuntu:  sudo apt install libssl-dev")
+        message(STATUS "  Arch:    sudo pacman -S openssl")
+        set(SIDECHAIN_HAS_OPENSSL FALSE)
+    endif()
+
     set(SIDECHAIN_HAS_WEBSOCKETPP TRUE)
     message(STATUS "websocketpp will be available as an interface library")
 else()
@@ -423,6 +438,8 @@ set(SIDECHAIN_AUDIO_SOURCES
     source/audio/BufferAudioPlayer.h
     source/audio/KeyDetector.cpp
     source/audio/KeyDetector.h
+    source/audio/ProgressiveKeyDetector.cpp
+    source/audio/ProgressiveKeyDetector.h
 )
 
 # API clients and data managers
@@ -634,6 +651,8 @@ target_compile_definitions(Sidechain
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
+        JucePlugin_PreferredChannelConfigurations=1
+        JucePlugin_ChannelConfigurations="{2, 2}"
 )
 
 # Add generated headers to include path (for Version.h)

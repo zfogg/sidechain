@@ -6,6 +6,16 @@
 #include <functional>
 #include <atomic>
 #include <vector>
+#include <memory>
+#include <thread>
+
+// Define ASIO_STANDALONE before including websocketpp headers
+#define ASIO_STANDALONE 1
+#define ASIO_HAS_STD_INVOKE_RESULT 1
+
+// websocketpp headers for WebSocket support (using TLS for wss://)
+#include <websocketpp/config/asio_client.hpp>
+#include <websocketpp/client.hpp>
 
 //==============================================================================
 /**
@@ -373,8 +383,31 @@ public:
     // Send typing indicator via REST API event endpoint
     void sendTypingIndicator(const juce::String& channelType, const juce::String& channelId, bool isTyping);
 
-    // WebSocket stubs (for future implementation when ASIO issues are resolved)
+    /**
+     * Connect to getstream.io WebSocket for real-time updates.
+     *
+     * Establishes a WebSocket connection to getstream.io's chat service using websocketpp.
+     * The connection runs in a background thread using ASIO for event handling.
+     *
+     * @note Requires OpenSSL for TLS support (wss:// connections).
+     * @note The WebSocket URL is built automatically from the token, API key, and user ID.
+     *
+     * Events handled:
+     * - message.new: New messages in channels
+     * - typing.start/typing.stop: Typing indicators
+     * - user.presence.changed: User online/offline status
+     *
+     * @see disconnectWebSocket() To close the connection
+     * @see watchChannel() For polling-based fallback if WebSocket is unavailable
+     */
     void connectWebSocket();
+
+    /**
+     * Disconnect from getstream.io WebSocket.
+     *
+     * Closes the WebSocket connection and cleans up resources.
+     * The ASIO event loop thread is stopped and joined.
+     */
     void disconnectWebSocket();
     bool isWebSocketConnected() const { return wsConnected.load(); }
 
@@ -392,9 +425,17 @@ private:
     juce::String currentUserId;
     juce::String backendAuthToken;  // Token for our backend API
 
-    // WebSocket
-    std::unique_ptr<juce::StreamingSocket> webSocket;
+    // WebSocket (using websocketpp)
+    typedef websocketpp::client<websocketpp::config::asio_client> wspp_client;
+    typedef websocketpp::connection_hdl connection_hdl;
+    typedef typename wspp_client::message_ptr message_ptr;
+    typedef typename wspp_client::connection_ptr connection_ptr;
+
+    std::unique_ptr<wspp_client> wsClient;
+    connection_hdl wsConnection;
+    std::unique_ptr<std::thread> wsAsioThread;
     std::atomic<bool> wsConnected{ false };
+    std::atomic<bool> wsConnectionActive{ false };
     juce::String wsUrl;
 
     // Status
@@ -427,6 +468,13 @@ private:
     void updateConnectionStatus(ConnectionStatus status);
     void handleWebSocketMessage(const juce::String& message);
     void parseWebSocketEvent(const juce::var& event);
+
+    // WebSocket event handlers (websocketpp callbacks)
+    void onWsOpen(connection_hdl hdl);
+    void onWsClose(connection_hdl hdl);
+    void onWsMessage(connection_hdl hdl, message_ptr msg);
+    void onWsFail(connection_hdl hdl);
+    void cleanupWebSocket();
 
     // Channel ID helpers
     juce::String generateDirectChannelId(const juce::String& userId1, const juce::String& userId2);
