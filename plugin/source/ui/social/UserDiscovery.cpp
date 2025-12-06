@@ -1,8 +1,11 @@
 #include "UserDiscovery.h"
 #include "../../network/NetworkClient.h"
+#include "../../network/StreamChatClient.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include <set>
+#include <vector>
 
 //==============================================================================
 UserDiscovery::UserDiscovery()
@@ -31,6 +34,8 @@ UserDiscovery::UserDiscovery()
 
     // Load recent searches from disk
     loadRecentSearches();
+
+    // Note: Online status is now implemented - queries getstream.io Chat presence and shows online indicators on UserCards
 }
 
 UserDiscovery::~UserDiscovery()
@@ -45,6 +50,12 @@ void UserDiscovery::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
     Log::debug("UserDiscovery: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void UserDiscovery::setStreamChatClient(StreamChatClient* client)
+{
+    streamChatClient = client;
+    Log::info("UserDiscovery::setStreamChatClient: StreamChatClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
 //==============================================================================
@@ -850,7 +861,7 @@ void UserDiscovery::rebuildUserCards()
             // Trending users
             for (auto& user : trendingUsers)
             {
-                auto* card = userCards.add(new UserCardComponent());
+                auto* card = userCards.add(new UserCard());
                 card->setUser(user);
                 setupUserCardCallbacks(card);
                 addAndMakeVisible(card);
@@ -859,7 +870,7 @@ void UserDiscovery::rebuildUserCards()
             // Featured producers
             for (auto& user : featuredProducers)
             {
-                auto* card = userCards.add(new UserCardComponent());
+                auto* card = userCards.add(new UserCard());
                 card->setUser(user);
                 setupUserCardCallbacks(card);
                 addAndMakeVisible(card);
@@ -868,7 +879,7 @@ void UserDiscovery::rebuildUserCards()
             // Suggested users
             for (auto& user : suggestedUsers)
             {
-                auto* card = userCards.add(new UserCardComponent());
+                auto* card = userCards.add(new UserCard());
                 card->setUser(user);
                 setupUserCardCallbacks(card);
                 addAndMakeVisible(card);
@@ -884,7 +895,7 @@ void UserDiscovery::rebuildUserCards()
     {
         for (auto& user : *sourceArray)
         {
-            auto* card = userCards.add(new UserCardComponent());
+            auto* card = userCards.add(new UserCard());
             card->setUser(user);
             setupUserCardCallbacks(card);
             addAndMakeVisible(card);
@@ -893,6 +904,29 @@ void UserDiscovery::rebuildUserCards()
 
     updateUserCardPositions();
     updateScrollBounds();
+
+    // Query presence for all users after rebuilding cards
+    juce::Array<DiscoveredUser> allUsers;
+    switch (currentViewMode)
+    {
+        case ViewMode::SearchResults:
+            allUsers = searchResults;
+            break;
+        case ViewMode::GenreFilter:
+            allUsers = genreUsers;
+            break;
+        case ViewMode::Discovery:
+            // Combine all discovery sections
+            allUsers.addArray(trendingUsers);
+            allUsers.addArray(featuredProducers);
+            allUsers.addArray(suggestedUsers);
+            break;
+    }
+
+    if (!allUsers.isEmpty())
+    {
+        queryPresenceForUsers(allUsers);
+    }
 }
 
 void UserDiscovery::updateUserCardPositions()
@@ -972,7 +1006,7 @@ void UserDiscovery::updateUserCardPositions()
     }
 }
 
-void UserDiscovery::setupUserCardCallbacks(UserCardComponent* card)
+void UserDiscovery::setupUserCardCallbacks(UserCard* card)
 {
     card->onUserClicked = [this](const DiscoveredUser& user) {
         if (onUserSelected)
@@ -1060,4 +1094,88 @@ juce::Rectangle<int> UserDiscovery::getGenreChipBounds(int index) const
     }
 
     return {};
+}
+
+//==============================================================================
+void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& users)
+{
+    if (!streamChatClient || users.isEmpty())
+    {
+        Log::debug("UserDiscovery::queryPresenceForUsers: Skipping - streamChatClient is null or no users");
+        return;
+    }
+
+    // Collect unique user IDs
+    std::set<juce::String> uniqueUserIds;
+    for (const auto& user : users)
+    {
+        if (user.id.isNotEmpty())
+        {
+            uniqueUserIds.insert(user.id);
+        }
+    }
+
+    if (uniqueUserIds.empty())
+    {
+        Log::debug("UserDiscovery::queryPresenceForUsers: No unique user IDs to query");
+        return;
+    }
+
+    // Convert to vector for queryPresence
+    std::vector<juce::String> userIds(uniqueUserIds.begin(), uniqueUserIds.end());
+
+    Log::debug("UserDiscovery::queryPresenceForUsers: Querying presence for " + juce::String(userIds.size()) + " users");
+
+    // Query presence
+    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (result.isError())
+        {
+            Log::warn("UserDiscovery::queryPresenceForUsers: Failed to query presence: " + result.getError());
+            return;
+        }
+
+        auto presenceList = result.getValue();
+        Log::debug("UserDiscovery::queryPresenceForUsers: Received presence data for " + juce::String(presenceList.size()) + " users");
+
+        // Update user arrays with presence data
+        auto updateUserPresence = [&presenceList](juce::Array<DiscoveredUser>& userArray) {
+            for (auto& user : userArray)
+            {
+                for (const auto& presence : presenceList)
+                {
+                    if (presence.userId == user.id)
+                    {
+                        user.isOnline = presence.online;
+                        user.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+                        break;
+                    }
+                }
+            }
+        };
+
+        updateUserPresence(searchResults);
+        updateUserPresence(trendingUsers);
+        updateUserPresence(featuredProducers);
+        updateUserPresence(suggestedUsers);
+        updateUserPresence(genreUsers);
+
+        // Update corresponding UserCards
+        for (auto* card : userCards)
+        {
+            auto user = card->getUser();
+            for (const auto& presence : presenceList)
+            {
+                if (presence.userId == user.id)
+                {
+                    user.isOnline = presence.online;
+                    user.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+                    card->setUser(user);
+                    break;
+                }
+            }
+        }
+
+        // Repaint to show online indicators
+        repaint();
+    });
 }

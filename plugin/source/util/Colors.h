@@ -161,6 +161,12 @@ namespace SidechainColors
     // Online/active indicator
     inline const juce::Colour online()              { return mintGreen(); }
 
+    // Online indicator (green dot)
+    inline const juce::Colour onlineIndicator()     { return juce::Colour(0xFF00D464); }
+
+    // In studio indicator (cyan dot)
+    inline const juce::Colour inStudioIndicator()   { return juce::Colour(0xFF00D4FF); }
+
     // Offline indicator
     inline const juce::Colour offline()             { return textMuted(); }
 

@@ -41,7 +41,7 @@ except:
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
-    # 'sphinx.ext.viewcode',  # Disable for speed
+    'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'breathe',
     'exhale',
@@ -145,17 +145,14 @@ exhale_args = {
     "rootFileTitle":          "API Reference",
     "doxygenStripFromPath":  "..",
     # Suggested optional arguments
-    "createTreeView":        False,  # Disable tree view for speed
+    "createTreeView":        True,
     "exhaleExecutesDoxygen": False,  # We'll run Doxygen separately via CMake
     "exhaleDoxygenStdin":    "",  # Not needed since we run Doxygen separately
-    # Optional arguments - optimize for speed
+    # Optional arguments
     "verboseBuild":          False,
-    "generateBreatheFileDirectives": True,  # Keep this for proper generation
+    "generateBreatheFileDirectives": True,
     # Show full documentation including comments
-    "fullToctreeMaxDepth":   2,  # Reduce depth for speed
-    # Speed optimizations
-    "afterTitleDescription": "",  # Skip extra descriptions
-    "afterHierarchyDescription": "",  # Skip hierarchy descriptions
+    "fullToctreeMaxDepth":   4,
     # Exhale uses breathe_projects to find the Doxygen XML
     # We'll ensure this is built before Sphinx runs
 }
@@ -188,11 +185,7 @@ myst_enable_extensions = [
 # -- Additional configuration ------------------------------------------------
 
 # Suppress warnings for missing Doxygen XML files during initial setup
-suppress_warnings = ['breathe', 'exhale']
-
-# Performance optimizations
-nitpicky = False  # Don't check for broken references
-nitpick_ignore = []  # Ignore broken references
+suppress_warnings = []
 
 # Enable numbered figures
 numfig = True

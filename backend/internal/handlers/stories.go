@@ -10,6 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: Phase 7.5.7.1 - Write backend tests for story endpoints
+// TODO: Phase 7.5.8.1 - Optimize MIDI data storage
+// TODO: Phase 7.5.8.2 - Optimize story feed loading
+
 // CreateStory handles story creation (7.5.1.2.1)
 func (h *Handlers) CreateStory(c *gin.Context) {
 	user, exists := c.Get("user")

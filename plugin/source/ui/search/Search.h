@@ -128,7 +128,7 @@ private:
     std::unique_ptr<juce::TextEditor> searchInput;
     std::unique_ptr<juce::ScrollBar> scrollBar;
     juce::OwnedArray<PostCard> postCards;
-    juce::OwnedArray<UserCardComponent> userCards;
+    juce::OwnedArray<UserCard> userCards;
 
     // Filter UI bounds
     juce::Rectangle<int> genreFilterBounds;
@@ -156,11 +156,13 @@ private:
     void saveRecentSearches();
     void addToRecentSearches(const juce::String& query);
     void loadTrendingSearches();
+    void useGenresAsTrendingFallback();
     void loadAvailableGenres();
     void applyFilters();
     void switchTab(ResultTab tab);
     void showGenrePicker();
     void showBPMPicker();
+    void showCustomBPMDialog();
     void showKeyPicker();
     static const std::array<juce::String, 12>& getAvailableGenres();
     static const std::array<juce::String, 24>& getMusicalKeys();

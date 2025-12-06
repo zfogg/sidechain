@@ -521,11 +521,21 @@ void CommentsPanel::setupRowCallbacks(CommentRow* row)
     };
 
     row->onEditClicked = [this](const Comment& comment) {
-        // Simple edit: populate input with existing content
+        // Handle edit comment action.
+        // Set edit state and populate input with existing content
+        editCommentId = comment.id;
         inputField->setText(comment.content);
         inputField->grabKeyboardFocus();
-        // TODO: Track that we're editing, not creating new
+        // Clear reply state when editing
+        cancelReply();
+        repaint();
     };
+
+    // Comment operations are fully implemented:
+    // - Comment editing: wired up in submitComment() (line 775-806)
+    // - Comment deletion: wired up in onDeleteClicked (line 552)
+    // - Comment likes: wired up in handleCommentLikeToggled (line 640-683)
+    // - Comment reporting: wired up in onReportClicked (line 561-604) - uses NetworkClient::reportComment()
 
     row->onDeleteClicked = [this](const Comment& comment) {
         if (networkClient == nullptr)
@@ -549,9 +559,49 @@ void CommentsPanel::setupRowCallbacks(CommentRow* row)
         });
     };
 
-    row->onReportClicked = [](const Comment& comment) {
-        // TODO: Implement report flow
+    row->onReportClicked = [this](const Comment& comment) {
+        // Handle report comment action.
         Log::info("CommentsPanel::setupRowCallbacks: Report comment clicked - commentId: " + comment.id);
+
+        auto options = juce::MessageBoxOptions()
+            .withTitle("Report Comment")
+            .withMessage("Why are you reporting this comment?")
+            .withButton("Spam")
+            .withButton("Harassment")
+            .withButton("Inappropriate")
+            .withButton("Other")
+            .withButton("Cancel");
+
+        juce::AlertWindow::showAsync(options, [this, comment](int reportResult) {
+            if (reportResult >= 1 && reportResult <= 4 && networkClient != nullptr)
+            {
+                juce::String reasons[] = {"spam", "harassment", "inappropriate", "other"};
+                juce::String reason = reasons[reportResult - 1];
+                juce::String description = "Reported comment: " + comment.content.substring(0, 100);
+
+                networkClient->reportComment(comment.id, reason, description, [](Outcome<juce::var> result) {
+                    if (result.isOk())
+                    {
+                        juce::MessageManager::callAsync([]() {
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::AlertWindow::InfoIcon,
+                                "Report Submitted",
+                                "Thank you for reporting this comment. We will review it shortly.");
+                        });
+                    }
+                    else
+                    {
+                        Log::error("CommentsPanel: Failed to report comment - " + result.getError());
+                        juce::MessageManager::callAsync([result]() {
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::AlertWindow::WarningIcon,
+                                "Error",
+                                "Failed to report comment: " + result.getError());
+                        });
+                    }
+                });
+            }
+        });
     };
 }
 
@@ -658,6 +708,13 @@ void CommentsPanel::handleCommentCreated(Outcome<juce::var> commentResult)
     {
         errorMessage = "Failed to post comment: " + commentResult.getError();
         Log::error("CommentsPanel::handleCommentCreated: Failed to post comment - " + commentResult.getError());
+        // Show error to user
+        juce::MessageManager::callAsync([commentResult]() {
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::AlertWindow::WarningIcon,
+                "Error",
+                "Failed to post comment: " + commentResult.getError());
+        });
     }
 
     repaint();
@@ -706,6 +763,51 @@ void CommentsPanel::submitComment()
         return;
     }
 
+    // Check if we're editing an existing comment
+    if (editCommentId.isNotEmpty())
+    {
+        Log::info("CommentsPanel::submitComment: Updating comment - commentId: " + editCommentId +
+                  ", content length: " + juce::String(content.length()));
+
+        networkClient->updateComment(editCommentId, content,
+            [this](Outcome<juce::var> commentResult) {
+                if (commentResult.isOk())
+                {
+                    auto commentData = commentResult.getValue();
+                    Comment updatedComment = Comment::fromJson(commentData);
+                    if (updatedComment.isValid())
+                    {
+                        // Update the comment in the list
+                        for (int i = 0; i < comments.size(); ++i)
+                        {
+                            if (comments[i].id == updatedComment.id)
+                            {
+                                comments.set(i, updatedComment);
+                                updateCommentsList();
+                                break;
+                            }
+                        }
+                    }
+                    inputField->clear();
+                    editCommentId = "";  // Clear edit state
+                    cancelReply();
+                    Log::info("CommentsPanel::submitComment: Comment updated successfully");
+                }
+                else
+                {
+                    Log::error("CommentsPanel::submitComment: Failed to update comment - " + commentResult.getError());
+                    juce::MessageManager::callAsync([commentResult]() {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to update comment: " + commentResult.getError());
+                    });
+                }
+                repaint();
+            });
+        return;
+    }
+
     // Determine if this is a reply
     juce::String parentId = replyingToCommentId;
 
@@ -723,6 +825,8 @@ void CommentsPanel::cancelReply()
 {
     replyingToCommentId = "";
     replyingToUsername = "";
+    // Also clear edit state when canceling reply
+    editCommentId = "";
 }
 
 void CommentsPanel::timerCallback()

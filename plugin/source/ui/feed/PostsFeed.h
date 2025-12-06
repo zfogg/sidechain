@@ -9,6 +9,7 @@
 #include "../../audio/HttpAudioPlayer.h"
 
 class NetworkClient;
+class StreamChatClient;
 
 //==============================================================================
 /**
@@ -68,6 +69,9 @@ public:
 
     // Network client integration
     void setNetworkClient(NetworkClient* client);
+
+    // Stream chat client for presence queries
+    void setStreamChatClient(StreamChatClient* client);
 
     // Audio player integration
     void setAudioPlayer(HttpAudioPlayer* player);
@@ -132,6 +136,9 @@ private:
     // Network client for play tracking
     NetworkClient* networkClient = nullptr;
 
+    // Stream chat client for presence queries
+    StreamChatClient* streamChatClient = nullptr;
+
     //==============================================================================
     // Listen duration tracking (postId -> start time)
     std::map<juce::String, juce::Time> playbackStartTimes;
@@ -172,6 +179,9 @@ private:
     // Feed callback handlers
     void onFeedLoaded(const FeedResponse& response);
     void onFeedError(const juce::String& error);
+
+    // Presence querying
+    void queryPresenceForPosts();
 
     // Infinite scroll
     void checkLoadMore();

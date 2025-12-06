@@ -14,6 +14,10 @@ MessagesList::MessagesList()
     scrollBar.addListener(this);
 
     startTimer(10000); // Refresh every 10 seconds
+
+    // TODO: Phase 6.2.10 - Show "typing" indicator (future) - Deferred to future phase
+    // TODO: Phase 6.5.3.4.2 - Implement audio snippet playback in messages
+    // TODO: Phase 6.5.3.4.3 - Upload audio snippet when sending
 }
 
 MessagesList::~MessagesList()
@@ -307,7 +311,48 @@ juce::String MessagesList::getChannelName(const StreamChatClient::Channel& chann
     // For direct messages, extract other user's name from members
     if (channel.type == "messaging" && channel.members.isArray())
     {
-        // TODO: Extract other member's name from members array
+        auto* membersArray = channel.members.getArray();
+        if (membersArray != nullptr && membersArray->size() >= 2)
+        {
+            // Find the other member (not the current user)
+            // Members array contains objects with user_id or just user IDs
+            for (int i = 0; i < membersArray->size(); ++i)
+            {
+                auto member = (*membersArray)[i];
+                juce::String memberId;
+
+                // Check if member is an object with user_id property
+                if (member.isObject())
+                {
+                    memberId = member.getProperty("user_id", "").toString();
+                    if (memberId.isEmpty())
+                        memberId = member.getProperty("id", "").toString();
+
+                    // If we have a user object with name, use it
+                    auto user = member.getProperty("user", juce::var());
+                    if (user.isObject())
+                    {
+                        juce::String userName = user.getProperty("name", "").toString();
+                        if (userName.isEmpty())
+                            userName = user.getProperty("username", "").toString();
+                        if (userName.isNotEmpty())
+                            return userName;
+                    }
+                }
+                else if (member.isString())
+                {
+                    memberId = member.toString();
+                }
+
+                // If we found a member ID that's not empty, use it as fallback
+                // (We'll enhance this later to fetch actual username)
+                if (memberId.isNotEmpty() && currentUserId.isNotEmpty() && memberId != currentUserId)
+                {
+                    // For now, return a formatted version - can be enhanced to fetch username
+                    return "@" + memberId.substring(0, 8);  // Show first 8 chars of ID
+                }
+            }
+        }
         return "Direct Message";
     }
 

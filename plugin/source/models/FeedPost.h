@@ -60,6 +60,11 @@ public:
     bool isOwnPost = false;    // Whether this is the current user's own post
 
     //==============================================================================
+    // Online status (presence)
+    bool isOnline = false;     // Whether post author is currently online
+    bool isInStudio = false;   // Whether post author is "in studio" (custom status)
+
+    //==============================================================================
     // Emoji reactions - music-themed emojis
     // Stores counts for each emoji type
     std::map<juce::String, int> reactionCounts;  // emoji -> count

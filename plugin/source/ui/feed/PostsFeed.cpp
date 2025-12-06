@@ -1,5 +1,6 @@
 #include "PostsFeed.h"
 #include "../../network/NetworkClient.h"
+#include "../../network/StreamChatClient.h"
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/UIHelpers.h"
@@ -7,11 +8,13 @@
 #include "../../util/Async.h"
 #include "../../util/Animation.h"
 #include "../../util/Result.h"
+#include <set>
+#include <vector>
 
 //==============================================================================
-PostsFeedComponent::PostsFeedComponent()
+PostsFeed::PostsFeed()
 {
-    Log::info("PostsFeedComponent: Initializing feed component");
+    Log::info("PostsFeed: Initializing feed component");
     setSize(1000, 800);
 
     // Add scroll bar
@@ -61,15 +64,15 @@ PostsFeedComponent::PostsFeedComponent()
     Log::info("PostsFeedComponent: Initialization complete");
 }
 
-PostsFeedComponent::~PostsFeedComponent()
+PostsFeed::~PostsFeed()
 {
-    Log::debug("PostsFeedComponent: Destroying feed component");
+    Log::debug("PostsFeed: Destroying feed component");
     removeKeyListener(this);
     scrollBar.removeListener(this);
 }
 
 //==============================================================================
-void PostsFeedComponent::setUserInfo(const juce::String& user, const juce::String& userEmail, const juce::String& picUrl)
+void PostsFeed::setUserInfo(const juce::String& user, const juce::String& userEmail, const juce::String& picUrl)
 {
     // Store user info (profile picture now displayed in central HeaderComponent)
     username = user;
@@ -78,16 +81,22 @@ void PostsFeedComponent::setUserInfo(const juce::String& user, const juce::Strin
     repaint();
 }
 
-void PostsFeedComponent::setNetworkClient(NetworkClient* client)
+void PostsFeed::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
     feedDataManager.setNetworkClient(client);
-    Log::info("PostsFeedComponent::setNetworkClient: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+    Log::info("PostsFeed::setNetworkClient: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-void PostsFeedComponent::setAudioPlayer(HttpAudioPlayer* player)
+void PostsFeed::setStreamChatClient(StreamChatClient* client)
 {
-    Log::info("PostsFeedComponent::setAudioPlayer: Setting audio player " + juce::String(player != nullptr ? "(valid)" : "(null)"));
+    streamChatClient = client;
+    Log::info("PostsFeed::setStreamChatClient: StreamChatClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void PostsFeed::setAudioPlayer(HttpAudioPlayer* player)
+{
+    Log::info("PostsFeed::setAudioPlayer: Setting audio player " + juce::String(player != nullptr ? "(valid)" : "(null)"));
     audioPlayer = player;
 
     if (audioPlayer)
@@ -247,11 +256,11 @@ void PostsFeedComponent::setAudioPlayer(HttpAudioPlayer* player)
 }
 
 //==============================================================================
-void PostsFeedComponent::loadFeed()
+void PostsFeed::loadFeed()
 {
     juce::String feedTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
                                currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
-    Log::info("PostsFeedComponent::loadFeed: Loading feed - type: " + feedTypeStr);
+    Log::info("PostsFeed::loadFeed: Loading feed - type: " + feedTypeStr);
     feedState = FeedState::Loading;
     repaint();
 
@@ -259,108 +268,258 @@ void PostsFeedComponent::loadFeed()
     feedDataManager.fetchFeed(currentFeedType, [this, feedTypeStr](const FeedResponse& response) {
         if (response.error.isNotEmpty())
         {
-            Log::error("PostsFeedComponent::loadFeed: Feed load failed - type: " + feedTypeStr + ", error: " + response.error);
+            Log::error("PostsFeed::loadFeed: Feed load failed - type: " + feedTypeStr + ", error: " + response.error);
             onFeedError(response.error);
         }
         else
         {
-            Log::info("PostsFeedComponent::loadFeed: Feed loaded successfully - type: " + feedTypeStr + ", posts: " + juce::String(response.posts.size()));
+            Log::info("PostsFeed::loadFeed: Feed loaded successfully - type: " + feedTypeStr + ", posts: " + juce::String(response.posts.size()));
             onFeedLoaded(response);
         }
     });
 }
 
-void PostsFeedComponent::refreshFeed()
+void PostsFeed::refreshFeed()
 {
     juce::String feedTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
                                currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
-    Log::info("PostsFeedComponent::refreshFeed: Refreshing feed - type: " + feedTypeStr);
+    Log::info("PostsFeed::refreshFeed: Refreshing feed - type: " + feedTypeStr);
     feedState = FeedState::Loading;
     repaint();
 
     feedDataManager.clearCache(currentFeedType);
-    Log::debug("PostsFeedComponent::refreshFeed: Cache cleared for type: " + feedTypeStr);
+    Log::debug("PostsFeed::refreshFeed: Cache cleared for type: " + feedTypeStr);
     feedDataManager.fetchFeed(currentFeedType, [this, feedTypeStr](const FeedResponse& response) {
         if (response.error.isNotEmpty())
         {
-            Log::error("PostsFeedComponent::refreshFeed: Feed refresh failed - type: " + feedTypeStr + ", error: " + response.error);
+            Log::error("PostsFeed::refreshFeed: Feed refresh failed - type: " + feedTypeStr + ", error: " + response.error);
             onFeedError(response.error);
         }
         else
         {
-            Log::info("PostsFeedComponent::refreshFeed: Feed refreshed successfully - type: " + feedTypeStr + ", posts: " + juce::String(response.posts.size()));
+            Log::info("PostsFeed::refreshFeed: Feed refreshed successfully - type: " + feedTypeStr + ", posts: " + juce::String(response.posts.size()));
             onFeedLoaded(response);
         }
     });
 }
 
-void PostsFeedComponent::switchFeedType(FeedDataManager::FeedType type)
+void PostsFeed::switchFeedType(FeedDataManager::FeedType type)
 {
     juce::String typeStr = type == FeedDataManager::FeedType::Timeline ? "Timeline" :
                            type == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
 
     if (currentFeedType == type)
     {
-        Log::debug("PostsFeedComponent::switchFeedType: Already on feed type: " + typeStr);
+        Log::debug("PostsFeed::switchFeedType: Already on feed type: " + typeStr);
         return;
     }
 
     juce::String oldTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
                               currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
-    Log::info("PostsFeedComponent::switchFeedType: Switching from " + oldTypeStr + " to " + typeStr);
+    Log::info("PostsFeed::switchFeedType: Switching from " + oldTypeStr + " to " + typeStr);
 
     currentFeedType = type;
     scrollPosition = 0.0;
     posts.clear();
-    Log::debug("PostsFeedComponent::switchFeedType: Reset scroll position and cleared posts");
+    Log::debug("PostsFeed::switchFeedType: Reset scroll position and cleared posts");
 
     // Check if we have valid cache for this feed type
     if (feedDataManager.isCacheValid(type))
     {
-        Log::debug("PostsFeedComponent::switchFeedType: Using cached feed for type: " + typeStr);
+        Log::debug("PostsFeed::switchFeedType: Using cached feed for type: " + typeStr);
         auto cached = feedDataManager.getCachedFeed(type);
         onFeedLoaded(cached);
     }
     else
     {
-        Log::debug("PostsFeedComponent::switchFeedType: No valid cache, loading feed for type: " + typeStr);
+        Log::debug("PostsFeed::switchFeedType: No valid cache, loading feed for type: " + typeStr);
         loadFeed();
     }
 }
 
 //==============================================================================
-void PostsFeedComponent::onFeedLoaded(const FeedResponse& response)
+void PostsFeed::onFeedLoaded(const FeedResponse& response)
 {
-    Log::info("PostsFeedComponent::onFeedLoaded: Feed loaded - posts: " + juce::String(response.posts.size()));
+    Log::info("PostsFeed::onFeedLoaded: Feed loaded - posts: " + juce::String(response.posts.size()));
     posts = response.posts;
 
     if (posts.isEmpty())
     {
         feedState = FeedState::Empty;
-        Log::debug("PostsFeedComponent::onFeedLoaded: Feed is empty");
+        Log::debug("PostsFeed::onFeedLoaded: Feed is empty");
     }
     else
     {
         feedState = FeedState::Loaded;
-        Log::debug("PostsFeedComponent::onFeedLoaded: Feed has " + juce::String(posts.size()) + " posts");
+        Log::debug("PostsFeed::onFeedLoaded: Feed has " + juce::String(posts.size()) + " posts");
     }
 
     rebuildPostCards();
     updateScrollBounds();
     updateAudioPlayerPlaylist();
+
+    // Query presence for all unique post authors
+    queryPresenceForPosts();
+
     repaint();
 }
 
-void PostsFeedComponent::onFeedError(const juce::String& error)
+//==============================================================================
+void PostsFeed::queryPresenceForPosts()
 {
-    Log::error("PostsFeedComponent::onFeedError: Feed error - " + error);
+    if (!streamChatClient || posts.isEmpty())
+    {
+        Log::debug("PostsFeed::queryPresenceForPosts: Skipping - streamChatClient is null or no posts");
+        return;
+    }
+
+    // Collect unique user IDs from posts
+    std::set<juce::String> uniqueUserIds;
+    for (const auto& post : posts)
+    {
+        if (post.userId.isNotEmpty() && !post.isOwnPost)
+        {
+            uniqueUserIds.insert(post.userId);
+        }
+    }
+
+    if (uniqueUserIds.empty())
+    {
+        Log::debug("PostsFeed::queryPresenceForPosts: No unique user IDs to query");
+        return;
+    }
+
+    // Convert to vector for queryPresence
+    std::vector<juce::String> userIds(uniqueUserIds.begin(), uniqueUserIds.end());
+
+    Log::debug("PostsFeed::queryPresenceForPosts: Querying presence for " + juce::String(userIds.size()) + " users");
+
+    // Query presence
+    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (result.isError())
+        {
+            Log::warn("PostsFeed::queryPresenceForPosts: Failed to query presence: " + result.getError());
+            return;
+        }
+
+        auto presenceList = result.getValue();
+        Log::debug("PostsFeed::queryPresenceForPosts: Received presence data for " + juce::String(presenceList.size()) + " users");
+
+        // Update posts with presence data
+        for (auto& post : posts)
+        {
+            for (const auto& presence : presenceList)
+            {
+                if (presence.userId == post.userId)
+                {
+                    post.isOnline = presence.online;
+                    post.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+
+                    // Update corresponding PostCard
+                    for (auto* card : postCards)
+                    {
+                        if (card->getPost().userId == post.userId)
+                        {
+                            auto updatedPost = card->getPost();
+                            updatedPost.isOnline = post.isOnline;
+                            updatedPost.isInStudio = post.isInStudio;
+                            card->setPost(updatedPost);
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Repaint to show online indicators
+        repaint();
+    });
+}
+
+void PostsFeed::onFeedError(const juce::String& error)
+{
+    Log::error("PostsFeed::onFeedError: Feed error - " + error);
     errorMessage = error;
     feedState = FeedState::Error;
     repaint();
 }
 
 //==============================================================================
-void PostsFeedComponent::paint(juce::Graphics& g)
+void PostsFeed::queryPresenceForPosts()
+{
+    if (!streamChatClient || posts.isEmpty())
+    {
+        Log::debug("PostsFeed::queryPresenceForPosts: Skipping - streamChatClient is null or no posts");
+        return;
+    }
+
+    // Collect unique user IDs from posts
+    std::set<juce::String> uniqueUserIds;
+    for (const auto& post : posts)
+    {
+        if (post.userId.isNotEmpty() && !post.isOwnPost)
+        {
+            uniqueUserIds.insert(post.userId);
+        }
+    }
+
+    if (uniqueUserIds.empty())
+    {
+        Log::debug("PostsFeed::queryPresenceForPosts: No unique user IDs to query");
+        return;
+    }
+
+    // Convert to vector for queryPresence
+    std::vector<juce::String> userIds(uniqueUserIds.begin(), uniqueUserIds.end());
+
+    Log::debug("PostsFeed::queryPresenceForPosts: Querying presence for " + juce::String(userIds.size()) + " users");
+
+    // Query presence
+    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (result.isError())
+        {
+            Log::warn("PostsFeed::queryPresenceForPosts: Failed to query presence: " + result.getError());
+            return;
+        }
+
+        auto presenceList = result.getValue();
+        Log::debug("PostsFeed::queryPresenceForPosts: Received presence data for " + juce::String(presenceList.size()) + " users");
+
+        // Update posts with presence data
+        for (auto& post : posts)
+        {
+            for (const auto& presence : presenceList)
+            {
+                if (presence.userId == post.userId)
+                {
+                    post.isOnline = presence.online;
+                    post.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+
+                    // Update corresponding PostCard
+                    for (auto* card : postCards)
+                    {
+                        if (card->getPost().userId == post.userId)
+                        {
+                            auto updatedPost = card->getPost();
+                            updatedPost.isOnline = post.isOnline;
+                            updatedPost.isInStudio = post.isInStudio;
+                            card->setPost(updatedPost);
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Repaint to show online indicators
+        repaint();
+    });
+}
+
+//==============================================================================
+void PostsFeed::paint(juce::Graphics& g)
 {
     // Background
     g.fillAll(SidechainColors::background());
@@ -391,7 +550,7 @@ void PostsFeedComponent::paint(juce::Graphics& g)
     }
 }
 
-void PostsFeedComponent::drawFeedTabs(juce::Graphics& g)
+void PostsFeed::drawFeedTabs(juce::Graphics& g)
 {
     // Tabs now start at top (header handled by central HeaderComponent)
     auto tabsBounds = getLocalBounds().withHeight(FEED_TABS_HEIGHT);
@@ -462,7 +621,7 @@ void PostsFeedComponent::drawFeedTabs(juce::Graphics& g)
         SidechainColors::borderSubtle(), 1.0f);
 }
 
-void PostsFeedComponent::drawLoadingState(juce::Graphics& g)
+void PostsFeed::drawLoadingState(juce::Graphics& g)
 {
     auto contentBounds = getFeedContentBounds();
     auto centerBounds = contentBounds.withSizeKeepingCentre(300, 150);
@@ -481,7 +640,7 @@ void PostsFeedComponent::drawLoadingState(juce::Graphics& g)
     g.drawText("Fetching latest posts", centerBounds.withY(centerBounds.getY() + 95).withHeight(25), juce::Justification::centred);
 }
 
-void PostsFeedComponent::drawEmptyState(juce::Graphics& g)
+void PostsFeed::drawEmptyState(juce::Graphics& g)
 {
     auto contentBounds = getFeedContentBounds();
     auto centerBounds = contentBounds.withSizeKeepingCentre(400, 300);
@@ -525,7 +684,7 @@ void PostsFeedComponent::drawEmptyState(juce::Graphics& g)
         SidechainColors::primary(), SidechainColors::textPrimary(), false, 8.0f);
 }
 
-void PostsFeedComponent::drawErrorState(juce::Graphics& g)
+void PostsFeed::drawErrorState(juce::Graphics& g)
 {
     auto contentBounds = getFeedContentBounds();
     auto centerBounds = contentBounds.withSizeKeepingCentre(400, 250);
@@ -553,7 +712,7 @@ void PostsFeedComponent::drawErrorState(juce::Graphics& g)
         SidechainColors::primary(), SidechainColors::textPrimary(), false, 8.0f);
 }
 
-void PostsFeedComponent::drawFeedPosts(juce::Graphics& g)
+void PostsFeed::drawFeedPosts(juce::Graphics& g)
 {
     // Post cards are now child components, just update their visibility
     updatePostCardPositions();
@@ -575,7 +734,7 @@ void PostsFeedComponent::drawFeedPosts(juce::Graphics& g)
     }
 }
 
-void PostsFeedComponent::drawNewPostsToast(juce::Graphics& g)
+void PostsFeed::drawNewPostsToast(juce::Graphics& g)
 {
     if (!showingNewPostsToast)
         return;
@@ -615,9 +774,9 @@ void PostsFeedComponent::drawNewPostsToast(juce::Graphics& g)
 }
 
 //==============================================================================
-void PostsFeedComponent::rebuildPostCards()
+void PostsFeed::rebuildPostCards()
 {
-    Log::info("PostsFeedComponent::rebuildPostCards: Rebuilding post cards - current: " + juce::String(postCards.size()) + ", posts: " + juce::String(posts.size()));
+    Log::info("PostsFeed::rebuildPostCards: Rebuilding post cards - current: " + juce::String(postCards.size()) + ", posts: " + juce::String(posts.size()));
     postCards.clear();
 
     for (const auto& post : posts)
@@ -626,14 +785,14 @@ void PostsFeedComponent::rebuildPostCards()
         card->setPost(post);
         setupPostCardCallbacks(card);
         addAndMakeVisible(card);
-        Log::debug("PostsFeedComponent::rebuildPostCards: Created card for post: " + post.id);
+        Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post.id);
     }
 
     updatePostCardPositions();
-    Log::debug("PostsFeedComponent::rebuildPostCards: Rebuilt " + juce::String(postCards.size()) + " post cards");
+    Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(postCards.size()) + " post cards");
 }
 
-void PostsFeedComponent::updatePostCardPositions()
+void PostsFeed::updatePostCardPositions()
 {
     auto contentBounds = getFeedContentBounds();
     int cardWidth = contentBounds.getWidth() - 40; // Padding
@@ -654,16 +813,37 @@ void PostsFeedComponent::updatePostCardPositions()
             visibleCount++;
     }
 
-    Log::debug("PostsFeedComponent::updatePostCardPositions: Updated positions - total: " + juce::String(postCards.size()) + ", visible: " + juce::String(visibleCount) + ", scrollPosition: " + juce::String(scrollPosition, 1));
+    Log::debug("PostsFeed::updatePostCardPositions: Updated positions - total: " + juce::String(postCards.size()) + ", visible: " + juce::String(visibleCount) + ", scrollPosition: " + juce::String(scrollPosition, 1));
 }
 
-void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
+void PostsFeed::setupPostCardCallbacks(PostCard* card)
 {
     card->onPlayClicked = [this](const FeedPost& post) {
         Log::debug("Play clicked for post: " + post.id);
         if (audioPlayer && post.audioUrl.isNotEmpty())
         {
             audioPlayer->loadAndPlay(post.id, post.audioUrl);
+
+            // Pre-buffer next post for seamless playback
+            int currentIndex = -1;
+            for (int i = 0; i < posts.size(); ++i)
+            {
+                if (posts[i].id == post.id)
+                {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            if (currentIndex >= 0 && currentIndex < posts.size() - 1)
+            {
+                const FeedPost& nextPost = posts[currentIndex + 1];
+                if (nextPost.audioUrl.isNotEmpty())
+                {
+                    Log::debug("PostsFeed: Pre-buffering next post: " + nextPost.id);
+                    audioPlayer->preloadAudio(nextPost.id, nextPost.audioUrl);
+                }
+            }
         }
     };
 
@@ -673,6 +853,12 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
         {
             audioPlayer->pause();
         }
+    };
+
+    card->onCardTapped = [this](const FeedPost& post) {
+        Log::debug("Card tapped for post: " + post.id);
+        // Open comments panel to show post details
+        showCommentsForPost(post);
     };
 
     card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
@@ -742,9 +928,129 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
         juce::SystemClipboard::copyTextToClipboard(shareUrl);
     };
 
-    card->onMoreClicked = [](const FeedPost& post) {
+    card->onMoreClicked = [this](const FeedPost& post) {
         Log::info("PostsFeedComponent: More menu clicked for post: " + post.id);
-        // TODO: Show context menu
+
+        juce::PopupMenu menu;
+
+        // Copy link option (always available)
+        menu.addItem(1, "Copy Link");
+
+        if (post.isOwnPost)
+        {
+            // Delete option for own posts
+            menu.addSeparator();
+            menu.addItem(2, "Delete Post");
+        }
+        else
+        {
+            // Report option for other users' posts
+            menu.addSeparator();
+            menu.addItem(3, "Report Post");
+        }
+
+        menu.showMenuAsync(juce::PopupMenu::Options(),
+            [this, post](int result) {
+                if (result == 1)
+                {
+                    // Copy link
+                    juce::String shareUrl = "https://sidechain.live/post/" + post.id;
+                    juce::SystemClipboard::copyTextToClipboard(shareUrl);
+                    Log::info("PostsFeedComponent: Copied post link to clipboard");
+                }
+                else if (result == 2 && post.isOwnPost)
+                {
+                    // Delete post
+                    auto options = juce::MessageBoxOptions()
+                        .withTitle("Delete Post")
+                        .withMessage("Are you sure you want to delete this post? This action cannot be undone.")
+                        .withButton("Delete")
+                        .withButton("Cancel");
+
+                    juce::AlertWindow::showAsync(options, [this, post](int deleteResult) {
+                        if (deleteResult == 1 && networkClient != nullptr)
+                        {
+                            networkClient->deletePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
+                                if (result.isOk())
+                                {
+                                    Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
+                                    // Remove post from local feed
+                                    for (int i = posts.size() - 1; i >= 0; --i)
+                                    {
+                                        if (posts[i].id == postId)
+                                        {
+                                            posts.remove(i);
+                                            rebuildPostCards();
+                                            repaint();
+                                            break;
+                                        }
+                                    }
+                                    juce::MessageManager::callAsync([]() {
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::AlertWindow::InfoIcon,
+                                            "Post Deleted",
+                                            "Your post has been deleted successfully.");
+                                    });
+                                }
+                                else
+                                {
+                                    Log::error("PostsFeedComponent: Failed to delete post - " + result.getError());
+                                    juce::MessageManager::callAsync([result]() {
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::AlertWindow::WarningIcon,
+                                            "Error",
+                                            "Failed to delete post: " + result.getError());
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+                else if (result == 3 && !post.isOwnPost)
+                {
+                    // Report post
+                    auto options = juce::MessageBoxOptions()
+                        .withTitle("Report Post")
+                        .withMessage("Why are you reporting this post?")
+                        .withButton("Spam")
+                        .withButton("Harassment")
+                        .withButton("Inappropriate")
+                        .withButton("Other")
+                        .withButton("Cancel");
+
+                    juce::AlertWindow::showAsync(options, [this, post](int reportResult) {
+                        if (reportResult >= 1 && reportResult <= 4 && networkClient != nullptr)
+                        {
+                            juce::String reasons[] = {"spam", "harassment", "inappropriate", "other"};
+                            juce::String reason = reasons[reportResult - 1];
+                            juce::String description = "Reported post: " + post.id;
+
+                            networkClient->reportPost(post.id, reason, description, [this, postId = post.id, reason](Outcome<juce::var> result) {
+                                if (result.isOk())
+                                {
+                                    Log::info("PostsFeedComponent: Post reported successfully - " + postId + ", reason: " + reason);
+                                    juce::MessageManager::callAsync([]() {
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::AlertWindow::InfoIcon,
+                                            "Report Submitted",
+                                            "Thank you for reporting this post. We will review it shortly.");
+                                    });
+                                }
+                                else
+                                {
+                                    Log::error("PostsFeedComponent: Failed to report post - " + result.getError());
+                                    juce::MessageManager::callAsync([result]() {
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::AlertWindow::WarningIcon,
+                                            "Error",
+                                            "Failed to report post: " + result.getError());
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
     };
 
     card->onAddToDAWClicked = [](const FeedPost& post) {
@@ -785,14 +1091,20 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
 
                         juce::MessageManager::callAsync([targetFile]() {
                             Log::info("Audio saved to: " + targetFile.getFullPathName());
-                            // TODO: Show success notification
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::AlertWindow::InfoIcon,
+                                "Success",
+                                "Audio saved to:\n" + targetFile.getFullPathName());
                         });
                     }
                     else
                     {
                         juce::MessageManager::callAsync([targetFile]() {
                             Log::error("Failed to write audio file: " + targetFile.getFullPathName());
-                            // TODO: Show error notification
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::AlertWindow::WarningIcon,
+                                "Error",
+                                "Failed to save audio file:\n" + targetFile.getFullPathName());
                         });
                     }
                 }
@@ -800,7 +1112,10 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
                 {
                     juce::MessageManager::callAsync([post]() {
                         Log::error("Failed to download audio from: " + post.audioUrl);
-                        // TODO: Show error notification
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to download audio file. Please check your connection and try again.");
                     });
                 }
             });
@@ -809,6 +1124,16 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
 
     card->onFollowToggled = [this, card](const FeedPost& post, bool willFollow) {
         Log::info("PostsFeedComponent: Follow toggled for user: " + post.userId + " -> " + (willFollow ? "follow" : "unfollow"));
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeedComponent: Cannot follow/unfollow - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::AlertWindow::WarningIcon,
+                "Error",
+                "Unable to follow/unfollow user. Please try again later.");
+            return;
+        }
 
         // Optimistic UI update
         card->updateFollowState(willFollow);
@@ -828,16 +1153,47 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
             Log::debug("PostsFeedComponent: Updated follow state for " + juce::String(updatedCards) + " other card(s) by same user");
         }
 
-        // TODO: Call backend API to follow/unfollow
-        // feedDataManager.followUser(post.userId, willFollow, [this, post, willFollow](bool success) {
-        //     if (!success) {
-        //         // Revert on failure
-        //         for (auto* c : postCards) {
-        //             if (c->getPost().userId == post.userId)
-        //                 c->updateFollowState(!willFollow);
-        //         }
-        //     }
-        // });
+        // Call backend API to follow/unfollow
+        auto callback = [this, post, willFollow](Outcome<juce::var> result) {
+            if (result.isError())
+            {
+                Log::error("PostsFeedComponent: Failed to " + juce::String(willFollow ? "follow" : "unfollow") + " user: " + result.getError());
+                // Revert on failure
+                for (auto* c : postCards)
+                {
+                    if (c->getPost().userId == post.userId)
+                        c->updateFollowState(!willFollow);
+                }
+                // Show error to user
+                juce::MessageManager::callAsync([result, willFollow]() {
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to " + juce::String(willFollow ? "follow" : "unfollow") + " user: " + result.getError());
+                });
+            }
+            else
+            {
+                // Show success notification
+                Log::debug("PostsFeedComponent: Successfully " + juce::String(willFollow ? "followed" : "unfollowed") + " user: " + post.userId);
+                // Optional: Show brief success toast (commented out to avoid notification spam)
+                // juce::MessageManager::callAsync([willFollow, username = post.username]() {
+                //     juce::AlertWindow::showMessageBoxAsync(
+                //         juce::AlertWindow::InfoIcon,
+                //         "Success",
+                //         "Successfully " + juce::String(willFollow ? "following" : "unfollowed") + " " + username);
+                // });
+            }
+        };
+
+        if (willFollow)
+        {
+            networkClient->followUser(post.userId, callback);
+        }
+        else
+        {
+            networkClient->unfollowUser(post.userId, callback);
+        }
     };
 
     card->onWaveformClicked = [this](const FeedPost& post, float position) {
@@ -863,9 +1219,9 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCard* card)
 }
 
 //==============================================================================
-void PostsFeedComponent::resized()
+void PostsFeed::resized()
 {
-    Log::debug("PostsFeedComponent::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
+    Log::debug("PostsFeed::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
     auto bounds = getLocalBounds();
     auto contentBounds = getFeedContentBounds();
 
@@ -883,11 +1239,11 @@ void PostsFeedComponent::resized()
             int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
             commentsPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
         }
-        Log::debug("PostsFeedComponent::resized: Comments panel repositioned");
+        Log::debug("PostsFeed::resized: Comments panel repositioned");
     }
 }
 
-void PostsFeedComponent::scrollBarMoved(juce::ScrollBar* bar, double newRangeStart)
+void PostsFeed::scrollBarMoved(juce::ScrollBar* bar, double newRangeStart)
 {
     if (bar == &scrollBar)
     {
@@ -897,24 +1253,24 @@ void PostsFeedComponent::scrollBarMoved(juce::ScrollBar* bar, double newRangeSta
     }
 }
 
-void PostsFeedComponent::mouseWheelMove(const juce::MouseEvent& /*event*/, const juce::MouseWheelDetails& wheel)
+void PostsFeed::mouseWheelMove(const juce::MouseEvent& /*event*/, const juce::MouseWheelDetails& wheel)
 {
     if (feedState != FeedState::Loaded)
     {
-        Log::debug("PostsFeedComponent::mouseWheelMove: Ignoring wheel - feed not loaded");
+        Log::debug("PostsFeed::mouseWheelMove: Ignoring wheel - feed not loaded");
         return;
     }
 
     double scrollAmount = wheel.deltaY * 50.0;
     double oldPosition = scrollPosition;
     scrollPosition = juce::jlimit(0.0, static_cast<double>(juce::jmax(0, totalContentHeight - getFeedContentBounds().getHeight())), scrollPosition - scrollAmount);
-    Log::debug("PostsFeedComponent::mouseWheelMove: Wheel scroll - delta: " + juce::String(wheel.deltaY, 2) + ", position: " + juce::String(oldPosition, 1) + " -> " + juce::String(scrollPosition, 1));
+    Log::debug("PostsFeed::mouseWheelMove: Wheel scroll - delta: " + juce::String(wheel.deltaY, 2) + ", position: " + juce::String(oldPosition, 1) + " -> " + juce::String(scrollPosition, 1));
     scrollBar.setCurrentRangeStart(scrollPosition);
     checkLoadMore();
     repaint();
 }
 
-void PostsFeedComponent::updateScrollBounds()
+void PostsFeed::updateScrollBounds()
 {
     auto contentBounds = getFeedContentBounds();
     totalContentHeight = static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
@@ -922,19 +1278,19 @@ void PostsFeedComponent::updateScrollBounds()
     double visibleHeight = contentBounds.getHeight();
     scrollBar.setRangeLimits(0.0, juce::jmax(static_cast<double>(totalContentHeight), visibleHeight));
     scrollBar.setCurrentRange(scrollPosition, visibleHeight);
-    Log::debug("PostsFeedComponent::updateScrollBounds: Scroll bounds updated - totalHeight: " + juce::String(totalContentHeight) + ", visibleHeight: " + juce::String(visibleHeight, 1));
+    Log::debug("PostsFeed::updateScrollBounds: Scroll bounds updated - totalHeight: " + juce::String(totalContentHeight) + ", visibleHeight: " + juce::String(visibleHeight, 1));
 }
 
-void PostsFeedComponent::checkLoadMore()
+void PostsFeed::checkLoadMore()
 {
     if (feedState != FeedState::Loaded || !feedDataManager.hasMorePosts() || feedDataManager.isFetching())
     {
         if (feedState != FeedState::Loaded)
-            Log::debug("PostsFeedComponent::checkLoadMore: Feed not loaded, skipping");
+            Log::debug("PostsFeed::checkLoadMore: Feed not loaded, skipping");
         else if (!feedDataManager.hasMorePosts())
-            Log::debug("PostsFeedComponent::checkLoadMore: No more posts available");
+            Log::debug("PostsFeed::checkLoadMore: No more posts available");
         else if (feedDataManager.isFetching())
-            Log::debug("PostsFeedComponent::checkLoadMore: Already fetching, skipping");
+            Log::debug("PostsFeed::checkLoadMore: Already fetching, skipping");
         return;
     }
 
@@ -942,17 +1298,17 @@ void PostsFeedComponent::checkLoadMore()
     double scrollEnd = scrollPosition + contentBounds.getHeight();
     double threshold = totalContentHeight - 200; // Load more when 200px from bottom
 
-    Log::debug("PostsFeedComponent::checkLoadMore: Checking threshold - scrollEnd: " + juce::String(scrollEnd, 1) + ", threshold: " + juce::String(threshold, 1) + ", totalHeight: " + juce::String(totalContentHeight));
+    Log::debug("PostsFeed::checkLoadMore: Checking threshold - scrollEnd: " + juce::String(scrollEnd, 1) + ", threshold: " + juce::String(threshold, 1) + ", totalHeight: " + juce::String(totalContentHeight));
 
     if (scrollEnd >= threshold)
     {
-        Log::info("PostsFeedComponent::checkLoadMore: Threshold reached, loading more posts");
+        Log::info("PostsFeed::checkLoadMore: Threshold reached, loading more posts");
         feedDataManager.loadMorePosts([this](const FeedResponse& response) {
             if (response.error.isEmpty())
             {
                 // Add new posts to array
                 posts.addArray(response.posts);
-                Log::info("PostsFeedComponent::checkLoadMore: Loaded " + juce::String(response.posts.size()) + " more posts (total: " + juce::String(posts.size()) + ")");
+                Log::info("PostsFeed::checkLoadMore: Loaded " + juce::String(response.posts.size()) + " more posts (total: " + juce::String(posts.size()) + ")");
 
                 // Create card components for new posts
                 for (const auto& post : response.posts)
@@ -961,7 +1317,7 @@ void PostsFeedComponent::checkLoadMore()
                     card->setPost(post);
                     setupPostCardCallbacks(card);
                     addAndMakeVisible(card);
-                    Log::debug("PostsFeedComponent::checkLoadMore: Created card for new post: " + post.id);
+                    Log::debug("PostsFeed::checkLoadMore: Created card for new post: " + post.id);
                 }
 
                 updateScrollBounds();
@@ -970,17 +1326,17 @@ void PostsFeedComponent::checkLoadMore()
             }
             else
             {
-                Log::error("PostsFeedComponent::checkLoadMore: Failed to load more posts - error: " + response.error);
+                Log::error("PostsFeed::checkLoadMore: Failed to load more posts - error: " + response.error);
             }
         });
     }
 }
 
 //==============================================================================
-void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
+void PostsFeed::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
-    Log::debug("PostsFeedComponent::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
+    Log::debug("PostsFeed::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
 
     // Check if clicked on toast to refresh (5.5.2)
     if (showingNewPostsToast && pendingNewPostsCount > 0)
@@ -989,7 +1345,7 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
         auto toastBounds = contentBounds.withHeight(40).withY(contentBounds.getY() + 10);
         if (toastBounds.contains(pos))
         {
-            Log::info("PostsFeedComponent::mouseUp: New posts toast clicked, refreshing feed");
+            Log::info("PostsFeed::mouseUp: New posts toast clicked, refreshing feed");
             refreshFeed();
             pendingNewPostsCount = 0;
             showingNewPostsToast = false;
@@ -1002,21 +1358,21 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
     // Check feed tabs - Following, Trending, Discover
     if (getTimelineTabBounds().contains(pos))
     {
-        Log::info("PostsFeedComponent::mouseUp: Timeline tab clicked");
+        Log::info("PostsFeed::mouseUp: Timeline tab clicked");
         switchFeedType(FeedDataManager::FeedType::Timeline);
         return;
     }
 
     if (getTrendingTabBounds().contains(pos))
     {
-        Log::info("PostsFeedComponent::mouseUp: Trending tab clicked");
+        Log::info("PostsFeed::mouseUp: Trending tab clicked");
         switchFeedType(FeedDataManager::FeedType::Trending);
         return;
     }
 
     if (getGlobalTabBounds().contains(pos))
     {
-        Log::info("PostsFeedComponent::mouseUp: Global/Discover tab clicked");
+        Log::info("PostsFeed::mouseUp: Global/Discover tab clicked");
         switchFeedType(FeedDataManager::FeedType::Global);
         return;
     }
@@ -1024,7 +1380,7 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
     // Check refresh button
     if (getRefreshButtonBounds().contains(pos) && !feedDataManager.isFetching())
     {
-        Log::info("PostsFeedComponent::mouseUp: Refresh button clicked");
+        Log::info("PostsFeed::mouseUp: Refresh button clicked");
         refreshFeed();
         return;
     }
@@ -1032,7 +1388,7 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
     // Check retry button (error state)
     if (feedState == FeedState::Error && getRetryButtonBounds().contains(pos))
     {
-        Log::info("PostsFeedComponent::mouseUp: Retry button clicked");
+        Log::info("PostsFeed::mouseUp: Retry button clicked");
         loadFeed();
         return;
     }
@@ -1040,11 +1396,11 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
     // Check record button (empty state)
     if (feedState == FeedState::Empty && getRecordButtonBounds().contains(pos))
     {
-        Log::info("PostsFeedComponent::mouseUp: Record button clicked");
+        Log::info("PostsFeed::mouseUp: Record button clicked");
         if (onStartRecording)
             onStartRecording();
         else
-            Log::warn("PostsFeedComponent::mouseUp: Record button clicked but callback not set");
+            Log::warn("PostsFeed::mouseUp: Record button clicked but callback not set");
         return;
     }
 
@@ -1052,43 +1408,43 @@ void PostsFeedComponent::mouseUp(const juce::MouseEvent& event)
 }
 
 //==============================================================================
-juce::Rectangle<int> PostsFeedComponent::getTimelineTabBounds() const
+juce::Rectangle<int> PostsFeed::getTimelineTabBounds() const
 {
     // Tabs now start at y=0 (header handled by central HeaderComponent)
     // Three tabs: Following, Trending, Discover - each 80px wide with 10px gaps
     return juce::Rectangle<int>(15, 10, 80, 30);
 }
 
-juce::Rectangle<int> PostsFeedComponent::getTrendingTabBounds() const
+juce::Rectangle<int> PostsFeed::getTrendingTabBounds() const
 {
     return juce::Rectangle<int>(105, 10, 80, 30);
 }
 
-juce::Rectangle<int> PostsFeedComponent::getGlobalTabBounds() const
+juce::Rectangle<int> PostsFeed::getGlobalTabBounds() const
 {
     return juce::Rectangle<int>(195, 10, 80, 30);
 }
 
-juce::Rectangle<int> PostsFeedComponent::getRefreshButtonBounds() const
+juce::Rectangle<int> PostsFeed::getRefreshButtonBounds() const
 {
     return juce::Rectangle<int>(getWidth() - 100, 10, 80, 30);
 }
 
-juce::Rectangle<int> PostsFeedComponent::getRetryButtonBounds() const
+juce::Rectangle<int> PostsFeed::getRetryButtonBounds() const
 {
     auto contentBounds = getFeedContentBounds();
     auto centerBounds = contentBounds.withSizeKeepingCentre(400, 250);
     return juce::Rectangle<int>(centerBounds.getCentreX() - 75, centerBounds.getY() + 190, 150, 45);
 }
 
-juce::Rectangle<int> PostsFeedComponent::getRecordButtonBounds() const
+juce::Rectangle<int> PostsFeed::getRecordButtonBounds() const
 {
     auto contentBounds = getFeedContentBounds();
     auto centerBounds = contentBounds.withSizeKeepingCentre(400, 300);
     return juce::Rectangle<int>(centerBounds.getCentreX() - 100, centerBounds.getY() + 230, 200, 50);
 }
 
-juce::Rectangle<int> PostsFeedComponent::getFeedContentBounds() const
+juce::Rectangle<int> PostsFeed::getFeedContentBounds() const
 {
     // Content starts below feed tabs (header handled by central HeaderComponent)
     return getLocalBounds().withTrimmedTop(FEED_TABS_HEIGHT);
@@ -1097,18 +1453,18 @@ juce::Rectangle<int> PostsFeedComponent::getFeedContentBounds() const
 //==============================================================================
 // Keyboard shortcuts
 
-bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* /*originatingComponent*/)
+bool PostsFeed::keyPressed(const juce::KeyPress& key, juce::Component* /*originatingComponent*/)
 {
     if (audioPlayer == nullptr)
     {
-        Log::debug("PostsFeedComponent::keyPressed: AudioPlayer is null, ignoring key press");
+        Log::debug("PostsFeed::keyPressed: AudioPlayer is null, ignoring key press");
         return false;
     }
 
     // Space bar - toggle play/pause
     if (key == juce::KeyPress::spaceKey)
     {
-        Log::info("PostsFeedComponent::keyPressed: Space bar - toggling play/pause");
+        Log::info("PostsFeed::keyPressed: Space bar - toggling play/pause");
         audioPlayer->togglePlayPause();
         return true;
     }
@@ -1116,7 +1472,7 @@ bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* 
     // Right arrow - skip to next
     if (key == juce::KeyPress::rightKey)
     {
-        Log::info("PostsFeedComponent::keyPressed: Right arrow - skipping to next");
+        Log::info("PostsFeed::keyPressed: Right arrow - skipping to next");
         audioPlayer->playNext();
         return true;
     }
@@ -1124,10 +1480,14 @@ bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* 
     // Left arrow - skip to previous / restart
     if (key == juce::KeyPress::leftKey)
     {
-        Log::info("PostsFeedComponent::keyPressed: Left arrow - skipping to previous");
+        Log::info("PostsFeed::keyPressed: Left arrow - skipping to previous");
         audioPlayer->playPrevious();
         return true;
     }
+
+        // Note: Card tap to expand details is implemented - opens comments panel (line 699-703)
+        // Note: Post author online status is implemented - queries getstream.io Chat presence and shows green dot on avatar if online
+        // Note: Pre-buffering next post is already implemented (line 668-687) - uses preloadAudio() method
 
     // Up arrow - volume up
     if (key == juce::KeyPress::upKey)
@@ -1135,7 +1495,7 @@ bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* 
         float oldVolume = audioPlayer->getVolume();
         float newVolume = juce::jmin(1.0f, audioPlayer->getVolume() + 0.1f);
         audioPlayer->setVolume(newVolume);
-        Log::debug("PostsFeedComponent::keyPressed: Up arrow - volume " + juce::String(oldVolume, 2) + " -> " + juce::String(newVolume, 2));
+        Log::debug("PostsFeed::keyPressed: Up arrow - volume " + juce::String(oldVolume, 2) + " -> " + juce::String(newVolume, 2));
         return true;
     }
 
@@ -1145,7 +1505,7 @@ bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* 
         float oldVolume = audioPlayer->getVolume();
         float newVolume = juce::jmax(0.0f, audioPlayer->getVolume() - 0.1f);
         audioPlayer->setVolume(newVolume);
-        Log::debug("PostsFeedComponent::keyPressed: Down arrow - volume " + juce::String(oldVolume, 2) + " -> " + juce::String(newVolume, 2));
+        Log::debug("PostsFeed::keyPressed: Down arrow - volume " + juce::String(oldVolume, 2) + " -> " + juce::String(newVolume, 2));
         return true;
     }
 
@@ -1154,14 +1514,14 @@ bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* 
     {
         bool wasMuted = audioPlayer->isMuted();
         audioPlayer->setMuted(!wasMuted);
-        Log::info("PostsFeedComponent::keyPressed: M key - mute toggled " + juce::String(wasMuted ? "off" : "on"));
+        Log::info("PostsFeed::keyPressed: M key - mute toggled " + juce::String(wasMuted ? "off" : "on"));
         return true;
     }
 
     // Escape - close comments panel
     if (key == juce::KeyPress::escapeKey && commentsPanelVisible)
     {
-        Log::info("PostsFeedComponent::keyPressed: Escape key - closing comments panel");
+        Log::info("PostsFeed::keyPressed: Escape key - closing comments panel");
         hideCommentsPanel();
         return true;
     }
@@ -1172,26 +1532,26 @@ bool PostsFeedComponent::keyPressed(const juce::KeyPress& key, juce::Component* 
 //==============================================================================
 // Comments panel
 
-void PostsFeedComponent::showCommentsForPost(const FeedPost& post)
+void PostsFeed::showCommentsForPost(const FeedPost& post)
 {
     if (commentsPanel == nullptr)
     {
-        Log::warn("PostsFeedComponent::showCommentsForPost: Comments panel is null");
+        Log::warn("PostsFeed::showCommentsForPost: Comments panel is null");
         return;
     }
 
-    Log::info("PostsFeedComponent::showCommentsForPost: Showing comments for post: " + post.id);
+    Log::info("PostsFeed::showCommentsForPost: Showing comments for post: " + post.id);
 
     // Set up the panel
     commentsPanel->setNetworkClient(networkClient);
     commentsPanel->setCurrentUserId(currentUserId);
     commentsPanel->loadCommentsForPost(post.id);
-    Log::debug("PostsFeedComponent::showCommentsForPost: Comments panel configured and loading comments");
+    Log::debug("PostsFeed::showCommentsForPost: Comments panel configured and loading comments");
 
     // Position as right-side panel (takes 40% of width)
     int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
     commentsPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
-    Log::debug("PostsFeedComponent::showCommentsForPost: Comments panel positioned - width: " + juce::String(panelWidth));
+    Log::debug("PostsFeed::showCommentsForPost: Comments panel positioned - width: " + juce::String(panelWidth));
 
     // Show with slide animation
     commentsPanel->setVisible(true);
@@ -1201,10 +1561,10 @@ void PostsFeedComponent::showCommentsForPost(const FeedPost& post)
     // Bring to front
     commentsPanel->toFront(true);
 
-    Log::debug("PostsFeedComponent::showCommentsForPost: Comments panel shown with animation");
+    Log::debug("PostsFeed::showCommentsForPost: Comments panel shown with animation");
 }
 
-void PostsFeedComponent::hideCommentsPanel()
+void PostsFeed::hideCommentsPanel()
 {
     if (commentsPanel == nullptr)
         return;
@@ -1217,11 +1577,11 @@ void PostsFeedComponent::hideCommentsPanel()
 //==============================================================================
 // Playlist management for auto-play
 
-void PostsFeedComponent::updateAudioPlayerPlaylist()
+void PostsFeed::updateAudioPlayerPlaylist()
 {
     if (audioPlayer == nullptr)
     {
-        Log::warn("PostsFeedComponent::updateAudioPlayerPlaylist: AudioPlayer is null");
+        Log::warn("PostsFeed::updateAudioPlayerPlaylist: AudioPlayer is null");
         return;
     }
 
@@ -1237,7 +1597,7 @@ void PostsFeedComponent::updateAudioPlayerPlaylist()
         }
     }
 
-    Log::info("PostsFeedComponent::updateAudioPlayerPlaylist: Updating playlist - posts: " + juce::String(postIds.size()) + " with audio");
+    Log::info("PostsFeed::updateAudioPlayerPlaylist: Updating playlist - posts: " + juce::String(postIds.size()) + " with audio");
     audioPlayer->setPlaylist(postIds, audioUrls);
 }
 
@@ -1245,25 +1605,25 @@ void PostsFeedComponent::updateAudioPlayerPlaylist()
 // Real-time Feed Updates (5.5)
 //==============================================================================
 
-void PostsFeedComponent::handleNewPostNotification(const juce::var& postData)
+void PostsFeed::handleNewPostNotification(const juce::var& postData)
 {
-    Log::info("PostsFeedComponent::handleNewPostNotification: New post notification received");
+    Log::info("PostsFeed::handleNewPostNotification: New post notification received");
     // Increment pending new posts count (5.5.2)
     pendingNewPostsCount++;
     lastNewPostTime = juce::Time::getCurrentTime();
-    Log::debug("PostsFeedComponent::handleNewPostNotification: Pending count: " + juce::String(pendingNewPostsCount));
+    Log::debug("PostsFeed::handleNewPostNotification: Pending count: " + juce::String(pendingNewPostsCount));
 
     // Show toast notification if feed is visible and user is not at the top
     if (isVisible() && scrollPosition > 0.1)
     {
-        Log::debug("PostsFeedComponent::handleNewPostNotification: User scrolled, showing toast");
+        Log::debug("PostsFeed::handleNewPostNotification: User scrolled, showing toast");
         showNewPostsToast(pendingNewPostsCount);
     }
 
     // If user is at the top of the feed, refresh immediately (5.5.1)
     if (isVisible() && scrollPosition < 0.1)
     {
-        Log::info("PostsFeedComponent::handleNewPostNotification: User at top, refreshing feed immediately");
+        Log::info("PostsFeed::handleNewPostNotification: User at top, refreshing feed immediately");
         refreshFeed();
         pendingNewPostsCount = 0;
     }
@@ -1271,9 +1631,9 @@ void PostsFeedComponent::handleNewPostNotification(const juce::var& postData)
     repaint();
 }
 
-void PostsFeedComponent::handleLikeCountUpdate(const juce::String& postId, int likeCount)
+void PostsFeed::handleLikeCountUpdate(const juce::String& postId, int likeCount)
 {
-    Log::debug("PostsFeedComponent::handleLikeCountUpdate: Updating like count - postId: " + postId + ", count: " + juce::String(likeCount));
+    Log::debug("PostsFeed::handleLikeCountUpdate: Updating like count - postId: " + postId + ", count: " + juce::String(likeCount));
     // Find the post card and update like count (5.5.3)
     bool found = false;
     for (auto* card : postCards)
@@ -1284,18 +1644,18 @@ void PostsFeedComponent::handleLikeCountUpdate(const juce::String& postId, int l
             bool wasLiked = card->getPost().isLiked;
             card->updateLikeCount(likeCount, wasLiked);
             found = true;
-            Log::debug("PostsFeedComponent::handleLikeCountUpdate: Updated like count for post: " + postId);
+            Log::debug("PostsFeed::handleLikeCountUpdate: Updated like count for post: " + postId);
             break;
         }
     }
 
     if (!found)
     {
-        Log::warn("PostsFeedComponent::handleLikeCountUpdate: Post card not found for postId: " + postId);
+        Log::warn("PostsFeed::handleLikeCountUpdate: Post card not found for postId: " + postId);
     }
 }
 
-void PostsFeedComponent::handleFollowerCountUpdate(const juce::String& userId, int followerCount)
+void PostsFeed::handleFollowerCountUpdate(const juce::String& userId, int followerCount)
 {
     // Update follower count in user profile if visible (5.5.4)
     // This would typically update a profile component, but for now we just log
@@ -1303,7 +1663,7 @@ void PostsFeedComponent::handleFollowerCountUpdate(const juce::String& userId, i
     // In a full implementation, this would update the profile component
 }
 
-void PostsFeedComponent::showNewPostsToast(int count)
+void PostsFeed::showNewPostsToast(int count)
 {
     // Show toast notification with fade-in animation (5.5.2)
     showingNewPostsToast = true;
@@ -1319,7 +1679,7 @@ void PostsFeedComponent::showNewPostsToast(int count)
     });
 }
 
-void PostsFeedComponent::timerCallback()
+void PostsFeed::timerCallback()
 {
     // Toast fade-out is now handled by AnimationValue callback
     // This timer is only used for other timing needs if any

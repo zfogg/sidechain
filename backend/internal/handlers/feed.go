@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +13,12 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 )
+
+// TODO: Phase 4.5.1.1 - Test GetTimeline - authenticated user, pagination, empty feed
+// TODO: Phase 4.5.1.2 - Test GetGlobalFeed - pagination, ordering
+// TODO: Phase 4.5.1.3 - Test CreatePost - valid post, missing fields, audio URL validation
+// TODO: Phase 4.5.1.28 - Test GetAggregatedTimeline - grouping
+// TODO: Phase 4.5.1.29 - Test GetTrendingFeed - trending algorithm
 
 // GetTimeline gets the user's timeline feed
 func (h *Handlers) GetTimeline(c *gin.Context) {
@@ -264,5 +272,116 @@ func (h *Handlers) GetUserActivitySummary(c *gin.Context) {
 			"limit": limit,
 			"count": len(resp.Groups),
 		},
+	})
+}
+
+// DeletePost deletes a post (soft delete)
+// DELETE /api/v1/posts/:id
+func (h *Handlers) DeletePost(c *gin.Context) {
+	postID := c.Param("id")
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	// Find the post
+	var post models.AudioPost
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
+		return
+	}
+
+	// Check ownership
+	if post.UserID != userID.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "not_post_owner"})
+		return
+	}
+
+	// Soft delete the post
+	if err := database.DB.Delete(&post).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_delete_post", "message": err.Error()})
+		return
+	}
+
+	// Delete from Stream.io if it has a stream activity ID
+	// Remove from origin feed (user feed) - this will cascade to all other feeds
+	if h.stream != nil && post.StreamActivityID != "" {
+		ctx := context.Background()
+		feedsClient := h.stream.FeedsClient()
+		userFeed, err := feedsClient.FlatFeed("user", post.UserID)
+		if err == nil {
+			_, err := userFeed.RemoveActivityByID(ctx, post.StreamActivityID)
+			if err != nil {
+				// Log but don't fail - post is already deleted in database
+				fmt.Printf("Failed to delete Stream.io activity: %v\n", err)
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "post_deleted",
+	})
+}
+
+// ReportPost reports a post for moderation
+// POST /api/v1/posts/:id/report
+func (h *Handlers) ReportPost(c *gin.Context) {
+	postID := c.Param("id")
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req struct {
+		Reason      string `json:"reason" binding:"required"`
+		Description string `json:"description,omitempty"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		return
+	}
+
+	// Validate reason
+	validReasons := []string{"spam", "harassment", "inappropriate", "copyright", "violence", "other"}
+	valid := false
+	for _, r := range validReasons {
+		if req.Reason == r {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_reason", "message": "Reason must be one of: spam, harassment, inappropriate, copyright, violence, other"})
+		return
+	}
+
+	// Find the post
+	var post models.AudioPost
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
+		return
+	}
+
+	// Create report
+	report := models.Report{
+		ReporterID:   userID.(string),
+		TargetType:   models.ReportTargetPost,
+		TargetID:     postID,
+		TargetUserID: &post.UserID,
+		Reason:       models.ReportReason(req.Reason),
+		Description:  req.Description,
+		Status:       models.ReportStatusPending,
+	}
+
+	if err := database.DB.Create(&report).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_create_report", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message":   "report_created",
+		"report_id": report.ID,
 	})
 }

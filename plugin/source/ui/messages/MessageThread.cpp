@@ -1,5 +1,6 @@
 #include "MessageThread.h"
 #include "AudioSnippetRecorder.h"
+#include "UserPickerDialog.h"
 #include "../../network/NetworkClient.h"
 #include "../../PluginProcessor.h"
 #include "../../util/Log.h"
@@ -469,7 +470,12 @@ void MessageThread::sendMessage()
         else
         {
             Log::error("MessageThread: Failed to send message - " + result.getError());
-            // TODO: Show error to user
+            juce::MessageManager::callAsync([result]() {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::AlertWindow::WarningIcon,
+                    "Error",
+                    "Failed to send message: " + result.getError());
+            });
         }
     });
 }
@@ -1140,12 +1146,22 @@ void MessageThread::reportMessage(const StreamChatClient::Message& message)
                 if (result.isOk())
                 {
                     Log::info("MessageThread: Message reported successfully");
-                    // TODO: Show confirmation to user
+                    juce::MessageManager::callAsync([]() {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::InfoIcon,
+                            "Report Submitted",
+                            "Thank you for reporting this message. We will review it shortly.");
+                    });
                 }
                 else
                 {
                     Log::error("MessageThread: Failed to report message - " + result.getError());
-                    // TODO: Show error to user
+                    juce::MessageManager::callAsync([result]() {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to report message: " + result.getError());
+                    });
                 }
             });
         });
@@ -1187,7 +1203,12 @@ void MessageThread::blockUser(const StreamChatClient::Message& message)
         else
         {
             Log::error("MessageThread: Failed to block user - " + result.getError());
-            // TODO: Show error to user
+            juce::MessageManager::callAsync([result]() {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::AlertWindow::WarningIcon,
+                    "Error",
+                    "Failed to block user: " + result.getError());
+            });
         }
     });
 }
@@ -1227,7 +1248,12 @@ void MessageThread::leaveGroup()
         else
         {
             Log::error("MessageThread: Failed to leave group - " + result.getError());
-            // TODO: Show error to user
+            juce::MessageManager::callAsync([result]() {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::AlertWindow::WarningIcon,
+                    "Error",
+                    "Failed to leave group: " + result.getError());
+            });
         }
     });
 }
@@ -1292,20 +1318,101 @@ void MessageThread::renameGroup()
                     }
                 });
         }
-    }), nullptr);
-}), nullptr);
+    }));
 }
 
 void MessageThread::showAddMembersDialog()
 {
-    // TODO: Implement full user picker dialog
-    // For now, show a message indicating this feature needs user search component
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
-        "Add Members",
-        "Add members functionality requires a user search component.\n\n"
-        "This will be implemented when the user search/picker component is available.\n\n"
-        "For now, you can navigate to Discovery view to find and message users.");
-    Log::info("MessageThread: Add members dialog - placeholder (full UI pending)");
+    if (!isGroupChannel())
+    {
+        return;
+    }
+
+    if (!streamChatClient || !networkClient)
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "Error",
+            "Cannot add members: chat client not initialized.");
+        return;
+    }
+
+    // Create user picker dialog if needed
+    if (!userPickerDialog)
+    {
+        userPickerDialog = std::make_unique<UserPickerDialog>();
+        userPickerDialog->setNetworkClient(networkClient);
+        userPickerDialog->setCurrentUserId(currentUserId);
+    }
+
+    // Exclude current members from search results
+    juce::Array<juce::String> excludedIds;
+    excludedIds.add(currentUserId);  // Exclude self
+    if (currentChannel.members.isArray())
+    {
+        auto* membersArray = currentChannel.members.getArray();
+        for (int i = 0; i < membersArray->size(); ++i)
+        {
+            auto member = (*membersArray)[i];
+            if (member.isObject())
+            {
+                auto* memberObj = member.getDynamicObject();
+                if (memberObj != nullptr && memberObj->hasProperty("user_id"))
+                {
+                    juce::String memberId = memberObj->getProperty("user_id").toString();
+                    if (memberId.isNotEmpty() && !excludedIds.contains(memberId))
+                    {
+                        excludedIds.add(memberId);
+                    }
+                }
+            }
+        }
+    }
+    userPickerDialog->setExcludedUserIds(excludedIds);
+
+    // Set callback for when users are selected
+    userPickerDialog->onUsersSelected = [this](const juce::Array<juce::String>& selectedUserIds) {
+        if (selectedUserIds.isEmpty())
+        {
+            return;
+        }
+
+        // Convert to vector for StreamChatClient
+        std::vector<juce::String> memberIds;
+        for (const auto& id : selectedUserIds)
+        {
+            memberIds.push_back(id);
+        }
+
+        // Add members to channel
+        streamChatClient->addMembers(channelType, channelId, memberIds,
+            [this](Outcome<void> result) {
+                if (result.isOk())
+                {
+                    Log::info("MessageThread: Members added successfully");
+                    juce::MessageManager::callAsync([this]() {
+                        // Reload channel to get updated member list
+                        loadChannel(channelType, channelId);
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::InfoIcon,
+                            "Success",
+                            "Members added successfully.");
+                    });
+                }
+                else
+                {
+                    Log::error("MessageThread: Failed to add members - " + result.getError());
+                    juce::MessageManager::callAsync([result]() {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to add members: " + result.getError());
+                    });
+                }
+            });
+    };
+
+    // Show dialog
+    userPickerDialog->showModal(this);
 }
 
 void MessageThread::showRemoveMembersDialog()
@@ -1315,9 +1422,26 @@ void MessageThread::showRemoveMembersDialog()
         return;
     }
 
+    if (!streamChatClient)
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+            "Error",
+            "Cannot remove members: chat client not initialized.");
+        return;
+    }
+
     // Parse members from channel data
     auto members = currentChannel.members;
-    if (!members.isArray() || members.getArray()->size() <= 2)
+    if (!members.isArray())
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+            "Remove Members",
+            "No members found in this group.");
+        return;
+    }
+
+    auto* membersArray = members.getArray();
+    if (membersArray->size() <= 1)
     {
         juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
             "Remove Members",
@@ -1325,14 +1449,109 @@ void MessageThread::showRemoveMembersDialog()
         return;
     }
 
-    // TODO: Implement full member picker dialog
-    // For now, show a message indicating this feature needs member selection UI
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+    // Build list of removable members (exclude self)
+    juce::Array<juce::String> memberIds;
+    juce::Array<juce::String> memberNames;
+    for (int i = 0; i < membersArray->size(); ++i)
+    {
+        auto member = (*membersArray)[i];
+        if (member.isObject())
+        {
+            auto* memberObj = member.getDynamicObject();
+            if (memberObj != nullptr && memberObj->hasProperty("user_id"))
+            {
+                juce::String memberId = memberObj->getProperty("user_id").toString();
+                // Don't allow removing self
+                if (memberId != currentUserId && memberId.isNotEmpty())
+                {
+                    memberIds.add(memberId);
+                    // Get member name if available
+                    juce::String memberName = "User";
+                    if (memberObj->hasProperty("name"))
+                    {
+                        memberName = memberObj->getProperty("name").toString();
+                    }
+                    else if (memberObj->hasProperty("username"))
+                    {
+                        memberName = memberObj->getProperty("username").toString();
+                    }
+                    memberNames.add(memberName);
+                }
+            }
+        }
+    }
+
+    if (memberIds.isEmpty())
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+            "Remove Members",
+            "No removable members found.");
+        return;
+    }
+
+    // Show selection dialog
+    juce::StringArray options;
+    for (int i = 0; i < memberNames.size(); ++i)
+    {
+        options.add(memberNames[i]);
+    }
+    options.add("Cancel");
+
+    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::QuestionIcon,
         "Remove Members",
-        "Remove members functionality requires a member selection UI.\n\n"
-        "This will show a list of current group members where you can select and remove them.\n\n"
-        "Feature coming soon.");
-    Log::info("MessageThread: Remove members dialog - placeholder (full UI pending)");
+        "Select a member to remove:",
+        "OK",
+        nullptr,
+        nullptr,
+        juce::ModalCallbackFunction::create([this, memberIds, options](int result) {
+            if (result > 0 && result <= memberIds.size())
+            {
+                juce::String memberIdToRemove = memberIds[result - 1];
+                juce::String memberName = options[result - 1];
+
+                // Confirm removal
+                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::QuestionIcon,
+                    "Confirm Removal",
+                    "Are you sure you want to remove " + memberName + " from this group?",
+                    "Remove",
+                    "Cancel",
+                    nullptr,
+                    juce::ModalCallbackFunction::create([this, memberIdToRemove, memberName](int confirmResult) {
+                        if (confirmResult == 1)  // Remove button clicked
+                        {
+                            std::vector<juce::String> memberIdsToRemove;
+                            memberIdsToRemove.push_back(memberIdToRemove);
+
+                            streamChatClient->removeMembers(channelType, channelId, memberIdsToRemove,
+                                [this, memberName](Outcome<void> result) {
+                                    if (result.isOk())
+                                    {
+                                        Log::info("MessageThread: Member removed successfully");
+                                        juce::MessageManager::callAsync([this, memberName]() {
+                                            // Reload channel to get updated member list
+                                            loadChannel(channelType, channelId);
+                                            juce::AlertWindow::showMessageBoxAsync(
+                                                juce::AlertWindow::InfoIcon,
+                                                "Success",
+                                                memberName + " has been removed from the group.");
+                                        });
+                                    }
+                                    else
+                                    {
+                                        Log::error("MessageThread: Failed to remove member - " + result.getError());
+                                        juce::MessageManager::callAsync([result]() {
+                                            juce::AlertWindow::showMessageBoxAsync(
+                                                juce::AlertWindow::WarningIcon,
+                                                "Error",
+                                                "Failed to remove member: " + result.getError());
+                                        });
+                                    }
+                                });
+                        }
+                    }));
+            }
+        }),
+        options);
 }
 
 void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate)
@@ -1378,7 +1597,12 @@ void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer
             else
             {
                 Log::error("MessageThread::sendAudioSnippet: Failed to send audio snippet - " + result.getError());
-                // TODO: Show error to user
+                juce::MessageManager::callAsync([result]() {
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to send audio snippet: " + result.getError());
+                });
             }
         });
 }

@@ -5,7 +5,6 @@
 
 //==============================================================================
 SidechainAudioProcessor::SidechainAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
@@ -14,7 +13,6 @@ SidechainAudioProcessor::SidechainAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        )
-#endif
 {
     // Simple initialization for now
     Log::info("SidechainAudioProcessor: Plugin initialized");

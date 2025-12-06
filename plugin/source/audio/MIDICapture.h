@@ -76,11 +76,31 @@ public:
     // MIDI capture - call from AUDIO THREAD (processBlock) only
     // MUST be lock-free and allocation-free
 
-    /** Capture MIDI events from the audio thread
-     *  This method is called from processBlock and must be lock-free
-     *  @param midiMessages The MIDI buffer from the DAW
-     *  @param numSamples Number of audio samples in this block
-     *  @param sampleRate Current sample rate (may differ from prepare() if DAW changed it)
+    /**
+     * Capture MIDI events from the DAW's processBlock callback.
+     *
+     * @warning CRITICAL: This function MUST be called from the AUDIO THREAD only.
+     *          Calling from any other thread will cause audio dropouts and crashes.
+     *
+     * @warning MUST be lock-free and allocation-free. This function uses atomic
+     *          operations and lock-free data structures to ensure real-time
+     *          audio performance. Any blocking operations or memory allocations
+     *          will cause audio glitches.
+     *
+     * @param midiMessages MIDI message buffer from processBlock
+     * @param numSamples Number of audio samples in the current block
+     * @param sampleRate Current sample rate (for timing calculations)
+     *
+     * @note This function is designed to be called every audio block during
+     *       MIDI capture. It extracts note_on and note_off events and stores
+     *       them with precise timing relative to the recording start.
+     *
+     * @note MIDI events are timestamped using the current sample position,
+     *       allowing accurate synchronization with the audio timeline.
+     *
+     * @see startCapture() To begin MIDI capture (call from message thread)
+     * @see stopCapture() To end capture and get all events (call from message thread)
+     * @see PluginProcessor::processBlock() For typical usage in audio callback
      */
     void captureMIDI(const juce::MidiBuffer& midiMessages, int numSamples, double sampleRate);
 

@@ -422,3 +422,65 @@ func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.Audio
 	// Pass a preview of the comment content for the notification
 	h.stream.NotifyComment(comment.UserID, post.UserID, post.ID, comment.Content)
 }
+
+// ReportComment reports a comment for moderation
+// POST /api/v1/comments/:id/report
+func (h *Handlers) ReportComment(c *gin.Context) {
+	commentID := c.Param("id")
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req struct {
+		Reason      string `json:"reason" binding:"required"`
+		Description string `json:"description,omitempty"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		return
+	}
+
+	// Validate reason
+	validReasons := []string{"spam", "harassment", "inappropriate", "copyright", "violence", "other"}
+	valid := false
+	for _, r := range validReasons {
+		if req.Reason == r {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_reason", "message": "Reason must be one of: spam, harassment, inappropriate, copyright, violence, other"})
+		return
+	}
+
+	// Find the comment
+	var comment models.Comment
+	if err := database.DB.First(&comment, "id = ?", commentID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "comment_not_found"})
+		return
+	}
+
+	// Create report
+	report := models.Report{
+		ReporterID:   userID.(string),
+		TargetType:   models.ReportTargetComment,
+		TargetID:     commentID,
+		TargetUserID: &comment.UserID,
+		Reason:       models.ReportReason(req.Reason),
+		Description:  req.Description,
+		Status:       models.ReportStatusPending,
+	}
+
+	if err := database.DB.Create(&report).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_create_report", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message":   "report_created",
+		"report_id": report.ID,
+	})
+}

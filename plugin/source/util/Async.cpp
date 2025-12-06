@@ -15,10 +15,20 @@ namespace Async
         // Thread-safe counter for generating unique timer IDs
         std::atomic<int> nextTimerId{1};
 
-        // Custom timer class for delayed execution
+        /**
+         * DelayTimer - Custom timer for delayed execution
+         *
+         * Timer that executes a callback once after a delay and then
+         * self-destructs. Used internally by Async::delay().
+         */
         class DelayTimer : public juce::Timer
         {
         public:
+            /**
+             * Create a delay timer
+             * @param id Unique timer ID
+             * @param cb Callback to execute when timer fires
+             */
             DelayTimer(int id, std::function<void()> cb)
                 : timerId(id), callback(std::move(cb)) {}
 
@@ -34,11 +44,12 @@ namespace Async
                 });
             }
 
+            /** Get the unique timer ID */
             int getTimerId() const { return timerId; }
 
         private:
-            int timerId;
-            std::function<void()> callback;
+            int timerId;                        ///< Unique identifier for this timer
+            std::function<void()> callback;    ///< Callback to execute
         };
 
         // Active delay timers (protected by mutex)
@@ -51,17 +62,33 @@ namespace Async
 
         // Throttle state keyed by string (protected by mutex)
         std::mutex throttleMutex;
+
+        /**
+         * ThrottleState - State tracking for throttled function calls
+         *
+         * Tracks the last execution time and any pending timer for
+         * a throttled callback key.
+         */
         struct ThrottleState
         {
-            juce::int64 lastExecutionTime = 0;
-            std::unique_ptr<juce::Timer> pendingTimer;
+            juce::int64 lastExecutionTime = 0;          ///< Timestamp of last execution
+            std::unique_ptr<juce::Timer> pendingTimer;  ///< Timer for pending execution
         };
         std::map<juce::String, ThrottleState> throttleStates;
 
-        // Simple timer wrapper for debounce/throttle
+        /**
+         * CallbackTimer - Simple timer wrapper for debounce/throttle
+         *
+         * Timer that can have its callback changed dynamically.
+         * Used internally by Async::debounce() and Async::throttle().
+         */
         class CallbackTimer : public juce::Timer
         {
         public:
+            /**
+             * Create a callback timer
+             * @param cb Initial callback (may be nullptr)
+             */
             explicit CallbackTimer(std::function<void()> cb)
                 : callback(std::move(cb)) {}
 
@@ -72,13 +99,17 @@ namespace Async
                     callback();
             }
 
+            /**
+             * Update the callback function
+             * @param cb New callback to execute
+             */
             void setCallback(std::function<void()> cb)
             {
                 callback = std::move(cb);
             }
 
         private:
-            std::function<void()> callback;
+            std::function<void()> callback;  ///< Callback to execute when timer fires
         };
 
     }  // anonymous namespace

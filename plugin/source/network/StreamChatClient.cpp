@@ -3,6 +3,10 @@
 #include "../util/Async.h"
 #include "../util/Result.h"
 #include <JuceHeader.h>
+#include <websocketpp/common/thread.hpp>
+#include <websocketpp/common/memory.hpp>
+#include <thread>
+#include <chrono>
 
 //==============================================================================
 StreamChatClient::StreamChatClient(NetworkClient* client, const Config& cfg)
@@ -499,33 +503,198 @@ void StreamChatClient::connectWebSocket()
         return;
     }
 
-    if (wsConnected.load())
+    if (wsConnected.load() || wsConnectionActive.load())
     {
-        Log::debug("StreamChatClient: WebSocket already connected");
+        Log::debug("StreamChatClient: WebSocket already connected or connecting");
         return;
     }
 
     updateConnectionStatus(ConnectionStatus::Connecting);
 
-    // Note: JUCE's WebSocket support may vary by platform
-    // For now, we'll use a placeholder - full WebSocket implementation
-    // would require platform-specific code or a third-party library
-    Log::warn("StreamChatClient: WebSocket connection not yet fully implemented");
-    Log::debug("  URL: " + wsUrl);
+    // Clean up any existing connection
+    cleanupWebSocket();
 
-    // TODO: Implement full WebSocket connection using JUCE's WebSocket class
-    // or a platform-specific implementation
-    updateConnectionStatus(ConnectionStatus::Disconnected);
+    try
+    {
+        // Create websocketpp client
+        wsClient = std::make_unique<wspp_client>();
+
+        // Initialize ASIO
+        wsClient->init_asio();
+
+        // Set up event handlers
+        wsClient->set_open_handler([this](connection_hdl hdl) {
+            onWsOpen(hdl);
+        });
+
+        wsClient->set_close_handler([this](connection_hdl hdl) {
+            onWsClose(hdl);
+        });
+
+        wsClient->set_message_handler([this](connection_hdl hdl, message_ptr msg) {
+            onWsMessage(hdl, msg);
+        });
+
+        wsClient->set_fail_handler([this](connection_hdl hdl) {
+            onWsFail(hdl);
+        });
+
+        // Build WebSocket URI (wsUrl already contains full URL with query params)
+        juce::String uri = wsUrl;
+        Log::info("StreamChatClient: Connecting to getstream.io WebSocket: " + uri);
+
+        // Create connection
+        websocketpp::lib::error_code ec;
+        connection_ptr con = wsClient->get_connection(uri.toStdString(), ec);
+
+        if (ec)
+        {
+            Log::error("StreamChatClient: WebSocket connection error - " + juce::String(ec.message().c_str()));
+            updateConnectionStatus(ConnectionStatus::Disconnected);
+            cleanupWebSocket();
+            return;
+        }
+
+        wsConnection = con->get_handle();
+
+        // Start ASIO event loop in background
+        wsClient->start_perpetual();
+
+        // Connect (non-blocking)
+        wsClient->connect(con);
+
+        // Run ASIO event loop in a separate thread
+        wsAsioThread = std::make_unique<std::thread>([this]() {
+            try
+            {
+                wsClient->run();
+            }
+            catch (const std::exception& e)
+            {
+                Log::error("StreamChatClient: ASIO thread exception - " + juce::String(e.what()));
+            }
+        });
+
+        wsConnectionActive.store(true);
+        Log::info("StreamChatClient: WebSocket connection initiated");
+    }
+    catch (const std::exception& e)
+    {
+        Log::error("StreamChatClient: Exception connecting WebSocket - " + juce::String(e.what()));
+        updateConnectionStatus(ConnectionStatus::Disconnected);
+        cleanupWebSocket();
+    }
 }
 
 void StreamChatClient::disconnectWebSocket()
 {
-    if (webSocket != nullptr)
-    {
-        webSocket = nullptr;
-    }
     wsConnected.store(false);
+    cleanupWebSocket();
     updateConnectionStatus(ConnectionStatus::Disconnected);
+}
+
+void StreamChatClient::cleanupWebSocket()
+{
+    wsConnectionActive.store(false);
+
+    if (wsClient)
+    {
+        try
+        {
+            // Stop ASIO event loop
+            wsClient->stop_perpetual();
+
+            // Close connection if open
+            if (wsConnected.load())
+            {
+                try
+                {
+                    connection_ptr con = wsClient->get_con_from_hdl(wsConnection);
+                    if (con && con->get_state() == websocketpp::session::state::open)
+                    {
+                        wsClient->close(wsConnection, websocketpp::close::status::going_away, "Client disconnect");
+                    }
+                }
+                catch (...) {}
+            }
+
+            wsClient->stop();
+        }
+        catch (const std::exception& e)
+        {
+            Log::debug("StreamChatClient: Error stopping WebSocket client - " + juce::String(e.what()));
+        }
+
+        // Wait for ASIO thread to finish
+        if (wsAsioThread && wsAsioThread->joinable())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (wsAsioThread->joinable())
+            {
+                wsAsioThread->join();
+            }
+            wsAsioThread.reset();
+        }
+
+        wsClient.reset();
+    }
+}
+
+//==============================================================================
+// WebSocket event handlers
+void StreamChatClient::onWsOpen(connection_hdl hdl)
+{
+    wsConnected.store(true);
+    updateConnectionStatus(ConnectionStatus::Connected);
+    Log::info("StreamChatClient: WebSocket connected to getstream.io");
+}
+
+void StreamChatClient::onWsClose(connection_hdl hdl)
+{
+    wsConnected.store(false);
+    wsConnectionActive.store(false);
+    updateConnectionStatus(ConnectionStatus::Disconnected);
+    Log::info("StreamChatClient: WebSocket disconnected from getstream.io");
+}
+
+void StreamChatClient::onWsMessage(connection_hdl hdl, message_ptr msg)
+{
+    try
+    {
+        std::string payload = msg->get_payload();
+        juce::String messageText(payload.c_str());
+
+        Log::debug("StreamChatClient: WebSocket message received: " + messageText.substring(0, 100));
+
+        // Parse and handle the message
+        handleWebSocketMessage(messageText);
+    }
+    catch (const std::exception& e)
+    {
+        Log::error("StreamChatClient: Error processing WebSocket message - " + juce::String(e.what()));
+    }
+}
+
+void StreamChatClient::onWsFail(connection_hdl hdl)
+{
+    wsConnected.store(false);
+    wsConnectionActive.store(false);
+    updateConnectionStatus(ConnectionStatus::Disconnected);
+
+    try
+    {
+        connection_ptr con = wsClient->get_con_from_hdl(hdl);
+        if (con)
+        {
+            auto ec = con->get_ec();
+            juce::String errorMsg = ec ? juce::String(ec.message().c_str()) : "Unknown error";
+            Log::error("StreamChatClient: WebSocket connection failed - " + errorMsg);
+        }
+    }
+    catch (...)
+    {
+        Log::error("StreamChatClient: WebSocket connection failed");
+    }
 }
 
 //==============================================================================
@@ -803,7 +972,7 @@ void StreamChatClient::updateChannel(const juce::String& channelType, const juce
                 for (int i = 0; i < props.size(); ++i)
                 {
                     auto name = props.getName(i);
-                    if (name != "name")  // Don't override name if already set
+                    if (name != juce::Identifier("name"))  // Don't override name if already set
                     {
                         dataObj->setProperty(name, props.getValueAt(i));
                     }

@@ -21,7 +21,7 @@ namespace StoryViewerColors
 StoryViewer::StoryViewer()
 {
     // Create piano roll component
-    pianoRoll = std::make_unique<PianoRollComponent>();
+    pianoRoll = std::make_unique<PianoRoll>();
     addChildComponent(pianoRoll.get());
 
     // Create audio player
@@ -29,6 +29,10 @@ StoryViewer::StoryViewer()
 
     // Start timer for progress updates
     startTimerHz(30);
+
+    // TODO: Phase 7.5.5.2.1 - Create note waterfall visualization (alternative to piano roll)
+    // TODO: Phase 7.5.5.2.2 - Create circular visualization (alternative to piano roll)
+    // TODO: Phase 7.5.5.2 - Toggle between piano roll and note list view (add note list view alternative)
 
     Log::info("StoryViewer created");
 }

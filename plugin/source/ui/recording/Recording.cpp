@@ -3,6 +3,7 @@
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/Async.h"
 
 //==============================================================================
 Recording::Recording(SidechainAudioProcessor& processor)
@@ -21,6 +22,10 @@ Recording::Recording(SidechainAudioProcessor& processor)
     // Start timer for UI updates (~30fps)
     startTimerHz(30);
     Log::debug("Recording: Timer started at 30Hz for UI updates");
+
+    // TODO: Phase 2.1.10 - Test with mono/stereo/surround bus configurations
+    // Upload cancellation is already implemented - Upload component has onCancel callback wired up in PluginEditor.cpp (line 163-166)
+
     Log::info("Recording: Initialization complete");
 }
 
@@ -39,6 +44,12 @@ void Recording::timerCallback()
         // Recording stopped (likely hit max length)
         Log::info("Recording::timerCallback: Recording stopped externally (likely max length reached)");
         stopRecording();
+    }
+
+    // Update progressive key detection periodically during recording
+    if (currentState == State::Recording && ProgressiveKeyDetector::isAvailable())
+    {
+        updateKeyDetection();
     }
 
     // Repaint for smooth animations
@@ -262,7 +273,38 @@ void Recording::drawTimeDisplay(juce::Graphics& g)
     float opacity = 0.5f + 0.5f * recordingDotAnimation.getProgress();
     g.setColour(SidechainColors::recording().withAlpha(opacity));
     g.setFont(14.0f);
-    g.drawText("RECORDING", timeDisplayArea, juce::Justification::centredLeft);
+    g.drawText("RECORDING", timeDisplayArea.removeFromTop(20),
+               juce::Justification::centredLeft);
+
+    // Draw key detection result if available
+    if (currentState == State::Recording)
+    {
+        drawKeyDisplay(g);
+    }
+}
+
+void Recording::drawKeyDisplay(juce::Graphics& g)
+{
+    if (!ProgressiveKeyDetector::isAvailable())
+        return;
+
+    if (detectedKey.isValid())
+    {
+        g.setColour(SidechainColors::textSecondary());
+        g.setFont(12.0f);
+        juce::String keyText = "Key: " + detectedKey.name;
+        if (detectedKey.camelot.isNotEmpty())
+        {
+            keyText += " (" + detectedKey.camelot + ")";
+        }
+        g.drawText(keyText, timeDisplayArea, juce::Justification::centredLeft);
+    }
+    else if (progressiveKeyDetector.isActive() && !isDetectingKey)
+    {
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(12.0f);
+        g.drawText("Analyzing key...", timeDisplayArea, juce::Justification::centredLeft);
+    }
 }
 
 void Recording::drawLevelMeters(juce::Graphics& g)
@@ -476,6 +518,24 @@ void Recording::startRecording()
     // Start pulsing animation
     recordingDotAnimation.start();
 
+    // Start progressive key detection if available
+    if (ProgressiveKeyDetector::isAvailable())
+    {
+        double sampleRate = audioProcessor.getCurrentSampleRate();
+        if (progressiveKeyDetector.start(sampleRate))
+        {
+            Log::info("Recording::startRecording: Progressive key detection started at " + juce::String(sampleRate, 1) + "Hz");
+            detectedKey = KeyDetector::Key();  // Reset
+            keyDetectionBuffer.setSize(2, 0);  // Clear buffer
+            keyDetectionSamplesAccumulated = 0;
+            isDetectingKey = false;
+        }
+        else
+        {
+            Log::warn("Recording::startRecording: Failed to start progressive key detection");
+        }
+    }
+
     Log::debug("Recording::startRecording: State changed to Recording, animation started");
     repaint();
 }
@@ -486,6 +546,29 @@ void Recording::stopRecording()
 
     // Stop pulsing animation
     recordingDotAnimation.stop();
+
+    // Finalize progressive key detection
+    if (progressiveKeyDetector.isActive())
+    {
+        // Process any remaining accumulated audio
+        if (keyDetectionBuffer.getNumSamples() > 0)
+        {
+            processKeyDetectionChunk(keyDetectionBuffer);
+            keyDetectionBuffer.setSize(2, 0);
+        }
+
+        // Finalize and get final key
+        if (progressiveKeyDetector.finalize())
+        {
+            detectedKey = progressiveKeyDetector.getFinalKey();
+            if (detectedKey.isValid())
+            {
+                Log::info("Recording::stopRecording: Final key detected: " + detectedKey.name +
+                         " (Camelot: " + detectedKey.camelot + ")");
+            }
+        }
+        progressiveKeyDetector.reset();
+    }
 
     audioProcessor.stopRecording();
     recordedAudio = audioProcessor.getRecordedAudio();

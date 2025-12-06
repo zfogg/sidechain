@@ -267,3 +267,81 @@ func (s *Service) GetGoogleOAuthURL(state string) string {
 func (s *Service) GetDiscordOAuthURL(state string) string {
 	return s.discordConfig.AuthCodeURL(state)
 }
+
+// RequestPasswordReset creates a password reset token and stores it in the database
+func (s *Service) RequestPasswordReset(email string) (*models.PasswordReset, error) {
+	// Find user by email
+	var user models.User
+	err := database.DB.Where("LOWER(email) = LOWER(?)", email).First(&user).Error
+	if err != nil {
+		// Don't reveal if user exists or not (security best practice)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // Return nil without error - user doesn't need to know
+		}
+		return nil, fmt.Errorf("database error: %w", err)
+	}
+
+	// Check if user has a password (OAuth-only users can't reset password)
+	if user.PasswordHash == nil {
+		return nil, nil // Return nil without error
+	}
+
+	// Generate secure token (64 character hex string from two UUIDs)
+	tokenStr := uuid.New().String() + uuid.New().String()
+	tokenStr = tokenStr + uuid.New().String() // 96 chars total for better security
+
+	// Create reset token
+	token := models.PasswordReset{
+		UserID:    user.ID,
+		Token:     tokenStr,
+		ExpiresAt: time.Now().Add(1 * time.Hour), // 1 hour expiration
+		Used:      false,
+	}
+	if err := database.DB.Create(&token).Error; err != nil {
+		return nil, fmt.Errorf("failed to create reset token: %w", err)
+	}
+
+	return &token, nil
+}
+
+// ResetPassword validates the reset token and updates the user's password
+func (s *Service) ResetPassword(token, newPassword string) error {
+	// Find reset token
+	var resetToken models.PasswordReset
+	err := database.DB.Where("token = ? AND used = false AND expires_at > ?", token, time.Now()).First(&resetToken).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("invalid or expired reset token")
+		}
+		return fmt.Errorf("database error: %w", err)
+	}
+
+	// Find user
+	var user models.User
+	if err := database.DB.First(&user, "id = ?", resetToken.UserID).Error; err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	hashedPasswordStr := string(hashedPassword)
+
+	// Update password
+	user.PasswordHash = &hashedPasswordStr
+	if err := database.DB.Save(&user).Error; err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	// Mark token as used
+	resetToken.Used = true
+	if err := database.DB.Save(&resetToken).Error; err != nil {
+		// Log but don't fail - password is already updated
+		fmt.Printf("Warning: failed to mark reset token as used: %v\n", err)
+	}
+
+	return nil
+}

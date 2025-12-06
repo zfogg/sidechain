@@ -12,11 +12,16 @@ namespace ImageLoader
 // Internal implementation
 namespace
 {
-    // LRU Cache entry
+    /**
+     * CacheEntry - LRU cache entry for image storage
+     *
+     * Stores a cached image along with its source URL for identification.
+     * Used in the LRU (Least Recently Used) cache implementation.
+     */
     struct CacheEntry
     {
-        juce::Image image;
-        juce::String url;
+        juce::Image image;  ///< The cached image
+        juce::String url;   ///< Source URL for this image
     };
 
     // Cache state

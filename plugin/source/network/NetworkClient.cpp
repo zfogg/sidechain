@@ -3,6 +3,7 @@
 #include "../util/Log.h"
 #include "../util/Async.h"
 #include "../util/Result.h"
+#include "../audio/KeyDetector.h"
 
 //==============================================================================
 // Helper to convert RequestResult to Outcome<juce::var>
@@ -295,13 +296,29 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
                 }
             }
 
-            juce::MessageManager::callAsync([this, callback, token, userId, username, success]() {
+            // Extract email_verified status separately
+            bool emailVerified = true;
+            if (response.isObject())
+            {
+                auto authData = response.getProperty("auth", juce::var());
+                if (authData.isObject())
+                {
+                    auto user = authData.getProperty("user", juce::var());
+                    if (user.isObject())
+                    {
+                        emailVerified = user.getProperty("email_verified", true).operator bool();
+                    }
+                }
+            }
+
+            juce::MessageManager::callAsync([this, callback, token, userId, username, success, emailVerified]() {
                 if (success)
                 {
                     // Store authentication info
                     authToken = token;
                     currentUserId = userId;
                     currentUsername = username;
+                    currentUserEmailVerified = emailVerified;
 
                     auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, userId});
                     callback(authResult);
@@ -321,6 +338,45 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
 void NetworkClient::setAuthenticationCallback(AuthenticationCallback callback)
 {
     authCallback = callback;
+}
+
+void NetworkClient::requestPasswordReset(const juce::String& email, ResponseCallback callback)
+{
+    Async::runVoid([this, email, callback]() {
+        juce::var resetData = juce::var(new juce::DynamicObject());
+        resetData.getDynamicObject()->setProperty("email", email);
+
+        auto result = makeRequestWithRetry(buildApiPath("/auth/reset-password"), "POST", resetData, false);
+        Log::debug("Password reset request response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::resetPassword(const juce::String& token, const juce::String& newPassword, ResponseCallback callback)
+{
+    Async::runVoid([this, token, newPassword, callback]() {
+        juce::var resetData = juce::var(new juce::DynamicObject());
+        resetData.getDynamicObject()->setProperty("token", token);
+        resetData.getDynamicObject()->setProperty("new_password", newPassword);
+
+        auto result = makeRequestWithRetry(buildApiPath("/auth/reset-password/confirm"), "POST", resetData, false);
+        Log::debug("Password reset confirm response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
 }
 
 //==============================================================================
@@ -364,12 +420,48 @@ void NetworkClient::uploadAudio(const juce::String& recordingId,
         double durationSecs = static_cast<double>(bufferCopy.getNumSamples()) / sampleRate;
 
         // Build metadata fields for multipart upload
+        // Auto-detect metadata where possible
         std::map<juce::String, juce::String> metadata;
         metadata["recording_id"] = recordingId;
-        metadata["bpm"] = "120";  // TODO: detect from DAW or user input
-        metadata["key"] = "C major";  // TODO: detect or user input
-        metadata["daw"] = "Unknown";  // TODO: detect from host
-        metadata["duration_bars"] = "8";  // TODO: calculate from BPM and duration
+
+        // Detect key using KeyDetector (if available)
+        juce::String detectedKey = "C major";  // Default fallback
+        if (KeyDetector::isAvailable())
+        {
+            KeyDetector keyDetector;
+            auto key = keyDetector.detectKey(bufferCopy, sampleRate, bufferCopy.getNumChannels());
+            if (key.isValid())
+            {
+                detectedKey = key.name;
+                Log::info("NetworkClient: Detected key: " + detectedKey);
+            }
+            else
+            {
+                Log::debug("NetworkClient: Key detection failed, using default");
+            }
+        }
+        else
+        {
+            Log::debug("NetworkClient: KeyDetector not available, using default key");
+        }
+        metadata["key"] = detectedKey;
+
+        // Detect DAW from host application
+        juce::String dawName = NetworkClient::detectDAWName();
+        metadata["daw"] = dawName;
+
+        // BPM: Default to 120 if not available (should be passed from processor)
+        // In practice, BPM should come from PluginProcessor::getCurrentBPM()
+        // For now, use default but log that it should be provided
+        double bpm = 120.0;
+        metadata["bpm"] = juce::String(bpm, 1);
+        Log::debug("NetworkClient: Using default BPM (120). Consider using uploadAudioWithMetadata with BPM from processor.");
+
+        // Calculate duration_bars from BPM and duration
+        double beatsPerSecond = bpm / 60.0;
+        double totalBeats = durationSecs * beatsPerSecond;
+        int bars = static_cast<int>(totalBeats / 4.0 + 0.5); // Assuming 4/4 time
+        metadata["duration_bars"] = juce::String(juce::jmax(1, bars));
         metadata["duration_seconds"] = juce::String(durationSecs, 2);
         metadata["sample_rate"] = juce::String(static_cast<int>(sampleRate));
         metadata["channels"] = juce::String(bufferCopy.getNumChannels());
@@ -436,6 +528,12 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
     juce::AudioBuffer<float> bufferCopy(audioBuffer);
     AudioUploadMetadata metadataCopy = metadata;
 
+    // Detect DAW if not provided (before lambda capture)
+    if (metadataCopy.daw.isEmpty())
+    {
+        metadataCopy.daw = NetworkClient::detectDAWName();
+    }
+
     Async::runVoid([this, bufferCopy, sampleRate, metadataCopy, callback]() {
         // Encode audio to WAV (server will transcode to MP3)
         auto audioData = encodeAudioToWAV(bufferCopy, sampleRate);
@@ -475,6 +573,12 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
         fields["duration_seconds"] = juce::String(durationSecs, 2);
         fields["sample_rate"] = juce::String(static_cast<int>(sampleRate));
         fields["channels"] = juce::String(bufferCopy.getNumChannels());
+
+        // Add DAW to fields (already detected before lambda if needed)
+        if (metadataCopy.daw.isNotEmpty())
+        {
+            fields["daw"] = metadataCopy.daw;
+        }
 
         // Calculate approximate bar count if BPM is known
         if (metadataCopy.bpm > 0)
@@ -647,6 +751,63 @@ void NetworkClient::unlikePost(const juce::String& activityId, ResponseCallback 
 
         auto result = makeRequestWithRetry(buildApiPath("/social/like"), "DELETE", data, true);
         Log::debug("Unlike response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::deletePost(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = buildApiPath(("/posts/" + postId).toRawUTF8());
+        auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+        Log::debug("Delete post response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::reportPost(const juce::String& postId, const juce::String& reason, const juce::String& description, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, reason, description, callback]() {
+        juce::String endpoint = buildApiPath(("/posts/" + postId + "/report").toRawUTF8());
+        juce::var data = juce::var(new juce::DynamicObject());
+        auto* obj = data.getDynamicObject();
+        if (obj != nullptr)
+        {
+            obj->setProperty("reason", reason);
+            if (description.isNotEmpty())
+                obj->setProperty("description", description);
+        }
+
+        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+        Log::debug("Report post response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1293,14 +1454,22 @@ void NetworkClient::handleAuthResponse(const juce::var& response)
 
 juce::MemoryBlock NetworkClient::encodeAudioToMP3(const juce::AudioBuffer<float>& buffer, double sampleRate)
 {
-    // TODO: Implement MP3 encoding with LAME or similar library
-    // For now, fall back to WAV which the server can transcode
+    // NOT YET IMPLEMENTED - This function currently falls back to WAV encoding.
+    // The server will transcode WAV to MP3, but this is less efficient than encoding client-side.
+    // See notes/PLAN.md Phase 2 for MP3 encoding implementation plan.
     Log::warn("MP3 encoding not yet implemented, using WAV format");
     return encodeAudioToWAV(buffer, sampleRate);
 }
 
 juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>& buffer, double sampleRate)
 {
+    // Encode audio buffer to WAV format using 16-bit PCM.
+    // IMPORTANT GOTCHAS:
+    // - Uses 16-bit PCM encoding (not configurable)
+    // - Buffer must be valid and non-empty
+    // - Sample rate must be positive
+    // - Returns empty MemoryBlock on failure (check getSize() == 0)
+    // - Writer is reset before returning to ensure data is flushed
     juce::MemoryOutputStream outputStream;
 
     // Create WAV format writer
@@ -1331,6 +1500,75 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
         + juce::String(outputStream.getDataSize()) + " bytes)");
 
     return outputStream.getMemoryBlock();
+}
+
+//==============================================================================
+juce::String NetworkClient::detectDAWName()
+{
+    // Try to detect DAW from process name or environment
+    // This is platform-specific and may not always work
+
+    #if JUCE_MAC
+        // On macOS, try to get the parent process name
+        juce::String processName = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
+            .getParentDirectory().getParentDirectory().getParentDirectory().getFileName();
+
+        // Common DAW identifiers on macOS
+        if (processName.containsIgnoreCase("Ableton"))
+            return "Ableton Live";
+        if (processName.containsIgnoreCase("Logic"))
+            return "Logic Pro";
+        if (processName.containsIgnoreCase("Pro Tools"))
+            return "Pro Tools";
+        if (processName.containsIgnoreCase("Cubase"))
+            return "Cubase";
+        if (processName.containsIgnoreCase("Studio One"))
+            return "Studio One";
+        if (processName.containsIgnoreCase("Reaper"))
+            return "REAPER";
+        if (processName.containsIgnoreCase("Bitwig"))
+            return "Bitwig Studio";
+        if (processName.containsIgnoreCase("FL Studio"))
+            return "FL Studio";
+    #elif JUCE_WINDOWS
+        // On Windows, try to get parent process name from environment
+        // Note: This is limited on Windows without process enumeration
+        // In practice, the DAW name might need to be passed from the processor
+    #elif JUCE_LINUX
+        // On Linux, similar limitations apply
+    #endif
+
+    // Fallback: Try to detect from JUCE plugin wrapper info
+    // Some hosts provide this information, but it's not always available
+    if (auto* app = juce::JUCEApplication::getInstance())
+    {
+        juce::String hostName = app->getApplicationName();
+
+        if (hostName.isNotEmpty())
+        {
+            if (hostName.containsIgnoreCase("Ableton"))
+                return "Ableton Live";
+            if (hostName.containsIgnoreCase("Logic"))
+                return "Logic Pro";
+            if (hostName.containsIgnoreCase("Pro Tools"))
+                return "Pro Tools";
+            if (hostName.containsIgnoreCase("Cubase"))
+                return "Cubase";
+            if (hostName.containsIgnoreCase("Studio One"))
+                return "Studio One";
+            if (hostName.containsIgnoreCase("Reaper"))
+                return "REAPER";
+            if (hostName.containsIgnoreCase("Bitwig"))
+                return "Bitwig Studio";
+            if (hostName.containsIgnoreCase("FL Studio"))
+                return "FL Studio";
+            if (hostName.containsIgnoreCase("Audacity"))
+                return "Audacity";
+        }
+    }
+
+    // Default fallback
+    return "Unknown";
 }
 
 //==============================================================================
@@ -2344,6 +2582,39 @@ void NetworkClient::unlikeComment(const juce::String& commentId, ResponseCallbac
         juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/like";
         auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
         Log::debug("Unlike comment response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::reportComment(const juce::String& commentId, const juce::String& reason, const juce::String& description, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, commentId, reason, description, callback]() {
+        juce::String endpoint = buildApiPath("/comments") + "/" + commentId + "/report";
+        juce::var data = juce::var(new juce::DynamicObject());
+        auto* obj = data.getDynamicObject();
+        if (obj != nullptr)
+        {
+            obj->setProperty("reason", reason);
+            if (description.isNotEmpty())
+                obj->setProperty("description", description);
+        }
+
+        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+        Log::debug("Report comment response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {

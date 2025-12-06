@@ -91,6 +91,7 @@ public:
         double bpm = 0.0;             ///< Beats per minute (0.0 if unknown)
         juce::String key;             ///< Musical key (e.g., "C", "Am", "F#m" or empty)
         juce::String genre;           ///< Genre (e.g., "Electronic", "Hip-Hop")
+        juce::String daw;             ///< DAW name (e.g., "Ableton Live", "Logic Pro", "FL Studio") - auto-detected if empty
 
         // Auto-populated fields
         double durationSeconds = 0.0; ///< Audio duration in seconds
@@ -120,6 +121,19 @@ public:
     void loginAccount(const juce::String& email, const juce::String& password,
                      AuthenticationCallback callback);
 
+    /** Request password reset
+     * @param email User's email address
+     * @param callback Called with result (contains token in dev mode) or error
+     */
+    void requestPasswordReset(const juce::String& email, ResponseCallback callback = nullptr);
+
+    /** Confirm password reset with token
+     * @param token Password reset token
+     * @param newPassword New password to set
+     * @param callback Called with result or error
+     */
+    void resetPassword(const juce::String& token, const juce::String& newPassword, ResponseCallback callback = nullptr);
+
     /** Set the authentication callback for login/register operations
      * @param callback Called when authentication completes
      */
@@ -128,22 +142,37 @@ public:
     //==========================================================================
     // Audio operations
 
-    /** Upload audio to the server
+    /**
+     * Upload audio recording to the server
+     *
      * @param recordingId Unique identifier for this recording
-     * @param audioBuffer The audio data to upload
+     * @param audioBuffer The audio data to upload (will be copied for thread safety)
      * @param sampleRate Sample rate of the audio
      * @param callback Called with the CDN URL or error
+     *
+     * @note IMPORTANT GOTCHAS:
+     *       - BPM, key, and DAW are currently hardcoded to defaults (120 BPM, "C major", "Unknown")
+     *       - See @ref notes/PLAN.md Phase 2 for planned DAW integration and automatic detection
+     *       - Audio is encoded to WAV format (MP3 encoding not yet implemented - see encodeAudioToMP3)
+     *       - The buffer is copied internally for thread safety
+     *       - Encoding and upload happen on background threads to avoid blocking UI
      */
     void uploadAudio(const juce::String& recordingId,
                     const juce::AudioBuffer<float>& audioBuffer,
                     double sampleRate,
                     UploadCallback callback = nullptr);
 
-    /** Upload audio with full metadata (title, BPM, key, genre)
-     * @param audioBuffer The audio data to upload
+    /**
+     * Upload audio with full metadata (title, BPM, key, genre)
+     *
+     * @param audioBuffer The audio data to upload (will be copied for thread safety)
      * @param sampleRate Sample rate of the audio
      * @param metadata Audio metadata (title, BPM, key, genre, etc.)
      * @param callback Called with the CDN URL or error
+     *
+     * @note The audio buffer is copied internally for thread safety.
+     *       Encoding happens on a background thread to avoid blocking the UI.
+     *       Currently encodes to WAV format (MP3 encoding not yet implemented).
      */
     void uploadAudioWithMetadata(const juce::AudioBuffer<float>& audioBuffer,
                                  double sampleRate,
@@ -186,6 +215,20 @@ public:
      * @param callback Called with result or error
      */
     void unlikePost(const juce::String& activityId, ResponseCallback callback = nullptr);
+
+    /** Delete a post
+     * @param postId The post ID
+     * @param callback Called with result or error
+     */
+    void deletePost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Report a post
+     * @param postId The post ID
+     * @param reason The reason for reporting (spam, harassment, inappropriate, copyright, violence, other)
+     * @param description Optional additional context
+     * @param callback Called with result or error
+     */
+    void reportPost(const juce::String& postId, const juce::String& reason, const juce::String& description = "", ResponseCallback callback = nullptr);
 
     /** Follow a user
      * @param userId The user ID to follow
@@ -284,6 +327,14 @@ public:
      * @param callback Called with result or error
      */
     void unlikeComment(const juce::String& commentId, ResponseCallback callback = nullptr);
+
+    /** Report a comment
+     * @param commentId The comment ID
+     * @param reason The reason for reporting (spam, harassment, inappropriate, copyright, violence, other)
+     * @param description Optional additional context
+     * @param callback Called with result or error
+     */
+    void reportComment(const juce::String& commentId, const juce::String& reason, const juce::String& description = "", ResponseCallback callback = nullptr);
 
     //==========================================================================
     // Generic HTTP methods for custom API calls
@@ -511,6 +562,11 @@ public:
      */
     const juce::String& getCurrentUserId() const { return currentUserId; }
 
+    /** Get the current user's email verification status
+     * @return true if email is verified, false otherwise
+     */
+    bool isCurrentUserEmailVerified() const { return currentUserEmailVerified; }
+
     //==========================================================================
     // Connection status and management
     ConnectionStatus getConnectionStatus() const { return connectionStatus.load(); }
@@ -558,6 +614,7 @@ private:
     juce::String authToken;
     juce::String currentUsername;
     juce::String currentUserId;
+    bool currentUserEmailVerified = true;  // Default to verified
 
     AuthenticationCallback authCallback;
     ConnectionStatusCallback connectionStatusCallback;
@@ -615,9 +672,40 @@ private:
     // Parse HTTP status code from response headers
     static int parseStatusCode(const juce::StringPairArray& headers);
 
+    //==========================================================================
     // Audio encoding
+
+    /**
+     * Encode audio buffer to MP3 format.
+     *
+     * @note NOT YET IMPLEMENTED - Currently falls back to WAV encoding.
+     *       The server will transcode WAV to MP3, but this is less efficient.
+     *       See @ref notes/PLAN.md for implementation plan.
+     *
+     * @param buffer Audio buffer to encode
+     * @param sampleRate Sample rate of the audio
+     * @return Encoded MP3 data (currently returns WAV data)
+     */
     juce::MemoryBlock encodeAudioToMP3(const juce::AudioBuffer<float>& buffer, double sampleRate);
+
+    /**
+     * Encode audio buffer to WAV format.
+     *
+     * @param buffer Audio buffer to encode (will be copied internally)
+     * @param sampleRate Sample rate of the audio
+     * @return Encoded WAV data, or empty MemoryBlock on failure
+     * @note Uses 16-bit PCM encoding. The buffer is copied before encoding
+     *       to ensure thread safety when called from background threads.
+     */
     juce::MemoryBlock encodeAudioToWAV(const juce::AudioBuffer<float>& buffer, double sampleRate);
+
+    /**
+     * Detect DAW name from host application.
+     * Attempts to identify the DAW hosting the plugin.
+     *
+     * @return DAW name (e.g., "Ableton Live", "Logic Pro", "FL Studio") or "Unknown"
+     */
+    static juce::String detectDAWName();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NetworkClient)
 };

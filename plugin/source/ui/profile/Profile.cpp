@@ -1,10 +1,13 @@
 #include "Profile.h"
 #include "../../network/NetworkClient.h"
+#include "../../network/StreamChatClient.h"
 #include "../../util/Json.h"
 #include "../../stores/ImageCache.h"
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/Colors.h"
 #include "../feed/PostCard.h"
+#include <vector>
 
 //==============================================================================
 // UserProfile implementation
@@ -86,7 +89,7 @@ Profile::Profile()
     Log::debug("Profile: Scroll bar created and added");
 
     // Create followers list panel (initially hidden)
-    followersListPanel = std::make_unique<FollowersListComponent>();
+    followersListPanel = std::make_unique<FollowersList>();
     followersListPanel->onClose = [this]() {
         Log::debug("Profile: Followers list close requested");
         hideFollowersList();
@@ -117,6 +120,12 @@ void Profile::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
     Log::info("Profile: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void Profile::setStreamChatClient(StreamChatClient* client)
+{
+    streamChatClient = client;
+    Log::info("Profile::setStreamChatClient: StreamChatClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
 void Profile::setCurrentUserId(const juce::String& userId)
@@ -196,6 +205,12 @@ void Profile::setProfile(const UserProfile& newProfile)
     {
         Log::debug("Profile::setProfile: Fetching user posts for: " + profile.id);
         fetchUserPosts(profile.id);
+
+        // Query presence for this user (if not own profile)
+        if (!profile.isOwnProfile(currentUserId))
+        {
+            queryPresenceForProfile();
+        }
     }
     else
     {
@@ -330,6 +345,30 @@ void Profile::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Avatar border
     g.setColour(Colors::accent.withAlpha(0.5f));
     g.drawEllipse(bounds.toFloat(), 3.0f);
+
+    // Draw online indicator (green/cyan dot in bottom-right corner)
+    if (profile.isOnline || profile.isInStudio)
+    {
+        const int indicatorSize = 18;
+        const int borderWidth = 3;
+
+        // Position at bottom-right of avatar
+        auto indicatorBounds = juce::Rectangle<int>(
+            bounds.getRight() - indicatorSize + 3,
+            bounds.getBottom() - indicatorSize + 3,
+            indicatorSize,
+            indicatorSize
+        ).toFloat();
+
+        // Draw dark border (matches card background)
+        g.setColour(Colors::background);
+        g.fillEllipse(indicatorBounds);
+
+        // Draw indicator (cyan for in_studio, green for just online)
+        auto innerBounds = indicatorBounds.reduced(borderWidth);
+        g.setColour(profile.isInStudio ? SidechainColors::inStudioIndicator() : SidechainColors::onlineIndicator());
+        g.fillEllipse(innerBounds);
+    }
 }
 
 void Profile::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -645,6 +684,9 @@ void Profile::resized()
         followersListPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
         Log::debug("Profile::resized: Followers list panel repositioned - width: " + juce::String(panelWidth));
     }
+
+    // TODO: Phase 4.1.10 - Add profile verification system (future: badges)
+    // Note: Profile shows follower/following counts but clicking them opens FollowersList panel - this is already implemented
 }
 
 void Profile::mouseUp(const juce::MouseEvent& event)
@@ -675,7 +717,7 @@ void Profile::mouseUp(const juce::MouseEvent& event)
     if (getFollowersBounds().contains(pos))
     {
         Log::info("Profile::mouseUp: Followers stat clicked - userId: " + profile.id);
-        showFollowersList(profile.id, FollowersListComponent::ListType::Followers);
+        showFollowersList(profile.id, FollowersList::ListType::Followers);
         if (onFollowersClicked)
             onFollowersClicked(profile.id);
         else
@@ -687,7 +729,7 @@ void Profile::mouseUp(const juce::MouseEvent& event)
     if (getFollowingBounds().contains(pos))
     {
         Log::info("Profile::mouseUp: Following stat clicked - userId: " + profile.id);
-        showFollowersList(profile.id, FollowersListComponent::ListType::Following);
+        showFollowersList(profile.id, FollowersList::ListType::Following);
         if (onFollowingClicked)
             onFollowingClicked(profile.id);
         else
@@ -1084,7 +1126,7 @@ void Profile::clearPlayingState()
 }
 
 //==============================================================================
-void Profile::showFollowersList(const juce::String& userId, FollowersListComponent::ListType type)
+void Profile::showFollowersList(const juce::String& userId, FollowersList::ListType type)
 {
     if (followersListPanel == nullptr || userId.isEmpty())
     {
@@ -1092,7 +1134,7 @@ void Profile::showFollowersList(const juce::String& userId, FollowersListCompone
         return;
     }
 
-    juce::String typeStr = type == FollowersListComponent::ListType::Followers ? "Followers" : "Following";
+    juce::String typeStr = type == FollowersList::ListType::Followers ? "Followers" : "Following";
     Log::info("Profile::showFollowersList: Showing " + typeStr + " list for userId: " + userId);
 
     // Set up the panel
@@ -1121,4 +1163,65 @@ void Profile::hideFollowersList()
         followersListPanel->setVisible(false);
     }
     followersListVisible = false;
+}
+
+//==============================================================================
+void Profile::queryPresenceForProfile()
+{
+    if (!streamChatClient || profile.id.isEmpty())
+    {
+        Log::debug("Profile::queryPresenceForProfile: Skipping - streamChatClient is null or profile ID is empty");
+        return;
+    }
+
+    Log::debug("Profile::queryPresenceForProfile: Querying presence for user: " + profile.id);
+
+    std::vector<juce::String> userIds = { profile.id };
+
+    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (result.isError())
+        {
+            Log::warn("Profile::queryPresenceForProfile: Failed to query presence: " + result.getError());
+            return;
+        }
+
+        auto presenceList = result.getValue();
+        if (presenceList.empty())
+        {
+            Log::debug("Profile::queryPresenceForProfile: No presence data returned");
+            return;
+        }
+
+        const auto& presence = presenceList[0];
+        profile.isOnline = presence.online;
+        profile.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+
+        // Format last active time
+        if (!presence.lastActive.isEmpty())
+        {
+            // Parse ISO timestamp and format as "last active X ago"
+            juce::Time lastActiveTime = juce::Time::fromISO8601(presence.lastActive);
+            if (lastActiveTime.toMilliseconds() > 0)
+            {
+                auto diff = juce::Time::getCurrentTime() - lastActiveTime;
+                int minutes = static_cast<int>(diff.inMinutes());
+                int hours = static_cast<int>(diff.inHours());
+                int days = static_cast<int>(diff.inDays());
+
+                if (days > 0)
+                    profile.lastActive = juce::String(days) + "d ago";
+                else if (hours > 0)
+                    profile.lastActive = juce::String(hours) + "h ago";
+                else if (minutes > 0)
+                    profile.lastActive = juce::String(minutes) + "m ago";
+                else
+                    profile.lastActive = "Just now";
+            }
+        }
+
+        Log::debug("Profile::queryPresenceForProfile: Presence updated - online: " + juce::String(profile.isOnline) +
+                  ", inStudio: " + juce::String(profile.isInStudio));
+
+        repaint();
+    });
 }

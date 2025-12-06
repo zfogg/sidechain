@@ -16,10 +16,13 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
+	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/seed"
 	"github.com/zfogg/sidechain/backend/internal/storage"
-	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/stories"
+	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 )
 
@@ -57,6 +60,24 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
+	// Auto-seed development data if in development mode and database is empty
+	if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("ENVIRONMENT") == "" {
+		var userCount int64
+		database.DB.Model(&models.User{}).Count(&userCount)
+		if userCount == 0 {
+			log.Println("🌱 Development mode: Database is empty, auto-seeding development data...")
+			seeder := seed.NewSeeder(database.DB)
+			if err := seeder.SeedDev(); err != nil {
+				log.Printf("Warning: Auto-seed failed (non-fatal): %v", err)
+				log.Println("You can manually seed with: go run cmd/seed/main.go dev")
+			} else {
+				log.Println("✅ Development data seeded successfully!")
+			}
+		} else {
+			log.Printf("Database already has %d users, skipping auto-seed", userCount)
+		}
+	}
+
 	// Initialize Stream.io client
 	streamClient, err := stream.NewClient()
 	if err != nil {
@@ -86,6 +107,31 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("Failed to initialize S3 uploader: %v", err)
+	}
+
+	// Initialize email service (AWS SES)
+	var emailService *email.EmailService
+	sesFromEmail := os.Getenv("SES_FROM_EMAIL")
+	sesFromName := os.Getenv("SES_FROM_NAME")
+	baseURL := os.Getenv("BASE_URL")
+
+	if sesFromEmail != "" && baseURL != "" {
+		emailService, err = email.NewEmailService(
+			os.Getenv("AWS_REGION"),
+			sesFromEmail,
+			sesFromName,
+			baseURL,
+		)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize email service: %v", err)
+			log.Println("Password reset emails will not be sent - check AWS SES configuration")
+			emailService = nil
+		} else {
+			log.Printf("✅ Email service (AWS SES) initialized successfully - from: %s", sesFromEmail)
+		}
+	} else {
+		log.Println("Warning: SES_FROM_EMAIL or BASE_URL not set - password reset emails will not be sent")
+		log.Println("Set SES_FROM_EMAIL, SES_FROM_NAME, and BASE_URL in .env to enable email sending")
 	}
 
 	// Check S3 access (skip for development)
@@ -128,6 +174,8 @@ func main() {
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
+	authHandlers.SetJWTSecret(jwtSecret)
+	authHandlers.SetEmailService(emailService) // Enable password reset emails
 
 	// Setup Gin router
 	r := gin.Default()
@@ -157,6 +205,10 @@ func main() {
 			// Native auth
 			authGroup.POST("/register", authHandlers.Register)
 			authGroup.POST("/login", authHandlers.Login)
+
+			// Password reset (public)
+			authGroup.POST("/reset-password", authHandlers.RequestPasswordReset)
+			authGroup.POST("/reset-password/confirm", authHandlers.ResetPassword)
 
 			// OAuth flows
 			authGroup.GET("/google", authHandlers.GoogleOAuth)
@@ -261,12 +313,14 @@ func main() {
 			discover.GET("/genre/:genre", h.GetUsersByGenre)
 		}
 
-		// Post routes (for comments)
+		// Post routes (for comments, deletion, reporting)
 		posts := api.Group("/posts")
 		{
 			posts.Use(authHandlers.AuthMiddleware())
 			posts.POST("/:id/comments", h.CreateComment)
 			posts.GET("/:id/comments", h.GetComments)
+			posts.DELETE("/:id", h.DeletePost)
+			posts.POST("/:id/report", h.ReportPost)
 		}
 
 		// Comment routes
@@ -278,6 +332,7 @@ func main() {
 			comments.DELETE("/:id", h.DeleteComment)
 			comments.POST("/:id/like", h.LikeComment)
 			comments.DELETE("/:id/like", h.UnlikeComment)
+			comments.POST("/:id/report", h.ReportComment)
 		}
 
 		// Story routes (7.5)

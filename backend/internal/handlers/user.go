@@ -429,6 +429,10 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 	})
 }
 
+// TODO: Phase 4.5.1.16 - Test GetUserFollowers / GetUserFollowing - pagination
+// Note: Followers/Following lists backend endpoints exist (GET /api/users/:id/followers, GET /api/users/:id/following)
+// Note: Plugin UI shows counts but clicking them opens FollowersList panel - this is already implemented
+
 // GetUserFollowers gets the list of users who follow a user
 // GET /api/users/:id/followers
 func (h *Handlers) GetUserFollowers(c *gin.Context) {

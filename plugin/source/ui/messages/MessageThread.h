@@ -160,5 +160,8 @@ private:
     // Audio snippet sending
     void sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate);
 
+    // User picker dialog for adding members
+    std::unique_ptr<class UserPickerDialog> userPickerDialog;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MessageThread)
 };

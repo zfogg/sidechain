@@ -88,7 +88,7 @@ private:
     double previewPlaybackPosition = 0.0;
 
     // MIDI visualization for preview
-    std::unique_ptr<PianoRollComponent> pianoRollPreview;
+    std::unique_ptr<PianoRoll> pianoRollPreview;
 
     // Metadata (optional)
     int storyBPM = 0;

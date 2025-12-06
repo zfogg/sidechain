@@ -90,3 +90,7 @@ node_modules/
 /.claude/settings.local.json
 
 /.clangd/
+
+build
+build-release
+build-docs

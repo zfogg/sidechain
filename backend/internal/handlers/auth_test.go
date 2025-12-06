@@ -154,7 +154,7 @@ func (suite *AuthTestSuite) SetupSuite() {
 	suite.mockUploader = NewMockS3Uploader()
 
 	// Initialize auth handlers with nil auth service (we'll test handlers directly)
-	suite.authHandlers = NewAuthHandlers(nil, suite.mockUploader)
+	suite.authHandlers = NewAuthHandlers(nil, suite.mockUploader, nil)
 
 	// Setup Gin router
 	gin.SetMode(gin.TestMode)

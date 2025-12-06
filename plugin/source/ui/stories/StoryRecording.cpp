@@ -29,7 +29,7 @@ StoryRecording::StoryRecording(SidechainAudioProcessor& processor)
     midiCapture.prepare(44100.0, 512);
 
     // Create piano roll for preview
-    pianoRollPreview = std::make_unique<PianoRollComponent>();
+    pianoRollPreview = std::make_unique<PianoRoll>();
     addChildComponent(pianoRollPreview.get());
 
     // Create buffer audio player for preview playback
@@ -56,6 +56,13 @@ StoryRecording::StoryRecording(SidechainAudioProcessor& processor)
 
     // Start timer for UI updates (30 fps)
     startTimerHz(30);
+
+    // Note: Story expiration is handled in StoryViewer - shows expired message and expiration time in UI
+    // Optional enhancement: Add proactive notification before expiration (e.g., "Expires in 1 hour")
+    // TODO: Phase 7.5.5.2.1 - Create note waterfall visualization
+    // TODO: Phase 7.5.5.2.2 - Create circular visualization
+    // TODO: Phase 7.5.6.1 - Allow users to save stories to highlights
+    // TODO: Phase 7.5.6.2 - Display highlights on profile
 
     Log::info("StoryRecording created");
 }
