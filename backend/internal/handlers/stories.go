@@ -375,3 +375,415 @@ func (h *Handlers) GetStoryViews(c *gin.Context) {
 		"view_count": len(viewers),
 	})
 }
+
+// =============================================================================
+// STORY HIGHLIGHTS (7.5.6)
+// =============================================================================
+
+// CreateHighlight creates a new story highlight collection
+func (h *Handlers) CreateHighlight(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	var req struct {
+		Name        string `json:"name" binding:"required,min=1,max=50"`
+		Description string `json:"description,omitempty"`
+		CoverImage  string `json:"cover_image,omitempty"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Get current max sort order for user
+	var maxSortOrder int
+	database.DB.Model(&models.StoryHighlight{}).
+		Where("user_id = ?", currentUser.ID).
+		Select("COALESCE(MAX(sort_order), -1)").
+		Scan(&maxSortOrder)
+
+	highlight := &models.StoryHighlight{
+		UserID:      currentUser.ID,
+		Name:        req.Name,
+		Description: req.Description,
+		CoverImage:  req.CoverImage,
+		SortOrder:   maxSortOrder + 1,
+	}
+
+	if err := database.DB.Create(highlight).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "creation_failed",
+			"message": "Failed to create highlight",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"highlight_id": highlight.ID,
+		"message":      "Highlight created successfully",
+	})
+}
+
+// GetHighlights returns all highlights for a user
+func (h *Handlers) GetHighlights(c *gin.Context) {
+	userID := c.Param("id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id_required"})
+		return
+	}
+
+	// Check if user exists
+	var user models.User
+	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
+		return
+	}
+
+	var highlights []models.StoryHighlight
+	if err := database.DB.Where("user_id = ?", userID).
+		Order("sort_order ASC").
+		Find(&highlights).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "query_failed",
+			"message": "Failed to fetch highlights",
+		})
+		return
+	}
+
+	// Format response with story count
+	result := make([]map[string]interface{}, len(highlights))
+	for i, h := range highlights {
+		result[i] = map[string]interface{}{
+			"id":           h.ID,
+			"name":         h.Name,
+			"description":  h.Description,
+			"cover_image":  h.CoverImage,
+			"story_count":  h.StoryCount,
+			"sort_order":   h.SortOrder,
+			"created_at":   h.CreatedAt.Format(time.RFC3339),
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"highlights": result,
+		"count":      len(result),
+	})
+}
+
+// GetHighlight returns a single highlight with its stories
+func (h *Handlers) GetHighlight(c *gin.Context) {
+	highlightID := c.Param("id")
+	if highlightID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "highlight_id_required"})
+		return
+	}
+
+	var highlight models.StoryHighlight
+	if err := database.DB.First(&highlight, "id = ?", highlightID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not_found"})
+		return
+	}
+
+	// Get stories in this highlight
+	var highlightedStories []models.HighlightedStory
+	if err := database.DB.
+		Preload("Story").
+		Preload("Story.User").
+		Where("highlight_id = ?", highlightID).
+		Order("sort_order ASC").
+		Find(&highlightedStories).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "query_failed",
+			"message": "Failed to fetch stories",
+		})
+		return
+	}
+
+	// Format stories response
+	stories := make([]map[string]interface{}, len(highlightedStories))
+	for i, hs := range highlightedStories {
+		stories[i] = map[string]interface{}{
+			"id":             hs.Story.ID,
+			"audio_url":      hs.Story.AudioURL,
+			"audio_duration": hs.Story.AudioDuration,
+			"midi_data":      hs.Story.MIDIData,
+			"bpm":            hs.Story.BPM,
+			"key":            hs.Story.Key,
+			"genre":          hs.Story.Genre,
+			"view_count":     hs.Story.ViewCount,
+			"created_at":     hs.Story.CreatedAt.Format(time.RFC3339),
+			"sort_order":     hs.SortOrder,
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"highlight": map[string]interface{}{
+			"id":          highlight.ID,
+			"name":        highlight.Name,
+			"description": highlight.Description,
+			"cover_image": highlight.CoverImage,
+			"story_count": highlight.StoryCount,
+			"created_at":  highlight.CreatedAt.Format(time.RFC3339),
+		},
+		"stories": stories,
+	})
+}
+
+// UpdateHighlight updates a highlight's metadata
+func (h *Handlers) UpdateHighlight(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	highlightID := c.Param("id")
+	if highlightID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "highlight_id_required"})
+		return
+	}
+
+	var highlight models.StoryHighlight
+	if err := database.DB.First(&highlight, "id = ?", highlightID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not_found"})
+		return
+	}
+
+	// Check ownership
+	if highlight.UserID != currentUser.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	var req struct {
+		Name        *string `json:"name,omitempty"`
+		Description *string `json:"description,omitempty"`
+		CoverImage  *string `json:"cover_image,omitempty"`
+		SortOrder   *int    `json:"sort_order,omitempty"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	updates := make(map[string]interface{})
+	if req.Name != nil {
+		updates["name"] = *req.Name
+	}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.CoverImage != nil {
+		updates["cover_image"] = *req.CoverImage
+	}
+	if req.SortOrder != nil {
+		updates["sort_order"] = *req.SortOrder
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no_fields_to_update"})
+		return
+	}
+
+	if err := database.DB.Model(&highlight).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "update_failed",
+			"message": "Failed to update highlight",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Highlight updated successfully",
+	})
+}
+
+// DeleteHighlight deletes a highlight (soft delete)
+func (h *Handlers) DeleteHighlight(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	highlightID := c.Param("id")
+	if highlightID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "highlight_id_required"})
+		return
+	}
+
+	var highlight models.StoryHighlight
+	if err := database.DB.First(&highlight, "id = ?", highlightID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not_found"})
+		return
+	}
+
+	// Check ownership
+	if highlight.UserID != currentUser.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	// Delete associated highlighted stories first
+	database.DB.Where("highlight_id = ?", highlightID).Delete(&models.HighlightedStory{})
+
+	// Delete the highlight
+	if err := database.DB.Delete(&highlight).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "deletion_failed",
+			"message": "Failed to delete highlight",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Highlight deleted successfully",
+	})
+}
+
+// AddStoryToHighlight adds a story to a highlight collection
+func (h *Handlers) AddStoryToHighlight(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	highlightID := c.Param("id")
+	if highlightID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "highlight_id_required"})
+		return
+	}
+
+	var req struct {
+		StoryID string `json:"story_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Check highlight exists and user owns it
+	var highlight models.StoryHighlight
+	if err := database.DB.First(&highlight, "id = ?", highlightID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "highlight_not_found"})
+		return
+	}
+
+	if highlight.UserID != currentUser.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	// Check story exists and user owns it
+	var story models.Story
+	if err := database.DB.First(&story, "id = ?", req.StoryID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "story_not_found"})
+		return
+	}
+
+	if story.UserID != currentUser.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "can_only_highlight_own_stories"})
+		return
+	}
+
+	// Check if already in highlight
+	var existing models.HighlightedStory
+	if err := database.DB.Where("highlight_id = ? AND story_id = ?", highlightID, req.StoryID).First(&existing).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "already_highlighted"})
+		return
+	}
+
+	// Get max sort order for this highlight
+	var maxSortOrder int
+	database.DB.Model(&models.HighlightedStory{}).
+		Where("highlight_id = ?", highlightID).
+		Select("COALESCE(MAX(sort_order), -1)").
+		Scan(&maxSortOrder)
+
+	// Add to highlight
+	highlightedStory := &models.HighlightedStory{
+		HighlightID: highlightID,
+		StoryID:     req.StoryID,
+		SortOrder:   maxSortOrder + 1,
+	}
+
+	if err := database.DB.Create(highlightedStory).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "creation_failed",
+			"message": "Failed to add story to highlight",
+		})
+		return
+	}
+
+	// Update story count on highlight
+	database.DB.Model(&highlight).Update("story_count", gorm.Expr("story_count + 1"))
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Story added to highlight",
+	})
+}
+
+// RemoveStoryFromHighlight removes a story from a highlight
+func (h *Handlers) RemoveStoryFromHighlight(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	highlightID := c.Param("id")
+	storyID := c.Param("story_id")
+	if highlightID == "" || storyID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "highlight_id_and_story_id_required"})
+		return
+	}
+
+	// Check highlight exists and user owns it
+	var highlight models.StoryHighlight
+	if err := database.DB.First(&highlight, "id = ?", highlightID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "highlight_not_found"})
+		return
+	}
+
+	if highlight.UserID != currentUser.ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	// Delete the highlighted story entry
+	result := database.DB.Where("highlight_id = ? AND story_id = ?", highlightID, storyID).
+		Delete(&models.HighlightedStory{})
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "story_not_in_highlight"})
+		return
+	}
+
+	// Update story count on highlight
+	database.DB.Model(&highlight).Update("story_count", gorm.Expr("story_count - 1"))
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Story removed from highlight",
+	})
+}

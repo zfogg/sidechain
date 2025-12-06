@@ -94,6 +94,8 @@ func Migrate() error {
 		&models.PostHashtag{},
 		&models.Story{},
 		&models.StoryView{},
+		&models.StoryHighlight{},
+		&models.HighlightedStory{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -182,6 +184,13 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_views_story ON story_views (story_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_views_viewer ON story_views (viewer_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_story_views_unique ON story_views (story_id, viewer_id)")
+
+	// Story highlight indexes (7.5.6)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_highlights_user ON story_highlights (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_story_highlights_user_sort ON story_highlights (user_id, sort_order)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_highlighted_stories_highlight ON highlighted_stories (highlight_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_highlighted_stories_story ON highlighted_stories (story_id)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_highlighted_stories_unique ON highlighted_stories (highlight_id, story_id)")
 
 	return nil
 }
