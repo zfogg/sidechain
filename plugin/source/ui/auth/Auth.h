@@ -37,6 +37,10 @@ public:
      */
     std::function<void(const juce::String& provider)> onOAuthRequested;
 
+    /** Called when user cancels OAuth flow (8.3.11.11)
+     */
+    std::function<void()> onOAuthCancelled;
+
     //==============================================================================
     // Network client for API calls
 
@@ -89,19 +93,43 @@ public:
      */
     void clearError();
 
+    //==============================================================================
+    // OAuth waiting mode (8.3.11.9-12)
+
+    /** Show OAuth waiting screen with provider name and countdown
+     * @param provider The OAuth provider name (e.g., "Google", "Discord")
+     * @param timeoutSeconds Total seconds before timeout
+     */
+    void showOAuthWaiting(const juce::String& provider, int timeoutSeconds = 300);
+
+    /** Update the OAuth waiting countdown
+     * @param secondsRemaining Seconds until timeout
+     */
+    void updateOAuthCountdown(int secondsRemaining);
+
+    /** Hide OAuth waiting screen and return to welcome
+     */
+    void hideOAuthWaiting();
+
 private:
     //==============================================================================
     // Auth modes
     enum class AuthMode
     {
-        Welcome,    // Initial state with login/signup options
-        Login,      // Email login form
-        Signup      // Account creation form
+        Welcome,        // Initial state with login/signup options
+        Login,          // Email login form
+        Signup,         // Account creation form
+        OAuthWaiting    // Waiting for OAuth callback (8.3.11.9-12)
     };
 
     AuthMode currentMode = AuthMode::Welcome;
     bool isLoading = false;
     juce::String errorMessage;
+
+    // OAuth waiting state (8.3.11.9-12)
+    juce::String oauthWaitingProvider;    // Provider being waited for
+    int oauthSecondsRemaining = 0;        // Countdown seconds
+    int oauthAnimationFrame = 0;          // For animated spinner
 
     //==============================================================================
     // Network client
@@ -134,10 +162,15 @@ private:
     std::unique_ptr<juce::TextButton> signupBackButton;
 
     //==============================================================================
+    // OAuth waiting components (8.3.11.9-12)
+    std::unique_ptr<juce::TextButton> oauthCancelButton;
+
+    //==============================================================================
     // Layout helpers
     void setupWelcomeComponents();
     void setupLoginComponents();
     void setupSignupComponents();
+    void setupOAuthWaitingComponents();
 
     void showWelcome();
     void showLogin();

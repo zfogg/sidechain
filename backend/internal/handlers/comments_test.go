@@ -56,15 +56,19 @@ func (suite *CommentTestSuite) SetupSuite() {
 	// Set global DB for database package
 	database.DB = db
 
-	// Create all test tables - ensures tests work regardless of run order
-	err = db.AutoMigrate(
-		&models.User{},
-		&models.OAuthProvider{},
-		&models.AudioPost{},
-		&models.Comment{},
-		&models.CommentMention{},
-	)
-	require.NoError(suite.T(), err)
+	// Check if tables already exist (migrations already run)
+	var count int64
+	db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users'").Scan(&count)
+	if count == 0 {
+		err = db.AutoMigrate(
+			&models.User{},
+			&models.OAuthProvider{},
+			&models.AudioPost{},
+			&models.Comment{},
+			&models.CommentMention{},
+		)
+		require.NoError(suite.T(), err)
+	}
 
 	suite.db = db
 

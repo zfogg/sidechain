@@ -69,12 +69,18 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         // Generate a unique session ID for this OAuth attempt
         juce::String sessionId = juce::Uuid().toString().removeCharacters("-");
 
-        // Open OAuth URL in system browser with session_id
+        // Open OAuth URL in system browser with session_id (8.3.11.12)
         juce::String oauthUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION + "/auth/" + provider + "?session_id=" + sessionId;
         juce::URL(oauthUrl).launchInDefaultBrowser();
 
         // Start polling for OAuth completion
         startOAuthPolling(sessionId, provider);
+    };
+
+    // Handle OAuth cancellation (8.3.11.11)
+    authComponent->onOAuthCancelled = [this]() {
+        Log::info("OAuth flow cancelled by user");
+        stopOAuthPolling();
     };
     addChildComponent(authComponent.get());
 
@@ -94,6 +100,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             if (userDataStore)
                 userDataStore->setLocalPreviewImage(imageFile);
 
+            // Show uploading state (8.3.11.6)
+            if (profileSetupComponent)
+                profileSetupComponent->setUploadProgress(0.1f);  // Start at 10%
+
             networkClient->uploadProfilePicture(imageFile, [this](Outcome<juce::String> result) {
                 juce::MessageManager::callAsync([this, result]() {
                     if (result.isOk() && result.getValue().isNotEmpty())
@@ -112,12 +122,19 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
                         // Update profile setup component with the S3 URL
                         if (profileSetupComponent)
+                        {
                             profileSetupComponent->setProfilePictureUrl(s3Url);
+                            profileSetupComponent->setUploadComplete(true);  // Show success (8.3.11.7)
+                        }
+
+                        Log::info("Profile picture uploaded successfully: " + s3Url);
                     }
                     else
                     {
-                        // On failure, don't store local path - just show error
+                        // On failure, show error state
                         Log::error("Profile picture upload failed");
+                        if (profileSetupComponent)
+                            profileSetupComponent->setUploadComplete(false);  // Show failure
                     }
                 });
             });
@@ -1494,10 +1511,10 @@ void SidechainAudioProcessorEditor::startOAuthPolling(const juce::String& sessio
     oauthProvider = provider;
     oauthPollCount = 0;
 
-    // Show loading state in auth component
+    // Show OAuth waiting UI with animated spinner and countdown (8.3.11.9-12)
     if (authComponent)
     {
-        authComponent->showError("Waiting for " + provider + " authentication...");
+        authComponent->showOAuthWaiting(provider, MAX_OAUTH_POLLS);  // 300 seconds = 5 minutes
     }
 
     // Create and start polling timer
@@ -1531,12 +1548,20 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
 
     oauthPollCount++;
 
+    // Update countdown timer in Auth component (8.3.11.10)
+    int secondsRemaining = MAX_OAUTH_POLLS - oauthPollCount;
+    if (authComponent)
+    {
+        authComponent->updateOAuthCountdown(secondsRemaining);
+    }
+
     // Check if we've exceeded max polls (5 minutes)
     if (oauthPollCount > MAX_OAUTH_POLLS)
     {
         stopOAuthPolling();
         if (authComponent)
         {
+            authComponent->hideOAuthWaiting();
             authComponent->showError("Authentication timed out. Please try again.");
         }
         return;
@@ -1592,8 +1617,9 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
 
                     Log::info("OAuth success! User: " + userName);
 
+                    // Hide OAuth waiting screen before transitioning
                     if (authComponent)
-                        authComponent->clearError();
+                        authComponent->hideOAuthWaiting();
 
                     onLoginSuccess(userName, userEmail, token);
                 }
@@ -1604,14 +1630,20 @@ void SidechainAudioProcessorEditor::pollOAuthStatus()
                 stopOAuthPolling();
                 juce::String errorMsg = Json::getString(responseData, "message", "Authentication failed");
                 if (authComponent)
+                {
+                    authComponent->hideOAuthWaiting();
                     authComponent->showError(errorMsg);
+                }
             }
             else if (status == "expired" || status == "not_found")
             {
                 // Session expired or invalid
                 stopOAuthPolling();
                 if (authComponent)
+                {
+                    authComponent->hideOAuthWaiting();
                     authComponent->showError("Authentication session expired. Please try again.");
+                }
             }
         // status == "pending" -> keep polling
     });
