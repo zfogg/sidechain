@@ -52,6 +52,17 @@ void UserDataStore::setBasicUserInfo(const juce::String& user, const juce::Strin
     sendChangeMessage();
 }
 
+/** Set notification sound preference
+ * Updates the notification sound setting and saves to preferences
+ * @param enabled Whether to play sounds for notifications
+ */
+void UserDataStore::setNotificationSoundEnabled(bool enabled)
+{
+    notificationSoundEnabled = enabled;
+    saveToSettings();
+    sendChangeMessage();
+}
+
 /** Set profile picture URL and start async download
  * Downloads the profile image from the URL in the background
  * @param url Profile picture URL
@@ -321,6 +332,7 @@ void UserDataStore::saveToSettings()
         appProperties->setValue("displayName", displayName);
         appProperties->setValue("profilePicUrl", profilePictureUrl);
         appProperties->setValue("authToken", authToken);
+        appProperties->setValue("notificationSoundEnabled", notificationSoundEnabled);
     }
     else
     {
@@ -353,6 +365,9 @@ void UserDataStore::loadFromSettings()
         {
             setProfilePictureUrl(savedPicUrl);
         }
+
+        // Load notification sound preference (default: enabled)
+        notificationSoundEnabled = appProperties->getBoolValue("notificationSoundEnabled", true);
 
         Log::debug("UserDataStore: Loaded settings - username: " + username);
     }

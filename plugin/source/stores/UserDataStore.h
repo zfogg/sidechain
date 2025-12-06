@@ -76,6 +76,16 @@ public:
      */
     const juce::String& getAuthToken() const { return authToken; }
 
+    /** Check if notification sounds are enabled
+     *  @return true if notification sounds should play
+     */
+    bool isNotificationSoundEnabled() const { return notificationSoundEnabled; }
+
+    /** Set notification sound preference
+     *  @param enabled Whether to play sounds for notifications
+     */
+    void setNotificationSoundEnabled(bool enabled);
+
     //==========================================================================
     // Data modification
 
@@ -144,6 +154,7 @@ private:
     juce::String location;
     juce::String profilePictureUrl;
     juce::String authToken;
+    bool notificationSoundEnabled = true;  // Default: enabled
 
     // Cached profile image
     juce::Image cachedProfileImage;
