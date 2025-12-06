@@ -32,7 +32,7 @@ PostsFeedComponent::PostsFeedComponent()
         Log::debug("PostsFeedComponent: Comments panel close requested");
         hideCommentsPanel();
     };
-    
+
     // Set up comments panel slide animation
     commentsPanelSlide.onValueChanged = [this](float slide) {
         if (commentsPanel != nullptr)
@@ -43,7 +43,7 @@ PostsFeedComponent::PostsFeedComponent()
         }
         repaint();
     };
-    
+
     // Set up toast fade animation
     toastOpacity.onValueChanged = [this](float opacity) {
         repaint();
@@ -85,7 +85,7 @@ void PostsFeedComponent::setNetworkClient(NetworkClient* client)
     Log::info("PostsFeedComponent::setNetworkClient: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
-void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
+void PostsFeedComponent::setAudioPlayer(HttpAudioPlayer* player)
 {
     Log::info("PostsFeedComponent::setAudioPlayer: Setting audio player " + juce::String(player != nullptr ? "(valid)" : "(null)"));
     audioPlayer = player;
@@ -124,10 +124,11 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
             {
                 Log::debug("PostsFeedComponent: Tracking play in backend for postId: " + postId);
                 networkClient->trackPlay(postId, [this, postId](Outcome<juce::var> responseOutcome) {
-                    if (success)
+                    if (responseOutcome.isOk())
                     {
                         Log::debug("PostsFeedComponent: Play tracking successful for postId: " + postId);
                         // Update play count in UI if returned in response
+                        auto response = responseOutcome.getValue();
                         int newPlayCount = Json::getInt(response, "play_count", -1);
                         if (newPlayCount >= 0)
                         {
@@ -193,7 +194,7 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
                 {
                     Log::debug("PostsFeedComponent: Tracking listen duration for postId: " + postId);
                     networkClient->trackListenDuration(postId, durationSeconds, [postId](Outcome<juce::var> responseOutcome) {
-                        if (success)
+                        if (responseOutcome.isOk())
                         {
                             Log::debug("PostsFeedComponent: Listen duration tracked successfully for postId: " + postId);
                         }
@@ -240,7 +241,7 @@ void PostsFeedComponent::setAudioPlayer(AudioPlayer* player)
                 }
             }
         };
-        
+
         Log::debug("PostsFeedComponent: Audio player callbacks configured");
     }
 }
@@ -297,7 +298,7 @@ void PostsFeedComponent::switchFeedType(FeedDataManager::FeedType type)
 {
     juce::String typeStr = type == FeedDataManager::FeedType::Timeline ? "Timeline" :
                            type == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
-    
+
     if (currentFeedType == type)
     {
         Log::debug("PostsFeedComponent::switchFeedType: Already on feed type: " + typeStr);
@@ -307,7 +308,7 @@ void PostsFeedComponent::switchFeedType(FeedDataManager::FeedType type)
     juce::String oldTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
                               currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
     Log::info("PostsFeedComponent::switchFeedType: Switching from " + oldTypeStr + " to " + typeStr);
-    
+
     currentFeedType = type;
     scrollPosition = 0.0;
     posts.clear();
@@ -578,36 +579,36 @@ void PostsFeedComponent::drawNewPostsToast(juce::Graphics& g)
 {
     if (!showingNewPostsToast)
         return;
-    
+
     // Draw toast at top of feed content area with fade animation (5.5.2)
     auto contentBounds = getFeedContentBounds();
     auto toastBounds = contentBounds.withHeight(40).withY(contentBounds.getY() + 10);
-    
+
     float opacity = toastOpacity.getValue();
     if (opacity <= 0.0f)
         return;
-    
+
     // Background with rounded corners (faded)
     g.setColour(SidechainColors::primary().withAlpha(0.95f * opacity));
     g.fillRoundedRectangle(toastBounds.toFloat(), 8.0f);
-    
+
     // Border (faded)
     g.setColour(SidechainColors::textPrimary().withAlpha(0.3f * opacity));
     g.drawRoundedRectangle(toastBounds.toFloat(), 8.0f, 1.0f);
-    
+
     // Text (faded)
     g.setColour(SidechainColors::textPrimary().withAlpha(opacity));
     g.setFont(juce::Font(14.0f).boldened());
-    
+
     juce::String toastText;
     if (pendingNewPostsCount == 1)
         toastText = "1 new post";
     else
         toastText = juce::String(pendingNewPostsCount) + " new posts";
     toastText += " - Click to refresh";
-    
+
     g.drawText(toastText, toastBounds.reduced(15, 0), juce::Justification::centredLeft);
-    
+
     // Clickable indicator (faded)
     g.setFont(juce::Font(12.0f));
     g.drawText("↻", toastBounds.removeFromRight(30), juce::Justification::centred);
@@ -652,7 +653,7 @@ void PostsFeedComponent::updatePostCardPositions()
         if (visible)
             visibleCount++;
     }
-    
+
     Log::debug("PostsFeedComponent::updatePostCardPositions: Updated positions - total: " + juce::String(postCards.size()) + ", visible: " + juce::String(visibleCount) + ", scrollPosition: " + juce::String(scrollPosition, 1));
 }
 
@@ -688,7 +689,7 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
         // Call backend API with callback to handle conflicts (5.5.5, 5.5.6)
         if (networkClient != nullptr)
         {
-            auto callback = [this, card, post, optimisticCount, liked, originalCount, originalLiked](Outcome<juce::var> responseOutcome) {
+            auto callback = [card, originalCount, originalLiked](Outcome<juce::var> responseOutcome) {
                 if (responseOutcome.isOk())
                 {
                     // Server confirmed - check if count matches our optimistic update (5.5.6)
@@ -712,7 +713,7 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
         }
     };
 
-    card->onEmojiReaction = [this, card](const FeedPost& post, const juce::String& emoji) {
+    card->onEmojiReaction = [this](const FeedPost& post, const juce::String& emoji) {
         Log::debug("Emoji reaction for post: " + post.id + " -> " + emoji);
 
         // Optimistic UI update is already done in handleEmojiSelected
@@ -734,21 +735,21 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
         showCommentsForPost(post);
     };
 
-    card->onShareClicked = [this](const FeedPost& post) {
+    card->onShareClicked = [](const FeedPost& post) {
         Log::debug("Share clicked for post: " + post.id);
         // Copy shareable link to clipboard
         juce::String shareUrl = "https://sidechain.live/post/" + post.id;
         juce::SystemClipboard::copyTextToClipboard(shareUrl);
     };
 
-    card->onMoreClicked = [this](const FeedPost& post) {
+    card->onMoreClicked = [](const FeedPost& post) {
         Log::info("PostsFeedComponent: More menu clicked for post: " + post.id);
         // TODO: Show context menu
     };
 
-    card->onAddToDAWClicked = [this](const FeedPost& post) {
+    card->onAddToDAWClicked = [](const FeedPost& post) {
         Log::debug("Add to DAW clicked for post: " + post.id);
-        
+
         if (post.audioUrl.isEmpty())
         {
             Log::warn("No audio URL available for post: " + post.id);
@@ -762,17 +763,17 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
             "*.wav,*.mp3,*.flac");
 
         chooser->launchAsync(juce::FileBrowserComponent::saveMode,
-                           [this, post, chooser](const juce::FileChooser& fc) {
+                           [post, chooser](const juce::FileChooser& fc) {
             auto targetFile = fc.getResult();
-            
+
             if (targetFile == juce::File())
                 return; // User cancelled
-            
+
             // Download the audio file in background
             Async::runVoid([post, targetFile]() {
                 juce::URL audioUrl(post.audioUrl);
                 juce::MemoryBlock audioData;
-                
+
                 if (audioUrl.readEntireBinaryStream(audioData))
                 {
                     // Write to file
@@ -781,7 +782,7 @@ void PostsFeedComponent::setupPostCardCallbacks(PostCardComponent* card)
                     {
                         output.write(audioData.getData(), audioData.getSize());
                         output.flush();
-                        
+
                         juce::MessageManager::callAsync([targetFile]() {
                             Log::info("Audio saved to: " + targetFile.getFullPathName());
                             // TODO: Show success notification
@@ -949,7 +950,6 @@ void PostsFeedComponent::checkLoadMore()
         feedDataManager.loadMorePosts([this](const FeedResponse& response) {
             if (response.error.isEmpty())
             {
-                int oldPostCount = posts.size();
                 // Add new posts to array
                 posts.addArray(response.posts);
                 Log::info("PostsFeedComponent::checkLoadMore: Loaded " + juce::String(response.posts.size()) + " more posts (total: " + juce::String(posts.size()) + ")");
@@ -1288,7 +1288,7 @@ void PostsFeedComponent::handleLikeCountUpdate(const juce::String& postId, int l
             break;
         }
     }
-    
+
     if (!found)
     {
         Log::warn("PostsFeedComponent::handleLikeCountUpdate: Post card not found for postId: " + postId);
@@ -1308,7 +1308,7 @@ void PostsFeedComponent::showNewPostsToast(int count)
     // Show toast notification with fade-in animation (5.5.2)
     showingNewPostsToast = true;
     toastOpacity.animateTo(1.0f);  // Fade in
-    
+
     // Hide toast after 3 seconds with fade-out
     juce::Timer::callAfterDelay(3000, [this]() {
         toastOpacity.animateTo(0.0f);

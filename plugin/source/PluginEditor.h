@@ -17,6 +17,10 @@
 #include "ui/notifications/NotificationListComponent.h"
 #include "ui/social/UserDiscoveryComponent.h"
 #include "ui/search/SearchComponent.h"
+#include "ui/messages/MessagesListComponent.h"
+#include "ui/messages/MessageThreadComponent.h"
+#include "ui/stories/StoryRecordingComponent.h"
+#include "network/StreamChatClient.h"
 
 //==============================================================================
 /**
@@ -48,14 +52,17 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
     juce::Array<AppView> navigationStack;
     juce::String profileUserIdToView;  // User ID for Profile view
+    juce::String messageChannelType;   // Channel type for MessageThread view
+    juce::String messageChannelId;     // Channel ID for MessageThread view
 
     void showView(AppView view);
+    void showMessageThread(const juce::String& channelType, const juce::String& channelId);
     void showProfile(const juce::String& userId);  // Navigate to a user's profile
     void navigateBack();  // Go back to previous view
     void onLoginSuccess(const juce::String& username, const juce::String& email, const juce::String& token);
@@ -81,6 +88,12 @@ private:
     std::unique_ptr<UserDiscoveryComponent> userDiscoveryComponent;
     std::unique_ptr<ProfileComponent> profileComponent;
     std::unique_ptr<SearchComponent> searchComponent;
+    std::unique_ptr<MessagesListComponent> messagesListComponent;
+    std::unique_ptr<MessageThreadComponent> messageThreadComponent;
+    std::unique_ptr<StoryRecordingComponent> storyRecordingComponent;
+
+    // StreamChatClient for getstream.io messaging
+    std::unique_ptr<StreamChatClient> streamChatClient;
 
     // Network client for API calls
     std::unique_ptr<NetworkClient> networkClient;
@@ -116,7 +129,7 @@ private:
     // Persistent state
     void saveLoginState();
     void loadLoginState();
-    
+
     //==============================================================================
     // Crash detection
     void checkForPreviousCrash();

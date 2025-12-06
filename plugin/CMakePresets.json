@@ -36,6 +36,7 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "SIDECHAIN_BUILD_TESTS": "OFF",
                 "SIDECHAIN_BUILD_PLUGIN_HOST": "OFF",
+                "SIDECHAIN_BUILD_STANDALONE": "OFF",
                 "SIDECHAIN_INSTALL_STANDALONE": "OFF"
             }
         },
@@ -47,7 +48,9 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo",
                 "SIDECHAIN_BUILD_TESTS": "OFF",
-                "SIDECHAIN_BUILD_PLUGIN_HOST": "ON"
+                "SIDECHAIN_BUILD_PLUGIN_HOST": "ON",
+                "SIDECHAIN_BUILD_STANDALONE": "OFF",
+                "SIDECHAIN_INSTALL_STANDALONE": "OFF"
             }
         }
     ],

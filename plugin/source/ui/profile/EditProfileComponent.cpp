@@ -246,8 +246,6 @@ void EditProfileComponent::paint(juce::Graphics& g)
     drawHeader(g, headerBounds);
 
     // Avatar area
-    auto contentBounds = getLocalBounds().withTrimmedTop(HEADER_HEIGHT);
-    auto avatarArea = contentBounds.removeFromTop(AVATAR_SIZE + 60);
     drawAvatar(g, getAvatarBounds());
 
     // Form sections
@@ -357,8 +355,6 @@ void EditProfileComponent::drawFormSection(juce::Graphics& g, const juce::String
 //==============================================================================
 void EditProfileComponent::resized()
 {
-    auto bounds = getLocalBounds();
-
     // Header buttons
     cancelButton->setBounds(PADDING, 15, 70, 30);
     saveButton->setBounds(getWidth() - PADDING - 70, 15, 70, 30);

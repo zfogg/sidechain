@@ -11,6 +11,8 @@
 // Define ASIO_STANDALONE before including websocketpp headers
 // This tells websocketpp to use standalone ASIO (not Boost.Asio)
 #define ASIO_STANDALONE 1
+// Use std::invoke_result instead of deprecated std::result_of (removed in C++20)
+#define ASIO_HAS_STD_INVOKE_RESULT 1
 
 // websocketpp headers (ASIO 1.14.1 provides native io_service support)
 #include <websocketpp/config/asio_no_tls_client.hpp>

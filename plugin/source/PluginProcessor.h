@@ -2,7 +2,10 @@
 
 #include <JuceHeader.h>
 #include "audio/AudioCapture.h"
-#include "audio/AudioPlayer.h"
+#include "audio/HttpAudioPlayer.h"
+#include "audio/MIDICapture.h"
+
+class BufferAudioPlayer;
 
 //==============================================================================
 /**
@@ -65,6 +68,10 @@ public:
     // Get recorded audio buffer (call after stopRecording)
     juce::AudioBuffer<float> getRecordedAudio();
 
+    // Get captured MIDI data (call after stopRecording)
+    juce::var getCapturedMIDIData() const { return midiCapture.getMIDIDataAsJSON(); }
+    bool hasMIDIData() const { return midiCapture.isCapturing() || midiCapture.getTotalTime() > 0.0; }
+
     // Recording info
     double getRecordingLengthSeconds() const { return audioCapture.getRecordingLengthSeconds(); }
     double getMaxRecordingLengthSeconds() const { return audioCapture.getMaxRecordingLengthSeconds(); }
@@ -86,8 +93,11 @@ public:
 
     //==============================================================================
     // Audio Playback (for feed audio)
-    AudioPlayer& getAudioPlayer() { return audioPlayer; }
-    const AudioPlayer& getAudioPlayer() const { return audioPlayer; }
+    HttpAudioPlayer& getAudioPlayer() { return audioPlayer; }
+    const HttpAudioPlayer& getAudioPlayer() const { return audioPlayer; }
+
+    // Buffer audio player for story preview (set by StoryRecordingComponent)
+    void setBufferAudioPlayer(BufferAudioPlayer* player) { bufferAudioPlayer = player; }
 
 private:
     //==============================================================================
@@ -95,8 +105,14 @@ private:
     AudioCapture audioCapture;
     juce::AudioBuffer<float> lastRecordedAudio;
 
+    // MIDI capture system (for stories)
+    MIDICapture midiCapture;
+
     // Audio playback for feed
-    AudioPlayer audioPlayer;
+    HttpAudioPlayer audioPlayer;
+
+    // Buffer audio player for story preview (set by StoryRecordingComponent)
+    BufferAudioPlayer* bufferAudioPlayer = nullptr;
 
     // Audio settings (cached from prepareToPlay)
     double currentSampleRate = 44100.0;

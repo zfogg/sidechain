@@ -2,6 +2,7 @@
 #include "../../PluginProcessor.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
+#include "../../util/StringFormatter.h"
 
 //==============================================================================
 RecordingComponent::RecordingComponent(SidechainAudioProcessor& processor)
@@ -418,9 +419,7 @@ void RecordingComponent::drawActionButtons(juce::Graphics& g)
 //==============================================================================
 juce::String RecordingComponent::formatTime(double seconds)
 {
-    int mins = static_cast<int>(seconds) / 60;
-    int secs = static_cast<int>(seconds) % 60;
-    return juce::String::formatted("%d:%02d", mins, secs);
+    return StringFormatter::formatDurationMMSS(seconds);
 }
 
 juce::Path RecordingComponent::generateWaveformPath(const juce::AudioBuffer<float>& buffer,
@@ -439,11 +438,8 @@ juce::Path RecordingComponent::generateWaveformPath(const juce::AudioBuffer<floa
     float height = bounds.getHeight();
     float centerY = bounds.getCentreY();
 
-    Log::debug("RecordingComponent::generateWaveformPath: Generating waveform - samples: " + juce::String(numSamples) + 
+    Log::debug("RecordingComponent::generateWaveformPath: Generating waveform - samples: " + juce::String(numSamples) +
                ", width: " + juce::String(width) + ", channels: " + juce::String(buffer.getNumChannels()));
-
-    // Samples per pixel
-    int samplesPerPixel = juce::jmax(1, numSamples / width);
 
     path.startNewSubPath(bounds.getX(), centerY);
 

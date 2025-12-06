@@ -56,6 +56,9 @@ public:
     // ScrollBar::Listener
     void scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart) override;
 
+    // Bring Component::keyPressed into scope to avoid hiding warning
+    using juce::Component::keyPressed;
+
     // KeyListener
     bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
 

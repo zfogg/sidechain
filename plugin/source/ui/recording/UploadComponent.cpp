@@ -493,7 +493,7 @@ void UploadComponent::drawStatus(juce::Graphics& g)
         if (!lastUploadedGenre.isEmpty())
             details += " · " + lastUploadedGenre;
         if (lastUploadedBpm > 0)
-            details += " · " + juce::String(lastUploadedBpm, 0) + " BPM";
+            details += " · " + StringFormatter::formatBPM(lastUploadedBpm);
 
         g.drawText(details, detailsArea, juce::Justification::centred);
     }
@@ -501,8 +501,7 @@ void UploadComponent::drawStatus(juce::Graphics& g)
     {
         g.setColour(SidechainColors::primary());
         g.setFont(14.0f);
-        int percent = static_cast<int>(uploadProgress * 100);
-        g.drawText("Uploading... " + juce::String(percent) + "%", statusArea, juce::Justification::centred);
+        g.drawText("Uploading... " + StringFormatter::formatPercentage(uploadProgress), statusArea, juce::Justification::centred);
     }
     else if (title.isEmpty() && activeField != 0)
     {
@@ -764,7 +763,7 @@ void UploadComponent::detectKey()
                 keyDetectionStatus = "Detected: " + detectedKey.name;
                 if (detectedKey.confidence > 0.0f)
                 {
-                    keyDetectionStatus += " (" + juce::String(int(detectedKey.confidence * 100)) + "% confidence)";
+                    keyDetectionStatus += " (" + StringFormatter::formatConfidence(detectedKey.confidence) + " confidence)";
                 }
                 Log::info("UploadComponent::detectKey: Key detected: " + detectedKey.name + " (Camelot: " + detectedKey.camelot + 
                           "), confidence: " + juce::String(detectedKey.confidence, 2) + ", mapped to index: " + juce::String(keyIndex));

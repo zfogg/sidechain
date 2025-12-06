@@ -163,7 +163,7 @@ void NetworkClient::setConfig(const Config& newConfig)
 }
 
 //==============================================================================
-void NetworkClient::registerAccount(const juce::String& email, const juce::String& username, 
+void NetworkClient::registerAccount(const juce::String& email, const juce::String& username,
                                    const juce::String& password, const juce::String& displayName,
                                    AuthenticationCallback callback)
 {
@@ -174,12 +174,12 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
             registerData.getDynamicObject()->setProperty("username", username);
             registerData.getDynamicObject()->setProperty("password", password);
             registerData.getDynamicObject()->setProperty("display_name", displayName);
-            
+
             auto response = makeRequest(buildApiPath("/auth/register"), "POST", registerData, false);
-            
+
             juce::String token, userId, responseUsername;
             bool success = false;
-            
+
             if (response.isObject())
             {
                 auto authData = response.getProperty("auth", juce::var());
@@ -187,7 +187,7 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
                 {
                     token = authData.getProperty("token", "").toString();
                     auto user = authData.getProperty("user", juce::var());
-                    
+
                     if (!token.isEmpty() && user.isObject())
                     {
                         userId = user.getProperty("id", "").toString();
@@ -196,7 +196,7 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
                     }
                 }
             }
-            
+
             juce::MessageManager::callAsync([this, callback, token, userId, responseUsername, success]() {
                 if (success)
                 {
@@ -204,7 +204,7 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
                     authToken = token;
                     currentUserId = userId;
                     currentUsername = responseUsername;
-                    
+
                     auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, userId});
                     callback(authResult);
                     Log::info("Account registered successfully: " + responseUsername);
@@ -220,7 +220,7 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
     );
 }
 
-void NetworkClient::loginAccount(const juce::String& email, const juce::String& password, 
+void NetworkClient::loginAccount(const juce::String& email, const juce::String& password,
                                 AuthenticationCallback callback)
 {
     Async::runVoid(
@@ -228,12 +228,12 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
             juce::var loginData = juce::var(new juce::DynamicObject());
             loginData.getDynamicObject()->setProperty("email", email);
             loginData.getDynamicObject()->setProperty("password", password);
-            
+
             auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
-            
+
             juce::String token, userId, username;
             bool success = false;
-            
+
             if (response.isObject())
             {
                 auto authData = response.getProperty("auth", juce::var());
@@ -241,7 +241,7 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
                 {
                     token = authData.getProperty("token", "").toString();
                     auto user = authData.getProperty("user", juce::var());
-                    
+
                     if (!token.isEmpty() && user.isObject())
                     {
                         userId = user.getProperty("id", "").toString();
@@ -250,7 +250,7 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
                     }
                 }
             }
-            
+
             juce::MessageManager::callAsync([this, callback, token, userId, username, success]() {
                 if (success)
                 {
@@ -258,7 +258,7 @@ void NetworkClient::loginAccount(const juce::String& email, const juce::String& 
                     authToken = token;
                     currentUserId = userId;
                     currentUsername = username;
-                    
+
                     auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, userId});
                     callback(authResult);
                     Log::info("Login successful: " + username);
@@ -1101,7 +1101,7 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::
                                                                       juce::MemoryBlock* binaryData)
 {
     RequestResult result;
-    
+
     if (shuttingDown.load())
     {
         result.errorMessage = "Request cancelled";
@@ -1210,15 +1210,15 @@ juce::String NetworkClient::getAuthHeader() const
 juce::String NetworkClient::buildApiPath(const char* path)
 {
     juce::String pathStr(path);
-    
+
     // If path already starts with /api/v1, return as-is
     if (pathStr.startsWith("/api/v1"))
         return pathStr;
-    
+
     // If path starts with /api/, replace with /api/v1/
     if (pathStr.startsWith("/api/"))
         return pathStr.replace("/api/", "/api/v1/");
-    
+
     // Otherwise, prepend /api/v1
     if (pathStr.startsWith("/"))
         return juce::String(Constants::Endpoints::API_VERSION) + pathStr;
@@ -1231,11 +1231,11 @@ void NetworkClient::handleAuthResponse(const juce::var& response)
     {
         auto token = response.getProperty("token", "").toString();
         auto userId = response.getProperty("user_id", "").toString();
-        
+
         if (!token.isEmpty() && !userId.isEmpty())
         {
             setAuthToken(token);
-            
+
             if (authCallback)
             {
                 juce::MessageManager::callAsync([this, token, userId]() {
@@ -1429,7 +1429,7 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
 
     // Build headers
     juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
-    
+
     // Add custom headers
     for (int i = 0; i < customHeaders.size(); i++)
     {
@@ -1914,6 +1914,144 @@ void NetworkClient::getSearchSuggestions(const juce::String& query, int limit, R
             auto outcome = requestResultToOutcome(result);
             callback(outcome);
         });
+    });
+}
+
+//==============================================================================
+// Stories operations
+
+void NetworkClient::getStoriesFeed(ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, callback]() {
+        auto result = makeRequestWithRetry(buildApiPath("/stories/feed"), "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::viewStory(const juce::String& storyId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, storyId, callback]() {
+        juce::String endpoint = buildApiPath("/stories/") + storyId + "/view";
+        auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::uploadStory(const juce::AudioBuffer<float>& audioBuffer,
+                                 double sampleRate,
+                                 const juce::var& midiData,
+                                 int bpm,
+                                 const juce::String& key,
+                                 const juce::StringArray& genres,
+                                 ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, audioBuffer, sampleRate, midiData, bpm, key, genres, callback]() {
+        // Encode audio to MP3
+        juce::MemoryBlock mp3Data = encodeAudioToMP3(audioBuffer, sampleRate);
+
+        if (mp3Data.isEmpty())
+        {
+            Log::error("NetworkClient::uploadStory: Failed to encode audio");
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(Outcome<juce::var>::error("Failed to encode audio"));
+                });
+            }
+            return;
+        }
+
+        // Build request with audio and MIDI data
+        std::map<juce::String, juce::String> extraFields;
+        if (midiData.isObject())
+        {
+            extraFields["midi_data"] = juce::JSON::toString(midiData);
+        }
+
+        // Calculate duration
+        double durationSeconds = audioBuffer.getNumSamples() / sampleRate;
+        extraFields["duration"] = juce::String(durationSeconds);
+
+        // Add metadata if provided
+        if (bpm > 0)
+            extraFields["bpm"] = juce::String(bpm);
+        if (key.isNotEmpty())
+            extraFields["key"] = key;
+        if (genres.size() > 0)
+            extraFields["genre"] = genres.joinIntoString(",");
+
+        auto result = uploadMultipartData(buildApiPath("/stories"),
+                                          "audio",
+                                          mp3Data,
+                                          "story.mp3",
+                                          "audio/mpeg",
+                                          extraFields);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getStoryViews(const juce::String& storyId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, storyId, callback]() {
+        juce::String path = "/stories/" + storyId + "/views";
+        auto result = makeRequestWithRetry(buildApiPath(path.toRawUTF8()), "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
     });
 }
 

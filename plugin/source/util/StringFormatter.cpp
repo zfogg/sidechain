@@ -196,6 +196,14 @@ juce::String formatComments(int count)
     return formatCount(count) + " comments";
 }
 
+juce::String formatPlays(int count)
+{
+    if (count == 1)
+        return "1 play";
+
+    return formatCount(count) + " plays";
+}
+
 //==============================================================================
 // Time Ago Formatting
 

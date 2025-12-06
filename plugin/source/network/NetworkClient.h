@@ -82,13 +82,13 @@ public:
     };
 
     // Authentication (simplified - no device claiming)
-    void registerAccount(const juce::String& email, const juce::String& username, 
+    void registerAccount(const juce::String& email, const juce::String& username,
                         const juce::String& password, const juce::String& displayName,
                         AuthenticationCallback callback);
-    void loginAccount(const juce::String& email, const juce::String& password, 
+    void loginAccount(const juce::String& email, const juce::String& password,
                      AuthenticationCallback callback);
     void setAuthenticationCallback(AuthenticationCallback callback);
-    
+
     // Audio operations
     void uploadAudio(const juce::String& recordingId,
                     const juce::AudioBuffer<float>& audioBuffer,
@@ -100,7 +100,7 @@ public:
                                  double sampleRate,
                                  const AudioUploadMetadata& metadata,
                                  UploadCallback callback = nullptr);
-    
+
     // Social feed operations (all use enriched endpoints with reaction data from getstream.io)
     void getGlobalFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
     void getTimelineFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
@@ -141,14 +141,14 @@ public:
     // Absolute URL methods (for CDN, external APIs, etc.)
     // These methods accept full URLs instead of relative endpoints
     using BinaryDataCallback = std::function<void(Outcome<juce::MemoryBlock> data)>;
-    
-    void getAbsolute(const juce::String& absoluteUrl, ResponseCallback callback, 
+
+    void getAbsolute(const juce::String& absoluteUrl, ResponseCallback callback,
                      const juce::StringPairArray& customHeaders = juce::StringPairArray());
     void postAbsolute(const juce::String& absoluteUrl, const juce::var& data, ResponseCallback callback,
                       const juce::StringPairArray& customHeaders = juce::StringPairArray());
     void getBinaryAbsolute(const juce::String& absoluteUrl, BinaryDataCallback callback,
                            const juce::StringPairArray& customHeaders = juce::StringPairArray());
-    
+
     // Multipart form upload to absolute URL (for external APIs like getstream.io, CDN uploads, etc.)
     using MultipartUploadCallback = std::function<void(Outcome<juce::var> response)>;
     void uploadMultipartAbsolute(const juce::String& absoluteUrl,
@@ -206,7 +206,7 @@ public:
     //==========================================================================
     // Search operations
     // Search posts with optional filters (genre, BPM range, key)
-    void searchPosts(const juce::String& query, 
+    void searchPosts(const juce::String& query,
                      const juce::String& genre = "",
                      int bpmMin = 0,
                      int bpmMax = 200,
@@ -217,6 +217,26 @@ public:
 
     // Get search suggestions/autocomplete
     void getSearchSuggestions(const juce::String& query, int limit = 5, ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // Stories operations
+    // Get stories feed (ephemeral music clips from followed users)
+    void getStoriesFeed(ResponseCallback callback = nullptr);
+
+    // Mark a story as viewed
+    void viewStory(const juce::String& storyId, ResponseCallback callback = nullptr);
+
+    // Get list of users who viewed a story (story owner only)
+    void getStoryViews(const juce::String& storyId, ResponseCallback callback = nullptr);
+
+    // Upload a new story
+    void uploadStory(const juce::AudioBuffer<float>& audioBuffer,
+                     double sampleRate,
+                     const juce::var& midiData,
+                     int bpm = 0,
+                     const juce::String& key = "",
+                     const juce::StringArray& genres = juce::StringArray(),
+                     ResponseCallback callback = nullptr);
 
     // Authentication state
     void setAuthToken(const juce::String& token);
@@ -305,7 +325,7 @@ private:
                                       const juce::String& fileName,
                                       const juce::String& mimeType,
                                       const std::map<juce::String, juce::String>& extraFields = {});
-    
+
     // Absolute URL version for external APIs
     RequestResult uploadMultipartDataAbsolute(const juce::String& absoluteUrl,
                                                const juce::String& fieldName,
@@ -318,11 +338,11 @@ private:
     juce::String getAuthHeader() const;
     void handleAuthResponse(const juce::var& response);
     void updateConnectionStatus(ConnectionStatus status);
-    
+
     // Helper to check authentication and return error if not authenticated
     template<typename Callback>
     bool requireAuth(Callback&& callback) const;
-    
+
     // Helper to build API endpoint paths consistently
     static juce::String buildApiPath(const char* path);
 

@@ -173,6 +173,7 @@ void HeaderComponent::paint(juce::Graphics& g)
     drawLogo(g, getLogoBounds());
     drawSearchButton(g, getSearchButtonBounds());
     drawRecordButton(g, getRecordButtonBounds());
+    drawMessagesButton(g, getMessagesButtonBounds());
     drawProfileSection(g, getProfileBounds());
 
     // Bottom border - use UI::drawDivider for consistency
@@ -215,6 +216,14 @@ void HeaderComponent::mouseUp(const juce::MouseEvent& event)
         else
             Log::warn("HeaderComponent::mouseUp: Record clicked but callback not set");
     }
+    else if (getMessagesButtonBounds().contains(pos))
+    {
+        Log::info("HeaderComponent::mouseUp: Messages button clicked");
+        if (onMessagesClicked)
+            onMessagesClicked();
+        else
+            Log::warn("HeaderComponent::mouseUp: Messages clicked but callback not set");
+    }
     else if (getProfileBounds().contains(pos))
     {
         Log::info("HeaderComponent::mouseUp: Profile section clicked - username: " + username);
@@ -252,6 +261,39 @@ void HeaderComponent::drawRecordButton(juce::Graphics& g, juce::Rectangle<int> b
     dotBounds.setX(bounds.getX() + 12);
     g.setColour(juce::Colour(0xFFFF4444));  // Red recording indicator
     g.fillEllipse(dotBounds.toFloat());
+}
+
+void HeaderComponent::drawMessagesButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Draw messages icon as a chat bubble icon
+    juce::String messageIcon = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAC")); // Speech balloon emoji
+
+    // Draw the icon button
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(20.0f);
+    g.drawText(messageIcon, bounds.withWidth(30), juce::Justification::centred);
+
+    // Draw unread badge if there are unread messages
+    if (unreadMessageCount > 0)
+    {
+        int badgeSize = 16;
+        auto badgeBounds = juce::Rectangle<int>(
+            bounds.getX() + 20,
+            bounds.getY() + 6,
+            badgeSize,
+            badgeSize
+        );
+
+        // Draw red badge background
+        g.setColour(juce::Colour(0xFFFF4444));
+        g.fillEllipse(badgeBounds.toFloat());
+
+        // Draw badge text
+        g.setColour(juce::Colours::white);
+        g.setFont(10.0f);
+        juce::String countText = unreadMessageCount > 99 ? "99+" : juce::String(unreadMessageCount);
+        g.drawText(countText, badgeBounds, juce::Justification::centred);
+    }
 }
 
 void HeaderComponent::drawProfileSection(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -306,7 +348,27 @@ juce::Rectangle<int> HeaderComponent::getRecordButtonBounds() const
     return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
 }
 
+juce::Rectangle<int> HeaderComponent::getMessagesButtonBounds() const
+{
+    // Position the messages button between record and profile
+    auto recordBounds = getRecordButtonBounds();
+    int buttonWidth = 36;
+    int buttonHeight = 36;
+    int x = recordBounds.getRight() + 12;  // 12px gap after record
+    int y = (getHeight() - buttonHeight) / 2;
+    return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
+}
+
 juce::Rectangle<int> HeaderComponent::getProfileBounds() const
 {
     return juce::Rectangle<int>(getWidth() - 160, 0, 140, getHeight());
+}
+
+void HeaderComponent::setUnreadMessageCount(int count)
+{
+    if (unreadMessageCount != count)
+    {
+        unreadMessageCount = count;
+        repaint();
+    }
 }

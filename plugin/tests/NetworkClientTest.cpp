@@ -177,10 +177,10 @@ TEST_CASE("NetworkClient uploadProfilePicture", "[NetworkClient][ProfilePicture]
         tempFile.create();
         tempFile.replaceWithData("fake jpeg data", 14);
 
-        client.uploadProfilePicture(tempFile, [&](bool s, const juce::String& u) {
+        client.uploadProfilePicture(tempFile, [&](Outcome<juce::String> result) {
             callbackInvoked = true;
-            success = s;
-            url = u;
+            success = result.isOk();
+            url = result.isOk() ? result.getValue() : "";
         });
 
         // Callback should be invoked synchronously for auth failure
@@ -203,9 +203,9 @@ TEST_CASE("NetworkClient uploadProfilePicture", "[NetworkClient][ProfilePicture]
         juce::File nonExistentFile("/nonexistent/path/to/image.jpg");
         REQUIRE(nonExistentFile.existsAsFile() == false);
 
-        client.uploadProfilePicture(nonExistentFile, [&](bool s, const juce::String&) {
+        client.uploadProfilePicture(nonExistentFile, [&](Outcome<juce::String> result) {
             callbackInvoked = true;
-            success = s;
+            success = result.isOk();
         });
 
         // For non-existent file, callback is invoked via callAsync

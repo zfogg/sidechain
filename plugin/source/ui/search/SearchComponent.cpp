@@ -150,7 +150,6 @@ void SearchComponent::mouseUp(const juce::MouseEvent& event)
     if (searchState == SearchState::Empty)
     {
         // Check if clicked on recent search item
-        auto recentBounds = getResultsBounds();
         int yOffset = HEADER_HEIGHT + FILTER_HEIGHT + 40;
         for (int i = 0; i < recentSearches.size() && i < 5; ++i)
         {
@@ -371,11 +370,12 @@ void SearchComponent::performSearch()
     // Perform search based on current tab
     if (currentTab == ResultTab::Users)
     {
-        networkClient->searchUsers(currentQuery, 20, 0, [this](bool success, const juce::var& response) {
+        networkClient->searchUsers(currentQuery, 20, 0, [this](Outcome<juce::var> result) {
             isSearching = false;
 
-            if (success && response.isObject())
+            if (result.isOk() && result.getValue().isObject())
             {
+                auto response = result.getValue();
                 userResults.clear();
                 auto usersArray = response.getProperty("users", juce::var());
                 if (usersArray.isArray())
@@ -404,11 +404,12 @@ void SearchComponent::performSearch()
     else // Posts tab
     {
         networkClient->searchPosts(currentQuery, selectedGenre, bpmMin, bpmMax, selectedKey, 20, 0,
-            [this](bool success, const juce::var& response) {
+            [this](Outcome<juce::var> result) {
                 isSearching = false;
 
-                if (success && response.isObject())
+                if (result.isOk() && result.getValue().isObject())
                 {
+                    auto response = result.getValue();
                     postResults.clear();
                     auto postsArray = response.getProperty("posts", juce::var());
                     if (postsArray.isArray())
@@ -503,9 +504,10 @@ void SearchComponent::loadAvailableGenres()
     if (networkClient == nullptr)
         return;
 
-    networkClient->getAvailableGenres([this](bool success, const juce::var& response) {
-        if (success && response.isObject())
+    networkClient->getAvailableGenres([this](Outcome<juce::var> result) {
+        if (result.isOk() && result.getValue().isObject())
         {
+            auto response = result.getValue();
             availableGenres.clear();
             auto genresArray = response.getProperty("genres", juce::var());
             if (genresArray.isArray())
@@ -800,7 +802,6 @@ void SearchComponent::drawRecentSearches(juce::Graphics& g)
     if (recentSearches.isEmpty())
         return;
 
-    auto bounds = getResultsBounds();
     int yPos = HEADER_HEIGHT + FILTER_HEIGHT + 40;
 
     g.setColour(SidechainColors::textPrimary());
@@ -825,7 +826,6 @@ void SearchComponent::drawTrendingSearches(juce::Graphics& g)
     if (trendingSearches.isEmpty())
         return;
 
-    auto bounds = getResultsBounds();
     int yPos = HEADER_HEIGHT + FILTER_HEIGHT + 40 + (recentSearches.size() > 0 ? (recentSearches.size() * 40 + 40) : 0);
 
     g.setColour(SidechainColors::textPrimary());

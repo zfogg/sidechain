@@ -10,10 +10,10 @@
 //==============================================================================
 /**
  * StreamChatClient handles direct communication with getstream.io Chat API
- * 
+ *
  * Architecture: Plugin talks directly to getstream.io (REST + WebSocket)
  * Backend only provides authentication tokens via GET /api/v1/auth/stream-token
- * 
+ *
  * Features:
  * - Channel management (create, query, delete)
  * - Message operations (send, query, edit, delete, reactions)
@@ -42,14 +42,14 @@ public:
         juce::String backendBaseUrl;  // Our backend URL for token fetching
         int timeoutMs = 30000;
         int maxRetries = 3;
-        
+
         static Config development()
         {
             Config cfg;
             cfg.backendBaseUrl = "http://localhost:8787";
             return cfg;
         }
-        
+
         static Config production()
         {
             Config cfg;
@@ -112,7 +112,7 @@ public:
 
     StreamChatClient(NetworkClient* networkClient, const Config& config = Config::development());
     ~StreamChatClient();
-    
+
     void setNetworkClient(NetworkClient* client) { networkClient = client; }
 
     //==========================================================================
@@ -124,16 +124,25 @@ public:
     //==========================================================================
     // Channel Management (REST API)
     void createDirectChannel(const juce::String& targetUserId, std::function<void(Outcome<Channel>)> callback);
-    void createGroupChannel(const juce::String& channelId, const juce::String& name, 
-                           const std::vector<juce::String>& memberIds, 
+    void createGroupChannel(const juce::String& channelId, const juce::String& name,
+                           const std::vector<juce::String>& memberIds,
                            std::function<void(Outcome<Channel>)> callback);
     void queryChannels(ChannelsCallback callback, int limit = 20, int offset = 0);
-    void getChannel(const juce::String& channelType, const juce::String& channelId, 
+    void getChannel(const juce::String& channelType, const juce::String& channelId,
                    std::function<void(Outcome<Channel>)> callback);
-    void deleteChannel(const juce::String& channelType, const juce::String& channelId, 
+    void deleteChannel(const juce::String& channelType, const juce::String& channelId,
                       std::function<void(Outcome<void>)> callback);
-    void leaveChannel(const juce::String& channelType, const juce::String& channelId, 
+    void leaveChannel(const juce::String& channelType, const juce::String& channelId,
                     std::function<void(Outcome<void>)> callback);
+    void addMembers(const juce::String& channelType, const juce::String& channelId,
+                   const std::vector<juce::String>& memberIds,
+                   std::function<void(Outcome<void>)> callback);
+    void removeMembers(const juce::String& channelType, const juce::String& channelId,
+                      const std::vector<juce::String>& memberIds,
+                      std::function<void(Outcome<void>)> callback);
+    void updateChannel(const juce::String& channelType, const juce::String& channelId,
+                      const juce::String& name, const juce::var& extraData,
+                      std::function<void(Outcome<Channel>)> callback);
 
     //==========================================================================
     // Message Operations (REST API)
@@ -181,18 +190,31 @@ public:
     //==========================================================================
     // Presence (App-Wide)
     void queryPresence(const std::vector<juce::String>& userIds, PresenceCallback callback);
-    void updateStatus(const juce::String& status, const juce::var& extraData, 
+    void updateStatus(const juce::String& status, const juce::var& extraData,
                      std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
-    // Real-time Updates (WebSocket)
-    void connectWebSocket();
-    void disconnectWebSocket();
-    bool isWebSocketConnected() const { return wsConnected.load(); }
+    // Real-time Updates (Polling-based until WebSocket is fixed)
+    // Note: True WebSocket implementation blocked by ASIO/C++23 compatibility issues
+
+    // Start/stop watching a specific channel for new messages (aggressive polling)
+    void watchChannel(const juce::String& channelType, const juce::String& channelId);
+    void unwatchChannel();
+    bool isWatchingChannel() const { return !watchedChannelId.isEmpty(); }
+
+    // Callbacks for real-time events
     void setMessageReceivedCallback(MessageReceivedCallback callback) { messageReceivedCallback = callback; }
     void setTypingCallback(TypingCallback callback) { typingCallback = callback; }
     void setPresenceChangedCallback(PresenceChangedCallback callback) { presenceChangedCallback = callback; }
+    void setUnreadCountCallback(std::function<void(int totalUnread)> callback) { unreadCountCallback = callback; }
+
+    // Send typing indicator via REST API event endpoint
     void sendTypingIndicator(const juce::String& channelType, const juce::String& channelId, bool isTyping);
+
+    // WebSocket stubs (for future implementation when ASIO issues are resolved)
+    void connectWebSocket();
+    void disconnectWebSocket();
+    bool isWebSocketConnected() const { return wsConnected.load(); }
 
     //==========================================================================
     // Connection Status
@@ -221,20 +243,32 @@ private:
     MessageReceivedCallback messageReceivedCallback;
     TypingCallback typingCallback;
     PresenceChangedCallback presenceChangedCallback;
+    std::function<void(int)> unreadCountCallback;
+
+    // Channel watching (polling-based real-time)
+    juce::String watchedChannelType;
+    juce::String watchedChannelId;
+    juce::String lastSeenMessageId;  // Track newest message to detect new ones
+    std::unique_ptr<juce::Timer> channelPollTimer;
+    void pollWatchedChannel();
+
+    // Unread count polling
+    std::unique_ptr<juce::Timer> unreadPollTimer;
+    void pollUnreadCount();
 
     //==========================================================================
     // Internal helpers
     juce::String getStreamBaseUrl() const { return "https://chat.stream-io-api.com"; }
     juce::String buildAuthHeaders() const;
-    juce::var makeStreamRequest(const juce::String& endpoint, const juce::String& method, 
+    juce::var makeStreamRequest(const juce::String& endpoint, const juce::String& method,
                                 const juce::var& data = juce::var());
     void updateConnectionStatus(ConnectionStatus status);
     void handleWebSocketMessage(const juce::String& message);
     void parseWebSocketEvent(const juce::var& event);
-    
+
     // Channel ID helpers
     juce::String generateDirectChannelId(const juce::String& userId1, const juce::String& userId2);
-    
+
     // Parsing helpers
     Channel parseChannel(const juce::var& channelData);
     Message parseMessage(const juce::var& messageData);

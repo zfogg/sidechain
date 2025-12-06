@@ -8,7 +8,7 @@ class NetworkClient;
 //==============================================================================
 /**
  * MessagesListComponent displays a list of chat conversations/channels
- * 
+ *
  * Features:
  * - Shows all user's channels sorted by last message time
  * - Displays avatar, name, last message preview, timestamp, unread badge
@@ -33,6 +33,7 @@ public:
     std::function<void(const juce::String& channelType, const juce::String& channelId)> onChannelSelected;
     std::function<void()> onNewMessage;
     std::function<void()> onGoToDiscovery;
+    std::function<void()> onCreateGroup;
 
     // Set StreamChatClient
     void setStreamChatClient(StreamChatClient* client);
@@ -83,9 +84,12 @@ private:
     juce::String getChannelName(const StreamChatClient::Channel& channel);
     juce::String getLastMessagePreview(const StreamChatClient::Channel& channel);
     int getUnreadCount(const StreamChatClient::Channel& channel);
+    int getMemberCount(const StreamChatClient::Channel& channel) const;
+    bool isGroupChannel(const StreamChatClient::Channel& channel) const;
 
     // Click handling
     int getChannelIndexAtY(int y);
     juce::Rectangle<int> getNewMessageButtonBounds() const;
+    juce::Rectangle<int> getCreateGroupButtonBounds() const;
     juce::Rectangle<int> getChannelItemBounds(int index) const;
 };

@@ -133,7 +133,6 @@ void NotificationBellComponent::drawBadge(juce::Graphics& g, juce::Rectangle<flo
 {
     // Badge dimensions - positioned at top right
     float badgeSize = static_cast<float>(BADGE_SIZE);
-    float badgeX = bounds.getRight() - badgeSize - 1.0f;
     float badgeY = bounds.getY() - 2.0f;
 
     // Draw badge background (red circle/pill)
