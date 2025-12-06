@@ -146,6 +146,7 @@ jobs:
           # First verify the package exists
           if curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ > /dev/null 2>&1; then
             echo "Package path verified, downloading..."
+            # Use wget with error handling - ignore 404s for missing assets
             wget -q \
               --recursive \
               --level=10 \
@@ -154,14 +155,13 @@ jobs:
               --cut-dirs=1 \
               --convert-links \
               --adjust-extension \
-              --page-requisites \
               --directory-prefix=docs/_build/html/backend/godoc \
-              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ || echo "Warning: Some package pages may have failed to download"
+              --reject="robots.txt,*.png,*.ico" \
+              --accept="*.html" \
+              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ 2>&1 | grep -v "lstat.*no such file" || true
+            echo "Package download completed"
           else
-            echo "Warning: Package path not found, trying alternative approach..."
-            # Try downloading individual packages
-            wget -q -P docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend/ \
-              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ || echo "Warning: Failed to download package index"
+            echo "Warning: Package path not accessible"
           fi
           
           # Fix paths in downloaded HTML files to use relative paths
