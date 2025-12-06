@@ -110,6 +110,23 @@ void Upload::setAudioToUpload(const juce::AudioBuffer<float>& audio, double samp
 
 void Upload::reset()
 {
+    // Cancel any pending timers
+    if (progressTimer500ms != 0)
+    {
+        Async::cancelDelay(progressTimer500ms);
+        progressTimer500ms = 0;
+    }
+    if (progressTimer1000ms != 0)
+    {
+        Async::cancelDelay(progressTimer1000ms);
+        progressTimer1000ms = 0;
+    }
+    if (successDismissTimer != 0)
+    {
+        Async::cancelDelay(successDismissTimer);
+        successDismissTimer = 0;
+    }
+    
     audioBuffer.setSize(0, 0);
     title = "";
     bpm = 0.0;
@@ -839,6 +856,35 @@ void Upload::showGenrePicker()
 void Upload::cancelUpload()
 {
     Log::info("Upload::cancelUpload: Upload cancelled by user");
+    
+    // Cancel any pending progress timers
+    if (progressTimer500ms != 0)
+    {
+        Async::cancelDelay(progressTimer500ms);
+        progressTimer500ms = 0;
+    }
+    if (progressTimer1000ms != 0)
+    {
+        Async::cancelDelay(progressTimer1000ms);
+        progressTimer1000ms = 0;
+    }
+    if (successDismissTimer != 0)
+    {
+        Async::cancelDelay(successDismissTimer);
+        successDismissTimer = 0;
+    }
+    
+    // Reset upload state if currently uploading
+    if (uploadState == UploadState::Uploading)
+    {
+        uploadState = UploadState::Editing;
+        uploadProgress = 0.0f;
+        errorMessage = "";
+        Log::debug("Upload::cancelUpload: Reset upload state to Editing");
+        repaint();
+    }
+    
+    // Call the cancel callback (which navigates back to recording)
     if (onCancel)
     {
         Log::debug("Upload::cancelUpload: Calling onCancel callback");
@@ -900,21 +946,24 @@ void Upload::startUpload()
 
     // Simulate progress updates while waiting for upload
     // (JUCE's URL class doesn't provide progress callbacks)
-    juce::Timer::callAfterDelay(500, [this]() {
+    // Store timer IDs so we can cancel them if user cancels
+    progressTimer500ms = Async::delay(500, [this]() {
         if (uploadState == UploadState::Uploading)
         {
             uploadProgress = 0.3f;
             Log::debug("Upload::startUpload: Progress update: 30%");
             repaint();
         }
+        progressTimer500ms = 0; // Clear ID after execution
     });
-    juce::Timer::callAfterDelay(1000, [this]() {
+    progressTimer1000ms = Async::delay(1000, [this]() {
         if (uploadState == UploadState::Uploading)
         {
             uploadProgress = 0.6f;
             Log::debug("Upload::startUpload: Progress update: 60%");
             repaint();
         }
+        progressTimer1000ms = 0; // Clear ID after execution
     });
 
     // Start async upload with full metadata
@@ -936,12 +985,13 @@ void Upload::startUpload()
                              "\", Genre: " + savedGenre + ", BPM: " + juce::String(savedBpm, 1));
 
                     // Auto-dismiss after 3 seconds (longer to show success preview)
-                    juce::Timer::callAfterDelay(3000, [this]() {
+                    successDismissTimer = Async::delay(3000, [this]() {
                         if (uploadState == UploadState::Success && onUploadComplete)
                         {
                             Log::debug("Upload::startUpload: Auto-dismissing success state, calling onUploadComplete");
                             onUploadComplete();
                         }
+                        successDismissTimer = 0; // Clear ID after execution
                     });
                 }
                 else
