@@ -28,21 +28,28 @@ class StreamChatClient
 public:
     //==========================================================================
     // Connection status
+
+    /** Connection status for getstream.io WebSocket */
     enum class ConnectionStatus
     {
-        Disconnected,
-        Connecting,
-        Connected
+        Disconnected,  ///< Not connected to getstream.io
+        Connecting,    ///< Currently attempting to connect
+        Connected      ///< Successfully connected
     };
 
     //==========================================================================
     // Configuration
+
+    /** Configuration for StreamChatClient */
     struct Config
     {
-        juce::String backendBaseUrl;  // Our backend URL for token fetching
-        int timeoutMs = 30000;
-        int maxRetries = 3;
+        juce::String backendBaseUrl;  ///< Our backend URL for token fetching
+        int timeoutMs = 30000;        ///< Request timeout in milliseconds
+        int maxRetries = 3;           ///< Maximum number of retry attempts
 
+        /** Create development configuration
+         * @return Config with localhost backend URL
+         */
         static Config development()
         {
             Config cfg;
@@ -50,6 +57,9 @@ public:
             return cfg;
         }
 
+        /** Create production configuration
+         * @return Config with production backend URL
+         */
         static Config production()
         {
             Config cfg;
@@ -60,45 +70,51 @@ public:
 
     //==========================================================================
     // Data structures
+
+    /** Chat channel information */
     struct Channel
     {
-        juce::String id;
-        juce::String type;  // "messaging" or "team"
-        juce::String name;
-        juce::var members;  // Array of member objects
-        juce::var lastMessage;
-        int unreadCount = 0;
-        juce::String lastMessageAt;
-        juce::var extraData;
+        juce::String id;          ///< Unique channel identifier
+        juce::String type;        ///< Channel type ("messaging" or "team")
+        juce::String name;        ///< Channel display name
+        juce::var members;        ///< Array of member objects
+        juce::var lastMessage;    ///< Last message in the channel
+        int unreadCount = 0;      ///< Number of unread messages
+        juce::String lastMessageAt; ///< Timestamp of last message
+        juce::var extraData;      ///< Additional channel metadata
     };
 
+    /** Chat message information */
     struct Message
     {
-        juce::String id;
-        juce::String text;
-        juce::String userId;
-        juce::String userName;
-        juce::String createdAt;
-        juce::var reactions;
-        juce::var extraData;  // For audio_url, reply_to, etc.
-        bool isDeleted = false;
+        juce::String id;          ///< Unique message identifier
+        juce::String text;        ///< Message text content
+        juce::String userId;      ///< ID of the message author
+        juce::String userName;    ///< Display name of the message author
+        juce::String createdAt;   ///< Message creation timestamp
+        juce::var reactions;      ///< Message reactions (emoji, etc.)
+        juce::var extraData;      ///< Additional data (audio_url, reply_to, etc.)
+        bool isDeleted = false;   ///< Whether the message has been deleted
     };
 
+    /** User presence information */
     struct UserPresence
     {
-        juce::String userId;
-        bool online = false;
-        juce::String lastActive;
-        juce::String status;  // Custom status like "in studio"
+        juce::String userId;      ///< User identifier
+        bool online = false;      ///< Whether the user is currently online
+        juce::String lastActive;  ///< Last active timestamp
+        juce::String status;      ///< Custom status (e.g., "in studio")
     };
 
     //==========================================================================
     // Callback types - using Outcome<T> for type-safe error handling
+
+    /** Result structure for token fetch operations */
     struct TokenResult
     {
-        juce::String token;
-        juce::String apiKey;
-        juce::String userId;
+        juce::String token;   ///< getstream.io chat token
+        juce::String apiKey;  ///< getstream.io API key
+        juce::String userId;  ///< Current user ID
     };
     using TokenCallback = std::function<void(Outcome<TokenResult>)>;
     using ChannelsCallback = std::function<void(Outcome<std::vector<Channel>>)>;
@@ -113,71 +129,217 @@ public:
     StreamChatClient(NetworkClient* networkClient, const Config& config = Config::development());
     ~StreamChatClient();
 
+    /** Set the network client for HTTP requests
+     * @param client Pointer to the NetworkClient instance
+     */
     void setNetworkClient(NetworkClient* client) { networkClient = client; }
 
     //==========================================================================
     // Authentication
+
+    /** Fetch a getstream.io chat token from the backend
+     * @param backendAuthToken The backend authentication token
+     * @param callback Called with token result or error
+     */
     void fetchToken(const juce::String& backendAuthToken, TokenCallback callback);
+
+    /** Set the chat token and API credentials directly
+     * @param token The getstream.io chat token
+     * @param apiKey The getstream.io API key
+     * @param userId The current user ID
+     */
     void setToken(const juce::String& token, const juce::String& apiKey, const juce::String& userId);
+
+    /** Check if authenticated with getstream.io
+     * @return true if token and API key are set
+     */
     bool isAuthenticated() const { return !chatToken.isEmpty() && !apiKey.isEmpty(); }
 
     //==========================================================================
     // Channel Management (REST API)
+
+    /** Create a direct messaging channel with another user
+     * @param targetUserId The user ID to message
+     * @param callback Called with the created channel or error
+     */
     void createDirectChannel(const juce::String& targetUserId, std::function<void(Outcome<Channel>)> callback);
+
+    /** Create a group channel
+     * @param channelId Unique channel identifier
+     * @param name Channel display name
+     * @param memberIds List of user IDs to add as members
+     * @param callback Called with the created channel or error
+     */
     void createGroupChannel(const juce::String& channelId, const juce::String& name,
                            const std::vector<juce::String>& memberIds,
                            std::function<void(Outcome<Channel>)> callback);
+
+    /** Query channels for the current user
+     * @param callback Called with list of channels or error
+     * @param limit Maximum number of channels to return
+     * @param offset Pagination offset
+     */
     void queryChannels(ChannelsCallback callback, int limit = 20, int offset = 0);
+
+    /** Get a specific channel by type and ID
+     * @param channelType Channel type (e.g., "messaging", "team")
+     * @param channelId Channel identifier
+     * @param callback Called with the channel or error
+     */
     void getChannel(const juce::String& channelType, const juce::String& channelId,
                    std::function<void(Outcome<Channel>)> callback);
+
+    /** Delete a channel
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param callback Called with result or error
+     */
     void deleteChannel(const juce::String& channelType, const juce::String& channelId,
                       std::function<void(Outcome<void>)> callback);
+
+    /** Leave a channel
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param callback Called with result or error
+     */
     void leaveChannel(const juce::String& channelType, const juce::String& channelId,
                     std::function<void(Outcome<void>)> callback);
+
+    /** Add members to a channel
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param memberIds List of user IDs to add
+     * @param callback Called with result or error
+     */
     void addMembers(const juce::String& channelType, const juce::String& channelId,
                    const std::vector<juce::String>& memberIds,
                    std::function<void(Outcome<void>)> callback);
+
+    /** Remove members from a channel
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param memberIds List of user IDs to remove
+     * @param callback Called with result or error
+     */
     void removeMembers(const juce::String& channelType, const juce::String& channelId,
                       const std::vector<juce::String>& memberIds,
                       std::function<void(Outcome<void>)> callback);
+
+    /** Update channel metadata
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param name New channel name
+     * @param extraData Additional channel data
+     * @param callback Called with updated channel or error
+     */
     void updateChannel(const juce::String& channelType, const juce::String& channelId,
                       const juce::String& name, const juce::var& extraData,
                       std::function<void(Outcome<Channel>)> callback);
 
     //==========================================================================
     // Message Operations (REST API)
+
+    /** Send a text message to a channel
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param text Message text content
+     * @param extraData Additional message data (e.g., reply_to, attachments)
+     * @param callback Called with the sent message or error
+     */
     void sendMessage(const juce::String& channelType, const juce::String& channelId,
                     const juce::String& text, const juce::var& extraData,
                     MessageCallback callback);
+
+    /** Query messages from a channel
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param limit Maximum number of messages to return
+     * @param offset Pagination offset
+     * @param callback Called with list of messages or error
+     */
     void queryMessages(const juce::String& channelType, const juce::String& channelId,
                       int limit, int offset, MessagesCallback callback);
+
+    /** Update an existing message
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param messageId Message identifier
+     * @param newText Updated message text
+     * @param callback Called with updated message or error
+     */
     void updateMessage(const juce::String& channelType, const juce::String& channelId,
                       const juce::String& messageId, const juce::String& newText,
                       MessageCallback callback);
+
+    /** Delete a message
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param messageId Message identifier
+     * @param callback Called with result or error
+     */
     void deleteMessage(const juce::String& channelType, const juce::String& channelId,
                       const juce::String& messageId, std::function<void(Outcome<void>)> callback);
+
+    /** Add a reaction to a message
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param messageId Message identifier
+     * @param reactionType Reaction emoji or type
+     * @param callback Called with result or error
+     */
     void addReaction(const juce::String& channelType, const juce::String& channelId,
                     const juce::String& messageId, const juce::String& reactionType,
                     std::function<void(Outcome<void>)> callback);
+
+    /** Remove a reaction from a message
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param messageId Message identifier
+     * @param reactionType Reaction emoji or type to remove
+     * @param callback Called with result or error
+     */
     void removeReaction(const juce::String& channelType, const juce::String& channelId,
                        const juce::String& messageId, const juce::String& reactionType,
                        std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
     // Read Receipts
+
+    /** Mark a channel as read
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param callback Called with result or error
+     */
     void markChannelRead(const juce::String& channelType, const juce::String& channelId,
                         std::function<void(Outcome<void>)> callback);
 
     //==========================================================================
     // Audio Snippet Sharing
+
+    /** Result structure for audio snippet uploads */
     struct AudioSnippetResult
     {
-        juce::String audioUrl;
-        double duration = 0.0;
+        juce::String audioUrl;  ///< CDN URL of uploaded audio
+        double duration = 0.0;  ///< Duration in seconds
     };
     using AudioSnippetCallback = std::function<void(Outcome<AudioSnippetResult>)>;
+
+    /** Upload an audio snippet for sharing in messages
+     * @param audioBuffer The audio data to upload
+     * @param sampleRate Sample rate of the audio
+     * @param callback Called with upload result (URL, duration) or error
+     */
     void uploadAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate,
                            AudioSnippetCallback callback);
+
+    /** Send a message with an audio attachment
+     * @param channelType Channel type
+     * @param channelId Channel identifier
+     * @param text Optional message text
+     * @param audioBuffer The audio data to attach
+     * @param sampleRate Sample rate of the audio
+     * @param callback Called with the sent message or error
+     */
     void sendMessageWithAudio(const juce::String& channelType, const juce::String& channelId,
                              const juce::String& text, const juce::AudioBuffer<float>& audioBuffer,
                              double sampleRate, MessageCallback callback);

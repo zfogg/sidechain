@@ -1,0 +1,19 @@
+# Sphinx Documentation Dependencies
+# Install with: pip install -r docs/requirements.txt
+
+# Core Sphinx
+sphinx>=7.0.0
+
+# C++ API documentation bridge
+breathe>=4.35.0
+
+# Automated API hierarchy generation
+exhale>=0.3.0
+
+# Modern documentation theme
+sphinx-rtd-theme>=2.0.0
+
+# Optional: Additional Sphinx extensions
+sphinx-autobuild>=2021.3.14  # For live reload during development
+myst-parser>=2.0.0  # For Markdown support in narrative docs
+linkify-it-py>=2.0.0  # Required for linkify extension (auto-link URLs)

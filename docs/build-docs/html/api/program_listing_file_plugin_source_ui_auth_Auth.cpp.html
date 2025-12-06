@@ -1,0 +1,951 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File Auth.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File Auth.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_auth_Auth.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-auth-cpp">
+<span id="program-listing-file-plugin-source-ui-auth-auth-cpp"></span><h1>Program Listing for File Auth.cpp<a class="headerlink" href="#program-listing-for-file-auth-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_auth_Auth.cpp.html#file-plugin-source-ui-auth-auth-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/auth/Auth.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;Auth.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../network/NetworkClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Constants.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Validate.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/TextEditorStyler.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Result.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">Auth</span><span class="o">::</span><span class="n">Auth</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Initializing authentication component&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Create all UI components BEFORE calling setSize() because setSize() triggers resized()</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Setting up welcome components&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setupWelcomeComponents</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Setting up login components&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setupLoginComponents</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Setting up signup components&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setupSignupComponents</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Showing welcome screen&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">showWelcome</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Set size last - this triggers resized() which requires components to exist</span>
+<span class="w">    </span><span class="n">setSize</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">800</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Initialization complete&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">Auth</span><span class="o">::~</span><span class="n">Auth</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Destroying authentication component&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">setNetworkClient</span><span class="p">(</span><span class="n">NetworkClient</span><span class="o">*</span><span class="w"> </span><span class="n">client</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">networkClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: NetworkClient set &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">client</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;(valid)&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;(null)&quot;</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">setupWelcomeComponents</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">loginButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Sign In&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stylePrimaryButton</span><span class="p">(</span><span class="o">*</span><span class="n">loginButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">loginButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Create Account&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">styleSecondaryButton</span><span class="p">(</span><span class="o">*</span><span class="n">signupButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">googleButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Continue with Google&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">styleOAuthButton</span><span class="p">(</span><span class="o">*</span><span class="n">googleButton</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Continue with Google&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">google</span><span class="p">);</span>
+<span class="w">    </span><span class="n">googleButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">googleButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">discordButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Continue with Discord&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">styleOAuthButton</span><span class="p">(</span><span class="o">*</span><span class="n">discordButton</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Continue with Discord&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">discord</span><span class="p">);</span>
+<span class="w">    </span><span class="n">discordButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">discordButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">setupLoginComponents</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">loginEmailEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">loginEmailEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Email address&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">loginEmailEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">loginPasswordEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">loginPasswordEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Password&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">loginPasswordEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">loginSubmitButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Sign In&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stylePrimaryButton</span><span class="p">(</span><span class="o">*</span><span class="n">loginSubmitButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">loginSubmitButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">loginBackButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Back&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">styleSecondaryButton</span><span class="p">(</span><span class="o">*</span><span class="n">loginBackButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginBackButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">loginBackButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">setupSignupComponents</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">signupEmailEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">signupEmailEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Email address&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupEmailEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupUsernameEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">signupUsernameEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Username&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupUsernameEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupDisplayNameEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">signupDisplayNameEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Display name&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupDisplayNameEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupPasswordEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">signupPasswordEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Password (8+ characters)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupPasswordEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupConfirmPasswordEditor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">styleTextEditor</span><span class="p">(</span><span class="o">*</span><span class="n">signupConfirmPasswordEditor</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Confirm password&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupConfirmPasswordEditor</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupSubmitButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Create Account&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stylePrimaryButton</span><span class="p">(</span><span class="o">*</span><span class="n">signupSubmitButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupSubmitButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">signupBackButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Back&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">styleSecondaryButton</span><span class="p">(</span><span class="o">*</span><span class="n">signupBackButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupBackButton</span><span class="o">-&gt;</span><span class="n">addListener</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addChildComponent</span><span class="p">(</span><span class="n">signupBackButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">styleTextEditor</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">editor</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">placeholder</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">isPassword</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setMultiLine</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setReturnKeyStartsNewLine</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setScrollbarsShown</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setCaretVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setPopupMenuEnabled</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isPassword</span><span class="p">)</span>
+<span class="w">        </span><span class="n">editor</span><span class="p">.</span><span class="n">setPasswordCharacter</span><span class="p">(</span><span class="mh">0x2022</span><span class="p">);</span><span class="w"> </span><span class="c1">// bullet</span>
+
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setTextToShowWhenEmpty</span><span class="p">(</span><span class="n">placeholder</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">inputPlaceholder</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">::</span><span class="n">backgroundColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">inputBackground</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">::</span><span class="n">outlineColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">inputBorder</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">::</span><span class="n">focusedOutlineColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">inputBorderFocused</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">::</span><span class="n">textColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">inputText</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">CaretComponent</span><span class="o">::</span><span class="n">caretColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">primaryButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="p">(</span><span class="mf">15.0f</span><span class="p">));</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setJustification</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+<span class="w">    </span><span class="n">editor</span><span class="p">.</span><span class="n">setIndents</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">stylePrimaryButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&amp;</span><span class="w"> </span><span class="n">button</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">buttonColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">primaryButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">buttonOnColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">primaryButtonHover</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">textColourOffId</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">textColourOnId</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setMouseCursor</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">MouseCursor</span><span class="o">::</span><span class="n">PointingHandCursor</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">styleSecondaryButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&amp;</span><span class="w"> </span><span class="n">button</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">buttonColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">secondaryButton</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">buttonOnColourId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">secondaryButton</span><span class="p">.</span><span class="n">brighter</span><span class="p">(</span><span class="mf">0.1f</span><span class="p">));</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">textColourOffId</span><span class="p">,</span><span class="w"> </span><span class="n">Colors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">textColourOnId</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setMouseCursor</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">MouseCursor</span><span class="o">::</span><span class="n">PointingHandCursor</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">styleOAuthButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&amp;</span><span class="w"> </span><span class="n">button</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">color</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setButtonText</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">buttonColourId</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="p">.</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.15f</span><span class="p">));</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">buttonOnColourId</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="p">.</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.25f</span><span class="p">));</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">textColourOffId</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="p">);</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">::</span><span class="n">textColourOnId</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="p">.</span><span class="n">brighter</span><span class="p">(</span><span class="mf">0.2f</span><span class="p">));</span>
+<span class="w">    </span><span class="n">button</span><span class="p">.</span><span class="n">setMouseCursor</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">MouseCursor</span><span class="o">::</span><span class="n">PointingHandCursor</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Background gradient</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setGradientFill</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">ColourGradient</span><span class="p">(</span>
+<span class="w">        </span><span class="n">Colors</span><span class="o">::</span><span class="n">background</span><span class="p">,</span>
+<span class="w">        </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span>
+<span class="w">        </span><span class="n">Colors</span><span class="o">::</span><span class="n">background</span><span class="p">.</span><span class="n">darker</span><span class="p">(</span><span class="mf">0.3f</span><span class="p">),</span>
+<span class="w">        </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getHeight</span><span class="p">()),</span>
+<span class="w">        </span><span class="nb">false</span>
+<span class="w">    </span><span class="p">));</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillAll</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Calculate card bounds</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">withSizeKeepingCentre</span><span class="p">(</span><span class="n">CARD_WIDTH</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw based on mode</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">currentMode</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Welcome</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">520</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Login</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">400</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Signup</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">580</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">withCentre</span><span class="p">(</span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">getCentre</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Draw card background</span>
+<span class="w">    </span><span class="n">drawCard</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw logo area</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">logoArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawLogo</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">logoArea</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw title based on mode</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="p">(</span><span class="mf">22.0f</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="o">::</span><span class="n">bold</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">title</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">subtitle</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">currentMode</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Welcome</span><span class="p">:</span>
+<span class="w">            </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Welcome to Sidechain&quot;</span><span class="p">;</span>
+<span class="w">            </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Share loops with producers worldwide&quot;</span><span class="p">;</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Login</span><span class="p">:</span>
+<span class="w">            </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Sign In&quot;</span><span class="p">;</span>
+<span class="w">            </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Welcome back! Enter your credentials&quot;</span><span class="p">;</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Signup</span><span class="p">:</span>
+<span class="w">            </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Create Account&quot;</span><span class="p">;</span>
+<span class="w">            </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Join the community of music producers&quot;</span><span class="p">;</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">titleArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">30</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="w"> </span><span class="n">titleArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">14.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">subtitleArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">24</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">subtitle</span><span class="p">,</span><span class="w"> </span><span class="n">subtitleArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw error message if present</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">errorMessage</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">errorArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">40</span><span class="p">).</span><span class="n">reduced</span><span class="p">(</span><span class="n">CARD_PADDING</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">errorRed</span><span class="p">.</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.15f</span><span class="p">));</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">errorArea</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">6.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">errorRed</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">13.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">errorMessage</span><span class="p">,</span><span class="w"> </span><span class="n">errorArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Draw loading indicator if loading</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isLoading</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">loadingArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">withSizeKeepingCentre</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">);</span>
+<span class="w">        </span><span class="n">loadingArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">loadingArea</span><span class="p">.</span><span class="n">withY</span><span class="p">(</span><span class="n">cardBounds</span><span class="p">.</span><span class="n">getBottom</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">20</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">14.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Connecting...&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">loadingArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Draw divider for OAuth in welcome mode</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentMode</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">AuthMode</span><span class="o">::</span><span class="n">Welcome</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">dividerY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">getY</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">160</span><span class="p">;</span>
+<span class="w">        </span><span class="n">drawDivider</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">dividerY</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;or continue with&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">drawCard</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Shadow</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">black</span><span class="p">.</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.3f</span><span class="p">));</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">translated</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">).</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">16.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Card background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">cardBackground</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">16.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Card border</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">cardBorder</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawRoundedRectangle</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">16.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">drawLogo</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Logo icon (waveform-inspired)</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">iconArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">withSizeKeepingCentre</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span><span class="w"> </span><span class="mi">60</span><span class="p">).</span><span class="n">translated</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">primaryButton</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw stylized waveform bars</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">barWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">spacing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">totalWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">barWidth</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">spacing</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">startX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iconArea</span><span class="p">.</span><span class="n">getCentreX</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">totalWidth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">centerY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iconArea</span><span class="p">.</span><span class="n">getCentreY</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">heights</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">barX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">startX</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">barWidth</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">spacing</span><span class="p">);</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">barHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">heights</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">barX</span><span class="p">),</span>
+<span class="w">                               </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">centerY</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">barHeight</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">),</span>
+<span class="w">                               </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">barWidth</span><span class="p">),</span>
+<span class="w">                               </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">barHeight</span><span class="p">),</span>
+<span class="w">                               </span><span class="mf">3.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Brand name</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="p">(</span><span class="mf">28.0f</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="o">::</span><span class="n">bold</span><span class="p">));</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Sidechain&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">withY</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getBottom</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">30</span><span class="p">).</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">drawDivider</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">text</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">withSizeKeepingCentre</span><span class="p">(</span><span class="n">CARD_WIDTH</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">CARD_PADDING</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">).</span><span class="n">withY</span><span class="p">(</span><span class="n">y</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">cardBorder</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">textWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">140</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">lineY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getCentreY</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Left line</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawLine</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lineY</span><span class="p">),</span>
+<span class="w">               </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getCentreX</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">textWidth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">10</span><span class="p">),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lineY</span><span class="p">),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Right line</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawLine</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getCentreX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">textWidth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">10</span><span class="p">),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lineY</span><span class="p">),</span>
+<span class="w">               </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getRight</span><span class="p">()),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lineY</span><span class="p">),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Text</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">Colors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">13.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">withSizeKeepingCentre</span><span class="p">(</span><span class="n">textWidth</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Component resized to &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">getHeight</span><span class="p">()));</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">withSizeKeepingCentre</span><span class="p">(</span><span class="n">CARD_WIDTH</span><span class="p">,</span><span class="w"> </span><span class="mi">600</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cardBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">withCentre</span><span class="p">(</span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">getCentre</span><span class="p">());</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">contentBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cardBounds</span><span class="p">.</span><span class="n">reduced</span><span class="p">(</span><span class="n">CARD_PADDING</span><span class="p">);</span>
+<span class="w">    </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">180</span><span class="p">);</span><span class="w"> </span><span class="c1">// Logo + title area</span>
+
+<span class="w">    </span><span class="c1">// Remove error area if present</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">errorMessage</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">50</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">currentMode</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Welcome</span><span class="p">:</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Main action buttons</span>
+<span class="w">            </span><span class="n">loginButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">12</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+
+<span class="w">            </span><span class="c1">// Divider space</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">50</span><span class="p">);</span>
+
+<span class="w">            </span><span class="c1">// OAuth buttons</span>
+<span class="w">            </span><span class="n">googleButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">12</span><span class="p">);</span>
+<span class="w">            </span><span class="n">discordButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Login</span><span class="p">:</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="p">);</span>
+<span class="w">            </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">8</span><span class="p">);</span>
+<span class="w">            </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">12</span><span class="p">);</span>
+<span class="w">            </span><span class="n">loginBackButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">AuthMode</span><span class="o">::</span><span class="no">Signup</span><span class="p">:</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">FIELD_SPACING</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">8</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="mi">12</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupBackButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">contentBounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">BUTTON_HEIGHT</span><span class="p">));</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">hideAllComponents</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Welcome components</span>
+<span class="w">    </span><span class="n">loginButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">googleButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">discordButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Login components</span>
+<span class="w">    </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginBackButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Signup components</span>
+<span class="w">    </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupBackButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">showWelcome</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Switching to welcome mode&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AuthMode</span><span class="o">::</span><span class="n">Welcome</span><span class="p">;</span>
+<span class="w">    </span><span class="n">hideAllComponents</span><span class="p">();</span>
+<span class="w">    </span><span class="n">clearError</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">loginButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">googleButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">discordButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Welcome screen displayed&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">showLogin</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Switching to login mode&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AuthMode</span><span class="o">::</span><span class="n">Login</span><span class="p">;</span>
+<span class="w">    </span><span class="n">hideAllComponents</span><span class="p">();</span>
+<span class="w">    </span><span class="n">clearError</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginBackButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Login form displayed&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">showSignup</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Switching to signup mode&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AuthMode</span><span class="o">::</span><span class="n">Signup</span><span class="p">;</span>
+<span class="w">    </span><span class="n">hideAllComponents</span><span class="p">();</span>
+<span class="w">    </span><span class="n">clearError</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">signupBackButton</span><span class="o">-&gt;</span><span class="n">setVisible</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Signup form displayed&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">reset</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Resetting to initial state&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="n">showWelcome</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">showError</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Showing error - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">message</span><span class="p">);</span>
+<span class="w">    </span><span class="n">errorMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">message</span><span class="p">;</span>
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">clearError</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">errorMessage</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Clearing error message&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">errorMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">buttonClicked</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Button</span><span class="o">*</span><span class="w"> </span><span class="n">button</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">loginButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Login button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showLogin</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Signup button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showSignup</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">googleButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Google OAuth button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onOAuthRequested</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onOAuthRequested</span><span class="p">(</span><span class="s">&quot;google&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: OAuth callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">discordButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Discord OAuth button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onOAuthRequested</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onOAuthRequested</span><span class="p">(</span><span class="s">&quot;discord&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: OAuth callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">loginBackButton</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupBackButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Back button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showWelcome</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">loginSubmitButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Login submit button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">handleLogin</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">button</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupSubmitButton</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Signup submit button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">handleSignup</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">textEditorReturnKeyPressed</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">editor</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentMode</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">AuthMode</span><span class="o">::</span><span class="n">Login</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">loginEmailEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in login email field, moving to password&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">loginPasswordEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in login password field, submitting&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">handleLogin</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentMode</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">AuthMode</span><span class="o">::</span><span class="n">Signup</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupEmailEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in signup email field, moving to username&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupUsernameEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in signup username field, moving to display name&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupDisplayNameEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in signup display name field, moving to password&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupPasswordEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in signup password field, moving to confirm password&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">editor</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">signupConfirmPasswordEditor</span><span class="p">.</span><span class="n">get</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Return key pressed in signup confirm password field, submitting&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">handleSignup</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">textEditorTextChanged</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">TextEditor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">editor</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Clear error when user starts typing</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">errorMessage</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: User typing, clearing error message&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">clearError</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">handleLogin</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Handling login request&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">().</span><span class="n">trim</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Login attempt for email: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Validation</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Validate</span><span class="o">::</span><span class="n">isBlank</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Login validation failed - blank email&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please enter your email address&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Validate</span><span class="o">::</span><span class="n">isEmail</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Login validation failed - invalid email format: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please enter a valid email address&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">loginEmailEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Validate</span><span class="o">::</span><span class="n">isBlank</span><span class="p">(</span><span class="n">password</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Login validation failed - blank password&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please enter your password&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">loginPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Login validation passed, initiating API call&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Show loading state</span>
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Make API call</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Auth: Cannot login - NetworkClient is null&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">        </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Network client not available&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="w"> </span><span class="n">loginData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">DynamicObject</span><span class="p">());</span>
+<span class="w">    </span><span class="n">loginData</span><span class="p">.</span><span class="n">getDynamicObject</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;email&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loginData</span><span class="p">.</span><span class="n">getDynamicObject</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;password&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Calling NetworkClient::loginAccount for: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+<span class="w">    </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">loginAccount</span><span class="p">(</span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">authResult</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">        </span><span class="n">loginSubmitButton</span><span class="o">-&gt;</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">authResult</span><span class="p">.</span><span class="n">isOk</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">token</span><span class="p">,</span><span class="w"> </span><span class="n">userId</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">authResult</span><span class="p">.</span><span class="n">getValue</span><span class="p">();</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Login successful for: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, userId: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">userId</span><span class="p">);</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">email</span><span class="p">.</span><span class="n">upToFirstOccurrenceOf</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getCurrentUsername</span><span class="p">();</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Retrieved username from NetworkClient: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onLoginSuccess</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Calling onLoginSuccess callback&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="n">onLoginSuccess</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">token</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Login succeeded but onLoginSuccess callback not set&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Login failed - invalid credentials for: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+<span class="w">            </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Invalid email or password&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Auth</span><span class="o">::</span><span class="n">handleSignup</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Handling signup request&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">().</span><span class="n">trim</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">().</span><span class="n">trim</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">displayName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">().</span><span class="n">trim</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">confirmPassword</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Signup attempt - email: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, username: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, displayName: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">displayName</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Validation</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Validate</span><span class="o">::</span><span class="n">isBlank</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - blank email&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please enter your email address&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Validate</span><span class="o">::</span><span class="n">isEmail</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - invalid email format: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please enter a valid email address&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupEmailEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Validate</span><span class="o">::</span><span class="n">isBlank</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - blank username&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please choose a username&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Validate</span><span class="o">::</span><span class="n">isUsername</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - invalid username format: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Username must be 3-30 characters, letters/numbers/underscores only&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupUsernameEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Validate</span><span class="o">::</span><span class="n">isBlank</span><span class="p">(</span><span class="n">displayName</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - blank display name&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please enter your display name&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupDisplayNameEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Validate</span><span class="o">::</span><span class="n">isBlank</span><span class="p">(</span><span class="n">password</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - blank password&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Please create a password&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Validate</span><span class="o">::</span><span class="n">lengthInRange</span><span class="p">(</span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - password too short (length: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">password</span><span class="p">.</span><span class="n">length</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Password must be at least 8 characters&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">password</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">confirmPassword</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation failed - passwords do not match&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Passwords do not match&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">signupConfirmPasswordEditor</span><span class="o">-&gt;</span><span class="n">grabKeyboardFocus</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Auth: Signup validation passed, initiating API call&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Show loading state</span>
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Make API call</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Auth: Cannot signup - NetworkClient is null&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">        </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">        </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Network client not available&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Calling NetworkClient::registerAccount - email: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, username: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="p">);</span>
+<span class="w">    </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">registerAccount</span><span class="p">(</span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">displayName</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">authResult</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">        </span><span class="n">signupSubmitButton</span><span class="o">-&gt;</span><span class="n">setEnabled</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">authResult</span><span class="p">.</span><span class="n">isOk</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">token</span><span class="p">,</span><span class="w"> </span><span class="n">userId</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">authResult</span><span class="p">.</span><span class="n">getValue</span><span class="p">();</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Signup successful - email: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, username: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, userId: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">userId</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onLoginSuccess</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Auth: Calling onLoginSuccess callback&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="n">onLoginSuccess</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">token</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup succeeded but onLoginSuccess callback not set&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Auth: Signup failed for: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">authResult</span><span class="p">.</span><span class="n">getError</span><span class="p">());</span>
+<span class="w">            </span><span class="n">showError</span><span class="p">(</span><span class="s">&quot;Registration failed. Please try again.&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

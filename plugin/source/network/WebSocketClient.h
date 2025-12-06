@@ -102,16 +102,16 @@ public:
 
         static Config development()
         {
-            return { Constants::Endpoints::DEV_WS_HOST, Constants::Endpoints::DEV_WS_PORT, 
-                     Constants::Endpoints::WS_PATH, false, 
-                     Constants::Api::WEBSOCKET_TIMEOUT_MS, 30000, 
+            return { Constants::Endpoints::DEV_WS_HOST, Constants::Endpoints::DEV_WS_PORT,
+                     Constants::Endpoints::WS_PATH, false,
+                     Constants::Api::WEBSOCKET_TIMEOUT_MS, 30000,
                      Constants::Api::RETRY_DELAY_BASE_MS, 30000, -1, 100 };
         }
 
         static Config production()
         {
-            return { Constants::Endpoints::PROD_WS_HOST, Constants::Endpoints::PROD_WS_PORT, 
-                     Constants::Endpoints::WS_PATH, true, 
+            return { Constants::Endpoints::PROD_WS_HOST, Constants::Endpoints::PROD_WS_PORT,
+                     Constants::Endpoints::WS_PATH, true,
                      15000, 30000, 2000, 60000, -1, 100 };
         }
     };
@@ -122,20 +122,53 @@ public:
 
     //==========================================================================
     // Connection management
+
+    /** Connect to the WebSocket server */
     void connect();
+
+    /** Disconnect from the WebSocket server */
     void disconnect();
+
+    /** Check if currently connected
+     *  @return true if connected, false otherwise
+     */
     bool isConnected() const { return state.load() == ConnectionState::Connected; }
+
+    /** Get current connection state
+     *  @return Current connection state
+     */
     ConnectionState getState() const { return state.load(); }
 
     //==========================================================================
     // Authentication
+
+    /** Set authentication token for WebSocket connection
+     *  @param token JWT authentication token
+     */
     void setAuthToken(const juce::String& token);
+
+    /** Clear authentication token */
     void clearAuthToken();
+
+    /** Check if authentication token is set
+     *  @return true if token is set, false otherwise
+     */
     bool hasAuthToken() const { return !authToken.isEmpty(); }
 
     //==========================================================================
     // Messaging
+
+    /** Send a message to the server
+     *  @param message JSON message object
+     *  @return true if message was queued/sent, false if connection is down
+     */
     bool send(const juce::var& message);
+
+    /** Send a typed message to the server
+     *  @param type Message type string
+     *  @param data Message data payload
+     *  @return true if message was queued/sent, false if connection is down
+     */
     bool send(const juce::String& type, const juce::var& data);
 
     //==========================================================================
@@ -146,19 +179,33 @@ public:
 
     //==========================================================================
     // Configuration
+
+    /** Update WebSocket configuration
+     *  @param newConfig New configuration settings
+     */
     void setConfig(const Config& newConfig);
+
+    /** Get current configuration
+     *  @return Current configuration
+     */
     const Config& getConfig() const { return config; }
 
     //==========================================================================
     // Statistics
+
+    /** Statistics structure for connection metrics */
     struct Stats
     {
-        int messagesReceived = 0;
-        int messagesSent = 0;
-        int reconnectAttempts = 0;
-        int64_t lastMessageTime = 0;
-        int64_t connectedTime = 0;
+        int messagesReceived = 0;      ///< Total messages received
+        int messagesSent = 0;          ///< Total messages sent
+        int reconnectAttempts = 0;      ///< Number of reconnection attempts
+        int64_t lastMessageTime = 0;    ///< Timestamp of last message (milliseconds)
+        int64_t connectedTime = 0;     ///< Timestamp when connected (milliseconds)
     };
+
+    /** Get connection statistics
+     *  @return Current connection statistics
+     */
     Stats getStats() const;
 
 private:

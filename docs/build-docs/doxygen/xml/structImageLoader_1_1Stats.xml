@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structImageLoader_1_1Stats" kind="struct" language="C++" prot="public">
+    <compoundname>ImageLoader::Stats</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structImageLoader_1_1Stats_1a41d25195a495f3d37b288f633bc56fe1" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ImageLoader::Stats::cacheHits</definition>
+        <argsstring></argsstring>
+        <name>cacheHits</name>
+        <qualifiedname>ImageLoader::Stats::cacheHits</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" line="116" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structImageLoader_1_1Stats_1aafdcfac6eafb97d5dbafe8ff6ebad874" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ImageLoader::Stats::cacheMisses</definition>
+        <argsstring></argsstring>
+        <name>cacheMisses</name>
+        <qualifiedname>ImageLoader::Stats::cacheMisses</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" line="117" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structImageLoader_1_1Stats_1a20a808512950186a43621f03363b1033" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ImageLoader::Stats::downloadSuccesses</definition>
+        <argsstring></argsstring>
+        <name>downloadSuccesses</name>
+        <qualifiedname>ImageLoader::Stats::downloadSuccesses</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" line="118" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structImageLoader_1_1Stats_1ab77b7461421efdf275120f29cc5ae837" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ImageLoader::Stats::downloadFailures</definition>
+        <argsstring></argsstring>
+        <name>downloadFailures</name>
+        <qualifiedname>ImageLoader::Stats::downloadFailures</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" line="119" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structImageLoader_1_1Stats_1af948d1cfcc5b14ada16ecaf4e87b5bab" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ImageLoader::Stats::evictions</definition>
+        <argsstring></argsstring>
+        <name>evictions</name>
+        <qualifiedname>ImageLoader::Stats::evictions</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" line="120" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" line="114" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/ImageCache.h" bodystart="115" bodyend="121"/>
+    <listofallmembers>
+      <member refid="structImageLoader_1_1Stats_1a41d25195a495f3d37b288f633bc56fe1" prot="public" virt="non-virtual"><scope>ImageLoader::Stats</scope><name>cacheHits</name></member>
+      <member refid="structImageLoader_1_1Stats_1aafdcfac6eafb97d5dbafe8ff6ebad874" prot="public" virt="non-virtual"><scope>ImageLoader::Stats</scope><name>cacheMisses</name></member>
+      <member refid="structImageLoader_1_1Stats_1ab77b7461421efdf275120f29cc5ae837" prot="public" virt="non-virtual"><scope>ImageLoader::Stats</scope><name>downloadFailures</name></member>
+      <member refid="structImageLoader_1_1Stats_1a20a808512950186a43621f03363b1033" prot="public" virt="non-virtual"><scope>ImageLoader::Stats</scope><name>downloadSuccesses</name></member>
+      <member refid="structImageLoader_1_1Stats_1af948d1cfcc5b14ada16ecaf4e87b5bab" prot="public" virt="non-virtual"><scope>ImageLoader::Stats</scope><name>evictions</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

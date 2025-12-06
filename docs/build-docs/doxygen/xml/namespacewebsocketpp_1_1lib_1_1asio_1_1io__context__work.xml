@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespacewebsocketpp_1_1lib_1_1asio_1_1io__context__work" kind="namespace" language="C++">
+    <compoundname>websocketpp::lib::asio::io_context_work</compoundname>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="asio__compat_8h_1af137ef731a58f4257a713e763a2975dc" prot="public" static="no">
+        <type>::asio::executor_work_guard&lt;::asio::io_context::executor_type &gt;</type>
+        <definition>using websocketpp::lib::asio::io_context_work::work =  ::asio::executor_work_guard&lt;::asio::io_context::executor_type&gt;</definition>
+        <argsstring></argsstring>
+        <name>work</name>
+        <qualifiedname>websocketpp::lib::asio::io_context_work::work</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/asio_compat.h" line="60" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/asio_compat.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/asio_compat.h" line="59" column="5"/>
+  </compounddef>
+</doxygen>

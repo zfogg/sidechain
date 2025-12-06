@@ -1,0 +1,262 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceImageUtils" kind="namespace" language="C++">
+    <compoundname>ImageUtils</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceImageUtils_1ad9958447351c137930f943ab17583a9b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ImageUtils::drawCircular</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::Image &amp;image)</argsstring>
+        <name>drawCircular</name>
+        <qualifiedname>ImageUtils::drawCircular</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::Image &amp;</type>
+          <declname>image</declname>
+        </param>
+        <briefdescription>
+<para>Draw an image clipped to a circle. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>g</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Graphics context </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bounds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rectangle to draw in (will be made square) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>image</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The image to draw </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" line="6" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" bodystart="6" bodyend="27" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.h" declline="18" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceImageUtils_1ab8befd4b287d14a22de2255e9391dc3a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ImageUtils::drawCircularAvatar</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::Image &amp;image, const juce::String &amp;initials, juce::Colour backgroundColor=juce::Colour(0xff3a3a3e), juce::Colour textColor=juce::Colours::white, float fontSize=0.0f)</argsstring>
+        <name>drawCircularAvatar</name>
+        <qualifiedname>ImageUtils::drawCircularAvatar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::Image &amp;</type>
+          <declname>image</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>initials</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>backgroundColor</declname>
+          <defval>juce::Colour(0xff3a3a3e)</defval>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>textColor</declname>
+          <defval>juce::Colours::white</defval>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>fontSize</declname>
+          <defval>0.0f</defval>
+        </param>
+        <briefdescription>
+<para>Draw a circular avatar with fallback to initials. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If image is invalid, draws a colored circle with initials.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>g</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Graphics context </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bounds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rectangle to draw in </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>image</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The avatar image (can be null/invalid) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>initials</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Fallback initials (e.g., &quot;JD&quot; for John Doe) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>backgroundColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Background color for initials fallback </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>textColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Text color for initials </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fontSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Font size for initials (0 = auto-calculate from bounds) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" line="29" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" bodystart="29" bodyend="59" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.h" declline="34" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceImageUtils_1a66919acc1f6be74ed31444f0317fb122" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String ImageUtils::getInitials</definition>
+        <argsstring>(const juce::String &amp;displayName, int maxChars=2)</argsstring>
+        <name>getInitials</name>
+        <qualifiedname>ImageUtils::getInitials</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>displayName</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxChars</declname>
+          <defval>2</defval>
+        </param>
+        <briefdescription>
+<para>Generate initials from a display name. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>&quot;John Doe&quot; -&gt; &quot;JD&quot;, &quot;alice&quot; -&gt; &quot;A&quot;, &quot;&quot; -&gt; &quot;?&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" line="61" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" bodystart="61" bodyend="78" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.h" declline="46" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceImageUtils_1a5564d6dd047798ab66803ded0ab7c794" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ImageUtils::drawRounded</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::Image &amp;image, float cornerRadius)</argsstring>
+        <name>drawRounded</name>
+        <qualifiedname>ImageUtils::drawRounded</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::Image &amp;</type>
+          <declname>image</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+        </param>
+        <briefdescription>
+<para>Draw a rounded rectangle image. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>g</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Graphics context </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bounds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rectangle to draw in </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>image</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The image to draw </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cornerRadius</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Corner radius in pixels </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" line="80" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" bodystart="80" bodyend="99" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.h" declline="56" declcolumn="10"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Image drawing utilities for common <ref refid="namespaceUI" kindref="compound">UI</ref> patterns. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Image.cpp" line="3" column="1"/>
+  </compounddef>
+</doxygen>

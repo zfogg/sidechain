@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceConstants_1_1Errors" kind="namespace" language="C++">
+    <compoundname>Constants::Errors</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1a32f45a986b087ce7a9e4c96535a7e64f" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::NOT_AUTHENTICATED</definition>
+        <argsstring></argsstring>
+        <name>NOT_AUTHENTICATED</name>
+        <qualifiedname>Constants::Errors::NOT_AUTHENTICATED</qualifiedname>
+        <initializer>= &quot;🚫 Not authenticated&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="67" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1ae798864efe49433a0d10b1506a8c5af2" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::AUTH_REQUIRED</definition>
+        <argsstring></argsstring>
+        <name>AUTH_REQUIRED</name>
+        <qualifiedname>Constants::Errors::AUTH_REQUIRED</qualifiedname>
+        <initializer>= &quot;🔒 Authentication required&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="68" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1a9f91e36b584d260cf0727acb4593afa4" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::NETWORK_ERROR</definition>
+        <argsstring></argsstring>
+        <name>NETWORK_ERROR</name>
+        <qualifiedname>Constants::Errors::NETWORK_ERROR</qualifiedname>
+        <initializer>= &quot;🚨 Network error occurred&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="71" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1a4535ca3273967e6ed16bfb574a65a14a" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::REQUEST_FAILED</definition>
+        <argsstring></argsstring>
+        <name>REQUEST_FAILED</name>
+        <qualifiedname>Constants::Errors::REQUEST_FAILED</qualifiedname>
+        <initializer>= &quot;🔴 Request failed&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="72" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1a85abc93ff8852ae06897308fc4ec2564" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::TIMEOUT</definition>
+        <argsstring></argsstring>
+        <name>TIMEOUT</name>
+        <qualifiedname>Constants::Errors::TIMEOUT</qualifiedname>
+        <initializer>= &quot;⌛ Request timed out&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="73" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1a5a5b137a8d0447929aa3d51bfd561b65" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::INVALID_INPUT</definition>
+        <argsstring></argsstring>
+        <name>INVALID_INPUT</name>
+        <qualifiedname>Constants::Errors::INVALID_INPUT</qualifiedname>
+        <initializer>= &quot;❌ Invalid input&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="76" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceConstants_1_1Errors_1a9f4f15e8113fde447573a02feb29f8de" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>const char *</type>
+        <definition>const char* Constants::Errors::MISSING_REQUIRED_FIELD</definition>
+        <argsstring></argsstring>
+        <name>MISSING_REQUIRED_FIELD</name>
+        <qualifiedname>Constants::Errors::MISSING_REQUIRED_FIELD</qualifiedname>
+        <initializer>= &quot;⛔ Missing required field&quot;</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="77" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="64" column="5"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structStreamChatClient_1_1UserPresence" kind="struct" language="C++" prot="public">
+    <compoundname>StreamChatClient::UserPresence</compoundname>
+    <includes refid="StreamChatClient_8h" local="no">StreamChatClient.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structStreamChatClient_1_1UserPresence_1aa74fdf66de0d59431fb716a12dd54682" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StreamChatClient::UserPresence::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>StreamChatClient::UserPresence::userId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="89" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStreamChatClient_1_1UserPresence_1a67848c3ec7e866f4d278613afb55dc3e" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool StreamChatClient::UserPresence::online</definition>
+        <argsstring></argsstring>
+        <name>online</name>
+        <qualifiedname>StreamChatClient::UserPresence::online</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="90" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStreamChatClient_1_1UserPresence_1a3edb7942cff538e4ea85fdeaac3ee81b" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StreamChatClient::UserPresence::lastActive</definition>
+        <argsstring></argsstring>
+        <name>lastActive</name>
+        <qualifiedname>StreamChatClient::UserPresence::lastActive</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="91" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStreamChatClient_1_1UserPresence_1a4c92a8f2f202e7a2a8d6b178f8f16549" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StreamChatClient::UserPresence::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>StreamChatClient::UserPresence::status</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="92" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="87" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="88" bodyend="93"/>
+    <listofallmembers>
+      <member refid="structStreamChatClient_1_1UserPresence_1a3edb7942cff538e4ea85fdeaac3ee81b" prot="public" virt="non-virtual"><scope>StreamChatClient::UserPresence</scope><name>lastActive</name></member>
+      <member refid="structStreamChatClient_1_1UserPresence_1a67848c3ec7e866f4d278613afb55dc3e" prot="public" virt="non-virtual"><scope>StreamChatClient::UserPresence</scope><name>online</name></member>
+      <member refid="structStreamChatClient_1_1UserPresence_1a4c92a8f2f202e7a2a8d6b178f8f16549" prot="public" virt="non-virtual"><scope>StreamChatClient::UserPresence</scope><name>status</name></member>
+      <member refid="structStreamChatClient_1_1UserPresence_1aa74fdf66de0d59431fb716a12dd54682" prot="public" virt="non-virtual"><scope>StreamChatClient::UserPresence</scope><name>userId</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

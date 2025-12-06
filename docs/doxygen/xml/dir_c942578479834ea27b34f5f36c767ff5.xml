@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_c942578479834ea27b34f5f36c767ff5" kind="dir">
+    <compoundname>models</compoundname>
+    <innerfile refid="AggregatedFeedGroup_8h">AggregatedFeedGroup.h</innerfile>
+    <innerfile refid="AggregatedFeedResponse_8h">AggregatedFeedResponse.h</innerfile>
+    <innerfile refid="FeedPost_8cpp">FeedPost.cpp</innerfile>
+    <innerfile refid="FeedPost_8h">FeedPost.h</innerfile>
+    <innerfile refid="FeedResponse_8h">FeedResponse.h</innerfile>
+    <innerfile refid="Story_8cpp">Story.cpp</innerfile>
+    <innerfile refid="Story_8h">Story.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/"/>
+  </compounddef>
+</doxygen>

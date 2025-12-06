@@ -1,0 +1,263 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="Time_8h" kind="file" language="C++">
+    <compoundname>Time.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includedby refid="Comment_8h" local="yes">Comment.h</includedby>
+    <includedby refid="FeedPost_8h" local="yes">FeedPost.h</includedby>
+    <includedby refid="FollowersList_8h" local="yes">FollowersList.h</includedby>
+    <includedby refid="NotificationList_8cpp" local="yes">NotificationList.cpp</includedby>
+    <includedby refid="Search_8cpp" local="yes">Search.cpp</includedby>
+    <includedby refid="Time_8cpp" local="yes">Time.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>Time.h</label>
+        <link refid="Time_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="6">
+        <label>PluginEditor.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="5">
+        <label>PluginEditor.h</label>
+        <link refid=""/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>PluginProcessor.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="10">
+        <label>AggregatedFeedGroup.h</label>
+        <link refid=""/>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>AggregatedFeedResponse.h</label>
+        <link refid=""/>
+      </node>
+      <node id="19">
+        <label>FeedPost.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="9">
+        <label>FeedPost.h</label>
+        <link refid=""/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>FeedResponse.h</label>
+        <link refid=""/>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="22">
+        <label>FeedDataManager.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="21">
+        <label>FeedDataManager.h</label>
+        <link refid=""/>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>Comment.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="2">
+        <label>Comment.h</label>
+        <link refid=""/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>EmojiReactionsPanel.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="12">
+        <label>EmojiReactionsPanel.h</label>
+        <link refid=""/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="15">
+        <label>PostCard.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="14">
+        <label>PostCard.h</label>
+        <link refid=""/>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>PostsFeed.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="4">
+        <label>PostsFeed.h</label>
+        <link refid=""/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>NotificationList.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="25">
+        <label>EditProfile.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="24">
+        <label>EditProfile.h</label>
+        <link refid=""/>
+        <childnode refid="25" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
+        <label>Profile.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="23">
+        <label>Profile.h</label>
+        <link refid=""/>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>Search.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="17">
+        <label>Search.h</label>
+        <link refid=""/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+      </node>
+      <node id="31">
+        <label>FollowersList.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="30">
+        <label>FollowersList.h</label>
+        <link refid=""/>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+      </node>
+      <node id="27">
+        <label>StoriesFeed.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="26">
+        <label>StoriesFeed.h</label>
+        <link refid=""/>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+      </node>
+      <node id="29">
+        <label>StoryViewer.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="28">
+        <label>StoryViewer.h</label>
+        <link refid=""/>
+        <childnode refid="29" relation="include">
+        </childnode>
+      </node>
+      <node id="33">
+        <label>Time.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="1">
+        <label>Time.h</label>
+        <link refid="Time_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespaceTimeUtils">TimeUtils</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceTimeUtils" kindref="compound">TimeUtils</ref></highlight></codeline>
+<codeline lineno="10"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceTimeUtils_1a7266ad5afd8f4aa72ecc4d5d9d5fd813" kindref="member">formatTimeAgo</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::Time&amp;<sp/>time);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceTimeUtils_1a109121871714731f7a476e63f3603234" kindref="member">formatTimeAgoShort</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::Time&amp;<sp/>time);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.h"/>
+  </compounddef>
+</doxygen>

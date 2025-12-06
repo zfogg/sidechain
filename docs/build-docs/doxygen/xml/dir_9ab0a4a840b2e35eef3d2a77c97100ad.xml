@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_9ab0a4a840b2e35eef3d2a77c97100ad" kind="dir">
+    <compoundname>messages</compoundname>
+    <innerfile refid="AudioSnippetRecorder_8cpp">AudioSnippetRecorder.cpp</innerfile>
+    <innerfile refid="AudioSnippetRecorder_8h">AudioSnippetRecorder.h</innerfile>
+    <innerfile refid="MessagesList_8cpp">MessagesList.cpp</innerfile>
+    <innerfile refid="MessagesList_8h">MessagesList.h</innerfile>
+    <innerfile refid="MessageThread_8cpp">MessageThread.cpp</innerfile>
+    <innerfile refid="MessageThread_8h">MessageThread.h</innerfile>
+    <innerfile refid="MessageThreadComponent_8cpp">MessageThreadComponent.cpp</innerfile>
+    <innerfile refid="MessageThreadComponent_8h">MessageThreadComponent.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/"/>
+  </compounddef>
+</doxygen>

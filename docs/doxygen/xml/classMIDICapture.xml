@@ -1,0 +1,528 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classMIDICapture" kind="class" language="C++" prot="public">
+    <compoundname>MIDICapture</compoundname>
+    <includes refid="MIDICapture_8h" local="no">MIDICapture.h</includes>
+    <innerclass refid="structMIDICapture_1_1MIDIEvent" prot="public">MIDICapture::MIDIEvent</innerclass>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classMIDICapture_1ade20384172d08b17a7acb460dda3c5e5" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; MIDICapture::capturing</definition>
+        <argsstring></argsstring>
+        <name>capturing</name>
+        <qualifiedname>MIDICapture::capturing</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="93" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="93" bodyend="93"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a780404ae2cbf668a0faf653232d0149e" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; double &gt;</type>
+        <definition>std::atomic&lt;double&gt; MIDICapture::totalTimeSeconds</definition>
+        <argsstring></argsstring>
+        <name>totalTimeSeconds</name>
+        <qualifiedname>MIDICapture::totalTimeSeconds</qualifiedname>
+        <initializer>{ 0.0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="94" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="94" bodyend="94"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a530df01630d38472d9ce2be8757eb6fb" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; MIDICapture::currentSamplePosition</definition>
+        <argsstring></argsstring>
+        <name>currentSamplePosition</name>
+        <qualifiedname>MIDICapture::currentSamplePosition</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="95" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="95" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a6ecd5d31354369008cc6a71be4fb8d88" prot="private" static="no" mutable="yes">
+        <type>juce::CriticalSection</type>
+        <definition>juce::CriticalSection MIDICapture::eventsLock</definition>
+        <argsstring></argsstring>
+        <name>eventsLock</name>
+        <qualifiedname>MIDICapture::eventsLock</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="98" column="35" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a95dde92bdfb52700a1477837c905cce5" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &gt;</type>
+        <definition>std::vector&lt;MIDIEvent&gt; MIDICapture::midiEvents</definition>
+        <argsstring></argsstring>
+        <name>midiEvents</name>
+        <qualifiedname>MIDICapture::midiEvents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="99" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a0cd8f231d39d8584676670ccd8e387ba" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double MIDICapture::currentSampleRate</definition>
+        <argsstring></argsstring>
+        <name>currentSampleRate</name>
+        <qualifiedname>MIDICapture::currentSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="102" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a8074670007f2871ee6c2f03576fc7946" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int MIDICapture::currentBlockSize</definition>
+        <argsstring></argsstring>
+        <name>currentBlockSize</name>
+        <qualifiedname>MIDICapture::currentBlockSize</qualifiedname>
+        <initializer>= 512</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="103" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1ae1d47dbac6e845a729fd9b15072e3669" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; double &gt;</type>
+        <definition>std::atomic&lt;double&gt; MIDICapture::currentTempo</definition>
+        <argsstring></argsstring>
+        <name>currentTempo</name>
+        <qualifiedname>MIDICapture::currentTempo</qualifiedname>
+        <initializer>{ 120.0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="106" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="106" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1af0f3981bce247b088604a0b270f2a394" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; MIDICapture::timeSignatureNumerator</definition>
+        <argsstring></argsstring>
+        <name>timeSignatureNumerator</name>
+        <qualifiedname>MIDICapture::timeSignatureNumerator</qualifiedname>
+        <initializer>{ 4 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="107" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="107" bodyend="107"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMIDICapture_1a8c26e0a20696fb3b41217b3a17035ef9" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; MIDICapture::timeSignatureDenominator</definition>
+        <argsstring></argsstring>
+        <name>timeSignatureDenominator</name>
+        <qualifiedname>MIDICapture::timeSignatureDenominator</qualifiedname>
+        <initializer>{ 4 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="108" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="108" bodyend="108"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classMIDICapture_1adb85be411a6c4beb9506f2c80bae111b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MIDICapture::MIDICapture</definition>
+        <argsstring>()</argsstring>
+        <name>MIDICapture</name>
+        <qualifiedname>MIDICapture::MIDICapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="37" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="8" bodyend="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1ab8fead0c820019326da2f9b33eead110" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MIDICapture::~MIDICapture</definition>
+        <argsstring>()</argsstring>
+        <name>~MIDICapture</name>
+        <qualifiedname>MIDICapture::~MIDICapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="38" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="12" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a93d40a18b888044dd17595d873c9ce46" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::prepare</definition>
+        <argsstring>(double sampleRate, int samplesPerBlock)</argsstring>
+        <name>prepare</name>
+        <qualifiedname>MIDICapture::prepare</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>samplesPerBlock</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="17" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1aab81b08880aba7e1ddefa69f9587a40c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::reset</definition>
+        <argsstring>()</argsstring>
+        <name>reset</name>
+        <qualifiedname>MIDICapture::reset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="43" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="28" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a58f3ab05e97d09125739e7e7ff4ed94f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::startCapture</definition>
+        <argsstring>()</argsstring>
+        <name>startCapture</name>
+        <qualifiedname>MIDICapture::startCapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="47" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="39" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a1e158caa2328f05604c8ddb29ecf719f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &gt;</type>
+        <definition>std::vector&lt; MIDICapture::MIDIEvent &gt; MIDICapture::stopCapture</definition>
+        <argsstring>()</argsstring>
+        <name>stopCapture</name>
+        <qualifiedname>MIDICapture::stopCapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="48" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="60" bodyend="82"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1aecc9ffe6e795c16698dd06780c9b7c9d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool MIDICapture::isCapturing</definition>
+        <argsstring>() const</argsstring>
+        <name>isCapturing</name>
+        <qualifiedname>MIDICapture::isCapturing</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="49" bodyend="49"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a30b29b35920f543f5badfe8419615205" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::captureMIDI</definition>
+        <argsstring>(const juce::MidiBuffer &amp;midiMessages, int numSamples, double sampleRate)</argsstring>
+        <name>captureMIDI</name>
+        <qualifiedname>MIDICapture::captureMIDI</qualifiedname>
+        <param>
+          <type>const juce::MidiBuffer &amp;</type>
+          <declname>midiMessages</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>numSamples</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="54" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="85" bodyend="132"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1acb381d0440dc9622ff53ad9ca462df5a" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::var</type>
+        <definition>juce::var MIDICapture::getMIDIDataAsJSON</definition>
+        <argsstring>() const</argsstring>
+        <name>getMIDIDataAsJSON</name>
+        <qualifiedname>MIDICapture::getMIDIDataAsJSON</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="58" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="135" bodyend="170"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1af84097cd50302ef809b69611e4440862" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double MIDICapture::getTotalTime</definition>
+        <argsstring>() const</argsstring>
+        <name>getTotalTime</name>
+        <qualifiedname>MIDICapture::getTotalTime</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="59" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a8c8d1a64aa9133e9754c5840d7128f0c" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::var</type>
+        <definition>juce::var MIDICapture::getNormalizedMIDIDataAsJSON</definition>
+        <argsstring>() const</argsstring>
+        <name>getNormalizedMIDIDataAsJSON</name>
+        <qualifiedname>MIDICapture::getNormalizedMIDIDataAsJSON</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="80" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="308" bodyend="348"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a6bcc891f6203bc9359d3c5a05194a13d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::setTempo</definition>
+        <argsstring>(double bpm)</argsstring>
+        <name>setTempo</name>
+        <qualifiedname>MIDICapture::setTempo</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>bpm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="83" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="83" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1acd46f3053783f8bd745427a66443d565" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double MIDICapture::getTempo</definition>
+        <argsstring>() const</argsstring>
+        <name>getTempo</name>
+        <qualifiedname>MIDICapture::getTempo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="84" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="84" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1acc9476bc77be1dec52ef3d448822dd17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::setTimeSignature</definition>
+        <argsstring>(int numerator, int denominator)</argsstring>
+        <name>setTimeSignature</name>
+        <qualifiedname>MIDICapture::setTimeSignature</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>numerator</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>denominator</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="87" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="350" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a3e7ce09772a848e12b19dde88b9780e7" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>std::pair&lt; int, int &gt;</type>
+        <definition>std::pair&lt; int, int &gt; MIDICapture::getTimeSignature</definition>
+        <argsstring>() const</argsstring>
+        <name>getTimeSignature</name>
+        <qualifiedname>MIDICapture::getTimeSignature</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="88" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="356" bodyend="359"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classMIDICapture_1ab27f1f204b93106de545f1400505cd8b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &gt;</type>
+        <definition>std::vector&lt; MIDICapture::MIDIEvent &gt; MIDICapture::normalizeTiming</definition>
+        <argsstring>(const std::vector&lt; MIDIEvent &gt; &amp;events)</argsstring>
+        <name>normalizeTiming</name>
+        <qualifiedname>MIDICapture::normalizeTiming</qualifiedname>
+        <param>
+          <type>const std::vector&lt; <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &gt; &amp;</type>
+          <declname>events</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="69" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="176" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1abae6ef62ce090b574bb08af0bd1c992c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::vector&lt; <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &gt;</type>
+        <definition>std::vector&lt; MIDICapture::MIDIEvent &gt; MIDICapture::validateEvents</definition>
+        <argsstring>(const std::vector&lt; MIDIEvent &gt; &amp;events)</argsstring>
+        <name>validateEvents</name>
+        <qualifiedname>MIDICapture::validateEvents</qualifiedname>
+        <param>
+          <type>const std::vector&lt; <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &gt; &amp;</type>
+          <declname>events</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="76" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="206" bodyend="306"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classMIDICapture_1a5e75765592c6d95c548335833cdae900" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MIDICapture::addEvent</definition>
+        <argsstring>(const MIDIEvent &amp;event)</argsstring>
+        <name>addEvent</name>
+        <qualifiedname>MIDICapture::addEvent</qualifiedname>
+        <param>
+          <type>const <ref refid="structMIDICapture_1_1MIDIEvent" kindref="compound">MIDIEvent</ref> &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="111" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="362" bodyend="366"/>
+      </memberdef>
+      <memberdef kind="function" id="classMIDICapture_1a4ae74d6451efe3fa1d9d82e2dc2575ae" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double MIDICapture::samplePositionToTime</definition>
+        <argsstring>(int samplePosition) const</argsstring>
+        <name>samplePositionToTime</name>
+        <qualifiedname>MIDICapture::samplePositionToTime</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>samplePosition</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="112" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.cpp" bodystart="368" bodyend="373"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classMIDICapture" kindref="compound">MIDICapture</ref> handles capturing MIDI events from the DAW during recording. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Thread Safety:<itemizedlist>
+<listitem><para><ref refid="classMIDICapture_1a30b29b35920f543f5badfe8419615205" kindref="member">captureMIDI()</ref> is called from the AUDIO THREAD (processBlock)</para>
+</listitem><listitem><para>All other methods are called from the MESSAGE THREAD</para>
+</listitem><listitem><para>Uses std::atomic for thread-safe state sharing</para>
+</listitem></itemizedlist>
+</para>
+<para>Features:<itemizedlist>
+<listitem><para>Lock-free MIDI event capture from processBlock</para>
+</listitem><listitem><para>Captures note_on/note_off events with precise timing</para>
+</listitem><listitem><para>Stores velocity, channel, and note number</para>
+</listitem><listitem><para>Syncs MIDI events with audio timeline </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" line="22" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/MIDICapture.h" bodystart="23" bodyend="113"/>
+    <listofallmembers>
+      <member refid="classMIDICapture_1a5e75765592c6d95c548335833cdae900" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>addEvent</name></member>
+      <member refid="classMIDICapture_1a30b29b35920f543f5badfe8419615205" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>captureMIDI</name></member>
+      <member refid="classMIDICapture_1ade20384172d08b17a7acb460dda3c5e5" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>capturing</name></member>
+      <member refid="classMIDICapture_1a8074670007f2871ee6c2f03576fc7946" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>currentBlockSize</name></member>
+      <member refid="classMIDICapture_1a530df01630d38472d9ce2be8757eb6fb" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>currentSamplePosition</name></member>
+      <member refid="classMIDICapture_1a0cd8f231d39d8584676670ccd8e387ba" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>currentSampleRate</name></member>
+      <member refid="classMIDICapture_1ae1d47dbac6e845a729fd9b15072e3669" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>currentTempo</name></member>
+      <member refid="classMIDICapture_1a6ecd5d31354369008cc6a71be4fb8d88" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>eventsLock</name></member>
+      <member refid="classMIDICapture_1acb381d0440dc9622ff53ad9ca462df5a" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>getMIDIDataAsJSON</name></member>
+      <member refid="classMIDICapture_1a8c8d1a64aa9133e9754c5840d7128f0c" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>getNormalizedMIDIDataAsJSON</name></member>
+      <member refid="classMIDICapture_1acd46f3053783f8bd745427a66443d565" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>getTempo</name></member>
+      <member refid="classMIDICapture_1a3e7ce09772a848e12b19dde88b9780e7" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>getTimeSignature</name></member>
+      <member refid="classMIDICapture_1af84097cd50302ef809b69611e4440862" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>getTotalTime</name></member>
+      <member refid="classMIDICapture_1aecc9ffe6e795c16698dd06780c9b7c9d" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>isCapturing</name></member>
+      <member refid="classMIDICapture_1adb85be411a6c4beb9506f2c80bae111b" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>MIDICapture</name></member>
+      <member refid="classMIDICapture_1a95dde92bdfb52700a1477837c905cce5" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>midiEvents</name></member>
+      <member refid="classMIDICapture_1ab27f1f204b93106de545f1400505cd8b" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>normalizeTiming</name></member>
+      <member refid="classMIDICapture_1a93d40a18b888044dd17595d873c9ce46" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>prepare</name></member>
+      <member refid="classMIDICapture_1aab81b08880aba7e1ddefa69f9587a40c" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>reset</name></member>
+      <member refid="classMIDICapture_1a4ae74d6451efe3fa1d9d82e2dc2575ae" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>samplePositionToTime</name></member>
+      <member refid="classMIDICapture_1a6bcc891f6203bc9359d3c5a05194a13d" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>setTempo</name></member>
+      <member refid="classMIDICapture_1acc9476bc77be1dec52ef3d448822dd17" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>setTimeSignature</name></member>
+      <member refid="classMIDICapture_1a58f3ab05e97d09125739e7e7ff4ed94f" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>startCapture</name></member>
+      <member refid="classMIDICapture_1a1e158caa2328f05604c8ddb29ecf719f" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>stopCapture</name></member>
+      <member refid="classMIDICapture_1a8c26e0a20696fb3b41217b3a17035ef9" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>timeSignatureDenominator</name></member>
+      <member refid="classMIDICapture_1af0f3981bce247b088604a0b270f2a394" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>timeSignatureNumerator</name></member>
+      <member refid="classMIDICapture_1a780404ae2cbf668a0faf653232d0149e" prot="private" virt="non-virtual"><scope>MIDICapture</scope><name>totalTimeSeconds</name></member>
+      <member refid="classMIDICapture_1abae6ef62ce090b574bb08af0bd1c992c" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>validateEvents</name></member>
+      <member refid="classMIDICapture_1ab8fead0c820019326da2f9b33eead110" prot="public" virt="non-virtual"><scope>MIDICapture</scope><name>~MIDICapture</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

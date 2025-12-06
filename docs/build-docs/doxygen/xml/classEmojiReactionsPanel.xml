@@ -1,0 +1,376 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classEmojiReactionsPanel" kind="class" language="C++" prot="public">
+    <compoundname>EmojiReactionsPanel</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <includes refid="EmojiReactionsPanel_8h" local="no">EmojiReactionsPanel.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1a546648694a2c0e4db1a1fa1fd0fe2bdc" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;emoji)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; emoji)&gt; EmojiReactionsPanel::onEmojiSelected</definition>
+        <argsstring></argsstring>
+        <name>onEmojiSelected</name>
+        <qualifiedname>EmojiReactionsPanel::onEmojiSelected</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="28" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1ab8fc6a605210db563541f0ebf46bc0e5" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; EmojiReactionsPanel::onDismiss</definition>
+        <argsstring></argsstring>
+        <name>onDismiss</name>
+        <qualifiedname>EmojiReactionsPanel::onDismiss</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="31" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1a1ad63ecdee307ebf353eaddc41b95aef" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EmojiReactionsPanel::PANEL_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>PANEL_HEIGHT</name>
+        <qualifiedname>EmojiReactionsPanel::PANEL_HEIGHT</qualifiedname>
+        <initializer>= 50</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="49" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1ac1a7a33241aef2992f3e9c1a49884a74" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EmojiReactionsPanel::EMOJI_SIZE</definition>
+        <argsstring></argsstring>
+        <name>EMOJI_SIZE</name>
+        <qualifiedname>EmojiReactionsPanel::EMOJI_SIZE</qualifiedname>
+        <initializer>= 32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="50" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1a3c76f2374cc0d9f82bca7d2ab2eadedb" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EmojiReactionsPanel::EMOJI_SPACING</definition>
+        <argsstring></argsstring>
+        <name>EMOJI_SPACING</name>
+        <qualifiedname>EmojiReactionsPanel::EMOJI_SPACING</qualifiedname>
+        <initializer>= 8</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="51" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1a7fa58d15582a5cc654f19f381ccc0d34" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EmojiReactionsPanel::PANEL_PADDING</definition>
+        <argsstring></argsstring>
+        <name>PANEL_PADDING</name>
+        <qualifiedname>EmojiReactionsPanel::PANEL_PADDING</qualifiedname>
+        <initializer>= 10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="52" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1aeb8fedd0420e0accfcbaa41186f4359b" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String EmojiReactionsPanel::selectedEmoji</definition>
+        <argsstring></argsstring>
+        <name>selectedEmoji</name>
+        <qualifiedname>EmojiReactionsPanel::selectedEmoji</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="56" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEmojiReactionsPanel_1a8bb79363781fd1b2571cc49e77431b0c" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int EmojiReactionsPanel::hoveredIndex</definition>
+        <argsstring></argsstring>
+        <name>hoveredIndex</name>
+        <qualifiedname>EmojiReactionsPanel::hoveredIndex</qualifiedname>
+        <initializer>= -1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="57" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a6f0196ca3ac287fca4c5aa67036859dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>EmojiReactionsPanel::EmojiReactionsPanel</definition>
+        <argsstring>()</argsstring>
+        <name>EmojiReactionsPanel</name>
+        <qualifiedname>EmojiReactionsPanel::EmojiReactionsPanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="23" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="9" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1aaae4be46a59bbda5f1724081d0e37d76" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>EmojiReactionsPanel::~EmojiReactionsPanel</definition>
+        <argsstring>() override</argsstring>
+        <name>~EmojiReactionsPanel</name>
+        <qualifiedname>EmojiReactionsPanel::~EmojiReactionsPanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="24" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="15" bodyend="18"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a7c979c9c7d28613c363d151693e324eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EmojiReactionsPanel::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>EmojiReactionsPanel::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="34" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="21" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a53689b6821c37ae71fd801548deff259" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EmojiReactionsPanel::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>EmojiReactionsPanel::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="35" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="65" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a74fc89e010e858267344775ff8c37b6c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EmojiReactionsPanel::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>EmojiReactionsPanel::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="36" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="70" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a761cd7f9ae6a2cccc2ec502e914e822d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EmojiReactionsPanel::mouseMove</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseMove</name>
+        <qualifiedname>EmojiReactionsPanel::mouseMove</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="37" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="86" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1aff8eda79c0e73a19921a384f05dcd6ac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EmojiReactionsPanel::mouseExit</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseExit</name>
+        <qualifiedname>EmojiReactionsPanel::mouseExit</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="38" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="97" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a7dab5751b458c1266f2b03d6a727d6b6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EmojiReactionsPanel::setSelectedEmoji</definition>
+        <argsstring>(const juce::String &amp;emoji)</argsstring>
+        <name>setSelectedEmoji</name>
+        <qualifiedname>EmojiReactionsPanel::setSelectedEmoji</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>emoji</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="107" bodyend="112"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classEmojiReactionsPanel_1acff58ebb07ee294e945f8ff389dc3b03" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; EmojiReactionsPanel::getPreferredSize</definition>
+        <argsstring>()</argsstring>
+        <name>getPreferredSize</name>
+        <qualifiedname>EmojiReactionsPanel::getPreferredSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="45" column="28" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="114" bodyend="119"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classEmojiReactionsPanel_1a0dd87c4e7d3eaf09edf377b01893fe3a" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; EmojiReactionsPanel::getEmojiBounds</definition>
+        <argsstring>(int index) const</argsstring>
+        <name>getEmojiBounds</name>
+        <qualifiedname>EmojiReactionsPanel::getEmojiBounds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="61" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="122" bodyend="131"/>
+      </memberdef>
+      <memberdef kind="function" id="classEmojiReactionsPanel_1ad30bd3b8e1897f7fa40706113309318a" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int EmojiReactionsPanel::getEmojiIndexAtPosition</definition>
+        <argsstring>(juce::Point&lt; int &gt; pos) const</argsstring>
+        <name>getEmojiIndexAtPosition</name>
+        <qualifiedname>EmojiReactionsPanel::getEmojiIndexAtPosition</qualifiedname>
+        <param>
+          <type>juce::Point&lt; int &gt;</type>
+          <declname>pos</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="64" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.cpp" bodystart="133" bodyend="141"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classEmojiReactionsPanel" kindref="compound">EmojiReactionsPanel</ref> - A popup panel for selecting emoji reactions. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This component displays a horizontal row of music-themed emoji buttons that users can click to react to a post. It&apos;s designed to appear as a floating panel above the like button.</para>
+<para>Features:<itemizedlist>
+<listitem><para>6 music-themed emojis: heart, fire, music note, 100, heart eyes, rocket</para>
+</listitem><listitem><para>Animated appearance/disappearance</para>
+</listitem><listitem><para>Hover effects on individual emojis</para>
+</listitem><listitem><para>Auto-dismiss when clicking outside or selecting an emoji </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>EmojiReactionsPanel</label>
+        <link refid="classEmojiReactionsPanel"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>EmojiReactionsPanel</label>
+        <link refid="classEmojiReactionsPanel"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" line="20" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/EmojiReactionsPanel.h" bodystart="21" bodyend="68"/>
+    <listofallmembers>
+      <member refid="classEmojiReactionsPanel_1ac1a7a33241aef2992f3e9c1a49884a74" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>EMOJI_SIZE</name></member>
+      <member refid="classEmojiReactionsPanel_1a3c76f2374cc0d9f82bca7d2ab2eadedb" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>EMOJI_SPACING</name></member>
+      <member refid="classEmojiReactionsPanel_1a6f0196ca3ac287fca4c5aa67036859dd" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>EmojiReactionsPanel</name></member>
+      <member refid="classEmojiReactionsPanel_1a0dd87c4e7d3eaf09edf377b01893fe3a" prot="private" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>getEmojiBounds</name></member>
+      <member refid="classEmojiReactionsPanel_1ad30bd3b8e1897f7fa40706113309318a" prot="private" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>getEmojiIndexAtPosition</name></member>
+      <member refid="classEmojiReactionsPanel_1acff58ebb07ee294e945f8ff389dc3b03" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>getPreferredSize</name></member>
+      <member refid="classEmojiReactionsPanel_1a8bb79363781fd1b2571cc49e77431b0c" prot="private" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>hoveredIndex</name></member>
+      <member refid="classEmojiReactionsPanel_1aff8eda79c0e73a19921a384f05dcd6ac" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>mouseExit</name></member>
+      <member refid="classEmojiReactionsPanel_1a761cd7f9ae6a2cccc2ec502e914e822d" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>mouseMove</name></member>
+      <member refid="classEmojiReactionsPanel_1a74fc89e010e858267344775ff8c37b6c" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>mouseUp</name></member>
+      <member refid="classEmojiReactionsPanel_1ab8fc6a605210db563541f0ebf46bc0e5" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>onDismiss</name></member>
+      <member refid="classEmojiReactionsPanel_1a546648694a2c0e4db1a1fa1fd0fe2bdc" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>onEmojiSelected</name></member>
+      <member refid="classEmojiReactionsPanel_1a7c979c9c7d28613c363d151693e324eb" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>paint</name></member>
+      <member refid="classEmojiReactionsPanel_1a1ad63ecdee307ebf353eaddc41b95aef" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>PANEL_HEIGHT</name></member>
+      <member refid="classEmojiReactionsPanel_1a7fa58d15582a5cc654f19f381ccc0d34" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>PANEL_PADDING</name></member>
+      <member refid="classEmojiReactionsPanel_1a53689b6821c37ae71fd801548deff259" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>resized</name></member>
+      <member refid="classEmojiReactionsPanel_1aeb8fedd0420e0accfcbaa41186f4359b" prot="private" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>selectedEmoji</name></member>
+      <member refid="classEmojiReactionsPanel_1a7dab5751b458c1266f2b03d6a727d6b6" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>setSelectedEmoji</name></member>
+      <member refid="classEmojiReactionsPanel_1aaae4be46a59bbda5f1724081d0e37d76" prot="public" virt="non-virtual"><scope>EmojiReactionsPanel</scope><name>~EmojiReactionsPanel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

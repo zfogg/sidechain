@@ -1,0 +1,547 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class PostCard &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class PostsFeed" href="classPostsFeed.html" />
+    <link rel="prev" title="Class PianoRoll" href="classPianoRoll.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedGroup.html">Struct AggregatedFeedGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedResponse.html">Struct AggregatedFeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAuth_1_1Colors.html">Struct Auth::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structComment.html">Struct Comment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structDiscoveredUser.html">Struct DiscoveredUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structEditProfile_1_1Colors.html">Struct EditProfile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedDataManager_1_1CacheEntry.html">Struct FeedDataManager::CacheEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedResponse.html">Struct FeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFollowListUser.html">Struct FollowListUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpAudioPlayer_1_1CachedAudio.html">Struct HttpAudioPlayer::CachedAudio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpErrorHandler_1_1HttpError.html">Struct HttpErrorHandler::HttpError</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structImageLoader_1_1Stats.html">Struct Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structKeyDetector_1_1Key.html">Struct KeyDetector::Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMIDICapture_1_1MIDIEvent.html">Struct MIDICapture::MIDIEvent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMultiHoverState_1_1Region.html">Struct MultiHoverState::Region</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1AudioUploadMetadata.html">Struct NetworkClient::AudioUploadMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1Config.html">Struct NetworkClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1NotificationResult.html">Struct NetworkClient::NotificationResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1RequestResult.html">Struct NetworkClient::RequestResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNotificationItem.html">Struct NotificationItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structPianoRoll_1_1Note.html">Struct PianoRoll::Note</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structProfile_1_1Colors.html">Struct Profile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoriesFeed_1_1UserStories.html">Struct StoriesFeed::UserStories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStory.html">Struct Story</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryData.html">Struct StoryData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryViewer_1_1ProgressSegment.html">Struct StoryViewer::ProgressSegment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1AudioSnippetResult.html">Struct StreamChatClient::AudioSnippetResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Channel.html">Struct StreamChatClient::Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Config.html">Struct StreamChatClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Message.html">Struct StreamChatClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1TokenResult.html">Struct StreamChatClient::TokenResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1UserPresence.html">Struct StreamChatClient::UserPresence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUpload_1_1MusicalKey.html">Struct Upload::MusicalKey</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserCard_1_1Colors.html">Struct UserCard::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserDiscovery_1_1Colors.html">Struct UserDiscovery::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserProfile.html">Struct UserProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Config.html">Struct WebSocketClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Message.html">Struct WebSocketClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Stats.html">Struct WebSocketClient::Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimation.html">Class Animation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimationValue.html">Template Class AnimationValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioCapture.html">Class AudioCapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioSnippetRecorder.html">Class AudioSnippetRecorder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAuth.html">Class Auth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer.html">Class BufferAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer_1_1ProgressTimer.html">Class BufferAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classChannelPollTimer.html">Class ChannelPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentRow.html">Class CommentRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel.html">Class CommentsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel_1_1MentionListener.html">Class CommentsPanel::MentionListener</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classConnectionIndicator.html">Class ConnectionIndicator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEditProfile.html">Class EditProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsBubble.html">Class EmojiReactionsBubble</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsPanel.html">Class EmojiReactionsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedDataManager.html">Class FeedDataManager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedPost.html">Class FeedPost</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowersList.html">Class FollowersList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowUserRow.html">Class FollowUserRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHeader.html">Class Header</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverState.html">Class HoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverStateWithCursor.html">Class HoverStateWithCursor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer.html">Class HttpAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer_1_1ProgressTimer.html">Class HttpAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpErrorHandler.html">Class HttpErrorHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector.html">Class KeyDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector_1_1Impl.html">Class KeyDetector::Impl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressDetector.html">Class LongPressDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressWithProgress.html">Class LongPressWithProgress</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessagesList.html">Class MessagesList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThread.html">Class MessageThread</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThreadComponent.html">Class MessageThreadComponent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMIDICapture.html">Class MIDICapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiHoverState.html">Class MultiHoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNetworkClient.html">Class NetworkClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationBell.html">Class NotificationBell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationList.html">Class NotificationList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationPollTimer.html">Class NotificationPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationRow.html">Class NotificationRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOAuthPollTimer.html">Class OAuthPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome.html">Template Class Outcome</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome_3_01void_01_4.html">Template Class Outcome&lt; void &gt;</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPianoRoll.html">Class PianoRoll</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class PostCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostsFeed.html">Class PostsFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfile.html">Class Profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfileSetup.html">Class ProfileSetup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classRecording.html">Class Recording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSearch.html">Class Search</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessor.html">Class SidechainAudioProcessor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessorEditor.html">Class SidechainAudioProcessorEditor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoriesFeed.html">Class StoriesFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryRecording.html">Class StoryRecording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryViewer.html">Class StoryViewer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStreamChatClient.html">Class StreamChatClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUnreadPollTimer.html">Class UnreadPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUpload.html">Class Upload</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserCard.html">Class UserCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDataStore.html">Class UserDataStore</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDiscovery.html">Class UserDiscovery</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classWebSocketClient.html">Class WebSocketClient</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Class PostCard</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classPostCard.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-postcard">
+<span id="exhale-class-classpostcard"></span><h1>Class PostCard<a class="headerlink" href="#class-postcard" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_plugin_source_ui_feed_PostCard.h.html#file-plugin-source-ui-feed-postcard-h"><span class="std std-ref">File PostCard.h</span></a></p></li>
+</ul>
+<section id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Link to this heading"></a></h2>
+<section id="base-types">
+<h3>Base Types<a class="headerlink" href="#base-types" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">juce::Component</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">juce::Timer</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv48PostCard">
+<span id="_CPPv38PostCard"></span><span id="_CPPv28PostCard"></span><span id="PostCard"></span><span class="target" id="classPostCard"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PostCard</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Component</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Timer</span></span><a class="headerlink" href="#_CPPv48PostCard" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.h.html#classPostCard"><span class="std std-ref">PostCard</span></a> displays a single post in the feed. </p>
+<p>Features:<ul class="simple">
+<li><p>User avatar with circular clip and fallback to initials</p></li>
+<li><p>Username and relative timestamp</p></li>
+<li><p>Waveform visualization with play progress overlay</p></li>
+<li><p>Play/pause button</p></li>
+<li><p>BPM and key badges</p></li>
+<li><p>Like button with count</p></li>
+<li><p><a class="reference internal" href="structComment.html#structComment"><span class="std std-ref">Comment</span></a> count indicator</p></li>
+<li><p>Share button</p></li>
+</ul>
+</p>
+<p>The component uses a callback-based API for actions to keep it decoupled from network/audio code. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard8PostCardEv">
+<span id="_CPPv3N8PostCard8PostCardEv"></span><span id="_CPPv2N8PostCard8PostCardEv"></span><span id="PostCard::PostCard"></span><span class="target" id="classPostCard_1ac9d129bc40fa2d165318014ac3ff46b7"></span><span class="sig-name descname"><span class="n"><span class="pre">PostCard</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard8PostCardEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCardD0Ev">
+<span id="_CPPv3N8PostCardD0Ev"></span><span id="_CPPv2N8PostCardD0Ev"></span><span id="PostCard::~PostCard"></span><span class="target" id="classPostCard_1a37f75547bdf8a2599631d323e4bf85e2"></span><span class="sig-name descname"><span class="n"><span class="pre">~PostCard</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCardD0Ev" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard7setPostERK8FeedPost">
+<span id="_CPPv3N8PostCard7setPostERK8FeedPost"></span><span id="_CPPv2N8PostCard7setPostERK8FeedPost"></span><span id="PostCard::setPost__FeedPostCR"></span><span class="target" id="classPostCard_1a3cfb7b29cb23d8e5b7e03424184737bb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setPost</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">post</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard7setPostERK8FeedPost" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the post data to display. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>post</strong> – The feed post to display </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8PostCard7getPostEv">
+<span id="_CPPv3NK8PostCard7getPostEv"></span><span id="_CPPv2NK8PostCard7getPostEv"></span><span id="PostCard::getPostC"></span><span class="target" id="classPostCard_1a855f8795af30b79bdd7e0a2189333b27"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">getPost</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8PostCard7getPostEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the current post data. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reference to the current post </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK8PostCard9getPostIdEv">
+<span id="_CPPv3NK8PostCard9getPostIdEv"></span><span id="_CPPv2NK8PostCard9getPostIdEv"></span><span id="PostCard::getPostIdC"></span><span class="target" id="classPostCard_1a2535c363caebcaf9581a9bb5e5a081cc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getPostId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK8PostCard9getPostIdEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the post ID. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The unique post identifier </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard15updateLikeCountEib">
+<span id="_CPPv3N8PostCard15updateLikeCountEib"></span><span id="_CPPv2N8PostCard15updateLikeCountEib"></span><span id="PostCard::updateLikeCount__i.b"></span><span class="target" id="classPostCard_1a4dd61207381e713a91576d9bfbb1d72d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateLikeCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">isLiked</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard15updateLikeCountEib" title="Link to this definition"></a><br /></dt>
+<dd><p>Update the like count and liked state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>count</strong> – The new like count </p></li>
+<li><p><strong>isLiked</strong> – Whether the current user has liked this post </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard15updatePlayCountEi">
+<span id="_CPPv3N8PostCard15updatePlayCountEi"></span><span id="_CPPv2N8PostCard15updatePlayCountEi"></span><span id="PostCard::updatePlayCount__i"></span><span class="target" id="classPostCard_1a56b039307fb148c29d0013c7eb7db14b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updatePlayCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard15updatePlayCountEi" title="Link to this definition"></a><br /></dt>
+<dd><p>Update the play count. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>count</strong> – The new play count </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard17updateFollowStateEb">
+<span id="_CPPv3N8PostCard17updateFollowStateEb"></span><span id="_CPPv2N8PostCard17updateFollowStateEb"></span><span id="PostCard::updateFollowState__b"></span><span class="target" id="classPostCard_1a192479d00832072082dda58894302111"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateFollowState</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">isFollowing</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard17updateFollowStateEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Update the follow state for the post author. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>isFollowing</strong> – Whether the current user is following the author </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard14updateReactionERKN4juce6StringE">
+<span id="_CPPv3N8PostCard14updateReactionERKN4juce6StringE"></span><span id="_CPPv2N8PostCard14updateReactionERKN4juce6StringE"></span><span id="PostCard::updateReaction__juce::StringCR"></span><span class="target" id="classPostCard_1a720344300c5623e0f665cf0b4bd075ee"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateReaction</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">emoji</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard14updateReactionERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Update the user’s reaction emoji. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>emoji</strong> – The emoji reaction (empty string to clear) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard19setPlaybackProgressEf">
+<span id="_CPPv3N8PostCard19setPlaybackProgressEf"></span><span id="_CPPv2N8PostCard19setPlaybackProgressEf"></span><span id="PostCard::setPlaybackProgress__float"></span><span class="target" id="classPostCard_1a2b578036dceee4da65faa6c7f5f1484e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setPlaybackProgress</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">progress</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard19setPlaybackProgressEf" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the playback progress indicator. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>progress</strong> – Progress from 0.0 to 1.0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard12setIsPlayingEb">
+<span id="_CPPv3N8PostCard12setIsPlayingEb"></span><span id="_CPPv2N8PostCard12setIsPlayingEb"></span><span id="PostCard::setIsPlaying__b"></span><span class="target" id="classPostCard_1a4455baaed29f0feacc1a02bda9b1b26b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setIsPlaying</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">playing</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard12setIsPlayingEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Set whether the post is currently playing. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>playing</strong> – true if playing, false otherwise </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard10setPlayingEb">
+<span id="_CPPv3N8PostCard10setPlayingEb"></span><span id="_CPPv2N8PostCard10setPlayingEb"></span><span id="PostCard::setPlaying__b"></span><span class="target" id="classPostCard_1a859623e43cd2581f697bb0f3f6c67960"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setPlaying</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">playing</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard10setPlayingEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Set whether the post is currently playing (alias). </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>playing</strong> – true if playing, false otherwise </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard10setLoadingEb">
+<span id="_CPPv3N8PostCard10setLoadingEb"></span><span id="_CPPv2N8PostCard10setLoadingEb"></span><span id="PostCard::setLoading__b"></span><span class="target" id="classPostCard_1a8c70318ee1360d1118446d3464a98d6d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setLoading</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">loading</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8PostCard10setLoadingEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the loading state. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>loading</strong> – true if loading audio, false otherwise </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard5paintERN4juce8GraphicsE">
+<span id="_CPPv3N8PostCard5paintERN4juce8GraphicsE"></span><span id="_CPPv2N8PostCard5paintERN4juce8GraphicsE"></span><span id="PostCard::paint__juce::GraphicsR"></span><span class="target" id="classPostCard_1acc6f6b5aa209636a53e2f54bfdfc7c50"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">paint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Graphics</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">g</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard5paintERN4juce8GraphicsE" title="Link to this definition"></a><br /></dt>
+<dd><p>Paint the component. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>g</strong> – Graphics context for drawing </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard7resizedEv">
+<span id="_CPPv3N8PostCard7resizedEv"></span><span id="_CPPv2N8PostCard7resizedEv"></span><span id="PostCard::resized"></span><span class="target" id="classPostCard_1aa74a8a4b927260bc8fdda2de031294cd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">resized</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard7resizedEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Handle component resize. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard9mouseDownERKN4juce10MouseEventE">
+<span id="_CPPv3N8PostCard9mouseDownERKN4juce10MouseEventE"></span><span id="_CPPv2N8PostCard9mouseDownERKN4juce10MouseEventE"></span><span id="PostCard::mouseDown__juce::MouseEventCR"></span><span class="target" id="classPostCard_1aadc8571fdb364148b4dfa53bac767e94"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mouseDown</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MouseEvent</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">event</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard9mouseDownERKN4juce10MouseEventE" title="Link to this definition"></a><br /></dt>
+<dd><p>Handle mouse down events. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> – Mouse event details </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard7mouseUpERKN4juce10MouseEventE">
+<span id="_CPPv3N8PostCard7mouseUpERKN4juce10MouseEventE"></span><span id="_CPPv2N8PostCard7mouseUpERKN4juce10MouseEventE"></span><span id="PostCard::mouseUp__juce::MouseEventCR"></span><span class="target" id="classPostCard_1a5a5d8975ca2547b2b1a61b24e62491ed"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mouseUp</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MouseEvent</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">event</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard7mouseUpERKN4juce10MouseEventE" title="Link to this definition"></a><br /></dt>
+<dd><p>Handle mouse up events. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> – Mouse event details </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard10mouseEnterERKN4juce10MouseEventE">
+<span id="_CPPv3N8PostCard10mouseEnterERKN4juce10MouseEventE"></span><span id="_CPPv2N8PostCard10mouseEnterERKN4juce10MouseEventE"></span><span id="PostCard::mouseEnter__juce::MouseEventCR"></span><span class="target" id="classPostCard_1a70fced209a400944a452a3ee2f1426a0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mouseEnter</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MouseEvent</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">event</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard10mouseEnterERKN4juce10MouseEventE" title="Link to this definition"></a><br /></dt>
+<dd><p>Handle mouse enter events. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> – Mouse event details </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard9mouseExitERKN4juce10MouseEventE">
+<span id="_CPPv3N8PostCard9mouseExitERKN4juce10MouseEventE"></span><span id="_CPPv2N8PostCard9mouseExitERKN4juce10MouseEventE"></span><span id="PostCard::mouseExit__juce::MouseEventCR"></span><span class="target" id="classPostCard_1af489f1dd84cc4670938330905dd5c6a9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mouseExit</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MouseEvent</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">event</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard9mouseExitERKN4juce10MouseEventE" title="Link to this definition"></a><br /></dt>
+<dd><p>Handle mouse exit events. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> – Mouse event details </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard13timerCallbackEv">
+<span id="_CPPv3N8PostCard13timerCallbackEv"></span><span id="_CPPv2N8PostCard13timerCallbackEv"></span><span id="PostCard::timerCallback"></span><span class="target" id="classPostCard_1a87f45b3237b2ce0c4be94cadc5d361d1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">timerCallback</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N8PostCard13timerCallbackEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Timer callback for animations and long-press detection. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard13onPlayClickedE">
+<span id="_CPPv3N8PostCard13onPlayClickedE"></span><span id="_CPPv2N8PostCard13onPlayClickedE"></span><span class="target" id="classPostCard_1a9a6e3e395cf20540f6441712400e1177"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onPlayClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard13onPlayClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard14onPauseClickedE">
+<span id="_CPPv3N8PostCard14onPauseClickedE"></span><span id="_CPPv2N8PostCard14onPauseClickedE"></span><span class="target" id="classPostCard_1a869e327a68ce761a5e0d3dfc0385aa75"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onPauseClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard14onPauseClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard13onLikeToggledE">
+<span id="_CPPv3N8PostCard13onLikeToggledE"></span><span id="_CPPv2N8PostCard13onLikeToggledE"></span><span class="target" id="classPostCard_1ac204bac10ebf714f9a2ad2ae248e37f4"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n"><span class="pre">liked</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onLikeToggled</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard13onLikeToggledE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard15onEmojiReactionE">
+<span id="_CPPv3N8PostCard15onEmojiReactionE"></span><span id="_CPPv2N8PostCard15onEmojiReactionE"></span><span class="target" id="classPostCard_1a73e278c7aaf706968e8c7673ad4f0861"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">emoji</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onEmojiReaction</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard15onEmojiReactionE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard13onUserClickedE">
+<span id="_CPPv3N8PostCard13onUserClickedE"></span><span id="_CPPv2N8PostCard13onUserClickedE"></span><span class="target" id="classPostCard_1a9f12f6b59e0c04adc8f93374b4f59c58"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onUserClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard13onUserClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard16onCommentClickedE">
+<span id="_CPPv3N8PostCard16onCommentClickedE"></span><span id="_CPPv2N8PostCard16onCommentClickedE"></span><span class="target" id="classPostCard_1ab4ef815a51d0dad6ceb0f88760af2dc9"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onCommentClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard16onCommentClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard14onShareClickedE">
+<span id="_CPPv3N8PostCard14onShareClickedE"></span><span id="_CPPv2N8PostCard14onShareClickedE"></span><span class="target" id="classPostCard_1a9426c994c031ace848c14d9bed6d24b5"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onShareClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard14onShareClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard13onMoreClickedE">
+<span id="_CPPv3N8PostCard13onMoreClickedE"></span><span id="_CPPv2N8PostCard13onMoreClickedE"></span><span class="target" id="classPostCard_1a0d88e5f7e77ba7b38417143e36cf2b0f"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onMoreClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard13onMoreClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard17onWaveformClickedE">
+<span id="_CPPv3N8PostCard17onWaveformClickedE"></span><span id="_CPPv2N8PostCard17onWaveformClickedE"></span><span class="target" id="classPostCard_1a490a8f2d4749dce530ab9e52f885baaf"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n"><span class="pre">position</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onWaveformClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard17onWaveformClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard15onFollowToggledE">
+<span id="_CPPv3N8PostCard15onFollowToggledE"></span><span id="_CPPv2N8PostCard15onFollowToggledE"></span><span class="target" id="classPostCard_1a5e5a883840c8b1e42ab2092abe68dddb"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n"><span class="pre">willFollow</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onFollowToggled</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard15onFollowToggledE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard17onAddToDAWClickedE">
+<span id="_CPPv3N8PostCard17onAddToDAWClickedE"></span><span id="_CPPv2N8PostCard17onAddToDAWClickedE"></span><span class="target" id="classPostCard_1aaa8bb66a8ead4e29a5a3fa11d4f906bf"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onAddToDAWClicked</span></span></span><a class="headerlink" href="#_CPPv4N8PostCard17onAddToDAWClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-attributes">Public Static Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard11CARD_HEIGHTE">
+<span id="_CPPv3N8PostCard11CARD_HEIGHTE"></span><span id="_CPPv2N8PostCard11CARD_HEIGHTE"></span><span id="PostCard::CARD_HEIGHT__i"></span><span class="target" id="classPostCard_1a9b9a9e4065346b9e7d8aa4301e594ae9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CARD_HEIGHT</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">120</span></span><a class="headerlink" href="#_CPPv4N8PostCard11CARD_HEIGHTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard11AVATAR_SIZEE">
+<span id="_CPPv3N8PostCard11AVATAR_SIZEE"></span><span id="_CPPv2N8PostCard11AVATAR_SIZEE"></span><span id="PostCard::AVATAR_SIZE__i"></span><span class="target" id="classPostCard_1a24f0460a547b4dc9ee3ac8886a568c20"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AVATAR_SIZE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">50</span></span><a class="headerlink" href="#_CPPv4N8PostCard11AVATAR_SIZEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard12BADGE_HEIGHTE">
+<span id="_CPPv3N8PostCard12BADGE_HEIGHTE"></span><span id="_CPPv2N8PostCard12BADGE_HEIGHTE"></span><span id="PostCard::BADGE_HEIGHT__i"></span><span class="target" id="classPostCard_1ae3ca21e931db78629e77a8a622207273"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BADGE_HEIGHT</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">22</span></span><a class="headerlink" href="#_CPPv4N8PostCard12BADGE_HEIGHTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8PostCard11BUTTON_SIZEE">
+<span id="_CPPv3N8PostCard11BUTTON_SIZEE"></span><span id="_CPPv2N8PostCard11BUTTON_SIZEE"></span><span id="PostCard::BUTTON_SIZE__i"></span><span class="target" id="classPostCard_1ab8c5478f7fec5db9d62fcc3f72f2b717"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BUTTON_SIZE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">32</span></span><a class="headerlink" href="#_CPPv4N8PostCard11BUTTON_SIZEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classPianoRoll.html" class="btn btn-neutral float-left" title="Class PianoRoll" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classPostsFeed.html" class="btn btn-neutral float-right" title="Class PostsFeed" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

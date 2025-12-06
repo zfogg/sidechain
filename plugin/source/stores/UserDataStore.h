@@ -17,50 +17,120 @@ class NetworkClient;
 class UserDataStore : public juce::ChangeBroadcaster
 {
 public:
+    /** Constructor */
     UserDataStore();
+
+    /** Destructor */
     ~UserDataStore() override;
 
     //==========================================================================
     // Data access
+
+    /** Get the current user's ID
+     *  @return User ID string
+     */
     const juce::String& getUserId() const { return userId; }
+
+    /** Get the current user's username
+     *  @return Username string
+     */
     const juce::String& getUsername() const { return username; }
+
+    /** Get the current user's email
+     *  @return Email address string
+     */
     const juce::String& getEmail() const { return email; }
+
+    /** Get the current user's display name
+     *  @return Display name string
+     */
     const juce::String& getDisplayName() const { return displayName; }
+
+    /** Get the current user's bio
+     *  @return Bio text string
+     */
     const juce::String& getBio() const { return bio; }
+
+    /** Get the profile picture URL
+     *  @return Profile picture URL string
+     */
     const juce::String& getProfilePictureUrl() const { return profilePictureUrl; }
+
+    /** Get the cached profile image
+     *  @return Cached profile image (may be invalid if not loaded)
+     */
     const juce::Image& getProfileImage() const { return cachedProfileImage; }
+
+    /** Check if profile image is available
+     *  @return true if profile image is valid and loaded
+     */
     bool hasProfileImage() const { return cachedProfileImage.isValid(); }
+
+    /** Check if user is logged in
+     *  @return true if authentication token is set
+     */
     bool isLoggedIn() const { return !authToken.isEmpty(); }
+
+    /** Get the authentication token
+     *  @return Authentication token string
+     */
     const juce::String& getAuthToken() const { return authToken; }
 
     //==========================================================================
     // Data modification
+
+    /** Set the network client for API requests
+     *  @param client Pointer to NetworkClient instance
+     */
     void setNetworkClient(NetworkClient* client) { networkClient = client; }
+
+    /** Set the authentication token
+     *  @param token Authentication token string
+     */
     void setAuthToken(const juce::String& token);
+
+    /** Clear the authentication token and user data */
     void clearAuthToken();
 
-    // Set basic user info (from login response)
+    /** Set basic user info (from login response)
+     *  @param user Username
+     *  @param mail Email address
+     */
     void setBasicUserInfo(const juce::String& user, const juce::String& mail);
 
-    // Set profile picture URL and start async download
+    /** Set profile picture URL and start async download
+     *  @param url Profile picture URL
+     */
     void setProfilePictureUrl(const juce::String& url);
 
-    // Set a local image for immediate preview (while uploading)
+    /** Set a local image for immediate preview (while uploading)
+     *  @param imageFile Local image file to use as preview
+     */
     void setLocalPreviewImage(const juce::File& imageFile);
 
     //==========================================================================
     // Network operations
 
-    // Fetch full profile from /api/v1/users/me
+    /** Fetch full profile from /api/v1/users/me
+     *  @param callback Optional callback called when fetch completes
+     */
     void fetchUserProfile(std::function<void(bool success)> callback = nullptr);
 
-    // Refresh profile picture from URL
+    /** Refresh profile picture from URL
+     *  Downloads the profile image again from the current URL
+     */
     void refreshProfileImage();
 
     //==========================================================================
     // Persistence
+
+    /** Save user data to persistent storage */
     void saveToSettings();
+
+    /** Load user data from persistent storage */
     void loadFromSettings();
+
+    /** Clear all user data and cached images */
     void clearAll();
 
 private:

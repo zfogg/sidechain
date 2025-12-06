@@ -26,11 +26,17 @@ SidechainAudioProcessor::~SidechainAudioProcessor()
 }
 
 //==============================================================================
+/** Get the plugin name
+ * @return The plugin name as defined by JucePlugin_Name
+ */
 const juce::String SidechainAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
+/** Check if the plugin accepts MIDI input
+ * @return true if MIDI input is enabled, false otherwise
+ */
 bool SidechainAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
@@ -40,6 +46,9 @@ bool SidechainAudioProcessor::acceptsMidi() const
    #endif
 }
 
+/** Check if the plugin produces MIDI output
+ * @return true if MIDI output is enabled, false otherwise
+ */
 bool SidechainAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
@@ -49,6 +58,9 @@ bool SidechainAudioProcessor::producesMidi() const
    #endif
 }
 
+/** Check if this is a MIDI effect plugin
+ * @return true if configured as MIDI effect, false otherwise
+ */
 bool SidechainAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
@@ -58,36 +70,61 @@ bool SidechainAudioProcessor::isMidiEffect() const
    #endif
 }
 
+/** Get the tail length in seconds
+ * @return 0.0 (no tail length for this plugin)
+ */
 double SidechainAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
+/** Get the number of programs (presets)
+ * @return 1 (minimum required by some hosts)
+ */
 int SidechainAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
+/** Get the current program index
+ * @return 0 (programs not implemented)
+ */
 int SidechainAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
+/** Set the current program
+ * @param index Program index (not used, programs not implemented)
+ */
 void SidechainAudioProcessor::setCurrentProgram (int index)
 {
 }
 
+/** Get the name of a program
+ * @param index Program index (not used)
+ * @return Empty string (programs not implemented)
+ */
 const juce::String SidechainAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
+/** Change the name of a program
+ * @param index Program index (not used)
+ * @param newName New program name (not used, programs not implemented)
+ */
 void SidechainAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
+/** Prepare the plugin for audio processing
+ * Called by the host before playback starts. Initializes all audio subsystems.
+ * @param sampleRate The sample rate of the audio system
+ * @param samplesPerBlock The maximum block size for audio processing
+ */
 void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
@@ -108,6 +145,9 @@ void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
         juce::String(numChannels) + " channels");
 }
 
+/** Release audio resources
+ * Called by the host when playback stops. Cleans up audio subsystems.
+ */
 void SidechainAudioProcessor::releaseResources()
 {
     Log::debug("SidechainAudioProcessor: Releasing resources");
@@ -115,6 +155,11 @@ void SidechainAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
+/** Check if a bus layout is supported
+ * Validates that the plugin can handle the requested input/output channel configuration.
+ * @param layouts The bus layout to check
+ * @return true if the layout is supported, false otherwise
+ */
 bool SidechainAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
@@ -138,6 +183,12 @@ bool SidechainAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 }
 #endif
 
+/** Process audio and MIDI blocks
+ * Main audio processing function called by the host on the audio thread.
+ * Captures audio/MIDI for recording and mixes in feed playback audio.
+ * @param buffer The audio buffer to process
+ * @param midiMessages The MIDI messages for this block
+ */
 void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -204,11 +255,17 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 }
 
 //==============================================================================
+/** Check if the plugin has an editor
+ * @return true (this plugin always has a UI for the social feed)
+ */
 bool SidechainAudioProcessor::hasEditor() const
 {
     return true; // We want a UI for the social feed
 }
 
+/** Create the plugin editor
+ * @return A new instance of SidechainAudioProcessorEditor
+ */
 juce::AudioProcessorEditor* SidechainAudioProcessor::createEditor()
 {
     Log::info("SidechainAudioProcessor: Creating editor");
@@ -216,6 +273,10 @@ juce::AudioProcessorEditor* SidechainAudioProcessor::createEditor()
 }
 
 //==============================================================================
+/** Save plugin state to memory
+ * Serializes the plugin's state (authentication, settings) for persistence.
+ * @param destData Memory block to write state data to
+ */
 void SidechainAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // Save plugin state (simplified)
@@ -227,6 +288,11 @@ void SidechainAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         copyXmlToBinary (*xml, destData);
 }
 
+/** Restore plugin state from memory
+ * Deserializes the plugin's state from saved data.
+ * @param data Pointer to the state data
+ * @param sizeInBytes Size of the state data in bytes
+ */
 void SidechainAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // Restore plugin state (simplified)
@@ -253,6 +319,10 @@ void SidechainAudioProcessor::setStateInformation (const void* data, int sizeInB
 //==============================================================================
 // Audio Recording API
 //==============================================================================
+/** Start recording audio and MIDI from the DAW
+ * Begins capturing both audio and MIDI data simultaneously.
+ * Must be called from the message thread.
+ */
 void SidechainAudioProcessor::startRecording()
 {
     // Generate a unique recording ID
@@ -265,6 +335,10 @@ void SidechainAudioProcessor::startRecording()
     Log::info("SidechainAudioProcessor: Started recording - ID: " + recordingId);
 }
 
+/** Stop recording and finalize captured data
+ * Stops both audio and MIDI capture and prepares the data for export.
+ * Must be called from the message thread.
+ */
 void SidechainAudioProcessor::stopRecording()
 {
     lastRecordedAudio = audioCapture.stopRecording();
@@ -279,13 +353,20 @@ void SidechainAudioProcessor::stopRecording()
               juce::String(midiEvents.size()) + " MIDI events");
 }
 
+/** Get the recorded audio buffer
+ * Returns the audio captured during the last recording session.
+ * @return The recorded audio buffer (empty if no recording was made)
+ */
 juce::AudioBuffer<float> SidechainAudioProcessor::getRecordedAudio()
 {
     return lastRecordedAudio;
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
+/** Factory function to create new plugin instances
+ * Called by the JUCE framework to instantiate the plugin.
+ * @return A new instance of SidechainAudioProcessor
+ */
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SidechainAudioProcessor();

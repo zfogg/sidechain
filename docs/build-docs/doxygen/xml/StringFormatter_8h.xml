@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="StringFormatter_8h" kind="file" language="C++">
+    <compoundname>StringFormatter.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includedby refid="Comment_8cpp" local="yes">Comment.cpp</includedby>
+    <includedby refid="MessageThread_8cpp" local="yes">MessageThread.cpp</includedby>
+    <includedby refid="MessageThreadComponent_8cpp" local="yes">MessageThreadComponent.cpp</includedby>
+    <includedby refid="MessagesList_8cpp" local="yes">MessagesList.cpp</includedby>
+    <includedby refid="PostCard_8cpp" local="yes">PostCard.cpp</includedby>
+    <includedby refid="Profile_8cpp" local="yes">Profile.cpp</includedby>
+    <includedby refid="Recording_8cpp" local="yes">Recording.cpp</includedby>
+    <includedby refid="StringFormatter_8cpp" local="yes">StringFormatter.cpp</includedby>
+    <includedby refid="Upload_8cpp" local="yes">Upload.cpp</includedby>
+    <includedby refid="UserCard_8cpp" local="yes">UserCard.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>StringFormatter.h</label>
+        <link refid="StringFormatter_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>Comment.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="6">
+        <label>PostCard.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="3">
+        <label>MessageThread.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="4">
+        <label>MessageThreadComponent.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="5">
+        <label>MessagesList.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="7">
+        <label>Profile.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="8">
+        <label>Recording.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="10">
+        <label>Upload.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="11">
+        <label>UserCard.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="9">
+        <label>StringFormatter.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="1">
+        <label>StringFormatter.h</label>
+        <link refid="StringFormatter_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespaceStringFormatter">StringFormatter</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceStringFormatter" kindref="compound">StringFormatter</ref></highlight></codeline>
+<codeline lineno="18"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Count<sp/>Formatting<sp/>(K,<sp/>M,<sp/>B<sp/>suffixes)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" kindref="member">formatCount</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>value);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" kindref="member">formatCount</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>decimals);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1aa96b861f713a8df63f1eed739472d80e" kindref="member">formatLargeNumber</ref>(int64_t<sp/>value);</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Duration<sp/>Formatting</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a353b37ab79937d3d9c1879fc24a3c73f" kindref="member">formatDuration</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>seconds);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a4cc53dc008ead3d0b20481afa6b5a47e" kindref="member">formatDurationMMSS</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>seconds);</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1abf9a80d6e1add50885d3b9087eceeaf6" kindref="member">formatDurationHMS</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>seconds);</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a3caaf09db311937f41775c2219caaaf9" kindref="member">formatMilliseconds</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ms);</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Percentage<sp/>Formatting</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" kindref="member">formatPercentage</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>value);</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" kindref="member">formatPercentage</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>value,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>decimals);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Music-specific<sp/>Formatting</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a453ca772955d51f66eeef517695d1366" kindref="member">formatBPM</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>bpm);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a6da201822c89925f471e997376e44c7c" kindref="member">formatBPMValue</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>bpm);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1abffe3c7c36ecb0bdfc11518732d13214" kindref="member">formatConfidence</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>confidence);</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a069ff9b3b16a8bae04255767264a69b8" kindref="member">formatKeyLong</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>key);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Social/Engagement<sp/>Formatting</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a4377117d131715b97de5fec567edcd58" kindref="member">formatFollowers</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1add910e9f3e98dd2460b6a61779f2cf7b" kindref="member">formatLikes</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1ab826797300c322e5377be7df42061fca" kindref="member">formatComments</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1ac4f015e0ce5a908b8cc4e53ff5c4ab5c" kindref="member">formatPlays</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Time<sp/>Ago<sp/>Formatting</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a42f9ea44eb8aec39328d45fc7164a5c4" kindref="member">formatTimeAgo</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::Time&amp;<sp/>timestamp);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="namespaceStringFormatter_1a42f9ea44eb8aec39328d45fc7164a5c4" kindref="member">formatTimeAgo</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>isoTimestamp);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>StringFormatter</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h"/>
+  </compounddef>
+</doxygen>

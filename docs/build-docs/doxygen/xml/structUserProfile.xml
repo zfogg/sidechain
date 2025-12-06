@@ -1,0 +1,334 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structUserProfile" kind="struct" language="C++" prot="public">
+    <compoundname>UserProfile</compoundname>
+    <includes refid="Profile_8h" local="no">Profile.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structUserProfile_1a204b90b6c4373442ba4dd0b1921b16b3" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>UserProfile::id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="16" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a287f6f92b7f7a3009f7694d7fcf91d54" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>UserProfile::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="17" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1ab31c343ae5087a01ba08f5fa5bc4efe4" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::displayName</definition>
+        <argsstring></argsstring>
+        <name>displayName</name>
+        <qualifiedname>UserProfile::displayName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="18" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1ab7e8f5d1003436d2ade2465a2277503c" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::bio</definition>
+        <argsstring></argsstring>
+        <name>bio</name>
+        <qualifiedname>UserProfile::bio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="19" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1ade8ec40269072d529153863e9b4a0e6b" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::location</definition>
+        <argsstring></argsstring>
+        <name>location</name>
+        <qualifiedname>UserProfile::location</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="20" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a5539c43b3e840801d834eb346252441f" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::avatarUrl</definition>
+        <argsstring></argsstring>
+        <name>avatarUrl</name>
+        <qualifiedname>UserProfile::avatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="21" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a471a3075a18a7a50af3ab1230d213fdf" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::profilePictureUrl</definition>
+        <argsstring></argsstring>
+        <name>profilePictureUrl</name>
+        <qualifiedname>UserProfile::profilePictureUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="22" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a1d579551dec296f1e0d37268777327ad" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::dawPreference</definition>
+        <argsstring></argsstring>
+        <name>dawPreference</name>
+        <qualifiedname>UserProfile::dawPreference</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="23" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a08d088b3af49cba063e22e00564f7955" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::genre</definition>
+        <argsstring></argsstring>
+        <name>genre</name>
+        <qualifiedname>UserProfile::genre</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="24" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1ab1253ea804432bb865c22dcae12de310" prot="public" static="no" mutable="no">
+        <type>juce::var</type>
+        <definition>juce::var UserProfile::socialLinks</definition>
+        <argsstring></argsstring>
+        <name>socialLinks</name>
+        <qualifiedname>UserProfile::socialLinks</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="25" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a30894c191f346f1477b9790f30749d52" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UserProfile::followerCount</definition>
+        <argsstring></argsstring>
+        <name>followerCount</name>
+        <qualifiedname>UserProfile::followerCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="26" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1ac0d9a7bc59434b310fe963733c12eb29" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UserProfile::followingCount</definition>
+        <argsstring></argsstring>
+        <name>followingCount</name>
+        <qualifiedname>UserProfile::followingCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="27" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1aa5384212a80e021c334bb33c32fc22a9" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UserProfile::postCount</definition>
+        <argsstring></argsstring>
+        <name>postCount</name>
+        <qualifiedname>UserProfile::postCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="28" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a57ae6aceaccab53ed4580a74193a4ad9" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserProfile::isFollowing</definition>
+        <argsstring></argsstring>
+        <name>isFollowing</name>
+        <qualifiedname>UserProfile::isFollowing</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="29" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1a1fc28c4f7c5bfe7bd08601118f6d0cc5" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserProfile::isFollowedBy</definition>
+        <argsstring></argsstring>
+        <name>isFollowedBy</name>
+        <qualifiedname>UserProfile::isFollowedBy</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="30" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserProfile_1abd46b30991fe2bd5eb495fe83276b4e1" prot="public" static="no" mutable="no">
+        <type>juce::Time</type>
+        <definition>juce::Time UserProfile::createdAt</definition>
+        <argsstring></argsstring>
+        <name>createdAt</name>
+        <qualifiedname>UserProfile::createdAt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="31" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structUserProfile_1acd7914890161d5796771cb10d006bf42" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structUserProfile" kindref="compound">UserProfile</ref></type>
+        <definition>UserProfile UserProfile::fromJson</definition>
+        <argsstring>(const juce::var &amp;json)</argsstring>
+        <name>fromJson</name>
+        <qualifiedname>UserProfile::fromJson</qualifiedname>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>json</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="33" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="12" bodyend="50"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structUserProfile_1a82cb8b79aafb5471a5f5344f7fd640f3" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::getAvatarUrl</definition>
+        <argsstring>() const</argsstring>
+        <name>getAvatarUrl</name>
+        <qualifiedname>UserProfile::getAvatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="34" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="52" bodyend="58"/>
+      </memberdef>
+      <memberdef kind="function" id="structUserProfile_1ac7dabe186b5fad85fe16495572db3009" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String UserProfile::getMemberSince</definition>
+        <argsstring>() const</argsstring>
+        <name>getMemberSince</name>
+        <qualifiedname>UserProfile::getMemberSince</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="35" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="60" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="structUserProfile_1a492379a9d3b231ebc35199eafb101192" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool UserProfile::isOwnProfile</definition>
+        <argsstring>(const juce::String &amp;currentUserId) const</argsstring>
+        <name>isOwnProfile</name>
+        <qualifiedname>UserProfile::isOwnProfile</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>currentUserId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="36" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="70" bodyend="73"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="structUserProfile" kindref="compound">UserProfile</ref> represents the profile data fetched from the backend. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="14" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="15" bodyend="37"/>
+    <listofallmembers>
+      <member refid="structUserProfile_1a5539c43b3e840801d834eb346252441f" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>avatarUrl</name></member>
+      <member refid="structUserProfile_1ab7e8f5d1003436d2ade2465a2277503c" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>bio</name></member>
+      <member refid="structUserProfile_1abd46b30991fe2bd5eb495fe83276b4e1" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>createdAt</name></member>
+      <member refid="structUserProfile_1a1d579551dec296f1e0d37268777327ad" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>dawPreference</name></member>
+      <member refid="structUserProfile_1ab31c343ae5087a01ba08f5fa5bc4efe4" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>displayName</name></member>
+      <member refid="structUserProfile_1a30894c191f346f1477b9790f30749d52" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>followerCount</name></member>
+      <member refid="structUserProfile_1ac0d9a7bc59434b310fe963733c12eb29" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>followingCount</name></member>
+      <member refid="structUserProfile_1acd7914890161d5796771cb10d006bf42" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>fromJson</name></member>
+      <member refid="structUserProfile_1a08d088b3af49cba063e22e00564f7955" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>genre</name></member>
+      <member refid="structUserProfile_1a82cb8b79aafb5471a5f5344f7fd640f3" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>getAvatarUrl</name></member>
+      <member refid="structUserProfile_1ac7dabe186b5fad85fe16495572db3009" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>getMemberSince</name></member>
+      <member refid="structUserProfile_1a204b90b6c4373442ba4dd0b1921b16b3" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>id</name></member>
+      <member refid="structUserProfile_1a1fc28c4f7c5bfe7bd08601118f6d0cc5" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>isFollowedBy</name></member>
+      <member refid="structUserProfile_1a57ae6aceaccab53ed4580a74193a4ad9" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>isFollowing</name></member>
+      <member refid="structUserProfile_1a492379a9d3b231ebc35199eafb101192" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>isOwnProfile</name></member>
+      <member refid="structUserProfile_1ade8ec40269072d529153863e9b4a0e6b" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>location</name></member>
+      <member refid="structUserProfile_1aa5384212a80e021c334bb33c32fc22a9" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>postCount</name></member>
+      <member refid="structUserProfile_1a471a3075a18a7a50af3ab1230d213fdf" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>profilePictureUrl</name></member>
+      <member refid="structUserProfile_1ab1253ea804432bb865c22dcae12de310" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>socialLinks</name></member>
+      <member refid="structUserProfile_1a287f6f92b7f7a3009f7694d7fcf91d54" prot="public" virt="non-virtual"><scope>UserProfile</scope><name>username</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

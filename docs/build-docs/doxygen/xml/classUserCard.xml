@@ -1,0 +1,509 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classUserCard" kind="class" language="C++" prot="public">
+    <compoundname>UserCard</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <includes refid="UserCard_8h" local="no">UserCard.h</includes>
+    <innerclass refid="structUserCard_1_1Colors" prot="private">UserCard::Colors</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classUserCard_1a957ca369526bbf9be2dd5d3b1d749874" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const DiscoveredUser&amp;)&gt; UserCard::onUserClicked</definition>
+        <argsstring></argsstring>
+        <name>onUserClicked</name>
+        <qualifiedname>UserCard::onUserClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="92" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserCard_1aa3bcb6786848961ec21f5d16f0d3ebb1" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &amp;, bool willFollow)&gt;</type>
+        <definition>std::function&lt;void(const DiscoveredUser&amp;, bool willFollow)&gt; UserCard::onFollowToggled</definition>
+        <argsstring></argsstring>
+        <name>onFollowToggled</name>
+        <qualifiedname>UserCard::onFollowToggled</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="93" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classUserCard_1afa2c0868bc1470ff747104fc2239c01d" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserCard::CARD_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>CARD_HEIGHT</name>
+        <qualifiedname>UserCard::CARD_HEIGHT</qualifiedname>
+        <initializer>= 72</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="105" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserCard_1afd9a38dbdbe321f2929082a085284c10" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserCard::AVATAR_SIZE</definition>
+        <argsstring></argsstring>
+        <name>AVATAR_SIZE</name>
+        <qualifiedname>UserCard::AVATAR_SIZE</qualifiedname>
+        <initializer>= 48</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="106" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classUserCard_1a4e23d95362f648a05d1f84787cfcf3db" prot="private" static="no" mutable="no">
+        <type><ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref></type>
+        <definition>DiscoveredUser UserCard::user</definition>
+        <argsstring></argsstring>
+        <name>user</name>
+        <qualifiedname>UserCard::user</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="109" column="20" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserCard_1aa56eeca4ecb898e42f7c2d3fc1577b10" prot="private" static="no" mutable="no">
+        <type><ref refid="classHoverState" kindref="compound">HoverState</ref></type>
+        <definition>HoverState UserCard::hoverState</definition>
+        <argsstring></argsstring>
+        <name>hoverState</name>
+        <qualifiedname>UserCard::hoverState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="110" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserCard_1aaeebb5979ffbfedf1c77c132afc88f51" prot="private" static="no" mutable="no">
+        <type>juce::Image</type>
+        <definition>juce::Image UserCard::avatarImage</definition>
+        <argsstring></argsstring>
+        <name>avatarImage</name>
+        <qualifiedname>UserCard::avatarImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="113" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classUserCard_1a8d6bac2c1dfa17291253dafc5b6e19e2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UserCard::UserCard</definition>
+        <argsstring>()</argsstring>
+        <name>UserCard</name>
+        <qualifiedname>UserCard::UserCard</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="78" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="9" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1ae4326acf9cdf4a927aaa33d3134c3d72" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UserCard::~UserCard</definition>
+        <argsstring>() override</argsstring>
+        <name>~UserCard</name>
+        <qualifiedname>UserCard::~UserCard</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="79" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="19" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a6ca394ae683df1a73e8bef69b03006a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::setUser</definition>
+        <argsstring>(const DiscoveredUser &amp;user)</argsstring>
+        <name>setUser</name>
+        <qualifiedname>UserCard::setUser</qualifiedname>
+        <param>
+          <type>const <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &amp;</type>
+          <declname>user</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="83" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="24" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a456f46f3483eff5cdb20d757e5a3df9a" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &amp;</type>
+        <definition>const DiscoveredUser &amp; UserCard::getUser</definition>
+        <argsstring>() const</argsstring>
+        <name>getUser</name>
+        <qualifiedname>UserCard::getUser</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="84" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="84" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1ad4df2f50277f758c219b81e8f59a05cd" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String UserCard::getUserId</definition>
+        <argsstring>() const</argsstring>
+        <name>getUserId</name>
+        <qualifiedname>UserCard::getUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="85" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="85" bodyend="85"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1aad9c5fb01f7c03512c000123df70afd7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::setIsFollowing</definition>
+        <argsstring>(bool following)</argsstring>
+        <name>setIsFollowing</name>
+        <qualifiedname>UserCard::setIsFollowing</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>following</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="88" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="42" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1abf55ce2426ab2c61e07e8e53c3366316" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>UserCard::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="97" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="53" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1acdb396ff41f18f2be4bb1bc29f45756d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>UserCard::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="98" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="71" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a44c263c578307e6c31f75a830b2f219e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>UserCard::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="99" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="210" bodyend="225"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a3b5ecea3fa830ecd1827e0da56a42f88" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::mouseEnter</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseEnter</name>
+        <qualifiedname>UserCard::mouseEnter</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="100" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="227" bodyend="230"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a73135103f9711cd96be2b573731d80f8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::mouseExit</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseExit</name>
+        <qualifiedname>UserCard::mouseExit</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="101" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="232" bodyend="235"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classUserCard_1ae9f174225ad559242dc54062d5fe4f50" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::drawBackground</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawBackground</name>
+        <qualifiedname>UserCard::drawBackground</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="117" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="76" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a8faaa664b87a273bb6619ea6f3114b40" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::drawAvatar</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawAvatar</name>
+        <qualifiedname>UserCard::drawAvatar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="118" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="85" bodyend="119"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a49a2096e1c48e5c624386ef5a6a47fed" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::drawUserInfo</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawUserInfo</name>
+        <qualifiedname>UserCard::drawUserInfo</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="119" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="121" bodyend="159"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1ad35b56106424df25b6f671148f10c49f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::drawFollowButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawFollowButton</name>
+        <qualifiedname>UserCard::drawFollowButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="120" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="170" bodyend="187"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a5dfb441ab9f2a3db5c3c0a2bc01e076e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserCard::drawGenreBadge</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawGenreBadge</name>
+        <qualifiedname>UserCard::drawGenreBadge</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="121" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="161" bodyend="168"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1a4d746415fc0a164c83a719c941c5074e" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserCard::getAvatarBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getAvatarBounds</name>
+        <qualifiedname>UserCard::getAvatarBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="125" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="190" bodyend="193"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1ae323e915fea25528b14c38b242ffdef1" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserCard::getUserInfoBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getUserInfoBounds</name>
+        <qualifiedname>UserCard::getUserInfoBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="126" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="195" bodyend="201"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserCard_1addd0777d2bcf91704a1272b83b778880" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserCard::getFollowButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getFollowButtonBounds</name>
+        <qualifiedname>UserCard::getFollowButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="127" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.cpp" bodystart="203" bodyend="207"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classUserCard" kindref="compound">UserCard</ref> displays a user in a compact card format for discovery/search. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Avatar with circular clip and fallback to initials</para>
+</listitem><listitem><para>Display name and username</para>
+</listitem><listitem><para>Genre badge</para>
+</listitem><listitem><para>Follower count</para>
+</listitem><listitem><para>Follow/unfollow button </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>UserCard</label>
+        <link refid="classUserCard"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>UserCard</label>
+        <link refid="classUserCard"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" line="75" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserCard.h" bodystart="76" bodyend="146"/>
+    <listofallmembers>
+      <member refid="classUserCard_1afd9a38dbdbe321f2929082a085284c10" prot="public" virt="non-virtual"><scope>UserCard</scope><name>AVATAR_SIZE</name></member>
+      <member refid="classUserCard_1aaeebb5979ffbfedf1c77c132afc88f51" prot="private" virt="non-virtual"><scope>UserCard</scope><name>avatarImage</name></member>
+      <member refid="classUserCard_1afa2c0868bc1470ff747104fc2239c01d" prot="public" virt="non-virtual"><scope>UserCard</scope><name>CARD_HEIGHT</name></member>
+      <member refid="classUserCard_1a8faaa664b87a273bb6619ea6f3114b40" prot="private" virt="non-virtual"><scope>UserCard</scope><name>drawAvatar</name></member>
+      <member refid="classUserCard_1ae9f174225ad559242dc54062d5fe4f50" prot="private" virt="non-virtual"><scope>UserCard</scope><name>drawBackground</name></member>
+      <member refid="classUserCard_1ad35b56106424df25b6f671148f10c49f" prot="private" virt="non-virtual"><scope>UserCard</scope><name>drawFollowButton</name></member>
+      <member refid="classUserCard_1a5dfb441ab9f2a3db5c3c0a2bc01e076e" prot="private" virt="non-virtual"><scope>UserCard</scope><name>drawGenreBadge</name></member>
+      <member refid="classUserCard_1a49a2096e1c48e5c624386ef5a6a47fed" prot="private" virt="non-virtual"><scope>UserCard</scope><name>drawUserInfo</name></member>
+      <member refid="classUserCard_1a4d746415fc0a164c83a719c941c5074e" prot="private" virt="non-virtual"><scope>UserCard</scope><name>getAvatarBounds</name></member>
+      <member refid="classUserCard_1addd0777d2bcf91704a1272b83b778880" prot="private" virt="non-virtual"><scope>UserCard</scope><name>getFollowButtonBounds</name></member>
+      <member refid="classUserCard_1a456f46f3483eff5cdb20d757e5a3df9a" prot="public" virt="non-virtual"><scope>UserCard</scope><name>getUser</name></member>
+      <member refid="classUserCard_1ad4df2f50277f758c219b81e8f59a05cd" prot="public" virt="non-virtual"><scope>UserCard</scope><name>getUserId</name></member>
+      <member refid="classUserCard_1ae323e915fea25528b14c38b242ffdef1" prot="private" virt="non-virtual"><scope>UserCard</scope><name>getUserInfoBounds</name></member>
+      <member refid="classUserCard_1aa56eeca4ecb898e42f7c2d3fc1577b10" prot="private" virt="non-virtual"><scope>UserCard</scope><name>hoverState</name></member>
+      <member refid="classUserCard_1a3b5ecea3fa830ecd1827e0da56a42f88" prot="public" virt="non-virtual"><scope>UserCard</scope><name>mouseEnter</name></member>
+      <member refid="classUserCard_1a73135103f9711cd96be2b573731d80f8" prot="public" virt="non-virtual"><scope>UserCard</scope><name>mouseExit</name></member>
+      <member refid="classUserCard_1a44c263c578307e6c31f75a830b2f219e" prot="public" virt="non-virtual"><scope>UserCard</scope><name>mouseUp</name></member>
+      <member refid="classUserCard_1aa3bcb6786848961ec21f5d16f0d3ebb1" prot="public" virt="non-virtual"><scope>UserCard</scope><name>onFollowToggled</name></member>
+      <member refid="classUserCard_1a957ca369526bbf9be2dd5d3b1d749874" prot="public" virt="non-virtual"><scope>UserCard</scope><name>onUserClicked</name></member>
+      <member refid="classUserCard_1abf55ce2426ab2c61e07e8e53c3366316" prot="public" virt="non-virtual"><scope>UserCard</scope><name>paint</name></member>
+      <member refid="classUserCard_1acdb396ff41f18f2be4bb1bc29f45756d" prot="public" virt="non-virtual"><scope>UserCard</scope><name>resized</name></member>
+      <member refid="classUserCard_1aad9c5fb01f7c03512c000123df70afd7" prot="public" virt="non-virtual"><scope>UserCard</scope><name>setIsFollowing</name></member>
+      <member refid="classUserCard_1a6ca394ae683df1a73e8bef69b03006a2" prot="public" virt="non-virtual"><scope>UserCard</scope><name>setUser</name></member>
+      <member refid="classUserCard_1a4e23d95362f648a05d1f84787cfcf3db" prot="private" virt="non-virtual"><scope>UserCard</scope><name>user</name></member>
+      <member refid="classUserCard_1a8d6bac2c1dfa17291253dafc5b6e19e2" prot="public" virt="non-virtual"><scope>UserCard</scope><name>UserCard</name></member>
+      <member refid="classUserCard_1ae4326acf9cdf4a927aaa33d3134c3d72" prot="public" virt="non-virtual"><scope>UserCard</scope><name>~UserCard</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

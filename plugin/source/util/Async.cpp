@@ -87,6 +87,10 @@ namespace Async
     // Background Work (void version)
     //==========================================================================
 
+    /** Execute work on background thread with optional completion callback
+     * @param work Function to execute on background thread
+     * @param onComplete Optional callback called on message thread when work completes
+     */
     void runVoid(std::function<void()> work, std::function<void()> onComplete)
     {
         std::thread([work = std::move(work), onComplete = std::move(onComplete)]() {
@@ -106,6 +110,11 @@ namespace Async
     // Delayed Execution
     //==========================================================================
 
+    /** Schedule a callback to execute after a delay on the message thread
+     * @param delayMs Delay in milliseconds before executing callback
+     * @param callback Function to call after delay
+     * @return Timer ID for cancellation, or 0 if invalid parameters
+     */
     int delay(int delayMs, std::function<void()> callback)
     {
         if (!callback || delayMs < 0)
@@ -128,6 +137,9 @@ namespace Async
         return timerId;
     }
 
+    /** Cancel a pending delayed callback
+     * @param timerId Timer ID returned from delay()
+     */
     void cancelDelay(int timerId)
     {
         if (timerId <= 0)
@@ -149,6 +161,11 @@ namespace Async
     // Debouncing
     //==========================================================================
 
+    /** Debounce function calls - only executes after period of inactivity
+     * @param key Unique identifier for this debounce group
+     * @param delayMs Delay in milliseconds to wait after last call
+     * @param callback Function to execute after debounce period
+     */
     void debounce(const juce::String& key, int delayMs, std::function<void()> callback)
     {
         if (key.isEmpty() || !callback || delayMs < 0)
@@ -176,6 +193,9 @@ namespace Async
         });
     }
 
+    /** Cancel pending debounced callback for a key
+     * @param key The debounce group to cancel
+     */
     void cancelDebounce(const juce::String& key)
     {
         if (key.isEmpty())
@@ -192,6 +212,8 @@ namespace Async
         });
     }
 
+    /** Cancel all pending debounced callbacks
+     */
     void cancelAllDebounces()
     {
         juce::MessageManager::callAsync([]() {
@@ -208,6 +230,11 @@ namespace Async
     // Throttling
     //==========================================================================
 
+    /** Throttle function calls - executes at most once per period
+     * @param key Unique identifier for this throttle group
+     * @param periodMs Minimum time between executions in milliseconds
+     * @param callback Function to execute
+     */
     void throttle(const juce::String& key, int periodMs, std::function<void()> callback)
     {
         if (key.isEmpty() || !callback || periodMs < 0)
@@ -257,6 +284,9 @@ namespace Async
         });
     }
 
+    /** Cancel throttling for a key
+     * @param key The throttle group to cancel
+     */
     void cancelThrottle(const juce::String& key)
     {
         if (key.isEmpty())

@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File PluginEditor.h &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File PluginEditor.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_PluginEditor.h.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-plugineditor-h">
+<span id="program-listing-file-plugin-source-plugineditor-h"></span><h1>Program Listing for File PluginEditor.h<a class="headerlink" href="#program-listing-for-file-plugineditor-h" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_PluginEditor.h.html#file-plugin-source-plugineditor-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/PluginEditor.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;JuceHeader.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;PluginProcessor.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;stores/UserDataStore.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;network/NetworkClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;network/WebSocketClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/auth/Auth.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/profile/ProfileSetup.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/profile/Profile.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/feed/PostsFeed.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/recording/Recording.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/recording/Upload.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/common/ConnectionIndicator.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/common/Header.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/notifications/NotificationBell.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/notifications/NotificationList.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/social/UserDiscovery.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/search/Search.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/messages/MessagesList.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/messages/MessageThread.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ui/stories/StoryRecording.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;network/StreamChatClient.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SidechainAudioProcessorEditor</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioProcessorEditor</span><span class="p">,</span>
+<span class="w">                                      </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ChangeListener</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">SidechainAudioProcessorEditor</span><span class="p">(</span><span class="n">SidechainAudioProcessor</span><span class="o">&amp;</span><span class="p">);</span>
+<span class="w">    </span><span class="o">~</span><span class="n">SidechainAudioProcessorEditor</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">resized</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// ChangeListener - for UserDataStore updates</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">changeListenerCallback</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">ChangeBroadcaster</span><span class="o">*</span><span class="w"> </span><span class="n">source</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">SidechainAudioProcessor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">audioProcessor</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// View management</span>
+<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">AppView</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Authentication</span><span class="p">,</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="p">,</span><span class="w"> </span><span class="n">PostsFeed</span><span class="p">,</span><span class="w"> </span><span class="n">Recording</span><span class="p">,</span><span class="w"> </span><span class="n">Upload</span><span class="p">,</span><span class="w"> </span><span class="n">Discovery</span><span class="p">,</span><span class="w"> </span><span class="n">Profile</span><span class="p">,</span><span class="w"> </span><span class="n">Search</span><span class="p">,</span><span class="w"> </span><span class="n">Messages</span><span class="p">,</span><span class="w"> </span><span class="n">MessageThread</span><span class="p">,</span><span class="w"> </span><span class="n">StoryRecording</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="n">AppView</span><span class="w"> </span><span class="n">currentView</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AppView</span><span class="o">::</span><span class="n">Authentication</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Navigation stack for back button support</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">AppView</span><span class="o">&gt;</span><span class="w"> </span><span class="n">navigationStack</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">profileUserIdToView</span><span class="p">;</span><span class="w">  </span><span class="c1">// User ID for Profile view</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">messageChannelType</span><span class="p">;</span><span class="w">   </span><span class="c1">// Channel type for MessageThread view</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">messageChannelId</span><span class="p">;</span><span class="w">     </span><span class="c1">// Channel ID for MessageThread view</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">showView</span><span class="p">(</span><span class="n">AppView</span><span class="w"> </span><span class="n">view</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">showMessageThread</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">channelType</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">channelId</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">showProfile</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userId</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">navigateBack</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">onLoginSuccess</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">token</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">logout</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Centralized user data store</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">UserDataStore</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userDataStore</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Legacy user state (to be removed as we migrate to UserDataStore)</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">username</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">email</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">profilePicUrl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">authToken</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Components</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Auth</span><span class="o">&gt;</span><span class="w"> </span><span class="n">authComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ProfileSetup</span><span class="o">&gt;</span><span class="w"> </span><span class="n">profileSetupComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">PostsFeed</span><span class="o">&gt;</span><span class="w"> </span><span class="n">postsFeedComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Recording</span><span class="o">&gt;</span><span class="w"> </span><span class="n">recordingComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Upload</span><span class="o">&gt;</span><span class="w"> </span><span class="n">uploadComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">UserDiscovery</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userDiscoveryComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Profile</span><span class="o">&gt;</span><span class="w"> </span><span class="n">profileComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Search</span><span class="o">&gt;</span><span class="w"> </span><span class="n">searchComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">MessagesList</span><span class="o">&gt;</span><span class="w"> </span><span class="n">messagesListComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">MessageThread</span><span class="o">&gt;</span><span class="w"> </span><span class="n">messageThreadComponent</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">StoryRecording</span><span class="o">&gt;</span><span class="w"> </span><span class="n">storyRecordingComponent</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// StreamChatClient for getstream.io messaging</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">StreamChatClient</span><span class="o">&gt;</span><span class="w"> </span><span class="n">streamChatClient</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Network client for API calls</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">NetworkClient</span><span class="o">&gt;</span><span class="w"> </span><span class="n">networkClient</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// WebSocket client for real-time updates</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">WebSocketClient</span><span class="o">&gt;</span><span class="w"> </span><span class="n">webSocketClient</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Connection status indicator</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ConnectionIndicator</span><span class="o">&gt;</span><span class="w"> </span><span class="n">connectionIndicator</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Notification components</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">NotificationBell</span><span class="o">&gt;</span><span class="w"> </span><span class="n">notificationBell</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">NotificationList</span><span class="o">&gt;</span><span class="w"> </span><span class="n">notificationList</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">notificationPanelVisible</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Central header component (shown on all post-login pages)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Header</span><span class="o">&gt;</span><span class="w"> </span><span class="n">headerComponent</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Notification handling</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setupNotifications</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">showNotificationPanel</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">hideNotificationPanel</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">toggleNotificationPanel</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">fetchNotifications</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">fetchNotificationCounts</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">startNotificationPolling</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">stopNotificationPolling</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">Timer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">notificationPollTimer</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Persistent state</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">saveLoginState</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">loadLoginState</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Crash detection</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">checkForPreviousCrash</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">markCleanShutdown</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// OAuth polling for plugin-based OAuth flow</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">startOAuthPolling</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sessionId</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">provider</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">stopOAuthPolling</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">pollOAuthStatus</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">oauthSessionId</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">oauthProvider</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">Timer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">oauthPollTimer</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">oauthPollCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MAX_OAUTH_POLLS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">300</span><span class="p">;</span><span class="w"> </span><span class="c1">// 5 minutes at 1 second intervals</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// WebSocket handling</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">connectWebSocket</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">disconnectWebSocket</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">handleWebSocketMessage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">Message</span><span class="o">&amp;</span><span class="w"> </span><span class="n">message</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">handleWebSocketStateChange</span><span class="p">(</span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">ConnectionState</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">PLUGIN_WIDTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">PLUGIN_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">800</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR</span><span class="p">(</span><span class="n">SidechainAudioProcessorEditor</span><span class="p">)</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

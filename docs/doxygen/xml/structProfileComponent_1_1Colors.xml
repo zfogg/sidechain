@@ -1,0 +1,207 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structProfileComponent_1_1Colors" kind="struct" language="C++" prot="private">
+    <compoundname>ProfileComponent::Colors</compoundname>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a64d72af45aa9a2d96b5e4a289bdc4278" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::background</definition>
+        <argsstring></argsstring>
+        <name>background</name>
+        <qualifiedname>ProfileComponent::Colors::background</qualifiedname>
+        <initializer>{ 0xff1a1a1e }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="179" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="179" bodyend="179"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1aa541fe897d44beaf0db08faf9f8299dd" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::headerBg</definition>
+        <argsstring></argsstring>
+        <name>headerBg</name>
+        <qualifiedname>ProfileComponent::Colors::headerBg</qualifiedname>
+        <initializer>{ 0xff252529 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="180" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="180" bodyend="180"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1aef37bb0e80565c91450a43998c561959" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::cardBg</definition>
+        <argsstring></argsstring>
+        <name>cardBg</name>
+        <qualifiedname>ProfileComponent::Colors::cardBg</qualifiedname>
+        <initializer>{ 0xff2d2d32 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="181" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="181" bodyend="181"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a00bd0b52df807e8c3293d5d506fdbfc4" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::textPrimary</definition>
+        <argsstring></argsstring>
+        <name>textPrimary</name>
+        <qualifiedname>ProfileComponent::Colors::textPrimary</qualifiedname>
+        <initializer>{ 0xffffffff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="182" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="182" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a295b91f5c02f7b41e42be46c5a635b9a" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::textSecondary</definition>
+        <argsstring></argsstring>
+        <name>textSecondary</name>
+        <qualifiedname>ProfileComponent::Colors::textSecondary</qualifiedname>
+        <initializer>{ 0xffa0a0a0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="183" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="183" bodyend="183"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a7c277f48280e69a31396c807587fe691" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::accent</definition>
+        <argsstring></argsstring>
+        <name>accent</name>
+        <qualifiedname>ProfileComponent::Colors::accent</qualifiedname>
+        <initializer>{ 0xff00d4ff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="184" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="184" bodyend="184"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1ab8f28c85b07ccb9450358860ba317183" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::accentHover</definition>
+        <argsstring></argsstring>
+        <name>accentHover</name>
+        <qualifiedname>ProfileComponent::Colors::accentHover</qualifiedname>
+        <initializer>{ 0xff00b8e0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="185" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="185" bodyend="185"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1aaf9ce693a99061ee0b63f33b65d494b3" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::followButton</definition>
+        <argsstring></argsstring>
+        <name>followButton</name>
+        <qualifiedname>ProfileComponent::Colors::followButton</qualifiedname>
+        <initializer>{ 0xff00d4ff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="186" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="186" bodyend="186"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1aa8c58000d88117fb6e203ed9581a016d" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::followingButton</definition>
+        <argsstring></argsstring>
+        <name>followingButton</name>
+        <qualifiedname>ProfileComponent::Colors::followingButton</qualifiedname>
+        <initializer>{ 0xff3a3a3e }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="187" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="187" bodyend="187"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a481b41679792797b4106fc6ef9942bfd" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::badge</definition>
+        <argsstring></argsstring>
+        <name>badge</name>
+        <qualifiedname>ProfileComponent::Colors::badge</qualifiedname>
+        <initializer>{ 0xff3a3a3e }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="188" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="188" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a6703c3d042b42c40bf7b66049b3d9695" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::link</definition>
+        <argsstring></argsstring>
+        <name>link</name>
+        <qualifiedname>ProfileComponent::Colors::link</qualifiedname>
+        <initializer>{ 0xff00d4ff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="189" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="189" bodyend="189"/>
+      </memberdef>
+      <memberdef kind="variable" id="structProfileComponent_1_1Colors_1a5e4f81a6de8137120e2865e76f365cc3" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour ProfileComponent::Colors::errorRed</definition>
+        <argsstring></argsstring>
+        <name>errorRed</name>
+        <qualifiedname>ProfileComponent::Colors::errorRed</qualifiedname>
+        <initializer>{ 0xffff4757 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="190" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="190" bodyend="190"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" line="177" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/ProfileComponent.h" bodystart="178" bodyend="191"/>
+    <listofallmembers>
+      <member refid="structProfileComponent_1_1Colors_1a7c277f48280e69a31396c807587fe691" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>accent</name></member>
+      <member refid="structProfileComponent_1_1Colors_1ab8f28c85b07ccb9450358860ba317183" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>accentHover</name></member>
+      <member refid="structProfileComponent_1_1Colors_1a64d72af45aa9a2d96b5e4a289bdc4278" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>background</name></member>
+      <member refid="structProfileComponent_1_1Colors_1a481b41679792797b4106fc6ef9942bfd" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>badge</name></member>
+      <member refid="structProfileComponent_1_1Colors_1aef37bb0e80565c91450a43998c561959" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>cardBg</name></member>
+      <member refid="structProfileComponent_1_1Colors_1a5e4f81a6de8137120e2865e76f365cc3" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>errorRed</name></member>
+      <member refid="structProfileComponent_1_1Colors_1aaf9ce693a99061ee0b63f33b65d494b3" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>followButton</name></member>
+      <member refid="structProfileComponent_1_1Colors_1aa8c58000d88117fb6e203ed9581a016d" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>followingButton</name></member>
+      <member refid="structProfileComponent_1_1Colors_1aa541fe897d44beaf0db08faf9f8299dd" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>headerBg</name></member>
+      <member refid="structProfileComponent_1_1Colors_1a6703c3d042b42c40bf7b66049b3d9695" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>link</name></member>
+      <member refid="structProfileComponent_1_1Colors_1a00bd0b52df807e8c3293d5d506fdbfc4" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>textPrimary</name></member>
+      <member refid="structProfileComponent_1_1Colors_1a295b91f5c02f7b41e42be46c5a635b9a" prot="public" virt="non-virtual"><scope>ProfileComponent::Colors</scope><name>textSecondary</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

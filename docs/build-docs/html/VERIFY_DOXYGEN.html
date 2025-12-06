@@ -1,0 +1,184 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifying Doxygen Documentation in HTML &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=936f4968"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Verifying Doxygen Documentation in HTML</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/VERIFY_DOXYGEN.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="verifying-doxygen-documentation-in-html">
+<h1>Verifying Doxygen Documentation in HTML<a class="headerlink" href="#verifying-doxygen-documentation-in-html" title="Link to this heading"></a></h1>
+<section id="current-status">
+<h2>Current Status<a class="headerlink" href="#current-status" title="Link to this heading"></a></h2>
+<p>The Doxygen XML files show that <strong>comments are NOT being extracted</strong> from the source files. The XML contains empty <code class="docutils literal notranslate"><span class="pre">&lt;briefdescription&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;detaileddescription&gt;</span></code> tags.</p>
+</section>
+<section id="issues-found">
+<h2>Issues Found<a class="headerlink" href="#issues-found" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Doxygen XML references old file names</strong>: The XML still references <code class="docutils literal notranslate"><span class="pre">AuthComponent.h</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Auth.h</span></code></p></li>
+<li><p><strong>Empty description tags</strong>: All <code class="docutils literal notranslate"><span class="pre">&lt;briefdescription&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;detaileddescription&gt;</span></code> tags are empty</p></li>
+<li><p><strong>Comments not extracted</strong>: The Doxygen comments from source files are not appearing in the XML</p></li>
+</ol>
+</section>
+<section id="root-cause">
+<h2>Root Cause<a class="headerlink" href="#root-cause" title="Link to this heading"></a></h2>
+<p>The Doxygen XML was generated <strong>before</strong> the class renaming, so it:</p>
+<ul class="simple">
+<li><p>References old file names (<code class="docutils literal notranslate"><span class="pre">AuthComponent.h</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Auth.h</span></code>)</p></li>
+<li><p>Doesn’t contain the new Doxygen comments that were added</p></li>
+</ul>
+</section>
+<section id="solution">
+<h2>Solution<a class="headerlink" href="#solution" title="Link to this heading"></a></h2>
+<p>You need to <strong>rebuild the documentation</strong> to:</p>
+<ol class="arabic simple">
+<li><p>Regenerate Doxygen XML with correct file names</p></li>
+<li><p>Extract the new Doxygen comments</p></li>
+<li><p>Generate fresh HTML documentation</p></li>
+</ol>
+<section id="steps-to-fix">
+<h3>Steps to Fix<a class="headerlink" href="#steps-to-fix" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+
+<span class="c1"># Clean old generated files</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>build-docs<span class="w"> </span>doxygen<span class="w"> </span>api<span class="w"> </span>_build
+
+<span class="c1"># Rebuild everything</span>
+./rebuild-docs.sh
+
+<span class="c1"># Or manually:</span>
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-docs
+cmake<span class="w"> </span>--build<span class="w"> </span>build-docs<span class="w"> </span>--target<span class="w"> </span>docs
+</pre></div>
+</div>
+</section>
+<section id="verify-after-rebuild">
+<h3>Verify After Rebuild<a class="headerlink" href="#verify-after-rebuild" title="Link to this heading"></a></h3>
+<p>After rebuilding, run the verification script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./verify-doxygen-docs.sh
+</pre></div>
+</div>
+<p>This will check:</p>
+<ul class="simple">
+<li><p>✓ HTML files contain Doxygen comments</p></li>
+<li><p>✓ XML files have extracted comments</p></li>
+<li><p>✓ File references are correct</p></li>
+</ul>
+</section>
+</section>
+<section id="expected-result">
+<h2>Expected Result<a class="headerlink" href="#expected-result" title="Link to this heading"></a></h2>
+<p>After rebuilding, you should see:</p>
+<ul class="simple">
+<li><p>HTML pages with Doxygen comments like “Called when login/signup succeeds”</p></li>
+<li><p>Parameter documentation like “&#64;param client Pointer to the NetworkClient instance”</p></li>
+<li><p>Function descriptions extracted from <code class="docutils literal notranslate"><span class="pre">/**</span> <span class="pre">...</span> <span class="pre">*/</span></code> comments</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p>If comments still don’t appear after rebuilding:</p>
+<ol class="arabic simple">
+<li><p><strong>Check comment format</strong>: Doxygen requires <code class="docutils literal notranslate"><span class="pre">/**</span> <span class="pre">...</span> <span class="pre">*/</span></code> (not <code class="docutils literal notranslate"><span class="pre">//</span></code> or <code class="docutils literal notranslate"><span class="pre">/*</span> <span class="pre">...</span> <span class="pre">*/</span></code>)</p></li>
+<li><p><strong>Verify file paths</strong>: Ensure Doxygen is scanning the correct directory (<code class="docutils literal notranslate"><span class="pre">plugin/source</span></code>)</p></li>
+<li><p><strong>Check Doxygen config</strong>: Verify <code class="docutils literal notranslate"><span class="pre">INPUT</span></code> in <code class="docutils literal notranslate"><span class="pre">Doxyfile</span></code> points to the right location</p></li>
+<li><p><strong>Review build logs</strong>: Check for Doxygen warnings about missing files or parsing errors</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

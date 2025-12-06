@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_0773fed6e1330fe52cd55aaabda87a32" kind="dir">
+    <compoundname>feed</compoundname>
+    <innerfile refid="Comment_8cpp">Comment.cpp</innerfile>
+    <innerfile refid="Comment_8h">Comment.h</innerfile>
+    <innerfile refid="EmojiReactionsPanel_8cpp">EmojiReactionsPanel.cpp</innerfile>
+    <innerfile refid="EmojiReactionsPanel_8h">EmojiReactionsPanel.h</innerfile>
+    <innerfile refid="PostCard_8cpp">PostCard.cpp</innerfile>
+    <innerfile refid="PostCard_8h">PostCard.h</innerfile>
+    <innerfile refid="PostsFeed_8cpp">PostsFeed.cpp</innerfile>
+    <innerfile refid="PostsFeed_8h">PostsFeed.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/"/>
+  </compounddef>
+</doxygen>

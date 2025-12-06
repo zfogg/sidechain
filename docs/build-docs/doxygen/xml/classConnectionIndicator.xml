@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classConnectionIndicator" kind="class" language="C++" prot="public">
+    <compoundname>ConnectionIndicator</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::TooltipClient</basecompoundref>
+    <includes refid="ConnectionIndicator_8h" local="no">ConnectionIndicator.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classConnectionIndicator_1a90a64468467ff860a2c07f63e8c4bc4f" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; ConnectionIndicator::onReconnectClicked</definition>
+        <argsstring></argsstring>
+        <name>onReconnectClicked</name>
+        <qualifiedname>ConnectionIndicator::onReconnectClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="98" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classConnectionIndicator_1aef8578128aa28143e3c2ac161bd2e8a8" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">NetworkClient::ConnectionStatus</ref></type>
+        <definition>NetworkClient::ConnectionStatus ConnectionIndicator::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>ConnectionIndicator::status</qualifiedname>
+        <initializer>= <ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94eaef70e46fd3bbc21e3e1f0b6815e750c0" kindref="member">NetworkClient::ConnectionStatus::Disconnected</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="101" column="37" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classConnectionIndicator_1a4fa9caf20c12d112fdf0ec0cd871e3c2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ConnectionIndicator::ConnectionIndicator</definition>
+        <argsstring>()</argsstring>
+        <name>ConnectionIndicator</name>
+        <qualifiedname>ConnectionIndicator::ConnectionIndicator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="19" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="19" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classConnectionIndicator_1a6a54f1cc9f7a956b752bb4e865afbdb5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ConnectionIndicator::setStatus</definition>
+        <argsstring>(NetworkClient::ConnectionStatus newStatus)</argsstring>
+        <name>setStatus</name>
+        <qualifiedname>ConnectionIndicator::setStatus</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">NetworkClient::ConnectionStatus</ref></type>
+          <declname>newStatus</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="24" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="24" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classConnectionIndicator_1a0f15cf181b951b930cbc60a61250344e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">NetworkClient::ConnectionStatus</ref></type>
+        <definition>NetworkClient::ConnectionStatus ConnectionIndicator::getStatus</definition>
+        <argsstring>() const</argsstring>
+        <name>getStatus</name>
+        <qualifiedname>ConnectionIndicator::getStatus</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="33" column="37" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classConnectionIndicator_1afe0287a3d629ac26bce96d96a9444754" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ConnectionIndicator::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>ConnectionIndicator::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="35" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="35" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classConnectionIndicator_1a30541a0e28ac3efc9fa4ba8852dac9b0" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String ConnectionIndicator::getTooltip</definition>
+        <argsstring>() override</argsstring>
+        <name>getTooltip</name>
+        <qualifiedname>ConnectionIndicator::getTooltip</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="75" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="75" bodyend="87"/>
+      </memberdef>
+      <memberdef kind="function" id="classConnectionIndicator_1abbf915fb36d7de13434de384965fcaed" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ConnectionIndicator::mouseDown</definition>
+        <argsstring>(const juce::MouseEvent &amp;) override</argsstring>
+        <name>mouseDown</name>
+        <qualifiedname>ConnectionIndicator::mouseDown</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="89" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="89" bodyend="96"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classConnectionIndicator" kindref="compound">ConnectionIndicator</ref> displays the current connection status as a colored dot. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Colors:<itemizedlist>
+<listitem><para>Green: Connected to backend</para>
+</listitem><listitem><para>Yellow: Connecting/retrying</para>
+</listitem><listitem><para>Red: Disconnected </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>ConnectionIndicator</label>
+        <link refid="classConnectionIndicator"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::TooltipClient</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>ConnectionIndicator</label>
+        <link refid="classConnectionIndicator"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::TooltipClient</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" line="15" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/ConnectionIndicator.h" bodystart="17" bodyend="104"/>
+    <listofallmembers>
+      <member refid="classConnectionIndicator_1a4fa9caf20c12d112fdf0ec0cd871e3c2" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>ConnectionIndicator</name></member>
+      <member refid="classConnectionIndicator_1a0f15cf181b951b930cbc60a61250344e" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>getStatus</name></member>
+      <member refid="classConnectionIndicator_1a30541a0e28ac3efc9fa4ba8852dac9b0" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>getTooltip</name></member>
+      <member refid="classConnectionIndicator_1abbf915fb36d7de13434de384965fcaed" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>mouseDown</name></member>
+      <member refid="classConnectionIndicator_1a90a64468467ff860a2c07f63e8c4bc4f" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>onReconnectClicked</name></member>
+      <member refid="classConnectionIndicator_1afe0287a3d629ac26bce96d96a9444754" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>paint</name></member>
+      <member refid="classConnectionIndicator_1a6a54f1cc9f7a956b752bb4e865afbdb5" prot="public" virt="non-virtual"><scope>ConnectionIndicator</scope><name>setStatus</name></member>
+      <member refid="classConnectionIndicator_1aef8578128aa28143e3c2ac161bd2e8a8" prot="private" virt="non-virtual"><scope>ConnectionIndicator</scope><name>status</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: plugin/build/_deps/juce-src
-          key: juce-8.0.8-${{ runner.os }}
+          key: juce-8.0.11-${{ runner.os }}
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
@@ -239,7 +239,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: plugin/build/_deps/juce-src
-          key: juce-8.0.8-${{ runner.os }}-tests
+          key: juce-8.0.11-${{ runner.os }}-tests
 
       - name: Configure CMake with Tests and Coverage
         run: |

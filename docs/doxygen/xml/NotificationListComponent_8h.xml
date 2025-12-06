@@ -1,0 +1,221 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="NotificationListComponent_8h" kind="file" language="C++">
+    <compoundname>NotificationListComponent.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes refid="HoverState_8h" local="yes">../../util/HoverState.h</includes>
+    <includedby refid="NotificationListComponent_8cpp" local="yes">NotificationListComponent.cpp</includedby>
+    <includedby refid="PluginEditor_8h" local="yes">PluginEditor.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>NotificationListComponent.h</label>
+        <link refid="NotificationListComponent_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>../../util/HoverState.h</label>
+        <link refid="HoverState_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+      <node id="4">
+        <label>functional</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="4">
+        <label>PluginEditor.cpp</label>
+        <link refid="PluginEditor_8cpp"/>
+      </node>
+      <node id="3">
+        <label>PluginEditor.h</label>
+        <link refid="PluginEditor_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>PluginProcessor.cpp</label>
+        <link refid="PluginProcessor_8cpp"/>
+      </node>
+      <node id="2">
+        <label>NotificationListComponent.cpp</label>
+        <link refid="NotificationListComponent_8cpp"/>
+      </node>
+      <node id="1">
+        <label>NotificationListComponent.h</label>
+        <link refid="NotificationListComponent_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structNotificationItem" prot="public">NotificationItem</innerclass>
+    <innerclass refid="classNotificationRowComponent" prot="public">NotificationRowComponent</innerclass>
+    <innerclass refid="classNotificationListComponent" prot="public">NotificationListComponent</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="HoverState_8h" kindref="compound">../../util/HoverState.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14" refid="structNotificationItem" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref></highlight></codeline>
+<codeline lineno="15"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="16" refid="structNotificationItem_1ab57824b8b2701cbfa2e94cf4b47b4405" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1ab57824b8b2701cbfa2e94cf4b47b4405" kindref="member">id</ref>;</highlight></codeline>
+<codeline lineno="17" refid="structNotificationItem_1a1ff039e615abf57302ed4f0984389808" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a1ff039e615abf57302ed4f0984389808" kindref="member">groupKey</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>The<sp/>aggregation<sp/>group<sp/>key</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18" refid="structNotificationItem_1ad2b5e9dbf404ae741b1ac7df9d570d2c" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1ad2b5e9dbf404ae741b1ac7df9d570d2c" kindref="member">verb</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>&quot;like&quot;,<sp/>&quot;follow&quot;,<sp/>&quot;comment&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19" refid="structNotificationItem_1aefcaf22e25a5c1dd18ea96e150ac1138" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem_1aefcaf22e25a5c1dd18ea96e150ac1138" kindref="member">activityCount</ref><sp/>=<sp/>1;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Total<sp/>activities<sp/>in<sp/>group</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="structNotificationItem_1ac31ea157a69357315737db1bb04885c9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem_1ac31ea157a69357315737db1bb04885c9" kindref="member">actorCount</ref><sp/>=<sp/>1;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Unique<sp/>actors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21" refid="structNotificationItem_1a862bcc09b735f362950e9007cd3a8c39" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem_1a862bcc09b735f362950e9007cd3a8c39" kindref="member">isRead</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="22" refid="structNotificationItem_1a1d1c8ae2a0dce0ccd0ef8d1709775798" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem_1a1d1c8ae2a0dce0ccd0ef8d1709775798" kindref="member">isSeen</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="23" refid="structNotificationItem_1a43a3e6a132bb094494ed7d9d0753c746" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a43a3e6a132bb094494ed7d9d0753c746" kindref="member">createdAt</ref>;</highlight></codeline>
+<codeline lineno="24" refid="structNotificationItem_1a8727b0da0626cd0edf57d0d40dfc38ae" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a8727b0da0626cd0edf57d0d40dfc38ae" kindref="member">updatedAt</ref>;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>First<sp/>actor<sp/>info<sp/>(for<sp/>display)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="structNotificationItem_1ae7f5ae8a3688d07a3f04379cb115cd31" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1ae7f5ae8a3688d07a3f04379cb115cd31" kindref="member">actorId</ref>;</highlight></codeline>
+<codeline lineno="28" refid="structNotificationItem_1a5d2a8ca9861376b0da0b13b0592c8980" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a5d2a8ca9861376b0da0b13b0592c8980" kindref="member">actorName</ref>;</highlight></codeline>
+<codeline lineno="29" refid="structNotificationItem_1afaf1d2fd3d611a42e6877b70844580f8" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1afaf1d2fd3d611a42e6877b70844580f8" kindref="member">actorAvatarUrl</ref>;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Target<sp/>info<sp/>(the<sp/>object<sp/>that<sp/>was<sp/>acted<sp/>upon)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32" refid="structNotificationItem_1a455fa6edf99a30e97b1d2abecd5a8fd7" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a455fa6edf99a30e97b1d2abecd5a8fd7" kindref="member">targetId</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>e.g.,<sp/>&quot;loop:123&quot;<sp/>or<sp/>&quot;user:456&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33" refid="structNotificationItem_1a11e13a0d0a88daf20e5eaacc32e02699" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a11e13a0d0a88daf20e5eaacc32e02699" kindref="member">targetType</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>&quot;loop&quot;,<sp/>&quot;user&quot;,<sp/>&quot;comment&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34" refid="structNotificationItem_1a5b3f145473932623f7ec62af42d45666" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a5b3f145473932623f7ec62af42d45666" kindref="member">targetPreview</ref>;<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Preview<sp/>text<sp/>or<sp/>title</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Parse<sp/>from<sp/>JSON<sp/>response</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref><sp/><ref refid="structNotificationItem_1a284c3f8e12c69c720099b33850d8d470" kindref="member">fromJson</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>json);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Generate<sp/>display<sp/>text<sp/>like<sp/>&quot;Alice<sp/>and<sp/>3<sp/>others<sp/>liked<sp/>your<sp/>loop&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a7851c67f8ebdff4c3ac7dee69dcef6e1" kindref="member">getDisplayText</ref>()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>relative<sp/>time<sp/>like<sp/>&quot;2h<sp/>ago&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a3f71f258c7180bedf23780dd3a3b501c" kindref="member">getRelativeTime</ref>()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>icon<sp/>path/type<sp/>for<sp/>the<sp/>verb</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNotificationItem_1a57172a49891b0410a5ea331e1b4d76fe" kindref="member">getVerbIcon</ref>()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53" refid="classNotificationRowComponent" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classNotificationRowComponent_1a1e730f9038e610f02d8fd92378116990" kindref="member">NotificationRowComponent</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::Component</highlight></codeline>
+<codeline lineno="54"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNotificationRowComponent_1a1e730f9038e610f02d8fd92378116990" kindref="member">NotificationRowComponent</ref>();</highlight></codeline>
+<codeline lineno="57" refid="classNotificationRowComponent_1a7a7de013678066269812f4b1f155402f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNotificationRowComponent_1a7a7de013678066269812f4b1f155402f" kindref="member">~NotificationRowComponent</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal"><sp/>=<sp/></highlight><highlight class="keywordflow">default</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationRowComponent_1a95dfcbe67592c1fc9a0c22ee93c4f5b2" kindref="member">setNotification</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref>&amp;<sp/>notification);</highlight></codeline>
+<codeline lineno="60" refid="classNotificationRowComponent_1ae6109b634f58b82e7f9a21c6cd26c0c3" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref>&amp;<sp/><ref refid="classNotificationRowComponent_1ae6109b634f58b82e7f9a21c6cd26c0c3" kindref="member">getNotification</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>notification;<sp/>}</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callbacks</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63" refid="classNotificationRowComponent_1a17bbef1e1ddf4c75dde10a03d4fdfa8f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref>&amp;)&gt;<sp/><ref refid="classNotificationRowComponent_1a17bbef1e1ddf4c75dde10a03d4fdfa8f" kindref="member">onClicked</ref>;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Component<sp/>overrides</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationRowComponent_1adfb9cff57bfeb7d7aef57b888678d83b" kindref="member">paint</ref>(juce::Graphics&amp;<sp/>g)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationRowComponent_1a957d6960075ba642fbe213d96435d073" kindref="member">mouseEnter</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationRowComponent_1a29b0ce98bf3d23f89a1c98ad1b9f2876" kindref="member">mouseExit</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationRowComponent_1a6e249b57a42761bdfe3f0d50d679d3bd" kindref="member">mouseDown</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="classNotificationRowComponent_1ade3c6a371a2e5eafd4d7b3b51c7798c5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classNotificationRowComponent_1ade3c6a371a2e5eafd4d7b3b51c7798c5" kindref="member">ROW_HEIGHT</ref><sp/>=<sp/>72;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref><sp/>notification;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classHoverState" kindref="compound">HoverState</ref><sp/>hoverState;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawAvatar(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawVerbIcon(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawText(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawUnreadIndicator(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(<ref refid="classNotificationRowComponent_1a1e730f9038e610f02d8fd92378116990" kindref="member">NotificationRowComponent</ref>)</highlight></codeline>
+<codeline lineno="83"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97" refid="classNotificationListComponent" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classNotificationListComponent_1a9b06b6ee292ec41f267bdf3fd9c3a364" kindref="member">NotificationListComponent</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::Component,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::ScrollBar::Listener</highlight></codeline>
+<codeline lineno="99"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNotificationListComponent_1a9b06b6ee292ec41f267bdf3fd9c3a364" kindref="member">NotificationListComponent</ref>();</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNotificationListComponent_1a7fa2c82ef6656e077fc2ca80823279da" kindref="member">~NotificationListComponent</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Data<sp/>binding</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1afe947548a84e44f747da02465fb20079" kindref="member">setNotifications</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::Array&lt;NotificationItem&gt;&amp;<sp/>notifications);</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a2a8e078c53048fc5d2c2f93a03091289" kindref="member">clearNotifications</ref>();</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a8047f7ce970bd838040c10d0d9a5b042" kindref="member">setLoading</ref>(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>loading);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a707089d8ced7e27ce66abf2af241c9ba" kindref="member">setError</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>errorMessage);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Update<sp/>counts<sp/>(displayed<sp/>in<sp/>header)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a53452ba21fb479fa656d3795157f75b0" kindref="member">setUnseenCount</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a9321204b5b8e232008402290b21cd264" kindref="member">setUnreadCount</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callbacks</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="117" refid="classNotificationListComponent_1aa32b7924bf49785444b9825788f9b812" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structNotificationItem" kindref="compound">NotificationItem</ref>&amp;)&gt;<sp/><ref refid="classNotificationListComponent_1aa32b7924bf49785444b9825788f9b812" kindref="member">onNotificationClicked</ref>;</highlight></codeline>
+<codeline lineno="118" refid="classNotificationListComponent_1aa8fe6d0d4f1d043bde0f553901cd2647" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void()&gt;<sp/><ref refid="classNotificationListComponent_1aa8fe6d0d4f1d043bde0f553901cd2647" kindref="member">onMarkAllReadClicked</ref>;</highlight></codeline>
+<codeline lineno="119" refid="classNotificationListComponent_1ac23d4e6ae4e03a5c5e8bef3dd81c3ebd" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void()&gt;<sp/><ref refid="classNotificationListComponent_1ac23d4e6ae4e03a5c5e8bef3dd81c3ebd" kindref="member">onCloseClicked</ref>;</highlight></codeline>
+<codeline lineno="120" refid="classNotificationListComponent_1a246a4200e871318f3b3a6d2520e798ba" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void()&gt;<sp/><ref refid="classNotificationListComponent_1a246a4200e871318f3b3a6d2520e798ba" kindref="member">onRefreshRequested</ref>;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Component<sp/>overrides</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a532f03dbb271968541356937f22d933f" kindref="member">paint</ref>(juce::Graphics&amp;<sp/>g)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1ae02cf48b7199d168ebbd4a3713cef16c" kindref="member">resized</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a5851a5daa29b26008a64708d54dd29d9" kindref="member">scrollBarMoved</ref>(juce::ScrollBar*<sp/>scrollBar,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>newRangeStart)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Layout<sp/>constants</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130" refid="classNotificationListComponent_1ab6e726a2244809e6b9e49777aeaef51c" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1ab6e726a2244809e6b9e49777aeaef51c" kindref="member">HEADER_HEIGHT</ref><sp/>=<sp/>50;</highlight></codeline>
+<codeline lineno="131" refid="classNotificationListComponent_1a43d7311f681de1f0d7e0ec49aa372dee" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1a43d7311f681de1f0d7e0ec49aa372dee" kindref="member">PREFERRED_WIDTH</ref><sp/>=<sp/>360;</highlight></codeline>
+<codeline lineno="132" refid="classNotificationListComponent_1ae3e169bfd27be0defebe01e3c68dfc5d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classNotificationListComponent_1ae3e169bfd27be0defebe01e3c68dfc5d" kindref="member">MAX_HEIGHT</ref><sp/>=<sp/>500;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Array&lt;NotificationItem&gt;<sp/>notifications;</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::OwnedArray&lt;NotificationRowComponent&gt;<sp/>rowComponents;</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>unseenCount<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>unreadCount<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>isLoading<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>errorMessage;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Scrolling</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Viewport<sp/>viewport;</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Component<sp/>contentComponent;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>scrollOffset<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Drawing<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawHeader(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawEmptyState(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawLoadingState(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawErrorState(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Layout<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>rebuildRowComponents();</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>layoutRows();</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Hit<sp/>testing</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getMarkAllReadButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getCloseButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Mouse<sp/>handling</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>mouseDown(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(<ref refid="classNotificationListComponent_1a9b06b6ee292ec41f267bdf3fd9c3a364" kindref="member">NotificationListComponent</ref>)</highlight></codeline>
+<codeline lineno="168"><highlight class="normal">};</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h"/>
+  </compounddef>
+</doxygen>

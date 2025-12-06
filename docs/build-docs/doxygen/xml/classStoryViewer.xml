@@ -1,0 +1,1012 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classStoryViewer" kind="class" language="C++" prot="public">
+    <compoundname>StoryViewer</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <includes refid="StoryViewer_8h" local="no">StoryViewer.h</includes>
+    <innerclass refid="structStoryViewer_1_1ProgressSegment" prot="private">StoryViewer::ProgressSegment</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classStoryViewer_1acce727964d34cd51849aafbf764863fd" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; StoryViewer::onClose</definition>
+        <argsstring></argsstring>
+        <name>onClose</name>
+        <qualifiedname>StoryViewer::onClose</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="61" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a328a125ea03f6ee19d03549f0100925f" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;nextUserId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; nextUserId)&gt; StoryViewer::onNextUser</definition>
+        <argsstring></argsstring>
+        <name>onNextUser</name>
+        <qualifiedname>StoryViewer::onNextUser</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="64" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a2915648099c7080d735b73f7ab565967" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;storyId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; storyId)&gt; StoryViewer::onViewersClicked</definition>
+        <argsstring></argsstring>
+        <name>onViewersClicked</name>
+        <qualifiedname>StoryViewer::onViewersClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="67" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1ab09d01fd99c7af32d251ce23c02b802a" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;storyId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; storyId)&gt; StoryViewer::onShareClicked</definition>
+        <argsstring></argsstring>
+        <name>onShareClicked</name>
+        <qualifiedname>StoryViewer::onShareClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="70" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classStoryViewer_1a9ae1e375fa663b0ad7c47b4606de5ce2" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* StoryViewer::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>StoryViewer::networkClient</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="74" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1ac57e31eeb7ea3183d6e32e743eaad73d" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StoryViewer::currentUserId</definition>
+        <argsstring></argsstring>
+        <name>currentUserId</name>
+        <qualifiedname>StoryViewer::currentUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="75" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a4d501ba76089d236f2bfaa85d6306a67" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structStoryData" kindref="compound">StoryData</ref> &gt;</type>
+        <definition>std::vector&lt;StoryData&gt; StoryViewer::stories</definition>
+        <argsstring></argsstring>
+        <name>stories</name>
+        <qualifiedname>StoryViewer::stories</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="78" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="78" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1afa2f3f1852c0802c7c3723e475accc6c" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int StoryViewer::currentStoryIndex</definition>
+        <argsstring></argsstring>
+        <name>currentStoryIndex</name>
+        <qualifiedname>StoryViewer::currentStoryIndex</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="79" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a36db380895c772ebd555c64587061991" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; <ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref> &gt;</type>
+        <definition>std::unique_ptr&lt;HttpAudioPlayer&gt; StoryViewer::audioPlayer</definition>
+        <argsstring></argsstring>
+        <name>audioPlayer</name>
+        <qualifiedname>StoryViewer::audioPlayer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="82" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a9e23df37f25331016a9d574817a3848a" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool StoryViewer::playing</definition>
+        <argsstring></argsstring>
+        <name>playing</name>
+        <qualifiedname>StoryViewer::playing</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="83" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1af84fe423c6877c85bbadcd76c6fe8e6c" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double StoryViewer::playbackPosition</definition>
+        <argsstring></argsstring>
+        <name>playbackPosition</name>
+        <qualifiedname>StoryViewer::playbackPosition</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="84" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a03ca62693a473c36d547cc52fa6edd1b" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double StoryViewer::storyDuration</definition>
+        <argsstring></argsstring>
+        <name>storyDuration</name>
+        <qualifiedname>StoryViewer::storyDuration</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="85" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a60cf840701133d67a3737e41ae886133" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; PianoRollComponent &gt;</type>
+        <definition>std::unique_ptr&lt;PianoRollComponent&gt; StoryViewer::pianoRoll</definition>
+        <argsstring></argsstring>
+        <name>pianoRoll</name>
+        <qualifiedname>StoryViewer::pianoRoll</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="88" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a85ac907ebee8e8f40f4a793e3af1e083" prot="private" static="no" mutable="no">
+        <type>juce::Point&lt; int &gt;</type>
+        <definition>juce::Point&lt;int&gt; StoryViewer::dragStartPoint</definition>
+        <argsstring></argsstring>
+        <name>dragStartPoint</name>
+        <qualifiedname>StoryViewer::dragStartPoint</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="91" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a791be8ebb6f378bcd25c3fd21dfeaf19" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool StoryViewer::isDragging</definition>
+        <argsstring></argsstring>
+        <name>isDragging</name>
+        <qualifiedname>StoryViewer::isDragging</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="92" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1ab2d0a0a2d0bbba972cd20ad1e3b28d25" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; ProgressSegment &gt;</type>
+        <definition>std::vector&lt;ProgressSegment&gt; StoryViewer::progressSegments</definition>
+        <argsstring></argsstring>
+        <name>progressSegments</name>
+        <qualifiedname>StoryViewer::progressSegments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="101" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="101" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1abd8e7e3e4e9102885154a1db2346ddf8" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::headerArea</definition>
+        <argsstring></argsstring>
+        <name>headerArea</name>
+        <qualifiedname>StoryViewer::headerArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="104" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a02ae82493b3840a656a8a44c6451346c" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::progressBarArea</definition>
+        <argsstring></argsstring>
+        <name>progressBarArea</name>
+        <qualifiedname>StoryViewer::progressBarArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="105" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1aa62ea8ae555af6b8e8ef52ac7da2d2d3" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::contentArea</definition>
+        <argsstring></argsstring>
+        <name>contentArea</name>
+        <qualifiedname>StoryViewer::contentArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="106" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a2ca785fc6ddc0b9d20ea90a120793b90" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::closeButtonArea</definition>
+        <argsstring></argsstring>
+        <name>closeButtonArea</name>
+        <qualifiedname>StoryViewer::closeButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="107" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1ac554c5b603655f10aba5b07085f25b0d" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::leftTapArea</definition>
+        <argsstring></argsstring>
+        <name>leftTapArea</name>
+        <qualifiedname>StoryViewer::leftTapArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="108" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a49c6003758273665842da92db004a4b6" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::rightTapArea</definition>
+        <argsstring></argsstring>
+        <name>rightTapArea</name>
+        <qualifiedname>StoryViewer::rightTapArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="109" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a1faa97576dd2273eafcbf3bec5410395" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::viewersButtonArea</definition>
+        <argsstring></argsstring>
+        <name>viewersButtonArea</name>
+        <qualifiedname>StoryViewer::viewersButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="110" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoryViewer_1a219f7b10e8c282a664954786b9bc77fd" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; StoryViewer::shareButtonArea</definition>
+        <argsstring></argsstring>
+        <name>shareButtonArea</name>
+        <qualifiedname>StoryViewer::shareButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="111" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classStoryViewer_1a5b4f7f204cae37be05ad0477de99814d" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int StoryViewer::SWIPE_THRESHOLD</definition>
+        <argsstring></argsstring>
+        <name>SWIPE_THRESHOLD</name>
+        <qualifiedname>StoryViewer::SWIPE_THRESHOLD</qualifiedname>
+        <initializer>= 50</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="93" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classStoryViewer_1aad546c46a8d7adeabab704ab463b7660" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>StoryViewer::StoryViewer</definition>
+        <argsstring>()</argsstring>
+        <name>StoryViewer</name>
+        <qualifiedname>StoryViewer::StoryViewer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="26" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="21" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1aedbe210e0b3c03079e6c4b7e93a7ef0b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>StoryViewer::~StoryViewer</definition>
+        <argsstring>() override</argsstring>
+        <name>~StoryViewer</name>
+        <qualifiedname>StoryViewer::~StoryViewer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="27" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="36" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1acbf339af5885ecce571de8b1e1a7b137" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::paint</definition>
+        <argsstring>(juce::Graphics &amp;) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>StoryViewer::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <defname>g</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="30" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="46" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a79813a8799770f4c781d52f49529f270" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>StoryViewer::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="31" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="71" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a35ce2cd2c99fe72067155072d7bcc50a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>StoryViewer::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="32" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="106" bodyend="175"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a3d90fc4a497e96a5fc76a39a2e241dfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::mouseDown</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseDown</name>
+        <qualifiedname>StoryViewer::mouseDown</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="33" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="177" bodyend="181"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1ab02890e3f90a402cb2c6acada38fd1fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::mouseDrag</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseDrag</name>
+        <qualifiedname>StoryViewer::mouseDrag</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="34" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="183" bodyend="186"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1ae5ca7fd949e980e5c172877bc1408362" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>StoryViewer::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="38" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="189" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a2ed5433c0e8aede440eb59d24e9e2756" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>StoryViewer::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="42" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a34dcbd78e659bcb0f24692d212363ed0" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::setCurrentUserId</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>setCurrentUserId</name>
+        <qualifiedname>StoryViewer::setCurrentUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="43" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="43" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1abd002c5e3bdfc2fcda3b1c7595d5351d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::setStories</definition>
+        <argsstring>(const std::vector&lt; StoryData &gt; &amp;stories, int startIndex=0)</argsstring>
+        <name>setStories</name>
+        <qualifiedname>StoryViewer::setStories</qualifiedname>
+        <param>
+          <type>const std::vector&lt; <ref refid="structStoryData" kindref="compound">StoryData</ref> &gt; &amp;</type>
+          <declname>stories</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>startIndex</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="46" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="207" bodyend="227"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a520725f527903530668aee9530ea5c7e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::showNextStory</definition>
+        <argsstring>()</argsstring>
+        <name>showNextStory</name>
+        <qualifiedname>StoryViewer::showNextStory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="229" bodyend="252"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a864af87b714b1b40a3530c69300ef106" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::showPreviousStory</definition>
+        <argsstring>()</argsstring>
+        <name>showPreviousStory</name>
+        <qualifiedname>StoryViewer::showPreviousStory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="50" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="254" bodyend="267"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a02db04dc3c632e74a322403ee5b9d24c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::closeViewer</definition>
+        <argsstring>()</argsstring>
+        <name>closeViewer</name>
+        <qualifiedname>StoryViewer::closeViewer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="51" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="269" bodyend="279"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1aa4270746f55e210cbb47d5045476840e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::togglePlayPause</definition>
+        <argsstring>()</argsstring>
+        <name>togglePlayPause</name>
+        <qualifiedname>StoryViewer::togglePlayPause</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="54" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="281" bodyend="297"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a5737113d06c8c089283e8bfaa2704769" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool StoryViewer::isPlaying</definition>
+        <argsstring>() const</argsstring>
+        <name>isPlaying</name>
+        <qualifiedname>StoryViewer::isPlaying</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="55" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="55" bodyend="55"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classStoryViewer_1ac5a07e7a271246cf95b5fb6659910805" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>StoryViewer::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="115" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="300" bodyend="341"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a636d1fa90e1c401056114d50ac9632d3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawProgressBar</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawProgressBar</name>
+        <qualifiedname>StoryViewer::drawProgressBar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="116" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="343" bodyend="372"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a427b06c3269be4ac62e83e6597ba3de1" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawStoryContent</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawStoryContent</name>
+        <qualifiedname>StoryViewer::drawStoryContent</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="117" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="374" bodyend="412"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1af2a394c238c62356665606e50bc2bd7d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawWaveform</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawWaveform</name>
+        <qualifiedname>StoryViewer::drawWaveform</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="118" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="414" bodyend="445"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1aba7d24bf62535ac8a377e4b5eb5266d3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawViewCount</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawViewCount</name>
+        <qualifiedname>StoryViewer::drawViewCount</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="119" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="447" bodyend="461"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a2ea5f0d85f6c08b5df059c9318834f70" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawExpirationTime</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawExpirationTime</name>
+        <qualifiedname>StoryViewer::drawExpirationTime</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="120" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1aa8100f2d7f9cc434a35cabb9214ad67a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawPlayPauseOverlay</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawPlayPauseOverlay</name>
+        <qualifiedname>StoryViewer::drawPlayPauseOverlay</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="121" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="463" bodyend="480"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1aa53abbaab623fd4ebc232a5a097a17c7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawExpiredMessage</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawExpiredMessage</name>
+        <qualifiedname>StoryViewer::drawExpiredMessage</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="122" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="482" bodyend="502"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a2d83062c46c3c682ceb0520e32695a8c" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawViewersButton</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawViewersButton</name>
+        <qualifiedname>StoryViewer::drawViewersButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="123" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="504" bodyend="527"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1ac1fb5d8c293efbc9bfd5651351abf9c0" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::drawShareButton</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawShareButton</name>
+        <qualifiedname>StoryViewer::drawShareButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="124" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="529" bodyend="546"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1aa3d65a7568f89a1d59eb28036a65d7f9" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::loadCurrentStory</definition>
+        <argsstring>()</argsstring>
+        <name>loadCurrentStory</name>
+        <qualifiedname>StoryViewer::loadCurrentStory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="127" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="559" bodyend="619"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a7dcd3a1fb17f3adf2f5708c97fca8919" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::markStoryAsViewed</definition>
+        <argsstring>()</argsstring>
+        <name>markStoryAsViewed</name>
+        <qualifiedname>StoryViewer::markStoryAsViewed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="128" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="621" bodyend="637"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a84eb5d6886fe9172ef6ffbd3e471fa4f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::updateProgress</definition>
+        <argsstring>()</argsstring>
+        <name>updateProgress</name>
+        <qualifiedname>StoryViewer::updateProgress</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="129" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="639" bodyend="649"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a4177b8382acf01e7d16b6820934a752f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::onStoryComplete</definition>
+        <argsstring>()</argsstring>
+        <name>onStoryComplete</name>
+        <qualifiedname>StoryViewer::onStoryComplete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="130" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="651" bodyend="664"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1a63d794ebc4e9b628097470259b1d3f26" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>const <ref refid="structStoryData" kindref="compound">StoryData</ref> *</type>
+        <definition>const StoryData * StoryViewer::getCurrentStory</definition>
+        <argsstring>() const</argsstring>
+        <name>getCurrentStory</name>
+        <qualifiedname>StoryViewer::getCurrentStory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="133" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="666" bodyend="673"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoryViewer_1acc928daec11fd168dbde7213ae873d86" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoryViewer::handleShareStory</definition>
+        <argsstring>(const juce::String &amp;storyId)</argsstring>
+        <name>handleShareStory</name>
+        <qualifiedname>StoryViewer::handleShareStory</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>storyId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="136" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.cpp" bodystart="550" bodyend="556"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classStoryViewer" kindref="compound">StoryViewer</ref> displays stories in a full-screen viewer (7.5.4.2.1). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Full-screen story view (Snapchat-style)</para>
+</listitem><listitem><para>Audio playback with waveform</para>
+</listitem><listitem><para>MIDI visualization (piano roll)</para>
+</listitem><listitem><para>User info header (avatar, name)</para>
+</listitem><listitem><para>Progress bar showing story duration</para>
+</listitem><listitem><para>Swipe/tap navigation between stories </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>StoryViewer</label>
+        <link refid="classStoryViewer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>StoryViewer</label>
+        <link refid="classStoryViewer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="22" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="24" bodyend="139"/>
+    <listofallmembers>
+      <member refid="classStoryViewer_1a36db380895c772ebd555c64587061991" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>audioPlayer</name></member>
+      <member refid="classStoryViewer_1a2ca785fc6ddc0b9d20ea90a120793b90" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>closeButtonArea</name></member>
+      <member refid="classStoryViewer_1a02db04dc3c632e74a322403ee5b9d24c" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>closeViewer</name></member>
+      <member refid="classStoryViewer_1aa62ea8ae555af6b8e8ef52ac7da2d2d3" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>contentArea</name></member>
+      <member refid="classStoryViewer_1afa2f3f1852c0802c7c3723e475accc6c" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>currentStoryIndex</name></member>
+      <member refid="classStoryViewer_1ac57e31eeb7ea3183d6e32e743eaad73d" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>currentUserId</name></member>
+      <member refid="classStoryViewer_1a85ac907ebee8e8f40f4a793e3af1e083" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>dragStartPoint</name></member>
+      <member refid="classStoryViewer_1a2ea5f0d85f6c08b5df059c9318834f70" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawExpirationTime</name></member>
+      <member refid="classStoryViewer_1aa53abbaab623fd4ebc232a5a097a17c7" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawExpiredMessage</name></member>
+      <member refid="classStoryViewer_1ac5a07e7a271246cf95b5fb6659910805" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawHeader</name></member>
+      <member refid="classStoryViewer_1aa8100f2d7f9cc434a35cabb9214ad67a" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawPlayPauseOverlay</name></member>
+      <member refid="classStoryViewer_1a636d1fa90e1c401056114d50ac9632d3" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawProgressBar</name></member>
+      <member refid="classStoryViewer_1ac1fb5d8c293efbc9bfd5651351abf9c0" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawShareButton</name></member>
+      <member refid="classStoryViewer_1a427b06c3269be4ac62e83e6597ba3de1" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawStoryContent</name></member>
+      <member refid="classStoryViewer_1aba7d24bf62535ac8a377e4b5eb5266d3" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawViewCount</name></member>
+      <member refid="classStoryViewer_1a2d83062c46c3c682ceb0520e32695a8c" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawViewersButton</name></member>
+      <member refid="classStoryViewer_1af2a394c238c62356665606e50bc2bd7d" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>drawWaveform</name></member>
+      <member refid="classStoryViewer_1a63d794ebc4e9b628097470259b1d3f26" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>getCurrentStory</name></member>
+      <member refid="classStoryViewer_1acc928daec11fd168dbde7213ae873d86" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>handleShareStory</name></member>
+      <member refid="classStoryViewer_1abd8e7e3e4e9102885154a1db2346ddf8" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>headerArea</name></member>
+      <member refid="classStoryViewer_1a791be8ebb6f378bcd25c3fd21dfeaf19" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>isDragging</name></member>
+      <member refid="classStoryViewer_1a5737113d06c8c089283e8bfaa2704769" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>isPlaying</name></member>
+      <member refid="classStoryViewer_1ac554c5b603655f10aba5b07085f25b0d" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>leftTapArea</name></member>
+      <member refid="classStoryViewer_1aa3d65a7568f89a1d59eb28036a65d7f9" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>loadCurrentStory</name></member>
+      <member refid="classStoryViewer_1a7dcd3a1fb17f3adf2f5708c97fca8919" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>markStoryAsViewed</name></member>
+      <member refid="classStoryViewer_1a3d90fc4a497e96a5fc76a39a2e241dfc" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>mouseDown</name></member>
+      <member refid="classStoryViewer_1ab02890e3f90a402cb2c6acada38fd1fc" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>mouseDrag</name></member>
+      <member refid="classStoryViewer_1a35ce2cd2c99fe72067155072d7bcc50a" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>mouseUp</name></member>
+      <member refid="classStoryViewer_1a9ae1e375fa663b0ad7c47b4606de5ce2" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>networkClient</name></member>
+      <member refid="classStoryViewer_1acce727964d34cd51849aafbf764863fd" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>onClose</name></member>
+      <member refid="classStoryViewer_1a328a125ea03f6ee19d03549f0100925f" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>onNextUser</name></member>
+      <member refid="classStoryViewer_1ab09d01fd99c7af32d251ce23c02b802a" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>onShareClicked</name></member>
+      <member refid="classStoryViewer_1a4177b8382acf01e7d16b6820934a752f" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>onStoryComplete</name></member>
+      <member refid="classStoryViewer_1a2915648099c7080d735b73f7ab565967" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>onViewersClicked</name></member>
+      <member refid="classStoryViewer_1acbf339af5885ecce571de8b1e1a7b137" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>paint</name></member>
+      <member refid="classStoryViewer_1a60cf840701133d67a3737e41ae886133" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>pianoRoll</name></member>
+      <member refid="classStoryViewer_1af84fe423c6877c85bbadcd76c6fe8e6c" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>playbackPosition</name></member>
+      <member refid="classStoryViewer_1a9e23df37f25331016a9d574817a3848a" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>playing</name></member>
+      <member refid="classStoryViewer_1a02ae82493b3840a656a8a44c6451346c" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>progressBarArea</name></member>
+      <member refid="classStoryViewer_1ab2d0a0a2d0bbba972cd20ad1e3b28d25" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>progressSegments</name></member>
+      <member refid="classStoryViewer_1a79813a8799770f4c781d52f49529f270" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>resized</name></member>
+      <member refid="classStoryViewer_1a49c6003758273665842da92db004a4b6" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>rightTapArea</name></member>
+      <member refid="classStoryViewer_1a34dcbd78e659bcb0f24692d212363ed0" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>setCurrentUserId</name></member>
+      <member refid="classStoryViewer_1a2ed5433c0e8aede440eb59d24e9e2756" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>setNetworkClient</name></member>
+      <member refid="classStoryViewer_1abd002c5e3bdfc2fcda3b1c7595d5351d" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>setStories</name></member>
+      <member refid="classStoryViewer_1a219f7b10e8c282a664954786b9bc77fd" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>shareButtonArea</name></member>
+      <member refid="classStoryViewer_1a520725f527903530668aee9530ea5c7e" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>showNextStory</name></member>
+      <member refid="classStoryViewer_1a864af87b714b1b40a3530c69300ef106" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>showPreviousStory</name></member>
+      <member refid="classStoryViewer_1a4d501ba76089d236f2bfaa85d6306a67" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>stories</name></member>
+      <member refid="classStoryViewer_1a03ca62693a473c36d547cc52fa6edd1b" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>storyDuration</name></member>
+      <member refid="classStoryViewer_1aad546c46a8d7adeabab704ab463b7660" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>StoryViewer</name></member>
+      <member refid="classStoryViewer_1a5b4f7f204cae37be05ad0477de99814d" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>SWIPE_THRESHOLD</name></member>
+      <member refid="classStoryViewer_1ae5ca7fd949e980e5c172877bc1408362" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>timerCallback</name></member>
+      <member refid="classStoryViewer_1aa4270746f55e210cbb47d5045476840e" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>togglePlayPause</name></member>
+      <member refid="classStoryViewer_1a84eb5d6886fe9172ef6ffbd3e471fa4f" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>updateProgress</name></member>
+      <member refid="classStoryViewer_1a1faa97576dd2273eafcbf3bec5410395" prot="private" virt="non-virtual"><scope>StoryViewer</scope><name>viewersButtonArea</name></member>
+      <member refid="classStoryViewer_1aedbe210e0b3c03079e6c4b7e93a7ef0b" prot="public" virt="non-virtual"><scope>StoryViewer</scope><name>~StoryViewer</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

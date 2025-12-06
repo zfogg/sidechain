@@ -6,6 +6,10 @@
 
 //==============================================================================
 // Helper to convert RequestResult to Outcome<juce::var>
+/** Convert a RequestResult to an Outcome<juce::var> for type-safe error handling
+ * @param result The request result to convert
+ * @return Outcome with data if successful, or error message if failed
+ */
 static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult& result)
 {
     if (result.success && result.isSuccess())
@@ -23,6 +27,10 @@ static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestRes
 
 //==============================================================================
 // RequestResult helper methods
+/** Get a user-friendly error message from the request result
+ * Attempts to extract error message from JSON response, falls back to HTTP status messages
+ * @return Human-readable error message
+ */
 juce::String NetworkClient::RequestResult::getUserFriendlyError() const
 {
     // Try to extract error message from JSON response
@@ -68,6 +76,10 @@ juce::String NetworkClient::RequestResult::getUserFriendlyError() const
     }
 }
 
+/** Parse HTTP status code from response headers
+ * @param headers Response headers from HTTP request
+ * @return HTTP status code, or 0 if not found
+ */
 int NetworkClient::parseStatusCode(const juce::StringPairArray& headers)
 {
     // JUCE stores the status line in a special key
@@ -86,6 +98,9 @@ int NetworkClient::parseStatusCode(const juce::StringPairArray& headers)
 }
 
 //==============================================================================
+/** Construct NetworkClient with configuration
+ * @param cfg NetworkClient configuration (defaults to development config)
+ */
 NetworkClient::NetworkClient(const Config& cfg)
     : config(cfg)
 {
@@ -93,17 +108,25 @@ NetworkClient::NetworkClient(const Config& cfg)
     Log::debug("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
 }
 
+/** Destructor - cancels all pending requests
+ */
 NetworkClient::~NetworkClient()
 {
     cancelAllRequests();
 }
 
 //==============================================================================
+/** Set callback for connection status changes
+ * @param callback Function called when connection status changes
+ */
 void NetworkClient::setConnectionStatusCallback(ConnectionStatusCallback callback)
 {
     connectionStatusCallback = callback;
 }
 
+/** Update connection status and notify listeners
+ * @param status New connection status
+ */
 void NetworkClient::updateConnectionStatus(ConnectionStatus status)
 {
     auto previousStatus = connectionStatus.exchange(status);
@@ -116,6 +139,9 @@ void NetworkClient::updateConnectionStatus(ConnectionStatus status)
     }
 }
 
+/** Check connection to backend by pinging health endpoint
+ * Updates connection status based on health check result
+ */
 void NetworkClient::checkConnection()
 {
     updateConnectionStatus(ConnectionStatus::Connecting);
@@ -143,6 +169,9 @@ void NetworkClient::checkConnection()
     );
 }
 
+/** Cancel all pending requests and wait for completion
+ * Used during shutdown to ensure clean teardown
+ */
 void NetworkClient::cancelAllRequests()
 {
     shuttingDown.store(true);
@@ -156,6 +185,9 @@ void NetworkClient::cancelAllRequests()
     shuttingDown.store(false);
 }
 
+/** Update NetworkClient configuration
+ * @param newConfig New configuration to use
+ */
 void NetworkClient::setConfig(const Config& newConfig)
 {
     config = newConfig;
@@ -163,6 +195,13 @@ void NetworkClient::setConfig(const Config& newConfig)
 }
 
 //==============================================================================
+/** Register a new user account
+ * @param email User's email address
+ * @param username Desired username
+ * @param password User's password
+ * @param displayName User's display name
+ * @param callback Called with authentication result (token, userId) or error
+ */
 void NetworkClient::registerAccount(const juce::String& email, const juce::String& username,
                                    const juce::String& password, const juce::String& displayName,
                                    AuthenticationCallback callback)
@@ -220,6 +259,11 @@ void NetworkClient::registerAccount(const juce::String& email, const juce::Strin
     );
 }
 
+/** Login with existing account credentials
+ * @param email User's email address
+ * @param password User's password
+ * @param callback Called with authentication result (token, userId) or error
+ */
 void NetworkClient::loginAccount(const juce::String& email, const juce::String& password,
                                 AuthenticationCallback callback)
 {

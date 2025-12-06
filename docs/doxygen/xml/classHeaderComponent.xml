@@ -1,0 +1,633 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classHeaderComponent" kind="class" language="C++" prot="public">
+    <compoundname>HeaderComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <includes refid="HeaderComponent_8h" local="no">HeaderComponent.h</includes>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classHeaderComponent_1a49db7072d61632837cd5d8044702c017" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int HeaderComponent::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>HeaderComponent::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 60</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="20" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classHeaderComponent_1a44409bf4c1bdb715a328e6fae633227f" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; HeaderComponent::onSearchClicked</definition>
+        <argsstring></argsstring>
+        <name>onSearchClicked</name>
+        <qualifiedname>HeaderComponent::onSearchClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="42" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a4b17f395bbf61c81a8311c7bd97c2c9a" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; HeaderComponent::onProfileClicked</definition>
+        <argsstring></argsstring>
+        <name>onProfileClicked</name>
+        <qualifiedname>HeaderComponent::onProfileClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="43" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a48f7521d7598fd944d17ffbe45e245d4" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; HeaderComponent::onLogoClicked</definition>
+        <argsstring></argsstring>
+        <name>onLogoClicked</name>
+        <qualifiedname>HeaderComponent::onLogoClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="44" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a4e06b547e16249a51dfe610a4d08b91f" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; HeaderComponent::onRecordClicked</definition>
+        <argsstring></argsstring>
+        <name>onRecordClicked</name>
+        <qualifiedname>HeaderComponent::onRecordClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="45" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1ae2127c0a35b06ecaecff838fa44b3d8c" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; HeaderComponent::onStoryClicked</definition>
+        <argsstring></argsstring>
+        <name>onStoryClicked</name>
+        <qualifiedname>HeaderComponent::onStoryClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="46" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a4264b4fc00074ea17e57aac972670743" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; HeaderComponent::onMessagesClicked</definition>
+        <argsstring></argsstring>
+        <name>onMessagesClicked</name>
+        <qualifiedname>HeaderComponent::onMessagesClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="47" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classHeaderComponent_1a026f97ff7c912f0cac736c0e767294d9" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String HeaderComponent::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>HeaderComponent::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="50" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a141ed5f5e5bac0f7dd6a8f320f768db7" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String HeaderComponent::profilePicUrl</definition>
+        <argsstring></argsstring>
+        <name>profilePicUrl</name>
+        <qualifiedname>HeaderComponent::profilePicUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="51" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a902caf8736a26ff3592498c951d58b08" prot="private" static="no" mutable="no">
+        <type>juce::Image</type>
+        <definition>juce::Image HeaderComponent::cachedProfileImage</definition>
+        <argsstring></argsstring>
+        <name>cachedProfileImage</name>
+        <qualifiedname>HeaderComponent::cachedProfileImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="52" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a6a3ae0db31a36fcd8ad0c64a49ca0a29" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* HeaderComponent::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>HeaderComponent::networkClient</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="53" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classHeaderComponent_1a44a3f696d91bb6e438098fe196a46855" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int HeaderComponent::unreadMessageCount</definition>
+        <argsstring></argsstring>
+        <name>unreadMessageCount</name>
+        <qualifiedname>HeaderComponent::unreadMessageCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="54" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classHeaderComponent_1a68bb24c655f9b911229ce2ffd34e6f5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>HeaderComponent::HeaderComponent</definition>
+        <argsstring>()</argsstring>
+        <name>HeaderComponent</name>
+        <qualifiedname>HeaderComponent::HeaderComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="22" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="12" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a0da1caf578132b7e4fc0075ecce9b70e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>HeaderComponent::~HeaderComponent</definition>
+        <argsstring>() override=default</argsstring>
+        <name>~HeaderComponent</name>
+        <qualifiedname>HeaderComponent::~HeaderComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="23" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1ad93e8537fc2f9280d2cd00c452dea5cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>HeaderComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <defname>g</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="25" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="164" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a1300fd103fcbb604dacafffe9841003c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>HeaderComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="26" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="184" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a83339fee9ba2ee59f9c0f08c69adcec9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>HeaderComponent::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="27" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="190" bodyend="235"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a83a3541b8be49f2948ddd269feddc396" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::setUserInfo</definition>
+        <argsstring>(const juce::String &amp;username, const juce::String &amp;profilePicUrl)</argsstring>
+        <name>setUserInfo</name>
+        <qualifiedname>HeaderComponent::setUserInfo</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>username</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>profilePicUrl</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="30" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="27" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a7c07a7db97a83b0d224a0d59e1c610dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::setProfileImage</definition>
+        <argsstring>(const juce::Image &amp;image)</argsstring>
+        <name>setProfileImage</name>
+        <qualifiedname>HeaderComponent::setProfileImage</qualifiedname>
+        <param>
+          <type>const juce::Image &amp;</type>
+          <declname>image</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="33" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="61" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a938001b15a88feb9a53f950668596df2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>HeaderComponent::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="36" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="20" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a4660be6e3879f7978f5729ea8223b49c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::setUnreadMessageCount</definition>
+        <argsstring>(int count)</argsstring>
+        <name>setUnreadMessageCount</name>
+        <qualifiedname>HeaderComponent::setUnreadMessageCount</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="39" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="367" bodyend="374"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classHeaderComponent_1aed61c70f812f66d29d5e4cf9e52f1a53" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::loadProfileImage</definition>
+        <argsstring>(const juce::String &amp;url)</argsstring>
+        <name>loadProfileImage</name>
+        <qualifiedname>HeaderComponent::loadProfileImage</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="57" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="76" bodyend="161"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a84499074ce884b55141077fcaab850b7" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::drawLogo</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawLogo</name>
+        <qualifiedname>HeaderComponent::drawLogo</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="60" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="238" bodyend="243"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a1adb78f98873c56c8d447fd8f4fdfcaf" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::drawSearchButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawSearchButton</name>
+        <qualifiedname>HeaderComponent::drawSearchButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="61" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="245" bodyend="251"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a67163cbc294ec9f517b06ddca5c98f2b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::drawRecordButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawRecordButton</name>
+        <qualifiedname>HeaderComponent::drawRecordButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="62" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="253" bodyend="264"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a672328d5663560c19f281d49880a87e1" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::drawMessagesButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawMessagesButton</name>
+        <qualifiedname>HeaderComponent::drawMessagesButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="63" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="266" bodyend="297"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1abe3ea14de822e6cdfe80ec3f9e752bed" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::drawProfileSection</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawProfileSection</name>
+        <qualifiedname>HeaderComponent::drawProfileSection</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="64" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="299" bodyend="310"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1aaefbbf5efac4b895f04f888a04957bab" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HeaderComponent::drawCircularProfilePic</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawCircularProfilePic</name>
+        <qualifiedname>HeaderComponent::drawCircularProfilePic</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="65" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="312" bodyend="323"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1abc148f2708b66ee64524e191c299bb78" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; HeaderComponent::getLogoBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getLogoBounds</name>
+        <qualifiedname>HeaderComponent::getLogoBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="68" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="326" bodyend="329"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a2acd78174ae738673d76cd2403644555" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; HeaderComponent::getSearchButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getSearchButtonBounds</name>
+        <qualifiedname>HeaderComponent::getSearchButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="69" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="331" bodyend="338"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1ad4edc9c766814fef3d95ebb12f04be4e" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; HeaderComponent::getRecordButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordButtonBounds</name>
+        <qualifiedname>HeaderComponent::getRecordButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="70" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="340" bodyend="349"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1ad853084c6b208cbf166da3dd58b75b8f" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; HeaderComponent::getMessagesButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getMessagesButtonBounds</name>
+        <qualifiedname>HeaderComponent::getMessagesButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="71" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="351" bodyend="360"/>
+      </memberdef>
+      <memberdef kind="function" id="classHeaderComponent_1a59a4be5758efccc9b07fc687ecdf78a8" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; HeaderComponent::getProfileBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getProfileBounds</name>
+        <qualifiedname>HeaderComponent::getProfileBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="72" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.cpp" bodystart="362" bodyend="365"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classHeaderComponent" kindref="compound">HeaderComponent</ref> - Central header bar shown on all post-login pages. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>App logo/title</para>
+</listitem><listitem><para>Search button (navigates to discovery)</para>
+</listitem><listitem><para>User profile section with avatar and username</para>
+</listitem><listitem><para>Consistent styling across all views </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>HeaderComponent</label>
+        <link refid="classHeaderComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>HeaderComponent</label>
+        <link refid="classHeaderComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" line="17" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/common/HeaderComponent.h" bodystart="18" bodyend="75"/>
+    <listofallmembers>
+      <member refid="classHeaderComponent_1a902caf8736a26ff3592498c951d58b08" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>cachedProfileImage</name></member>
+      <member refid="classHeaderComponent_1aaefbbf5efac4b895f04f888a04957bab" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>drawCircularProfilePic</name></member>
+      <member refid="classHeaderComponent_1a84499074ce884b55141077fcaab850b7" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>drawLogo</name></member>
+      <member refid="classHeaderComponent_1a672328d5663560c19f281d49880a87e1" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>drawMessagesButton</name></member>
+      <member refid="classHeaderComponent_1abe3ea14de822e6cdfe80ec3f9e752bed" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>drawProfileSection</name></member>
+      <member refid="classHeaderComponent_1a67163cbc294ec9f517b06ddca5c98f2b" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>drawRecordButton</name></member>
+      <member refid="classHeaderComponent_1a1adb78f98873c56c8d447fd8f4fdfcaf" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>drawSearchButton</name></member>
+      <member refid="classHeaderComponent_1abc148f2708b66ee64524e191c299bb78" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>getLogoBounds</name></member>
+      <member refid="classHeaderComponent_1ad853084c6b208cbf166da3dd58b75b8f" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>getMessagesButtonBounds</name></member>
+      <member refid="classHeaderComponent_1a59a4be5758efccc9b07fc687ecdf78a8" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>getProfileBounds</name></member>
+      <member refid="classHeaderComponent_1ad4edc9c766814fef3d95ebb12f04be4e" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>getRecordButtonBounds</name></member>
+      <member refid="classHeaderComponent_1a2acd78174ae738673d76cd2403644555" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>getSearchButtonBounds</name></member>
+      <member refid="classHeaderComponent_1a49db7072d61632837cd5d8044702c017" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classHeaderComponent_1a68bb24c655f9b911229ce2ffd34e6f5d" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>HeaderComponent</name></member>
+      <member refid="classHeaderComponent_1aed61c70f812f66d29d5e4cf9e52f1a53" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>loadProfileImage</name></member>
+      <member refid="classHeaderComponent_1a83339fee9ba2ee59f9c0f08c69adcec9" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>mouseUp</name></member>
+      <member refid="classHeaderComponent_1a6a3ae0db31a36fcd8ad0c64a49ca0a29" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>networkClient</name></member>
+      <member refid="classHeaderComponent_1a48f7521d7598fd944d17ffbe45e245d4" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>onLogoClicked</name></member>
+      <member refid="classHeaderComponent_1a4264b4fc00074ea17e57aac972670743" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>onMessagesClicked</name></member>
+      <member refid="classHeaderComponent_1a4b17f395bbf61c81a8311c7bd97c2c9a" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>onProfileClicked</name></member>
+      <member refid="classHeaderComponent_1a4e06b547e16249a51dfe610a4d08b91f" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>onRecordClicked</name></member>
+      <member refid="classHeaderComponent_1a44409bf4c1bdb715a328e6fae633227f" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>onSearchClicked</name></member>
+      <member refid="classHeaderComponent_1ae2127c0a35b06ecaecff838fa44b3d8c" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>onStoryClicked</name></member>
+      <member refid="classHeaderComponent_1ad93e8537fc2f9280d2cd00c452dea5cf" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>paint</name></member>
+      <member refid="classHeaderComponent_1a141ed5f5e5bac0f7dd6a8f320f768db7" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>profilePicUrl</name></member>
+      <member refid="classHeaderComponent_1a1300fd103fcbb604dacafffe9841003c" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>resized</name></member>
+      <member refid="classHeaderComponent_1a938001b15a88feb9a53f950668596df2" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>setNetworkClient</name></member>
+      <member refid="classHeaderComponent_1a7c07a7db97a83b0d224a0d59e1c610dd" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>setProfileImage</name></member>
+      <member refid="classHeaderComponent_1a4660be6e3879f7978f5729ea8223b49c" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>setUnreadMessageCount</name></member>
+      <member refid="classHeaderComponent_1a83a3541b8be49f2948ddd269feddc396" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>setUserInfo</name></member>
+      <member refid="classHeaderComponent_1a44a3f696d91bb6e438098fe196a46855" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>unreadMessageCount</name></member>
+      <member refid="classHeaderComponent_1a026f97ff7c912f0cac736c0e767294d9" prot="private" virt="non-virtual"><scope>HeaderComponent</scope><name>username</name></member>
+      <member refid="classHeaderComponent_1a0da1caf578132b7e4fc0075ecce9b70e" prot="public" virt="non-virtual"><scope>HeaderComponent</scope><name>~HeaderComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

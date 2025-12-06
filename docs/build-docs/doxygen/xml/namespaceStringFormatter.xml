@@ -1,0 +1,422 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceStringFormatter" kind="namespace" language="C++">
+    <compoundname>StringFormatter</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatCount</definition>
+        <argsstring>(int value)</argsstring>
+        <name>formatCount</name>
+        <qualifiedname>StringFormatter::formatCount</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para>Format a count with K/M/B suffix for large numbers. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 999 → &quot;999&quot;, 1234 → &quot;1.2K&quot;, 1500000 → &quot;1.5M&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="10" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="10" bodyend="13" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="26" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</references>
+        <referencedby refid="namespaceStringFormatter_1ab826797300c322e5377be7df42061fca" compoundref="StringFormatter_8cpp" startline="191" endline="197">formatComments</referencedby>
+        <referencedby refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</referencedby>
+        <referencedby refid="namespaceStringFormatter_1a439f19e4d65886f2102e6e635dec2694" compoundref="StringFormatter_8cpp" startline="15" endline="41">formatCount</referencedby>
+        <referencedby refid="namespaceStringFormatter_1a4377117d131715b97de5fec567edcd58" compoundref="StringFormatter_8cpp" startline="175" endline="181">formatFollowers</referencedby>
+        <referencedby refid="namespaceStringFormatter_1add910e9f3e98dd2460b6a61779f2cf7b" compoundref="StringFormatter_8cpp" startline="183" endline="189">formatLikes</referencedby>
+        <referencedby refid="namespaceStringFormatter_1ac4f015e0ce5a908b8cc4e53ff5c4ab5c" compoundref="StringFormatter_8cpp" startline="199" endline="205">formatPlays</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a439f19e4d65886f2102e6e635dec2694" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatCount</definition>
+        <argsstring>(int value, int decimals)</argsstring>
+        <name>formatCount</name>
+        <qualifiedname>StringFormatter::formatCount</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>decimals</declname>
+        </param>
+        <briefdescription>
+<para>Format a count with specified decimal places. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="15" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="15" bodyend="41" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="31" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1aa96b861f713a8df63f1eed739472d80e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatLargeNumber</definition>
+        <argsstring>(int64_t value)</argsstring>
+        <name>formatLargeNumber</name>
+        <qualifiedname>StringFormatter::formatLargeNumber</qualifiedname>
+        <param>
+          <type>int64_t</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para>Format a large number with appropriate suffix. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="43" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="43" bodyend="58" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="36" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1aa96b861f713a8df63f1eed739472d80e" compoundref="StringFormatter_8cpp" startline="43" endline="58">formatLargeNumber</references>
+        <referencedby refid="namespaceStringFormatter_1aa96b861f713a8df63f1eed739472d80e" compoundref="StringFormatter_8cpp" startline="43" endline="58">formatLargeNumber</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a353b37ab79937d3d9c1879fc24a3c73f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatDuration</definition>
+        <argsstring>(double seconds)</argsstring>
+        <name>formatDuration</name>
+        <qualifiedname>StringFormatter::formatDuration</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+<para>Format seconds as MM:SS or H:MM:SS if &gt;= 1 hour. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 90 → &quot;1:30&quot;, 3661 → &quot;1:01:01&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="63" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="63" bodyend="82" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="45" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a4cc53dc008ead3d0b20481afa6b5a47e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatDurationMMSS</definition>
+        <argsstring>(double seconds)</argsstring>
+        <name>formatDurationMMSS</name>
+        <qualifiedname>StringFormatter::formatDurationMMSS</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+<para>Format seconds as MM:SS only (no hours). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 90 → &quot;1:30&quot;, 3661 → &quot;61:01&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="84" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="84" bodyend="95" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="51" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1abf9a80d6e1add50885d3b9087eceeaf6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatDurationHMS</definition>
+        <argsstring>(double seconds)</argsstring>
+        <name>formatDurationHMS</name>
+        <qualifiedname>StringFormatter::formatDurationHMS</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+<para>Format seconds as H:MM:SS always. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 90 → &quot;0:01:30&quot;, 3661 → &quot;1:01:01&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="97" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="97" bodyend="110" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="57" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a3caaf09db311937f41775c2219caaaf9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatMilliseconds</definition>
+        <argsstring>(int ms)</argsstring>
+        <name>formatMilliseconds</name>
+        <qualifiedname>StringFormatter::formatMilliseconds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>ms</declname>
+        </param>
+        <briefdescription>
+<para>Format milliseconds as seconds with decimal. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 1500 → &quot;1.5s&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="112" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="112" bodyend="118" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="63" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatPercentage</definition>
+        <argsstring>(float value)</argsstring>
+        <name>formatPercentage</name>
+        <qualifiedname>StringFormatter::formatPercentage</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para>Format a 0.0-1.0 value as percentage. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 0.75 → &quot;75%&quot;, 0.333 → &quot;33%&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="123" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="123" bodyend="126" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="72" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" compoundref="StringFormatter_8cpp" startline="123" endline="126">formatPercentage</references>
+        <referencedby refid="namespaceStringFormatter_1abffe3c7c36ecb0bdfc11518732d13214" compoundref="StringFormatter_8cpp" startline="155" endline="158">formatConfidence</referencedby>
+        <referencedby refid="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" compoundref="StringFormatter_8cpp" startline="123" endline="126">formatPercentage</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a0cffe70cee044e406a33700956ffc283" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatPercentage</definition>
+        <argsstring>(float value, int decimals)</argsstring>
+        <name>formatPercentage</name>
+        <qualifiedname>StringFormatter::formatPercentage</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>decimals</declname>
+        </param>
+        <briefdescription>
+<para>Format a percentage with specified decimal places. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: formatPercentage(0.755, 1) → &quot;75.5%&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="128" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="128" bodyend="136" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="78" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a453ca772955d51f66eeef517695d1366" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatBPM</definition>
+        <argsstring>(double bpm)</argsstring>
+        <name>formatBPM</name>
+        <qualifiedname>StringFormatter::formatBPM</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>bpm</declname>
+        </param>
+        <briefdescription>
+<para>Format BPM value. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 120.0 → &quot;120 BPM&quot;, 120.5 → &quot;120.5 BPM&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="141" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="141" bodyend="144" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="87" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a6da201822c89925f471e997376e44c7c" compoundref="StringFormatter_8cpp" startline="146" endline="153">formatBPMValue</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a6da201822c89925f471e997376e44c7c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatBPMValue</definition>
+        <argsstring>(double bpm)</argsstring>
+        <name>formatBPMValue</name>
+        <qualifiedname>StringFormatter::formatBPMValue</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>bpm</declname>
+        </param>
+        <briefdescription>
+<para>Format BPM without suffix. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 120.0 → &quot;120&quot;, 120.5 → &quot;120.5&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="146" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="146" bodyend="153" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="93" declcolumn="18"/>
+        <referencedby refid="namespaceStringFormatter_1a453ca772955d51f66eeef517695d1366" compoundref="StringFormatter_8cpp" startline="141" endline="144">formatBPM</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1abffe3c7c36ecb0bdfc11518732d13214" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatConfidence</definition>
+        <argsstring>(float confidence)</argsstring>
+        <name>formatConfidence</name>
+        <qualifiedname>StringFormatter::formatConfidence</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>confidence</declname>
+        </param>
+        <briefdescription>
+<para>Format confidence value (0.0-1.0) as percentage. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 0.92 → &quot;92%&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="155" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="155" bodyend="158" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="99" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" compoundref="StringFormatter_8cpp" startline="123" endline="126">formatPercentage</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a069ff9b3b16a8bae04255767264a69b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatKeyLong</definition>
+        <argsstring>(const juce::String &amp;key)</argsstring>
+        <name>formatKeyLong</name>
+        <qualifiedname>StringFormatter::formatKeyLong</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Format a musical key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: &quot;Cm&quot; → &quot;C minor&quot;, &quot;F#&quot; → &quot;F# major&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="160" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="160" bodyend="170" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="105" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a4377117d131715b97de5fec567edcd58" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatFollowers</definition>
+        <argsstring>(int count)</argsstring>
+        <name>formatFollowers</name>
+        <qualifiedname>StringFormatter::formatFollowers</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Format follower count with appropriate suffix. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 150 → &quot;150 followers&quot;, 1500 → &quot;1.5K followers&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="175" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="175" bodyend="181" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="114" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1add910e9f3e98dd2460b6a61779f2cf7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatLikes</definition>
+        <argsstring>(int count)</argsstring>
+        <name>formatLikes</name>
+        <qualifiedname>StringFormatter::formatLikes</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Format like count. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 42 → &quot;42 likes&quot;, 1200 → &quot;1.2K likes&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="183" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="183" bodyend="189" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="120" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1ab826797300c322e5377be7df42061fca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatComments</definition>
+        <argsstring>(int count)</argsstring>
+        <name>formatComments</name>
+        <qualifiedname>StringFormatter::formatComments</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Format comment count. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="191" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="191" bodyend="197" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="125" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1ac4f015e0ce5a908b8cc4e53ff5c4ab5c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatPlays</definition>
+        <argsstring>(int count)</argsstring>
+        <name>formatPlays</name>
+        <qualifiedname>StringFormatter::formatPlays</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+<para>Format play count. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: 42 → &quot;42 plays&quot;, 1200 → &quot;1.2K plays&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="199" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="199" bodyend="205" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="131" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a2272ed9573285e2eaed92da36de850b4" compoundref="StringFormatter_8cpp" startline="10" endline="13">formatCount</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1a42f9ea44eb8aec39328d45fc7164a5c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatTimeAgo</definition>
+        <argsstring>(const juce::Time &amp;timestamp)</argsstring>
+        <name>formatTimeAgo</name>
+        <qualifiedname>StringFormatter::formatTimeAgo</qualifiedname>
+        <param>
+          <type>const juce::Time &amp;</type>
+          <declname>timestamp</declname>
+        </param>
+        <briefdescription>
+<para>Format a timestamp as relative time. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples: &quot;2m ago&quot;, &quot;3h ago&quot;, &quot;5d ago&quot;, &quot;2w ago&quot; </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="210" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="210" bodyend="245" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="140" declcolumn="18"/>
+        <referencedby refid="namespaceStringFormatter_1ad7a32384335ca8761c429ec5b0ce457c" compoundref="StringFormatter_8cpp" startline="247" endline="255">formatTimeAgo</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceStringFormatter_1ad7a32384335ca8761c429ec5b0ce457c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String StringFormatter::formatTimeAgo</definition>
+        <argsstring>(const juce::String &amp;isoTimestamp)</argsstring>
+        <name>formatTimeAgo</name>
+        <qualifiedname>StringFormatter::formatTimeAgo</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>isoTimestamp</declname>
+        </param>
+        <briefdescription>
+<para>Format a timestamp as relative time from ISO string. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="247" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" bodystart="247" bodyend="255" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.h" declline="145" declcolumn="18"/>
+        <references refid="namespaceStringFormatter_1a42f9ea44eb8aec39328d45fc7164a5c4" compoundref="StringFormatter_8cpp" startline="210" endline="245">formatTimeAgo</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="namespaceStringFormatter" kindref="compound">StringFormatter</ref> - Number, duration, and display string formatting utilities. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Centralizes formatting logic for counts, durations, percentages, and music-specific values like BPM.</para>
+<para>Usage: auto countStr = StringFormatter::formatCount(1234); // &quot;1.2K&quot; auto duration = <ref refid="namespaceStringFormatter_1a353b37ab79937d3d9c1879fc24a3c73f" kindref="member">StringFormatter::formatDuration</ref>(90.5); // &quot;1:30&quot; auto percent = <ref refid="namespaceStringFormatter_1a11e64978a7545c55105d27b24e611b1d" kindref="member">StringFormatter::formatPercentage</ref>(0.75); // &quot;75%&quot; </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/StringFormatter.cpp" line="4" column="1"/>
+  </compounddef>
+</doxygen>

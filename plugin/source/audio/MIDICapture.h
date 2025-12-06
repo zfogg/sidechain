@@ -24,67 +24,124 @@ class MIDICapture
 public:
     //==============================================================================
     // MIDI Event structure (matches backend MIDIEvent)
+
+    /** MIDI event structure for captured MIDI data */
     struct MIDIEvent
     {
-        double time;      // Relative time in seconds from recording start
-        juce::String type; // "note_on" or "note_off"
-        int note;         // MIDI note number (0-127)
-        int velocity;     // Note velocity (0-127)
-        int channel;      // MIDI channel (0-15)
+        double time;       ///< Relative time in seconds from recording start
+        juce::String type; ///< Event type ("note_on" or "note_off")
+        int note;         ///< MIDI note number (0-127)
+        int velocity;      ///< Note velocity (0-127)
+        int channel;      ///< MIDI channel (0-15)
     };
 
     //==============================================================================
+    /** Constructor */
     MIDICapture();
+
+    /** Destructor */
     ~MIDICapture();
 
     //==============================================================================
     // Configuration - call from prepareToPlay() or message thread
+
+    /** Prepare MIDI capture for recording
+     *  @param sampleRate The sample rate of the audio system
+     *  @param samplesPerBlock The block size used by the audio system
+     */
     void prepare(double sampleRate, int samplesPerBlock);
+
+    /** Reset all capture state and clear recorded events */
     void reset();
 
     //==============================================================================
     // Recording control - call from MESSAGE THREAD only
+
+    /** Start capturing MIDI events
+     *  Resets previous capture data and begins recording new events
+     */
     void startCapture();
+
+    /** Stop capturing and return all captured MIDI events
+     *  @return Vector of all captured MIDI events
+     */
     std::vector<MIDIEvent> stopCapture();
+
+    /** Check if MIDI capture is currently active
+     *  @return true if capturing, false otherwise
+     */
     bool isCapturing() const { return capturing.load(); }
 
     //==============================================================================
     // MIDI capture - call from AUDIO THREAD (processBlock) only
     // MUST be lock-free and allocation-free
+
+    /** Capture MIDI events from the audio thread
+     *  This method is called from processBlock and must be lock-free
+     *  @param midiMessages The MIDI buffer from the DAW
+     *  @param numSamples Number of audio samples in this block
+     *  @param sampleRate Current sample rate (may differ from prepare() if DAW changed it)
+     */
     void captureMIDI(const juce::MidiBuffer& midiMessages, int numSamples, double sampleRate);
 
     //==============================================================================
     // MIDI data export - thread-safe
+
+    /** Get all captured MIDI events as JSON
+     *  @return JSON var containing array of MIDI events
+     */
     juce::var getMIDIDataAsJSON() const;
+
+    /** Get total recording time in seconds
+     *  @return Total time of the captured MIDI sequence
+     */
     double getTotalTime() const { return totalTimeSeconds.load(); }
 
     //==============================================================================
     // MIDI data processing (7.5.2.2)
     // Call after stopCapture() to clean up the data before upload
 
-    // Normalize MIDI timing (7.5.2.2.1)
-    // - Converts timestamps to relative time (0.0 = start of recording)
-    // - Rounds to millisecond precision
-    // - Handles tempo changes if present
+    /** Normalize MIDI timing to relative time from recording start
+     *  Converts timestamps to relative time (0.0 = start of recording),
+     *  rounds to millisecond precision, and handles tempo changes if present
+     *  @param events Vector of MIDI events to normalize
+     *  @return Vector of events with normalized timing
+     */
     static std::vector<MIDIEvent> normalizeTiming(const std::vector<MIDIEvent>& events);
 
-    // Validate MIDI data (7.5.2.2.2)
-    // - Ensures note_on has matching note_off
-    // - Removes duplicate events
-    // - Filters out invalid notes (outside 0-127)
-    // Returns validated events
+    /** Validate MIDI data for consistency
+     *  Ensures note_on has matching note_off, removes duplicate events,
+     *  and filters out invalid notes (outside 0-127)
+     *  @param events Vector of MIDI events to validate
+     *  @return Vector of validated events
+     */
     static std::vector<MIDIEvent> validateEvents(const std::vector<MIDIEvent>& events);
 
-    // Get normalized and validated MIDI data as JSON
-    // Convenience method that applies both normalization and validation
+    /** Get normalized and validated MIDI data as JSON
+     *  Convenience method that applies both normalization and validation
+     *  @return JSON var containing normalized and validated MIDI events
+     */
     juce::var getNormalizedMIDIDataAsJSON() const;
 
-    // Set tempo from DAW (for proper timing normalization)
+    /** Set tempo from DAW for proper timing normalization
+     *  @param bpm Tempo in beats per minute
+     */
     void setTempo(double bpm) { currentTempo.store(bpm); }
+
+    /** Get current tempo
+     *  @return Tempo in beats per minute
+     */
     double getTempo() const { return currentTempo.load(); }
 
-    // Set time signature from DAW
+    /** Set time signature from DAW
+     *  @param numerator Time signature numerator (e.g., 4 for 4/4)
+     *  @param denominator Time signature denominator (e.g., 4 for 4/4)
+     */
     void setTimeSignature(int numerator, int denominator);
+
+    /** Get current time signature
+     *  @return Pair of (numerator, denominator)
+     */
     std::pair<int, int> getTimeSignature() const;
 
 private:

@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classHttpAudioPlayer_1_1ProgressTimer" kind="class" language="C++" prot="private">
+    <compoundname>HttpAudioPlayer::ProgressTimer</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classHttpAudioPlayer_1_1ProgressTimer_1a58d2bf5271738de2b80af423d50d2547" prot="private" static="no" mutable="no">
+        <type><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref> &amp;</type>
+        <definition>HttpAudioPlayer&amp; HttpAudioPlayer::ProgressTimer::player</definition>
+        <argsstring></argsstring>
+        <name>player</name>
+        <qualifiedname>HttpAudioPlayer::ProgressTimer::player</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="293" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="293" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classHttpAudioPlayer_1_1ProgressTimer_1a004430640a045aeefa6d29097fe39204" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>HttpAudioPlayer::ProgressTimer::ProgressTimer</definition>
+        <argsstring>(HttpAudioPlayer &amp;p)</argsstring>
+        <name>ProgressTimer</name>
+        <qualifiedname>HttpAudioPlayer::ProgressTimer::ProgressTimer</qualifiedname>
+        <param>
+          <type><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref> &amp;</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="290" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="290" bodyend="290"/>
+      </memberdef>
+      <memberdef kind="function" id="classHttpAudioPlayer_1_1ProgressTimer_1ab86b74f5e5ec26b99379218f195e118b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void HttpAudioPlayer::ProgressTimer::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>HttpAudioPlayer::ProgressTimer::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="291" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.cpp" bodystart="619" bodyend="625"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>HttpAudioPlayer::ProgressTimer</label>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>HttpAudioPlayer::ProgressTimer</label>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="287" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="288" bodyend="294"/>
+    <listofallmembers>
+      <member refid="classHttpAudioPlayer_1_1ProgressTimer_1a58d2bf5271738de2b80af423d50d2547" prot="private" virt="non-virtual"><scope>HttpAudioPlayer::ProgressTimer</scope><name>player</name></member>
+      <member refid="classHttpAudioPlayer_1_1ProgressTimer_1a004430640a045aeefa6d29097fe39204" prot="public" virt="non-virtual"><scope>HttpAudioPlayer::ProgressTimer</scope><name>ProgressTimer</name></member>
+      <member refid="classHttpAudioPlayer_1_1ProgressTimer_1ab86b74f5e5ec26b99379218f195e118b" prot="public" virt="non-virtual"><scope>HttpAudioPlayer::ProgressTimer</scope><name>timerCallback</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

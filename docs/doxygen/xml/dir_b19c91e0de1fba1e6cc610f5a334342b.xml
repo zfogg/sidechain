@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_b19c91e0de1fba1e6cc610f5a334342b" kind="dir">
+    <compoundname>social</compoundname>
+    <innerfile refid="FollowersListComponent_8cpp">FollowersListComponent.cpp</innerfile>
+    <innerfile refid="FollowersListComponent_8h">FollowersListComponent.h</innerfile>
+    <innerfile refid="UserCardComponent_8cpp">UserCardComponent.cpp</innerfile>
+    <innerfile refid="UserCardComponent_8h">UserCardComponent.h</innerfile>
+    <innerfile refid="UserDiscoveryComponent_8cpp">UserDiscoveryComponent.cpp</innerfile>
+    <innerfile refid="UserDiscoveryComponent_8h">UserDiscoveryComponent.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/"/>
+  </compounddef>
+</doxygen>

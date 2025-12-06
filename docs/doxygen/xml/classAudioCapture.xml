@@ -1,0 +1,1827 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classAudioCapture" kind="class" language="C++" prot="public">
+    <compoundname>AudioCapture</compoundname>
+    <includes refid="AudioCapture_8h" local="no">AudioCapture.h</includes>
+    <sectiondef kind="public-type">
+      <memberdef kind="enum" id="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" prot="public" static="no" strong="yes">
+        <type></type>
+        <name>ExportFormat</name>
+        <qualifiedname>AudioCapture::ExportFormat</qualifiedname>
+        <enumvalue id="classAudioCapture_1a00e295d09c70075bebf11d18710dff10a2fa70c94613590d0c810afbb7e2b2e30" prot="public">
+          <name>WAV_16bit</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAudioCapture_1a00e295d09c70075bebf11d18710dff10aadee1b960c5a62be8a85e87364ecd77f" prot="public">
+          <name>WAV_24bit</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAudioCapture_1a00e295d09c70075bebf11d18710dff10adf18a475bdecbb7f91ba1f7f8a8281e2" prot="public">
+          <name>WAV_32bit</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAudioCapture_1a00e295d09c70075bebf11d18710dff10acf37f4d663bd63c924af632f83ba57b5" prot="public">
+          <name>FLAC_16bit</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAudioCapture_1a00e295d09c70075bebf11d18710dff10a09753bd9cb59ca6be981bf6dac10f61a" prot="public">
+          <name>FLAC_24bit</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Export format options. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="69" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="70" bodyend="76"/>
+      </memberdef>
+      <memberdef kind="enum" id="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634" prot="public" static="no" strong="yes">
+        <type></type>
+        <name>FadeType</name>
+        <qualifiedname>AudioCapture::FadeType</qualifiedname>
+        <enumvalue id="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634a32a843da6ea40ab3b17a3421ccdf671b" prot="public">
+          <name>Linear</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634ac1e19c09f700938f0ff7f1fd4722a3ac" prot="public">
+          <name>Exponential</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634a98f1ffad91b7595a2f4d738c44176806" prot="public">
+          <name>SCurve</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Fade type for fade in/out operations. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="205" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="206" bodyend="210"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classAudioCapture_1a0ecb670450a26f9946c22f31b2c1d1a2" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; AudioCapture::recording</definition>
+        <argsstring></argsstring>
+        <name>recording</name>
+        <qualifiedname>AudioCapture::recording</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="281" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="281" bodyend="281"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a0526dd7455c074ad80314f460796779f" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; int &gt;</type>
+        <definition>std::atomic&lt;int&gt; AudioCapture::recordingPosition</definition>
+        <argsstring></argsstring>
+        <name>recordingPosition</name>
+        <qualifiedname>AudioCapture::recordingPosition</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="282" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="282" bodyend="282"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a2c08ab272ad590f8f5f83580238843a0" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; float &gt;</type>
+        <definition>std::atomic&lt;float&gt; AudioCapture::peakLevels[MaxChannels]</definition>
+        <argsstring>[MaxChannels]</argsstring>
+        <name>peakLevels</name>
+        <qualifiedname>AudioCapture::peakLevels</qualifiedname>
+        <initializer>{ {0.0f}, {0.0f} }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="286" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="286" bodyend="286"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a8c1882b9f5bf07c7037f1e4fed651ace" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; float &gt;</type>
+        <definition>std::atomic&lt;float&gt; AudioCapture::rmsLevels[MaxChannels]</definition>
+        <argsstring>[MaxChannels]</argsstring>
+        <name>rmsLevels</name>
+        <qualifiedname>AudioCapture::rmsLevels</qualifiedname>
+        <initializer>{ {0.0f}, {0.0f} }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="287" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="287" bodyend="287"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a426d4daa6ab143f4fd3529d4f00977c9" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float AudioCapture::rmsSums[MaxChannels]</definition>
+        <argsstring>[MaxChannels]</argsstring>
+        <name>rmsSums</name>
+        <qualifiedname>AudioCapture::rmsSums</qualifiedname>
+        <initializer>= { 0.0f, 0.0f }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="290" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="290" bodyend="290"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1ac9432e8f4aa18735c089b38b1b655922" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AudioCapture::rmsSampleCount</definition>
+        <argsstring></argsstring>
+        <name>rmsSampleCount</name>
+        <qualifiedname>AudioCapture::rmsSampleCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="291" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="291" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a9a2e5477674330ebf22115194ef63633" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String AudioCapture::currentRecordingId</definition>
+        <argsstring></argsstring>
+        <name>currentRecordingId</name>
+        <qualifiedname>AudioCapture::currentRecordingId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="296" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="296" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1ace467150c413061dcabe8e3a0e3b2185" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double AudioCapture::currentSampleRate</definition>
+        <argsstring></argsstring>
+        <name>currentSampleRate</name>
+        <qualifiedname>AudioCapture::currentSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="297" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="297" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a8b1684d4a1023c038562c7fe3e7a4089" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AudioCapture::currentNumChannels</definition>
+        <argsstring></argsstring>
+        <name>currentNumChannels</name>
+        <qualifiedname>AudioCapture::currentNumChannels</qualifiedname>
+        <initializer>= 2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="298" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="298" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1af5356db0528c63c6030b4bc89be38619" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AudioCapture::maxRecordingSamples</definition>
+        <argsstring></argsstring>
+        <name>maxRecordingSamples</name>
+        <qualifiedname>AudioCapture::maxRecordingSamples</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="299" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="299" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1aabfa1168847ca994b6aa90ad23abe2da" prot="private" static="no" mutable="no">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt;float&gt; AudioCapture::recordingBuffer</definition>
+        <argsstring></argsstring>
+        <name>recordingBuffer</name>
+        <qualifiedname>AudioCapture::recordingBuffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="303" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="303" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a708a283bb524771f5c50987f9fa6a7e3" prot="private" static="no" mutable="no">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt;float&gt; AudioCapture::recordedAudio</definition>
+        <argsstring></argsstring>
+        <name>recordedAudio</name>
+        <qualifiedname>AudioCapture::recordedAudio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="306" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="306" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1a63778488e188de98e2e6843c60d86852" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool AudioCapture::hasRecordedData</definition>
+        <argsstring></argsstring>
+        <name>hasRecordedData</name>
+        <qualifiedname>AudioCapture::hasRecordedData</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="307" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="307" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classAudioCapture_1adcb24b53fee6fbde53e1533049df55bc" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AudioCapture::MaxChannels</definition>
+        <argsstring></argsstring>
+        <name>MaxChannels</name>
+        <qualifiedname>AudioCapture::MaxChannels</qualifiedname>
+        <initializer>= 2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="285" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="285" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAudioCapture_1acfe9df0a46df5893055217f6165c5439" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AudioCapture::RMSWindowSamples</definition>
+        <argsstring></argsstring>
+        <name>RMSWindowSamples</name>
+        <qualifiedname>AudioCapture::RMSWindowSamples</qualifiedname>
+        <initializer>= 2048</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="292" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="292" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classAudioCapture_1ac150d0c279bef017f85bac96a45353d9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>AudioCapture::AudioCapture</definition>
+        <argsstring>()</argsstring>
+        <name>AudioCapture</name>
+        <qualifiedname>AudioCapture::AudioCapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="23" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="6" bodyend="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a61dc26c4719aa7ef7cabfab8aed5e6a1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>AudioCapture::~AudioCapture</definition>
+        <argsstring>()</argsstring>
+        <name>~AudioCapture</name>
+        <qualifiedname>AudioCapture::~AudioCapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="24" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="10" bodyend="12"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aba7406d0365c8d1d874be4f793efcc4f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::prepare</definition>
+        <argsstring>(double sampleRate, int samplesPerBlock, int numChannels)</argsstring>
+        <name>prepare</name>
+        <qualifiedname>AudioCapture::prepare</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>samplesPerBlock</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>numChannels</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="28" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="15" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a02192c50a0a1b936361c57b98bc5640e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::reset</definition>
+        <argsstring>()</argsstring>
+        <name>reset</name>
+        <qualifiedname>AudioCapture::reset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="29" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="32" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ac5b9b0f2ced94ad9668d1a32a1f9a2fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::startRecording</definition>
+        <argsstring>(const juce::String &amp;recordingId=&quot;&quot;)</argsstring>
+        <name>startRecording</name>
+        <qualifiedname>AudioCapture::startRecording</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>recordingId</declname>
+          <defval>&quot;&quot;</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="33" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="42" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a673af7cd2b8e6c66b4d054282d1c7c2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt; float &gt; AudioCapture::stopRecording</definition>
+        <argsstring>()</argsstring>
+        <name>stopRecording</name>
+        <qualifiedname>AudioCapture::stopRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="34" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="69" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ab32a8e9914c8d0b8a18f45c74df1e204" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::isRecording</definition>
+        <argsstring>() const</argsstring>
+        <name>isRecording</name>
+        <qualifiedname>AudioCapture::isRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="35" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="35" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a6414f71884938bdd0480487510d2fbe1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::captureAudio</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer)</argsstring>
+        <name>captureAudio</name>
+        <qualifiedname>AudioCapture::captureAudio</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="40" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="109" bodyend="141"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a7a3807495f332ab0add9d07adb4bb734" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double AudioCapture::getRecordingLengthSeconds</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordingLengthSeconds</name>
+        <qualifiedname>AudioCapture::getRecordingLengthSeconds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="44" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="197" bodyend="203"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1afa19734d605abb1c43484c9e0ea28b90" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int AudioCapture::getRecordingLengthSamples</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordingLengthSamples</name>
+        <qualifiedname>AudioCapture::getRecordingLengthSamples</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="45" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="45" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a79ee13441a86d05562d7f62867db5376" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int AudioCapture::getMaxRecordingSamples</definition>
+        <argsstring>() const</argsstring>
+        <name>getMaxRecordingSamples</name>
+        <qualifiedname>AudioCapture::getMaxRecordingSamples</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="46" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="46" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aebce80be415f71a3dd0f6ddf36c02f7d" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double AudioCapture::getMaxRecordingLengthSeconds</definition>
+        <argsstring>() const</argsstring>
+        <name>getMaxRecordingLengthSeconds</name>
+        <qualifiedname>AudioCapture::getMaxRecordingLengthSeconds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="47" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="205" bodyend="211"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ab8ba721f428f1dff066aef0d9e19eb74" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::getRecordingProgress</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordingProgress</name>
+        <qualifiedname>AudioCapture::getRecordingProgress</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="48" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="213" bodyend="219"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a53c672899510df6c90baadaaf595dffc" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::isBufferFull</definition>
+        <argsstring>() const</argsstring>
+        <name>isBufferFull</name>
+        <qualifiedname>AudioCapture::isBufferFull</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="221" bodyend="224"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a3ef6dd493741c4d0417eef4572f6e41e" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::getPeakLevel</definition>
+        <argsstring>(int channel) const</argsstring>
+        <name>getPeakLevel</name>
+        <qualifiedname>AudioCapture::getPeakLevel</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="53" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="227" bodyend="233"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aee37e239073fd96853c05b9b62e37fa1" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::getRMSLevel</definition>
+        <argsstring>(int channel) const</argsstring>
+        <name>getRMSLevel</name>
+        <qualifiedname>AudioCapture::getRMSLevel</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="54" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="235" bodyend="241"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a4640608d4450f5e65cbaa115db921007" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::resetLevels</definition>
+        <argsstring>()</argsstring>
+        <name>resetLevels</name>
+        <qualifiedname>AudioCapture::resetLevels</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="55" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="243" bodyend="250"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1adcd085de0053abf3b2d3b5bfccb4fe07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String AudioCapture::generateWaveformSVG</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer, int width=400, int height=100)</argsstring>
+        <name>generateWaveformSVG</name>
+        <qualifiedname>AudioCapture::generateWaveformSVG</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>width</declname>
+          <defval>400</defval>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>height</declname>
+          <defval>100</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="59" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="252" bodyend="297"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a2efd5ff7bc21e2dab820542fb4ceecd5" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double AudioCapture::getSampleRate</definition>
+        <argsstring>() const</argsstring>
+        <name>getSampleRate</name>
+        <qualifiedname>AudioCapture::getSampleRate</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="62" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="62" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ab3ea4cb2bcff946863f42f4b6e9ad3c0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>int AudioCapture::getNumChannels</definition>
+        <argsstring>() const</argsstring>
+        <name>getNumChannels</name>
+        <qualifiedname>AudioCapture::getNumChannels</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="63" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="63" bodyend="63"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a054bb76c59c5f41fa839171257ed32f5" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::saveRecordedAudioToFile</definition>
+        <argsstring>(const juce::File &amp;file, ExportFormat format=ExportFormat::WAV_16bit) const</argsstring>
+        <name>saveRecordedAudioToFile</name>
+        <qualifiedname>AudioCapture::saveRecordedAudioToFile</qualifiedname>
+        <param>
+          <type>const juce::File &amp;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+          <defval><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10a2fa70c94613590d0c810afbb7e2b2e30" kindref="member">ExportFormat::WAV_16bit</ref></defval>
+        </param>
+        <briefdescription>
+<para>Save the last recorded audio to a file. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination file </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>format</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The export format (default: 16-bit WAV) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if successful </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="121" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="546" bodyend="555"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a957707c907f22a9419fd39efedb795c0" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::saveRecordedAudioToWavFile</definition>
+        <argsstring>(const juce::File &amp;file, ExportFormat format=ExportFormat::WAV_16bit) const</argsstring>
+        <name>saveRecordedAudioToWavFile</name>
+        <qualifiedname>AudioCapture::saveRecordedAudioToWavFile</qualifiedname>
+        <param>
+          <type>const juce::File &amp;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+          <defval><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10a2fa70c94613590d0c810afbb7e2b2e30" kindref="member">ExportFormat::WAV_16bit</ref></defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="125" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="404" bodyend="413"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a6b05bd57c7026f7ab2909ca4dcd3e1e5" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::hasRecordedAudio</definition>
+        <argsstring>() const</argsstring>
+        <name>hasRecordedAudio</name>
+        <qualifiedname>AudioCapture::hasRecordedAudio</qualifiedname>
+        <briefdescription>
+<para>Check if there is recorded audio available to export. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="142" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="142" bodyend="142"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a42de8ec552a3c0c0e42f6398161718c6" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+        <definition>const juce::AudioBuffer&lt; float &gt; &amp; AudioCapture::getRecordedAudioBuffer</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordedAudioBuffer</name>
+        <qualifiedname>AudioCapture::getRecordedAudioBuffer</qualifiedname>
+        <briefdescription>
+<para>Get the recorded audio buffer (for inspection/preview). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="145" column="29" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="145" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a1ae334abe925f720b7b7f41b4bc96cf3" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::int64</type>
+        <definition>juce::int64 AudioCapture::getEstimatedFileSize</definition>
+        <argsstring>(ExportFormat format) const</argsstring>
+        <name>getEstimatedFileSize</name>
+        <qualifiedname>AudioCapture::getEstimatedFileSize</qualifiedname>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+        </param>
+        <briefdescription>
+<para>Get estimated file size for the recorded audio in a given format. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="177" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="670" bodyend="678"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classAudioCapture_1a9fee38b45d1e6cd1325affd177c9b1e3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::saveBufferToFile</definition>
+        <argsstring>(const juce::File &amp;file, const juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate, ExportFormat format=ExportFormat::WAV_16bit)</argsstring>
+        <name>saveBufferToFile</name>
+        <qualifiedname>AudioCapture::saveBufferToFile</qualifiedname>
+        <param>
+          <type>const juce::File &amp;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+          <defval><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10a2fa70c94613590d0c810afbb7e2b2e30" kindref="member">ExportFormat::WAV_16bit</ref></defval>
+        </param>
+        <briefdescription>
+<para>Save an audio buffer to a file (WAV or FLAC based on format). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination file </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to save </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The sample rate of the audio </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>format</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The export format (default: 16-bit WAV) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if successful </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="85" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="436" bodyend="445"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a207d4b98c7bc3b334b2ad84dcc5bee14" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::saveBufferToWavFile</definition>
+        <argsstring>(const juce::File &amp;file, const juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate, ExportFormat format=ExportFormat::WAV_16bit)</argsstring>
+        <name>saveBufferToWavFile</name>
+        <qualifiedname>AudioCapture::saveBufferToWavFile</qualifiedname>
+        <param>
+          <type>const juce::File &amp;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+          <defval><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10a2fa70c94613590d0c810afbb7e2b2e30" kindref="member">ExportFormat::WAV_16bit</ref></defval>
+        </param>
+        <briefdescription>
+<para>Save an audio buffer to a WAV file. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination file </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to save </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The sample rate of the audio </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>format</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bit depth format (default: 16-bit) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if successful </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="97" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="308" bodyend="402"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ae575f7e647de5659e21e863913133cca" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::saveBufferToFlacFile</definition>
+        <argsstring>(const juce::File &amp;file, const juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate, ExportFormat format=ExportFormat::FLAC_16bit, int quality=5)</argsstring>
+        <name>saveBufferToFlacFile</name>
+        <qualifiedname>AudioCapture::saveBufferToFlacFile</qualifiedname>
+        <param>
+          <type>const juce::File &amp;</type>
+          <declname>file</declname>
+        </param>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+          <defval><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10acf37f4d663bd63c924af632f83ba57b5" kindref="member">ExportFormat::FLAC_16bit</ref></defval>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>quality</declname>
+          <defval>5</defval>
+        </param>
+        <briefdescription>
+<para>Save an audio buffer to a FLAC file. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>file</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The destination file </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to save </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The sample rate of the audio </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>format</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The bit depth format (default: 16-bit FLAC) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>quality</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Compression quality 0-8 (higher = smaller but slower, default: 5) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if successful </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="110" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="447" bodyend="544"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ab8e0de172db164ae28cca66b428b2f53" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool AudioCapture::isFlacFormat</definition>
+        <argsstring>(ExportFormat format)</argsstring>
+        <name>isFlacFormat</name>
+        <qualifiedname>AudioCapture::isFlacFormat</qualifiedname>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+        </param>
+        <briefdescription>
+<para>Check if a format is a FLAC format. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="129" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="416" bodyend="419"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a51779612c70843dc3676da239b78633c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String AudioCapture::getExtensionForFormat</definition>
+        <argsstring>(ExportFormat format)</argsstring>
+        <name>getExtensionForFormat</name>
+        <qualifiedname>AudioCapture::getExtensionForFormat</qualifiedname>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+        </param>
+        <briefdescription>
+<para>Get the recommended file extension for a format. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="132" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="421" bodyend="434"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1adf261ba8ed95ba934e0f2f734f6aeea3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::File</type>
+        <definition>juce::File AudioCapture::getTempAudioFile</definition>
+        <argsstring>(const juce::String &amp;extension=&quot;.wav&quot;)</argsstring>
+        <name>getTempAudioFile</name>
+        <qualifiedname>AudioCapture::getTempAudioFile</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>extension</declname>
+          <defval>&quot;.wav&quot;</defval>
+        </param>
+        <briefdescription>
+<para>Get a temporary file for audio export Creates a unique file in the system temp directory. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>extension</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>File extension including dot (e.g., &quot;.wav&quot;) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A unique temporary file path </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="139" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="557" bodyend="575"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aae1cdad65170bc520c22f88859026086" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String AudioCapture::formatDuration</definition>
+        <argsstring>(double seconds)</argsstring>
+        <name>formatDuration</name>
+        <qualifiedname>AudioCapture::formatDuration</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+<para>Format a duration in seconds as MM:SS or M:SS string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>seconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Duration in seconds </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Formatted string like &quot;1:23&quot; or &quot;0:05&quot; </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="154" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="578" bodyend="589"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a09686a2fcd239af19ba52f78a5762f57" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String AudioCapture::formatDurationWithMs</definition>
+        <argsstring>(double seconds)</argsstring>
+        <name>formatDurationWithMs</name>
+        <qualifiedname>AudioCapture::formatDurationWithMs</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+<para>Format a duration in seconds with milliseconds as MM:SS.mmm or M:SS.mmm. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>seconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Duration in seconds </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Formatted string like &quot;1:23.456&quot; </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="160" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="591" bodyend="604"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a2a4084aea43641174c7f6044c8ec3a3e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String AudioCapture::formatFileSize</definition>
+        <argsstring>(juce::int64 bytes)</argsstring>
+        <name>formatFileSize</name>
+        <qualifiedname>AudioCapture::formatFileSize</qualifiedname>
+        <param>
+          <type>juce::int64</type>
+          <declname>bytes</declname>
+        </param>
+        <briefdescription>
+<para>Format a file size in human-readable form. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>File size in bytes </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Formatted string like &quot;1.2 MB&quot; or &quot;456 KB&quot; </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="166" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="606" bodyend="623"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a8aaa1447b7a824e4b2c4e47eb8de47ec" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::int64</type>
+        <definition>juce::int64 AudioCapture::estimateFileSize</definition>
+        <argsstring>(int numSamples, int numChannels, ExportFormat format)</argsstring>
+        <name>estimateFileSize</name>
+        <qualifiedname>AudioCapture::estimateFileSize</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>numSamples</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>numChannels</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" kindref="member">ExportFormat</ref></type>
+          <declname>format</declname>
+        </param>
+        <briefdescription>
+<para>Estimate file size for a given audio buffer and format. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>numSamples</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of samples </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>numChannels</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of channels </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>format</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Export format </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Estimated file size in bytes </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="174" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="625" bodyend="668"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a7eaa92f787bd4d1155f97c3902e947e1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt; float &gt; AudioCapture::trimBuffer</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer, int startSample, int endSample=-1)</argsstring>
+        <name>trimBuffer</name>
+        <qualifiedname>AudioCapture::trimBuffer</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>startSample</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>endSample</declname>
+          <defval>-1</defval>
+        </param>
+        <briefdescription>
+<para>Trim an audio buffer to a specified range. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The source audio buffer </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>startSample</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Start sample index (inclusive) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>endSample</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>End sample index (exclusive), -1 means end of buffer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>New trimmed buffer, or empty buffer if range is invalid </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="188" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="684" bodyend="712"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aa58fc94625f96a733392a5e5ff136c84" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt; float &gt; AudioCapture::trimBufferByTime</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate, double startSeconds, double endSeconds=-1.0)</argsstring>
+        <name>trimBufferByTime</name>
+        <qualifiedname>AudioCapture::trimBufferByTime</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>startSeconds</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>endSeconds</declname>
+          <defval>-1.0</defval>
+        </param>
+        <briefdescription>
+<para>Trim by time in seconds (convenience wrapper). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The source audio buffer </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sample rate for time conversion </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>startSeconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Start time in seconds </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>endSeconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>End time in seconds, -1.0 means end of buffer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>New trimmed buffer </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="199" column="30" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="714" bodyend="726"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ab64c05b7e8de9f8d8d5695feb5a1969c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::applyFadeIn</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;buffer, int fadeSamples, FadeType fadeType=FadeType::Linear)</argsstring>
+        <name>applyFadeIn</name>
+        <qualifiedname>AudioCapture::applyFadeIn</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>fadeSamples</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634" kindref="member">FadeType</ref></type>
+          <declname>fadeType</declname>
+          <defval><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634a32a843da6ea40ab3b17a3421ccdf671b" kindref="member">FadeType::Linear</ref></defval>
+        </param>
+        <briefdescription>
+<para>Apply fade in to the beginning of a buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to modify (IN-PLACE modification) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeSamples</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of samples for the fade </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeType</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Type of fade curve </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="217" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="765" bodyend="786"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a88106956b71c7c856018a52b46f2be48" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::applyFadeOut</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;buffer, int fadeSamples, FadeType fadeType=FadeType::Linear)</argsstring>
+        <name>applyFadeOut</name>
+        <qualifiedname>AudioCapture::applyFadeOut</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>fadeSamples</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634" kindref="member">FadeType</ref></type>
+          <declname>fadeType</declname>
+          <defval><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634a32a843da6ea40ab3b17a3421ccdf671b" kindref="member">FadeType::Linear</ref></defval>
+        </param>
+        <briefdescription>
+<para>Apply fade out to the end of a buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to modify (IN-PLACE modification) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeSamples</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of samples for the fade </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeType</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Type of fade curve </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="226" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="788" bodyend="813"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ade6dba6b68c15d73df73cad058282104" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::applyFadeInByTime</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate, double fadeSeconds, FadeType fadeType=FadeType::Linear)</argsstring>
+        <name>applyFadeInByTime</name>
+        <qualifiedname>AudioCapture::applyFadeInByTime</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>fadeSeconds</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634" kindref="member">FadeType</ref></type>
+          <declname>fadeType</declname>
+          <defval><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634a32a843da6ea40ab3b17a3421ccdf671b" kindref="member">FadeType::Linear</ref></defval>
+        </param>
+        <briefdescription>
+<para>Apply fade in by time in seconds. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to modify </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sample rate for time conversion </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeSeconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Fade duration in seconds </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeType</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Type of fade curve </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="236" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="815" bodyend="825"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ae63e046a0a60a416a4f59486703c2974" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::applyFadeOutByTime</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate, double fadeSeconds, FadeType fadeType=FadeType::Linear)</argsstring>
+        <name>applyFadeOutByTime</name>
+        <qualifiedname>AudioCapture::applyFadeOutByTime</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>fadeSeconds</declname>
+        </param>
+        <param>
+          <type><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634" kindref="member">FadeType</ref></type>
+          <declname>fadeType</declname>
+          <defval><ref refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634a32a843da6ea40ab3b17a3421ccdf671b" kindref="member">FadeType::Linear</ref></defval>
+        </param>
+        <briefdescription>
+<para>Apply fade out by time in seconds. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to modify </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sample rate for time conversion </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeSeconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Fade duration in seconds </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fadeType</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Type of fade curve </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="247" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="827" bodyend="837"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1a8e387a2e88b436d794e6bd2fbb339f7c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::getBufferPeakLevel</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer)</argsstring>
+        <name>getBufferPeakLevel</name>
+        <qualifiedname>AudioCapture::getBufferPeakLevel</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <briefdescription>
+<para>Get the peak level of a buffer (0.0 to 1.0+). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to analyze </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Peak absolute sample value across all channels </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="256" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="840" bodyend="859"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aa967f007ffc8a5f19c691626e1f55bd8" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::getBufferPeakLevelDB</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer)</argsstring>
+        <name>getBufferPeakLevelDB</name>
+        <qualifiedname>AudioCapture::getBufferPeakLevelDB</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <briefdescription>
+<para>Get the peak level in decibels. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to analyze </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Peak level in dB (0 dB = 1.0 linear) </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="262" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="861" bodyend="865"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ab6c98bda05583a60ccfadc2f3ea5d653" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::normalizeBuffer</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;buffer, float targetPeakDB=-1.0f)</argsstring>
+        <name>normalizeBuffer</name>
+        <qualifiedname>AudioCapture::normalizeBuffer</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>targetPeakDB</declname>
+          <defval>-1.0f</defval>
+        </param>
+        <briefdescription>
+<para>Normalize a buffer to a target peak level. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to modify (IN-PLACE modification) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>targetPeakDB</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Target peak level in dB (default: -1.0 dB) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The gain applied (for display purposes) </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="269" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="880" bodyend="908"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aaffe0417b89ae869f74c93b22a72baf2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::dbToLinear</definition>
+        <argsstring>(float db)</argsstring>
+        <name>dbToLinear</name>
+        <qualifiedname>AudioCapture::dbToLinear</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>db</declname>
+        </param>
+        <briefdescription>
+<para>Convert decibels to linear gain. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="273" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="867" bodyend="870"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1aad3bf42b0288d6e3aab14f3020f090be" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float AudioCapture::linearToDb</definition>
+        <argsstring>(float linear)</argsstring>
+        <name>linearToDb</name>
+        <qualifiedname>AudioCapture::linearToDb</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>linear</declname>
+        </param>
+        <briefdescription>
+<para>Convert linear gain to decibels. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="276" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="872" bodyend="878"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classAudioCapture_1a02415baf5a788f6c4c3ebc0ba4b69510" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::initializeBuffers</definition>
+        <argsstring>()</argsstring>
+        <name>initializeBuffers</name>
+        <qualifiedname>AudioCapture::initializeBuffers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="310" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="300" bodyend="305"/>
+      </memberdef>
+      <memberdef kind="function" id="classAudioCapture_1ae7103adc3a1d88808f92d6ca8a10704d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AudioCapture::updateLevels</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer, int numSamples)</argsstring>
+        <name>updateLevels</name>
+        <qualifiedname>AudioCapture::updateLevels</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>numSamples</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="311" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.cpp" bodystart="144" bodyend="194"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classAudioCapture" kindref="compound">AudioCapture</ref> handles recording audio from the DAW. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Thread Safety:<itemizedlist>
+<listitem><para><ref refid="classAudioCapture_1a6414f71884938bdd0480487510d2fbe1" kindref="member">captureAudio()</ref> is called from the AUDIO THREAD (processBlock)</para>
+</listitem><listitem><para>All other methods are called from the MESSAGE THREAD</para>
+</listitem><listitem><para>Uses std::atomic for thread-safe state sharing</para>
+</listitem></itemizedlist>
+</para>
+<para>Features:<itemizedlist>
+<listitem><para>Lock-free audio capture from processBlock</para>
+</listitem><listitem><para>Up to 60 seconds of recording</para>
+</listitem><listitem><para>Real-time level metering (peak + RMS)</para>
+</listitem><listitem><para>Waveform generation for <ref refid="namespaceUI" kindref="compound">UI</ref> </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" line="20" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/AudioCapture.h" bodystart="21" bodyend="314"/>
+    <listofallmembers>
+      <member refid="classAudioCapture_1ab64c05b7e8de9f8d8d5695feb5a1969c" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>applyFadeIn</name></member>
+      <member refid="classAudioCapture_1ade6dba6b68c15d73df73cad058282104" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>applyFadeInByTime</name></member>
+      <member refid="classAudioCapture_1a88106956b71c7c856018a52b46f2be48" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>applyFadeOut</name></member>
+      <member refid="classAudioCapture_1ae63e046a0a60a416a4f59486703c2974" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>applyFadeOutByTime</name></member>
+      <member refid="classAudioCapture_1ac150d0c279bef017f85bac96a45353d9" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>AudioCapture</name></member>
+      <member refid="classAudioCapture_1a6414f71884938bdd0480487510d2fbe1" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>captureAudio</name></member>
+      <member refid="classAudioCapture_1a8b1684d4a1023c038562c7fe3e7a4089" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>currentNumChannels</name></member>
+      <member refid="classAudioCapture_1a9a2e5477674330ebf22115194ef63633" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>currentRecordingId</name></member>
+      <member refid="classAudioCapture_1ace467150c413061dcabe8e3a0e3b2185" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>currentSampleRate</name></member>
+      <member refid="classAudioCapture_1aaffe0417b89ae869f74c93b22a72baf2" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>dbToLinear</name></member>
+      <member refid="classAudioCapture_1a8aaa1447b7a824e4b2c4e47eb8de47ec" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>estimateFileSize</name></member>
+      <member refid="classAudioCapture_1a00e295d09c70075bebf11d18710dff10" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>ExportFormat</name></member>
+      <member refid="classAudioCapture_1ae8b35f564d9a337422fafba79b7f2634" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>FadeType</name></member>
+      <member refid="classAudioCapture_1aae1cdad65170bc520c22f88859026086" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>formatDuration</name></member>
+      <member refid="classAudioCapture_1a09686a2fcd239af19ba52f78a5762f57" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>formatDurationWithMs</name></member>
+      <member refid="classAudioCapture_1a2a4084aea43641174c7f6044c8ec3a3e" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>formatFileSize</name></member>
+      <member refid="classAudioCapture_1adcd085de0053abf3b2d3b5bfccb4fe07" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>generateWaveformSVG</name></member>
+      <member refid="classAudioCapture_1a8e387a2e88b436d794e6bd2fbb339f7c" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getBufferPeakLevel</name></member>
+      <member refid="classAudioCapture_1aa967f007ffc8a5f19c691626e1f55bd8" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getBufferPeakLevelDB</name></member>
+      <member refid="classAudioCapture_1a1ae334abe925f720b7b7f41b4bc96cf3" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getEstimatedFileSize</name></member>
+      <member refid="classAudioCapture_1a51779612c70843dc3676da239b78633c" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getExtensionForFormat</name></member>
+      <member refid="classAudioCapture_1aebce80be415f71a3dd0f6ddf36c02f7d" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getMaxRecordingLengthSeconds</name></member>
+      <member refid="classAudioCapture_1a79ee13441a86d05562d7f62867db5376" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getMaxRecordingSamples</name></member>
+      <member refid="classAudioCapture_1ab3ea4cb2bcff946863f42f4b6e9ad3c0" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getNumChannels</name></member>
+      <member refid="classAudioCapture_1a3ef6dd493741c4d0417eef4572f6e41e" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getPeakLevel</name></member>
+      <member refid="classAudioCapture_1a42de8ec552a3c0c0e42f6398161718c6" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getRecordedAudioBuffer</name></member>
+      <member refid="classAudioCapture_1afa19734d605abb1c43484c9e0ea28b90" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getRecordingLengthSamples</name></member>
+      <member refid="classAudioCapture_1a7a3807495f332ab0add9d07adb4bb734" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getRecordingLengthSeconds</name></member>
+      <member refid="classAudioCapture_1ab8ba721f428f1dff066aef0d9e19eb74" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getRecordingProgress</name></member>
+      <member refid="classAudioCapture_1aee37e239073fd96853c05b9b62e37fa1" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getRMSLevel</name></member>
+      <member refid="classAudioCapture_1a2efd5ff7bc21e2dab820542fb4ceecd5" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getSampleRate</name></member>
+      <member refid="classAudioCapture_1adf261ba8ed95ba934e0f2f734f6aeea3" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>getTempAudioFile</name></member>
+      <member refid="classAudioCapture_1a6b05bd57c7026f7ab2909ca4dcd3e1e5" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>hasRecordedAudio</name></member>
+      <member refid="classAudioCapture_1a63778488e188de98e2e6843c60d86852" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>hasRecordedData</name></member>
+      <member refid="classAudioCapture_1a02415baf5a788f6c4c3ebc0ba4b69510" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>initializeBuffers</name></member>
+      <member refid="classAudioCapture_1a53c672899510df6c90baadaaf595dffc" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>isBufferFull</name></member>
+      <member refid="classAudioCapture_1ab8e0de172db164ae28cca66b428b2f53" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>isFlacFormat</name></member>
+      <member refid="classAudioCapture_1ab32a8e9914c8d0b8a18f45c74df1e204" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>isRecording</name></member>
+      <member refid="classAudioCapture_1aad3bf42b0288d6e3aab14f3020f090be" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>linearToDb</name></member>
+      <member refid="classAudioCapture_1adcb24b53fee6fbde53e1533049df55bc" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>MaxChannels</name></member>
+      <member refid="classAudioCapture_1af5356db0528c63c6030b4bc89be38619" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>maxRecordingSamples</name></member>
+      <member refid="classAudioCapture_1ab6c98bda05583a60ccfadc2f3ea5d653" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>normalizeBuffer</name></member>
+      <member refid="classAudioCapture_1a2c08ab272ad590f8f5f83580238843a0" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>peakLevels</name></member>
+      <member refid="classAudioCapture_1aba7406d0365c8d1d874be4f793efcc4f" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>prepare</name></member>
+      <member refid="classAudioCapture_1a708a283bb524771f5c50987f9fa6a7e3" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>recordedAudio</name></member>
+      <member refid="classAudioCapture_1a0ecb670450a26f9946c22f31b2c1d1a2" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>recording</name></member>
+      <member refid="classAudioCapture_1aabfa1168847ca994b6aa90ad23abe2da" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>recordingBuffer</name></member>
+      <member refid="classAudioCapture_1a0526dd7455c074ad80314f460796779f" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>recordingPosition</name></member>
+      <member refid="classAudioCapture_1a02192c50a0a1b936361c57b98bc5640e" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>reset</name></member>
+      <member refid="classAudioCapture_1a4640608d4450f5e65cbaa115db921007" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>resetLevels</name></member>
+      <member refid="classAudioCapture_1a8c1882b9f5bf07c7037f1e4fed651ace" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>rmsLevels</name></member>
+      <member refid="classAudioCapture_1ac9432e8f4aa18735c089b38b1b655922" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>rmsSampleCount</name></member>
+      <member refid="classAudioCapture_1a426d4daa6ab143f4fd3529d4f00977c9" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>rmsSums</name></member>
+      <member refid="classAudioCapture_1acfe9df0a46df5893055217f6165c5439" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>RMSWindowSamples</name></member>
+      <member refid="classAudioCapture_1a9fee38b45d1e6cd1325affd177c9b1e3" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>saveBufferToFile</name></member>
+      <member refid="classAudioCapture_1ae575f7e647de5659e21e863913133cca" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>saveBufferToFlacFile</name></member>
+      <member refid="classAudioCapture_1a207d4b98c7bc3b334b2ad84dcc5bee14" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>saveBufferToWavFile</name></member>
+      <member refid="classAudioCapture_1a054bb76c59c5f41fa839171257ed32f5" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>saveRecordedAudioToFile</name></member>
+      <member refid="classAudioCapture_1a957707c907f22a9419fd39efedb795c0" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>saveRecordedAudioToWavFile</name></member>
+      <member refid="classAudioCapture_1ac5b9b0f2ced94ad9668d1a32a1f9a2fe" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>startRecording</name></member>
+      <member refid="classAudioCapture_1a673af7cd2b8e6c66b4d054282d1c7c2e" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>stopRecording</name></member>
+      <member refid="classAudioCapture_1a7eaa92f787bd4d1155f97c3902e947e1" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>trimBuffer</name></member>
+      <member refid="classAudioCapture_1aa58fc94625f96a733392a5e5ff136c84" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>trimBufferByTime</name></member>
+      <member refid="classAudioCapture_1ae7103adc3a1d88808f92d6ca8a10704d" prot="private" virt="non-virtual"><scope>AudioCapture</scope><name>updateLevels</name></member>
+      <member refid="classAudioCapture_1a61dc26c4719aa7ef7cabfab8aed5e6a1" prot="public" virt="non-virtual"><scope>AudioCapture</scope><name>~AudioCapture</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

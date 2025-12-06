@@ -1,0 +1,169 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=936f4968"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="Sidechain Plugin Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-the-plugin">Loading the Plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#first-steps">First Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#need-help">Need Help?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/getting-started.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<p>This guide will help you get started with the Sidechain plugin, from installation to your first recording.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The Sidechain plugin is available in VST3 and AU (macOS) formats. Install the plugin to your system’s standard plugin directory:</p>
+<p><strong>macOS:</strong>
+- VST3: <code class="docutils literal notranslate"><span class="pre">/Library/Audio/Plug-Ins/VST3/</span></code> (system-wide) or <code class="docutils literal notranslate"><span class="pre">~/Library/Audio/Plug-Ins/VST3/</span></code> (user)
+- AU: <code class="docutils literal notranslate"><span class="pre">/Library/Audio/Plug-Ins/Components/</span></code> (system-wide) or <code class="docutils literal notranslate"><span class="pre">~/Library/Audio/Plug-Ins/Components/</span></code> (user)</p>
+<p><strong>Windows:</strong>
+- VST3: <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\Common</span> <span class="pre">Files\VST3\</span></code></p>
+<p><strong>Linux:</strong>
+- VST3: <code class="docutils literal notranslate"><span class="pre">/usr/lib/vst3/</span></code> or <code class="docutils literal notranslate"><span class="pre">~/.vst3/</span></code></p>
+</section>
+<section id="loading-the-plugin">
+<h2>Loading the Plugin<a class="headerlink" href="#loading-the-plugin" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Open your DAW (Ableton Live, Logic Pro, FL Studio, etc.)</p></li>
+<li><p>Scan for new plugins (or restart your DAW)</p></li>
+<li><p>Add Sidechain to a track as an effect plugin</p></li>
+<li><p>The plugin window will open automatically</p></li>
+</ol>
+</section>
+<section id="first-steps">
+<h2>First Steps<a class="headerlink" href="#first-steps" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Create an Account</strong>: Click “Sign Up” to create a new account, or “Log In” if you already have one</p></li>
+<li><p><strong>Complete Your Profile</strong>: Add a profile picture and bio to help others discover you</p></li>
+<li><p><strong>Explore the Feed</strong>: Browse posts from other producers in your feed</p></li>
+<li><p><strong>Record Your First Clip</strong>: Click the record button to capture audio from your DAW</p></li>
+</ol>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Audio Capture</strong>: Record audio directly from your DAW</p></li>
+<li><p><strong>Social Feed</strong>: Share and discover music from other producers</p></li>
+<li><p><strong>Real-time Messaging</strong>: Chat with other users</p></li>
+<li><p><strong>Stories</strong>: Share short audio clips that expire after 24 hours</p></li>
+<li><p><strong>MIDI Capture</strong>: Record and share MIDI patterns</p></li>
+<li><p><strong>Key Detection</strong>: Automatically detect the musical key of your recordings</p></li>
+</ul>
+</section>
+<section id="need-help">
+<h2>Need Help?<a class="headerlink" href="#need-help" title="Link to this heading"></a></h2>
+<p>If you encounter any issues:</p>
+<ul class="simple">
+<li><p>Check the <a class="reference internal" href="development.html"><span class="doc">Development Guide</span></a> guide for troubleshooting</p></li>
+<li><p>Review the <a class="reference internal" href="architecture.html"><span class="doc">Architecture</span></a> documentation for technical details</p></li>
+<li><p>Browse the <a class="reference internal" href="api/library_root.html"><span class="doc">API Reference</span></a> for API reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Sidechain Plugin Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

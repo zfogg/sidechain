@@ -1,0 +1,306 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="FeedDataManager_8h" kind="file" language="C++">
+    <compoundname>FeedDataManager.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes refid="FeedResponse_8h" local="yes">../models/FeedResponse.h</includes>
+    <includes refid="NetworkClient_8h" local="yes">NetworkClient.h</includes>
+    <includedby refid="FeedDataManager_8cpp" local="yes">FeedDataManager.cpp</includedby>
+    <includedby refid="PostsFeedComponent_8h" local="yes">PostsFeedComponent.h</includedby>
+    <incdepgraph>
+      <node id="4">
+        <label>FeedPost.h</label>
+        <link refid="FeedPost_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>../models/FeedResponse.h</label>
+        <link refid="FeedResponse_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>FeedDataManager.h</label>
+        <link refid="FeedDataManager_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>NetworkClient.h</label>
+        <link refid="NetworkClient_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>../util/Constants.h</label>
+        <link refid="Constants_8h"/>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>Log.h</label>
+        <link refid="Log_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>../util/Result.h</label>
+        <link refid="Result_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>../util/Time.h</label>
+        <link refid="Time_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+      <node id="14">
+        <label>atomic</label>
+      </node>
+      <node id="13">
+        <label>cstddef</label>
+      </node>
+      <node id="8">
+        <label>functional</label>
+      </node>
+      <node id="5">
+        <label>map</label>
+      </node>
+      <node id="15">
+        <label>memory</label>
+      </node>
+      <node id="9">
+        <label>optional</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="5">
+        <label>PluginEditor.cpp</label>
+        <link refid="PluginEditor_8cpp"/>
+      </node>
+      <node id="4">
+        <label>PluginEditor.h</label>
+        <link refid="PluginEditor_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>PluginProcessor.cpp</label>
+        <link refid="PluginProcessor_8cpp"/>
+      </node>
+      <node id="2">
+        <label>FeedDataManager.cpp</label>
+        <link refid="FeedDataManager_8cpp"/>
+      </node>
+      <node id="1">
+        <label>FeedDataManager.h</label>
+        <link refid="FeedDataManager_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>PostsFeedComponent.cpp</label>
+        <link refid="PostsFeedComponent_8cpp"/>
+      </node>
+      <node id="3">
+        <label>PostsFeedComponent.h</label>
+        <link refid="PostsFeedComponent_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classFeedDataManager" prot="public">FeedDataManager</innerclass>
+    <innerclass refid="structFeedDataManager_1_1CacheEntry" prot="private">FeedDataManager::CacheEntry</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="FeedResponse_8h" kindref="compound">../models/FeedResponse.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="NetworkClient_8h" kindref="compound">NetworkClient.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22" refid="classFeedDataManager" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classFeedDataManager_1a9c8170bfb845e682c402926b9e8dca51" kindref="member">FeedDataManager</ref><sp/>:<sp/></highlight><highlight class="keyword">private</highlight><highlight class="normal"><sp/>juce::Timer</highlight></codeline>
+<codeline lineno="23"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a9c8170bfb845e682c402926b9e8dca51" kindref="member">FeedDataManager</ref>();</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1aba8c8cfe42e691c92c4793e41bd95d53" kindref="member">~FeedDataManager</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Feed<sp/>types<sp/>supported</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30" refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">enum<sp/>class</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="32" refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a3d1f92a565d3b1a61880236e33c49bf3" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a3d1f92a565d3b1a61880236e33c49bf3" kindref="member">Timeline</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>User&apos;s<sp/>following<sp/>feed<sp/>(posts<sp/>from<sp/>people<sp/>they<sp/>follow)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33" refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a4cc6684df7b4a92b1dec6fce3264fac8" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a4cc6684df7b4a92b1dec6fce3264fac8" kindref="member">Global</ref>,<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Global<sp/>discover<sp/>feed<sp/>(all<sp/>public<sp/>posts)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34" refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a37528894f18a085f9a078496a68eaaa8" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a37528894f18a085f9a078496a68eaaa8" kindref="member">Trending</ref><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Trending<sp/>feed<sp/>(posts<sp/>sorted<sp/>by<sp/>engagement<sp/>score)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callback<sp/>types</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39" refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>=<sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structFeedResponse" kindref="compound">FeedResponse</ref>&amp;)&gt;;</highlight></codeline>
+<codeline lineno="40" refid="classFeedDataManager_1a9c503e21a516d041aaa517daee28ac13" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classFeedDataManager_1a9c503e21a516d041aaa517daee28ac13" kindref="member">RefreshCallback</ref><sp/>=<sp/>std::function&lt;void(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>success,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>error)&gt;;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Feed<sp/>fetching</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a47075ef744c0011efb7bf8b563a57f88" kindref="member">fetchFeed</ref>(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset,<sp/><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a47075ef744c0011efb7bf8b563a57f88" kindref="member">fetchFeed</ref>(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType,<sp/><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a1fd36517c3a2d385af2157f70b88989f" kindref="member">refreshFeed</ref>(<ref refid="classFeedDataManager_1a9c503e21a516d041aaa517daee28ac13" kindref="member">RefreshCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1ab7dba172c73fa0777925645f700d1239" kindref="member">loadMorePosts</ref>(<ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Cache<sp/>management</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="classFeedDataManager_1a07692f8a832426e89281830d3e030786" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a07692f8a832426e89281830d3e030786" kindref="member">setCacheTTL</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>seconds)<sp/>{<sp/>cacheTTLSeconds<sp/>=<sp/>seconds;<sp/>}</highlight></codeline>
+<codeline lineno="69" refid="classFeedDataManager_1a44bc0d50ded84c317329538b547c1e65" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a44bc0d50ded84c317329538b547c1e65" kindref="member">getCacheTTL</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>cacheTTLSeconds;<sp/>}</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a2c4da403ebfeac3e84ac858f7cae9f07" kindref="member">clearCache</ref>();</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a2c4da403ebfeac3e84ac858f7cae9f07" kindref="member">clearCache</ref>(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a1886f695799e9766c69bba90d1ab3570" kindref="member">isCacheValid</ref>(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType)<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structFeedResponse" kindref="compound">FeedResponse</ref><sp/><ref refid="classFeedDataManager_1a8c18b3667ae488a7ebe622d9a8d2594b" kindref="member">getCachedFeed</ref>(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType)<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>State<sp/>queries</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87" refid="classFeedDataManager_1a0e65e4a904c51191c76f0fbb59fc3f9d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a0e65e4a904c51191c76f0fbb59fc3f9d" kindref="member">isFetching</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>fetchingInProgress;<sp/>}</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90" refid="classFeedDataManager_1ad5edc808d5a6911594febc2f202344d6" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/><ref refid="classFeedDataManager_1ad5edc808d5a6911594febc2f202344d6" kindref="member">getCurrentFeedType</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentFeedType;<sp/>}</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93" refid="classFeedDataManager_1aac82d3bd69b74422450863387a2b4a99" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1aac82d3bd69b74422450863387a2b4a99" kindref="member">setCurrentFeedType</ref>(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>type)<sp/>{<sp/>currentFeedType<sp/>=<sp/>type;<sp/>}</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="classFeedDataManager_1a309b232ca50cc281d1c5c23c394199bc" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a309b232ca50cc281d1c5c23c394199bc" kindref="member">getCurrentOffset</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentOffset;<sp/>}</highlight></codeline>
+<codeline lineno="97" refid="classFeedDataManager_1ac1fded21a5ebd74d52c0c13f360b94da" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1ac1fded21a5ebd74d52c0c13f360b94da" kindref="member">getCurrentLimit</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentLimit;<sp/>}</highlight></codeline>
+<codeline lineno="98" refid="classFeedDataManager_1a3fafd3b5e48c22267352e0bf6d753730" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a3fafd3b5e48c22267352e0bf6d753730" kindref="member">hasMorePosts</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>hasMore;<sp/>}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a18575207354b92b085bfcb7b7b6c1474" kindref="member">getLoadedPostsCount</ref>()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Network<sp/>client</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="107" refid="classFeedDataManager_1a38362ef9448413114e57d59b0e1dad0f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a38362ef9448413114e57d59b0e1dad0f" kindref="member">setNetworkClient</ref>(<ref refid="classNetworkClient" kindref="compound">NetworkClient</ref>*<sp/>client)<sp/>{<sp/>networkClient<sp/>=<sp/>client;<sp/>}</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110" refid="classFeedDataManager_1aebccfa323a6b0647c10821c9e3aad4ff" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref>*<sp/><ref refid="classFeedDataManager_1aebccfa323a6b0647c10821c9e3aad4ff" kindref="member">getNetworkClient</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>networkClient;<sp/>}</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116" refid="classFeedDataManager_1a550b1f631201629ce24ce4fba240d9a6" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a550b1f631201629ce24ce4fba240d9a6" kindref="member">setBaseURL</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>url)<sp/>{<sp/>baseURL<sp/>=<sp/>url;<sp/>}</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119" refid="classFeedDataManager_1a5734aaa53aa3d06712196d69a54179e2" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classFeedDataManager_1a5734aaa53aa3d06712196d69a54179e2" kindref="member">setAuthToken</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>token)<sp/>{<sp/>authToken<sp/>=<sp/>token;<sp/>}</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Timer<sp/>callback<sp/>for<sp/>cache<sp/>expiration<sp/>checks</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>timerCallback()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Internal<sp/>fetch<sp/>implementation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>performFetch(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset,<sp/><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>handleFetchResponse(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>feedData,<sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType,</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset,<sp/><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>handleFetchError(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>error,<sp/><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Cache<sp/>implementation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">CacheEntry</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structFeedResponse" kindref="compound">FeedResponse</ref><sp/>response;</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::Time<sp/>timestamp;</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType;</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>isValid(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ttlSeconds)</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="143"><highlight class="keyword"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>age<sp/>=<sp/>juce::Time::getCurrentTime()<sp/>-<sp/>timestamp;</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>age.inSeconds()<sp/>&lt;<sp/>ttlSeconds;</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::File<sp/>getCacheFile(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType)<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>loadCacheFromDisk(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType);</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>saveCacheToDisk(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>CacheEntry&amp;<sp/>entry);</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>updateCache(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>FeedResponse&amp;<sp/>response,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>JSON<sp/>parsing<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/>FeedResponse<sp/>parseJsonResponse(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>json);</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>getEndpointForFeedType(<ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>feedType)<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>State</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/>NetworkClient*<sp/>networkClient<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>baseURL;</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>authToken;</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40" kindref="member">FeedType</ref><sp/>currentFeedType<sp/>=<sp/><ref refid="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a3d1f92a565d3b1a61880236e33c49bf3" kindref="member">FeedType::Timeline</ref>;</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>currentOffset<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>currentLimit<sp/>=<sp/>20;</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>hasMore<sp/>=<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>fetchingInProgress<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Cache</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/>std::map&lt;FeedType,<sp/>CacheEntry&gt;<sp/>cache;</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/>std::map&lt;FeedType,<sp/>juce::Array&lt;FeedPost&gt;&gt;<sp/>loadedPosts;<sp/></highlight><highlight class="comment">//<sp/>Accumulated<sp/>posts<sp/>for<sp/>infinite<sp/>scroll</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>cacheTTLSeconds<sp/>=<sp/>300;<sp/></highlight><highlight class="comment">//<sp/>5<sp/>minutes<sp/>default</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callbacks<sp/>waiting<sp/>for<sp/>response</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9" kindref="member">FeedCallback</ref><sp/>pendingCallback;</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedDataManager_1a9c503e21a516d041aaa517daee28ac13" kindref="member">RefreshCallback</ref><sp/>pendingRefreshCallback;</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(<ref refid="classFeedDataManager_1a9c8170bfb845e682c402926b9e8dca51" kindref="member">FeedDataManager</ref>)</highlight></codeline>
+<codeline lineno="182"><highlight class="normal">};</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/FeedDataManager.h"/>
+  </compounddef>
+</doxygen>

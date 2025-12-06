@@ -1,0 +1,1414 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classProfile" kind="class" language="C++" prot="public">
+    <compoundname>Profile</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::ScrollBar::Listener</basecompoundref>
+    <includes refid="Profile_8h" local="no">Profile.h</includes>
+    <innerclass refid="structProfile_1_1Colors" prot="private">Profile::Colors</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classProfile_1a2094ea85ac2653da76780cbfeb660c4a" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; Profile::onBackPressed</definition>
+        <argsstring></argsstring>
+        <name>onBackPressed</name>
+        <qualifiedname>Profile::onBackPressed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="72" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a9ffc5af34220607620e9e78b47bcfaad" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId)&gt; Profile::onFollowersClicked</definition>
+        <argsstring></argsstring>
+        <name>onFollowersClicked</name>
+        <qualifiedname>Profile::onFollowersClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="73" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ac687c4b421fb7504815f5eea8e3a2472" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId)&gt; Profile::onFollowingClicked</definition>
+        <argsstring></argsstring>
+        <name>onFollowingClicked</name>
+        <qualifiedname>Profile::onFollowingClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="74" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a19c91d86a706977177aa850c17587d9e" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; Profile::onEditProfile</definition>
+        <argsstring></argsstring>
+        <name>onEditProfile</name>
+        <qualifiedname>Profile::onEditProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="75" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ab03921dbd9cf7055be0e21d2f8d5965d" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="classFeedPost" kindref="compound">FeedPost</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const FeedPost&amp;)&gt; Profile::onPostClicked</definition>
+        <argsstring></argsstring>
+        <name>onPostClicked</name>
+        <qualifiedname>Profile::onPostClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="76" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a9cfd936295bcbe6603e079f1bc57b1a0" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="classFeedPost" kindref="compound">FeedPost</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const FeedPost&amp;)&gt; Profile::onPlayClicked</definition>
+        <argsstring></argsstring>
+        <name>onPlayClicked</name>
+        <qualifiedname>Profile::onPlayClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="77" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a028198d6244ef0e33da245bf85821104" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="classFeedPost" kindref="compound">FeedPost</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const FeedPost&amp;)&gt; Profile::onPauseClicked</definition>
+        <argsstring></argsstring>
+        <name>onPauseClicked</name>
+        <qualifiedname>Profile::onPauseClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="78" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="78" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a704314a98eaea7efde98e8791ed22402" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId)&gt; Profile::onFollowToggled</definition>
+        <argsstring></argsstring>
+        <name>onFollowToggled</name>
+        <qualifiedname>Profile::onFollowToggled</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="79" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a2604ac4e7b9af1cbf233a93083055abf" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId)&gt; Profile::onMessageClicked</definition>
+        <argsstring></argsstring>
+        <name>onMessageClicked</name>
+        <qualifiedname>Profile::onMessageClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="80" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classProfile_1a46f5c8eaa6f0f3e605ae959fd105e283" prot="private" static="no" mutable="no">
+        <type><ref refid="structUserProfile" kindref="compound">UserProfile</ref></type>
+        <definition>UserProfile Profile::profile</definition>
+        <argsstring></argsstring>
+        <name>profile</name>
+        <qualifiedname>Profile::profile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="102" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a27f0d799edadfe284b81dd7a8efef7d9" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Profile::currentUserId</definition>
+        <argsstring></argsstring>
+        <name>currentUserId</name>
+        <qualifiedname>Profile::currentUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="103" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ac35524a7a1b8b85774fe6c341428e9b3" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="classFeedPost" kindref="compound">FeedPost</ref> &gt;</type>
+        <definition>juce::Array&lt;FeedPost&gt; Profile::userPosts</definition>
+        <argsstring></argsstring>
+        <name>userPosts</name>
+        <qualifiedname>Profile::userPosts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="104" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1aea1e6d0b9a9733fe1dcec5c8888e89b1" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* Profile::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>Profile::networkClient</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="105" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ab39c5009cee6494f54ff372053277f8a" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Profile::isLoading</definition>
+        <argsstring></argsstring>
+        <name>isLoading</name>
+        <qualifiedname>Profile::isLoading</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="108" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ad2484495b5fee1e9b20e82825bdbab25" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Profile::hasError</definition>
+        <argsstring></argsstring>
+        <name>hasError</name>
+        <qualifiedname>Profile::hasError</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="109" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a59c45f290b2893f18e815baf7bc5100a" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Profile::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>Profile::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="110" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a420d7c4bc8c319578b6e6ad7c625753f" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Profile::scrollOffset</definition>
+        <argsstring></argsstring>
+        <name>scrollOffset</name>
+        <qualifiedname>Profile::scrollOffset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="113" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a1de1d5b894708399b051f32ade068245" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::ScrollBar &gt;</type>
+        <definition>std::unique_ptr&lt;juce::ScrollBar&gt; Profile::scrollBar</definition>
+        <argsstring></argsstring>
+        <name>scrollBar</name>
+        <qualifiedname>Profile::scrollBar</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="114" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1aba79c8d1bf39886ee1e1156a2ea7ceb2" prot="private" static="no" mutable="no">
+        <type>juce::Image</type>
+        <definition>juce::Image Profile::avatarImage</definition>
+        <argsstring></argsstring>
+        <name>avatarImage</name>
+        <qualifiedname>Profile::avatarImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="117" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a54977147f4ca5e77eb48c156cf4f0497" prot="private" static="no" mutable="no">
+        <type>juce::OwnedArray&lt; PostCardComponent &gt;</type>
+        <definition>juce::OwnedArray&lt;PostCardComponent&gt; Profile::postCards</definition>
+        <argsstring></argsstring>
+        <name>postCards</name>
+        <qualifiedname>Profile::postCards</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="120" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a524c70da0e04ee5102a5c2bfbd5009a4" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Profile::currentlyPlayingPostId</definition>
+        <argsstring></argsstring>
+        <name>currentlyPlayingPostId</name>
+        <qualifiedname>Profile::currentlyPlayingPostId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="121" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ab3fe645d0a1ee0c62d024d1139a99e2f" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float Profile::currentPlaybackProgress</definition>
+        <argsstring></argsstring>
+        <name>currentPlaybackProgress</name>
+        <qualifiedname>Profile::currentPlaybackProgress</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="122" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ac986dc5dc9f8153b58fec58e960ccb64" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; FollowersListComponent &gt;</type>
+        <definition>std::unique_ptr&lt;FollowersListComponent&gt; Profile::followersListPanel</definition>
+        <argsstring></argsstring>
+        <name>followersListPanel</name>
+        <qualifiedname>Profile::followersListPanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="195" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="195" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ad7a5b90063c996ef4cf45afb8cb7963f" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Profile::followersListVisible</definition>
+        <argsstring></argsstring>
+        <name>followersListVisible</name>
+        <qualifiedname>Profile::followersListVisible</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="196" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="196" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classProfile_1a6edb55b15ba320df6a72550137dde77f" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Profile::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>Profile::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 280</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="168" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="168" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1af8f81d5f0d91533a30950967af7044ce" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Profile::AVATAR_SIZE</definition>
+        <argsstring></argsstring>
+        <name>AVATAR_SIZE</name>
+        <qualifiedname>Profile::AVATAR_SIZE</qualifiedname>
+        <initializer>= 100</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="169" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="169" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ae2ef13957033a5c58c4486a9280d54ce" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Profile::STAT_WIDTH</definition>
+        <argsstring></argsstring>
+        <name>STAT_WIDTH</name>
+        <qualifiedname>Profile::STAT_WIDTH</qualifiedname>
+        <initializer>= 80</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="170" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="170" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a955003c54a0c12ff8cd0cf25cff7090d" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Profile::BUTTON_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>BUTTON_HEIGHT</name>
+        <qualifiedname>Profile::BUTTON_HEIGHT</qualifiedname>
+        <initializer>= 36</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="171" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="171" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1ab7ee1aaf1831a69a749c936bdc2774e4" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Profile::POST_CARD_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>POST_CARD_HEIGHT</name>
+        <qualifiedname>Profile::POST_CARD_HEIGHT</qualifiedname>
+        <initializer>= 120</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="172" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="172" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classProfile_1a5ee17e86804d9a61c878fc166b0e7a9d" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Profile::PADDING</definition>
+        <argsstring></argsstring>
+        <name>PADDING</name>
+        <qualifiedname>Profile::PADDING</qualifiedname>
+        <initializer>= 20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="173" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="173" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classProfile_1a4eea708cdbed0262d9e7ddbe3f1e3f89" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>Profile::Profile</definition>
+        <argsstring>()</argsstring>
+        <name>Profile</name>
+        <qualifiedname>Profile::Profile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="58" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="78" bodyend="107"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a2809cdf7b75cab47ba660000dd10e766" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>Profile::~Profile</definition>
+        <argsstring>() override</argsstring>
+        <name>~Profile</name>
+        <qualifiedname>Profile::~Profile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="59" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="109" bodyend="113"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a7b0d6637804c7c377599ac6e3b648645" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>Profile::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="63" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="116" bodyend="120"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1afcd2de908f4652136aa8bc626dead459" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::setCurrentUserId</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>setCurrentUserId</name>
+        <qualifiedname>Profile::setCurrentUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="64" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="122" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a5181815242354ccc0a1fd76368ba0271" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::loadProfile</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>loadProfile</name>
+        <qualifiedname>Profile::loadProfile</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="65" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="129" bodyend="147"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1aa124d3d604dd9970864e54a0f84cfdf6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::loadOwnProfile</definition>
+        <argsstring>()</argsstring>
+        <name>loadOwnProfile</name>
+        <qualifiedname>Profile::loadOwnProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="66" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="149" bodyend="159"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1ab0a4c1187829662a96823d0ecc81ad8e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::setProfile</definition>
+        <argsstring>(const UserProfile &amp;profile)</argsstring>
+        <name>setProfile</name>
+        <qualifiedname>Profile::setProfile</qualifiedname>
+        <param>
+          <type>const <ref refid="structUserProfile" kindref="compound">UserProfile</ref> &amp;</type>
+          <declname>profile</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="67" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="161" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a8efb7dc3593c00402694061ee079934e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="structUserProfile" kindref="compound">UserProfile</ref> &amp;</type>
+        <definition>const UserProfile &amp; Profile::getProfile</definition>
+        <argsstring>() const</argsstring>
+        <name>getProfile</name>
+        <qualifiedname>Profile::getProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="68" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="68" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a281b44961f2c482141e7fdbde75eacd9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>Profile::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="84" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="220" bodyend="246"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a00d672836064af75046e258999b46c09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>Profile::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="85" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="623" bodyend="648"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a91f4ebd6c26c458f688d3b99e620a6fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>Profile::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="86" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="650" bodyend="743"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1ac236201ab441b76326da3caa984a3023" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::scrollBarMoved</definition>
+        <argsstring>(juce::ScrollBar *scrollBarThatHasMoved, double newRangeStart) override</argsstring>
+        <name>scrollBarMoved</name>
+        <qualifiedname>Profile::scrollBarMoved</qualifiedname>
+        <param>
+          <type>juce::ScrollBar *</type>
+          <declname>scrollBarThatHasMoved</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>newRangeStart</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="87" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="745" bodyend="752"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1aad1d623e7f1b457ddd5c384e43d42646" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::setCurrentlyPlayingPost</definition>
+        <argsstring>(const juce::String &amp;postId)</argsstring>
+        <name>setCurrentlyPlayingPost</name>
+        <qualifiedname>Profile::setCurrentlyPlayingPost</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>postId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="91" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="1052" bodyend="1057"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a7186fba65da2d3c73a2edcd4d72f40a5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::setPlaybackProgress</definition>
+        <argsstring>(float progress)</argsstring>
+        <name>setPlaybackProgress</name>
+        <qualifiedname>Profile::setPlaybackProgress</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>progress</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="92" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="1059" bodyend="1071"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a4722692ba6c6912fe07c2dd8f2338020" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::clearPlayingState</definition>
+        <argsstring>()</argsstring>
+        <name>clearPlayingState</name>
+        <qualifiedname>Profile::clearPlayingState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="93" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="1073" bodyend="1084"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1afeaa95fbbb35da471912e53e41e22112" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::refresh</definition>
+        <argsstring>()</argsstring>
+        <name>refresh</name>
+        <qualifiedname>Profile::refresh</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="97" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="206" bodyend="217"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classProfile_1aefb1a715c8d4e1798b34adbc0ffd431a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawBackground</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawBackground</name>
+        <qualifiedname>Profile::drawBackground</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="126" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="248" bodyend="251"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a30eb38ffbb71fcfab8911043f982bd57" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>Profile::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="127" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="253" bodyend="317"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a13bb5b3d36eadd2dd9977b993787845d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawAvatar</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawAvatar</name>
+        <qualifiedname>Profile::drawAvatar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="128" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="319" bodyend="333"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a876f9a354aed9c25a302eb5ff4b65fea" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawUserInfo</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawUserInfo</name>
+        <qualifiedname>Profile::drawUserInfo</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="129" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="335" bodyend="379"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a8c321e46a15102ff922b21707f92690f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawStats</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawStats</name>
+        <qualifiedname>Profile::drawStats</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="130" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="381" bodyend="411"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a9d6ddbde8d746d3a1f70265ae148d879" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawActionButtons</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawActionButtons</name>
+        <qualifiedname>Profile::drawActionButtons</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="131" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="413" bodyend="456"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1aa2ac17ed48221bbd6fba76cb40a1e615" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawBio</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawBio</name>
+        <qualifiedname>Profile::drawBio</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="132" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="458" bodyend="473"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a60ece6937698f596d95964a7308759b3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawSocialLinks</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawSocialLinks</name>
+        <qualifiedname>Profile::drawSocialLinks</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="133" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="475" bodyend="521"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1aacd23b038268daa990e441ff66836649" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawGenreTags</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawGenreTags</name>
+        <qualifiedname>Profile::drawGenreTags</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="134" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="523" bodyend="559"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1af0ffc3560675abb01ed22692d2355b13" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawMemberSince</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawMemberSince</name>
+        <qualifiedname>Profile::drawMemberSince</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="135" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="561" bodyend="570"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a8c8317a7e2263c64867c9adbcb2a5d34" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawPosts</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawPosts</name>
+        <qualifiedname>Profile::drawPosts</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="136" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a31e5ecb09035c5300683c738507db763" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawLoadingState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawLoadingState</name>
+        <qualifiedname>Profile::drawLoadingState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="137" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="572" bodyend="577"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a7ce5f3f8c73c4fc5810e55120272ae3a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawErrorState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawErrorState</name>
+        <qualifiedname>Profile::drawErrorState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="138" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="579" bodyend="600"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a5b04ad5569cdbb4e03392b6f5cbeb996" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::drawEmptyState</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawEmptyState</name>
+        <qualifiedname>Profile::drawEmptyState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="139" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="602" bodyend="620"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a7a80f426a29e5d8442803a90cda27c3a" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getBackButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getBackButtonBounds</name>
+        <qualifiedname>Profile::getBackButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="143" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="755" bodyend="758"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1ae42e072ba5e54271f94a869583e5a826" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getAvatarBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getAvatarBounds</name>
+        <qualifiedname>Profile::getAvatarBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="144" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="760" bodyend="763"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a7df3e14e14cba271d3b68618ef23caf9" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getFollowersBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getFollowersBounds</name>
+        <qualifiedname>Profile::getFollowersBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="145" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="765" bodyend="770"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1abaae094d9941bcebd0ad7bd8ae6f04f2" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getFollowingBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getFollowingBounds</name>
+        <qualifiedname>Profile::getFollowingBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="146" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="772" bodyend="777"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a6f112293bf81ea54438c068d8405ab8a" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getFollowButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getFollowButtonBounds</name>
+        <qualifiedname>Profile::getFollowButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="147" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="779" bodyend="784"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a915cb53bb6eeb04e6f7b8347a7d5b872" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getMessageButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getMessageButtonBounds</name>
+        <qualifiedname>Profile::getMessageButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="148" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="786" bodyend="791"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a21b7a1037360e5691aa36a4341638e65" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getEditButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getEditButtonBounds</name>
+        <qualifiedname>Profile::getEditButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="149" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="793" bodyend="796"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a9c0dccd6971822aec9450c07b9b97003" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getShareButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getShareButtonBounds</name>
+        <qualifiedname>Profile::getShareButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="150" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="798" bodyend="801"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1ae75a2f49b9ee7559a8c81a35671df966" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getSocialLinkBounds</definition>
+        <argsstring>(int index) const</argsstring>
+        <name>getSocialLinkBounds</name>
+        <qualifiedname>Profile::getSocialLinkBounds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="151" column="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a6245ce73509b1d878b0ec7192d6ad76a" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; Profile::getPostsAreaBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getPostsAreaBounds</name>
+        <qualifiedname>Profile::getPostsAreaBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="152" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="803" bodyend="806"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a407024831290161fd492bb5606d92579" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::fetchProfile</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>fetchProfile</name>
+        <qualifiedname>Profile::fetchProfile</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="156" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="809" bodyend="862"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a60fb5e53b79da3a0cbd619179f7e0684" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::fetchUserPosts</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>fetchUserPosts</name>
+        <qualifiedname>Profile::fetchUserPosts</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="157" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="864" bodyend="913"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a1c13302a1ffd3c3a53504cbd52488dee" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::handleFollowToggle</definition>
+        <argsstring>()</argsstring>
+        <name>handleFollowToggle</name>
+        <qualifiedname>Profile::handleFollowToggle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="158" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="915" bodyend="961"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a280f4d8cb2cf371bdb9c3e910c1f0091" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::shareProfile</definition>
+        <argsstring>()</argsstring>
+        <name>shareProfile</name>
+        <qualifiedname>Profile::shareProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="159" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="963" bodyend="969"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1ab286e6726704e1a90eb1dcf5d33c9cc9" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::updatePostCards</definition>
+        <argsstring>()</argsstring>
+        <name>updatePostCards</name>
+        <qualifiedname>Profile::updatePostCards</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="163" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="972" bodyend="1044"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a54025b57a44e2a62fecd59f313b78de3" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int Profile::calculateContentHeight</definition>
+        <argsstring>() const</argsstring>
+        <name>calculateContentHeight</name>
+        <qualifiedname>Profile::calculateContentHeight</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="164" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="1046" bodyend="1049"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a8cfbebd12240d5cb9a60991754209907" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::showFollowersList</definition>
+        <argsstring>(const juce::String &amp;userId, FollowersListComponent::ListType type)</argsstring>
+        <name>showFollowersList</name>
+        <qualifiedname>Profile::showFollowersList</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <param>
+          <type>FollowersListComponent::ListType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="198" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="1087" bodyend="1114"/>
+      </memberdef>
+      <memberdef kind="function" id="classProfile_1a29df4c1ac01c73c1466dfc68e4df2dda" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Profile::hideFollowersList</definition>
+        <argsstring>()</argsstring>
+        <name>hideFollowersList</name>
+        <qualifiedname>Profile::hideFollowersList</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="199" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.cpp" bodystart="1116" bodyend="1124"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classProfile" kindref="compound">Profile</ref> displays a user&apos;s profile with their posts. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para><ref refid="classProfile" kindref="compound">Profile</ref> header (avatar, display name, username, bio)</para>
+</listitem><listitem><para>Follower/following counts (tappable)</para>
+</listitem><listitem><para>User&apos;s posts in a scrollable list</para>
+</listitem><listitem><para>Follow/unfollow button (for other users)</para>
+</listitem><listitem><para>Edit profile button (for own profile)</para>
+</listitem><listitem><para>Social links display</para>
+</listitem><listitem><para>Genre tags</para>
+</listitem><listitem><para>Member since date</para>
+</listitem><listitem><para><ref refid="classProfile" kindref="compound">Profile</ref> sharing </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>Profile</label>
+        <link refid="classProfile"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>Profile</label>
+        <link refid="classProfile"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" line="54" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/Profile.h" bodystart="56" bodyend="202"/>
+    <listofallmembers>
+      <member refid="classProfile_1af8f81d5f0d91533a30950967af7044ce" prot="private" virt="non-virtual"><scope>Profile</scope><name>AVATAR_SIZE</name></member>
+      <member refid="classProfile_1aba79c8d1bf39886ee1e1156a2ea7ceb2" prot="private" virt="non-virtual"><scope>Profile</scope><name>avatarImage</name></member>
+      <member refid="classProfile_1a955003c54a0c12ff8cd0cf25cff7090d" prot="private" virt="non-virtual"><scope>Profile</scope><name>BUTTON_HEIGHT</name></member>
+      <member refid="classProfile_1a54025b57a44e2a62fecd59f313b78de3" prot="private" virt="non-virtual"><scope>Profile</scope><name>calculateContentHeight</name></member>
+      <member refid="classProfile_1a4722692ba6c6912fe07c2dd8f2338020" prot="public" virt="non-virtual"><scope>Profile</scope><name>clearPlayingState</name></member>
+      <member refid="classProfile_1a524c70da0e04ee5102a5c2bfbd5009a4" prot="private" virt="non-virtual"><scope>Profile</scope><name>currentlyPlayingPostId</name></member>
+      <member refid="classProfile_1ab3fe645d0a1ee0c62d024d1139a99e2f" prot="private" virt="non-virtual"><scope>Profile</scope><name>currentPlaybackProgress</name></member>
+      <member refid="classProfile_1a27f0d799edadfe284b81dd7a8efef7d9" prot="private" virt="non-virtual"><scope>Profile</scope><name>currentUserId</name></member>
+      <member refid="classProfile_1a9d6ddbde8d746d3a1f70265ae148d879" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawActionButtons</name></member>
+      <member refid="classProfile_1a13bb5b3d36eadd2dd9977b993787845d" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawAvatar</name></member>
+      <member refid="classProfile_1aefb1a715c8d4e1798b34adbc0ffd431a" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawBackground</name></member>
+      <member refid="classProfile_1aa2ac17ed48221bbd6fba76cb40a1e615" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawBio</name></member>
+      <member refid="classProfile_1a5b04ad5569cdbb4e03392b6f5cbeb996" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawEmptyState</name></member>
+      <member refid="classProfile_1a7ce5f3f8c73c4fc5810e55120272ae3a" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawErrorState</name></member>
+      <member refid="classProfile_1aacd23b038268daa990e441ff66836649" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawGenreTags</name></member>
+      <member refid="classProfile_1a30eb38ffbb71fcfab8911043f982bd57" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawHeader</name></member>
+      <member refid="classProfile_1a31e5ecb09035c5300683c738507db763" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawLoadingState</name></member>
+      <member refid="classProfile_1af0ffc3560675abb01ed22692d2355b13" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawMemberSince</name></member>
+      <member refid="classProfile_1a8c8317a7e2263c64867c9adbcb2a5d34" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawPosts</name></member>
+      <member refid="classProfile_1a60ece6937698f596d95964a7308759b3" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawSocialLinks</name></member>
+      <member refid="classProfile_1a8c321e46a15102ff922b21707f92690f" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawStats</name></member>
+      <member refid="classProfile_1a876f9a354aed9c25a302eb5ff4b65fea" prot="private" virt="non-virtual"><scope>Profile</scope><name>drawUserInfo</name></member>
+      <member refid="classProfile_1a59c45f290b2893f18e815baf7bc5100a" prot="private" virt="non-virtual"><scope>Profile</scope><name>errorMessage</name></member>
+      <member refid="classProfile_1a407024831290161fd492bb5606d92579" prot="private" virt="non-virtual"><scope>Profile</scope><name>fetchProfile</name></member>
+      <member refid="classProfile_1a60fb5e53b79da3a0cbd619179f7e0684" prot="private" virt="non-virtual"><scope>Profile</scope><name>fetchUserPosts</name></member>
+      <member refid="classProfile_1ac986dc5dc9f8153b58fec58e960ccb64" prot="private" virt="non-virtual"><scope>Profile</scope><name>followersListPanel</name></member>
+      <member refid="classProfile_1ad7a5b90063c996ef4cf45afb8cb7963f" prot="private" virt="non-virtual"><scope>Profile</scope><name>followersListVisible</name></member>
+      <member refid="classProfile_1ae42e072ba5e54271f94a869583e5a826" prot="private" virt="non-virtual"><scope>Profile</scope><name>getAvatarBounds</name></member>
+      <member refid="classProfile_1a7a80f426a29e5d8442803a90cda27c3a" prot="private" virt="non-virtual"><scope>Profile</scope><name>getBackButtonBounds</name></member>
+      <member refid="classProfile_1a21b7a1037360e5691aa36a4341638e65" prot="private" virt="non-virtual"><scope>Profile</scope><name>getEditButtonBounds</name></member>
+      <member refid="classProfile_1a6f112293bf81ea54438c068d8405ab8a" prot="private" virt="non-virtual"><scope>Profile</scope><name>getFollowButtonBounds</name></member>
+      <member refid="classProfile_1a7df3e14e14cba271d3b68618ef23caf9" prot="private" virt="non-virtual"><scope>Profile</scope><name>getFollowersBounds</name></member>
+      <member refid="classProfile_1abaae094d9941bcebd0ad7bd8ae6f04f2" prot="private" virt="non-virtual"><scope>Profile</scope><name>getFollowingBounds</name></member>
+      <member refid="classProfile_1a915cb53bb6eeb04e6f7b8347a7d5b872" prot="private" virt="non-virtual"><scope>Profile</scope><name>getMessageButtonBounds</name></member>
+      <member refid="classProfile_1a6245ce73509b1d878b0ec7192d6ad76a" prot="private" virt="non-virtual"><scope>Profile</scope><name>getPostsAreaBounds</name></member>
+      <member refid="classProfile_1a8efb7dc3593c00402694061ee079934e" prot="public" virt="non-virtual"><scope>Profile</scope><name>getProfile</name></member>
+      <member refid="classProfile_1a9c0dccd6971822aec9450c07b9b97003" prot="private" virt="non-virtual"><scope>Profile</scope><name>getShareButtonBounds</name></member>
+      <member refid="classProfile_1ae75a2f49b9ee7559a8c81a35671df966" prot="private" virt="non-virtual"><scope>Profile</scope><name>getSocialLinkBounds</name></member>
+      <member refid="classProfile_1a1c13302a1ffd3c3a53504cbd52488dee" prot="private" virt="non-virtual"><scope>Profile</scope><name>handleFollowToggle</name></member>
+      <member refid="classProfile_1ad2484495b5fee1e9b20e82825bdbab25" prot="private" virt="non-virtual"><scope>Profile</scope><name>hasError</name></member>
+      <member refid="classProfile_1a6edb55b15ba320df6a72550137dde77f" prot="private" virt="non-virtual"><scope>Profile</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classProfile_1a29df4c1ac01c73c1466dfc68e4df2dda" prot="private" virt="non-virtual"><scope>Profile</scope><name>hideFollowersList</name></member>
+      <member refid="classProfile_1ab39c5009cee6494f54ff372053277f8a" prot="private" virt="non-virtual"><scope>Profile</scope><name>isLoading</name></member>
+      <member refid="classProfile_1aa124d3d604dd9970864e54a0f84cfdf6" prot="public" virt="non-virtual"><scope>Profile</scope><name>loadOwnProfile</name></member>
+      <member refid="classProfile_1a5181815242354ccc0a1fd76368ba0271" prot="public" virt="non-virtual"><scope>Profile</scope><name>loadProfile</name></member>
+      <member refid="classProfile_1a91f4ebd6c26c458f688d3b99e620a6fe" prot="public" virt="non-virtual"><scope>Profile</scope><name>mouseUp</name></member>
+      <member refid="classProfile_1aea1e6d0b9a9733fe1dcec5c8888e89b1" prot="private" virt="non-virtual"><scope>Profile</scope><name>networkClient</name></member>
+      <member refid="classProfile_1a2094ea85ac2653da76780cbfeb660c4a" prot="public" virt="non-virtual"><scope>Profile</scope><name>onBackPressed</name></member>
+      <member refid="classProfile_1a19c91d86a706977177aa850c17587d9e" prot="public" virt="non-virtual"><scope>Profile</scope><name>onEditProfile</name></member>
+      <member refid="classProfile_1a9ffc5af34220607620e9e78b47bcfaad" prot="public" virt="non-virtual"><scope>Profile</scope><name>onFollowersClicked</name></member>
+      <member refid="classProfile_1ac687c4b421fb7504815f5eea8e3a2472" prot="public" virt="non-virtual"><scope>Profile</scope><name>onFollowingClicked</name></member>
+      <member refid="classProfile_1a704314a98eaea7efde98e8791ed22402" prot="public" virt="non-virtual"><scope>Profile</scope><name>onFollowToggled</name></member>
+      <member refid="classProfile_1a2604ac4e7b9af1cbf233a93083055abf" prot="public" virt="non-virtual"><scope>Profile</scope><name>onMessageClicked</name></member>
+      <member refid="classProfile_1a028198d6244ef0e33da245bf85821104" prot="public" virt="non-virtual"><scope>Profile</scope><name>onPauseClicked</name></member>
+      <member refid="classProfile_1a9cfd936295bcbe6603e079f1bc57b1a0" prot="public" virt="non-virtual"><scope>Profile</scope><name>onPlayClicked</name></member>
+      <member refid="classProfile_1ab03921dbd9cf7055be0e21d2f8d5965d" prot="public" virt="non-virtual"><scope>Profile</scope><name>onPostClicked</name></member>
+      <member refid="classProfile_1a5ee17e86804d9a61c878fc166b0e7a9d" prot="private" virt="non-virtual"><scope>Profile</scope><name>PADDING</name></member>
+      <member refid="classProfile_1a281b44961f2c482141e7fdbde75eacd9" prot="public" virt="non-virtual"><scope>Profile</scope><name>paint</name></member>
+      <member refid="classProfile_1ab7ee1aaf1831a69a749c936bdc2774e4" prot="private" virt="non-virtual"><scope>Profile</scope><name>POST_CARD_HEIGHT</name></member>
+      <member refid="classProfile_1a54977147f4ca5e77eb48c156cf4f0497" prot="private" virt="non-virtual"><scope>Profile</scope><name>postCards</name></member>
+      <member refid="classProfile_1a4eea708cdbed0262d9e7ddbe3f1e3f89" prot="public" virt="non-virtual"><scope>Profile</scope><name>Profile</name></member>
+      <member refid="classProfile_1a46f5c8eaa6f0f3e605ae959fd105e283" prot="private" virt="non-virtual"><scope>Profile</scope><name>profile</name></member>
+      <member refid="classProfile_1afeaa95fbbb35da471912e53e41e22112" prot="public" virt="non-virtual"><scope>Profile</scope><name>refresh</name></member>
+      <member refid="classProfile_1a00d672836064af75046e258999b46c09" prot="public" virt="non-virtual"><scope>Profile</scope><name>resized</name></member>
+      <member refid="classProfile_1a1de1d5b894708399b051f32ade068245" prot="private" virt="non-virtual"><scope>Profile</scope><name>scrollBar</name></member>
+      <member refid="classProfile_1ac236201ab441b76326da3caa984a3023" prot="public" virt="non-virtual"><scope>Profile</scope><name>scrollBarMoved</name></member>
+      <member refid="classProfile_1a420d7c4bc8c319578b6e6ad7c625753f" prot="private" virt="non-virtual"><scope>Profile</scope><name>scrollOffset</name></member>
+      <member refid="classProfile_1aad1d623e7f1b457ddd5c384e43d42646" prot="public" virt="non-virtual"><scope>Profile</scope><name>setCurrentlyPlayingPost</name></member>
+      <member refid="classProfile_1afcd2de908f4652136aa8bc626dead459" prot="public" virt="non-virtual"><scope>Profile</scope><name>setCurrentUserId</name></member>
+      <member refid="classProfile_1a7b0d6637804c7c377599ac6e3b648645" prot="public" virt="non-virtual"><scope>Profile</scope><name>setNetworkClient</name></member>
+      <member refid="classProfile_1a7186fba65da2d3c73a2edcd4d72f40a5" prot="public" virt="non-virtual"><scope>Profile</scope><name>setPlaybackProgress</name></member>
+      <member refid="classProfile_1ab0a4c1187829662a96823d0ecc81ad8e" prot="public" virt="non-virtual"><scope>Profile</scope><name>setProfile</name></member>
+      <member refid="classProfile_1a280f4d8cb2cf371bdb9c3e910c1f0091" prot="private" virt="non-virtual"><scope>Profile</scope><name>shareProfile</name></member>
+      <member refid="classProfile_1a8cfbebd12240d5cb9a60991754209907" prot="private" virt="non-virtual"><scope>Profile</scope><name>showFollowersList</name></member>
+      <member refid="classProfile_1ae2ef13957033a5c58c4486a9280d54ce" prot="private" virt="non-virtual"><scope>Profile</scope><name>STAT_WIDTH</name></member>
+      <member refid="classProfile_1ab286e6726704e1a90eb1dcf5d33c9cc9" prot="private" virt="non-virtual"><scope>Profile</scope><name>updatePostCards</name></member>
+      <member refid="classProfile_1ac35524a7a1b8b85774fe6c341428e9b3" prot="private" virt="non-virtual"><scope>Profile</scope><name>userPosts</name></member>
+      <member refid="classProfile_1a2809cdf7b75cab47ba660000dd10e766" prot="public" virt="non-virtual"><scope>Profile</scope><name>~Profile</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

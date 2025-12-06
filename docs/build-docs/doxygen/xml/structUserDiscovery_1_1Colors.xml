@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structUserDiscovery_1_1Colors" kind="struct" language="C++" prot="private">
+    <compoundname>UserDiscovery::Colors</compoundname>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1a97a79f73a55364c4761c7bb180887c32" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::background</definition>
+        <argsstring></argsstring>
+        <name>background</name>
+        <qualifiedname>UserDiscovery::Colors::background</qualifiedname>
+        <initializer>{ 0xff1a1a1e }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="175" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="175" bodyend="175"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1a5a8888cd0f88e7491251894f6c87bed3" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::headerBg</definition>
+        <argsstring></argsstring>
+        <name>headerBg</name>
+        <qualifiedname>UserDiscovery::Colors::headerBg</qualifiedname>
+        <initializer>{ 0xff252529 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="176" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="176" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1a938d410eb8ae7f98c51fb93cf922743d" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::searchBg</definition>
+        <argsstring></argsstring>
+        <name>searchBg</name>
+        <qualifiedname>UserDiscovery::Colors::searchBg</qualifiedname>
+        <initializer>{ 0xff2d2d32 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="177" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="177" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1aa63bc98b0277983137d95c4578a0f505" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::cardBg</definition>
+        <argsstring></argsstring>
+        <name>cardBg</name>
+        <qualifiedname>UserDiscovery::Colors::cardBg</qualifiedname>
+        <initializer>{ 0xff2d2d32 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="178" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="178" bodyend="178"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1ae935151d363770f11b05727c1087e1a7" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::textPrimary</definition>
+        <argsstring></argsstring>
+        <name>textPrimary</name>
+        <qualifiedname>UserDiscovery::Colors::textPrimary</qualifiedname>
+        <initializer>{ 0xffffffff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="179" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="179" bodyend="179"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1a93fe5d4643ce180e1de75ae0de3fab3c" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::textSecondary</definition>
+        <argsstring></argsstring>
+        <name>textSecondary</name>
+        <qualifiedname>UserDiscovery::Colors::textSecondary</qualifiedname>
+        <initializer>{ 0xffa0a0a0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="180" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="180" bodyend="180"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1adbc85156c20d98ac289d1aba470b5ea7" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::textPlaceholder</definition>
+        <argsstring></argsstring>
+        <name>textPlaceholder</name>
+        <qualifiedname>UserDiscovery::Colors::textPlaceholder</qualifiedname>
+        <initializer>{ 0xff6a6a6a }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="181" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="181" bodyend="181"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1aac1fe8e03ff31731e4464e5ddd900a2d" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::accent</definition>
+        <argsstring></argsstring>
+        <name>accent</name>
+        <qualifiedname>UserDiscovery::Colors::accent</qualifiedname>
+        <initializer>{ 0xff00d4ff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="182" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="182" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1a1475c1fd5fe389d373410ce1cd529911" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::chipBg</definition>
+        <argsstring></argsstring>
+        <name>chipBg</name>
+        <qualifiedname>UserDiscovery::Colors::chipBg</qualifiedname>
+        <initializer>{ 0xff3a3a3e }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="183" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="183" bodyend="183"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1a6c75a076a41081ea9e571f9b552b2ad2" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::chipSelected</definition>
+        <argsstring></argsstring>
+        <name>chipSelected</name>
+        <qualifiedname>UserDiscovery::Colors::chipSelected</qualifiedname>
+        <initializer>{ 0xff00d4ff }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="184" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="184" bodyend="184"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUserDiscovery_1_1Colors_1aef8d4772d5c9c00b32c4d86e94e90690" prot="public" static="yes" mutable="no">
+        <type>juce::Colour</type>
+        <definition>juce::Colour UserDiscovery::Colors::sectionHeader</definition>
+        <argsstring></argsstring>
+        <name>sectionHeader</name>
+        <qualifiedname>UserDiscovery::Colors::sectionHeader</qualifiedname>
+        <initializer>{ 0xff8a8a8a }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="185" column="36" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="185" bodyend="185"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" line="173" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscovery.h" bodystart="174" bodyend="186"/>
+    <listofallmembers>
+      <member refid="structUserDiscovery_1_1Colors_1aac1fe8e03ff31731e4464e5ddd900a2d" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>accent</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1a97a79f73a55364c4761c7bb180887c32" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>background</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1aa63bc98b0277983137d95c4578a0f505" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>cardBg</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1a1475c1fd5fe389d373410ce1cd529911" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>chipBg</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1a6c75a076a41081ea9e571f9b552b2ad2" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>chipSelected</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1a5a8888cd0f88e7491251894f6c87bed3" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>headerBg</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1a938d410eb8ae7f98c51fb93cf922743d" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>searchBg</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1aef8d4772d5c9c00b32c4d86e94e90690" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>sectionHeader</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1adbc85156c20d98ac289d1aba470b5ea7" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>textPlaceholder</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1ae935151d363770f11b05727c1087e1a7" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>textPrimary</name></member>
+      <member refid="structUserDiscovery_1_1Colors_1a93fe5d4643ce180e1de75ae0de3fab3c" prot="public" virt="non-virtual"><scope>UserDiscovery::Colors</scope><name>textSecondary</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

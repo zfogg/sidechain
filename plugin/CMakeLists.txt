@@ -395,6 +395,10 @@ set(SIDECHAIN_CORE_SOURCES
 set(SIDECHAIN_STORES_SOURCES
     source/stores/UserDataStore.cpp
     source/stores/UserDataStore.h
+    source/stores/FeedDataManager.cpp
+    source/stores/FeedDataManager.h
+    source/stores/ImageCache.cpp
+    source/stores/ImageCache.h
 )
 
 # Data structures and DTOs
@@ -429,92 +433,90 @@ set(SIDECHAIN_NETWORK_SOURCES
     source/network/WebSocketClient.h
     source/network/StreamChatClient.cpp
     source/network/StreamChatClient.h
-    source/network/FeedDataManager.cpp
-    source/network/FeedDataManager.h
 )
 
 # UI - Auth
 set(SIDECHAIN_UI_AUTH_SOURCES
-    source/ui/auth/AuthComponent.cpp
-    source/ui/auth/AuthComponent.h
+    source/ui/auth/Auth.cpp
+    source/ui/auth/Auth.h
 )
 
 # UI - Messages
 set(SIDECHAIN_UI_MESSAGES_SOURCES
-    source/ui/messages/MessagesListComponent.cpp
-    source/ui/messages/MessagesListComponent.h
-    source/ui/messages/MessageThreadComponent.cpp
-    source/ui/messages/MessageThreadComponent.h
+    source/ui/messages/MessagesList.cpp
+    source/ui/messages/MessagesList.h
+    source/ui/messages/MessageThread.cpp
+    source/ui/messages/MessageThread.h
     source/ui/messages/AudioSnippetRecorder.cpp
     source/ui/messages/AudioSnippetRecorder.h
 )
 
 # UI - Profile
 set(SIDECHAIN_UI_PROFILE_SOURCES
-    source/ui/profile/ProfileSetupComponent.cpp
-    source/ui/profile/ProfileSetupComponent.h
-    source/ui/profile/ProfileComponent.cpp
-    source/ui/profile/ProfileComponent.h
-    source/ui/profile/EditProfileComponent.cpp
-    source/ui/profile/EditProfileComponent.h
+    source/ui/profile/ProfileSetup.cpp
+    source/ui/profile/ProfileSetup.h
+    source/ui/profile/Profile.cpp
+    source/ui/profile/Profile.h
+    source/ui/profile/EditProfile.cpp
+    source/ui/profile/EditProfile.h
 )
 
 # UI - Feed
 set(SIDECHAIN_UI_FEED_SOURCES
-    source/ui/feed/PostsFeedComponent.cpp
-    source/ui/feed/PostsFeedComponent.h
-    source/ui/feed/PostCardComponent.cpp
-    source/ui/feed/PostCardComponent.h
-    source/ui/feed/CommentComponent.cpp
-    source/ui/feed/CommentComponent.h
+    source/ui/feed/PostsFeed.cpp
+    source/ui/feed/PostsFeed.h
+    source/ui/feed/PostCard.cpp
+    source/ui/feed/PostCard.h
+    source/ui/feed/Comment.cpp
+    source/ui/feed/Comment.h
     source/ui/feed/EmojiReactionsPanel.cpp
     source/ui/feed/EmojiReactionsPanel.h
 )
 
 # UI - Recording
 set(SIDECHAIN_UI_RECORDING_SOURCES
-    source/ui/recording/RecordingComponent.cpp
-    source/ui/recording/RecordingComponent.h
-    source/ui/recording/UploadComponent.cpp
-    source/ui/recording/UploadComponent.h
+    source/ui/recording/Recording.cpp
+    source/ui/recording/Recording.h
+    source/ui/recording/Upload.cpp
+    source/ui/recording/Upload.h
 )
 
 # UI - Notifications
 set(SIDECHAIN_UI_NOTIFICATIONS_SOURCES
-    source/ui/notifications/NotificationBellComponent.cpp
-    source/ui/notifications/NotificationBellComponent.h
-    source/ui/notifications/NotificationListComponent.cpp
-    source/ui/notifications/NotificationListComponent.h
+    source/ui/notifications/NotificationBell.cpp
+    source/ui/notifications/NotificationBell.h
+    source/ui/notifications/NotificationList.cpp
+    source/ui/notifications/NotificationList.h
 )
 
 # UI - Social
 set(SIDECHAIN_UI_SOCIAL_SOURCES
-    source/ui/social/UserCardComponent.cpp
-    source/ui/social/UserCardComponent.h
-    source/ui/social/UserDiscoveryComponent.cpp
-    source/ui/social/UserDiscoveryComponent.h
-    source/ui/search/SearchComponent.cpp
-    source/ui/search/SearchComponent.h
-    source/ui/social/FollowersListComponent.cpp
-    source/ui/social/FollowersListComponent.h
+    source/ui/social/UserCard.cpp
+    source/ui/social/UserCard.h
+    source/ui/social/UserDiscovery.cpp
+    source/ui/social/UserDiscovery.h
+    source/ui/search/Search.cpp
+    source/ui/search/Search.h
+    source/ui/social/FollowersList.cpp
+    source/ui/social/FollowersList.h
 )
 
 # UI - Stories (Phase 7.5)
 set(SIDECHAIN_UI_STORIES_SOURCES
-    source/ui/stories/StoryRecordingComponent.cpp
-    source/ui/stories/StoryRecordingComponent.h
-    source/ui/stories/StoriesFeedComponent.cpp
-    source/ui/stories/StoriesFeedComponent.h
-    source/ui/stories/StoryViewerComponent.cpp
-    source/ui/stories/StoryViewerComponent.h
-    source/ui/stories/PianoRollComponent.cpp
-    source/ui/stories/PianoRollComponent.h
+    source/ui/stories/StoryRecording.cpp
+    source/ui/stories/StoryRecording.h
+    source/ui/stories/StoriesFeed.cpp
+    source/ui/stories/StoriesFeed.h
+    source/ui/stories/StoryViewer.cpp
+    source/ui/stories/StoryViewer.h
+    source/ui/stories/PianoRoll.cpp
+    source/ui/stories/PianoRoll.h
 )
 
 # UI - Common
 set(SIDECHAIN_UI_COMMON_SOURCES
-    source/ui/common/HeaderComponent.cpp
-    source/ui/common/HeaderComponent.h
+    source/ui/common/Header.cpp
+    source/ui/common/Header.h
     source/ui/common/ConnectionIndicator.h
 )
 
@@ -526,8 +528,6 @@ set(SIDECHAIN_UTIL_SOURCES
     source/util/HttpErrorHandler.h
     source/util/Log.cpp
     source/util/Log.h
-    source/util/ImageCache.cpp
-    source/util/ImageCache.h
     source/util/Image.cpp
     source/util/Image.h
     source/util/Json.cpp

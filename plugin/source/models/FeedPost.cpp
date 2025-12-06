@@ -3,6 +3,12 @@
 #include "../util/Log.h"
 
 //==============================================================================
+/** Create a FeedPost from JSON data
+ * Parses getstream.io activity JSON into a FeedPost object.
+ * Missing fields will be left as default values.
+ * @param json JSON var containing post data from getstream.io
+ * @return FeedPost instance (may have empty fields if JSON is incomplete)
+ */
 FeedPost FeedPost::fromJson(const juce::var& json)
 {
     FeedPost post;
@@ -136,6 +142,10 @@ FeedPost FeedPost::fromJson(const juce::var& json)
 }
 
 //==============================================================================
+/** Convert FeedPost to JSON for caching
+ * Serializes the post data to JSON format compatible with fromJson().
+ * @return JSON var representation of this post
+ */
 juce::var FeedPost::toJson() const
 {
     auto obj = new juce::DynamicObject();
@@ -215,6 +225,11 @@ juce::var FeedPost::toJson() const
 }
 
 //==============================================================================
+/** Extract user ID from actor string
+ * Parses getstream.io actor format (e.g., "user:12345" or "SU:user:12345")
+ * @param actorString Actor string in format "user:ID" or "SU:user:ID"
+ * @return Extracted user ID, or empty string if format is invalid
+ */
 juce::String FeedPost::extractUserId(const juce::String& actorString)
 {
     // Actor format: "user:12345" or "SU:user:12345" (Stream User prefix)
@@ -239,6 +254,11 @@ juce::String FeedPost::extractUserId(const juce::String& actorString)
 }
 
 //==============================================================================
+/** Format timestamp as "time ago" string
+ * @deprecated Use TimeUtils::formatTimeAgo() instead
+ * @param time Timestamp to format
+ * @return Human-readable time string (e.g., "2h ago")
+ */
 juce::String FeedPost::formatTimeAgo(const juce::Time& time)
 {
     // Delegate to TimeUtils
@@ -246,6 +266,11 @@ juce::String FeedPost::formatTimeAgo(const juce::Time& time)
 }
 
 //==============================================================================
+/** Type-safe parsing with validation
+ * Parses JSON and validates required fields. Returns error if validation fails.
+ * @param json JSON var containing post data
+ * @return Outcome with FeedPost if valid, or error message if invalid
+ */
 Outcome<FeedPost> FeedPost::tryFromJson(const juce::var& json)
 {
     // Validate input
@@ -272,6 +297,10 @@ Outcome<FeedPost> FeedPost::tryFromJson(const juce::var& json)
 }
 
 //==============================================================================
+/** Check if post is valid (has required fields)
+ * A valid post must have at least an ID and audio URL to be playable.
+ * @return true if post has all required fields, false otherwise
+ */
 bool FeedPost::isValid() const
 {
     // A post must have at least an ID and an audio URL to be playable

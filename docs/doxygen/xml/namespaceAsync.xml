@@ -1,0 +1,377 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceAsync" kind="namespace" language="C++">
+    <compoundname>Async</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceAsync_1a7450afdc3e5d5e95d1611d6a79bb683a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::runVoid</definition>
+        <argsstring>(std::function&lt; void()&gt; work, std::function&lt; void()&gt; onComplete=nullptr)</argsstring>
+        <name>runVoid</name>
+        <qualifiedname>Async::runVoid</qualifiedname>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>work</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>onComplete</declname>
+          <defval><ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></defval>
+        </param>
+        <briefdescription>
+<para>Run void work on background thread with completion callback. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>work</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to execute on background thread </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>onComplete</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Called on message thread when work completes (may be nullptr) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="90" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="90" bodyend="103" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="69" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a362eef472457225b32790d2cbde4de68" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int Async::delay</definition>
+        <argsstring>(int delayMs, std::function&lt; void()&gt; callback)</argsstring>
+        <name>delay</name>
+        <qualifiedname>Async::delay</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>delayMs</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+<para>Execute a callback after a delay on the message thread. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns an ID that can be used to cancel the delay.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>delayMs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Delay in milliseconds </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>callback</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to call after delay </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Timer ID for cancellation (0 if failed) </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="109" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="109" bodyend="129" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="82" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a8c50ed88ee57c1de25f8526d8b8651e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::cancelDelay</definition>
+        <argsstring>(int timerId)</argsstring>
+        <name>cancelDelay</name>
+        <qualifiedname>Async::cancelDelay</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>timerId</declname>
+        </param>
+        <briefdescription>
+<para>Cancel a pending delayed callback. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>timerId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Timer ID returned from <ref refid="namespaceAsync_1a362eef472457225b32790d2cbde4de68" kindref="member">delay()</ref> </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="131" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="131" bodyend="146" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="89" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a91f0bf70da9746ccc426a1d621ca0035" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::debounce</definition>
+        <argsstring>(const juce::String &amp;key, int delayMs, std::function&lt; void()&gt; callback)</argsstring>
+        <name>debounce</name>
+        <qualifiedname>Async::debounce</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>delayMs</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+<para>Debounce calls to a function - only executes after a period of inactivity. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Useful for search inputs, resize handlers, etc.</para>
+<para>Each call resets the timer. The callback only fires when no new calls have been made for <computeroutput>delayMs</computeroutput> milliseconds.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Unique identifier for this debounce group </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>delayMs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Delay in milliseconds to wait after last call </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>callback</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to execute after debounce period </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="152" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="152" bodyend="177" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="105" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a1df86a47d26fddac495e9327ab7fbe2c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::cancelDebounce</definition>
+        <argsstring>(const juce::String &amp;key)</argsstring>
+        <name>cancelDebounce</name>
+        <qualifiedname>Async::cancelDebounce</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Cancel any pending debounced callback for the given key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The debounce group to cancel </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="179" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="179" bodyend="193" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="112" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a5e51f7f4adcb378de8939e261d429c55" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::cancelAllDebounces</definition>
+        <argsstring>()</argsstring>
+        <name>cancelAllDebounces</name>
+        <qualifiedname>Async::cancelAllDebounces</qualifiedname>
+        <briefdescription>
+<para>Cancel all pending debounced callbacks. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="195" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="195" bodyend="205" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="117" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a2e6d168c110d2272a75be469ecee7a80" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::throttle</definition>
+        <argsstring>(const juce::String &amp;key, int periodMs, std::function&lt; void()&gt; callback)</argsstring>
+        <name>throttle</name>
+        <qualifiedname>Async::throttle</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>key</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>periodMs</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+<para>Throttle calls to a function - executes at most once per period. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Unlike debounce, this ensures the callback fires periodically during rapid calls, rather than waiting for calls to stop.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Unique identifier for this throttle group </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>periodMs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum time between executions in milliseconds </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>callback</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to execute </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="211" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="211" bodyend="258" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="131" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a43e086fb7256a45c84fbfe5c9d5b76df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Async::cancelThrottle</definition>
+        <argsstring>(const juce::String &amp;key)</argsstring>
+        <name>cancelThrottle</name>
+        <qualifiedname>Async::cancelThrottle</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Cancel throttling for the given key. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The throttle group to cancel </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="260" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" bodystart="260" bodyend="275" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" declline="138" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceAsync_1a14dc5c8132b8d48281d206c951bfce1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void Async::run</definition>
+        <argsstring>(std::function&lt; T()&gt; work, std::function&lt; void(T)&gt; onComplete)</argsstring>
+        <name>run</name>
+        <qualifiedname>Async::run</qualifiedname>
+        <param>
+          <type>std::function&lt; T()&gt;</type>
+          <declname>work</declname>
+        </param>
+        <param>
+          <type>std::function&lt; void(T)&gt;</type>
+          <declname>onComplete</declname>
+        </param>
+        <briefdescription>
+<para>Run work on a background thread and deliver result to message thread. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The return type of the work function </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>work</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function to execute on background thread </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>onComplete</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callback receiving result, called on message thread </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" line="52" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.h" bodystart="52" bodyend="61"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="namespaceAsync" kindref="compound">Async</ref> - Threading utilities for background work and <ref refid="namespaceUI" kindref="compound">UI</ref> callbacks. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides clean abstractions over common threading patterns:<itemizedlist>
+<listitem><para><ref refid="namespaceAsync_1a14dc5c8132b8d48281d206c951bfce1b" kindref="member">run()</ref>: Execute work on background thread, callback on message thread</para>
+</listitem><listitem><para><ref refid="namespaceAsync_1a7450afdc3e5d5e95d1611d6a79bb683a" kindref="member">runVoid()</ref>: Fire-and-forget background work with <ref refid="namespaceUI" kindref="compound">UI</ref> callback</para>
+</listitem><listitem><para><ref refid="namespaceAsync_1a362eef472457225b32790d2cbde4de68" kindref="member">delay()</ref>: Execute a callback after a delay on message thread</para>
+</listitem><listitem><para><ref refid="namespaceAsync_1a91f0bf70da9746ccc426a1d621ca0035" kindref="member">debounce()</ref>: Coalesce rapid calls (e.g., search input)</para>
+</listitem></itemizedlist>
+</para>
+<para>Usage: // Background work with result <ref refid="namespaceAsync_1a14dc5c8132b8d48281d206c951bfce1b" kindref="member">Async::run&lt;juce::Image&gt;</ref>( []() { return downloadImage(); }, [this](const juce::Image&amp; img) { avatarImage = img; repaint(); } );</para>
+<para>// Fire-and-forget with completion callback <ref refid="namespaceAsync_1a7450afdc3e5d5e95d1611d6a79bb683a" kindref="member">Async::runVoid</ref>( []() { doExpensiveWork(); }, [this]() { isLoading = false; repaint(); } );</para>
+<para>// Delayed execution <ref refid="namespaceAsync_1a362eef472457225b32790d2cbde4de68" kindref="member">Async::delay</ref>(500, [this]() { showTooltip(); });</para>
+<para>// Debounced search (only fires after 300ms of inactivity) <ref refid="namespaceAsync_1a91f0bf70da9746ccc426a1d621ca0035" kindref="member">Async::debounce</ref>(&quot;search&quot;, 300, [this, query]() { performSearch(query); }); </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Async.cpp" line="3" column="1"/>
+  </compounddef>
+</doxygen>

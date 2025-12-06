@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class MIDICapture &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class MultiHoverState" href="classMultiHoverState.html" />
+    <link rel="prev" title="Class MessageThreadComponent" href="classMessageThreadComponent.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedGroup.html">Struct AggregatedFeedGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedResponse.html">Struct AggregatedFeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAuth_1_1Colors.html">Struct Auth::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structComment.html">Struct Comment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structDiscoveredUser.html">Struct DiscoveredUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structEditProfile_1_1Colors.html">Struct EditProfile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedDataManager_1_1CacheEntry.html">Struct FeedDataManager::CacheEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedResponse.html">Struct FeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFollowListUser.html">Struct FollowListUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpAudioPlayer_1_1CachedAudio.html">Struct HttpAudioPlayer::CachedAudio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpErrorHandler_1_1HttpError.html">Struct HttpErrorHandler::HttpError</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structImageLoader_1_1Stats.html">Struct Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structKeyDetector_1_1Key.html">Struct KeyDetector::Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMIDICapture_1_1MIDIEvent.html">Struct MIDICapture::MIDIEvent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMultiHoverState_1_1Region.html">Struct MultiHoverState::Region</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1AudioUploadMetadata.html">Struct NetworkClient::AudioUploadMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1Config.html">Struct NetworkClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1NotificationResult.html">Struct NetworkClient::NotificationResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1RequestResult.html">Struct NetworkClient::RequestResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNotificationItem.html">Struct NotificationItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structPianoRoll_1_1Note.html">Struct PianoRoll::Note</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structProfile_1_1Colors.html">Struct Profile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoriesFeed_1_1UserStories.html">Struct StoriesFeed::UserStories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStory.html">Struct Story</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryData.html">Struct StoryData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryViewer_1_1ProgressSegment.html">Struct StoryViewer::ProgressSegment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1AudioSnippetResult.html">Struct StreamChatClient::AudioSnippetResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Channel.html">Struct StreamChatClient::Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Config.html">Struct StreamChatClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Message.html">Struct StreamChatClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1TokenResult.html">Struct StreamChatClient::TokenResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1UserPresence.html">Struct StreamChatClient::UserPresence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUpload_1_1MusicalKey.html">Struct Upload::MusicalKey</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserCard_1_1Colors.html">Struct UserCard::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserDiscovery_1_1Colors.html">Struct UserDiscovery::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserProfile.html">Struct UserProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Config.html">Struct WebSocketClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Message.html">Struct WebSocketClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Stats.html">Struct WebSocketClient::Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimation.html">Class Animation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimationValue.html">Template Class AnimationValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioCapture.html">Class AudioCapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioSnippetRecorder.html">Class AudioSnippetRecorder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAuth.html">Class Auth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer.html">Class BufferAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer_1_1ProgressTimer.html">Class BufferAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classChannelPollTimer.html">Class ChannelPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentRow.html">Class CommentRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel.html">Class CommentsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel_1_1MentionListener.html">Class CommentsPanel::MentionListener</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classConnectionIndicator.html">Class ConnectionIndicator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEditProfile.html">Class EditProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsBubble.html">Class EmojiReactionsBubble</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsPanel.html">Class EmojiReactionsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedDataManager.html">Class FeedDataManager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedPost.html">Class FeedPost</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowersList.html">Class FollowersList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowUserRow.html">Class FollowUserRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHeader.html">Class Header</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverState.html">Class HoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverStateWithCursor.html">Class HoverStateWithCursor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer.html">Class HttpAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer_1_1ProgressTimer.html">Class HttpAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpErrorHandler.html">Class HttpErrorHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector.html">Class KeyDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector_1_1Impl.html">Class KeyDetector::Impl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressDetector.html">Class LongPressDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressWithProgress.html">Class LongPressWithProgress</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessagesList.html">Class MessagesList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThread.html">Class MessageThread</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThreadComponent.html">Class MessageThreadComponent</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class MIDICapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiHoverState.html">Class MultiHoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNetworkClient.html">Class NetworkClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationBell.html">Class NotificationBell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationList.html">Class NotificationList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationPollTimer.html">Class NotificationPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationRow.html">Class NotificationRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOAuthPollTimer.html">Class OAuthPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome.html">Template Class Outcome</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome_3_01void_01_4.html">Template Class Outcome&lt; void &gt;</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPianoRoll.html">Class PianoRoll</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostCard.html">Class PostCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostsFeed.html">Class PostsFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfile.html">Class Profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfileSetup.html">Class ProfileSetup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classRecording.html">Class Recording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSearch.html">Class Search</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessor.html">Class SidechainAudioProcessor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessorEditor.html">Class SidechainAudioProcessorEditor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoriesFeed.html">Class StoriesFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryRecording.html">Class StoryRecording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryViewer.html">Class StoryViewer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStreamChatClient.html">Class StreamChatClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUnreadPollTimer.html">Class UnreadPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUpload.html">Class Upload</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserCard.html">Class UserCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDataStore.html">Class UserDataStore</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDiscovery.html">Class UserDiscovery</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classWebSocketClient.html">Class WebSocketClient</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Class MIDICapture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classMIDICapture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-midicapture">
+<span id="exhale-class-classmidicapture"></span><h1>Class MIDICapture<a class="headerlink" href="#class-midicapture" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html#file-plugin-source-audio-midicapture-h"><span class="std std-ref">File MIDICapture.h</span></a></p></li>
+</ul>
+<section id="nested-relationships">
+<h2>Nested Relationships<a class="headerlink" href="#nested-relationships" title="Link to this heading"></a></h2>
+<section id="nested-types">
+<h3>Nested Types<a class="headerlink" href="#nested-types" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="structMIDICapture_1_1MIDIEvent.html#exhale-struct-structmidicapture-1-1midievent"><span class="std std-ref">Struct MIDICapture::MIDIEvent</span></a></p></li>
+</ul>
+</section>
+</section>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv411MIDICapture">
+<span id="_CPPv311MIDICapture"></span><span id="_CPPv211MIDICapture"></span><span id="MIDICapture"></span><span class="target" id="classMIDICapture"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MIDICapture</span></span></span><a class="headerlink" href="#_CPPv411MIDICapture" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html#classMIDICapture"><span class="std std-ref">MIDICapture</span></a> handles capturing MIDI events from the DAW during recording. </p>
+<p>Thread Safety:<ul class="simple">
+<li><p>captureMIDI() is called from the AUDIO THREAD (processBlock)</p></li>
+<li><p>All other methods are called from the MESSAGE THREAD</p></li>
+<li><p>Uses std::atomic for thread-safe state sharing</p></li>
+</ul>
+</p>
+<p>Features:<ul class="simple">
+<li><p>Lock-free MIDI event capture from processBlock</p></li>
+<li><p>Captures note_on/note_off events with precise timing</p></li>
+<li><p>Stores velocity, channel, and note number</p></li>
+<li><p>Syncs MIDI events with audio timeline </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture11MIDICaptureEv">
+<span id="_CPPv3N11MIDICapture11MIDICaptureEv"></span><span id="_CPPv2N11MIDICapture11MIDICaptureEv"></span><span id="MIDICapture::MIDICapture"></span><span class="target" id="classMIDICapture_1adb85be411a6c4beb9506f2c80bae111b"></span><span class="sig-name descname"><span class="n"><span class="pre">MIDICapture</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture11MIDICaptureEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICaptureD0Ev">
+<span id="_CPPv3N11MIDICaptureD0Ev"></span><span id="_CPPv2N11MIDICaptureD0Ev"></span><span id="MIDICapture::~MIDICapture"></span><span class="target" id="classMIDICapture_1ab8fead0c820019326da2f9b33eead110"></span><span class="sig-name descname"><span class="n"><span class="pre">~MIDICapture</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICaptureD0Ev" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture7prepareEdi">
+<span id="_CPPv3N11MIDICapture7prepareEdi"></span><span id="_CPPv2N11MIDICapture7prepareEdi"></span><span id="MIDICapture::prepare__double.i"></span><span class="target" id="classMIDICapture_1a93d40a18b888044dd17595d873c9ce46"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">prepare</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sampleRate</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">samplesPerBlock</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture7prepareEdi" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture5resetEv">
+<span id="_CPPv3N11MIDICapture5resetEv"></span><span id="_CPPv2N11MIDICapture5resetEv"></span><span id="MIDICapture::reset"></span><span class="target" id="classMIDICapture_1aab81b08880aba7e1ddefa69f9587a40c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reset</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture5resetEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture12startCaptureEv">
+<span id="_CPPv3N11MIDICapture12startCaptureEv"></span><span id="_CPPv2N11MIDICapture12startCaptureEv"></span><span id="MIDICapture::startCapture"></span><span class="target" id="classMIDICapture_1a58f3ab05e97d09125739e7e7ff4ed94f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">startCapture</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture12startCaptureEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture11stopCaptureEv">
+<span id="_CPPv3N11MIDICapture11stopCaptureEv"></span><span id="_CPPv2N11MIDICapture11stopCaptureEv"></span><span id="MIDICapture::stopCapture"></span><span class="target" id="classMIDICapture_1a1e158caa2328f05604c8ddb29ecf719f"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N11MIDICapture9MIDIEventE" title="MIDICapture::MIDIEvent"><span class="n"><span class="pre">MIDIEvent</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stopCapture</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture11stopCaptureEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11MIDICapture11isCapturingEv">
+<span id="_CPPv3NK11MIDICapture11isCapturingEv"></span><span id="_CPPv2NK11MIDICapture11isCapturingEv"></span><span id="MIDICapture::isCapturingC"></span><span class="target" id="classMIDICapture_1aecc9ffe6e795c16698dd06780c9b7c9d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isCapturing</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11MIDICapture11isCapturingEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture11captureMIDIERKN4juce10MidiBufferEid">
+<span id="_CPPv3N11MIDICapture11captureMIDIERKN4juce10MidiBufferEid"></span><span id="_CPPv2N11MIDICapture11captureMIDIERKN4juce10MidiBufferEid"></span><span id="MIDICapture::captureMIDI__juce::MidiBufferCR.i.double"></span><span class="target" id="classMIDICapture_1a30b29b35920f543f5badfe8419615205"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">captureMIDI</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MidiBuffer</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">midiMessages</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">numSamples</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sampleRate</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture11captureMIDIERKN4juce10MidiBufferEid" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11MIDICapture17getMIDIDataAsJSONEv">
+<span id="_CPPv3NK11MIDICapture17getMIDIDataAsJSONEv"></span><span id="_CPPv2NK11MIDICapture17getMIDIDataAsJSONEv"></span><span id="MIDICapture::getMIDIDataAsJSONC"></span><span class="target" id="classMIDICapture_1acb381d0440dc9622ff53ad9ca462df5a"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">var</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getMIDIDataAsJSON</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11MIDICapture17getMIDIDataAsJSONEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11MIDICapture12getTotalTimeEv">
+<span id="_CPPv3NK11MIDICapture12getTotalTimeEv"></span><span id="_CPPv2NK11MIDICapture12getTotalTimeEv"></span><span id="MIDICapture::getTotalTimeC"></span><span class="target" id="classMIDICapture_1af84097cd50302ef809b69611e4440862"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getTotalTime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11MIDICapture12getTotalTimeEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11MIDICapture27getNormalizedMIDIDataAsJSONEv">
+<span id="_CPPv3NK11MIDICapture27getNormalizedMIDIDataAsJSONEv"></span><span id="_CPPv2NK11MIDICapture27getNormalizedMIDIDataAsJSONEv"></span><span id="MIDICapture::getNormalizedMIDIDataAsJSONC"></span><span class="target" id="classMIDICapture_1a8c8d1a64aa9133e9754c5840d7128f0c"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">var</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getNormalizedMIDIDataAsJSON</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11MIDICapture27getNormalizedMIDIDataAsJSONEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture8setTempoEd">
+<span id="_CPPv3N11MIDICapture8setTempoEd"></span><span id="_CPPv2N11MIDICapture8setTempoEd"></span><span id="MIDICapture::setTempo__double"></span><span class="target" id="classMIDICapture_1a6bcc891f6203bc9359d3c5a05194a13d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setTempo</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bpm</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture8setTempoEd" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11MIDICapture8getTempoEv">
+<span id="_CPPv3NK11MIDICapture8getTempoEv"></span><span id="_CPPv2NK11MIDICapture8getTempoEv"></span><span id="MIDICapture::getTempoC"></span><span class="target" id="classMIDICapture_1acd46f3053783f8bd745427a66443d565"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getTempo</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11MIDICapture8getTempoEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture16setTimeSignatureEii">
+<span id="_CPPv3N11MIDICapture16setTimeSignatureEii"></span><span id="_CPPv2N11MIDICapture16setTimeSignatureEii"></span><span id="MIDICapture::setTimeSignature__i.i"></span><span class="target" id="classMIDICapture_1acc9476bc77be1dec52ef3d448822dd17"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setTimeSignature</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">numerator</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">denominator</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture16setTimeSignatureEii" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11MIDICapture16getTimeSignatureEv">
+<span id="_CPPv3NK11MIDICapture16getTimeSignatureEv"></span><span id="_CPPv2NK11MIDICapture16getTimeSignatureEv"></span><span id="MIDICapture::getTimeSignatureC"></span><span class="target" id="classMIDICapture_1a3e7ce09772a848e12b19dde88b9780e7"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getTimeSignature</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK11MIDICapture16getTimeSignatureEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture15normalizeTimingERKNSt6vectorI9MIDIEventEE">
+<span id="_CPPv3N11MIDICapture15normalizeTimingERKNSt6vectorI9MIDIEventEE"></span><span id="_CPPv2N11MIDICapture15normalizeTimingERKNSt6vectorI9MIDIEventEE"></span><span id="MIDICapture::normalizeTiming__std::vector:MIDIEvent:CR"></span><span class="target" id="classMIDICapture_1ab27f1f204b93106de545f1400505cd8b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N11MIDICapture9MIDIEventE" title="MIDICapture::MIDIEvent"><span class="n"><span class="pre">MIDIEvent</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">normalizeTiming</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N11MIDICapture9MIDIEventE" title="MIDICapture::MIDIEvent"><span class="n"><span class="pre">MIDIEvent</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">events</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture15normalizeTimingERKNSt6vectorI9MIDIEventEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture14validateEventsERKNSt6vectorI9MIDIEventEE">
+<span id="_CPPv3N11MIDICapture14validateEventsERKNSt6vectorI9MIDIEventEE"></span><span id="_CPPv2N11MIDICapture14validateEventsERKNSt6vectorI9MIDIEventEE"></span><span id="MIDICapture::validateEvents__std::vector:MIDIEvent:CR"></span><span class="target" id="classMIDICapture_1abae6ef62ce090b574bb08af0bd1c992c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N11MIDICapture9MIDIEventE" title="MIDICapture::MIDIEvent"><span class="n"><span class="pre">MIDIEvent</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">validateEvents</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N11MIDICapture9MIDIEventE" title="MIDICapture::MIDIEvent"><span class="n"><span class="pre">MIDIEvent</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">events</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N11MIDICapture14validateEventsERKNSt6vectorI9MIDIEventEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture9MIDIEventE">
+<span id="_CPPv3N11MIDICapture9MIDIEventE"></span><span id="_CPPv2N11MIDICapture9MIDIEventE"></span><span id="MIDICapture::MIDIEvent"></span><span class="target" id="structMIDICapture_1_1MIDIEvent"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MIDIEvent</span></span></span><a class="headerlink" href="#_CPPv4N11MIDICapture9MIDIEventE" title="Link to this definition"></a><br /></dt>
+<dd><p>MIDI event structure for captured MIDI data. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture9MIDIEvent4timeE">
+<span id="_CPPv3N11MIDICapture9MIDIEvent4timeE"></span><span id="_CPPv2N11MIDICapture9MIDIEvent4timeE"></span><span id="MIDICapture::MIDIEvent::time__double"></span><span class="target" id="structMIDICapture_1_1MIDIEvent_1a8a4bc063f35459c65dc5ac20de4decaf"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">time</span></span></span><a class="headerlink" href="#_CPPv4N11MIDICapture9MIDIEvent4timeE" title="Link to this definition"></a><br /></dt>
+<dd><p>Relative time in seconds from recording start. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture9MIDIEvent4typeE">
+<span id="_CPPv3N11MIDICapture9MIDIEvent4typeE"></span><span id="_CPPv2N11MIDICapture9MIDIEvent4typeE"></span><span id="MIDICapture::MIDIEvent::type__juce::String"></span><span class="target" id="structMIDICapture_1_1MIDIEvent_1a95d7e0564c8d0520f2e64cc6b68da4a1"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">type</span></span></span><a class="headerlink" href="#_CPPv4N11MIDICapture9MIDIEvent4typeE" title="Link to this definition"></a><br /></dt>
+<dd><p>Event type (“note_on” or “note_off”). </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture9MIDIEvent4noteE">
+<span id="_CPPv3N11MIDICapture9MIDIEvent4noteE"></span><span id="_CPPv2N11MIDICapture9MIDIEvent4noteE"></span><span id="MIDICapture::MIDIEvent::note__i"></span><span class="target" id="structMIDICapture_1_1MIDIEvent_1a734d55f6715e645a1246d12f02b6a4b9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">note</span></span></span><a class="headerlink" href="#_CPPv4N11MIDICapture9MIDIEvent4noteE" title="Link to this definition"></a><br /></dt>
+<dd><p>MIDI note number (0-127). </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture9MIDIEvent8velocityE">
+<span id="_CPPv3N11MIDICapture9MIDIEvent8velocityE"></span><span id="_CPPv2N11MIDICapture9MIDIEvent8velocityE"></span><span id="MIDICapture::MIDIEvent::velocity__i"></span><span class="target" id="structMIDICapture_1_1MIDIEvent_1a0c8d3a8fbcd0f44a3bbfd9fed3657570"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">velocity</span></span></span><a class="headerlink" href="#_CPPv4N11MIDICapture9MIDIEvent8velocityE" title="Link to this definition"></a><br /></dt>
+<dd><p>Note velocity (0-127). </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N11MIDICapture9MIDIEvent7channelE">
+<span id="_CPPv3N11MIDICapture9MIDIEvent7channelE"></span><span id="_CPPv2N11MIDICapture9MIDIEvent7channelE"></span><span id="MIDICapture::MIDIEvent::channel__i"></span><span class="target" id="structMIDICapture_1_1MIDIEvent_1a1af2ac6c7f2048ae6dc99ee79f177566"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">channel</span></span></span><a class="headerlink" href="#_CPPv4N11MIDICapture9MIDIEvent7channelE" title="Link to this definition"></a><br /></dt>
+<dd><p>MIDI channel (0-15). </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classMessageThreadComponent.html" class="btn btn-neutral float-left" title="Class MessageThreadComponent" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classMultiHoverState.html" class="btn btn-neutral float-right" title="Class MultiHoverState" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

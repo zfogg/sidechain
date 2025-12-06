@@ -1,0 +1,1439 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classUserDiscoveryComponent" kind="class" language="C++" prot="public">
+    <compoundname>UserDiscoveryComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::TextEditor::Listener</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::ScrollBar::Listener</basecompoundref>
+    <includes refid="UserDiscoveryComponent_8h" local="no">UserDiscoveryComponent.h</includes>
+    <innerclass refid="structUserDiscoveryComponent_1_1Colors" prot="private">UserDiscoveryComponent::Colors</innerclass>
+    <sectiondef kind="private-type">
+      <memberdef kind="enum" id="classUserDiscoveryComponent_1a1dde7ec06b68aa925181ba2f578005e5" prot="private" static="no" strong="yes">
+        <type></type>
+        <name>ViewMode</name>
+        <qualifiedname>UserDiscoveryComponent::ViewMode</qualifiedname>
+        <enumvalue id="classUserDiscoveryComponent_1a1dde7ec06b68aa925181ba2f578005e5aa1c4eb450799cb3f30c400d0201414e7" prot="private">
+          <name>Discovery</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classUserDiscoveryComponent_1a1dde7ec06b68aa925181ba2f578005e5ad249f6cc8f25da089081582534dc4758" prot="private">
+          <name>SearchResults</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classUserDiscoveryComponent_1a1dde7ec06b68aa925181ba2f578005e5a97d7501a0e120678b4b0d34f103a4ae7" prot="private">
+          <name>GenreFilter</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="59" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="60" bodyend="64"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1aed6ef2f0bd1ec7a5569f2c1b81de8a01" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; UserDiscoveryComponent::onBackPressed</definition>
+        <argsstring></argsstring>
+        <name>onBackPressed</name>
+        <qualifiedname>UserDiscoveryComponent::onBackPressed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="35" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a9432801822080d657c4790c120c9bff1" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const DiscoveredUser&amp;)&gt; UserDiscoveryComponent::onUserSelected</definition>
+        <argsstring></argsstring>
+        <name>onUserSelected</name>
+        <qualifiedname>UserDiscoveryComponent::onUserSelected</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="36" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a7f19bc999ac15ac538846f1f7c47b2b0" prot="private" static="no" mutable="no">
+        <type>ViewMode</type>
+        <definition>ViewMode UserDiscoveryComponent::currentViewMode</definition>
+        <argsstring></argsstring>
+        <name>currentViewMode</name>
+        <qualifiedname>UserDiscoveryComponent::currentViewMode</qualifiedname>
+        <initializer>= ViewMode::Discovery</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="66" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1af8ba104773277cebb0bc66e86c19642a" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* UserDiscoveryComponent::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>UserDiscoveryComponent::networkClient</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="70" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a752f8c548b2a77bd1cc0c78737ff9430" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDiscoveryComponent::currentUserId</definition>
+        <argsstring></argsstring>
+        <name>currentUserId</name>
+        <qualifiedname>UserDiscoveryComponent::currentUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="71" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ad39c7dce6e4125adffe628fdf7086a36" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDiscoveryComponent::currentSearchQuery</definition>
+        <argsstring></argsstring>
+        <name>currentSearchQuery</name>
+        <qualifiedname>UserDiscoveryComponent::currentSearchQuery</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="74" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a7458a1ee9b70a19a03ba2ad75cb3a413" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &gt;</type>
+        <definition>juce::Array&lt;DiscoveredUser&gt; UserDiscoveryComponent::searchResults</definition>
+        <argsstring></argsstring>
+        <name>searchResults</name>
+        <qualifiedname>UserDiscoveryComponent::searchResults</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="75" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1afe703893acfa442226738bc0d782280e" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserDiscoveryComponent::isSearching</definition>
+        <argsstring></argsstring>
+        <name>isSearching</name>
+        <qualifiedname>UserDiscoveryComponent::isSearching</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="76" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a59ecfd24eb11db8d0783c521c5e57f52" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &gt;</type>
+        <definition>juce::Array&lt;DiscoveredUser&gt; UserDiscoveryComponent::trendingUsers</definition>
+        <argsstring></argsstring>
+        <name>trendingUsers</name>
+        <qualifiedname>UserDiscoveryComponent::trendingUsers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="79" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a3205c3632ff9fe5ca7dc204b7bb9d53e" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &gt;</type>
+        <definition>juce::Array&lt;DiscoveredUser&gt; UserDiscoveryComponent::featuredProducers</definition>
+        <argsstring></argsstring>
+        <name>featuredProducers</name>
+        <qualifiedname>UserDiscoveryComponent::featuredProducers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="80" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ab8eb8369db8b04bc23956f4fabdf5f33" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &gt;</type>
+        <definition>juce::Array&lt;DiscoveredUser&gt; UserDiscoveryComponent::suggestedUsers</definition>
+        <argsstring></argsstring>
+        <name>suggestedUsers</name>
+        <qualifiedname>UserDiscoveryComponent::suggestedUsers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="81" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ade6b83c66ff956d758d3a48dfcb4c046" prot="private" static="no" mutable="no">
+        <type>juce::StringArray</type>
+        <definition>juce::StringArray UserDiscoveryComponent::recentSearches</definition>
+        <argsstring></argsstring>
+        <name>recentSearches</name>
+        <qualifiedname>UserDiscoveryComponent::recentSearches</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="84" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a728edca2cceda70ea5cd466f58db65c1" prot="private" static="no" mutable="no">
+        <type>juce::StringArray</type>
+        <definition>juce::StringArray UserDiscoveryComponent::availableGenres</definition>
+        <argsstring></argsstring>
+        <name>availableGenres</name>
+        <qualifiedname>UserDiscoveryComponent::availableGenres</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="88" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a680948108f59ae440fc838ac7bd1cade" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDiscoveryComponent::selectedGenre</definition>
+        <argsstring></argsstring>
+        <name>selectedGenre</name>
+        <qualifiedname>UserDiscoveryComponent::selectedGenre</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="89" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a6c2ac92edcc9518cef33f4f1ee833a6e" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &gt;</type>
+        <definition>juce::Array&lt;DiscoveredUser&gt; UserDiscoveryComponent::genreUsers</definition>
+        <argsstring></argsstring>
+        <name>genreUsers</name>
+        <qualifiedname>UserDiscoveryComponent::genreUsers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="90" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ae9b84d8f887a817dc0c4be703e1bc475" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserDiscoveryComponent::isTrendingLoading</definition>
+        <argsstring></argsstring>
+        <name>isTrendingLoading</name>
+        <qualifiedname>UserDiscoveryComponent::isTrendingLoading</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="93" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ae6a8a5065344624f17b4f5055cefa3f5" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserDiscoveryComponent::isFeaturedLoading</definition>
+        <argsstring></argsstring>
+        <name>isFeaturedLoading</name>
+        <qualifiedname>UserDiscoveryComponent::isFeaturedLoading</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="94" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1af19efd6ad2405397101b94c44c7e397e" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserDiscoveryComponent::isSuggestedLoading</definition>
+        <argsstring></argsstring>
+        <name>isSuggestedLoading</name>
+        <qualifiedname>UserDiscoveryComponent::isSuggestedLoading</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="95" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ac1b2bf3f4c9b8709421dfd76fade21e8" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserDiscoveryComponent::isGenresLoading</definition>
+        <argsstring></argsstring>
+        <name>isGenresLoading</name>
+        <qualifiedname>UserDiscoveryComponent::isGenresLoading</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="96" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a94d6a4c7f749fa48ad795e55e2d31d24" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDiscoveryComponent::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>UserDiscoveryComponent::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="99" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1ad806bd17b48b98232c229f1a0e6b752a" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; UserDiscoveryComponent::searchBox</definition>
+        <argsstring></argsstring>
+        <name>searchBox</name>
+        <qualifiedname>UserDiscoveryComponent::searchBox</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="103" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a828e1537cfa2c643d5f4d66031a082fa" prot="private" static="no" mutable="no">
+        <type>juce::ScrollBar</type>
+        <definition>juce::ScrollBar UserDiscoveryComponent::scrollBar</definition>
+        <argsstring></argsstring>
+        <name>scrollBar</name>
+        <qualifiedname>UserDiscoveryComponent::scrollBar</qualifiedname>
+        <initializer>{ true }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="104" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="104" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a3d1374a44c5b2eccc571d19d7ce113dd" prot="private" static="no" mutable="no">
+        <type>juce::OwnedArray&lt; <ref refid="classUserCardComponent" kindref="compound">UserCardComponent</ref> &gt;</type>
+        <definition>juce::OwnedArray&lt;UserCardComponent&gt; UserDiscoveryComponent::userCards</definition>
+        <argsstring></argsstring>
+        <name>userCards</name>
+        <qualifiedname>UserDiscoveryComponent::userCards</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="105" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a4de316b588d3cef391be91e5d1b638d7" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::scrollOffset</definition>
+        <argsstring></argsstring>
+        <name>scrollOffset</name>
+        <qualifiedname>UserDiscoveryComponent::scrollOffset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="108" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a85c078c75d1aa05e49b685fa46eb291e" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::MAX_RECENT_SEARCHES</definition>
+        <argsstring></argsstring>
+        <name>MAX_RECENT_SEARCHES</name>
+        <qualifiedname>UserDiscoveryComponent::MAX_RECENT_SEARCHES</qualifiedname>
+        <initializer>= 10</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="85" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1afac90039aa40c23ccf2e3be62b13a368" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>UserDiscoveryComponent::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 60</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="112" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a878e54b59e2e47adf2c00da18b1bedcc" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::SEARCH_BAR_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>SEARCH_BAR_HEIGHT</name>
+        <qualifiedname>UserDiscoveryComponent::SEARCH_BAR_HEIGHT</qualifiedname>
+        <initializer>= 44</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="113" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a37efaedd50bcf831dc2d7cb54d10d341" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::SECTION_HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>SECTION_HEADER_HEIGHT</name>
+        <qualifiedname>UserDiscoveryComponent::SECTION_HEADER_HEIGHT</qualifiedname>
+        <initializer>= 40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="114" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1aedf5379a0a6856b88034190051a781ca" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::USER_CARD_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>USER_CARD_HEIGHT</name>
+        <qualifiedname>UserDiscoveryComponent::USER_CARD_HEIGHT</qualifiedname>
+        <initializer>= 72</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="115" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a22a9251a43ccc9be6f8b1f46a21e364d" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::GENRE_CHIP_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>GENRE_CHIP_HEIGHT</name>
+        <qualifiedname>UserDiscoveryComponent::GENRE_CHIP_HEIGHT</qualifiedname>
+        <initializer>= 32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="116" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDiscoveryComponent_1a832e8c0164c0ddd17f9f32db51f3fbb9" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::PADDING</definition>
+        <argsstring></argsstring>
+        <name>PADDING</name>
+        <qualifiedname>UserDiscoveryComponent::PADDING</qualifiedname>
+        <initializer>= 16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="117" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classUserDiscoveryComponent_1afe46a9a5830144f4865aebfe511e4455" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UserDiscoveryComponent::UserDiscoveryComponent</definition>
+        <argsstring>()</argsstring>
+        <name>UserDiscoveryComponent</name>
+        <qualifiedname>UserDiscoveryComponent::UserDiscoveryComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="25" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="8" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a329a47d75cbfa14dd655d7d31d22ddaf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UserDiscoveryComponent::~UserDiscoveryComponent</definition>
+        <argsstring>() override</argsstring>
+        <name>~UserDiscoveryComponent</name>
+        <qualifiedname>UserDiscoveryComponent::~UserDiscoveryComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="26" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="36" bodyend="41"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a9a0b31119112d43b03954c75bf785cbc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>UserDiscoveryComponent::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="30" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="44" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a394e00c578512fcc35616255f8370bb7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::setCurrentUserId</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>setCurrentUserId</name>
+        <qualifiedname>UserDiscoveryComponent::setCurrentUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="31" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ac80d1071569e7e6a62683ee073b131e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>UserDiscoveryComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="40" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="51" bodyend="143"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1aba0f809703ad019c5c2bb0753f3d36ed" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>UserDiscoveryComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="41" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="145" bodyend="163"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a6db2b1442c5257a27d84cd2b52dea2f2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>UserDiscoveryComponent::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="365" bodyend="444"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a82baed4ee0c9bd0305e7fe946cc2ca3c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::textEditorTextChanged</definition>
+        <argsstring>(juce::TextEditor &amp;editor) override</argsstring>
+        <name>textEditorTextChanged</name>
+        <qualifiedname>UserDiscoveryComponent::textEditorTextChanged</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="45" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="446" bodyend="457"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ade394dc219f3aa6c6e044ed67899649c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::textEditorReturnKeyPressed</definition>
+        <argsstring>(juce::TextEditor &amp;editor) override</argsstring>
+        <name>textEditorReturnKeyPressed</name>
+        <qualifiedname>UserDiscoveryComponent::textEditorReturnKeyPressed</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="46" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="459" bodyend="466"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a2af03586cd17002aefdfa440b3cf4293" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::scrollBarMoved</definition>
+        <argsstring>(juce::ScrollBar *scrollBar, double newRangeStart) override</argsstring>
+        <name>scrollBarMoved</name>
+        <qualifiedname>UserDiscoveryComponent::scrollBarMoved</qualifiedname>
+        <param>
+          <type>juce::ScrollBar *</type>
+          <declname>scrollBar</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>newRangeStart</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="468" bodyend="473"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a735cc32ecaa6c270fd650dd644a1268f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::loadDiscoveryData</definition>
+        <argsstring>()</argsstring>
+        <name>loadDiscoveryData</name>
+        <qualifiedname>UserDiscoveryComponent::loadDiscoveryData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="53" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="476" bodyend="489"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a4cfffc335ab777839d8e0c02119c7af3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::refresh</definition>
+        <argsstring>()</argsstring>
+        <name>refresh</name>
+        <qualifiedname>UserDiscoveryComponent::refresh</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="54" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="491" bodyend="505"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a21539ff8bd9a7a07c0d08d35d353d45b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>UserDiscoveryComponent::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="121" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="166" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a9d8e686ec47cc0efb92b37a07ee10332" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawSearchBar</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawSearchBar</name>
+        <qualifiedname>UserDiscoveryComponent::drawSearchBar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="122" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a7fe74016e01cebc5338eada29699d5d6" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawRecentSearches</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; &amp;bounds)</argsstring>
+        <name>drawRecentSearches</name>
+        <qualifiedname>UserDiscoveryComponent::drawRecentSearches</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt; &amp;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="123" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="206" bodyend="232"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ae24904950c843750da5aa4cb9b98ca19" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawSectionHeader</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;title)</argsstring>
+        <name>drawSectionHeader</name>
+        <qualifiedname>UserDiscoveryComponent::drawSectionHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>title</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="124" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="234" bodyend="241"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a613d8152b7149396d1c0bf3d319b6fde" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawTrendingSection</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; &amp;bounds)</argsstring>
+        <name>drawTrendingSection</name>
+        <qualifiedname>UserDiscoveryComponent::drawTrendingSection</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt; &amp;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="125" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="243" bodyend="250"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a4c755e45c01f099f409c7866156c955f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawFeaturedSection</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; &amp;bounds)</argsstring>
+        <name>drawFeaturedSection</name>
+        <qualifiedname>UserDiscoveryComponent::drawFeaturedSection</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt; &amp;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="126" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="252" bodyend="258"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a313759595f3adaed41861f4a28480294" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawSuggestedSection</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; &amp;bounds)</argsstring>
+        <name>drawSuggestedSection</name>
+        <qualifiedname>UserDiscoveryComponent::drawSuggestedSection</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt; &amp;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="127" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="260" bodyend="266"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a1685c9be91314da995c053c3401d3b01" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawGenreChips</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; &amp;bounds)</argsstring>
+        <name>drawGenreChips</name>
+        <qualifiedname>UserDiscoveryComponent::drawGenreChips</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt; &amp;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="128" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="268" bodyend="308"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a9f1c936241c21dcb881c7b4857576185" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawSearchResults</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawSearchResults</name>
+        <qualifiedname>UserDiscoveryComponent::drawSearchResults</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="129" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="310" bodyend="319"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a1ab25d0328047706b0be11a2c7fbad0b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawLoadingState</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawLoadingState</name>
+        <qualifiedname>UserDiscoveryComponent::drawLoadingState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="130" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="321" bodyend="326"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a7277e952ad3ef25aa7109c74bff1ee02" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::drawEmptyState</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;message)</argsstring>
+        <name>drawEmptyState</name>
+        <qualifiedname>UserDiscoveryComponent::drawEmptyState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>message</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="131" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="328" bodyend="336"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ae3a81a135f76ed0e31a5385d2df54496" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserDiscoveryComponent::getBackButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getBackButtonBounds</name>
+        <qualifiedname>UserDiscoveryComponent::getBackButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="135" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="339" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ae30b806c4cf67c1cac4d443dce1c38d7" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserDiscoveryComponent::getSearchBoxBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getSearchBoxBounds</name>
+        <qualifiedname>UserDiscoveryComponent::getSearchBoxBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="136" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="344" bodyend="349"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a2a483e02dc7f610bccf5268afeb33c6c" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserDiscoveryComponent::getClearSearchBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getClearSearchBounds</name>
+        <qualifiedname>UserDiscoveryComponent::getClearSearchBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="137" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="351" bodyend="355"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a4567dbb78bc2614f794e4b2c47ecef12" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserDiscoveryComponent::getContentBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getContentBounds</name>
+        <qualifiedname>UserDiscoveryComponent::getContentBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="138" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="357" bodyend="362"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1aaadbf03e470906dabb53ea722a9aa74f" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserDiscoveryComponent::getRecentSearchBounds</definition>
+        <argsstring>(int index) const</argsstring>
+        <name>getRecentSearchBounds</name>
+        <qualifiedname>UserDiscoveryComponent::getRecentSearchBounds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="139" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="1024" bodyend="1029"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1aa6d607c6a9447d1772e03faefa932a93" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UserDiscoveryComponent::getGenreChipBounds</definition>
+        <argsstring>(int index) const</argsstring>
+        <name>getGenreChipBounds</name>
+        <qualifiedname>UserDiscoveryComponent::getGenreChipBounds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="140" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="1031" bodyend="1063"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a60db388e8ad87bc30cf559c017b28a82" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::performSearch</definition>
+        <argsstring>(const juce::String &amp;query)</argsstring>
+        <name>performSearch</name>
+        <qualifiedname>UserDiscoveryComponent::performSearch</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>query</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="144" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="508" bodyend="555"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1af254c35c4987085972f331d732c03388" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::fetchTrendingUsers</definition>
+        <argsstring>()</argsstring>
+        <name>fetchTrendingUsers</name>
+        <qualifiedname>UserDiscoveryComponent::fetchTrendingUsers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="145" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="557" bodyend="596"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a9c8277ec2ddc73e9a0468b3c48ba7ca6" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::fetchFeaturedProducers</definition>
+        <argsstring>()</argsstring>
+        <name>fetchFeaturedProducers</name>
+        <qualifiedname>UserDiscoveryComponent::fetchFeaturedProducers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="146" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="598" bodyend="636"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ae9846a742cddb7f96148806af98cd491" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::fetchSuggestedUsers</definition>
+        <argsstring>()</argsstring>
+        <name>fetchSuggestedUsers</name>
+        <qualifiedname>UserDiscoveryComponent::fetchSuggestedUsers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="147" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="638" bodyend="676"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1aaf24a291f07eb11afd75354335d661d6" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::fetchAvailableGenres</definition>
+        <argsstring>()</argsstring>
+        <name>fetchAvailableGenres</name>
+        <qualifiedname>UserDiscoveryComponent::fetchAvailableGenres</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="148" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="678" bodyend="715"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1aab13ab1920f6156d5a389f16fbc70f25" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::fetchUsersByGenre</definition>
+        <argsstring>(const juce::String &amp;genre)</argsstring>
+        <name>fetchUsersByGenre</name>
+        <qualifiedname>UserDiscoveryComponent::fetchUsersByGenre</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>genre</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="149" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="717" bodyend="753"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a4fa3bcf3891ec418a445efd316b286f2" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::handleFollowToggle</definition>
+        <argsstring>(const DiscoveredUser &amp;user, bool willFollow)</argsstring>
+        <name>handleFollowToggle</name>
+        <qualifiedname>UserDiscoveryComponent::handleFollowToggle</qualifiedname>
+        <param>
+          <type>const <ref refid="structDiscoveredUser" kindref="compound">DiscoveredUser</ref> &amp;</type>
+          <declname>user</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>willFollow</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="150" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="755" bodyend="776"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a7e15664ee2be48cca08b1afb5f33b60f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::loadRecentSearches</definition>
+        <argsstring>()</argsstring>
+        <name>loadRecentSearches</name>
+        <qualifiedname>UserDiscoveryComponent::loadRecentSearches</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="154" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="779" bodyend="791"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a65358513c501ee624bf00b9541d53f4e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::saveRecentSearches</definition>
+        <argsstring>()</argsstring>
+        <name>saveRecentSearches</name>
+        <qualifiedname>UserDiscoveryComponent::saveRecentSearches</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="155" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="793" bodyend="798"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a2f0ec33268bd3ae57c233919574e09f2" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::addToRecentSearches</definition>
+        <argsstring>(const juce::String &amp;query)</argsstring>
+        <name>addToRecentSearches</name>
+        <qualifiedname>UserDiscoveryComponent::addToRecentSearches</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>query</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="156" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="800" bodyend="813"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a06c54f943ce5fcf1d8827ace596d0229" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::clearRecentSearches</definition>
+        <argsstring>()</argsstring>
+        <name>clearRecentSearches</name>
+        <qualifiedname>UserDiscoveryComponent::clearRecentSearches</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="157" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="815" bodyend="820"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a6cd61d337e4a574f60dca33ed6c86e69" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::rebuildUserCards</definition>
+        <argsstring>()</argsstring>
+        <name>rebuildUserCards</name>
+        <qualifiedname>UserDiscoveryComponent::rebuildUserCards</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="161" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="830" bodyend="896"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a9543ee198315b54acc5b2814661f577f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::updateUserCardPositions</definition>
+        <argsstring>()</argsstring>
+        <name>updateUserCardPositions</name>
+        <qualifiedname>UserDiscoveryComponent::updateUserCardPositions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="162" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="898" bodyend="973"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1ac06c2460875134c087ffe178f385358f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::setupUserCardCallbacks</definition>
+        <argsstring>(UserCardComponent *card)</argsstring>
+        <name>setupUserCardCallbacks</name>
+        <qualifiedname>UserDiscoveryComponent::setupUserCardCallbacks</qualifiedname>
+        <param>
+          <type><ref refid="classUserCardComponent" kindref="compound">UserCardComponent</ref> *</type>
+          <declname>card</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="163" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="975" bodyend="985"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a4bc0c9019d442f54faf5df901bb2df5d" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int UserDiscoveryComponent::calculateContentHeight</definition>
+        <argsstring>() const</argsstring>
+        <name>calculateContentHeight</name>
+        <qualifiedname>UserDiscoveryComponent::calculateContentHeight</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="167" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="987" bodyend="1012"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a5d46abe3e741dee09f48d3793771f51a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDiscoveryComponent::updateScrollBounds</definition>
+        <argsstring>()</argsstring>
+        <name>updateScrollBounds</name>
+        <qualifiedname>UserDiscoveryComponent::updateScrollBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="168" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="1014" bodyend="1022"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDiscoveryComponent_1a2ab8b13958f7e110c832fd0c966cc0e0" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::File</type>
+        <definition>juce::File UserDiscoveryComponent::getRecentSearchesFile</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecentSearchesFile</name>
+        <qualifiedname>UserDiscoveryComponent::getRecentSearchesFile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="169" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.cpp" bodystart="822" bodyend="827"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classUserDiscoveryComponent" kindref="compound">UserDiscoveryComponent</ref> provides user search and discovery functionality. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Search bar for finding users by username</para>
+</listitem><listitem><para>Recent searches (persisted locally)</para>
+</listitem><listitem><para>Trending users section</para>
+</listitem><listitem><para>Featured producers section</para>
+</listitem><listitem><para>Suggested users based on interests</para>
+</listitem><listitem><para>Genre filtering </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>UserDiscoveryComponent</label>
+        <link refid="classUserDiscoveryComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+      <node id="3">
+        <label>juce::TextEditor::Listener</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>UserDiscoveryComponent</label>
+        <link refid="classUserDiscoveryComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+      <node id="3">
+        <label>juce::TextEditor::Listener</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" line="20" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/UserDiscoveryComponent.h" bodystart="23" bodyend="189"/>
+    <listofallmembers>
+      <member refid="classUserDiscoveryComponent_1a2f0ec33268bd3ae57c233919574e09f2" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>addToRecentSearches</name></member>
+      <member refid="classUserDiscoveryComponent_1a728edca2cceda70ea5cd466f58db65c1" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>availableGenres</name></member>
+      <member refid="classUserDiscoveryComponent_1a4bc0c9019d442f54faf5df901bb2df5d" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>calculateContentHeight</name></member>
+      <member refid="classUserDiscoveryComponent_1a06c54f943ce5fcf1d8827ace596d0229" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>clearRecentSearches</name></member>
+      <member refid="classUserDiscoveryComponent_1ad39c7dce6e4125adffe628fdf7086a36" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>currentSearchQuery</name></member>
+      <member refid="classUserDiscoveryComponent_1a752f8c548b2a77bd1cc0c78737ff9430" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>currentUserId</name></member>
+      <member refid="classUserDiscoveryComponent_1a7f19bc999ac15ac538846f1f7c47b2b0" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>currentViewMode</name></member>
+      <member refid="classUserDiscoveryComponent_1a7277e952ad3ef25aa7109c74bff1ee02" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawEmptyState</name></member>
+      <member refid="classUserDiscoveryComponent_1a4c755e45c01f099f409c7866156c955f" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawFeaturedSection</name></member>
+      <member refid="classUserDiscoveryComponent_1a1685c9be91314da995c053c3401d3b01" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawGenreChips</name></member>
+      <member refid="classUserDiscoveryComponent_1a21539ff8bd9a7a07c0d08d35d353d45b" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawHeader</name></member>
+      <member refid="classUserDiscoveryComponent_1a1ab25d0328047706b0be11a2c7fbad0b" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawLoadingState</name></member>
+      <member refid="classUserDiscoveryComponent_1a7fe74016e01cebc5338eada29699d5d6" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawRecentSearches</name></member>
+      <member refid="classUserDiscoveryComponent_1a9d8e686ec47cc0efb92b37a07ee10332" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawSearchBar</name></member>
+      <member refid="classUserDiscoveryComponent_1a9f1c936241c21dcb881c7b4857576185" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawSearchResults</name></member>
+      <member refid="classUserDiscoveryComponent_1ae24904950c843750da5aa4cb9b98ca19" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawSectionHeader</name></member>
+      <member refid="classUserDiscoveryComponent_1a313759595f3adaed41861f4a28480294" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawSuggestedSection</name></member>
+      <member refid="classUserDiscoveryComponent_1a613d8152b7149396d1c0bf3d319b6fde" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>drawTrendingSection</name></member>
+      <member refid="classUserDiscoveryComponent_1a94d6a4c7f749fa48ad795e55e2d31d24" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>errorMessage</name></member>
+      <member refid="classUserDiscoveryComponent_1a3205c3632ff9fe5ca7dc204b7bb9d53e" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>featuredProducers</name></member>
+      <member refid="classUserDiscoveryComponent_1aaf24a291f07eb11afd75354335d661d6" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>fetchAvailableGenres</name></member>
+      <member refid="classUserDiscoveryComponent_1a9c8277ec2ddc73e9a0468b3c48ba7ca6" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>fetchFeaturedProducers</name></member>
+      <member refid="classUserDiscoveryComponent_1ae9846a742cddb7f96148806af98cd491" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>fetchSuggestedUsers</name></member>
+      <member refid="classUserDiscoveryComponent_1af254c35c4987085972f331d732c03388" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>fetchTrendingUsers</name></member>
+      <member refid="classUserDiscoveryComponent_1aab13ab1920f6156d5a389f16fbc70f25" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>fetchUsersByGenre</name></member>
+      <member refid="classUserDiscoveryComponent_1a22a9251a43ccc9be6f8b1f46a21e364d" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>GENRE_CHIP_HEIGHT</name></member>
+      <member refid="classUserDiscoveryComponent_1a6c2ac92edcc9518cef33f4f1ee833a6e" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>genreUsers</name></member>
+      <member refid="classUserDiscoveryComponent_1ae3a81a135f76ed0e31a5385d2df54496" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getBackButtonBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1a2a483e02dc7f610bccf5268afeb33c6c" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getClearSearchBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1a4567dbb78bc2614f794e4b2c47ecef12" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getContentBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1aa6d607c6a9447d1772e03faefa932a93" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getGenreChipBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1aaadbf03e470906dabb53ea722a9aa74f" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getRecentSearchBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1a2ab8b13958f7e110c832fd0c966cc0e0" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getRecentSearchesFile</name></member>
+      <member refid="classUserDiscoveryComponent_1ae30b806c4cf67c1cac4d443dce1c38d7" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>getSearchBoxBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1a4fa3bcf3891ec418a445efd316b286f2" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>handleFollowToggle</name></member>
+      <member refid="classUserDiscoveryComponent_1afac90039aa40c23ccf2e3be62b13a368" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classUserDiscoveryComponent_1ae6a8a5065344624f17b4f5055cefa3f5" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>isFeaturedLoading</name></member>
+      <member refid="classUserDiscoveryComponent_1ac1b2bf3f4c9b8709421dfd76fade21e8" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>isGenresLoading</name></member>
+      <member refid="classUserDiscoveryComponent_1afe703893acfa442226738bc0d782280e" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>isSearching</name></member>
+      <member refid="classUserDiscoveryComponent_1af19efd6ad2405397101b94c44c7e397e" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>isSuggestedLoading</name></member>
+      <member refid="classUserDiscoveryComponent_1ae9b84d8f887a817dc0c4be703e1bc475" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>isTrendingLoading</name></member>
+      <member refid="classUserDiscoveryComponent_1a735cc32ecaa6c270fd650dd644a1268f" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>loadDiscoveryData</name></member>
+      <member refid="classUserDiscoveryComponent_1a7e15664ee2be48cca08b1afb5f33b60f" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>loadRecentSearches</name></member>
+      <member refid="classUserDiscoveryComponent_1a85c078c75d1aa05e49b685fa46eb291e" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>MAX_RECENT_SEARCHES</name></member>
+      <member refid="classUserDiscoveryComponent_1a6db2b1442c5257a27d84cd2b52dea2f2" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>mouseUp</name></member>
+      <member refid="classUserDiscoveryComponent_1af8ba104773277cebb0bc66e86c19642a" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>networkClient</name></member>
+      <member refid="classUserDiscoveryComponent_1aed6ef2f0bd1ec7a5569f2c1b81de8a01" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>onBackPressed</name></member>
+      <member refid="classUserDiscoveryComponent_1a9432801822080d657c4790c120c9bff1" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>onUserSelected</name></member>
+      <member refid="classUserDiscoveryComponent_1a832e8c0164c0ddd17f9f32db51f3fbb9" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>PADDING</name></member>
+      <member refid="classUserDiscoveryComponent_1ac80d1071569e7e6a62683ee073b131e8" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>paint</name></member>
+      <member refid="classUserDiscoveryComponent_1a60db388e8ad87bc30cf559c017b28a82" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>performSearch</name></member>
+      <member refid="classUserDiscoveryComponent_1a6cd61d337e4a574f60dca33ed6c86e69" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>rebuildUserCards</name></member>
+      <member refid="classUserDiscoveryComponent_1ade6b83c66ff956d758d3a48dfcb4c046" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>recentSearches</name></member>
+      <member refid="classUserDiscoveryComponent_1a4cfffc335ab777839d8e0c02119c7af3" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>refresh</name></member>
+      <member refid="classUserDiscoveryComponent_1aba0f809703ad019c5c2bb0753f3d36ed" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>resized</name></member>
+      <member refid="classUserDiscoveryComponent_1a65358513c501ee624bf00b9541d53f4e" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>saveRecentSearches</name></member>
+      <member refid="classUserDiscoveryComponent_1a828e1537cfa2c643d5f4d66031a082fa" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>scrollBar</name></member>
+      <member refid="classUserDiscoveryComponent_1a2af03586cd17002aefdfa440b3cf4293" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>scrollBarMoved</name></member>
+      <member refid="classUserDiscoveryComponent_1a4de316b588d3cef391be91e5d1b638d7" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>scrollOffset</name></member>
+      <member refid="classUserDiscoveryComponent_1a878e54b59e2e47adf2c00da18b1bedcc" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>SEARCH_BAR_HEIGHT</name></member>
+      <member refid="classUserDiscoveryComponent_1ad806bd17b48b98232c229f1a0e6b752a" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>searchBox</name></member>
+      <member refid="classUserDiscoveryComponent_1a7458a1ee9b70a19a03ba2ad75cb3a413" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>searchResults</name></member>
+      <member refid="classUserDiscoveryComponent_1a37efaedd50bcf831dc2d7cb54d10d341" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>SECTION_HEADER_HEIGHT</name></member>
+      <member refid="classUserDiscoveryComponent_1a680948108f59ae440fc838ac7bd1cade" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>selectedGenre</name></member>
+      <member refid="classUserDiscoveryComponent_1a394e00c578512fcc35616255f8370bb7" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>setCurrentUserId</name></member>
+      <member refid="classUserDiscoveryComponent_1a9a0b31119112d43b03954c75bf785cbc" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>setNetworkClient</name></member>
+      <member refid="classUserDiscoveryComponent_1ac06c2460875134c087ffe178f385358f" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>setupUserCardCallbacks</name></member>
+      <member refid="classUserDiscoveryComponent_1ab8eb8369db8b04bc23956f4fabdf5f33" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>suggestedUsers</name></member>
+      <member refid="classUserDiscoveryComponent_1ade394dc219f3aa6c6e044ed67899649c" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>textEditorReturnKeyPressed</name></member>
+      <member refid="classUserDiscoveryComponent_1a82baed4ee0c9bd0305e7fe946cc2ca3c" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>textEditorTextChanged</name></member>
+      <member refid="classUserDiscoveryComponent_1a59ecfd24eb11db8d0783c521c5e57f52" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>trendingUsers</name></member>
+      <member refid="classUserDiscoveryComponent_1a5d46abe3e741dee09f48d3793771f51a" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>updateScrollBounds</name></member>
+      <member refid="classUserDiscoveryComponent_1a9543ee198315b54acc5b2814661f577f" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>updateUserCardPositions</name></member>
+      <member refid="classUserDiscoveryComponent_1aedf5379a0a6856b88034190051a781ca" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>USER_CARD_HEIGHT</name></member>
+      <member refid="classUserDiscoveryComponent_1a3d1374a44c5b2eccc571d19d7ce113dd" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>userCards</name></member>
+      <member refid="classUserDiscoveryComponent_1afe46a9a5830144f4865aebfe511e4455" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>UserDiscoveryComponent</name></member>
+      <member refid="classUserDiscoveryComponent_1a1dde7ec06b68aa925181ba2f578005e5" prot="private" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>ViewMode</name></member>
+      <member refid="classUserDiscoveryComponent_1a329a47d75cbfa14dd655d7d31d22ddaf" prot="public" virt="non-virtual"><scope>UserDiscoveryComponent</scope><name>~UserDiscoveryComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

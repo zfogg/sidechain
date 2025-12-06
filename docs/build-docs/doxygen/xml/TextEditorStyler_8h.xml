@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="TextEditorStyler_8h" kind="file" language="C++">
+    <compoundname>TextEditorStyler.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includedby refid="Auth_8cpp" local="yes">Auth.cpp</includedby>
+    <includedby refid="Comment_8cpp" local="yes">Comment.cpp</includedby>
+    <includedby refid="TextEditorStyler_8cpp" local="yes">TextEditorStyler.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>TextEditorStyler.h</label>
+        <link refid="TextEditorStyler_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>Auth.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="3">
+        <label>Comment.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="4">
+        <label>TextEditorStyler.cpp</label>
+        <link refid=""/>
+      </node>
+      <node id="1">
+        <label>TextEditorStyler.h</label>
+        <link refid="TextEditorStyler_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespaceTextEditorStyler">TextEditorStyler</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceTextEditorStyler" kindref="compound">TextEditorStyler</ref></highlight></codeline>
+<codeline lineno="18"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Standard<sp/>Styling</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" kindref="member">style</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a976510e34a4cec89270563f75a00a0db" kindref="member">stylePassword</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;Password&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1ad7be60cc5fb43315425e6cc8d351802d" kindref="member">styleMultiline</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Specialized<sp/>Styling</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1af40effb74fede831b6aa42a906b367e6" kindref="member">styleEmail</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;Email&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a77dcff5b3aa4c536f7481d47554df1dc" kindref="member">styleUsername</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;Username&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1afa3b319add8c8cdff72927d16f6bec6e" kindref="member">styleNumeric</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a1ab7bb3d1fe056cab3de81c758d1d52c" kindref="member">styleUrl</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;https://&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a43bf2a8fff1984b04071dbe440e7e763" kindref="member">setInputRestrictions</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>maxLength,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>allowedChars<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a8f9872b1bb2c0b2b7bc71e3a9024a529" kindref="member">setPlaceholder</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>placeholder);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a40a5db7e2fe05428add7b00c1f436e4c" kindref="member">styleReadOnly</ref>(juce::TextEditor&amp;<sp/>editor);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1aca3ad310be3bc6d007508df7a207c31f" kindref="member">setErrorState</ref>(juce::TextEditor&amp;<sp/>editor,<sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>hasError);</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="namespaceTextEditorStyler_1a4063be4dd9bc17bf86ac9f7c7cd13af9" kindref="member">clearErrorState</ref>(juce::TextEditor&amp;<sp/>editor);</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>TextEditorStyler</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h"/>
+  </compounddef>
+</doxygen>

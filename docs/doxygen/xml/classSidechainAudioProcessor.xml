@@ -1,0 +1,879 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classSidechainAudioProcessor" kind="class" language="C++" prot="public">
+    <compoundname>SidechainAudioProcessor</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::AudioProcessor</basecompoundref>
+    <includes refid="PluginProcessor_8h" local="no">PluginProcessor.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1aca157477dbd8b01daae906a4daa67207" prot="private" static="no" mutable="no">
+        <type><ref refid="classAudioCapture" kindref="compound">AudioCapture</ref></type>
+        <definition>AudioCapture SidechainAudioProcessor::audioCapture</definition>
+        <argsstring></argsstring>
+        <name>audioCapture</name>
+        <qualifiedname>SidechainAudioProcessor::audioCapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="105" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1ad00fc820b31fb8007eadafd4cfe2c4ce" prot="private" static="no" mutable="no">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt;float&gt; SidechainAudioProcessor::lastRecordedAudio</definition>
+        <argsstring></argsstring>
+        <name>lastRecordedAudio</name>
+        <qualifiedname>SidechainAudioProcessor::lastRecordedAudio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="106" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1ac9a6aa2b106577c32396b3a0adf6128c" prot="private" static="no" mutable="no">
+        <type><ref refid="classMIDICapture" kindref="compound">MIDICapture</ref></type>
+        <definition>MIDICapture SidechainAudioProcessor::midiCapture</definition>
+        <argsstring></argsstring>
+        <name>midiCapture</name>
+        <qualifiedname>SidechainAudioProcessor::midiCapture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="109" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1aed03c84495d676d231b330878b330320" prot="private" static="no" mutable="no">
+        <type><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref></type>
+        <definition>HttpAudioPlayer SidechainAudioProcessor::audioPlayer</definition>
+        <argsstring></argsstring>
+        <name>audioPlayer</name>
+        <qualifiedname>SidechainAudioProcessor::audioPlayer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="112" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1a65e780fa39a1ba495cd5a4e49d14a0ba" prot="private" static="no" mutable="no">
+        <type><ref refid="classBufferAudioPlayer" kindref="compound">BufferAudioPlayer</ref> *</type>
+        <definition>BufferAudioPlayer* SidechainAudioProcessor::bufferAudioPlayer</definition>
+        <argsstring></argsstring>
+        <name>bufferAudioPlayer</name>
+        <qualifiedname>SidechainAudioProcessor::bufferAudioPlayer</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="115" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1ad07ae4b770bb242d1eaec9f8b6eb695c" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double SidechainAudioProcessor::currentSampleRate</definition>
+        <argsstring></argsstring>
+        <name>currentSampleRate</name>
+        <qualifiedname>SidechainAudioProcessor::currentSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="118" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1a2a65e50f4a303cc2d2aa2d6ea90ed27c" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int SidechainAudioProcessor::currentBlockSize</definition>
+        <argsstring></argsstring>
+        <name>currentBlockSize</name>
+        <qualifiedname>SidechainAudioProcessor::currentBlockSize</qualifiedname>
+        <initializer>= 512</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="119" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1a0da6a0fc555c8e9d3b43b0daf8439dff" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::authenticated</definition>
+        <argsstring></argsstring>
+        <name>authenticated</name>
+        <qualifiedname>SidechainAudioProcessor::authenticated</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="122" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1a4bcc4b3df830ff2ad654dfe7596bf83d" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; double &gt;</type>
+        <definition>std::atomic&lt;double&gt; SidechainAudioProcessor::currentBPM</definition>
+        <argsstring></argsstring>
+        <name>currentBPM</name>
+        <qualifiedname>SidechainAudioProcessor::currentBPM</qualifiedname>
+        <initializer>{ 0.0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="125" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="125" bodyend="125"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1a781c0ff14f21de0c05b0263acdb1e70b" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; SidechainAudioProcessor::bpmAvailable</definition>
+        <argsstring></argsstring>
+        <name>bpmAvailable</name>
+        <qualifiedname>SidechainAudioProcessor::bpmAvailable</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="126" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="126" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="variable" id="classSidechainAudioProcessor_1af3de139690fc739638d31e2411e8aaef" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; SidechainAudioProcessor::dawTransportPlaying</definition>
+        <argsstring></argsstring>
+        <name>dawTransportPlaying</name>
+        <qualifiedname>SidechainAudioProcessor::dawTransportPlaying</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="127" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="127" bodyend="127"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classSidechainAudioProcessor_1ac13616012d683f92574ad52f7c07bca9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>SidechainAudioProcessor::SidechainAudioProcessor</definition>
+        <argsstring>()</argsstring>
+        <name>SidechainAudioProcessor</name>
+        <qualifiedname>SidechainAudioProcessor::SidechainAudioProcessor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="21" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="7" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a5e56db9c2a2a0693b80c81f8b231818a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>SidechainAudioProcessor::~SidechainAudioProcessor</definition>
+        <argsstring>() override</argsstring>
+        <name>~SidechainAudioProcessor</name>
+        <qualifiedname>SidechainAudioProcessor::~SidechainAudioProcessor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="22" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="23" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1afb739b0df42f40faacacb3f2e7c2f15c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::prepareToPlay</definition>
+        <argsstring>(double sampleRate, int samplesPerBlock) override</argsstring>
+        <name>prepareToPlay</name>
+        <qualifiedname>SidechainAudioProcessor::prepareToPlay</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>samplesPerBlock</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="25" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="91" bodyend="109"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a09bcc444c806b3a3895d2dbf476b6cd2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::releaseResources</definition>
+        <argsstring>() override</argsstring>
+        <name>releaseResources</name>
+        <qualifiedname>SidechainAudioProcessor::releaseResources</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="26" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="111" bodyend="115"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a64a8604255454ddad64458a8e5a1349e" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::isBusesLayoutSupported</definition>
+        <argsstring>(const BusesLayout &amp;layouts) const override</argsstring>
+        <name>isBusesLayoutSupported</name>
+        <qualifiedname>SidechainAudioProcessor::isBusesLayoutSupported</qualifiedname>
+        <param>
+          <type>const BusesLayout &amp;</type>
+          <declname>layouts</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="29" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="118" bodyend="138"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a19610c04c76985c798d246ae9e082719" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::processBlock</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;, juce::MidiBuffer &amp;) override</argsstring>
+        <name>processBlock</name>
+        <qualifiedname>SidechainAudioProcessor::processBlock</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <defname>buffer</defname>
+        </param>
+        <param>
+          <type>juce::MidiBuffer &amp;</type>
+          <defname>midiMessages</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="32" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="141" bodyend="204"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a4ef93f613ba64a4e8c27def6bb866ce4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::AudioProcessorEditor *</type>
+        <definition>juce::AudioProcessorEditor * SidechainAudioProcessor::createEditor</definition>
+        <argsstring>() override</argsstring>
+        <name>createEditor</name>
+        <qualifiedname>SidechainAudioProcessor::createEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="35" column="32" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="212" bodyend="216"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1aa93cd6bba16173710f3e39fe365a4b64" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::hasEditor</definition>
+        <argsstring>() const override</argsstring>
+        <name>hasEditor</name>
+        <qualifiedname>SidechainAudioProcessor::hasEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="36" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="207" bodyend="210"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a0503e16eaab6b928a1defb178ab80e0d" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>const juce::String</type>
+        <definition>const juce::String SidechainAudioProcessor::getName</definition>
+        <argsstring>() const override</argsstring>
+        <name>getName</name>
+        <qualifiedname>SidechainAudioProcessor::getName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="39" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="29" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a668c71757236d6d8a17463e56fccfdb8" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::acceptsMidi</definition>
+        <argsstring>() const override</argsstring>
+        <name>acceptsMidi</name>
+        <qualifiedname>SidechainAudioProcessor::acceptsMidi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="41" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="34" bodyend="41"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a7e0923408ee46eb5727d6bb8abe44358" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::producesMidi</definition>
+        <argsstring>() const override</argsstring>
+        <name>producesMidi</name>
+        <qualifiedname>SidechainAudioProcessor::producesMidi</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="43" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a9f0528aa38da1f6aaa62d6f3ee741823" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::isMidiEffect</definition>
+        <argsstring>() const override</argsstring>
+        <name>isMidiEffect</name>
+        <qualifiedname>SidechainAudioProcessor::isMidiEffect</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="43" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="52" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1abfc222b6faf8f01b88ff5c19944ce9e3" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double SidechainAudioProcessor::getTailLengthSeconds</definition>
+        <argsstring>() const override</argsstring>
+        <name>getTailLengthSeconds</name>
+        <qualifiedname>SidechainAudioProcessor::getTailLengthSeconds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="44" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="61" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1ad4298b48c62ff7b613f91be0bb2f6104" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int SidechainAudioProcessor::getNumPrograms</definition>
+        <argsstring>() override</argsstring>
+        <name>getNumPrograms</name>
+        <qualifiedname>SidechainAudioProcessor::getNumPrograms</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="47" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="66" bodyend="70"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1aafeb56ff9cb139363a56d4484fc3d162" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int SidechainAudioProcessor::getCurrentProgram</definition>
+        <argsstring>() override</argsstring>
+        <name>getCurrentProgram</name>
+        <qualifiedname>SidechainAudioProcessor::getCurrentProgram</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="48" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="72" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a5d0e115070dc8a3e96ac425bc2a9e479" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::setCurrentProgram</definition>
+        <argsstring>(int index) override</argsstring>
+        <name>setCurrentProgram</name>
+        <qualifiedname>SidechainAudioProcessor::setCurrentProgram</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="77" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a8f2bd117f6aa77563cc970f419df0fec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const juce::String</type>
+        <definition>const juce::String SidechainAudioProcessor::getProgramName</definition>
+        <argsstring>(int index) override</argsstring>
+        <name>getProgramName</name>
+        <qualifiedname>SidechainAudioProcessor::getProgramName</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="50" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="81" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a7830d51d2f62793d6b84949106f6b260" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::changeProgramName</definition>
+        <argsstring>(int index, const juce::String &amp;newName) override</argsstring>
+        <name>changeProgramName</name>
+        <qualifiedname>SidechainAudioProcessor::changeProgramName</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>newName</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="51" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="86" bodyend="88"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1ada8800942fe488dab326d42dbdf0029f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::getStateInformation</definition>
+        <argsstring>(juce::MemoryBlock &amp;destData) override</argsstring>
+        <name>getStateInformation</name>
+        <qualifiedname>SidechainAudioProcessor::getStateInformation</qualifiedname>
+        <param>
+          <type>juce::MemoryBlock &amp;</type>
+          <declname>destData</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="54" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="219" bodyend="228"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a411c1b43a15d2833c3c98adf2e721518" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::setStateInformation</definition>
+        <argsstring>(const void *data, int sizeInBytes) override</argsstring>
+        <name>setStateInformation</name>
+        <qualifiedname>SidechainAudioProcessor::setStateInformation</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>sizeInBytes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="55" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="230" bodyend="251"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a34820d1ee6118a9e21552b613b860eaf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::isAuthenticated</definition>
+        <argsstring>() const</argsstring>
+        <name>isAuthenticated</name>
+        <qualifiedname>SidechainAudioProcessor::isAuthenticated</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="59" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="59" bodyend="59"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1aa62a0cdb728d8e31a37a6182a9c790ef" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::setAuthenticated</definition>
+        <argsstring>(bool auth)</argsstring>
+        <name>setAuthenticated</name>
+        <qualifiedname>SidechainAudioProcessor::setAuthenticated</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>auth</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="60" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="60" bodyend="60"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a3768ca8dc732003c44e9845d39a284b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::startRecording</definition>
+        <argsstring>()</argsstring>
+        <name>startRecording</name>
+        <qualifiedname>SidechainAudioProcessor::startRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="64" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="256" bodyend="266"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a97c450c2d9d412d9f2cd9b0e277a6977" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::stopRecording</definition>
+        <argsstring>()</argsstring>
+        <name>stopRecording</name>
+        <qualifiedname>SidechainAudioProcessor::stopRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="65" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="268" bodyend="280"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a760275f4698dbb159407817dd91085e9" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::isRecording</definition>
+        <argsstring>() const</argsstring>
+        <name>isRecording</name>
+        <qualifiedname>SidechainAudioProcessor::isRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="66" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="66" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1aa37417015874301f457bae1e19c4a07a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt; float &gt; SidechainAudioProcessor::getRecordedAudio</definition>
+        <argsstring>()</argsstring>
+        <name>getRecordedAudio</name>
+        <qualifiedname>SidechainAudioProcessor::getRecordedAudio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="69" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.cpp" bodystart="282" bodyend="285"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a9d6a3f0065588d8e91f76093051d7fa0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>juce::var</type>
+        <definition>juce::var SidechainAudioProcessor::getCapturedMIDIData</definition>
+        <argsstring>() const</argsstring>
+        <name>getCapturedMIDIData</name>
+        <qualifiedname>SidechainAudioProcessor::getCapturedMIDIData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="72" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="72" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a671d09cbedb64a91ce4fc6bbab0ab047" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::hasMIDIData</definition>
+        <argsstring>() const</argsstring>
+        <name>hasMIDIData</name>
+        <qualifiedname>SidechainAudioProcessor::hasMIDIData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="73" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="73" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a82c9daebc58599c923e2b80afd6a5409" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double SidechainAudioProcessor::getRecordingLengthSeconds</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordingLengthSeconds</name>
+        <qualifiedname>SidechainAudioProcessor::getRecordingLengthSeconds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="76" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="76" bodyend="76"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1ad8eea24ba71962e8ee946a384f9b76cc" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double SidechainAudioProcessor::getMaxRecordingLengthSeconds</definition>
+        <argsstring>() const</argsstring>
+        <name>getMaxRecordingLengthSeconds</name>
+        <qualifiedname>SidechainAudioProcessor::getMaxRecordingLengthSeconds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="77" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="77" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a6d5210e07d1ebe116aa872b5c0f1f54f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>float SidechainAudioProcessor::getRecordingProgress</definition>
+        <argsstring>() const</argsstring>
+        <name>getRecordingProgress</name>
+        <qualifiedname>SidechainAudioProcessor::getRecordingProgress</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="78" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="78" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1aee61e61e894c8f501b79b388c76c33f6" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::isRecordingBufferFull</definition>
+        <argsstring>() const</argsstring>
+        <name>isRecordingBufferFull</name>
+        <qualifiedname>SidechainAudioProcessor::isRecordingBufferFull</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="79" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="79" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a3b94f4c02b52b1c153e4d9d10b2dea74" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>float SidechainAudioProcessor::getPeakLevel</definition>
+        <argsstring>(int channel) const</argsstring>
+        <name>getPeakLevel</name>
+        <qualifiedname>SidechainAudioProcessor::getPeakLevel</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="82" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="82" bodyend="82"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a7420e182665bb4bba01ba13f3286bf0f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>float SidechainAudioProcessor::getRMSLevel</definition>
+        <argsstring>(int channel) const</argsstring>
+        <name>getRMSLevel</name>
+        <qualifiedname>SidechainAudioProcessor::getRMSLevel</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="83" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="83" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a3ed3dfc9894b55f89e1e37737a363f1e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double SidechainAudioProcessor::getCurrentSampleRate</definition>
+        <argsstring>() const</argsstring>
+        <name>getCurrentSampleRate</name>
+        <qualifiedname>SidechainAudioProcessor::getCurrentSampleRate</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="86" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="86" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1aa9bdc17b7b1107aac3043f24266785c2" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>double</type>
+        <definition>double SidechainAudioProcessor::getCurrentBPM</definition>
+        <argsstring>() const</argsstring>
+        <name>getCurrentBPM</name>
+        <qualifiedname>SidechainAudioProcessor::getCurrentBPM</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="91" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="91" bodyend="91"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a4dca8d8c7b978e0bd8c991bd4b429561" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool SidechainAudioProcessor::isBPMAvailable</definition>
+        <argsstring>() const</argsstring>
+        <name>isBPMAvailable</name>
+        <qualifiedname>SidechainAudioProcessor::isBPMAvailable</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="92" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="92" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1ae8d727aca7e32b428bde14254fe3472a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref> &amp;</type>
+        <definition>HttpAudioPlayer &amp; SidechainAudioProcessor::getAudioPlayer</definition>
+        <argsstring>()</argsstring>
+        <name>getAudioPlayer</name>
+        <qualifiedname>SidechainAudioProcessor::getAudioPlayer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="96" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="96" bodyend="96"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a9fa37166d519b3b6bfc7c42a23c681bd" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref> &amp;</type>
+        <definition>const HttpAudioPlayer &amp; SidechainAudioProcessor::getAudioPlayer</definition>
+        <argsstring>() const</argsstring>
+        <name>getAudioPlayer</name>
+        <qualifiedname>SidechainAudioProcessor::getAudioPlayer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="97" column="27" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="97" bodyend="97"/>
+      </memberdef>
+      <memberdef kind="function" id="classSidechainAudioProcessor_1a774062863f1300d60a83412c02b17688" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void SidechainAudioProcessor::setBufferAudioPlayer</definition>
+        <argsstring>(BufferAudioPlayer *player)</argsstring>
+        <name>setBufferAudioPlayer</name>
+        <qualifiedname>SidechainAudioProcessor::setBufferAudioPlayer</qualifiedname>
+        <param>
+          <type><ref refid="classBufferAudioPlayer" kindref="compound">BufferAudioPlayer</ref> *</type>
+          <declname>player</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="100" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="100" bodyend="100"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Sidechain Audio Plugin Processor. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Main plugin class that handles audio processing and recording. The processor captures audio from the DAW for sharing on the social feed. </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>SidechainAudioProcessor</label>
+        <link refid="classSidechainAudioProcessor"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::AudioProcessor</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>SidechainAudioProcessor</label>
+        <link refid="classSidechainAudioProcessor"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::AudioProcessor</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" line="17" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h" bodystart="18" bodyend="130"/>
+    <listofallmembers>
+      <member refid="classSidechainAudioProcessor_1a668c71757236d6d8a17463e56fccfdb8" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>acceptsMidi</name></member>
+      <member refid="classSidechainAudioProcessor_1aca157477dbd8b01daae906a4daa67207" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>audioCapture</name></member>
+      <member refid="classSidechainAudioProcessor_1aed03c84495d676d231b330878b330320" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>audioPlayer</name></member>
+      <member refid="classSidechainAudioProcessor_1a0da6a0fc555c8e9d3b43b0daf8439dff" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>authenticated</name></member>
+      <member refid="classSidechainAudioProcessor_1a781c0ff14f21de0c05b0263acdb1e70b" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>bpmAvailable</name></member>
+      <member refid="classSidechainAudioProcessor_1a65e780fa39a1ba495cd5a4e49d14a0ba" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>bufferAudioPlayer</name></member>
+      <member refid="classSidechainAudioProcessor_1a7830d51d2f62793d6b84949106f6b260" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>changeProgramName</name></member>
+      <member refid="classSidechainAudioProcessor_1a4ef93f613ba64a4e8c27def6bb866ce4" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>createEditor</name></member>
+      <member refid="classSidechainAudioProcessor_1a2a65e50f4a303cc2d2aa2d6ea90ed27c" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>currentBlockSize</name></member>
+      <member refid="classSidechainAudioProcessor_1a4bcc4b3df830ff2ad654dfe7596bf83d" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>currentBPM</name></member>
+      <member refid="classSidechainAudioProcessor_1ad07ae4b770bb242d1eaec9f8b6eb695c" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>currentSampleRate</name></member>
+      <member refid="classSidechainAudioProcessor_1af3de139690fc739638d31e2411e8aaef" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>dawTransportPlaying</name></member>
+      <member refid="classSidechainAudioProcessor_1ae8d727aca7e32b428bde14254fe3472a" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getAudioPlayer</name></member>
+      <member refid="classSidechainAudioProcessor_1a9fa37166d519b3b6bfc7c42a23c681bd" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getAudioPlayer</name></member>
+      <member refid="classSidechainAudioProcessor_1a9d6a3f0065588d8e91f76093051d7fa0" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getCapturedMIDIData</name></member>
+      <member refid="classSidechainAudioProcessor_1aa9bdc17b7b1107aac3043f24266785c2" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getCurrentBPM</name></member>
+      <member refid="classSidechainAudioProcessor_1aafeb56ff9cb139363a56d4484fc3d162" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getCurrentProgram</name></member>
+      <member refid="classSidechainAudioProcessor_1a3ed3dfc9894b55f89e1e37737a363f1e" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getCurrentSampleRate</name></member>
+      <member refid="classSidechainAudioProcessor_1ad8eea24ba71962e8ee946a384f9b76cc" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getMaxRecordingLengthSeconds</name></member>
+      <member refid="classSidechainAudioProcessor_1a0503e16eaab6b928a1defb178ab80e0d" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getName</name></member>
+      <member refid="classSidechainAudioProcessor_1ad4298b48c62ff7b613f91be0bb2f6104" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getNumPrograms</name></member>
+      <member refid="classSidechainAudioProcessor_1a3b94f4c02b52b1c153e4d9d10b2dea74" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getPeakLevel</name></member>
+      <member refid="classSidechainAudioProcessor_1a8f2bd117f6aa77563cc970f419df0fec" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getProgramName</name></member>
+      <member refid="classSidechainAudioProcessor_1aa37417015874301f457bae1e19c4a07a" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getRecordedAudio</name></member>
+      <member refid="classSidechainAudioProcessor_1a82c9daebc58599c923e2b80afd6a5409" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getRecordingLengthSeconds</name></member>
+      <member refid="classSidechainAudioProcessor_1a6d5210e07d1ebe116aa872b5c0f1f54f" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getRecordingProgress</name></member>
+      <member refid="classSidechainAudioProcessor_1a7420e182665bb4bba01ba13f3286bf0f" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getRMSLevel</name></member>
+      <member refid="classSidechainAudioProcessor_1ada8800942fe488dab326d42dbdf0029f" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getStateInformation</name></member>
+      <member refid="classSidechainAudioProcessor_1abfc222b6faf8f01b88ff5c19944ce9e3" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>getTailLengthSeconds</name></member>
+      <member refid="classSidechainAudioProcessor_1aa93cd6bba16173710f3e39fe365a4b64" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>hasEditor</name></member>
+      <member refid="classSidechainAudioProcessor_1a671d09cbedb64a91ce4fc6bbab0ab047" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>hasMIDIData</name></member>
+      <member refid="classSidechainAudioProcessor_1a34820d1ee6118a9e21552b613b860eaf" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>isAuthenticated</name></member>
+      <member refid="classSidechainAudioProcessor_1a4dca8d8c7b978e0bd8c991bd4b429561" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>isBPMAvailable</name></member>
+      <member refid="classSidechainAudioProcessor_1a64a8604255454ddad64458a8e5a1349e" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>isBusesLayoutSupported</name></member>
+      <member refid="classSidechainAudioProcessor_1a9f0528aa38da1f6aaa62d6f3ee741823" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>isMidiEffect</name></member>
+      <member refid="classSidechainAudioProcessor_1a760275f4698dbb159407817dd91085e9" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>isRecording</name></member>
+      <member refid="classSidechainAudioProcessor_1aee61e61e894c8f501b79b388c76c33f6" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>isRecordingBufferFull</name></member>
+      <member refid="classSidechainAudioProcessor_1ad00fc820b31fb8007eadafd4cfe2c4ce" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>lastRecordedAudio</name></member>
+      <member refid="classSidechainAudioProcessor_1ac9a6aa2b106577c32396b3a0adf6128c" prot="private" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>midiCapture</name></member>
+      <member refid="classSidechainAudioProcessor_1afb739b0df42f40faacacb3f2e7c2f15c" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>prepareToPlay</name></member>
+      <member refid="classSidechainAudioProcessor_1a19610c04c76985c798d246ae9e082719" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>processBlock</name></member>
+      <member refid="classSidechainAudioProcessor_1a7e0923408ee46eb5727d6bb8abe44358" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>producesMidi</name></member>
+      <member refid="classSidechainAudioProcessor_1a09bcc444c806b3a3895d2dbf476b6cd2" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>releaseResources</name></member>
+      <member refid="classSidechainAudioProcessor_1aa62a0cdb728d8e31a37a6182a9c790ef" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>setAuthenticated</name></member>
+      <member refid="classSidechainAudioProcessor_1a774062863f1300d60a83412c02b17688" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>setBufferAudioPlayer</name></member>
+      <member refid="classSidechainAudioProcessor_1a5d0e115070dc8a3e96ac425bc2a9e479" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>setCurrentProgram</name></member>
+      <member refid="classSidechainAudioProcessor_1a411c1b43a15d2833c3c98adf2e721518" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>setStateInformation</name></member>
+      <member refid="classSidechainAudioProcessor_1ac13616012d683f92574ad52f7c07bca9" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>SidechainAudioProcessor</name></member>
+      <member refid="classSidechainAudioProcessor_1a3768ca8dc732003c44e9845d39a284b2" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>startRecording</name></member>
+      <member refid="classSidechainAudioProcessor_1a97c450c2d9d412d9f2cd9b0e277a6977" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>stopRecording</name></member>
+      <member refid="classSidechainAudioProcessor_1a5e56db9c2a2a0693b80c81f8b231818a" prot="public" virt="non-virtual"><scope>SidechainAudioProcessor</scope><name>~SidechainAudioProcessor</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,11 +1,18 @@
 #include "Story.h"
 
 //==============================================================================
+/** Check if story is expired (past expiration time)
+ * Stories expire 24 hours after creation.
+ * @return true if story has expired, false otherwise
+ */
 bool Story::isExpired() const
 {
     return juce::Time::getCurrentTime() > expiresAt;
 }
 
+/** Get remaining time until expiration as human-readable string
+ * @return Formatted string (e.g., "5h left", "30m left", "< 1m left", or "Expired")
+ */
 juce::String Story::getExpirationText() const
 {
     auto now = juce::Time::getCurrentTime();
@@ -27,6 +34,9 @@ juce::String Story::getExpirationText() const
     return juce::String(hours) + "h left";
 }
 
+/** Check if story has MIDI data for visualization
+ * @return true if MIDI data is present and contains events, false otherwise
+ */
 bool Story::hasMIDI() const
 {
     if (!midiData.isObject())
@@ -42,6 +52,11 @@ bool Story::hasMIDI() const
     return false;
 }
 
+/** Parse Story from JSON response
+ * Creates a Story instance from backend API JSON data.
+ * @param json JSON var containing story data from API
+ * @return Story instance parsed from JSON
+ */
 Story Story::fromJSON(const juce::var& json)
 {
     Story story;
@@ -96,6 +111,11 @@ Story Story::fromJSON(const juce::var& json)
     return story;
 }
 
+/** Convert Story to JSON for upload
+ * Serializes story data to JSON format for API upload.
+ * Only includes fields needed for story creation.
+ * @return JSON var representation of this story
+ */
 juce::var Story::toJSON() const
 {
     auto* obj = new juce::DynamicObject();

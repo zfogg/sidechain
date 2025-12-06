@@ -1,0 +1,661 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="NetworkClient_8h" kind="file" language="C++">
+    <compoundname>NetworkClient.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes refid="Constants_8h" local="yes">../util/Constants.h</includes>
+    <includes refid="Result_8h" local="yes">../util/Result.h</includes>
+    <includes local="no">functional</includes>
+    <includes local="no">atomic</includes>
+    <includes local="no">memory</includes>
+    <includes local="no">map</includes>
+    <includedby refid="AuthComponent_8cpp" local="yes">AuthComponent.cpp</includedby>
+    <includedby refid="CommentComponent_8cpp" local="yes">CommentComponent.cpp</includedby>
+    <includedby refid="ConnectionIndicator_8h" local="yes">ConnectionIndicator.h</includedby>
+    <includedby refid="EditProfileComponent_8cpp" local="yes">EditProfileComponent.cpp</includedby>
+    <includedby refid="FeedDataManager_8h" local="yes">FeedDataManager.h</includedby>
+    <includedby refid="FollowersListComponent_8cpp" local="yes">FollowersListComponent.cpp</includedby>
+    <includedby refid="HeaderComponent_8cpp" local="yes">HeaderComponent.cpp</includedby>
+    <includedby refid="HttpAudioPlayer_8cpp" local="yes">HttpAudioPlayer.cpp</includedby>
+    <includedby refid="ImageCache_8cpp" local="yes">ImageCache.cpp</includedby>
+    <includedby refid="MessageThreadComponent_8cpp" local="yes">MessageThreadComponent.cpp</includedby>
+    <includedby refid="MessagesListComponent_8cpp" local="yes">MessagesListComponent.cpp</includedby>
+    <includedby refid="NetworkClient_8cpp" local="yes">NetworkClient.cpp</includedby>
+    <includedby refid="PluginEditor_8h" local="yes">PluginEditor.h</includedby>
+    <includedby refid="PostsFeedComponent_8cpp" local="yes">PostsFeedComponent.cpp</includedby>
+    <includedby refid="ProfileComponent_8cpp" local="yes">ProfileComponent.cpp</includedby>
+    <includedby refid="SearchComponent_8cpp" local="yes">SearchComponent.cpp</includedby>
+    <includedby refid="StoriesFeedComponent_8cpp" local="yes">StoriesFeedComponent.cpp</includedby>
+    <includedby refid="StoryViewerComponent_8cpp" local="yes">StoryViewerComponent.cpp</includedby>
+    <includedby refid="StreamChatClient_8h" local="yes">StreamChatClient.h</includedby>
+    <includedby refid="UploadComponent_8h" local="yes">UploadComponent.h</includedby>
+    <includedby refid="UserDataStore_8cpp" local="yes">UserDataStore.cpp</includedby>
+    <includedby refid="UserDiscoveryComponent_8cpp" local="yes">UserDiscoveryComponent.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>NetworkClient.h</label>
+        <link refid="NetworkClient_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>../util/Constants.h</label>
+        <link refid="Constants_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>Log.h</label>
+        <link refid="Log_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>../util/Result.h</label>
+        <link refid="Result_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+      <node id="9">
+        <label>atomic</label>
+      </node>
+      <node id="4">
+        <label>cstddef</label>
+      </node>
+      <node id="6">
+        <label>functional</label>
+      </node>
+      <node id="11">
+        <label>map</label>
+      </node>
+      <node id="10">
+        <label>memory</label>
+      </node>
+      <node id="7">
+        <label>optional</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="6">
+        <label>PluginEditor.cpp</label>
+        <link refid="PluginEditor_8cpp"/>
+      </node>
+      <node id="5">
+        <label>PluginEditor.h</label>
+        <link refid="PluginEditor_8h"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>PluginProcessor.cpp</label>
+        <link refid="PluginProcessor_8cpp"/>
+      </node>
+      <node id="15">
+        <label>HttpAudioPlayer.cpp</label>
+        <link refid="HttpAudioPlayer_8cpp"/>
+      </node>
+      <node id="10">
+        <label>FeedDataManager.cpp</label>
+        <link refid="FeedDataManager_8cpp"/>
+      </node>
+      <node id="9">
+        <label>FeedDataManager.h</label>
+        <link refid="FeedDataManager_8h"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>NetworkClient.cpp</label>
+        <link refid="NetworkClient_8cpp"/>
+      </node>
+      <node id="1">
+        <label>NetworkClient.h</label>
+        <link refid="NetworkClient_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+      </node>
+      <node id="27">
+        <label>StreamChatClient.cpp</label>
+        <link refid="StreamChatClient_8cpp"/>
+      </node>
+      <node id="24">
+        <label>StreamChatClient.h</label>
+        <link refid="StreamChatClient_8h"/>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+      </node>
+      <node id="30">
+        <label>UserDataStore.cpp</label>
+        <link refid="UserDataStore_8cpp"/>
+      </node>
+      <node id="2">
+        <label>AuthComponent.cpp</label>
+        <link refid="AuthComponent_8cpp"/>
+      </node>
+      <node id="4">
+        <label>ConnectionIndicator.h</label>
+        <link refid="ConnectionIndicator_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>HeaderComponent.cpp</label>
+        <link refid="HeaderComponent_8cpp"/>
+      </node>
+      <node id="3">
+        <label>CommentComponent.cpp</label>
+        <link refid="CommentComponent_8cpp"/>
+      </node>
+      <node id="12">
+        <label>PostsFeedComponent.cpp</label>
+        <link refid="PostsFeedComponent_8cpp"/>
+      </node>
+      <node id="11">
+        <label>PostsFeedComponent.h</label>
+        <link refid="PostsFeedComponent_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>MessageThreadComponent.cpp</label>
+        <link refid="MessageThreadComponent_8cpp"/>
+      </node>
+      <node id="25">
+        <label>MessageThreadComponent.h</label>
+        <link refid="MessageThreadComponent_8h"/>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="18">
+        <label>MessagesListComponent.cpp</label>
+        <link refid="MessagesListComponent_8cpp"/>
+      </node>
+      <node id="26">
+        <label>MessagesListComponent.h</label>
+        <link refid="MessagesListComponent_8h"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>EditProfileComponent.cpp</label>
+        <link refid="EditProfileComponent_8cpp"/>
+      </node>
+      <node id="20">
+        <label>ProfileComponent.cpp</label>
+        <link refid="ProfileComponent_8cpp"/>
+      </node>
+      <node id="29">
+        <label>UploadComponent.cpp</label>
+        <link refid="UploadComponent_8cpp"/>
+      </node>
+      <node id="28">
+        <label>UploadComponent.h</label>
+        <link refid="UploadComponent_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>SearchComponent.cpp</label>
+        <link refid="SearchComponent_8cpp"/>
+      </node>
+      <node id="13">
+        <label>FollowersListComponent.cpp</label>
+        <link refid="FollowersListComponent_8cpp"/>
+      </node>
+      <node id="31">
+        <label>UserDiscoveryComponent.cpp</label>
+        <link refid="UserDiscoveryComponent_8cpp"/>
+      </node>
+      <node id="22">
+        <label>StoriesFeedComponent.cpp</label>
+        <link refid="StoriesFeedComponent_8cpp"/>
+      </node>
+      <node id="23">
+        <label>StoryViewerComponent.cpp</label>
+        <link refid="StoryViewerComponent_8cpp"/>
+      </node>
+      <node id="16">
+        <label>ImageCache.cpp</label>
+        <link refid="ImageCache_8cpp"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classNetworkClient" prot="public">NetworkClient</innerclass>
+    <innerclass refid="structNetworkClient_1_1Config" prot="public">NetworkClient::Config</innerclass>
+    <innerclass refid="structNetworkClient_1_1AudioUploadMetadata" prot="public">NetworkClient::AudioUploadMetadata</innerclass>
+    <innerclass refid="structNetworkClient_1_1NotificationResult" prot="public">NetworkClient::NotificationResult</innerclass>
+    <innerclass refid="structNetworkClient_1_1RequestResult" prot="public">NetworkClient::RequestResult</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="Constants_8h" kindref="compound">../util/Constants.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="Result_8h" kindref="compound">../util/Result.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;functional&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;atomic&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;memory&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;map&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24" refid="classNetworkClient" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a7d157b16a1ecdabfbd0476dcad41d3ea" kindref="member">NetworkClient</ref></highlight></codeline>
+<codeline lineno="25"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Connection<sp/>status<sp/>enum<sp/>for<sp/>UI<sp/>indicator</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">enum<sp/>class</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">ConnectionStatus</ref></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="31" refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94eaef70e46fd3bbc21e3e1f0b6815e750c0" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94eaef70e46fd3bbc21e3e1f0b6815e750c0" kindref="member">Disconnected</ref>,<sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Red<sp/>-<sp/>no<sp/>connection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32" refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94eae321c53b354930ba96f0243e652df458" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94eae321c53b354930ba96f0243e652df458" kindref="member">Connecting</ref>,<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Yellow<sp/>-<sp/>attempting<sp/>connection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33" refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94ea2ec0d16e4ca169baedb9b2d50ec5c6d7" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94ea2ec0d16e4ca169baedb9b2d50ec5c6d7" kindref="member">Connected</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Green<sp/>-<sp/>successfully<sp/>connected</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Configuration<sp/>for<sp/>different<sp/>environments</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38" refid="structNetworkClient_1_1Config" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structNetworkClient_1_1Config" kindref="compound">Config</ref></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="40" refid="structNetworkClient_1_1Config_1a31defaf1aebace5362970eba74bb04e7" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNetworkClient_1_1Config_1a31defaf1aebace5362970eba74bb04e7" kindref="member">baseUrl</ref>;</highlight></codeline>
+<codeline lineno="41" refid="structNetworkClient_1_1Config_1a743dfa073f7cbed9d5f1c167dce8ea13" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1Config_1a743dfa073f7cbed9d5f1c167dce8ea13" kindref="member">timeoutMs</ref><sp/>=<sp/><ref refid="namespaceConstants_1_1Api_1afae980920a9820be1db0e8e4ddbb16d3" kindref="member">Constants::Api::DEFAULT_TIMEOUT_MS</ref>;</highlight></codeline>
+<codeline lineno="42" refid="structNetworkClient_1_1Config_1a7e81704fe2dd5e01e0b4a0599fc7e27f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1Config_1a7e81704fe2dd5e01e0b4a0599fc7e27f" kindref="member">maxRetries</ref><sp/>=<sp/><ref refid="namespaceConstants_1_1Api_1ad1ebc4869c336f250a0bfc6b2b14f4ba" kindref="member">Constants::Api::MAX_RETRIES</ref>;</highlight></codeline>
+<codeline lineno="43" refid="structNetworkClient_1_1Config_1a91e80e9a094883f8d1f46ba021b846dd" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1Config_1a91e80e9a094883f8d1f46ba021b846dd" kindref="member">retryDelayMs</ref><sp/>=<sp/><ref refid="namespaceConstants_1_1Api_1ae7bf4646ae54f96ee74219802c906a65" kindref="member">Constants::Api::RETRY_DELAY_BASE_MS</ref>;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45" refid="structNetworkClient_1_1Config_1af5b9beb4aec4145b918e6467a8582974" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1Config" kindref="compound">Config</ref><sp/><ref refid="structNetworkClient_1_1Config_1af5b9beb4aec4145b918e6467a8582974" kindref="member">development</ref>()</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>{<sp/><ref refid="namespaceConstants_1_1Endpoints_1a7b65063764ff71578971c84a3d11211f" kindref="member">Constants::Endpoints::DEV_BASE_URL</ref>,<sp/><ref refid="namespaceConstants_1_1Api_1afae980920a9820be1db0e8e4ddbb16d3" kindref="member">Constants::Api::DEFAULT_TIMEOUT_MS</ref>,<sp/><ref refid="namespaceConstants_1_1Api_1ad1ebc4869c336f250a0bfc6b2b14f4ba" kindref="member">Constants::Api::MAX_RETRIES</ref>,<sp/><ref refid="namespaceConstants_1_1Api_1ae7bf4646ae54f96ee74219802c906a65" kindref="member">Constants::Api::RETRY_DELAY_BASE_MS</ref><sp/>};</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="structNetworkClient_1_1Config_1ab56c2eaf67d61716d6bf05b5b23231b3" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1Config" kindref="compound">Config</ref><sp/><ref refid="structNetworkClient_1_1Config_1ab56c2eaf67d61716d6bf05b5b23231b3" kindref="member">production</ref>()</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>{<sp/><ref refid="namespaceConstants_1_1Endpoints_1a7a47ce60d331ea76ebd4b2e5f3bb822d" kindref="member">Constants::Endpoints::PROD_BASE_URL</ref>,<sp/><ref refid="namespaceConstants_1_1Api_1afae980920a9820be1db0e8e4ddbb16d3" kindref="member">Constants::Api::DEFAULT_TIMEOUT_MS</ref>,<sp/><ref refid="namespaceConstants_1_1Api_1ad1ebc4869c336f250a0bfc6b2b14f4ba" kindref="member">Constants::Api::MAX_RETRIES</ref>,<sp/><ref refid="namespaceConstants_1_1Api_1ae7bf4646ae54f96ee74219802c906a65" kindref="member">Constants::Api::RETRY_DELAY_BASE_MS</ref><sp/>*<sp/>2<sp/>};</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1a7d157b16a1ecdabfbd0476dcad41d3ea" kindref="member">NetworkClient</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>Config&amp;<sp/>config<sp/>=<sp/><ref refid="structNetworkClient_1_1Config_1af5b9beb4aec4145b918e6467a8582974" kindref="member">Config::development</ref>());</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ab82fb597494c89b4a7ba9fd0d4b659c4" kindref="member">~NetworkClient</ref>();</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callback<sp/>types<sp/>-<sp/>using<sp/>Outcome&lt;T&gt;<sp/>for<sp/>type-safe<sp/>error<sp/>handling</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60" refid="classNetworkClient_1ae35c69acc875f68a89dbe96c9b6d2111" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1ae35c69acc875f68a89dbe96c9b6d2111" kindref="member">DeviceRegistrationCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::String&gt;</ref>)&gt;;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Authentication<sp/>callback:<sp/>returns<sp/>Outcome<sp/>with<sp/>pair&lt;token,<sp/>userId&gt;<sp/>or<sp/>error</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62" refid="classNetworkClient_1a87ba2eea19fe44be1a0371c9686821ba" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a87ba2eea19fe44be1a0371c9686821ba" kindref="member">AuthenticationCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome</ref>&lt;std::pair&lt;juce::String,<sp/>juce::String&gt;&gt;)&gt;;</highlight></codeline>
+<codeline lineno="63" refid="classNetworkClient_1ad8dc4cb5abec5a876e5d6a6e6f5f7abd" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1ad8dc4cb5abec5a876e5d6a6e6f5f7abd" kindref="member">UploadCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::String&gt;</ref><sp/>audioUrl)&gt;;</highlight></codeline>
+<codeline lineno="64" refid="classNetworkClient_1ad7dede7c30721ff1d6cea3852a6f6a25" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1ad7dede7c30721ff1d6cea3852a6f6a25" kindref="member">FeedCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::var&gt;</ref><sp/>feedData)&gt;;</highlight></codeline>
+<codeline lineno="65" refid="classNetworkClient_1a4b4d977d5bcb29448df01bfd5560179e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a4b4d977d5bcb29448df01bfd5560179e" kindref="member">ProfilePictureCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::String&gt;</ref><sp/>pictureUrl)&gt;;</highlight></codeline>
+<codeline lineno="66" refid="classNetworkClient_1ad19b2a15faaa2b822cb2465bce47919a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1ad19b2a15faaa2b822cb2465bce47919a" kindref="member">ConnectionStatusCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">ConnectionStatus</ref><sp/>status)&gt;;</highlight></codeline>
+<codeline lineno="67" refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::var&gt;</ref><sp/>response)&gt;;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Metadata<sp/>for<sp/>audio<sp/>uploads</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="structNetworkClient_1_1AudioUploadMetadata" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structNetworkClient_1_1AudioUploadMetadata" kindref="compound">AudioUploadMetadata</ref></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="73" refid="structNetworkClient_1_1AudioUploadMetadata_1a84697df5b329784653a7251d396e64bb" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1a84697df5b329784653a7251d396e64bb" kindref="member">title</ref>;</highlight></codeline>
+<codeline lineno="74" refid="structNetworkClient_1_1AudioUploadMetadata_1af6a0767b34b068745de7709c40770f02" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1af6a0767b34b068745de7709c40770f02" kindref="member">bpm</ref><sp/>=<sp/>0.0;</highlight></codeline>
+<codeline lineno="75" refid="structNetworkClient_1_1AudioUploadMetadata_1a9fe74c4865893718e4f6d53883aba8b5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1a9fe74c4865893718e4f6d53883aba8b5" kindref="member">key</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>e.g.,<sp/>&quot;C&quot;,<sp/>&quot;Am&quot;,<sp/>&quot;F#m&quot;<sp/>or<sp/>empty</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76" refid="structNetworkClient_1_1AudioUploadMetadata_1ad0140dd3a01204bf7d686d2ab752f742" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1ad0140dd3a01204bf7d686d2ab752f742" kindref="member">genre</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>e.g.,<sp/>&quot;Electronic&quot;,<sp/>&quot;Hip-Hop&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Auto-populated<sp/>fields</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79" refid="structNetworkClient_1_1AudioUploadMetadata_1af1404bec2ddb2b3a71c23218e01025b5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1af1404bec2ddb2b3a71c23218e01025b5" kindref="member">durationSeconds</ref><sp/>=<sp/>0.0;</highlight></codeline>
+<codeline lineno="80" refid="structNetworkClient_1_1AudioUploadMetadata_1a1ec0ce48c7d07bc38b52f2895fab49ba" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1a1ec0ce48c7d07bc38b52f2895fab49ba" kindref="member">sampleRate</ref><sp/>=<sp/>44100;</highlight></codeline>
+<codeline lineno="81" refid="structNetworkClient_1_1AudioUploadMetadata_1a174f38289b72adb9e52d4339871c1585" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata_1a174f38289b72adb9e52d4339871c1585" kindref="member">numChannels</ref><sp/>=<sp/>2;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Authentication<sp/>(simplified<sp/>-<sp/>no<sp/>device<sp/>claiming)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a6f301bd241d32a28739c02d988b78ae7" kindref="member">registerAccount</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>email,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>username,</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>password,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>displayName,</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1a87ba2eea19fe44be1a0371c9686821ba" kindref="member">AuthenticationCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1abbf913d9fafc7cfd78ff4d759f304f6e" kindref="member">loginAccount</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>email,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>password,</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1a87ba2eea19fe44be1a0371c9686821ba" kindref="member">AuthenticationCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1af506fdca862ca8423369857b33d6751f" kindref="member">setAuthenticationCallback</ref>(<ref refid="classNetworkClient_1a87ba2eea19fe44be1a0371c9686821ba" kindref="member">AuthenticationCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a747d67ad31a97879ada36efefd581fae" kindref="member">uploadAudio</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>recordingId,</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::AudioBuffer&lt;float&gt;&amp;<sp/>audioBuffer,</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>sampleRate,</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ad8dc4cb5abec5a876e5d6a6e6f5f7abd" kindref="member">UploadCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Upload<sp/>audio<sp/>with<sp/>full<sp/>metadata<sp/>(title,<sp/>BPM,<sp/>key,<sp/>genre)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1aa2215224f93f44ff8d9fd91b449c19ca" kindref="member">uploadAudioWithMetadata</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::AudioBuffer&lt;float&gt;&amp;<sp/>audioBuffer,</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>sampleRate,</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1AudioUploadMetadata" kindref="compound">AudioUploadMetadata</ref>&amp;<sp/>metadata,</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ad8dc4cb5abec5a876e5d6a6e6f5f7abd" kindref="member">UploadCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Social<sp/>feed<sp/>operations<sp/>(all<sp/>use<sp/>enriched<sp/>endpoints<sp/>with<sp/>reaction<sp/>data<sp/>from<sp/>getstream.io)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ae4beab94226294fe7004e34cf322506a" kindref="member">getGlobalFeed</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1ad7dede7c30721ff1d6cea3852a6f6a25" kindref="member">FeedCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ab0a8bb33191df820b4b3b1065fe526e0" kindref="member">getTimelineFeed</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1ad7dede7c30721ff1d6cea3852a6f6a25" kindref="member">FeedCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1aa5efc79ae35bd428d043297573757a5d" kindref="member">getTrendingFeed</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1ad7dede7c30721ff1d6cea3852a6f6a25" kindref="member">FeedCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a6389483a873ff0950d0d3744279d90cb" kindref="member">likePost</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>activityId,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>emoji<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1afc7b084319bb8b79147fda0c84bbec09" kindref="member">unlikePost</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>activityId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ad3f5d5c568d8fcbe2cbcaa65c40eb079" kindref="member">followUser</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ac5fe9be0941d8afc7194b6201d1a81d4" kindref="member">unfollowUser</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Profile<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a3931df4070855015b86e1eead9686ecd" kindref="member">uploadProfilePicture</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::File&amp;<sp/>imageFile,<sp/><ref refid="classNetworkClient_1a4b4d977d5bcb29448df01bfd5560179e" kindref="member">ProfilePictureCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ab7a9d542335b5f6f212c95fa434a1392" kindref="member">changeUsername</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>newUsername,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a5271a165a697a53e4ec1d8fddf6755d1" kindref="member">getFollowers</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a925535fa527dd481abf602f9b6336d2b" kindref="member">getFollowing</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Comment<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121" refid="classNetworkClient_1a83065cc933bd48a3ce5916909ea75f1f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a83065cc933bd48a3ce5916909ea75f1f" kindref="member">CommentCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::var&gt;</ref><sp/>comment)&gt;;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>CommentsListCallback:<sp/>returns<sp/>Outcome<sp/>with<sp/>pair&lt;comments,<sp/>totalCount&gt;<sp/>or<sp/>error</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123" refid="classNetworkClient_1a93a27a7daf5a06f28441bffa5c942493" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a93a27a7daf5a06f28441bffa5c942493" kindref="member">CommentsListCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome</ref>&lt;std::pair&lt;juce::var,<sp/>int&gt;&gt;)&gt;;</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ae909bb6935194f286cf9c41042ab2d04" kindref="member">getComments</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>postId,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a93a27a7daf5a06f28441bffa5c942493" kindref="member">CommentsListCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a6d99855f4e7647684861b8e7fef775cd" kindref="member">createComment</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>postId,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>content,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>parentId<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">,<sp/><ref refid="classNetworkClient_1a83065cc933bd48a3ce5916909ea75f1f" kindref="member">CommentCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a8b7765352c6ca0d782477d6095cbb3fe" kindref="member">getCommentReplies</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>commentId,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a93a27a7daf5a06f28441bffa5c942493" kindref="member">CommentsListCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a9bda63706a2402efb6a19a4bd5749b5c" kindref="member">updateComment</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>commentId,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>content,<sp/><ref refid="classNetworkClient_1a83065cc933bd48a3ce5916909ea75f1f" kindref="member">CommentCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1aea8c3190e62de6798897261d0930f825" kindref="member">deleteComment</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>commentId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ad8a1b84543f1ee1e3da7df935d91b890" kindref="member">likeComment</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>commentId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1abac76f1825d58c9de1a8ebd098370fcb" kindref="member">unlikeComment</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>commentId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Generic<sp/>HTTP<sp/>methods<sp/>for<sp/>custom<sp/>API<sp/>calls</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a824edefa422208bd9b83e61538e1dc8d" kindref="member">get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1aa7eef37bfebd59aad1d4983275dc1b21" kindref="member">post</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ad0a151526754780bb7f14b814f375e44" kindref="member">put</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1aeea54e3dba77cd9f8b48fb996d9b01b4" kindref="member">del</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Absolute<sp/>URL<sp/>methods<sp/>(for<sp/>CDN,<sp/>external<sp/>APIs,<sp/>etc.)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>These<sp/>methods<sp/>accept<sp/>full<sp/>URLs<sp/>instead<sp/>of<sp/>relative<sp/>endpoints</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143" refid="classNetworkClient_1a53c3667c75d699f4b022449e4ff4b841" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a53c3667c75d699f4b022449e4ff4b841" kindref="member">BinaryDataCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::MemoryBlock&gt;</ref><sp/>data)&gt;;</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a707a9542164a325c5c695d5b7f3510db" kindref="member">getAbsolute</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback,</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray());</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a108f366eac8fe904e21190984de14e7a" kindref="member">postAbsolute</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback,</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray());</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ac89796229e7a18b973fa210325c0b563" kindref="member">getBinaryAbsolute</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,<sp/><ref refid="classNetworkClient_1a53c3667c75d699f4b022449e4ff4b841" kindref="member">BinaryDataCallback</ref><sp/>callback,</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray());</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Multipart<sp/>form<sp/>upload<sp/>to<sp/>absolute<sp/>URL<sp/>(for<sp/>external<sp/>APIs<sp/>like<sp/>getstream.io,<sp/>CDN<sp/>uploads,<sp/>etc.)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="153" refid="classNetworkClient_1ada60f607640c1d555169a18f769a3322" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1ada60f607640c1d555169a18f769a3322" kindref="member">MultipartUploadCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;juce::var&gt;</ref><sp/>response)&gt;;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ab8e36edb315bbcff2ba49e7484e99aed" kindref="member">uploadMultipartAbsolute</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>fieldName,</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MemoryBlock&amp;<sp/>fileData,</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>fileName,</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>mimeType,</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;juce::String,<sp/>juce::String&gt;&amp;<sp/>extraFields,</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ada60f607640c1d555169a18f769a3322" kindref="member">MultipartUploadCallback</ref><sp/>callback,</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray());</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Play<sp/>tracking</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a10172cd7068d795591c778d2945ab9fc" kindref="member">trackPlay</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>activityId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a2917579521eae60ccf4e1199ff8ef469" kindref="member">trackListenDuration</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>activityId,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>durationSeconds,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Notification<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>NotificationCallback:<sp/>returns<sp/>Outcome<sp/>with<sp/>struct<sp/>containing<sp/>notifications,<sp/>unseen,<sp/>unread</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="170" refid="structNetworkClient_1_1NotificationResult" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structNetworkClient_1_1NotificationResult" kindref="compound">NotificationResult</ref></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="172" refid="structNetworkClient_1_1NotificationResult_1a320fb1ac005deb8bf07b56e3922fd065" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::var<sp/><ref refid="structNetworkClient_1_1NotificationResult_1a320fb1ac005deb8bf07b56e3922fd065" kindref="member">notifications</ref>;</highlight></codeline>
+<codeline lineno="173" refid="structNetworkClient_1_1NotificationResult_1a0611c8d39a30442beba8f05e2024db0d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1NotificationResult_1a0611c8d39a30442beba8f05e2024db0d" kindref="member">unseen</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="174" refid="structNetworkClient_1_1NotificationResult_1a8b953664af077206d541fccc36e22c57" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1NotificationResult_1a8b953664af077206d541fccc36e22c57" kindref="member">unread</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="176" refid="classNetworkClient_1a74be9d7e18589b1115306317027ae81f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient_1a74be9d7e18589b1115306317027ae81f" kindref="member">NotificationCallback</ref><sp/>=<sp/>std::function&lt;void(<ref refid="classOutcome" kindref="compound">Outcome&lt;NotificationResult&gt;</ref>)&gt;;</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ab7dbe0749c5802614c5dc77be6efeeaa" kindref="member">getNotifications</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a74be9d7e18589b1115306317027ae81f" kindref="member">NotificationCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a9635b430bb733d6addbe13025084cd57" kindref="member">getNotificationCounts</ref>(std::function&lt;</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>unseen,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>unread)&gt;<sp/>callback);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a98d153d486cfa35053f79aff3a9996cd" kindref="member">markNotificationsRead</ref>(<ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1acb759934b8fa6217c1b2aaff4d4c514f" kindref="member">markNotificationsSeen</ref>(<ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>User<sp/>Discovery<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Search<sp/>users<sp/>by<sp/>username<sp/>or<sp/>display<sp/>name</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a563977b780bbb9016929fb18d2d0c7bc" kindref="member">searchUsers</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>query,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>trending<sp/>users<sp/>(most<sp/>active/followed<sp/>recently)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a3dc333d5d0bf1ff8249d38e1574795cb" kindref="member">getTrendingUsers</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"></highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>featured<sp/>producers<sp/>(high<sp/>engagement<sp/>+<sp/>recent<sp/>activity)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a78b6199166ef6fc80edf183e7a0e4a72" kindref="member">getFeaturedProducers</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>suggested<sp/>users<sp/>based<sp/>on<sp/>shared<sp/>interests</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a9ec23c5a2332d14274e25241f05628e3" kindref="member">getSuggestedUsers</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>users<sp/>by<sp/>genre</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ae06929d9cdfb70a43c93ea2feea930a7" kindref="member">getUsersByGenre</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>genre,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>available<sp/>genres<sp/>for<sp/>filtering</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a5f39119e5a7c88faf95157219872beff" kindref="member">getAvailableGenres</ref>(<ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>users<sp/>similar<sp/>to<sp/>a<sp/>specific<sp/>user<sp/>(by<sp/>BPM/key<sp/>preferences)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a23032912f1134e864222b2f88c0e78d5" kindref="member">getSimilarUsers</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>10,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"></highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Search<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Search<sp/>posts<sp/>with<sp/>optional<sp/>filters<sp/>(genre,<sp/>BPM<sp/>range,<sp/>key)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a90a98ecb06a80f73417ba8fb6f63469c" kindref="member">searchPosts</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>query,</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>genre<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bpmMin<sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bpmMax<sp/>=<sp/>200,</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>key<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>20,</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"></highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>search<sp/>suggestions/autocomplete</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a4925762666f7bbdedac0a965f1cd216b" kindref="member">getSearchSuggestions</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>query,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>limit<sp/>=<sp/>5,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"></highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Stories<sp/>operations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>stories<sp/>feed<sp/>(ephemeral<sp/>music<sp/>clips<sp/>from<sp/>followed<sp/>users)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a862ac5bc22a2398011d7b23b5d785c88" kindref="member">getStoriesFeed</ref>(<ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Mark<sp/>a<sp/>story<sp/>as<sp/>viewed</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a938ad7f3742373661b8b8fe0d33febcd" kindref="member">viewStory</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>storyId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>list<sp/>of<sp/>users<sp/>who<sp/>viewed<sp/>a<sp/>story<sp/>(story<sp/>owner<sp/>only)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1abac533cc5ad637ec3f9d0bfe9c2aefce" kindref="member">getStoryViews</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>storyId,<sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"></highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Upload<sp/>a<sp/>new<sp/>story</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ac1cde7d1d1ff96899effbdb426900c96" kindref="member">uploadStory</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::AudioBuffer&lt;float&gt;&amp;<sp/>audioBuffer,</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>sampleRate,</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>midiData,</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bpm<sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>key<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringArray&amp;<sp/>genres<sp/>=<sp/>juce::StringArray(),</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1a99789dc23f1b4094409faeb7bde6063e" kindref="member">ResponseCallback</ref><sp/>callback<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Authentication<sp/>state</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a0d398a0c791367a7b6167ded5f2d7c1f" kindref="member">setAuthToken</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>token);</highlight></codeline>
+<codeline lineno="243" refid="classNetworkClient_1ad98c1b4f5391b72e923a907fefc798b9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ad98c1b4f5391b72e923a907fefc798b9" kindref="member">isAuthenticated</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>!authToken.isEmpty();<sp/>}</highlight></codeline>
+<codeline lineno="244" refid="classNetworkClient_1a1f5bce9040e02cbe70ebfaff711fecea" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/><ref refid="classNetworkClient_1a1f5bce9040e02cbe70ebfaff711fecea" kindref="member">getBaseUrl</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>config.baseUrl;<sp/>}</highlight></codeline>
+<codeline lineno="245" refid="classNetworkClient_1ab4d9ee129c21092da675fe5509bae07f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/><ref refid="classNetworkClient_1ab4d9ee129c21092da675fe5509bae07f" kindref="member">getCurrentUsername</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentUsername;<sp/>}</highlight></codeline>
+<codeline lineno="246" refid="classNetworkClient_1a75ee9a444609f76085737a95c265c783" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/><ref refid="classNetworkClient_1a75ee9a444609f76085737a95c265c783" kindref="member">getCurrentUserId</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentUserId;<sp/>}</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"></highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Connection<sp/>status<sp/>and<sp/>management</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="250" refid="classNetworkClient_1a8caa77043aac1269a47e1d4737b2ea45" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">ConnectionStatus</ref><sp/><ref refid="classNetworkClient_1a8caa77043aac1269a47e1d4737b2ea45" kindref="member">getConnectionStatus</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>connectionStatus.load();<sp/>}</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a0a18885186db8ceb1c6a64adc126aba6" kindref="member">setConnectionStatusCallback</ref>(<ref refid="classNetworkClient_1ad19b2a15faaa2b822cb2465bce47919a" kindref="member">ConnectionStatusCallback</ref><sp/>callback);</highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ad2622a9522d168136bc753b5f370b6a5" kindref="member">checkConnection</ref>();<sp/><sp/></highlight><highlight class="comment">//<sp/>Performs<sp/>a<sp/>health<sp/>check<sp/>request</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="253"><highlight class="normal"></highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Request<sp/>cancellation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1aa4cbe30845ec2b2878a00fc19463c3b3" kindref="member">cancelAllRequests</ref>();</highlight></codeline>
+<codeline lineno="257" refid="classNetworkClient_1a4ab50e080dffff64ddd119b0bc94e147" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1a4ab50e080dffff64ddd119b0bc94e147" kindref="member">isShuttingDown</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>shuttingDown.load();<sp/>}</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"></highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="260"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classNetworkClient_1ac3eff308caec0aa14e942a1da7c6e1b6" kindref="member">setConfig</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>Config&amp;<sp/>newConfig);</highlight></codeline>
+<codeline lineno="262" refid="classNetworkClient_1a36ba99e97fcbf531b97233cf776fcf0a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1Config" kindref="compound">Config</ref>&amp;<sp/><ref refid="classNetworkClient_1a36ba99e97fcbf531b97233cf776fcf0a" kindref="member">getConfig</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>config;<sp/>}</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>HTTP<sp/>helpers<sp/>with<sp/>retry<sp/>logic</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="265" refid="structNetworkClient_1_1RequestResult" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structNetworkClient_1_1RequestResult" kindref="compound">RequestResult</ref></highlight></codeline>
+<codeline lineno="266"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="267" refid="structNetworkClient_1_1RequestResult_1a33110458b35987c44e5c92bbcd56e74d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::var<sp/><ref refid="structNetworkClient_1_1RequestResult_1a33110458b35987c44e5c92bbcd56e74d" kindref="member">data</ref>;</highlight></codeline>
+<codeline lineno="268" refid="structNetworkClient_1_1RequestResult_1a47ac4969c70814ad7725b6ba855d222b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1RequestResult_1a47ac4969c70814ad7725b6ba855d222b" kindref="member">httpStatus</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="269" refid="structNetworkClient_1_1RequestResult_1ada6a922ee9243777c50204a2cacf7f4e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1RequestResult_1ada6a922ee9243777c50204a2cacf7f4e" kindref="member">success</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="270" refid="structNetworkClient_1_1RequestResult_1a5225f24312e3bc8608d7948e928d723d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNetworkClient_1_1RequestResult_1a5225f24312e3bc8608d7948e928d723d" kindref="member">errorMessage</ref>;</highlight></codeline>
+<codeline lineno="271" refid="structNetworkClient_1_1RequestResult_1ab91d291e9571da30c4d5eda414803f21" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::StringPairArray<sp/><ref refid="structNetworkClient_1_1RequestResult_1ab91d291e9571da30c4d5eda414803f21" kindref="member">responseHeaders</ref>;</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"></highlight></codeline>
+<codeline lineno="273"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Helper<sp/>to<sp/>check<sp/>if<sp/>request<sp/>succeeded<sp/>(2xx<sp/>status)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="274" refid="structNetworkClient_1_1RequestResult_1ad1508c8353cb094f2f23efa7283bbc24" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1RequestResult_1ad1508c8353cb094f2f23efa7283bbc24" kindref="member">isSuccess</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="structNetworkClient_1_1RequestResult_1a47ac4969c70814ad7725b6ba855d222b" kindref="member">httpStatus</ref><sp/>&gt;=<sp/>200<sp/>&amp;&amp;<sp/><ref refid="structNetworkClient_1_1RequestResult_1a47ac4969c70814ad7725b6ba855d222b" kindref="member">httpStatus</ref><sp/>&lt;<sp/>300;<sp/>}</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"></highlight></codeline>
+<codeline lineno="276"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Extract<sp/>user-friendly<sp/>error<sp/>message<sp/>from<sp/>response</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structNetworkClient_1_1RequestResult_1a7cc95216eda19654161f1c32e25efe32" kindref="member">getUserFriendlyError</ref>()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"></highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Synchronous<sp/>request<sp/>method<sp/>for<sp/>use<sp/>from<sp/>background<sp/>threads</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>(Use<sp/>sparingly<sp/>-<sp/>prefer<sp/>async<sp/>methods<sp/>for<sp/>UI<sp/>code)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/>RequestResult<sp/><ref refid="classNetworkClient_1a3832da85ef5dd2720ebabccb732ed641" kindref="member">makeAbsoluteRequestSync</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>method<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;GET&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data<sp/>=<sp/>juce::var(),</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>requireAuth<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray(),</highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::MemoryBlock*<sp/>binaryData<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"></highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/><sp/><sp/>Config<sp/>config;</highlight></codeline>
+<codeline lineno="292"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>authToken;</highlight></codeline>
+<codeline lineno="293"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>currentUsername;</highlight></codeline>
+<codeline lineno="294"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>currentUserId;</highlight></codeline>
+<codeline lineno="295"><highlight class="normal"></highlight></codeline>
+<codeline lineno="296"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1a87ba2eea19fe44be1a0371c9686821ba" kindref="member">AuthenticationCallback</ref><sp/>authCallback;</highlight></codeline>
+<codeline lineno="297"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient_1ad19b2a15faaa2b822cb2465bce47919a" kindref="member">ConnectionStatusCallback</ref><sp/>connectionStatusCallback;</highlight></codeline>
+<codeline lineno="298"><highlight class="normal"></highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;ConnectionStatus&gt;<sp/>connectionStatus<sp/>{<sp/><ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94eaef70e46fd3bbc21e3e1f0b6815e750c0" kindref="member">ConnectionStatus::Disconnected</ref><sp/>};</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;bool&gt;<sp/>shuttingDown<sp/>{<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal"><sp/>};</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;int&gt;<sp/>activeRequestCount<sp/>{<sp/>0<sp/>};</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"></highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structNetworkClient_1_1RequestResult" kindref="compound">RequestResult</ref><sp/>makeRequestWithRetry(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>method<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;GET&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data<sp/>=<sp/>juce::var(),</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>requireAuth<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="308"><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structNetworkClient_1_1RequestResult" kindref="compound">RequestResult</ref><sp/>makeAbsoluteRequestWithRetry(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,</highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>method<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;GET&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data<sp/>=<sp/>juce::var(),</highlight></codeline>
+<codeline lineno="312"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>requireAuth<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray(),</highlight></codeline>
+<codeline lineno="314"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::MemoryBlock*<sp/>binaryData<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="315"><highlight class="normal"></highlight></codeline>
+<codeline lineno="316"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::var<sp/>makeRequest(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,</highlight></codeline>
+<codeline lineno="317"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>method<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;GET&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>data<sp/>=<sp/>juce::var(),</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>requireAuth<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="320"><highlight class="normal"></highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Multipart<sp/>form<sp/>data<sp/>upload<sp/>helper</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structNetworkClient_1_1RequestResult" kindref="compound">RequestResult</ref><sp/>uploadMultipartData(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>endpoint,</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>fieldName,</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MemoryBlock&amp;<sp/>fileData,</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>fileName,</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>mimeType,</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;juce::String,<sp/>juce::String&gt;&amp;<sp/>extraFields<sp/>=<sp/>{});</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"></highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Absolute<sp/>URL<sp/>version<sp/>for<sp/>external<sp/>APIs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structNetworkClient_1_1RequestResult" kindref="compound">RequestResult</ref><sp/>uploadMultipartDataAbsolute(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>absoluteUrl,</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>fieldName,</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MemoryBlock&amp;<sp/>fileData,</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>fileName,</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>mimeType,</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::map&lt;juce::String,<sp/>juce::String&gt;&amp;<sp/>extraFields<sp/>=<sp/>{},</highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>customHeaders<sp/>=<sp/>juce::StringPairArray());</highlight></codeline>
+<codeline lineno="337"><highlight class="normal"></highlight></codeline>
+<codeline lineno="338"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>getAuthHeader()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="339"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>handleAuthResponse(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::var&amp;<sp/>response);</highlight></codeline>
+<codeline lineno="340"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>updateConnectionStatus(<ref refid="classNetworkClient_1ace531a37be3a49fc275b06544fa9a94e" kindref="member">ConnectionStatus</ref><sp/>status);</highlight></codeline>
+<codeline lineno="341"><highlight class="normal"></highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Helper<sp/>to<sp/>check<sp/>authentication<sp/>and<sp/>return<sp/>error<sp/>if<sp/>not<sp/>authenticated</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="343"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">template</highlight><highlight class="normal">&lt;</highlight><highlight class="keyword">typename</highlight><highlight class="normal"><sp/>Callback&gt;</highlight></codeline>
+<codeline lineno="344"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>requireAuth(Callback&amp;&amp;<sp/>callback)<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="345"><highlight class="normal"></highlight></codeline>
+<codeline lineno="346"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Helper<sp/>to<sp/>build<sp/>API<sp/>endpoint<sp/>paths<sp/>consistently</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="347"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>juce::String<sp/>buildApiPath(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>path);</highlight></codeline>
+<codeline lineno="348"><highlight class="normal"></highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Parse<sp/>HTTP<sp/>status<sp/>code<sp/>from<sp/>response<sp/>headers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="350"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>parseStatusCode(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::StringPairArray&amp;<sp/>headers);</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"></highlight></codeline>
+<codeline lineno="352"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>encoding</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::MemoryBlock<sp/>encodeAudioToMP3(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::AudioBuffer&lt;float&gt;&amp;<sp/>buffer,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>sampleRate);</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::MemoryBlock<sp/>encodeAudioToWAV(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::AudioBuffer&lt;float&gt;&amp;<sp/>buffer,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>sampleRate);</highlight></codeline>
+<codeline lineno="355"><highlight class="normal"></highlight></codeline>
+<codeline lineno="356"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR<sp/>(<ref refid="classNetworkClient_1a7d157b16a1ecdabfbd0476dcad41d3ea" kindref="member">NetworkClient</ref>)</highlight></codeline>
+<codeline lineno="357"><highlight class="normal">};</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structAggregatedFeedResponse" kind="struct" language="C++" prot="public">
+    <compoundname>AggregatedFeedResponse</compoundname>
+    <includes refid="AggregatedFeedResponse_8h" local="no">AggregatedFeedResponse.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structAggregatedFeedResponse_1a1d91b3a8de4fe350324b49e383c92957" prot="public" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structAggregatedFeedGroup" kindref="compound">AggregatedFeedGroup</ref> &gt;</type>
+        <definition>juce::Array&lt;AggregatedFeedGroup&gt; AggregatedFeedResponse::groups</definition>
+        <argsstring></argsstring>
+        <name>groups</name>
+        <qualifiedname>AggregatedFeedResponse::groups</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="12" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structAggregatedFeedResponse_1af8ba8bfaff44df351103306d3f8e2a01" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AggregatedFeedResponse::limit</definition>
+        <argsstring></argsstring>
+        <name>limit</name>
+        <qualifiedname>AggregatedFeedResponse::limit</qualifiedname>
+        <initializer>= 20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="13" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="13" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structAggregatedFeedResponse_1a7ffb215ab5527448a509a74ec76f2808" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AggregatedFeedResponse::offset</definition>
+        <argsstring></argsstring>
+        <name>offset</name>
+        <qualifiedname>AggregatedFeedResponse::offset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="14" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structAggregatedFeedResponse_1a0a63f7a04a38727b8096810351d0dc28" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int AggregatedFeedResponse::total</definition>
+        <argsstring></argsstring>
+        <name>total</name>
+        <qualifiedname>AggregatedFeedResponse::total</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="15" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structAggregatedFeedResponse_1af173d22361eecc305a2fefc9049acbb7" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool AggregatedFeedResponse::hasMore</definition>
+        <argsstring></argsstring>
+        <name>hasMore</name>
+        <qualifiedname>AggregatedFeedResponse::hasMore</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="16" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structAggregatedFeedResponse_1ae5e7cadc07a944d419880a5bd4f1f2b7" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String AggregatedFeedResponse::error</definition>
+        <argsstring></argsstring>
+        <name>error</name>
+        <qualifiedname>AggregatedFeedResponse::error</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="17" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="structAggregatedFeedResponse" kindref="compound">AggregatedFeedResponse</ref> represents a paginated response from an aggregated feed API. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" line="10" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/AggregatedFeedResponse.h" bodystart="11" bodyend="18"/>
+    <listofallmembers>
+      <member refid="structAggregatedFeedResponse_1ae5e7cadc07a944d419880a5bd4f1f2b7" prot="public" virt="non-virtual"><scope>AggregatedFeedResponse</scope><name>error</name></member>
+      <member refid="structAggregatedFeedResponse_1a1d91b3a8de4fe350324b49e383c92957" prot="public" virt="non-virtual"><scope>AggregatedFeedResponse</scope><name>groups</name></member>
+      <member refid="structAggregatedFeedResponse_1af173d22361eecc305a2fefc9049acbb7" prot="public" virt="non-virtual"><scope>AggregatedFeedResponse</scope><name>hasMore</name></member>
+      <member refid="structAggregatedFeedResponse_1af8ba8bfaff44df351103306d3f8e2a01" prot="public" virt="non-virtual"><scope>AggregatedFeedResponse</scope><name>limit</name></member>
+      <member refid="structAggregatedFeedResponse_1a7ffb215ab5527448a509a74ec76f2808" prot="public" virt="non-virtual"><scope>AggregatedFeedResponse</scope><name>offset</name></member>
+      <member refid="structAggregatedFeedResponse_1a0a63f7a04a38727b8096810351d0dc28" prot="public" virt="non-virtual"><scope>AggregatedFeedResponse</scope><name>total</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

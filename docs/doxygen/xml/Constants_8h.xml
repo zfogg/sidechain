@@ -1,0 +1,543 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="Constants_8h" kind="file" language="C++">
+    <compoundname>Constants.h</compoundname>
+    <includes local="no">cstddef</includes>
+    <includedby refid="AudioCapture_8cpp" local="yes">AudioCapture.cpp</includedby>
+    <includedby refid="AuthComponent_8cpp" local="yes">AuthComponent.cpp</includedby>
+    <includedby refid="HeaderComponent_8cpp" local="yes">HeaderComponent.cpp</includedby>
+    <includedby refid="HttpAudioPlayer_8cpp" local="yes">HttpAudioPlayer.cpp</includedby>
+    <includedby refid="ImageCache_8cpp" local="yes">ImageCache.cpp</includedby>
+    <includedby refid="NetworkClient_8h" local="yes">NetworkClient.h</includedby>
+    <includedby refid="PluginEditor_8cpp" local="yes">PluginEditor.cpp</includedby>
+    <includedby refid="SearchComponent_8cpp" local="yes">SearchComponent.cpp</includedby>
+    <includedby refid="UploadComponent_8cpp" local="yes">UploadComponent.cpp</includedby>
+    <includedby refid="UserDataStore_8cpp" local="yes">UserDataStore.cpp</includedby>
+    <includedby refid="WebSocketClient_8h" local="yes">WebSocketClient.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>Constants.h</label>
+        <link refid="Constants_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>cstddef</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="11">
+        <label>PluginEditor.cpp</label>
+        <link refid="PluginEditor_8cpp"/>
+      </node>
+      <node id="10">
+        <label>PluginEditor.h</label>
+        <link refid="PluginEditor_8h"/>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>PluginProcessor.cpp</label>
+        <link refid="PluginProcessor_8cpp"/>
+      </node>
+      <node id="2">
+        <label>AudioCapture.cpp</label>
+        <link refid="AudioCapture_8cpp"/>
+      </node>
+      <node id="5">
+        <label>HttpAudioPlayer.cpp</label>
+        <link refid="HttpAudioPlayer_8cpp"/>
+      </node>
+      <node id="15">
+        <label>FeedDataManager.cpp</label>
+        <link refid="FeedDataManager_8cpp"/>
+      </node>
+      <node id="14">
+        <label>FeedDataManager.h</label>
+        <link refid="FeedDataManager_8h"/>
+        <childnode refid="15" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+      </node>
+      <node id="21">
+        <label>NetworkClient.cpp</label>
+        <link refid="NetworkClient_8cpp"/>
+      </node>
+      <node id="7">
+        <label>NetworkClient.h</label>
+        <link refid="NetworkClient_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="24" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="30" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="33" relation="include">
+        </childnode>
+      </node>
+      <node id="29">
+        <label>StreamChatClient.cpp</label>
+        <link refid="StreamChatClient_8cpp"/>
+      </node>
+      <node id="26">
+        <label>StreamChatClient.h</label>
+        <link refid="StreamChatClient_8h"/>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="29" relation="include">
+        </childnode>
+      </node>
+      <node id="35">
+        <label>WebSocketClient.cpp</label>
+        <link refid="WebSocketClient_8cpp"/>
+      </node>
+      <node id="34">
+        <label>WebSocketClient.h</label>
+        <link refid="WebSocketClient_8h"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="35" relation="include">
+        </childnode>
+      </node>
+      <node id="32">
+        <label>UserDataStore.cpp</label>
+        <link refid="UserDataStore_8cpp"/>
+      </node>
+      <node id="3">
+        <label>AuthComponent.cpp</label>
+        <link refid="AuthComponent_8cpp"/>
+      </node>
+      <node id="9">
+        <label>ConnectionIndicator.h</label>
+        <link refid="ConnectionIndicator_8h"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>HeaderComponent.cpp</label>
+        <link refid="HeaderComponent_8cpp"/>
+      </node>
+      <node id="8">
+        <label>CommentComponent.cpp</label>
+        <link refid="CommentComponent_8cpp"/>
+      </node>
+      <node id="17">
+        <label>PostsFeedComponent.cpp</label>
+        <link refid="PostsFeedComponent_8cpp"/>
+      </node>
+      <node id="16">
+        <label>PostsFeedComponent.h</label>
+        <link refid="PostsFeedComponent_8h"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="17" relation="include">
+        </childnode>
+      </node>
+      <node id="19">
+        <label>MessageThreadComponent.cpp</label>
+        <link refid="MessageThreadComponent_8cpp"/>
+      </node>
+      <node id="27">
+        <label>MessageThreadComponent.h</label>
+        <link refid="MessageThreadComponent_8h"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>MessagesListComponent.cpp</label>
+        <link refid="MessagesListComponent_8cpp"/>
+      </node>
+      <node id="28">
+        <label>MessagesListComponent.h</label>
+        <link refid="MessagesListComponent_8h"/>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>EditProfileComponent.cpp</label>
+        <link refid="EditProfileComponent_8cpp"/>
+      </node>
+      <node id="22">
+        <label>ProfileComponent.cpp</label>
+        <link refid="ProfileComponent_8cpp"/>
+      </node>
+      <node id="31">
+        <label>UploadComponent.cpp</label>
+        <link refid="UploadComponent_8cpp"/>
+      </node>
+      <node id="30">
+        <label>UploadComponent.h</label>
+        <link refid="UploadComponent_8h"/>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+      </node>
+      <node id="23">
+        <label>SearchComponent.cpp</label>
+        <link refid="SearchComponent_8cpp"/>
+      </node>
+      <node id="18">
+        <label>FollowersListComponent.cpp</label>
+        <link refid="FollowersListComponent_8cpp"/>
+      </node>
+      <node id="33">
+        <label>UserDiscoveryComponent.cpp</label>
+        <link refid="UserDiscoveryComponent_8cpp"/>
+      </node>
+      <node id="24">
+        <label>StoriesFeedComponent.cpp</label>
+        <link refid="StoriesFeedComponent_8cpp"/>
+      </node>
+      <node id="25">
+        <label>StoryViewerComponent.cpp</label>
+        <link refid="StoryViewerComponent_8cpp"/>
+      </node>
+      <node id="1">
+        <label>Constants.h</label>
+        <link refid="Constants_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
+        </childnode>
+        <childnode refid="32" relation="include">
+        </childnode>
+        <childnode refid="34" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>ImageCache.cpp</label>
+        <link refid="ImageCache_8cpp"/>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespaceConstants">Constants</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Endpoints">Constants::Endpoints</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Errors">Constants::Errors</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Api">Constants::Api</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Audio">Constants::Audio</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Ui">Constants::Ui</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Cache">Constants::Cache</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Pagination">Constants::Pagination</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Timing">Constants::Timing</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Limits">Constants::Limits</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cstddef&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="namespaceConstants" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants" kindref="compound">Constants</ref></highlight></codeline>
+<codeline lineno="30"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>API<sp/>Endpoints</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34" refid="namespaceConstants_1_1Endpoints" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Endpoints" kindref="compound">Endpoints</ref></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Development<sp/>server<sp/>(local)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37" refid="namespaceConstants_1_1Endpoints_1a7b65063764ff71578971c84a3d11211f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a7b65063764ff71578971c84a3d11211f" kindref="member">DEV_BASE_URL</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;http://localhost:8787&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Production<sp/>server</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40" refid="namespaceConstants_1_1Endpoints_1a7a47ce60d331ea76ebd4b2e5f3bb822d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a7a47ce60d331ea76ebd4b2e5f3bb822d" kindref="member">PROD_BASE_URL</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;https://api.sidechain.app&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>WebSocket<sp/>endpoints</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43" refid="namespaceConstants_1_1Endpoints_1ae90dee0fbb6d57e3afa00406364a3968" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1ae90dee0fbb6d57e3afa00406364a3968" kindref="member">DEV_WS_HOST</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;localhost&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="44" refid="namespaceConstants_1_1Endpoints_1a05261c9235605e4c8b1dfbea34d9a855" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Endpoints_1a05261c9235605e4c8b1dfbea34d9a855" kindref="member">DEV_WS_PORT</ref><sp/>=<sp/>8787;</highlight></codeline>
+<codeline lineno="45" refid="namespaceConstants_1_1Endpoints_1a2865b54d776ae24378e5f655ff60dbe8" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a2865b54d776ae24378e5f655ff60dbe8" kindref="member">PROD_WS_HOST</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;api.sidechain.app&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="46" refid="namespaceConstants_1_1Endpoints_1a880bb0e55263a1606d246d2336a445b7" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Endpoints_1a880bb0e55263a1606d246d2336a445b7" kindref="member">PROD_WS_PORT</ref><sp/>=<sp/>443;</highlight></codeline>
+<codeline lineno="47" refid="namespaceConstants_1_1Endpoints_1a0598a0fa840d77881cd977e6af362266" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a0598a0fa840d77881cd977e6af362266" kindref="member">WS_PATH</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;/api/v1/ws&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>API<sp/>version<sp/>prefix</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="namespaceConstants_1_1Endpoints_1a6b0d012749252adc1e4fb23396083017" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a6b0d012749252adc1e4fb23396083017" kindref="member">API_VERSION</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;/api/v1&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Auth<sp/>endpoints</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53" refid="namespaceConstants_1_1Endpoints_1ad1a6ffda42835641327e820db71bac62" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1ad1a6ffda42835641327e820db71bac62" kindref="member">AUTH_LOGIN</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;/api/v1/auth/login&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="54" refid="namespaceConstants_1_1Endpoints_1a917636ad8fb829ce2ce2c564ef1b4c64" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a917636ad8fb829ce2ce2c564ef1b4c64" kindref="member">AUTH_REGISTER</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;/api/v1/auth/register&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="55" refid="namespaceConstants_1_1Endpoints_1acfac32d21d14d6f9ff2e972b9a75d096" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1acfac32d21d14d6f9ff2e972b9a75d096" kindref="member">AUTH_OAUTH_POLL</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;/api/v1/auth/oauth/poll&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>User<sp/>endpoints</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58" refid="namespaceConstants_1_1Endpoints_1a42ba11f5de526672b77b86c26e2bc674" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Endpoints_1a42ba11f5de526672b77b86c26e2bc674" kindref="member">USERS_PROFILE_PICTURE</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;/api/v1/users/upload-profile-picture&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Error<sp/>Messages</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="namespaceConstants_1_1Errors" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Errors" kindref="compound">Errors</ref></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Authentication<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67" refid="namespaceConstants_1_1Errors_1a32f45a986b087ce7a9e4c96535a7e64f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1a32f45a986b087ce7a9e4c96535a7e64f" kindref="member">NOT_AUTHENTICATED</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;🚫<sp/>Not<sp/>authenticated&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="68" refid="namespaceConstants_1_1Errors_1ae798864efe49433a0d10b1506a8c5af2" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1ae798864efe49433a0d10b1506a8c5af2" kindref="member">AUTH_REQUIRED</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;🔒<sp/>Authentication<sp/>required&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Network<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="namespaceConstants_1_1Errors_1a9f91e36b584d260cf0727acb4593afa4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1a9f91e36b584d260cf0727acb4593afa4" kindref="member">NETWORK_ERROR</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;🚨<sp/>Network<sp/>error<sp/>occurred&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="72" refid="namespaceConstants_1_1Errors_1a4535ca3273967e6ed16bfb574a65a14a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1a4535ca3273967e6ed16bfb574a65a14a" kindref="member">REQUEST_FAILED</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;🔴<sp/>Request<sp/>failed&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="73" refid="namespaceConstants_1_1Errors_1a85abc93ff8852ae06897308fc4ec2564" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1a85abc93ff8852ae06897308fc4ec2564" kindref="member">TIMEOUT</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;⌛<sp/>Request<sp/>timed<sp/>out&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Validation<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76" refid="namespaceConstants_1_1Errors_1a5a5b137a8d0447929aa3d51bfd561b65" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1a5a5b137a8d0447929aa3d51bfd561b65" kindref="member">INVALID_INPUT</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;❌<sp/>Invalid<sp/>input&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="77" refid="namespaceConstants_1_1Errors_1a9f4f15e8113fde447573a02feb29f8de" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="namespaceConstants_1_1Errors_1a9f4f15e8113fde447573a02feb29f8de" kindref="member">MISSING_REQUIRED_FIELD</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;⛔<sp/>Missing<sp/>required<sp/>field&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>API<sp/>Configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82" refid="namespaceConstants_1_1Api" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Api" kindref="compound">Api</ref></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>HTTP<sp/>request<sp/>timeout<sp/>(30<sp/>seconds)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85" refid="namespaceConstants_1_1Api_1afae980920a9820be1db0e8e4ddbb16d3" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1afae980920a9820be1db0e8e4ddbb16d3" kindref="member">DEFAULT_TIMEOUT_MS</ref><sp/>=<sp/>30000;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Image<sp/>download<sp/>timeout<sp/>(shorter<sp/>for<sp/>better<sp/>UX)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88" refid="namespaceConstants_1_1Api_1a2957945cb55f43c2e905ecd4d42533d0" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1a2957945cb55f43c2e905ecd4d42533d0" kindref="member">IMAGE_TIMEOUT_MS</ref><sp/>=<sp/>10000;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Quick<sp/>operations<sp/>(profile<sp/>pic<sp/>in<sp/>header)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91" refid="namespaceConstants_1_1Api_1ae0dd09cac73ee1f03c0b0da22c856556" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1ae0dd09cac73ee1f03c0b0da22c856556" kindref="member">QUICK_TIMEOUT_MS</ref><sp/>=<sp/>5000;</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Large<sp/>upload<sp/>timeout<sp/>(audio<sp/>files)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94" refid="namespaceConstants_1_1Api_1a98de1937e69f490e2d3c95818d9f1cc0" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1a98de1937e69f490e2d3c95818d9f1cc0" kindref="member">UPLOAD_TIMEOUT_MS</ref><sp/>=<sp/>60000;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Maximum<sp/>upload<sp/>size<sp/>in<sp/>bytes<sp/>(50MB)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97" refid="namespaceConstants_1_1Api_1acdf17ce61c8da9411d24210e056bbd64" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1acdf17ce61c8da9411d24210e056bbd64" kindref="member">MAX_UPLOAD_SIZE_BYTES</ref><sp/>=<sp/>50<sp/>*<sp/>1024<sp/>*<sp/>1024;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Maximum<sp/>retries<sp/>for<sp/>failed<sp/>requests</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100" refid="namespaceConstants_1_1Api_1ad1ebc4869c336f250a0bfc6b2b14f4ba" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1ad1ebc4869c336f250a0bfc6b2b14f4ba" kindref="member">MAX_RETRIES</ref><sp/>=<sp/>3;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Retry<sp/>delay<sp/>base<sp/>(exponential<sp/>backoff)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103" refid="namespaceConstants_1_1Api_1ae7bf4646ae54f96ee74219802c906a65" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1ae7bf4646ae54f96ee74219802c906a65" kindref="member">RETRY_DELAY_BASE_MS</ref><sp/>=<sp/>1000;</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>WebSocket<sp/>connect<sp/>timeout</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106" refid="namespaceConstants_1_1Api_1a133f82f1398c3519e0cc07f4f51ad5a5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1a133f82f1398c3519e0cc07f4f51ad5a5" kindref="member">WEBSOCKET_TIMEOUT_MS</ref><sp/>=<sp/>10000;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Number<sp/>of<sp/>redirects<sp/>to<sp/>follow</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109" refid="namespaceConstants_1_1Api_1afe6b6a82b520bb359168467d166c909a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Api_1afe6b6a82b520bb359168467d166c909a" kindref="member">MAX_REDIRECTS</ref><sp/>=<sp/>5;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>Configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115" refid="namespaceConstants_1_1Audio" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Audio" kindref="compound">Audio</ref></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Maximum<sp/>recording<sp/>duration<sp/>in<sp/>seconds</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118" refid="namespaceConstants_1_1Audio_1a43c06ae0fb4e66bb506b3459376cdb46" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1a43c06ae0fb4e66bb506b3459376cdb46" kindref="member">MAX_RECORDING_SECONDS</ref><sp/>=<sp/>60.0;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>BPM<sp/>when<sp/>none<sp/>detected</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="121" refid="namespaceConstants_1_1Audio_1aa87069a5873baa3d8ec2e30d2b8d9128" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1aa87069a5873baa3d8ec2e30d2b8d9128" kindref="member">DEFAULT_BPM</ref><sp/>=<sp/>120.0;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Valid<sp/>BPM<sp/>range</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124" refid="namespaceConstants_1_1Audio_1a5933ba18c969efce73aafbe39ea3aaa9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1a5933ba18c969efce73aafbe39ea3aaa9" kindref="member">MIN_BPM</ref><sp/>=<sp/>20.0;</highlight></codeline>
+<codeline lineno="125" refid="namespaceConstants_1_1Audio_1a831dfab593f0c64d5bcb1696ef4ea537" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1a831dfab593f0c64d5bcb1696ef4ea537" kindref="member">MAX_BPM</ref><sp/>=<sp/>300.0;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Target<sp/>loudness<sp/>for<sp/>normalization<sp/>(LUFS)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128" refid="namespaceConstants_1_1Audio_1a741356d7d23a47191487ba8fccc12a9e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1a741356d7d23a47191487ba8fccc12a9e" kindref="member">TARGET_LUFS</ref><sp/>=<sp/>-14.0f;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>player<sp/>cache<sp/>size<sp/>in<sp/>bytes<sp/>(50MB)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131" refid="namespaceConstants_1_1Audio_1aa774c1ff6013190b2a44c17d50c05ef5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1aa774c1ff6013190b2a44c17d50c05ef5" kindref="member">AUDIO_CACHE_SIZE_BYTES</ref><sp/>=<sp/>50<sp/>*<sp/>1024<sp/>*<sp/>1024;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>sample<sp/>rate</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134" refid="namespaceConstants_1_1Audio_1a19ec7d81d358f5a17984a8d5de24550d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1a19ec7d81d358f5a17984a8d5de24550d" kindref="member">DEFAULT_SAMPLE_RATE</ref><sp/>=<sp/>44100.0;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Number<sp/>of<sp/>channels<sp/>for<sp/>recording</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137" refid="namespaceConstants_1_1Audio_1af06309c90e2676958d74962c7be1630a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Audio_1af06309c90e2676958d74962c7be1630a" kindref="member">RECORDING_CHANNELS</ref><sp/>=<sp/>2;</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>UI<sp/>Dimensions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143" refid="namespaceConstants_1_1Ui" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Ui" kindref="compound">Ui</ref></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Header<sp/>component<sp/>height</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="146" refid="namespaceConstants_1_1Ui_1abc6a27d7b143afd3b6b7114e809fedff" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1abc6a27d7b143afd3b6b7114e809fedff" kindref="member">HEADER_HEIGHT</ref><sp/>=<sp/>60;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Feed<sp/>post<sp/>card<sp/>height</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149" refid="namespaceConstants_1_1Ui_1ac5d13b7d4ccbe3212810ba65ffb87941" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1ac5d13b7d4ccbe3212810ba65ffb87941" kindref="member">POST_CARD_HEIGHT</ref><sp/>=<sp/>120;</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Comment<sp/>row<sp/>heights</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="152" refid="namespaceConstants_1_1Ui_1a0045333727a48f40efb153936b7e93b4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a0045333727a48f40efb153936b7e93b4" kindref="member">COMMENT_ROW_HEIGHT</ref><sp/>=<sp/>70;</highlight></codeline>
+<codeline lineno="153" refid="namespaceConstants_1_1Ui_1a5c4b0ce6925c6cdde712081ce99d4c53" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a5c4b0ce6925c6cdde712081ce99d4c53" kindref="member">REPLY_ROW_HEIGHT</ref><sp/>=<sp/>60;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Follower/Following<sp/>list<sp/>row<sp/>height</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156" refid="namespaceConstants_1_1Ui_1afbcd84e9a8b539bbd16eccaf85443719" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1afbcd84e9a8b539bbd16eccaf85443719" kindref="member">USER_ROW_HEIGHT</ref><sp/>=<sp/>70;</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Avatar<sp/>sizes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="159" refid="namespaceConstants_1_1Ui_1a4cf558ff1fca8b6e207102575dea1697" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a4cf558ff1fca8b6e207102575dea1697" kindref="member">AVATAR_SIZE_LARGE</ref><sp/>=<sp/>50;</highlight></codeline>
+<codeline lineno="160" refid="namespaceConstants_1_1Ui_1abdfde2a0db1d95864a8fcccbdb53d38a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1abdfde2a0db1d95864a8fcccbdb53d38a" kindref="member">AVATAR_SIZE_MEDIUM</ref><sp/>=<sp/>40;</highlight></codeline>
+<codeline lineno="161" refid="namespaceConstants_1_1Ui_1a229a2568c04f88563f1eaf9eed8c8a9a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a229a2568c04f88563f1eaf9eed8c8a9a" kindref="member">AVATAR_SIZE_SMALL</ref><sp/>=<sp/>32;</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Standard<sp/>corner<sp/>radii</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164" refid="namespaceConstants_1_1Ui_1a412835b434b34fe9eadb7cf6ccb3554b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a412835b434b34fe9eadb7cf6ccb3554b" kindref="member">CORNER_RADIUS_LARGE</ref><sp/>=<sp/>12.0f;</highlight></codeline>
+<codeline lineno="165" refid="namespaceConstants_1_1Ui_1ae6b074b4f9de0752caab7320d37927a4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1ae6b074b4f9de0752caab7320d37927a4" kindref="member">CORNER_RADIUS_MEDIUM</ref><sp/>=<sp/>8.0f;</highlight></codeline>
+<codeline lineno="166" refid="namespaceConstants_1_1Ui_1a0c29edaa3c7dce05f40566d6df4aefed" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a0c29edaa3c7dce05f40566d6df4aefed" kindref="member">CORNER_RADIUS_SMALL</ref><sp/>=<sp/>4.0f;</highlight></codeline>
+<codeline lineno="167" refid="namespaceConstants_1_1Ui_1a61671d4d5c56087c63295ef0468c66fb" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a61671d4d5c56087c63295ef0468c66fb" kindref="member">CORNER_RADIUS_PILL</ref><sp/>=<sp/>14.0f;<sp/><sp/></highlight><highlight class="comment">//<sp/>For<sp/>pill-shaped<sp/>buttons</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Badge<sp/>heights</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="170" refid="namespaceConstants_1_1Ui_1ac236375f88fce4e3cfcc0019b5fabcf6" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1ac236375f88fce4e3cfcc0019b5fabcf6" kindref="member">BADGE_HEIGHT</ref><sp/>=<sp/>18;</highlight></codeline>
+<codeline lineno="171" refid="namespaceConstants_1_1Ui_1a17e6482880bbc20d5e9f2cfaaa953c59" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a17e6482880bbc20d5e9f2cfaaa953c59" kindref="member">GENRE_CHIP_HEIGHT</ref><sp/>=<sp/>24;</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Standard<sp/>spacing</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="174" refid="namespaceConstants_1_1Ui_1a134ce54aef7f31af7a2e9c1e2a38b495" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a134ce54aef7f31af7a2e9c1e2a38b495" kindref="member">SPACING_XS</ref><sp/>=<sp/>4;</highlight></codeline>
+<codeline lineno="175" refid="namespaceConstants_1_1Ui_1afd843eb0ab55e6ca72f8d3a1511b581a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1afd843eb0ab55e6ca72f8d3a1511b581a" kindref="member">SPACING_SM</ref><sp/>=<sp/>8;</highlight></codeline>
+<codeline lineno="176" refid="namespaceConstants_1_1Ui_1a3ac4c7611bbc9d1d002a8837a4295aee" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a3ac4c7611bbc9d1d002a8837a4295aee" kindref="member">SPACING_MD</ref><sp/>=<sp/>12;</highlight></codeline>
+<codeline lineno="177" refid="namespaceConstants_1_1Ui_1a95cfc4de3841089acf94ae9ad75da67f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a95cfc4de3841089acf94ae9ad75da67f" kindref="member">SPACING_LG</ref><sp/>=<sp/>16;</highlight></codeline>
+<codeline lineno="178" refid="namespaceConstants_1_1Ui_1a4ce103dbe866e18508d076eec40180fb" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a4ce103dbe866e18508d076eec40180fb" kindref="member">SPACING_XL</ref><sp/>=<sp/>24;</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>border<sp/>width</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="181" refid="namespaceConstants_1_1Ui_1a98269143cd4f14be41b289196ecfbf5e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a98269143cd4f14be41b289196ecfbf5e" kindref="member">BORDER_WIDTH</ref><sp/>=<sp/>1.0f;</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>font<sp/>sizes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="184" refid="namespaceConstants_1_1Ui_1aaf976b5fdb0762b38e9f868dee0aa925" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1aaf976b5fdb0762b38e9f868dee0aa925" kindref="member">FONT_SIZE_XS</ref><sp/>=<sp/>10.0f;</highlight></codeline>
+<codeline lineno="185" refid="namespaceConstants_1_1Ui_1aae8f17024f2d7bc7d5d58d46fe77bebb" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1aae8f17024f2d7bc7d5d58d46fe77bebb" kindref="member">FONT_SIZE_SM</ref><sp/>=<sp/>12.0f;</highlight></codeline>
+<codeline lineno="186" refid="namespaceConstants_1_1Ui_1a11c79aa088c7de5caeafeee8b3ed5dff" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a11c79aa088c7de5caeafeee8b3ed5dff" kindref="member">FONT_SIZE_MD</ref><sp/>=<sp/>14.0f;</highlight></codeline>
+<codeline lineno="187" refid="namespaceConstants_1_1Ui_1ad466bd2daf276fb0148c021293ff43da" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1ad466bd2daf276fb0148c021293ff43da" kindref="member">FONT_SIZE_LG</ref><sp/>=<sp/>16.0f;</highlight></codeline>
+<codeline lineno="188" refid="namespaceConstants_1_1Ui_1a78741f4acf8899a739eee239421d9ff9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a78741f4acf8899a739eee239421d9ff9" kindref="member">FONT_SIZE_XL</ref><sp/>=<sp/>20.0f;</highlight></codeline>
+<codeline lineno="189" refid="namespaceConstants_1_1Ui_1a63c77cf592c02fec49b761653fd980a4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Ui_1a63c77cf592c02fec49b761653fd980a4" kindref="member">FONT_SIZE_TITLE</ref><sp/>=<sp/>24.0f;</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Cache<sp/>Configuration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195" refid="namespaceConstants_1_1Cache" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Cache" kindref="compound">Cache</ref></highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Maximum<sp/>images<sp/>to<sp/>keep<sp/>in<sp/>LRU<sp/>cache</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="198" refid="namespaceConstants_1_1Cache_1ad63ceb624722effad4e6847da3fdbc8d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Cache_1ad63ceb624722effad4e6847da3fdbc8d" kindref="member">IMAGE_CACHE_MAX_ITEMS</ref><sp/>=<sp/>100;</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>preview<sp/>cache<sp/>item<sp/>limit</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="201" refid="namespaceConstants_1_1Cache_1a87f40cf4689d91669783618bf4ba2ad5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Cache_1a87f40cf4689d91669783618bf4ba2ad5" kindref="member">AUDIO_CACHE_MAX_ITEMS</ref><sp/>=<sp/>10;</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Feed<sp/>data<sp/>cache<sp/>duration<sp/>(milliseconds)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="204" refid="namespaceConstants_1_1Cache_1a53653cd6f7fb5cd2c1a1eac848e61b70" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Cache_1a53653cd6f7fb5cd2c1a1eac848e61b70" kindref="member">FEED_CACHE_DURATION_MS</ref><sp/>=<sp/>60000;<sp/><sp/></highlight><highlight class="comment">//<sp/>1<sp/>minute</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="205"><highlight class="normal"></highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Profile<sp/>cache<sp/>duration<sp/>(milliseconds)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="207" refid="namespaceConstants_1_1Cache_1aafbaf2797a7167e886290b701f30096a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Cache_1aafbaf2797a7167e886290b701f30096a" kindref="member">PROFILE_CACHE_DURATION_MS</ref><sp/>=<sp/>300000;<sp/><sp/></highlight><highlight class="comment">//<sp/>5<sp/>minutes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Pagination</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="213" refid="namespaceConstants_1_1Pagination" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Pagination" kindref="compound">Pagination</ref></highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>page<sp/>size<sp/>for<sp/>feed</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="216" refid="namespaceConstants_1_1Pagination_1a7166e225526b074897abf95bb8595ca4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Pagination_1a7166e225526b074897abf95bb8595ca4" kindref="member">FEED_PAGE_SIZE</ref><sp/>=<sp/>20;</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"></highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>page<sp/>size<sp/>for<sp/>comments</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="219" refid="namespaceConstants_1_1Pagination_1acd06f9320841b2ec9e61127c6ee26625" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Pagination_1acd06f9320841b2ec9e61127c6ee26625" kindref="member">COMMENTS_PAGE_SIZE</ref><sp/>=<sp/>20;</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"></highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>page<sp/>size<sp/>for<sp/>followers/following<sp/>lists</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="222" refid="namespaceConstants_1_1Pagination_1a722f8658d9f56a2cac46b2a6c9b9f313" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Pagination_1a722f8658d9f56a2cac46b2a6c9b9f313" kindref="member">FOLLOW_LIST_PAGE_SIZE</ref><sp/>=<sp/>20;</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"></highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Default<sp/>page<sp/>size<sp/>for<sp/>user<sp/>search</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="225" refid="namespaceConstants_1_1Pagination_1a35bec3047830301c823b362f7bf0df0e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Pagination_1a35bec3047830301c823b362f7bf0df0e" kindref="member">SEARCH_PAGE_SIZE</ref><sp/>=<sp/>10;</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"></highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Animation<sp/>&amp;<sp/>Timing</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="231" refid="namespaceConstants_1_1Timing" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Timing" kindref="compound">Timing</ref></highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Debounce<sp/>delay<sp/>for<sp/>search<sp/>input</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="234" refid="namespaceConstants_1_1Timing_1a8dd4826f59147d0500e72cb06f420253" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Timing_1a8dd4826f59147d0500e72cb06f420253" kindref="member">SEARCH_DEBOUNCE_MS</ref><sp/>=<sp/>300;</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"></highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Auto-refresh<sp/>interval<sp/>for<sp/>feed</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="237" refid="namespaceConstants_1_1Timing_1a3c048362cf9e5d1fe9cc9d31be3fa45a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Timing_1a3c048362cf9e5d1fe9cc9d31be3fa45a" kindref="member">FEED_REFRESH_INTERVAL_MS</ref><sp/>=<sp/>60000;<sp/><sp/></highlight><highlight class="comment">//<sp/>1<sp/>minute</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="238"><highlight class="normal"></highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Timer<sp/>interval<sp/>for<sp/>progress<sp/>updates</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="240" refid="namespaceConstants_1_1Timing_1aeacc5572040f2925ce36bff8bc2c79ce" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Timing_1aeacc5572040f2925ce36bff8bc2c79ce" kindref="member">PROGRESS_UPDATE_INTERVAL_MS</ref><sp/>=<sp/>100;</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"></highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Tooltip<sp/>show<sp/>delay</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="243" refid="namespaceConstants_1_1Timing_1a1ef2b3f075237976a6ca9ef63ed66f91" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Timing_1a1ef2b3f075237976a6ca9ef63ed66f91" kindref="member">TOOLTIP_DELAY_MS</ref><sp/>=<sp/>500;</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"></highlight></codeline>
+<codeline lineno="245"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Animation<sp/>duration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="246" refid="namespaceConstants_1_1Timing_1a18ce6a6efcd98ce7e731384b558f5150" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Timing_1a18ce6a6efcd98ce7e731384b558f5150" kindref="member">ANIMATION_DURATION_MS</ref><sp/>=<sp/>200;</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"></highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Validation<sp/>Limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="251"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==========================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="252" refid="namespaceConstants_1_1Limits" refkind="compound"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal"><ref refid="namespaceConstants_1_1Limits" kindref="compound">Limits</ref></highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Username<sp/>limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="255" refid="namespaceConstants_1_1Limits_1a2343a70f9c579d38a6a8c8cc13ebd00a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1a2343a70f9c579d38a6a8c8cc13ebd00a" kindref="member">USERNAME_MIN_LENGTH</ref><sp/>=<sp/>3;</highlight></codeline>
+<codeline lineno="256" refid="namespaceConstants_1_1Limits_1aabed37938e5d6458722d4818a02fc53b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1aabed37938e5d6458722d4818a02fc53b" kindref="member">USERNAME_MAX_LENGTH</ref><sp/>=<sp/>30;</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"></highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Display<sp/>name<sp/>limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="259" refid="namespaceConstants_1_1Limits_1a03357dcb43b3a3183b0ad019c0639fbd" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1a03357dcb43b3a3183b0ad019c0639fbd" kindref="member">DISPLAY_NAME_MAX_LENGTH</ref><sp/>=<sp/>50;</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Bio<sp/>limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="262" refid="namespaceConstants_1_1Limits_1a884a2f2064025ce6d8239fdfedad8446" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1a884a2f2064025ce6d8239fdfedad8446" kindref="member">BIO_MAX_LENGTH</ref><sp/>=<sp/>500;</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Comment<sp/>limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="265" refid="namespaceConstants_1_1Limits_1a0beb70d842bbd5c66f39194506ee81e0" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1a0beb70d842bbd5c66f39194506ee81e0" kindref="member">COMMENT_MAX_LENGTH</ref><sp/>=<sp/>1000;</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"></highlight></codeline>
+<codeline lineno="267"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Post<sp/>title<sp/>limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="268" refid="namespaceConstants_1_1Limits_1a72df31f6cc915885c58e15f05018e702" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1a72df31f6cc915885c58e15f05018e702" kindref="member">POST_TITLE_MAX_LENGTH</ref><sp/>=<sp/>100;</highlight></codeline>
+<codeline lineno="269"><highlight class="normal"></highlight></codeline>
+<codeline lineno="270"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Post<sp/>description<sp/>limits</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="271" refid="namespaceConstants_1_1Limits_1ab4ed3dc2561aecf17548f41602ab005b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="namespaceConstants_1_1Limits_1ab4ed3dc2561aecf17548f41602ab005b" kindref="member">POST_DESCRIPTION_MAX_LENGTH</ref><sp/>=<sp/>500;</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"></highlight></codeline>
+<codeline lineno="274"><highlight class="normal">}<sp/><sp/></highlight><highlight class="comment">//<sp/>namespace<sp/>Constants</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h"/>
+  </compounddef>
+</doxygen>

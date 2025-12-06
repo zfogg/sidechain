@@ -1,0 +1,924 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceUI" kind="namespace" language="C++">
+    <compoundname>UI</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceUI_1af4046eea0775bd56e174845d42e3a060" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawCard</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; float &gt; bounds, juce::Colour fillColor, juce::Colour borderColor=juce::Colours::transparentBlack, float cornerRadius=8.0f, float borderWidth=1.0f)</argsstring>
+        <name>drawCard</name>
+        <qualifiedname>UI::drawCard</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; float &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>fillColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>borderColor</declname>
+          <defval>juce::Colours::transparentBlack</defval>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+          <defval>8.0f</defval>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>borderWidth</declname>
+          <defval>1.0f</defval>
+        </param>
+        <briefdescription>
+<para>Draw a rounded rectangle card with fill and optional border. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>g</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Graphics context </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bounds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rectangle to draw </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fillColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Background fill color </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>borderColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Border color (use transparent for no border) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cornerRadius</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Corner radius (default 8.0f) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>borderWidth</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Border thickness (default 1.0f) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="9" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="9" bodyend="26" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="37" declcolumn="10"/>
+        <referencedby refid="namespaceUI_1a73e1226cd5d364db461e649bc6a12c67" compoundref="UIHelpers_8cpp" startline="28" endline="36">drawCard</referencedby>
+        <referencedby refid="namespaceUI_1a5597b3215729c6ca2d5d6b0715ff9bbb" compoundref="UIHelpers_8cpp" startline="38" endline="47">drawCardWithHover</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a73e1226cd5d364db461e649bc6a12c67" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawCard</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, juce::Colour fillColor, juce::Colour borderColor=juce::Colours::transparentBlack, float cornerRadius=8.0f, float borderWidth=1.0f)</argsstring>
+        <name>drawCard</name>
+        <qualifiedname>UI::drawCard</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>fillColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>borderColor</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>borderWidth</declname>
+        </param>
+        <briefdescription>
+<para>Overload for int bounds. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="28" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="28" bodyend="36" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="45" declcolumn="10"/>
+        <references refid="namespaceUI_1af4046eea0775bd56e174845d42e3a060" compoundref="UIHelpers_8cpp" startline="9" endline="26">drawCard</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a5597b3215729c6ca2d5d6b0715ff9bbb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawCardWithHover</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, juce::Colour normalColor, juce::Colour hoverColor, juce::Colour borderColor, bool isHovered, float cornerRadius=8.0f)</argsstring>
+        <name>drawCardWithHover</name>
+        <qualifiedname>UI::drawCardWithHover</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>normalColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>hoverColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>borderColor</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isHovered</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+        </param>
+        <briefdescription>
+<para>Draw a card with hover state support. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="38" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="38" bodyend="47" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="55" declcolumn="10"/>
+        <references refid="namespaceUI_1af4046eea0775bd56e174845d42e3a060" compoundref="UIHelpers_8cpp" startline="9" endline="26">drawCard</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a8f2f81f602ca72eff9b36dfb795fb81f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawBadge</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;text, juce::Colour bgColor, juce::Colour textColor, float fontSize=11.0f, float cornerRadius=4.0f)</argsstring>
+        <name>drawBadge</name>
+        <qualifiedname>UI::drawBadge</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>textColor</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>fontSize</declname>
+          <defval>11.0f</defval>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+          <defval>4.0f</defval>
+        </param>
+        <briefdescription>
+<para>Draw a small badge/tag with text (e.g., &quot;120 BPM&quot;, &quot;NEW&quot;). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>g</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Graphics context </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bounds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rectangle to draw </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>text</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Badge text </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bgColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Background color </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>textColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Text color </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fontSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Font size (default 11.0f) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cornerRadius</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Corner radius (default 4.0f) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="52" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="52" bodyend="68" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="77" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a96b85759efbcd43175e54b00d098c969" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; UI::drawPillBadge</definition>
+        <argsstring>(juce::Graphics &amp;g, int x, int y, const juce::String &amp;text, juce::Colour bgColor, juce::Colour textColor, float fontSize=11.0f, int hPadding=8, int vPadding=4)</argsstring>
+        <name>drawPillBadge</name>
+        <qualifiedname>UI::drawPillBadge</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>textColor</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>fontSize</declname>
+          <defval>11.0f</defval>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>hPadding</declname>
+          <defval>8</defval>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>vPadding</declname>
+          <defval>4</defval>
+        </param>
+        <briefdescription>
+<para>Draw a pill-shaped badge that auto-sizes to text. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns the actual bounds used. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="70" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="70" bodyend="95" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="89" declcolumn="21"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a2677ae38d6d8fdabb48662b66f92c975" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;text, juce::Colour bgColor, juce::Colour textColor, bool isHovered=false, float cornerRadius=6.0f)</argsstring>
+        <name>drawButton</name>
+        <qualifiedname>UI::drawButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>textColor</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isHovered</declname>
+          <defval>false</defval>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+          <defval>6.0f</defval>
+        </param>
+        <briefdescription>
+<para>Draw a rounded button with text. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>g</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Graphics context </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bounds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Button bounds </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>text</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Button text </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bgColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Background color </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>textColor</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Text color </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>isHovered</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Whether button is being hovered </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cornerRadius</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Corner radius (default 6.0f) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="100" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="100" bodyend="118" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="112" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1af38e83d83872deaece10268ff2181b55" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawOutlineButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;text, juce::Colour borderColor, juce::Colour textColor, bool isHovered=false, float cornerRadius=6.0f)</argsstring>
+        <name>drawOutlineButton</name>
+        <qualifiedname>UI::drawOutlineButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>borderColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>textColor</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isHovered</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+        </param>
+        <briefdescription>
+<para>Draw an outline-style button. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="120" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="120" bodyend="142" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="123" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a8f9a2cf29b5cf614333d4a7b47c11eee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawIconButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, juce::Colour bgColor, bool isHovered=false)</argsstring>
+        <name>drawIconButton</name>
+        <qualifiedname>UI::drawIconButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isHovered</declname>
+        </param>
+        <briefdescription>
+<para>Draw a circular icon button background. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="147" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="147" bodyend="155" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="137" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1abe0b769d44e2bf84ebf8edc1953ad1b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawIcon</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;icon, juce::Colour color, float fontSize=16.0f)</argsstring>
+        <name>drawIcon</name>
+        <qualifiedname>UI::drawIcon</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>icon</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>fontSize</declname>
+        </param>
+        <briefdescription>
+<para>Draw a simple icon character (emoji or symbol). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="157" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="157" bodyend="166" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="145" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a0d9eecacddd318684c965e948c205d1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawProgressBar</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, float progress, juce::Colour bgColor, juce::Colour fillColor, float cornerRadius=4.0f)</argsstring>
+        <name>drawProgressBar</name>
+        <qualifiedname>UI::drawProgressBar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>progress</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>fillColor</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>cornerRadius</declname>
+        </param>
+        <briefdescription>
+<para>Draw a horizontal progress bar. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="171" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="171" bodyend="193" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="157" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a07f133d230f76196f4704fa0a90e8732" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawLoadingSpinner</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, juce::Colour color, float rotation)</argsstring>
+        <name>drawLoadingSpinner</name>
+        <qualifiedname>UI::drawLoadingSpinner</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>rotation</declname>
+        </param>
+        <briefdescription>
+<para>Draw a loading spinner indicator. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="195" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="195" bodyend="210" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="167" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1acf3b86ece6e702e5bce434a34ae4b26e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawDivider</definition>
+        <argsstring>(juce::Graphics &amp;g, int x, int y, int width, juce::Colour color, float thickness=1.0f)</argsstring>
+        <name>drawDivider</name>
+        <qualifiedname>UI::drawDivider</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>width</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>thickness</declname>
+        </param>
+        <briefdescription>
+<para>Draw a horizontal divider line. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="215" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="215" bodyend="223" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="178" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1afdfbc2250221514242e7cffabf9f6be9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawVerticalDivider</definition>
+        <argsstring>(juce::Graphics &amp;g, int x, int y, int height, juce::Colour color, float thickness=1.0f)</argsstring>
+        <name>drawVerticalDivider</name>
+        <qualifiedname>UI::drawVerticalDivider</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>height</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>thickness</declname>
+        </param>
+        <briefdescription>
+<para>Draw a vertical divider line. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="225" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="225" bodyend="233" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="186" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a26913cd01c24dd08d4f7b7b7b1d68830" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String UI::truncateWithEllipsis</definition>
+        <argsstring>(const juce::String &amp;text, const juce::Font &amp;font, int maxWidth)</argsstring>
+        <name>truncateWithEllipsis</name>
+        <qualifiedname>UI::truncateWithEllipsis</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>const juce::Font &amp;</type>
+          <declname>font</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxWidth</declname>
+        </param>
+        <briefdescription>
+<para>Truncate text to fit within maxWidth, adding ellipsis if needed. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>text</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The text to truncate </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>font</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Font to measure with </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>maxWidth</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum width in pixels </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Truncated text with &quot;...&quot; if needed </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="238" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="238" bodyend="267" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="202" declcolumn="18"/>
+        <referencedby refid="namespaceUI_1ac6d30255a36a8d45f3633f94d2dabcc1" compoundref="UIHelpers_8cpp" startline="269" endline="278">drawTruncatedText</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1ac6d30255a36a8d45f3633f94d2dabcc1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawTruncatedText</definition>
+        <argsstring>(juce::Graphics &amp;g, const juce::String &amp;text, juce::Rectangle&lt; int &gt; bounds, juce::Colour color, juce::Justification justification=juce::Justification::centredLeft)</argsstring>
+        <name>drawTruncatedText</name>
+        <qualifiedname>UI::drawTruncatedText</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>color</declname>
+        </param>
+        <param>
+          <type>juce::Justification</type>
+          <declname>justification</declname>
+        </param>
+        <briefdescription>
+<para>Draw text with automatic ellipsis truncation. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="269" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="269" bodyend="278" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="209" declcolumn="10"/>
+        <references refid="namespaceUI_1a26913cd01c24dd08d4f7b7b7b1d68830" compoundref="UIHelpers_8cpp" startline="238" endline="267">truncateWithEllipsis</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a1beb8d821a5eeeb3277ba2d45426cdfc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int UI::getTextWidth</definition>
+        <argsstring>(const juce::Graphics &amp;g, const juce::String &amp;text)</argsstring>
+        <name>getTextWidth</name>
+        <qualifiedname>UI::getTextWidth</qualifiedname>
+        <param>
+          <type>const juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <briefdescription>
+<para>Calculate text width for the current font. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="280" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="280" bodyend="283" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="218" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1aec8b8d99e46fc1b32c4ce91edc21fe01" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int UI::getTextWidth</definition>
+        <argsstring>(const juce::Font &amp;font, const juce::String &amp;text)</argsstring>
+        <name>getTextWidth</name>
+        <qualifiedname>UI::getTextWidth</qualifiedname>
+        <param>
+          <type>const juce::Font &amp;</type>
+          <declname>font</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="285" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="285" bodyend="288" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="219" declcolumn="9"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a79ef1f5b166cbd447a4f0089e9ed4425" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawDropShadow</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, juce::Colour shadowColor, int radius=4, juce::Point&lt; int &gt; offset={0, 2})</argsstring>
+        <name>drawDropShadow</name>
+        <qualifiedname>UI::drawDropShadow</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>shadowColor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>radius</declname>
+          <defval>4</defval>
+        </param>
+        <param>
+          <type>juce::Point&lt; int &gt;</type>
+          <declname>offset</declname>
+          <defval>{0, 2}</defval>
+        </param>
+        <briefdescription>
+<para>Draw a drop shadow beneath a rectangle. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Call before drawing the actual element. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="293" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="293" bodyend="308" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="228" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceUI_1a0cc3441d7ef6f44d7caaf4bb2469429c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UI::drawTooltip</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;text, juce::Colour bgColor, juce::Colour textColor)</argsstring>
+        <name>drawTooltip</name>
+        <qualifiedname>UI::drawTooltip</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>textColor</declname>
+        </param>
+        <briefdescription>
+<para>Draw a tooltip box with text. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="313" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" bodystart="313" bodyend="334" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.h" declline="240" declcolumn="10"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>UIHelpers - Common <ref refid="namespaceUI" kindref="compound">UI</ref> drawing utilities. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides consistent drawing patterns for cards, badges, buttons, and text to reduce duplication across components.</para>
+<para>Usage: // Draw a card with background and border UI::drawCard(g, bounds, Colors::backgroundLight, Colors::border);</para>
+<para>// Draw a badge with text <ref refid="namespaceUI_1a8f2f81f602ca72eff9b36dfb795fb81f" kindref="member">UI::drawBadge</ref>(g, bounds, &quot;120 BPM&quot;, Colors::badge, Colors::textPrimary);</para>
+<para>// Truncate text with ellipsis auto truncated = <ref refid="namespaceUI_1a26913cd01c24dd08d4f7b7b7b1d68830" kindref="member">UI::truncateWithEllipsis</ref>(&quot;Very long text...&quot;, font, 100); </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/UIHelpers.cpp" line="3" column="1"/>
+  </compounddef>
+</doxygen>

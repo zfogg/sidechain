@@ -1,0 +1,641 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classUserDataStore" kind="class" language="C++" prot="public">
+    <compoundname>UserDataStore</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::ChangeBroadcaster</basecompoundref>
+    <includes refid="UserDataStore_8h" local="no">UserDataStore.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classUserDataStore_1aa19e1e0628181294b08942e930a84c42" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>UserDataStore::userId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="69" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1aefba6d461fbbe00818abf9b4862d30f4" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>UserDataStore::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="70" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1a782abdb832ca1cc8e0732ac57626c469" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::email</definition>
+        <argsstring></argsstring>
+        <name>email</name>
+        <qualifiedname>UserDataStore::email</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="71" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1ab8add4d450e7ca10ec5f641692fa2a72" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::displayName</definition>
+        <argsstring></argsstring>
+        <name>displayName</name>
+        <qualifiedname>UserDataStore::displayName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="72" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1a7adb120b8f88e29d0e395ed0270e0743" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::bio</definition>
+        <argsstring></argsstring>
+        <name>bio</name>
+        <qualifiedname>UserDataStore::bio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="73" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1a2c2aa57d38a02f968d2c38f3aa5658a6" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::location</definition>
+        <argsstring></argsstring>
+        <name>location</name>
+        <qualifiedname>UserDataStore::location</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="74" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1a0510308c648f7f8d204f58f779873308" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::profilePictureUrl</definition>
+        <argsstring></argsstring>
+        <name>profilePictureUrl</name>
+        <qualifiedname>UserDataStore::profilePictureUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="75" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1ac7a21f930dc73aae8692d572da586b14" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::authToken</definition>
+        <argsstring></argsstring>
+        <name>authToken</name>
+        <qualifiedname>UserDataStore::authToken</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="76" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1abae9eb1024011e3316bdd50ba0b87122" prot="private" static="no" mutable="no">
+        <type>juce::Image</type>
+        <definition>juce::Image UserDataStore::cachedProfileImage</definition>
+        <argsstring></argsstring>
+        <name>cachedProfileImage</name>
+        <qualifiedname>UserDataStore::cachedProfileImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="79" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1ac90fd87895249865a20113ac8450356e" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UserDataStore::isDownloadingImage</definition>
+        <argsstring></argsstring>
+        <name>isDownloadingImage</name>
+        <qualifiedname>UserDataStore::isDownloadingImage</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="80" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUserDataStore_1a884aaf1d8d7153ec5ed2950b49187b5a" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* UserDataStore::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>UserDataStore::networkClient</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="83" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classUserDataStore_1aa50dc180026a5c5cdcc11000b144501b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UserDataStore::UserDataStore</definition>
+        <argsstring>()</argsstring>
+        <name>UserDataStore</name>
+        <qualifiedname>UserDataStore::UserDataStore</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="20" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="10" bodyend="12"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a3b51392a21207c18703f5d7070600870" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UserDataStore::~UserDataStore</definition>
+        <argsstring>() override</argsstring>
+        <name>~UserDataStore</name>
+        <qualifiedname>UserDataStore::~UserDataStore</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="21" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="14" bodyend="16"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a61095e4fe7844ee036a969ce4cf01d7a" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getUserId</definition>
+        <argsstring>() const</argsstring>
+        <name>getUserId</name>
+        <qualifiedname>UserDataStore::getUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="25" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="25" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1aeba4311fda1f92e4c9606f9c1bcfa8b7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getUsername</definition>
+        <argsstring>() const</argsstring>
+        <name>getUsername</name>
+        <qualifiedname>UserDataStore::getUsername</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="26" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="26" bodyend="26"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1ae51806fb0a60dfe56ffd044c3a9f8957" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getEmail</definition>
+        <argsstring>() const</argsstring>
+        <name>getEmail</name>
+        <qualifiedname>UserDataStore::getEmail</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="27" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="27" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a328681a1a613eb71dc23891ece2bec3f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getDisplayName</definition>
+        <argsstring>() const</argsstring>
+        <name>getDisplayName</name>
+        <qualifiedname>UserDataStore::getDisplayName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="28" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="28" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1aa543eddfe2ba3d55aa094cbaf060adf8" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getBio</definition>
+        <argsstring>() const</argsstring>
+        <name>getBio</name>
+        <qualifiedname>UserDataStore::getBio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="29" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="29" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1af9d7568b2a8d36c09ee877f742bb9f14" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getProfilePictureUrl</definition>
+        <argsstring>() const</argsstring>
+        <name>getProfilePictureUrl</name>
+        <qualifiedname>UserDataStore::getProfilePictureUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="30" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="30" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a3530cf833d142ffa38829994d97de388" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::Image &amp;</type>
+        <definition>const juce::Image &amp; UserDataStore::getProfileImage</definition>
+        <argsstring>() const</argsstring>
+        <name>getProfileImage</name>
+        <qualifiedname>UserDataStore::getProfileImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="31" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a0aecd1982f978794e9a0e44b052d24f1" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool UserDataStore::hasProfileImage</definition>
+        <argsstring>() const</argsstring>
+        <name>hasProfileImage</name>
+        <qualifiedname>UserDataStore::hasProfileImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="32" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="32" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1abd4e1469554739131979b1d51119cb6c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool UserDataStore::isLoggedIn</definition>
+        <argsstring>() const</argsstring>
+        <name>isLoggedIn</name>
+        <qualifiedname>UserDataStore::isLoggedIn</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="33" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1ab1a66cf65cabb6d0a97bb4b24410e00e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; UserDataStore::getAuthToken</definition>
+        <argsstring>() const</argsstring>
+        <name>getAuthToken</name>
+        <qualifiedname>UserDataStore::getAuthToken</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="34" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="34" bodyend="34"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a13f3039134cd30152c91ac78bafb79e9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>UserDataStore::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="38" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="38" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a0639c5790246f90e4ffad5bfaebecf48" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::setAuthToken</definition>
+        <argsstring>(const juce::String &amp;token)</argsstring>
+        <name>setAuthToken</name>
+        <qualifiedname>UserDataStore::setAuthToken</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="39" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="19" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1aa0945a9d505dffbed2c70a36755f42e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::clearAuthToken</definition>
+        <argsstring>()</argsstring>
+        <name>clearAuthToken</name>
+        <qualifiedname>UserDataStore::clearAuthToken</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="40" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="25" bodyend="29"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1acf54c7b031522002f4c6bbf838602461" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::setBasicUserInfo</definition>
+        <argsstring>(const juce::String &amp;user, const juce::String &amp;mail)</argsstring>
+        <name>setBasicUserInfo</name>
+        <qualifiedname>UserDataStore::setBasicUserInfo</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>user</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>mail</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="43" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="31" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1ae5fb9eab4f9e11ca097144a3f7ae59f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::setProfilePictureUrl</definition>
+        <argsstring>(const juce::String &amp;url)</argsstring>
+        <name>setProfilePictureUrl</name>
+        <qualifiedname>UserDataStore::setProfilePictureUrl</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="46" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="38" bodyend="61"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1aba71da193005fe6d6779786d53ae3053" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::setLocalPreviewImage</definition>
+        <argsstring>(const juce::File &amp;imageFile)</argsstring>
+        <name>setLocalPreviewImage</name>
+        <qualifiedname>UserDataStore::setLocalPreviewImage</qualifiedname>
+        <param>
+          <type>const juce::File &amp;</type>
+          <declname>imageFile</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="74" bodyend="85"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a93d73ed2344bb63d6ef17ed93a43c5f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::fetchUserProfile</definition>
+        <argsstring>(std::function&lt; void(bool success)&gt; callback=nullptr)</argsstring>
+        <name>fetchUserProfile</name>
+        <qualifiedname>UserDataStore::fetchUserProfile</qualifiedname>
+        <param>
+          <type>std::function&lt; void(bool success)&gt;</type>
+          <declname>callback</declname>
+          <defval><ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="55" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="203" bodyend="253"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a12f63e815568f24669b70c15ca0a2e6e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::refreshProfileImage</definition>
+        <argsstring>()</argsstring>
+        <name>refreshProfileImage</name>
+        <qualifiedname>UserDataStore::refreshProfileImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="58" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="193" bodyend="200"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1ac4b871bb796f0a8a84633e29ee46e3bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::saveToSettings</definition>
+        <argsstring>()</argsstring>
+        <name>saveToSettings</name>
+        <qualifiedname>UserDataStore::saveToSettings</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="62" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="265" bodyend="286"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a1435215571b648c46d4b0d6836c1c585" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::loadFromSettings</definition>
+        <argsstring>()</argsstring>
+        <name>loadFromSettings</name>
+        <qualifiedname>UserDataStore::loadFromSettings</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="63" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="288" bodyend="312"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a18feceb90a3e2ac4c4c99a287d7721a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::clearAll</definition>
+        <argsstring>()</argsstring>
+        <name>clearAll</name>
+        <qualifiedname>UserDataStore::clearAll</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="64" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="314" bodyend="338"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classUserDataStore_1adf3a317c5dbd35f686b37c46a2e68127" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UserDataStore::downloadProfileImage</definition>
+        <argsstring>(const juce::String &amp;url)</argsstring>
+        <name>downloadProfileImage</name>
+        <qualifiedname>UserDataStore::downloadProfileImage</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="87" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="88" bodyend="191"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a125b6cb068a3473db3c673a1f1bdf335" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String UserDataStore::getProxyUrl</definition>
+        <argsstring>() const</argsstring>
+        <name>getProxyUrl</name>
+        <qualifiedname>UserDataStore::getProxyUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="88" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="63" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="classUserDataStore_1a4d498db7810f58f121bdf49a18763dc5" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::PropertiesFile::Options</type>
+        <definition>juce::PropertiesFile::Options UserDataStore::getPropertiesOptions</definition>
+        <argsstring>() const</argsstring>
+        <name>getPropertiesOptions</name>
+        <qualifiedname>UserDataStore::getPropertiesOptions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="89" column="35" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.cpp" bodystart="256" bodyend="263"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classUserDataStore" kindref="compound">UserDataStore</ref> - Centralized store for current user&apos;s profile data. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This class manages the logged-in user&apos;s data and provides:<itemizedlist>
+<listitem><para>Cached profile image (downloaded from S3)</para>
+</listitem><listitem><para>User info (username, email, profile URL, etc.)</para>
+</listitem><listitem><para>Listener interface for components to react to data changes</para>
+</listitem><listitem><para><ref refid="namespaceAsync" kindref="compound">Async</ref> fetching from /api/v1/users/me endpoint </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>UserDataStore</label>
+        <link refid="classUserDataStore"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::ChangeBroadcaster</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>UserDataStore</label>
+        <link refid="classUserDataStore"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::ChangeBroadcaster</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" line="17" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/stores/UserDataStore.h" bodystart="18" bodyend="92"/>
+    <listofallmembers>
+      <member refid="classUserDataStore_1ac7a21f930dc73aae8692d572da586b14" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>authToken</name></member>
+      <member refid="classUserDataStore_1a7adb120b8f88e29d0e395ed0270e0743" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>bio</name></member>
+      <member refid="classUserDataStore_1abae9eb1024011e3316bdd50ba0b87122" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>cachedProfileImage</name></member>
+      <member refid="classUserDataStore_1a18feceb90a3e2ac4c4c99a287d7721a2" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>clearAll</name></member>
+      <member refid="classUserDataStore_1aa0945a9d505dffbed2c70a36755f42e0" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>clearAuthToken</name></member>
+      <member refid="classUserDataStore_1ab8add4d450e7ca10ec5f641692fa2a72" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>displayName</name></member>
+      <member refid="classUserDataStore_1adf3a317c5dbd35f686b37c46a2e68127" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>downloadProfileImage</name></member>
+      <member refid="classUserDataStore_1a782abdb832ca1cc8e0732ac57626c469" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>email</name></member>
+      <member refid="classUserDataStore_1a93d73ed2344bb63d6ef17ed93a43c5f3" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>fetchUserProfile</name></member>
+      <member refid="classUserDataStore_1ab1a66cf65cabb6d0a97bb4b24410e00e" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getAuthToken</name></member>
+      <member refid="classUserDataStore_1aa543eddfe2ba3d55aa094cbaf060adf8" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getBio</name></member>
+      <member refid="classUserDataStore_1a328681a1a613eb71dc23891ece2bec3f" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getDisplayName</name></member>
+      <member refid="classUserDataStore_1ae51806fb0a60dfe56ffd044c3a9f8957" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getEmail</name></member>
+      <member refid="classUserDataStore_1a3530cf833d142ffa38829994d97de388" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getProfileImage</name></member>
+      <member refid="classUserDataStore_1af9d7568b2a8d36c09ee877f742bb9f14" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getProfilePictureUrl</name></member>
+      <member refid="classUserDataStore_1a4d498db7810f58f121bdf49a18763dc5" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>getPropertiesOptions</name></member>
+      <member refid="classUserDataStore_1a125b6cb068a3473db3c673a1f1bdf335" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>getProxyUrl</name></member>
+      <member refid="classUserDataStore_1a61095e4fe7844ee036a969ce4cf01d7a" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getUserId</name></member>
+      <member refid="classUserDataStore_1aeba4311fda1f92e4c9606f9c1bcfa8b7" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>getUsername</name></member>
+      <member refid="classUserDataStore_1a0aecd1982f978794e9a0e44b052d24f1" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>hasProfileImage</name></member>
+      <member refid="classUserDataStore_1ac90fd87895249865a20113ac8450356e" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>isDownloadingImage</name></member>
+      <member refid="classUserDataStore_1abd4e1469554739131979b1d51119cb6c" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>isLoggedIn</name></member>
+      <member refid="classUserDataStore_1a1435215571b648c46d4b0d6836c1c585" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>loadFromSettings</name></member>
+      <member refid="classUserDataStore_1a2c2aa57d38a02f968d2c38f3aa5658a6" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>location</name></member>
+      <member refid="classUserDataStore_1a884aaf1d8d7153ec5ed2950b49187b5a" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>networkClient</name></member>
+      <member refid="classUserDataStore_1a0510308c648f7f8d204f58f779873308" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>profilePictureUrl</name></member>
+      <member refid="classUserDataStore_1a12f63e815568f24669b70c15ca0a2e6e" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>refreshProfileImage</name></member>
+      <member refid="classUserDataStore_1ac4b871bb796f0a8a84633e29ee46e3bf" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>saveToSettings</name></member>
+      <member refid="classUserDataStore_1a0639c5790246f90e4ffad5bfaebecf48" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>setAuthToken</name></member>
+      <member refid="classUserDataStore_1acf54c7b031522002f4c6bbf838602461" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>setBasicUserInfo</name></member>
+      <member refid="classUserDataStore_1aba71da193005fe6d6779786d53ae3053" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>setLocalPreviewImage</name></member>
+      <member refid="classUserDataStore_1a13f3039134cd30152c91ac78bafb79e9" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>setNetworkClient</name></member>
+      <member refid="classUserDataStore_1ae5fb9eab4f9e11ca097144a3f7ae59f1" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>setProfilePictureUrl</name></member>
+      <member refid="classUserDataStore_1aa50dc180026a5c5cdcc11000b144501b" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>UserDataStore</name></member>
+      <member refid="classUserDataStore_1aa19e1e0628181294b08942e930a84c42" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>userId</name></member>
+      <member refid="classUserDataStore_1aefba6d461fbbe00818abf9b4862d30f4" prot="private" virt="non-virtual"><scope>UserDataStore</scope><name>username</name></member>
+      <member refid="classUserDataStore_1a3b51392a21207c18703f5d7070600870" prot="public" virt="non-virtual"><scope>UserDataStore</scope><name>~UserDataStore</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

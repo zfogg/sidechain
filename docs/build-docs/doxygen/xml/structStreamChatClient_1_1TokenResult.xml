@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structStreamChatClient_1_1TokenResult" kind="struct" language="C++" prot="public">
+    <compoundname>StreamChatClient::TokenResult</compoundname>
+    <includes refid="StreamChatClient_8h" local="no">StreamChatClient.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structStreamChatClient_1_1TokenResult_1aca43b8f5ad87b278391ab5bd95334131" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StreamChatClient::TokenResult::token</definition>
+        <argsstring></argsstring>
+        <name>token</name>
+        <qualifiedname>StreamChatClient::TokenResult::token</qualifiedname>
+        <briefdescription>
+<para>getstream.io chat token </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="115" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStreamChatClient_1_1TokenResult_1ad82bba87a5ec6a20861a666497b4dd1c" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StreamChatClient::TokenResult::apiKey</definition>
+        <argsstring></argsstring>
+        <name>apiKey</name>
+        <qualifiedname>StreamChatClient::TokenResult::apiKey</qualifiedname>
+        <briefdescription>
+<para>getstream.io API key </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="116" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStreamChatClient_1_1TokenResult_1a4dc51806787b3a47f782a8f31187c4b8" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StreamChatClient::TokenResult::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>StreamChatClient::TokenResult::userId</qualifiedname>
+        <briefdescription>
+<para>Current user ID. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="117" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Result structure for token fetch operations. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" line="113" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/StreamChatClient.h" bodystart="114" bodyend="118"/>
+    <listofallmembers>
+      <member refid="structStreamChatClient_1_1TokenResult_1ad82bba87a5ec6a20861a666497b4dd1c" prot="public" virt="non-virtual"><scope>StreamChatClient::TokenResult</scope><name>apiKey</name></member>
+      <member refid="structStreamChatClient_1_1TokenResult_1aca43b8f5ad87b278391ab5bd95334131" prot="public" virt="non-virtual"><scope>StreamChatClient::TokenResult</scope><name>token</name></member>
+      <member refid="structStreamChatClient_1_1TokenResult_1a4dc51806787b3a47f782a8f31187c4b8" prot="public" virt="non-virtual"><scope>StreamChatClient::TokenResult</scope><name>userId</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structHttpAudioPlayer_1_1CachedAudio" kind="struct" language="C++" prot="private">
+    <compoundname>HttpAudioPlayer::CachedAudio</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structHttpAudioPlayer_1_1CachedAudio_1a72df0dcf8c28afc87c0470f27fc53ad9" prot="public" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::MemoryBlock &gt;</type>
+        <definition>std::unique_ptr&lt;juce::MemoryBlock&gt; HttpAudioPlayer::CachedAudio::audioData</definition>
+        <argsstring></argsstring>
+        <name>audioData</name>
+        <qualifiedname>HttpAudioPlayer::CachedAudio::audioData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="262" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="262" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structHttpAudioPlayer_1_1CachedAudio_1afad5691f254fa3e08513d578245c76fe" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String HttpAudioPlayer::CachedAudio::mimeType</definition>
+        <argsstring></argsstring>
+        <name>mimeType</name>
+        <qualifiedname>HttpAudioPlayer::CachedAudio::mimeType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="263" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="263" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structHttpAudioPlayer_1_1CachedAudio_1afdb3ad007313c00badd7f62737f99fb5" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t HttpAudioPlayer::CachedAudio::sizeBytes</definition>
+        <argsstring></argsstring>
+        <name>sizeBytes</name>
+        <qualifiedname>HttpAudioPlayer::CachedAudio::sizeBytes</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="264" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="264" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structHttpAudioPlayer_1_1CachedAudio_1aa3633a15de2e1abf26be24dc9ad49555" prot="public" static="no" mutable="no">
+        <type>juce::int64</type>
+        <definition>juce::int64 HttpAudioPlayer::CachedAudio::lastAccessTime</definition>
+        <argsstring></argsstring>
+        <name>lastAccessTime</name>
+        <qualifiedname>HttpAudioPlayer::CachedAudio::lastAccessTime</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="265" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="265" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>HttpAudioPlayer::CachedAudio</label>
+        <childnode refid="2" relation="usage">
+          <edgelabel>audioData</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>std::unique_ptr&lt; juce::MemoryBlock &gt;</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" line="260" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/HttpAudioPlayer.h" bodystart="261" bodyend="266"/>
+    <listofallmembers>
+      <member refid="structHttpAudioPlayer_1_1CachedAudio_1a72df0dcf8c28afc87c0470f27fc53ad9" prot="public" virt="non-virtual"><scope>HttpAudioPlayer::CachedAudio</scope><name>audioData</name></member>
+      <member refid="structHttpAudioPlayer_1_1CachedAudio_1aa3633a15de2e1abf26be24dc9ad49555" prot="public" virt="non-virtual"><scope>HttpAudioPlayer::CachedAudio</scope><name>lastAccessTime</name></member>
+      <member refid="structHttpAudioPlayer_1_1CachedAudio_1afad5691f254fa3e08513d578245c76fe" prot="public" virt="non-virtual"><scope>HttpAudioPlayer::CachedAudio</scope><name>mimeType</name></member>
+      <member refid="structHttpAudioPlayer_1_1CachedAudio_1afdb3ad007313c00badd7f62737f99fb5" prot="public" virt="non-virtual"><scope>HttpAudioPlayer::CachedAudio</scope><name>sizeBytes</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

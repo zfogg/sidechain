@@ -3,7 +3,7 @@
 #include "util/Colors.h"
 #include "util/Constants.h"
 #include "util/Json.h"
-#include "util/ImageCache.h"
+#include "stores/ImageCache.h"
 #include "util/Log.h"
 #include "util/Result.h"
 
@@ -79,8 +79,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(authComponent.get());
 
     //==========================================================================
-    // Create ProfileSetupComponent
-    profileSetupComponent = std::make_unique<ProfileSetupComponent>();
+    // Create ProfileSetup
+    profileSetupComponent = std::make_unique<ProfileSetup>();
     profileSetupComponent->onSkipSetup = [this]() { showView(AppView::PostsFeed); };
     profileSetupComponent->onCompleteSetup = [this]() { showView(AppView::PostsFeed); };
     profileSetupComponent->onProfilePicSelected = [this](const juce::String& localPath) {
@@ -127,8 +127,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(profileSetupComponent.get());
 
     //==========================================================================
-    // Create PostsFeedComponent
-    postsFeedComponent = std::make_unique<PostsFeedComponent>();
+    // Create PostsFeed
+    postsFeedComponent = std::make_unique<PostsFeed>();
     postsFeedComponent->setNetworkClient(networkClient.get());
     postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
     postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
@@ -154,8 +154,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(recordingComponent.get());
 
     //==========================================================================
-    // Create UploadComponent
-    uploadComponent = std::make_unique<UploadComponent>(audioProcessor, *networkClient);
+    // Create Upload
+    uploadComponent = std::make_unique<Upload>(audioProcessor, *networkClient);
     uploadComponent->onUploadComplete = [this]() {
         uploadComponent->reset();
         showView(AppView::PostsFeed);
@@ -180,8 +180,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(userDiscoveryComponent.get());
 
     //==========================================================================
-    // Create SearchComponent
-    searchComponent = std::make_unique<SearchComponent>();
+    // Create Search
+    searchComponent = std::make_unique<Search>();
     searchComponent->setNetworkClient(networkClient.get());
     if (userDataStore)
         searchComponent->setCurrentUserId(userDataStore->getUserId());
@@ -198,8 +198,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(searchComponent.get());
 
     //==========================================================================
-    // Create StoryRecordingComponent
-    storyRecordingComponent = std::make_unique<StoryRecordingComponent>(audioProcessor);
+    // Create StoryRecording
+    storyRecordingComponent = std::make_unique<StoryRecording>(audioProcessor);
     storyRecordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio, const juce::var& midiData, int bpm, const juce::String& key, const juce::StringArray& genres) {
         // Upload story
         if (networkClient && recordedAudio.getNumSamples() > 0)
@@ -241,8 +241,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     });
 
     //==========================================================================
-    // Create MessagesListComponent
-    messagesListComponent = std::make_unique<MessagesListComponent>();
+    // Create MessagesList
+    messagesListComponent = std::make_unique<MessagesList>();
     messagesListComponent->setStreamChatClient(streamChatClient.get());
     messagesListComponent->setNetworkClient(networkClient.get());
     messagesListComponent->onChannelSelected = [this](const juce::String& channelType, const juce::String& channelId) {
@@ -264,8 +264,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(messagesListComponent.get());
 
     //==========================================================================
-    // Create MessageThreadComponent
-    messageThreadComponent = std::make_unique<MessageThreadComponent>();
+    // Create MessageThread
+    messageThreadComponent = std::make_unique<MessageThread>();
     messageThreadComponent->setStreamChatClient(streamChatClient.get());
     messageThreadComponent->setNetworkClient(networkClient.get());
     messageThreadComponent->setAudioProcessor(&audioProcessor);
@@ -275,8 +275,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(messageThreadComponent.get());
 
     //==========================================================================
-    // Create ProfileComponent
-    profileComponent = std::make_unique<ProfileComponent>();
+    // Create Profile
+    profileComponent = std::make_unique<Profile>();
     profileComponent->setNetworkClient(networkClient.get());
     profileComponent->onBackPressed = [this]() {
         navigateBack();
@@ -323,7 +323,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     //==========================================================================
     // Create central header component (shown on all post-login pages)
-    headerComponent = std::make_unique<HeaderComponent>();
+    headerComponent = std::make_unique<Header>();
     headerComponent->setNetworkClient(networkClient.get());
     headerComponent->onLogoClicked = [this]() {
         showView(AppView::PostsFeed);
@@ -388,7 +388,7 @@ void SidechainAudioProcessorEditor::paint(juce::Graphics& g)
 void SidechainAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
-    auto headerHeight = HeaderComponent::HEADER_HEIGHT;
+    auto headerHeight = Header::HEADER_HEIGHT;
 
     // Position central header at top (for post-login views)
     if (headerComponent)
@@ -399,8 +399,8 @@ void SidechainAudioProcessorEditor::resized()
 
     // Position notification bell in header area (right side)
     if (notificationBell)
-        notificationBell->setBounds(getWidth() - 70, (headerHeight - NotificationBellComponent::PREFERRED_SIZE) / 2,
-                                    NotificationBellComponent::PREFERRED_SIZE, NotificationBellComponent::PREFERRED_SIZE);
+        notificationBell->setBounds(getWidth() - 70, (headerHeight - NotificationBell::PREFERRED_SIZE) / 2,
+                                    NotificationBell::PREFERRED_SIZE, NotificationBell::PREFERRED_SIZE);
 
     // Position connection indicator in header area (far right)
     if (connectionIndicator)
@@ -409,10 +409,10 @@ void SidechainAudioProcessorEditor::resized()
     // Position notification panel as dropdown from bell
     if (notificationList)
     {
-        int panelX = getWidth() - NotificationListComponent::PREFERRED_WIDTH - 10;
+        int panelX = getWidth() - NotificationList::PREFERRED_WIDTH - 10;
         int panelY = headerHeight + 5;
-        int panelHeight = juce::jmin(NotificationListComponent::MAX_HEIGHT, getHeight() - panelY - 20);
-        notificationList->setBounds(panelX, panelY, NotificationListComponent::PREFERRED_WIDTH, panelHeight);
+        int panelHeight = juce::jmin(NotificationList::MAX_HEIGHT, getHeight() - panelY - 20);
+        notificationList->setBounds(panelX, panelY, NotificationList::PREFERRED_WIDTH, panelHeight);
     }
 
     // Auth component fills entire window (no header)
@@ -1168,10 +1168,10 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
             }
         }
 
-        // Update ProfileSetupComponent with cached image
+        // Update ProfileSetup with cached image
         if (profileSetupComponent && userDataStore && userDataStore->hasProfileImage())
         {
-            Log::debug("changeListenerCallback: Setting profile image on ProfileSetupComponent");
+            Log::debug("changeListenerCallback: Setting profile image on ProfileSetup");
             profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
         }
 
@@ -1201,14 +1201,14 @@ public:
 void SidechainAudioProcessorEditor::setupNotifications()
 {
     // Create notification bell component
-    notificationBell = std::make_unique<NotificationBellComponent>();
+    notificationBell = std::make_unique<NotificationBell>();
     notificationBell->onBellClicked = [this]() {
         toggleNotificationPanel();
     };
     addAndMakeVisible(notificationBell.get());
 
     // Create notification list component (initially hidden)
-    notificationList = std::make_unique<NotificationListComponent>();
+    notificationList = std::make_unique<NotificationList>();
     notificationList->onNotificationClicked = [this](const NotificationItem& item) {
         Log::debug("Notification clicked: " + item.getDisplayText());
         hideNotificationPanel();

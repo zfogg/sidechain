@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structNetworkClient_1_1AudioUploadMetadata" kind="struct" language="C++" prot="public">
+    <compoundname>NetworkClient::AudioUploadMetadata</compoundname>
+    <includes refid="NetworkClient_8h" local="no">NetworkClient.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1a84697df5b329784653a7251d396e64bb" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String NetworkClient::AudioUploadMetadata::title</definition>
+        <argsstring></argsstring>
+        <name>title</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::title</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="73" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1af6a0767b34b068745de7709c40770f02" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double NetworkClient::AudioUploadMetadata::bpm</definition>
+        <argsstring></argsstring>
+        <name>bpm</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::bpm</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="74" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1a9fe74c4865893718e4f6d53883aba8b5" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String NetworkClient::AudioUploadMetadata::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="75" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1ad0140dd3a01204bf7d686d2ab752f742" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String NetworkClient::AudioUploadMetadata::genre</definition>
+        <argsstring></argsstring>
+        <name>genre</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::genre</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="76" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1af1404bec2ddb2b3a71c23218e01025b5" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double NetworkClient::AudioUploadMetadata::durationSeconds</definition>
+        <argsstring></argsstring>
+        <name>durationSeconds</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::durationSeconds</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="79" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1a1ec0ce48c7d07bc38b52f2895fab49ba" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NetworkClient::AudioUploadMetadata::sampleRate</definition>
+        <argsstring></argsstring>
+        <name>sampleRate</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::sampleRate</qualifiedname>
+        <initializer>= 44100</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="80" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1AudioUploadMetadata_1a174f38289b72adb9e52d4339871c1585" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NetworkClient::AudioUploadMetadata::numChannels</definition>
+        <argsstring></argsstring>
+        <name>numChannels</name>
+        <qualifiedname>NetworkClient::AudioUploadMetadata::numChannels</qualifiedname>
+        <initializer>= 2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="81" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="71" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="72" bodyend="82"/>
+    <listofallmembers>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1af6a0767b34b068745de7709c40770f02" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>bpm</name></member>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1af1404bec2ddb2b3a71c23218e01025b5" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>durationSeconds</name></member>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1ad0140dd3a01204bf7d686d2ab752f742" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>genre</name></member>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1a9fe74c4865893718e4f6d53883aba8b5" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>key</name></member>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1a174f38289b72adb9e52d4339871c1585" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>numChannels</name></member>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1a1ec0ce48c7d07bc38b52f2895fab49ba" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>sampleRate</name></member>
+      <member refid="structNetworkClient_1_1AudioUploadMetadata_1a84697df5b329784653a7251d396e64bb" prot="public" virt="non-virtual"><scope>NetworkClient::AudioUploadMetadata</scope><name>title</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

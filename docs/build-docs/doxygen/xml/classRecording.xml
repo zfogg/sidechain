@@ -1,0 +1,711 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classRecording" kind="class" language="C++" prot="public">
+    <compoundname>Recording</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <includes refid="Recording_8h" local="no">Recording.h</includes>
+    <sectiondef kind="private-type">
+      <memberdef kind="enum" id="classRecording_1a5b31c12c02a5629868bec3991829324b" prot="private" static="no" strong="yes">
+        <type></type>
+        <name>State</name>
+        <qualifiedname>Recording::State</qualifiedname>
+        <enumvalue id="classRecording_1a5b31c12c02a5629868bec3991829324bae599161956d626eda4cb0a5ffb85271c" prot="private">
+          <name>Idle</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classRecording_1a5b31c12c02a5629868bec3991829324bac5564d2e8b8e0ae08bf4363f2b947166" prot="private">
+          <name>Recording</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classRecording_1a5b31c12c02a5629868bec3991829324ba31fde7b05ac8952dacf4af8a704074ec" prot="private">
+          <name>Preview</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="52" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="53" bodyend="57"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classRecording_1a5417df1e1ebc5f1ecdd9c75232f532da" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::AudioBuffer&lt; float &gt; &amp;)&gt;</type>
+        <definition>std::function&lt;void(const juce::AudioBuffer&lt;float&gt;&amp;)&gt; Recording::onRecordingComplete</definition>
+        <argsstring></argsstring>
+        <name>onRecordingComplete</name>
+        <qualifiedname>Recording::onRecordingComplete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="42" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a0242415bd58f857c5fc34f0848cb1e0c" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; Recording::onRecordingDiscarded</definition>
+        <argsstring></argsstring>
+        <name>onRecordingDiscarded</name>
+        <qualifiedname>Recording::onRecordingDiscarded</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="45" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classRecording_1a28a6478b6b8673902567f08948cde35f" prot="private" static="no" mutable="no">
+        <type><ref refid="classSidechainAudioProcessor" kindref="compound">SidechainAudioProcessor</ref> &amp;</type>
+        <definition>SidechainAudioProcessor&amp; Recording::audioProcessor</definition>
+        <argsstring></argsstring>
+        <name>audioProcessor</name>
+        <qualifiedname>Recording::audioProcessor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="49" column="29" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a88fe50456d2776a9458b4751eae46cc6" prot="private" static="no" mutable="no">
+        <type>State</type>
+        <definition>State Recording::currentState</definition>
+        <argsstring></argsstring>
+        <name>currentState</name>
+        <qualifiedname>Recording::currentState</qualifiedname>
+        <initializer>= State::Idle</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="58" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a0e0a67d4d240d0c7ae516b8a43442bf5" prot="private" static="no" mutable="no">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt;float&gt; Recording::recordedAudio</definition>
+        <argsstring></argsstring>
+        <name>recordedAudio</name>
+        <qualifiedname>Recording::recordedAudio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="61" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1aae2556d5beede1ac48b1841ca0e282d3" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double Recording::recordedSampleRate</definition>
+        <argsstring></argsstring>
+        <name>recordedSampleRate</name>
+        <qualifiedname>Recording::recordedSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="62" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a00efc24280f6c9b773d8ea763fc6f55b" prot="private" static="no" mutable="no">
+        <type><ref refid="classAnimation" kindref="compound">Animation</ref></type>
+        <definition>Animation Recording::recordingDotAnimation</definition>
+        <argsstring></argsstring>
+        <name>recordingDotAnimation</name>
+        <qualifiedname>Recording::recordingDotAnimation</qualifiedname>
+        <initializer>{2000, Animation::Easing::EaseInOut}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="65" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="65" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a7ef3282ce9e4535d9c4d83ca8e919635" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; Recording::recordButtonArea</definition>
+        <argsstring></argsstring>
+        <name>recordButtonArea</name>
+        <qualifiedname>Recording::recordButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="68" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a644edc8beee3d376a65f5b69e1fed2e1" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; Recording::timeDisplayArea</definition>
+        <argsstring></argsstring>
+        <name>timeDisplayArea</name>
+        <qualifiedname>Recording::timeDisplayArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="69" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a4f8b52670f079f9917b482c2872c3a13" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; Recording::levelMeterArea</definition>
+        <argsstring></argsstring>
+        <name>levelMeterArea</name>
+        <qualifiedname>Recording::levelMeterArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="70" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a0fb067e03c1c842260b67e094ef40310" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; Recording::progressBarArea</definition>
+        <argsstring></argsstring>
+        <name>progressBarArea</name>
+        <qualifiedname>Recording::progressBarArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="71" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a92438d550922fdd013ae815b34eb940b" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; Recording::waveformArea</definition>
+        <argsstring></argsstring>
+        <name>waveformArea</name>
+        <qualifiedname>Recording::waveformArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="72" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classRecording_1a425da62ff964112a6123e633c2f87c7f" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; Recording::actionButtonsArea</definition>
+        <argsstring></argsstring>
+        <name>actionButtonsArea</name>
+        <qualifiedname>Recording::actionButtonsArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="73" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classRecording_1a956f8d5a4ccbea0a5d40b4d685644d84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>Recording::Recording</definition>
+        <argsstring>(SidechainAudioProcessor &amp;processor)</argsstring>
+        <name>Recording</name>
+        <qualifiedname>Recording::Recording</qualifiedname>
+        <param>
+          <type><ref refid="classSidechainAudioProcessor" kindref="compound">SidechainAudioProcessor</ref> &amp;</type>
+          <declname>processor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="28" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="8" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1af724f0e42515c98c483292ae98ffba99" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>Recording::~Recording</definition>
+        <argsstring>() override</argsstring>
+        <name>~Recording</name>
+        <qualifiedname>Recording::~Recording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="29" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="27" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1ac8b98a9d9de2cc81dbcdea44e28866d0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::paint</definition>
+        <argsstring>(juce::Graphics &amp;) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>Recording::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <defname>g</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="32" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="52" bodyend="69"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1aa8ae1f5d184593d461ec52130856df8a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>Recording::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="33" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="71" bodyend="111"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a0502f73065133e586c1ef50e0d238b63" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>Recording::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="34" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="113" bodyend="157"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a4b485c1f727f7b92e61e3df0d4b4ad6a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>Recording::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="38" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="34" bodyend="49"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classRecording_1a3862c5089d602b087fa2c7e5fd8d781b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawRecordButton</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawRecordButton</name>
+        <qualifiedname>Recording::drawRecordButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="77" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="217" bodyend="241"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a9960d7cce7c573c3d91739a58ae1d9d8" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawTimeDisplay</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawTimeDisplay</name>
+        <qualifiedname>Recording::drawTimeDisplay</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="78" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="243" bodyend="266"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1aae2a890c06061025ca5538a279c5ec26" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawLevelMeters</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawLevelMeters</name>
+        <qualifiedname>Recording::drawLevelMeters</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="79" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="268" bodyend="304"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a0611780e3a2fa69bff32497c64392fc2" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawSingleMeter</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, float peak, float rms, const juce::String &amp;label)</argsstring>
+        <name>drawSingleMeter</name>
+        <qualifiedname>Recording::drawSingleMeter</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>peak</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>rms</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>label</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="80" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="306" bodyend="344"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1acf3f698da7b5d0bd660d84496f4ff988" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawProgressBar</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawProgressBar</name>
+        <qualifiedname>Recording::drawProgressBar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="82" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="346" bodyend="381"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1abbab36140c98a84ea0d514ac9edf7ccd" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawWaveformPreview</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawWaveformPreview</name>
+        <qualifiedname>Recording::drawWaveformPreview</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="83" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="383" bodyend="397"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a2af0803152947280b4d575a0df0053a8" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawActionButtons</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawActionButtons</name>
+        <qualifiedname>Recording::drawActionButtons</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="84" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="399" bodyend="417"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a929130ebcbe30656683e17aa2f4df493" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawIdleState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawIdleState</name>
+        <qualifiedname>Recording::drawIdleState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="85" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="160" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a205b8994c323e6c5afd66049c432705c" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawRecordingState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawRecordingState</name>
+        <qualifiedname>Recording::drawRecordingState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="86" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="178" bodyend="191"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1acb8d4720807741672c9e05e540c39231" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::drawPreviewState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawPreviewState</name>
+        <qualifiedname>Recording::drawPreviewState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="87" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="193" bodyend="214"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a0afd2102727657967d00cfd7f3369af4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Recording::formatTime</definition>
+        <argsstring>(double seconds)</argsstring>
+        <name>formatTime</name>
+        <qualifiedname>Recording::formatTime</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="90" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="420" bodyend="423"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a7cb38fb7118949db07f870d14f4ddaee" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Path</type>
+        <definition>juce::Path Recording::generateWaveformPath</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>generateWaveformPath</name>
+        <qualifiedname>Recording::generateWaveformPath</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="93" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="425" bodyend="467"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a56e0086aba29b6cce33a26d819742a5c" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::startRecording</definition>
+        <argsstring>()</argsstring>
+        <name>startRecording</name>
+        <qualifiedname>Recording::startRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="98" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="470" bodyend="481"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a4094a9d8d7b96ddcc7e7244b2fa7e5e8" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::stopRecording</definition>
+        <argsstring>()</argsstring>
+        <name>stopRecording</name>
+        <qualifiedname>Recording::stopRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="99" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="483" bodyend="515"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1ae9ffe5276bc4b3b6e24311887385320b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::discardRecording</definition>
+        <argsstring>()</argsstring>
+        <name>discardRecording</name>
+        <qualifiedname>Recording::discardRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="100" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="517" bodyend="536"/>
+      </memberdef>
+      <memberdef kind="function" id="classRecording_1a9dc1dd07ecd3a3db349b0e58015648fd" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void Recording::confirmRecording</definition>
+        <argsstring>()</argsstring>
+        <name>confirmRecording</name>
+        <qualifiedname>Recording::confirmRecording</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="101" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.cpp" bodystart="538" bodyend="581"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classRecording" kindref="compound">Recording</ref> provides the <ref refid="namespaceUI" kindref="compound">UI</ref> for audio recording from the DAW. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Record/Stop button with visual state</para>
+</listitem><listitem><para><ref refid="classRecording" kindref="compound">Recording</ref> indicator (red dot animation)</para>
+</listitem><listitem><para>Time elapsed display (MM:SS)</para>
+</listitem><listitem><para>Level meters (stereo peak + RMS)</para>
+</listitem><listitem><para>Progress bar (0-60 seconds)</para>
+</listitem><listitem><para>Waveform preview after recording</para>
+</listitem></itemizedlist>
+</para>
+<para>Uses juce::Timer to poll recording state from the processor at ~30fps for smooth <ref refid="namespaceUI" kindref="compound">UI</ref> updates. </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>Recording</label>
+        <link refid="classRecording"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>Recording</label>
+        <link refid="classRecording"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" line="24" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Recording.h" bodystart="26" bodyend="104"/>
+    <listofallmembers>
+      <member refid="classRecording_1a425da62ff964112a6123e633c2f87c7f" prot="private" virt="non-virtual"><scope>Recording</scope><name>actionButtonsArea</name></member>
+      <member refid="classRecording_1a28a6478b6b8673902567f08948cde35f" prot="private" virt="non-virtual"><scope>Recording</scope><name>audioProcessor</name></member>
+      <member refid="classRecording_1a9dc1dd07ecd3a3db349b0e58015648fd" prot="private" virt="non-virtual"><scope>Recording</scope><name>confirmRecording</name></member>
+      <member refid="classRecording_1a88fe50456d2776a9458b4751eae46cc6" prot="private" virt="non-virtual"><scope>Recording</scope><name>currentState</name></member>
+      <member refid="classRecording_1ae9ffe5276bc4b3b6e24311887385320b" prot="private" virt="non-virtual"><scope>Recording</scope><name>discardRecording</name></member>
+      <member refid="classRecording_1a2af0803152947280b4d575a0df0053a8" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawActionButtons</name></member>
+      <member refid="classRecording_1a929130ebcbe30656683e17aa2f4df493" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawIdleState</name></member>
+      <member refid="classRecording_1aae2a890c06061025ca5538a279c5ec26" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawLevelMeters</name></member>
+      <member refid="classRecording_1acb8d4720807741672c9e05e540c39231" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawPreviewState</name></member>
+      <member refid="classRecording_1acf3f698da7b5d0bd660d84496f4ff988" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawProgressBar</name></member>
+      <member refid="classRecording_1a3862c5089d602b087fa2c7e5fd8d781b" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawRecordButton</name></member>
+      <member refid="classRecording_1a205b8994c323e6c5afd66049c432705c" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawRecordingState</name></member>
+      <member refid="classRecording_1a0611780e3a2fa69bff32497c64392fc2" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawSingleMeter</name></member>
+      <member refid="classRecording_1a9960d7cce7c573c3d91739a58ae1d9d8" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawTimeDisplay</name></member>
+      <member refid="classRecording_1abbab36140c98a84ea0d514ac9edf7ccd" prot="private" virt="non-virtual"><scope>Recording</scope><name>drawWaveformPreview</name></member>
+      <member refid="classRecording_1a0afd2102727657967d00cfd7f3369af4" prot="private" virt="non-virtual"><scope>Recording</scope><name>formatTime</name></member>
+      <member refid="classRecording_1a7cb38fb7118949db07f870d14f4ddaee" prot="private" virt="non-virtual"><scope>Recording</scope><name>generateWaveformPath</name></member>
+      <member refid="classRecording_1a4f8b52670f079f9917b482c2872c3a13" prot="private" virt="non-virtual"><scope>Recording</scope><name>levelMeterArea</name></member>
+      <member refid="classRecording_1a0502f73065133e586c1ef50e0d238b63" prot="public" virt="non-virtual"><scope>Recording</scope><name>mouseUp</name></member>
+      <member refid="classRecording_1a5417df1e1ebc5f1ecdd9c75232f532da" prot="public" virt="non-virtual"><scope>Recording</scope><name>onRecordingComplete</name></member>
+      <member refid="classRecording_1a0242415bd58f857c5fc34f0848cb1e0c" prot="public" virt="non-virtual"><scope>Recording</scope><name>onRecordingDiscarded</name></member>
+      <member refid="classRecording_1ac8b98a9d9de2cc81dbcdea44e28866d0" prot="public" virt="non-virtual"><scope>Recording</scope><name>paint</name></member>
+      <member refid="classRecording_1a0fb067e03c1c842260b67e094ef40310" prot="private" virt="non-virtual"><scope>Recording</scope><name>progressBarArea</name></member>
+      <member refid="classRecording_1a7ef3282ce9e4535d9c4d83ca8e919635" prot="private" virt="non-virtual"><scope>Recording</scope><name>recordButtonArea</name></member>
+      <member refid="classRecording_1a0e0a67d4d240d0c7ae516b8a43442bf5" prot="private" virt="non-virtual"><scope>Recording</scope><name>recordedAudio</name></member>
+      <member refid="classRecording_1aae2556d5beede1ac48b1841ca0e282d3" prot="private" virt="non-virtual"><scope>Recording</scope><name>recordedSampleRate</name></member>
+      <member refid="classRecording_1a956f8d5a4ccbea0a5d40b4d685644d84" prot="public" virt="non-virtual"><scope>Recording</scope><name>Recording</name></member>
+      <member refid="classRecording_1a00efc24280f6c9b773d8ea763fc6f55b" prot="private" virt="non-virtual"><scope>Recording</scope><name>recordingDotAnimation</name></member>
+      <member refid="classRecording_1aa8ae1f5d184593d461ec52130856df8a" prot="public" virt="non-virtual"><scope>Recording</scope><name>resized</name></member>
+      <member refid="classRecording_1a56e0086aba29b6cce33a26d819742a5c" prot="private" virt="non-virtual"><scope>Recording</scope><name>startRecording</name></member>
+      <member refid="classRecording_1a5b31c12c02a5629868bec3991829324b" prot="private" virt="non-virtual"><scope>Recording</scope><name>State</name></member>
+      <member refid="classRecording_1a4094a9d8d7b96ddcc7e7244b2fa7e5e8" prot="private" virt="non-virtual"><scope>Recording</scope><name>stopRecording</name></member>
+      <member refid="classRecording_1a644edc8beee3d376a65f5b69e1fed2e1" prot="private" virt="non-virtual"><scope>Recording</scope><name>timeDisplayArea</name></member>
+      <member refid="classRecording_1a4b485c1f727f7b92e61e3df0d4b4ad6a" prot="public" virt="non-virtual"><scope>Recording</scope><name>timerCallback</name></member>
+      <member refid="classRecording_1a92438d550922fdd013ae815b34eb940b" prot="private" virt="non-virtual"><scope>Recording</scope><name>waveformArea</name></member>
+      <member refid="classRecording_1af724f0e42515c98c483292ae98ffba99" prot="public" virt="non-virtual"><scope>Recording</scope><name>~Recording</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

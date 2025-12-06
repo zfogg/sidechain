@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class HttpAudioPlayer &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class HttpAudioPlayer::ProgressTimer" href="classHttpAudioPlayer_1_1ProgressTimer.html" />
+    <link rel="prev" title="Class HoverStateWithCursor" href="classHoverStateWithCursor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedGroup.html">Struct AggregatedFeedGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedResponse.html">Struct AggregatedFeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAuth_1_1Colors.html">Struct Auth::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structComment.html">Struct Comment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structDiscoveredUser.html">Struct DiscoveredUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structEditProfile_1_1Colors.html">Struct EditProfile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedDataManager_1_1CacheEntry.html">Struct FeedDataManager::CacheEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedResponse.html">Struct FeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFollowListUser.html">Struct FollowListUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpAudioPlayer_1_1CachedAudio.html">Struct HttpAudioPlayer::CachedAudio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpErrorHandler_1_1HttpError.html">Struct HttpErrorHandler::HttpError</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structImageLoader_1_1Stats.html">Struct Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structKeyDetector_1_1Key.html">Struct KeyDetector::Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMIDICapture_1_1MIDIEvent.html">Struct MIDICapture::MIDIEvent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMultiHoverState_1_1Region.html">Struct MultiHoverState::Region</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1AudioUploadMetadata.html">Struct NetworkClient::AudioUploadMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1Config.html">Struct NetworkClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1NotificationResult.html">Struct NetworkClient::NotificationResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1RequestResult.html">Struct NetworkClient::RequestResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNotificationItem.html">Struct NotificationItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structPianoRoll_1_1Note.html">Struct PianoRoll::Note</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structProfile_1_1Colors.html">Struct Profile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoriesFeed_1_1UserStories.html">Struct StoriesFeed::UserStories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStory.html">Struct Story</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryData.html">Struct StoryData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryViewer_1_1ProgressSegment.html">Struct StoryViewer::ProgressSegment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1AudioSnippetResult.html">Struct StreamChatClient::AudioSnippetResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Channel.html">Struct StreamChatClient::Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Config.html">Struct StreamChatClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Message.html">Struct StreamChatClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1TokenResult.html">Struct StreamChatClient::TokenResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1UserPresence.html">Struct StreamChatClient::UserPresence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUpload_1_1MusicalKey.html">Struct Upload::MusicalKey</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserCard_1_1Colors.html">Struct UserCard::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserDiscovery_1_1Colors.html">Struct UserDiscovery::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserProfile.html">Struct UserProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Config.html">Struct WebSocketClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Message.html">Struct WebSocketClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Stats.html">Struct WebSocketClient::Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimation.html">Class Animation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimationValue.html">Template Class AnimationValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioCapture.html">Class AudioCapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioSnippetRecorder.html">Class AudioSnippetRecorder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAuth.html">Class Auth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer.html">Class BufferAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer_1_1ProgressTimer.html">Class BufferAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classChannelPollTimer.html">Class ChannelPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentRow.html">Class CommentRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel.html">Class CommentsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel_1_1MentionListener.html">Class CommentsPanel::MentionListener</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classConnectionIndicator.html">Class ConnectionIndicator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEditProfile.html">Class EditProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsBubble.html">Class EmojiReactionsBubble</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsPanel.html">Class EmojiReactionsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedDataManager.html">Class FeedDataManager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedPost.html">Class FeedPost</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowersList.html">Class FollowersList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowUserRow.html">Class FollowUserRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHeader.html">Class Header</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverState.html">Class HoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverStateWithCursor.html">Class HoverStateWithCursor</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class HttpAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer_1_1ProgressTimer.html">Class HttpAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpErrorHandler.html">Class HttpErrorHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector.html">Class KeyDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector_1_1Impl.html">Class KeyDetector::Impl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressDetector.html">Class LongPressDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressWithProgress.html">Class LongPressWithProgress</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessagesList.html">Class MessagesList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThread.html">Class MessageThread</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThreadComponent.html">Class MessageThreadComponent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMIDICapture.html">Class MIDICapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiHoverState.html">Class MultiHoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNetworkClient.html">Class NetworkClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationBell.html">Class NotificationBell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationList.html">Class NotificationList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationPollTimer.html">Class NotificationPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationRow.html">Class NotificationRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOAuthPollTimer.html">Class OAuthPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome.html">Template Class Outcome</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome_3_01void_01_4.html">Template Class Outcome&lt; void &gt;</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPianoRoll.html">Class PianoRoll</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostCard.html">Class PostCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostsFeed.html">Class PostsFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfile.html">Class Profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfileSetup.html">Class ProfileSetup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classRecording.html">Class Recording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSearch.html">Class Search</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessor.html">Class SidechainAudioProcessor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessorEditor.html">Class SidechainAudioProcessorEditor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoriesFeed.html">Class StoriesFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryRecording.html">Class StoryRecording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryViewer.html">Class StoryViewer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStreamChatClient.html">Class StreamChatClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUnreadPollTimer.html">Class UnreadPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUpload.html">Class Upload</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserCard.html">Class UserCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDataStore.html">Class UserDataStore</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDiscovery.html">Class UserDiscovery</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classWebSocketClient.html">Class WebSocketClient</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Class HttpAudioPlayer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classHttpAudioPlayer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-httpaudioplayer">
+<span id="exhale-class-classhttpaudioplayer"></span><h1>Class HttpAudioPlayer<a class="headerlink" href="#class-httpaudioplayer" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.h.html#file-plugin-source-audio-httpaudioplayer-h"><span class="std std-ref">File HttpAudioPlayer.h</span></a></p></li>
+</ul>
+<section id="nested-relationships">
+<h2>Nested Relationships<a class="headerlink" href="#nested-relationships" title="Link to this heading"></a></h2>
+<section id="nested-types">
+<h3>Nested Types<a class="headerlink" href="#nested-types" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="structHttpAudioPlayer_1_1CachedAudio.html#exhale-struct-structhttpaudioplayer-1-1cachedaudio"><span class="std std-ref">Struct HttpAudioPlayer::CachedAudio</span></a></p></li>
+<li><p><a class="reference internal" href="classHttpAudioPlayer_1_1ProgressTimer.html#exhale-class-classhttpaudioplayer-1-1progresstimer"><span class="std std-ref">Class HttpAudioPlayer::ProgressTimer</span></a></p></li>
+</ul>
+</section>
+</section>
+<section id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Link to this heading"></a></h2>
+<section id="base-type">
+<h3>Base Type<a class="headerlink" href="#base-type" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">juce::ChangeListener</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv415HttpAudioPlayer">
+<span id="_CPPv315HttpAudioPlayer"></span><span id="_CPPv215HttpAudioPlayer"></span><span id="HttpAudioPlayer"></span><span class="target" id="classHttpAudioPlayer"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HttpAudioPlayer</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ChangeListener</span></span><a class="headerlink" href="#_CPPv415HttpAudioPlayer" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="#classHttpAudioPlayer"><span class="std std-ref">HttpAudioPlayer</span></a> - Handles HTTP/URL-based audio playback for the feed. </p>
+<p>In a VST plugin context, we can’t use standard audio output devices. Instead, this class:<ol class="loweralpha simple">
+<li><p>Downloads audio from URLs to memory</p></li>
+<li><p>Decodes using JUCE’s AudioFormatReader</p></li>
+<li><p>Mixes playback into the plugin’s processBlock output</p></li>
+</ol>
+</p>
+<p>Key features:<ul class="simple">
+<li><p>URL-based audio streaming</p></li>
+<li><p>Transport controls (play, pause, seek)</p></li>
+<li><p>Playback progress tracking</p></li>
+<li><p>Volume control</p></li>
+<li><p>Audio caching (LRU with memory limit) </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer15HttpAudioPlayerEv">
+<span id="_CPPv3N15HttpAudioPlayer15HttpAudioPlayerEv"></span><span id="_CPPv2N15HttpAudioPlayer15HttpAudioPlayerEv"></span><span id="HttpAudioPlayer::HttpAudioPlayer"></span><span class="target" id="classHttpAudioPlayer_1a7cb26dfb6af68d5f3ee66a7c5aa27e46"></span><span class="sig-name descname"><span class="n"><span class="pre">HttpAudioPlayer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer15HttpAudioPlayerEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayerD0Ev">
+<span id="_CPPv3N15HttpAudioPlayerD0Ev"></span><span id="_CPPv2N15HttpAudioPlayerD0Ev"></span><span id="HttpAudioPlayer::~HttpAudioPlayer"></span><span class="target" id="classHttpAudioPlayer_1a692bad2997fe717658452762358e73ae"></span><span class="sig-name descname"><span class="n"><span class="pre">~HttpAudioPlayer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayerD0Ev" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer11loadAndPlayERKN4juce6StringERKN4juce6StringE">
+<span id="_CPPv3N15HttpAudioPlayer11loadAndPlayERKN4juce6StringERKN4juce6StringE"></span><span id="_CPPv2N15HttpAudioPlayer11loadAndPlayERKN4juce6StringERKN4juce6StringE"></span><span id="HttpAudioPlayer::loadAndPlay__juce::StringCR.juce::StringCR"></span><span class="target" id="classHttpAudioPlayer_1a1661762133703b7c362398fd2b9643be"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">loadAndPlay</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">postId</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">audioUrl</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer11loadAndPlayERKN4juce6StringERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Load and play audio from a URL. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>postId</strong> – Unique identifier for the post </p></li>
+<li><p><strong>audioUrl</strong> – URL to the audio file (MP3, WAV, etc.) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer4playEv">
+<span id="_CPPv3N15HttpAudioPlayer4playEv"></span><span id="_CPPv2N15HttpAudioPlayer4playEv"></span><span id="HttpAudioPlayer::play"></span><span class="target" id="classHttpAudioPlayer_1ada8b95085fe4714ce248859406387f1c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">play</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer4playEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Play the currently loaded audio. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer5pauseEv">
+<span id="_CPPv3N15HttpAudioPlayer5pauseEv"></span><span id="_CPPv2N15HttpAudioPlayer5pauseEv"></span><span id="HttpAudioPlayer::pause"></span><span class="target" id="classHttpAudioPlayer_1ae2563e3018ad3073d7c1d4ae54dd1f03"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pause</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer5pauseEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Pause playback. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer4stopEv">
+<span id="_CPPv3N15HttpAudioPlayer4stopEv"></span><span id="_CPPv2N15HttpAudioPlayer4stopEv"></span><span id="HttpAudioPlayer::stop"></span><span class="target" id="classHttpAudioPlayer_1afab8930dbaab40c1325c8c2e8a1add91"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stop</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer4stopEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Stop playback and reset position. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer15togglePlayPauseEv">
+<span id="_CPPv3N15HttpAudioPlayer15togglePlayPauseEv"></span><span id="_CPPv2N15HttpAudioPlayer15togglePlayPauseEv"></span><span id="HttpAudioPlayer::togglePlayPause"></span><span class="target" id="classHttpAudioPlayer_1aa28579a45979d427055938df0f05fd68"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">togglePlayPause</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer15togglePlayPauseEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Toggle between play and pause. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer14seekToPositionEd">
+<span id="_CPPv3N15HttpAudioPlayer14seekToPositionEd"></span><span id="_CPPv2N15HttpAudioPlayer14seekToPositionEd"></span><span id="HttpAudioPlayer::seekToPosition__double"></span><span class="target" id="classHttpAudioPlayer_1aa4c9f7a9b1d8bb0fc7178595ea3339e7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">seekToPosition</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">positionSeconds</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer14seekToPositionEd" title="Link to this definition"></a><br /></dt>
+<dd><p>Seek to a position. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>positionSeconds</strong> – Position in seconds </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer24seekToNormalizedPositionEd">
+<span id="_CPPv3N15HttpAudioPlayer24seekToNormalizedPositionEd"></span><span id="_CPPv2N15HttpAudioPlayer24seekToNormalizedPositionEd"></span><span id="HttpAudioPlayer::seekToNormalizedPosition__double"></span><span class="target" id="classHttpAudioPlayer_1aea55d6361a0c904ecf560200950a610e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">seekToNormalizedPosition</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">normalizedPosition</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer24seekToNormalizedPositionEd" title="Link to this definition"></a><br /></dt>
+<dd><p>Seek to a normalized position (0.0 to 1.0). </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>normalizedPosition</strong> – Position from 0 to 1 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer9isPlayingEv">
+<span id="_CPPv3NK15HttpAudioPlayer9isPlayingEv"></span><span id="_CPPv2NK15HttpAudioPlayer9isPlayingEv"></span><span id="HttpAudioPlayer::isPlayingC"></span><span class="target" id="classHttpAudioPlayer_1ac5592d1c00b943ae7e7b3cdb3e027880"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isPlaying</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer9isPlayingEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer9isLoadingEv">
+<span id="_CPPv3NK15HttpAudioPlayer9isLoadingEv"></span><span id="_CPPv2NK15HttpAudioPlayer9isLoadingEv"></span><span id="HttpAudioPlayer::isLoadingC"></span><span class="target" id="classHttpAudioPlayer_1a73be42eeb1853b3830e0b639e525dd54"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isLoading</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer9isLoadingEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer18getPositionSecondsEv">
+<span id="_CPPv3NK15HttpAudioPlayer18getPositionSecondsEv"></span><span id="_CPPv2NK15HttpAudioPlayer18getPositionSecondsEv"></span><span id="HttpAudioPlayer::getPositionSecondsC"></span><span class="target" id="classHttpAudioPlayer_1a5d8c47ca69ce6c9885cee7f6dfd8971a"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getPositionSeconds</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer18getPositionSecondsEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get current playback position in seconds. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer18getDurationSecondsEv">
+<span id="_CPPv3NK15HttpAudioPlayer18getDurationSecondsEv"></span><span id="_CPPv2NK15HttpAudioPlayer18getDurationSecondsEv"></span><span id="HttpAudioPlayer::getDurationSecondsC"></span><span class="target" id="classHttpAudioPlayer_1a0d9f95b343dd2a1d8510c024de91aa62"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getDurationSeconds</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer18getDurationSecondsEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get total duration in seconds. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer19getPlaybackProgressEv">
+<span id="_CPPv3NK15HttpAudioPlayer19getPlaybackProgressEv"></span><span id="_CPPv2NK15HttpAudioPlayer19getPlaybackProgressEv"></span><span id="HttpAudioPlayer::getPlaybackProgressC"></span><span class="target" id="classHttpAudioPlayer_1af10793311940ec19bba6a5b4fad45262"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getPlaybackProgress</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer19getPlaybackProgressEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get playback progress (0.0 to 1.0). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer16getCurrentPostIdEv">
+<span id="_CPPv3NK15HttpAudioPlayer16getCurrentPostIdEv"></span><span id="_CPPv2NK15HttpAudioPlayer16getCurrentPostIdEv"></span><span id="HttpAudioPlayer::getCurrentPostIdC"></span><span class="target" id="classHttpAudioPlayer_1a2729fd6af548e5d60f80e48d78785040"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentPostId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer16getCurrentPostIdEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the currently playing post ID. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer13isPostPlayingERKN4juce6StringE">
+<span id="_CPPv3NK15HttpAudioPlayer13isPostPlayingERKN4juce6StringE"></span><span id="_CPPv2NK15HttpAudioPlayer13isPostPlayingERKN4juce6StringE"></span><span id="HttpAudioPlayer::isPostPlaying__juce::StringCRC"></span><span class="target" id="classHttpAudioPlayer_1a58ab54f89a024aaac41083f71dc07c46"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isPostPlaying</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">postId</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer13isPostPlayingERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if a specific post is currently playing. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer9setVolumeEf">
+<span id="_CPPv3N15HttpAudioPlayer9setVolumeEf"></span><span id="_CPPv2N15HttpAudioPlayer9setVolumeEf"></span><span id="HttpAudioPlayer::setVolume__float"></span><span class="target" id="classHttpAudioPlayer_1a46b18644cacce6d12adcd74fb703b588"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setVolume</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">newVolume</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer9setVolumeEf" title="Link to this definition"></a><br /></dt>
+<dd><p>Set volume (0.0 to 1.0). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer9getVolumeEv">
+<span id="_CPPv3NK15HttpAudioPlayer9getVolumeEv"></span><span id="_CPPv2NK15HttpAudioPlayer9getVolumeEv"></span><span id="HttpAudioPlayer::getVolumeC"></span><span class="target" id="classHttpAudioPlayer_1af34b2629de6f3dda3c766a347d765019"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getVolume</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer9getVolumeEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get current volume. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer8setMutedEb">
+<span id="_CPPv3N15HttpAudioPlayer8setMutedEb"></span><span id="_CPPv2N15HttpAudioPlayer8setMutedEb"></span><span id="HttpAudioPlayer::setMuted__b"></span><span class="target" id="classHttpAudioPlayer_1ae29ed3ea03a018d894f371ce04e219e2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setMuted</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">shouldMute</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer8setMutedEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Mute/unmute. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer7isMutedEv">
+<span id="_CPPv3NK15HttpAudioPlayer7isMutedEv"></span><span id="_CPPv2NK15HttpAudioPlayer7isMutedEv"></span><span id="HttpAudioPlayer::isMutedC"></span><span class="target" id="classHttpAudioPlayer_1a32f0a5707c507b95f0a3748890078bdf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isMuted</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer7isMutedEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer18setAutoPlayEnabledEb">
+<span id="_CPPv3N15HttpAudioPlayer18setAutoPlayEnabledEb"></span><span id="_CPPv2N15HttpAudioPlayer18setAutoPlayEnabledEb"></span><span id="HttpAudioPlayer::setAutoPlayEnabled__b"></span><span class="target" id="classHttpAudioPlayer_1a20ef7887aabbb033314f40f25847203e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setAutoPlayEnabled</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">enabled</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer18setAutoPlayEnabledEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Enable/disable auto-play next post when current finishes. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer17isAutoPlayEnabledEv">
+<span id="_CPPv3NK15HttpAudioPlayer17isAutoPlayEnabledEv"></span><span id="_CPPv2NK15HttpAudioPlayer17isAutoPlayEnabledEv"></span><span id="HttpAudioPlayer::isAutoPlayEnabledC"></span><span class="target" id="classHttpAudioPlayer_1a76d564f3f586aa2738bcedbffd89f26f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isAutoPlayEnabled</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer17isAutoPlayEnabledEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer11setPlaylistERKN4juce11StringArrayERKN4juce11StringArrayE">
+<span id="_CPPv3N15HttpAudioPlayer11setPlaylistERKN4juce11StringArrayERKN4juce11StringArrayE"></span><span id="_CPPv2N15HttpAudioPlayer11setPlaylistERKN4juce11StringArrayERKN4juce11StringArrayE"></span><span id="HttpAudioPlayer::setPlaylist__juce::StringArrayCR.juce::StringArrayCR"></span><span class="target" id="classHttpAudioPlayer_1a64c2f46c2fbf79ebcd33cd0eb9ae3461"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setPlaylist</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">StringArray</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">postIds</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">StringArray</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">audioUrls</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer11setPlaylistERKN4juce11StringArrayERKN4juce11StringArrayE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the playlist of posts for auto-play and pre-buffering. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer23getCurrentPlaylistIndexEv">
+<span id="_CPPv3NK15HttpAudioPlayer23getCurrentPlaylistIndexEv"></span><span id="_CPPv2NK15HttpAudioPlayer23getCurrentPlaylistIndexEv"></span><span id="HttpAudioPlayer::getCurrentPlaylistIndexC"></span><span class="target" id="classHttpAudioPlayer_1afe73755761c73b12907ba476e27281ed"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentPlaylistIndex</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer23getCurrentPlaylistIndexEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get index of current post in playlist (-1 if not in playlist). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer8playNextEv">
+<span id="_CPPv3N15HttpAudioPlayer8playNextEv"></span><span id="_CPPv2N15HttpAudioPlayer8playNextEv"></span><span id="HttpAudioPlayer::playNext"></span><span class="target" id="classHttpAudioPlayer_1ad783ede291838fbe4a795d440c51a41e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">playNext</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer8playNextEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Skip to next post in playlist. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer12playPreviousEv">
+<span id="_CPPv3N15HttpAudioPlayer12playPreviousEv"></span><span id="_CPPv2N15HttpAudioPlayer12playPreviousEv"></span><span id="HttpAudioPlayer::playPrevious"></span><span class="target" id="classHttpAudioPlayer_1ad38cd49cebfe55d15be6fc908bfcd685"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">playPrevious</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer12playPreviousEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Skip to previous post in playlist. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer21onDAWTransportStartedEv">
+<span id="_CPPv3N15HttpAudioPlayer21onDAWTransportStartedEv"></span><span id="_CPPv2N15HttpAudioPlayer21onDAWTransportStartedEv"></span><span id="HttpAudioPlayer::onDAWTransportStarted"></span><span class="target" id="classHttpAudioPlayer_1a72f9bdfbfc7549da84c32434330d295d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onDAWTransportStarted</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer21onDAWTransportStartedEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Notify that DAW transport is playing If audio focus is enabled, this will pause feed playback. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer21onDAWTransportStoppedEv">
+<span id="_CPPv3N15HttpAudioPlayer21onDAWTransportStoppedEv"></span><span id="_CPPv2N15HttpAudioPlayer21onDAWTransportStoppedEv"></span><span id="HttpAudioPlayer::onDAWTransportStopped"></span><span class="target" id="classHttpAudioPlayer_1a5b05c2a11ec18d55e17c3f0074fd2153"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onDAWTransportStopped</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer21onDAWTransportStoppedEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Notify that DAW transport has stopped If audio focus is enabled and we were playing before, resume playback. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer20setAudioFocusEnabledEb">
+<span id="_CPPv3N15HttpAudioPlayer20setAudioFocusEnabledEb"></span><span id="_CPPv2N15HttpAudioPlayer20setAudioFocusEnabledEb"></span><span id="HttpAudioPlayer::setAudioFocusEnabled__b"></span><span class="target" id="classHttpAudioPlayer_1a3746f1a9014ab0852a53bf1d2a4f3c31"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setAudioFocusEnabled</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">enabled</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer20setAudioFocusEnabledEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Enable/disable audio focus (pause when DAW plays). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer19isAudioFocusEnabledEv">
+<span id="_CPPv3NK15HttpAudioPlayer19isAudioFocusEnabledEv"></span><span id="_CPPv2NK15HttpAudioPlayer19isAudioFocusEnabledEv"></span><span id="HttpAudioPlayer::isAudioFocusEnabledC"></span><span class="target" id="classHttpAudioPlayer_1ac77e39c5c76586b114a39cc077916b3d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isAudioFocusEnabled</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer19isAudioFocusEnabledEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer12processBlockERN4juce11AudioBufferIfEEi">
+<span id="_CPPv3N15HttpAudioPlayer12processBlockERN4juce11AudioBufferIfEEi"></span><span id="_CPPv2N15HttpAudioPlayer12processBlockERN4juce11AudioBufferIfEEi"></span><span id="HttpAudioPlayer::processBlock__juce::AudioBuffer:float:R.i"></span><span class="target" id="classHttpAudioPlayer_1a5450aed60d78db33d59a7ebba23ad2a3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">processBlock</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">AudioBuffer</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buffer</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">numSamples</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer12processBlockERN4juce11AudioBufferIfEEi" title="Link to this definition"></a><br /></dt>
+<dd><p>Process and mix playback audio into the output buffer Should be called from the audio thread only. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>buffer</strong> – The audio buffer to mix into </p></li>
+<li><p><strong>numSamples</strong> – Number of samples to process </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer13prepareToPlayEdi">
+<span id="_CPPv3N15HttpAudioPlayer13prepareToPlayEdi"></span><span id="_CPPv2N15HttpAudioPlayer13prepareToPlayEdi"></span><span id="HttpAudioPlayer::prepareToPlay__double.i"></span><span class="target" id="classHttpAudioPlayer_1ad26e225a0826a17513a8f69d169b6490"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">prepareToPlay</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sampleRate</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">blockSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer13prepareToPlayEdi" title="Link to this definition"></a><br /></dt>
+<dd><p>Prepare for playback Should be called from PluginProcessor::prepareToPlay. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sampleRate</strong> – The DAW’s sample rate </p></li>
+<li><p><strong>blockSize</strong> – Maximum block size </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer16releaseResourcesEv">
+<span id="_CPPv3N15HttpAudioPlayer16releaseResourcesEv"></span><span id="_CPPv2N15HttpAudioPlayer16releaseResourcesEv"></span><span id="HttpAudioPlayer::releaseResources"></span><span class="target" id="classHttpAudioPlayer_1a72f4b8d41fa5ddc1cce3223bb7bcadfe"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">releaseResources</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer16releaseResourcesEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Release resources Should be called from PluginProcessor::releaseResources. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer10clearCacheEv">
+<span id="_CPPv3N15HttpAudioPlayer10clearCacheEv"></span><span id="_CPPv2N15HttpAudioPlayer10clearCacheEv"></span><span id="HttpAudioPlayer::clearCache"></span><span class="target" id="classHttpAudioPlayer_1a302af2c57401d754e171cbdd9b0ba168"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clearCache</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer10clearCacheEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Clear the audio cache. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer15setMaxCacheSizeE6size_t">
+<span id="_CPPv3N15HttpAudioPlayer15setMaxCacheSizeE6size_t"></span><span id="_CPPv2N15HttpAudioPlayer15setMaxCacheSizeE6size_t"></span><span id="HttpAudioPlayer::setMaxCacheSize__s"></span><span class="target" id="classHttpAudioPlayer_1aa5be9633cb080cf131c9af99cdd30ba0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setMaxCacheSize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bytes</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer15setMaxCacheSizeE6size_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Set maximum cache size in bytes (default: 50MB). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15HttpAudioPlayer19getCurrentCacheSizeEv">
+<span id="_CPPv3NK15HttpAudioPlayer19getCurrentCacheSizeEv"></span><span id="_CPPv2NK15HttpAudioPlayer19getCurrentCacheSizeEv"></span><span id="HttpAudioPlayer::getCurrentCacheSizeC"></span><span class="target" id="classHttpAudioPlayer_1afe6884039c3b1d58baa670e85b432f2e"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentCacheSize</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15HttpAudioPlayer19getCurrentCacheSizeEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get current cache size in bytes. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer12preloadAudioERKN4juce6StringERKN4juce6StringE">
+<span id="_CPPv3N15HttpAudioPlayer12preloadAudioERKN4juce6StringERKN4juce6StringE"></span><span id="_CPPv2N15HttpAudioPlayer12preloadAudioERKN4juce6StringERKN4juce6StringE"></span><span id="HttpAudioPlayer::preloadAudio__juce::StringCR.juce::StringCR"></span><span class="target" id="classHttpAudioPlayer_1ab331da907d4681d2caa7b0b0b7507148"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">preloadAudio</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">postId</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">audioUrl</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer12preloadAudioERKN4juce6StringERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Preload audio for a post (for seamless playback). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer16setNetworkClientEP13NetworkClient">
+<span id="_CPPv3N15HttpAudioPlayer16setNetworkClientEP13NetworkClient"></span><span id="_CPPv2N15HttpAudioPlayer16setNetworkClientEP13NetworkClient"></span><span id="HttpAudioPlayer::setNetworkClient__NetworkClientP"></span><span class="target" id="classHttpAudioPlayer_1aa8489181797475feb3ced39bb99e6be4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setNetworkClient</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classNetworkClient.html#_CPPv413NetworkClient" title="NetworkClient"><span class="n"><span class="pre">NetworkClient</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">client</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer16setNetworkClientEP13NetworkClient" title="Link to this definition"></a><br /></dt>
+<dd><p>Set <a class="reference internal" href="file_plugin_source_network_NetworkClient.h.html#classNetworkClient"><span class="std std-ref">NetworkClient</span></a> for HTTP requests. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer22changeListenerCallbackEPN4juce17ChangeBroadcasterE">
+<span id="_CPPv3N15HttpAudioPlayer22changeListenerCallbackEPN4juce17ChangeBroadcasterE"></span><span id="_CPPv2N15HttpAudioPlayer22changeListenerCallbackEPN4juce17ChangeBroadcasterE"></span><span id="HttpAudioPlayer::changeListenerCallback__juce::ChangeBroadcasterP"></span><span class="target" id="classHttpAudioPlayer_1a658b6943eb7c84e966f8a44eb0dc7b60"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">changeListenerCallback</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ChangeBroadcaster</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">source</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer22changeListenerCallbackEPN4juce17ChangeBroadcasterE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer17onPlaybackStartedE">
+<span id="_CPPv3N15HttpAudioPlayer17onPlaybackStartedE"></span><span id="_CPPv2N15HttpAudioPlayer17onPlaybackStartedE"></span><span class="target" id="classHttpAudioPlayer_1a4f08df0faea744c9e2bfdfa5bca343d9"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onPlaybackStarted</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer17onPlaybackStartedE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when playback starts. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer16onPlaybackPausedE">
+<span id="_CPPv3N15HttpAudioPlayer16onPlaybackPausedE"></span><span id="_CPPv2N15HttpAudioPlayer16onPlaybackPausedE"></span><span class="target" id="classHttpAudioPlayer_1aed6cc6e94491f74ba332304d138fccda"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onPlaybackPaused</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer16onPlaybackPausedE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when playback pauses. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer17onPlaybackStoppedE">
+<span id="_CPPv3N15HttpAudioPlayer17onPlaybackStoppedE"></span><span id="_CPPv2N15HttpAudioPlayer17onPlaybackStoppedE"></span><span class="target" id="classHttpAudioPlayer_1a8b3ceee0c6b1f8f5e37cb43ecdb350eb"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onPlaybackStopped</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer17onPlaybackStoppedE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when playback stops (end of file). </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer16onLoadingStartedE">
+<span id="_CPPv3N15HttpAudioPlayer16onLoadingStartedE"></span><span id="_CPPv2N15HttpAudioPlayer16onLoadingStartedE"></span><span class="target" id="classHttpAudioPlayer_1a6c84ba10543b25c78be7234f6ed07425"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onLoadingStarted</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer16onLoadingStartedE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when loading starts. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer17onLoadingCompleteE">
+<span id="_CPPv3N15HttpAudioPlayer17onLoadingCompleteE"></span><span id="_CPPv2N15HttpAudioPlayer17onLoadingCompleteE"></span><span class="target" id="classHttpAudioPlayer_1a56ad0b5b92175232efae3fd97539321e"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onLoadingComplete</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer17onLoadingCompleteE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when loading completes. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer16onProgressUpdateE">
+<span id="_CPPv3N15HttpAudioPlayer16onProgressUpdateE"></span><span id="_CPPv2N15HttpAudioPlayer16onProgressUpdateE"></span><span class="target" id="classHttpAudioPlayer_1a64f673672816791ff940b59043659ea3"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">progress</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onProgressUpdate</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer16onProgressUpdateE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called periodically with playback progress. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer18onPlaybackFinishedE">
+<span id="_CPPv3N15HttpAudioPlayer18onPlaybackFinishedE"></span><span id="_CPPv2N15HttpAudioPlayer18onPlaybackFinishedE"></span><span class="target" id="classHttpAudioPlayer_1ae393d332f493a7b23e8309c349fc9da2"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onPlaybackFinished</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer18onPlaybackFinishedE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when playback finishes (reached end of audio) - for auto-play. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15HttpAudioPlayer14onAutoPlayNextE">
+<span id="_CPPv3N15HttpAudioPlayer14onAutoPlayNextE"></span><span id="_CPPv2N15HttpAudioPlayer14onAutoPlayNextE"></span><span class="target" id="classHttpAudioPlayer_1afb492c0de56e018feadb6b0a4981b468"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">postId</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onAutoPlayNext</span></span></span><a class="headerlink" href="#_CPPv4N15HttpAudioPlayer14onAutoPlayNextE" title="Link to this definition"></a><br /></dt>
+<dd><p>Called when auto-play moves to next post. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classHoverStateWithCursor.html" class="btn btn-neutral float-left" title="Class HoverStateWithCursor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classHttpAudioPlayer_1_1ProgressTimer.html" class="btn btn-neutral float-right" title="Class HttpAudioPlayer::ProgressTimer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

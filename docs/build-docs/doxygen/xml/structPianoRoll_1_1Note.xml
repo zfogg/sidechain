@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structPianoRoll_1_1Note" kind="struct" language="C++" prot="private">
+    <compoundname>PianoRoll::Note</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structPianoRoll_1_1Note_1a60d298b080e51b54f37b1a6c42363094" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double PianoRoll::Note::startTime</definition>
+        <argsstring></argsstring>
+        <name>startTime</name>
+        <qualifiedname>PianoRoll::Note::startTime</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="81" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structPianoRoll_1_1Note_1ad0b693f0f965f7169f4e45b6c3d566d7" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double PianoRoll::Note::endTime</definition>
+        <argsstring></argsstring>
+        <name>endTime</name>
+        <qualifiedname>PianoRoll::Note::endTime</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="82" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structPianoRoll_1_1Note_1acb8d25619c17e1d59da2ed76e4859dc6" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int PianoRoll::Note::noteNumber</definition>
+        <argsstring></argsstring>
+        <name>noteNumber</name>
+        <qualifiedname>PianoRoll::Note::noteNumber</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="83" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structPianoRoll_1_1Note_1a9d0637719f6876221e9d44290f7b43bc" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int PianoRoll::Note::velocity</definition>
+        <argsstring></argsstring>
+        <name>velocity</name>
+        <qualifiedname>PianoRoll::Note::velocity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="84" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structPianoRoll_1_1Note_1a15e6d950523c73c691e72a589f873204" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int PianoRoll::Note::channel</definition>
+        <argsstring></argsstring>
+        <name>channel</name>
+        <qualifiedname>PianoRoll::Note::channel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="85" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structPianoRoll_1_1Note_1afec82ee379daa52855ddce5f64c10496" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PianoRoll::Note::isPlayingAt</definition>
+        <argsstring>(double time) const</argsstring>
+        <name>isPlayingAt</name>
+        <qualifiedname>PianoRoll::Note::isPlayingAt</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="88" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="88" bodyend="91"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" line="79" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/PianoRoll.h" bodystart="80" bodyend="92"/>
+    <listofallmembers>
+      <member refid="structPianoRoll_1_1Note_1a15e6d950523c73c691e72a589f873204" prot="public" virt="non-virtual"><scope>PianoRoll::Note</scope><name>channel</name></member>
+      <member refid="structPianoRoll_1_1Note_1ad0b693f0f965f7169f4e45b6c3d566d7" prot="public" virt="non-virtual"><scope>PianoRoll::Note</scope><name>endTime</name></member>
+      <member refid="structPianoRoll_1_1Note_1afec82ee379daa52855ddce5f64c10496" prot="public" virt="non-virtual"><scope>PianoRoll::Note</scope><name>isPlayingAt</name></member>
+      <member refid="structPianoRoll_1_1Note_1acb8d25619c17e1d59da2ed76e4859dc6" prot="public" virt="non-virtual"><scope>PianoRoll::Note</scope><name>noteNumber</name></member>
+      <member refid="structPianoRoll_1_1Note_1a60d298b080e51b54f37b1a6c42363094" prot="public" virt="non-virtual"><scope>PianoRoll::Note</scope><name>startTime</name></member>
+      <member refid="structPianoRoll_1_1Note_1a9d0637719f6876221e9d44290f7b43bc" prot="public" virt="non-virtual"><scope>PianoRoll::Note</scope><name>velocity</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

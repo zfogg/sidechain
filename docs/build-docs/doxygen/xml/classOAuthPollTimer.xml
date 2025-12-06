@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classOAuthPollTimer" kind="class" language="C++" prot="public">
+    <compoundname>OAuthPollTimer</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classOAuthPollTimer_1a5e6dbd06afcf8425464d8c6754711f75" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; OAuthPollTimer::onTick</definition>
+        <argsstring></argsstring>
+        <name>onTick</name>
+        <qualifiedname>OAuthPollTimer::onTick</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1382" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1382" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classOAuthPollTimer_1ae847611e1eafc32ec48f9d1fcca590d2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>OAuthPollTimer::OAuthPollTimer</definition>
+        <argsstring>(std::function&lt; void()&gt; callback)</argsstring>
+        <name>OAuthPollTimer</name>
+        <qualifiedname>OAuthPollTimer::OAuthPollTimer</qualifiedname>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1380" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1380" bodyend="1380"/>
+      </memberdef>
+      <memberdef kind="function" id="classOAuthPollTimer_1aafd4fe9b40b15bae13237eb7aaee2204" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void OAuthPollTimer::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>OAuthPollTimer::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1381" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1381" bodyend="1381"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>OAuthPollTimer</label>
+        <link refid="classOAuthPollTimer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>OAuthPollTimer</label>
+        <link refid="classOAuthPollTimer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1377" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1378" bodyend="1383"/>
+    <listofallmembers>
+      <member refid="classOAuthPollTimer_1ae847611e1eafc32ec48f9d1fcca590d2" prot="public" virt="non-virtual"><scope>OAuthPollTimer</scope><name>OAuthPollTimer</name></member>
+      <member refid="classOAuthPollTimer_1a5e6dbd06afcf8425464d8c6754711f75" prot="public" virt="non-virtual"><scope>OAuthPollTimer</scope><name>onTick</name></member>
+      <member refid="classOAuthPollTimer_1aafd4fe9b40b15bae13237eb7aaee2204" prot="public" virt="non-virtual"><scope>OAuthPollTimer</scope><name>timerCallback</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

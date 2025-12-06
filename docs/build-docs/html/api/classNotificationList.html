@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class NotificationList &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class NotificationPollTimer" href="classNotificationPollTimer.html" />
+    <link rel="prev" title="Class NotificationBell" href="classNotificationBell.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedGroup.html">Struct AggregatedFeedGroup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAggregatedFeedResponse.html">Struct AggregatedFeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structAuth_1_1Colors.html">Struct Auth::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structComment.html">Struct Comment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structDiscoveredUser.html">Struct DiscoveredUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structEditProfile_1_1Colors.html">Struct EditProfile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedDataManager_1_1CacheEntry.html">Struct FeedDataManager::CacheEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFeedResponse.html">Struct FeedResponse</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structFollowListUser.html">Struct FollowListUser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpAudioPlayer_1_1CachedAudio.html">Struct HttpAudioPlayer::CachedAudio</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structHttpErrorHandler_1_1HttpError.html">Struct HttpErrorHandler::HttpError</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structImageLoader_1_1Stats.html">Struct Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structKeyDetector_1_1Key.html">Struct KeyDetector::Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMIDICapture_1_1MIDIEvent.html">Struct MIDICapture::MIDIEvent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structMultiHoverState_1_1Region.html">Struct MultiHoverState::Region</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1AudioUploadMetadata.html">Struct NetworkClient::AudioUploadMetadata</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1Config.html">Struct NetworkClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1NotificationResult.html">Struct NetworkClient::NotificationResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNetworkClient_1_1RequestResult.html">Struct NetworkClient::RequestResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structNotificationItem.html">Struct NotificationItem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structPianoRoll_1_1Note.html">Struct PianoRoll::Note</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structProfile_1_1Colors.html">Struct Profile::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoriesFeed_1_1UserStories.html">Struct StoriesFeed::UserStories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStory.html">Struct Story</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryData.html">Struct StoryData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStoryViewer_1_1ProgressSegment.html">Struct StoryViewer::ProgressSegment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1AudioSnippetResult.html">Struct StreamChatClient::AudioSnippetResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Channel.html">Struct StreamChatClient::Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Config.html">Struct StreamChatClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1Message.html">Struct StreamChatClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1TokenResult.html">Struct StreamChatClient::TokenResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamChatClient_1_1UserPresence.html">Struct StreamChatClient::UserPresence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUpload_1_1MusicalKey.html">Struct Upload::MusicalKey</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserCard_1_1Colors.html">Struct UserCard::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserDiscovery_1_1Colors.html">Struct UserDiscovery::Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structUserProfile.html">Struct UserProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Config.html">Struct WebSocketClient::Config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Message.html">Struct WebSocketClient::Message</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structWebSocketClient_1_1Stats.html">Struct WebSocketClient::Stats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimation.html">Class Animation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAnimationValue.html">Template Class AnimationValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioCapture.html">Class AudioCapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAudioSnippetRecorder.html">Class AudioSnippetRecorder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classAuth.html">Class Auth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer.html">Class BufferAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classBufferAudioPlayer_1_1ProgressTimer.html">Class BufferAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classChannelPollTimer.html">Class ChannelPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentRow.html">Class CommentRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel.html">Class CommentsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCommentsPanel_1_1MentionListener.html">Class CommentsPanel::MentionListener</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classConnectionIndicator.html">Class ConnectionIndicator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEditProfile.html">Class EditProfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsBubble.html">Class EmojiReactionsBubble</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classEmojiReactionsPanel.html">Class EmojiReactionsPanel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedDataManager.html">Class FeedDataManager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFeedPost.html">Class FeedPost</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowersList.html">Class FollowersList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFollowUserRow.html">Class FollowUserRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHeader.html">Class Header</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverState.html">Class HoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHoverStateWithCursor.html">Class HoverStateWithCursor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer.html">Class HttpAudioPlayer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpAudioPlayer_1_1ProgressTimer.html">Class HttpAudioPlayer::ProgressTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classHttpErrorHandler.html">Class HttpErrorHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector.html">Class KeyDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classKeyDetector_1_1Impl.html">Class KeyDetector::Impl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressDetector.html">Class LongPressDetector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLongPressWithProgress.html">Class LongPressWithProgress</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessagesList.html">Class MessagesList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThread.html">Class MessageThread</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMessageThreadComponent.html">Class MessageThreadComponent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMIDICapture.html">Class MIDICapture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiHoverState.html">Class MultiHoverState</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNetworkClient.html">Class NetworkClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationBell.html">Class NotificationBell</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class NotificationList</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationPollTimer.html">Class NotificationPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNotificationRow.html">Class NotificationRow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOAuthPollTimer.html">Class OAuthPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome.html">Template Class Outcome</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutcome_3_01void_01_4.html">Template Class Outcome&lt; void &gt;</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPianoRoll.html">Class PianoRoll</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostCard.html">Class PostCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classPostsFeed.html">Class PostsFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfile.html">Class Profile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classProfileSetup.html">Class ProfileSetup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classRecording.html">Class Recording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSearch.html">Class Search</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessor.html">Class SidechainAudioProcessor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classSidechainAudioProcessorEditor.html">Class SidechainAudioProcessorEditor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoriesFeed.html">Class StoriesFeed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryRecording.html">Class StoryRecording</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStoryViewer.html">Class StoryViewer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classStreamChatClient.html">Class StreamChatClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUnreadPollTimer.html">Class UnreadPollTimer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUpload.html">Class Upload</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserCard.html">Class UserCard</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDataStore.html">Class UserDataStore</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classUserDiscovery.html">Class UserDiscovery</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classWebSocketClient.html">Class WebSocketClient</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Class NotificationList</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classNotificationList.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-notificationlist">
+<span id="exhale-class-classnotificationlist"></span><h1>Class NotificationList<a class="headerlink" href="#class-notificationlist" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#file-plugin-source-ui-notifications-notificationlist-h"><span class="std std-ref">File NotificationList.h</span></a></p></li>
+</ul>
+<section id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Link to this heading"></a></h2>
+<section id="base-types">
+<h3>Base Types<a class="headerlink" href="#base-types" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">juce::Component</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">juce::ScrollBar::Listener</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv416NotificationList">
+<span id="_CPPv316NotificationList"></span><span id="_CPPv216NotificationList"></span><span id="NotificationList"></span><span class="target" id="classNotificationList"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NotificationList</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Component</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ScrollBar</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Listener</span></span><a class="headerlink" href="#_CPPv416NotificationList" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#classNotificationList"><span class="std std-ref">NotificationList</span></a> displays a scrollable list of notification groups. </p>
+<p>Features:<ul class="simple">
+<li><p>Scrollable list of grouped notifications</p></li>
+<li><p>Read/unread visual distinction (bold text, blue dot)</p></li>
+<li><p>Click to navigate to the notification target</p></li>
+<li><p>”Mark all as read” button</p></li>
+<li><p>Empty state when no notifications</p></li>
+<li><p>Loading state while fetching </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList16NotificationListEv">
+<span id="_CPPv3N16NotificationList16NotificationListEv"></span><span id="_CPPv2N16NotificationList16NotificationListEv"></span><span id="NotificationList::NotificationList"></span><span class="target" id="classNotificationList_1ac108640c02b05b3a2c8e7f27f2b5874d"></span><span class="sig-name descname"><span class="n"><span class="pre">NotificationList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList16NotificationListEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationListD0Ev">
+<span id="_CPPv3N16NotificationListD0Ev"></span><span id="_CPPv2N16NotificationListD0Ev"></span><span id="NotificationList::~NotificationList"></span><span class="target" id="classNotificationList_1a80060c4984628f456e4bc3d4ebe6f756"></span><span class="sig-name descname"><span class="n"><span class="pre">~NotificationList</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16NotificationListD0Ev" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList16setNotificationsERKN4juce5ArrayI16NotificationItemEE">
+<span id="_CPPv3N16NotificationList16setNotificationsERKN4juce5ArrayI16NotificationItemEE"></span><span id="_CPPv2N16NotificationList16setNotificationsERKN4juce5ArrayI16NotificationItemEE"></span><span id="NotificationList::setNotifications__juce::Array:NotificationItem:CR"></span><span class="target" id="classNotificationList_1ab8787174a80232a13e0a95bcbcae650a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setNotifications</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#_CPPv416NotificationItem" title="NotificationItem"><span class="n"><span class="pre">NotificationItem</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">notifications</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList16setNotificationsERKN4juce5ArrayI16NotificationItemEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList18clearNotificationsEv">
+<span id="_CPPv3N16NotificationList18clearNotificationsEv"></span><span id="_CPPv2N16NotificationList18clearNotificationsEv"></span><span id="NotificationList::clearNotifications"></span><span class="target" id="classNotificationList_1aae274f95c1f9c4cb8a45ec6659e878f0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clearNotifications</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList18clearNotificationsEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList10setLoadingEb">
+<span id="_CPPv3N16NotificationList10setLoadingEb"></span><span id="_CPPv2N16NotificationList10setLoadingEb"></span><span id="NotificationList::setLoading__b"></span><span class="target" id="classNotificationList_1ae21e03ddf2ada69f81b9d7835b87e3d9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setLoading</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">loading</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList10setLoadingEb" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList8setErrorERKN4juce6StringE">
+<span id="_CPPv3N16NotificationList8setErrorERKN4juce6StringE"></span><span id="_CPPv2N16NotificationList8setErrorERKN4juce6StringE"></span><span id="NotificationList::setError__juce::StringCR"></span><span class="target" id="classNotificationList_1a44b4352c22b264dc3baf29bf9d6641b7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setError</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">errorMessage</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList8setErrorERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList14setUnseenCountEi">
+<span id="_CPPv3N16NotificationList14setUnseenCountEi"></span><span id="_CPPv2N16NotificationList14setUnseenCountEi"></span><span id="NotificationList::setUnseenCount__i"></span><span class="target" id="classNotificationList_1af2ef69b1a3ebb0c7d0ad45d222194201"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setUnseenCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList14setUnseenCountEi" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList14setUnreadCountEi">
+<span id="_CPPv3N16NotificationList14setUnreadCountEi"></span><span id="_CPPv2N16NotificationList14setUnreadCountEi"></span><span id="NotificationList::setUnreadCount__i"></span><span class="target" id="classNotificationList_1ac876fc25e0fb8296d4097c7214075118"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setUnreadCount</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N16NotificationList14setUnreadCountEi" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList5paintERN4juce8GraphicsE">
+<span id="_CPPv3N16NotificationList5paintERN4juce8GraphicsE"></span><span id="_CPPv2N16NotificationList5paintERN4juce8GraphicsE"></span><span id="NotificationList::paint__juce::GraphicsR"></span><span class="target" id="classNotificationList_1a67287222b87aa06e3bd94a2d05a54010"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">paint</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Graphics</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">g</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16NotificationList5paintERN4juce8GraphicsE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList7resizedEv">
+<span id="_CPPv3N16NotificationList7resizedEv"></span><span id="_CPPv2N16NotificationList7resizedEv"></span><span id="NotificationList::resized"></span><span class="target" id="classNotificationList_1a1662d9e192eaae8497684d010cd24363"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">resized</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16NotificationList7resizedEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList14scrollBarMovedEPN4juce9ScrollBarEd">
+<span id="_CPPv3N16NotificationList14scrollBarMovedEPN4juce9ScrollBarEd"></span><span id="_CPPv2N16NotificationList14scrollBarMovedEPN4juce9ScrollBarEd"></span><span id="NotificationList::scrollBarMoved__juce::ScrollBarP.double"></span><span class="target" id="classNotificationList_1a7708465a8cd4a40a2d4f24934d2d81c7"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scrollBarMoved</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ScrollBar</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">scrollBar</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">newRangeStart</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N16NotificationList14scrollBarMovedEPN4juce9ScrollBarEd" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList21onNotificationClickedE">
+<span id="_CPPv3N16NotificationList21onNotificationClickedE"></span><span id="_CPPv2N16NotificationList21onNotificationClickedE"></span><span class="target" id="classNotificationList_1ab93815ae00188d0df624081b4aa53236"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#_CPPv416NotificationItem" title="NotificationItem"><span class="n"><span class="pre">NotificationItem</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onNotificationClicked</span></span></span><a class="headerlink" href="#_CPPv4N16NotificationList21onNotificationClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList20onMarkAllReadClickedE">
+<span id="_CPPv3N16NotificationList20onMarkAllReadClickedE"></span><span id="_CPPv2N16NotificationList20onMarkAllReadClickedE"></span><span class="target" id="classNotificationList_1ae690953b1b8bba548f7eb0cec5a98e66"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onMarkAllReadClicked</span></span></span><a class="headerlink" href="#_CPPv4N16NotificationList20onMarkAllReadClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList14onCloseClickedE">
+<span id="_CPPv3N16NotificationList14onCloseClickedE"></span><span id="_CPPv2N16NotificationList14onCloseClickedE"></span><span class="target" id="classNotificationList_1a2568c56a162ac05b9985bb9a6b989c14"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onCloseClicked</span></span></span><a class="headerlink" href="#_CPPv4N16NotificationList14onCloseClickedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList18onRefreshRequestedE">
+<span id="_CPPv3N16NotificationList18onRefreshRequestedE"></span><span id="_CPPv2N16NotificationList18onRefreshRequestedE"></span><span class="target" id="classNotificationList_1a71fac91157672499e1757bcf6ea0ad70"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onRefreshRequested</span></span></span><a class="headerlink" href="#_CPPv4N16NotificationList18onRefreshRequestedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-attributes">Public Static Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList13HEADER_HEIGHTE">
+<span id="_CPPv3N16NotificationList13HEADER_HEIGHTE"></span><span id="_CPPv2N16NotificationList13HEADER_HEIGHTE"></span><span id="NotificationList::HEADER_HEIGHT__i"></span><span class="target" id="classNotificationList_1acab12f210c07433c20e970df8ea71d53"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HEADER_HEIGHT</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">50</span></span><a class="headerlink" href="#_CPPv4N16NotificationList13HEADER_HEIGHTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList15PREFERRED_WIDTHE">
+<span id="_CPPv3N16NotificationList15PREFERRED_WIDTHE"></span><span id="_CPPv2N16NotificationList15PREFERRED_WIDTHE"></span><span id="NotificationList::PREFERRED_WIDTH__i"></span><span class="target" id="classNotificationList_1a4f2bb31708a272ade8d694640d321fd3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PREFERRED_WIDTH</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">360</span></span><a class="headerlink" href="#_CPPv4N16NotificationList15PREFERRED_WIDTHE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N16NotificationList10MAX_HEIGHTE">
+<span id="_CPPv3N16NotificationList10MAX_HEIGHTE"></span><span id="_CPPv2N16NotificationList10MAX_HEIGHTE"></span><span id="NotificationList::MAX_HEIGHT__i"></span><span class="target" id="classNotificationList_1aa10ec994ea2d2be361aab270247f22af"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MAX_HEIGHT</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">500</span></span><a class="headerlink" href="#_CPPv4N16NotificationList10MAX_HEIGHTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classNotificationBell.html" class="btn btn-neutral float-left" title="Class NotificationBell" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classNotificationPollTimer.html" class="btn btn-neutral float-right" title="Class NotificationPollTimer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

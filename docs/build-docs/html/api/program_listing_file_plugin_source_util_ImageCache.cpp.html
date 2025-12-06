@@ -1,0 +1,603 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File ImageCache.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File ImageCache.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_util_ImageCache.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-imagecache-cpp">
+<span id="program-listing-file-plugin-source-util-imagecache-cpp"></span><h1>Program Listing for File ImageCache.cpp<a class="headerlink" href="#program-listing-for-file-imagecache-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_util_ImageCache.cpp.html#file-plugin-source-util-imagecache-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/ImageCache.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ImageCache.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;Async.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;Constants.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../network/NetworkClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;set&gt;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">ImageLoader</span>
+<span class="p">{</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Internal implementation</span>
+<span class="k">namespace</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// LRU Cache entry</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">CacheEntry</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">;</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">// Cache state</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">cacheMutex</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="n">CacheEntry</span><span class="o">&gt;::</span><span class="n">iterator</span><span class="o">&gt;</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="n">CacheEntry</span><span class="o">&gt;</span><span class="w"> </span><span class="n">cacheList</span><span class="p">;</span><span class="w">  </span><span class="c1">// Front = most recently used</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">maxCacheSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Constants</span><span class="o">::</span><span class="n">Cache</span><span class="o">::</span><span class="n">IMAGE_CACHE_MAX_ITEMS</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Pending downloads (URL -&gt; list of callbacks waiting)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="w"> </span><span class="n">pendingMutex</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ImageCallback</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">pendingDownloads</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Failed URLs cache (to avoid spamming logs for the same URL)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">failedUrls</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// NetworkClient for HTTP requests (optional)</span>
+<span class="w">    </span><span class="n">NetworkClient</span><span class="o">*</span><span class="w"> </span><span class="n">networkClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Statistics</span>
+<span class="w">    </span><span class="n">Stats</span><span class="w"> </span><span class="n">stats</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Move entry to front of LRU list (must hold cacheMutex)</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">touchEntry</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Move to front</span>
+<span class="w">            </span><span class="n">cacheList</span><span class="p">.</span><span class="n">splice</span><span class="p">(</span><span class="n">cacheList</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">cacheList</span><span class="p">,</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Evict least recently used entries until under max size (must hold cacheMutex)</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">evictIfNeeded</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">cacheList</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">maxCacheSize</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">cacheList</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">oldest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheList</span><span class="p">.</span><span class="n">back</span><span class="p">();</span>
+<span class="w">            </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">oldest</span><span class="p">.</span><span class="n">url</span><span class="p">);</span>
+<span class="w">            </span><span class="n">cacheList</span><span class="p">.</span><span class="n">pop_back</span><span class="p">();</span>
+<span class="w">            </span><span class="n">stats</span><span class="p">.</span><span class="n">evictions</span><span class="o">++</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Add image to cache (must hold cacheMutex)</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">addToCache</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Check if already cached</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">existing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">existing</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Update existing entry</span>
+<span class="w">            </span><span class="n">existing</span><span class="o">-&gt;</span><span class="n">second</span><span class="o">-&gt;</span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">            </span><span class="n">touchEntry</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// Add new entry at front</span>
+<span class="w">        </span><span class="n">cacheList</span><span class="p">.</span><span class="n">push_front</span><span class="p">({</span><span class="n">image</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="p">});</span>
+<span class="w">        </span><span class="n">cacheMap</span><span class="p">[</span><span class="n">url</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheList</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// Evict if over capacity</span>
+<span class="w">        </span><span class="n">evictIfNeeded</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Download image in background using Async utility</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">downloadImage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">targetWidth</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">targetHeight</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Use Async::run to download image on background thread and deliver to message thread</span>
+<span class="w">        </span><span class="n">Async</span><span class="o">::</span><span class="n">run</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">            </span><span class="c1">// Background work: download and decode image</span>
+<span class="w">            </span><span class="p">[</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">targetWidth</span><span class="p">,</span><span class="w"> </span><span class="n">targetHeight</span><span class="p">]()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">;</span>
+
+<span class="w">                </span><span class="k">try</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">juce</span><span class="o">::</span><span class="n">MemoryBlock</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
+<span class="w">                    </span><span class="kt">bool</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">                    </span><span class="c1">// Use NetworkClient if available, otherwise fall back to JUCE URL</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">MemoryBlock</span><span class="w"> </span><span class="n">binaryData</span><span class="p">;</span>
+<span class="w">                        </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">makeAbsoluteRequestSync</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">(),</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">StringPairArray</span><span class="p">(),</span><span class="w"> </span><span class="o">&amp;</span><span class="n">binaryData</span><span class="p">);</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">success</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">binaryData</span><span class="p">.</span><span class="n">getSize</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">binaryData</span><span class="p">;</span>
+<span class="w">                            </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                    </span><span class="k">else</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="c1">// Fallback to JUCE URL</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="w"> </span><span class="n">imageUrl</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">                        </span><span class="kt">int</span><span class="w"> </span><span class="n">statusCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">StringPairArray</span><span class="w"> </span><span class="n">responseHeaders</span><span class="p">;</span>
+<span class="w">                        </span><span class="k">auto</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">InputStreamOptions</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">ParameterHandling</span><span class="o">::</span><span class="n">inAddress</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">.</span><span class="n">withConnectionTimeoutMs</span><span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">Api</span><span class="o">::</span><span class="n">IMAGE_TIMEOUT_MS</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">.</span><span class="n">withStatusCode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">statusCode</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">.</span><span class="n">withResponseHeaders</span><span class="p">(</span><span class="o">&amp;</span><span class="n">responseHeaders</span><span class="p">);</span>
+
+<span class="w">                        </span><span class="k">auto</span><span class="w"> </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">imageUrl</span><span class="p">.</span><span class="n">createInputStream</span><span class="p">(</span><span class="n">options</span><span class="p">);</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="n">stream</span><span class="o">-&gt;</span><span class="n">readIntoMemoryBlock</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+<span class="w">                            </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                    </span><span class="p">}</span>
+
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">success</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="c1">// Only log if we haven&#39;t already logged this URL</span>
+<span class="w">                        </span><span class="kt">bool</span><span class="w"> </span><span class="n">alreadyFailed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">                            </span><span class="n">alreadyFailed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">failedUrls</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">alreadyFailed</span><span class="p">)</span>
+<span class="w">                                </span><span class="n">failedUrls</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">alreadyFailed</span><span class="p">)</span>
+<span class="w">                            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ImageCache: Failed to load image: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                    </span><span class="k">else</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="c1">// Decode image</span>
+<span class="w">                        </span><span class="n">loadedImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ImageFileFormat</span><span class="o">::</span><span class="n">loadFrom</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">getData</span><span class="p">(),</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">());</span>
+
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">loadedImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="c1">// Only log if we haven&#39;t already logged this URL</span>
+<span class="w">                            </span><span class="kt">bool</span><span class="w"> </span><span class="n">alreadyFailed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">                            </span><span class="p">{</span>
+<span class="w">                                </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">                                </span><span class="n">alreadyFailed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">failedUrls</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">alreadyFailed</span><span class="p">)</span>
+<span class="w">                                    </span><span class="n">failedUrls</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">                            </span><span class="p">}</span>
+<span class="w">                            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">alreadyFailed</span><span class="p">)</span>
+<span class="w">                                </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ImageCache: Failed to decode &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; bytes: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                        </span><span class="k">else</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="c1">// Resize if requested</span>
+<span class="w">                            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">targetWidth</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">targetHeight</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">{</span>
+<span class="w">                                </span><span class="kt">int</span><span class="w"> </span><span class="n">newWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">targetWidth</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">targetWidth</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">.</span><span class="n">getWidth</span><span class="p">();</span>
+<span class="w">                                </span><span class="kt">int</span><span class="w"> </span><span class="n">newHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">targetHeight</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">targetHeight</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">.</span><span class="n">getHeight</span><span class="p">();</span>
+
+<span class="w">                                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">newWidth</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">newHeight</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">.</span><span class="n">getHeight</span><span class="p">())</span>
+<span class="w">                                </span><span class="p">{</span>
+<span class="w">                                    </span><span class="n">loadedImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">.</span><span class="n">rescaled</span><span class="p">(</span><span class="n">newWidth</span><span class="p">,</span><span class="w"> </span><span class="n">newHeight</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">::</span><span class="n">highResamplingQuality</span><span class="p">);</span>
+<span class="w">                                </span><span class="p">}</span>
+<span class="w">                            </span><span class="p">}</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ImageCache: Exception loading image from &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">catch</span><span class="w"> </span><span class="p">(...)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ImageCache: Unknown exception loading image from &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="c1">// Update stats (mutex protected)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">loadedImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">stats</span><span class="p">.</span><span class="n">downloadSuccesses</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                        </span><span class="n">addToCache</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                    </span><span class="k">else</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">stats</span><span class="p">.</span><span class="n">downloadFailures</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="c1">// Callback on message thread: notify all waiting callbacks</span>
+<span class="w">            </span><span class="p">[</span><span class="n">url</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ImageCallback</span><span class="o">&gt;</span><span class="w"> </span><span class="n">callbacks</span><span class="p">;</span>
+
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">pendingMutex</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pendingDownloads</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">pendingDownloads</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">callbacks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">);</span>
+<span class="w">                        </span><span class="n">pendingDownloads</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">it</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">callback</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">callbacks</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="w">                        </span><span class="n">callback</span><span class="p">(</span><span class="n">loadedImage</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span><span class="w">  </span><span class="c1">// anonymous namespace</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Public API</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">load</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">ImageLoader</span><span class="o">::</span><span class="n">ImageCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">height</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">url</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="w">            </span><span class="n">callback</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="p">());</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Check cache first</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">stats</span><span class="p">.</span><span class="n">cacheHits</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="n">touchEntry</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">cachedImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="o">-&gt;</span><span class="n">image</span><span class="p">;</span>
+
+<span class="w">            </span><span class="c1">// Call callback async to maintain consistent behavior</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="n">callback</span><span class="p">,</span><span class="w"> </span><span class="n">cachedImage</span><span class="p">]()</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="w">                    </span><span class="n">callback</span><span class="p">(</span><span class="n">cachedImage</span><span class="p">);</span>
+<span class="w">            </span><span class="p">});</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">stats</span><span class="p">.</span><span class="n">cacheMisses</span><span class="o">++</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Add callback to pending list</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">shouldStartDownload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">pendingMutex</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">callbacks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pendingDownloads</span><span class="p">[</span><span class="n">url</span><span class="p">];</span>
+<span class="w">        </span><span class="n">shouldStartDownload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">callbacks</span><span class="p">.</span><span class="n">empty</span><span class="p">();</span><span class="w">  </span><span class="c1">// First request for this URL</span>
+<span class="w">        </span><span class="n">callbacks</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">callback</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Start download if this is the first request for this URL</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">shouldStartDownload</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">downloadImage</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">loadSync</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">url</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">{};</span>
+
+<span class="w">    </span><span class="c1">// Check cache first</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">stats</span><span class="p">.</span><span class="n">cacheHits</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="n">touchEntry</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="o">-&gt;</span><span class="n">image</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">stats</span><span class="p">.</span><span class="n">cacheMisses</span><span class="o">++</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Download synchronously</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">try</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="w"> </span><span class="nf">imageUrl</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">InputStreamOptions</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">ParameterHandling</span><span class="o">::</span><span class="n">inAddress</span><span class="p">)</span>
+<span class="w">            </span><span class="p">.</span><span class="n">withConnectionTimeoutMs</span><span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">Api</span><span class="o">::</span><span class="n">IMAGE_TIMEOUT_MS</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">imageUrl</span><span class="p">.</span><span class="n">createInputStream</span><span class="p">(</span><span class="n">options</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MemoryBlock</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
+<span class="w">            </span><span class="n">stream</span><span class="o">-&gt;</span><span class="n">readIntoMemoryBlock</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">loadedImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ImageFileFormat</span><span class="o">::</span><span class="n">loadFrom</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">getData</span><span class="p">(),</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">());</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">catch</span><span class="w"> </span><span class="p">(...)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ImageCache: Exception in sync load from &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Add to cache</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">loadedImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">stats</span><span class="p">.</span><span class="n">downloadSuccesses</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="n">addToCache</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">stats</span><span class="p">.</span><span class="n">downloadFailures</span><span class="o">++</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">loadedImage</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">isCached</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">getCached</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">touchEntry</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="o">-&gt;</span><span class="n">image</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">{};</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">preload</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">StringArray</span><span class="o">&amp;</span><span class="w"> </span><span class="n">urls</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">urls</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">isCached</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">load</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span><span class="w">  </span><span class="c1">// Fire and forget</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">setMaxSize</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">maxImages</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="n">maxCacheSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxImages</span><span class="p">;</span>
+<span class="w">    </span><span class="n">evictIfNeeded</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">size_t</span><span class="w"> </span><span class="n">getSize</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">cacheList</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">clear</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">cacheList</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">failedUrls</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span><span class="w">  </span><span class="c1">// Also clear failed URLs so they can be retried</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">evict</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">cacheList</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">);</span>
+<span class="w">        </span><span class="n">cacheMap</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">it</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">failedUrls</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">url</span><span class="p">);</span><span class="w">  </span><span class="c1">// Also allow retry</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Statistics</span>
+
+<span class="n">Stats</span><span class="w"> </span><span class="n">getStats</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">stats</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">resetStats</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">cacheMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Stats</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Drawing Helpers</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">getInitials</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">name</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;?&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">initials</span><span class="p">;</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">words</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">StringArray</span><span class="o">::</span><span class="n">fromTokens</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">word</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">words</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">word</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">initials</span><span class="p">.</span><span class="n">length</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">            </span><span class="n">initials</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">word</span><span class="p">.</span><span class="n">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">).</span><span class="n">toUpperCase</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">initials</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="n">initials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">.</span><span class="n">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">).</span><span class="n">toUpperCase</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">initials</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">drawCircularAvatar</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span>
+<span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">,</span>
+<span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">initials</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">bgColor</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">textColor</span><span class="p">,</span>
+<span class="w">                        </span><span class="kt">float</span><span class="w"> </span><span class="n">fontSize</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Create circular clipping path</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">circlePath</span><span class="p">;</span>
+<span class="w">    </span><span class="n">circlePath</span><span class="p">.</span><span class="n">addEllipse</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">saveState</span><span class="p">();</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">reduceClipRegion</span><span class="p">(</span><span class="n">circlePath</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Draw the image scaled to fit</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">scaledImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">image</span><span class="p">.</span><span class="n">rescaled</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">(),</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getHeight</span><span class="p">(),</span>
+<span class="w">                                          </span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">::</span><span class="n">highResamplingQuality</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawImageAt</span><span class="p">(</span><span class="n">scaledImage</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">(),</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getY</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Draw placeholder with initials</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">bgColor</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">textColor</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">fontSize</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">initials</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">restoreState</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">setNetworkClient</span><span class="p">(</span><span class="n">NetworkClient</span><span class="o">*</span><span class="w"> </span><span class="n">client</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">networkClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">}</span><span class="w">  </span><span class="c1">// namespace ImageLoader</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

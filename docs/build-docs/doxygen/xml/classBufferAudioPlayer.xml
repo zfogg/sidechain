@@ -1,0 +1,842 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classBufferAudioPlayer" kind="class" language="C++" prot="public">
+    <compoundname>BufferAudioPlayer</compoundname>
+    <includes refid="BufferAudioPlayer_8h" local="no">BufferAudioPlayer.h</includes>
+    <innerclass refid="classBufferAudioPlayer_1_1ProgressTimer" prot="private">BufferAudioPlayer::ProgressTimer</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classBufferAudioPlayer_1ac7780291b6fcff94ab37f1372954f596" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; BufferAudioPlayer::onPlaybackStarted</definition>
+        <argsstring></argsstring>
+        <name>onPlaybackStarted</name>
+        <qualifiedname>BufferAudioPlayer::onPlaybackStarted</qualifiedname>
+        <briefdescription>
+<para>Called when playback starts. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="127" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="127" bodyend="-1"/>
+        <referencedby refid="classBufferAudioPlayer_1a30c7098bff890a8a27fe005787445e43" compoundref="BufferAudioPlayer_8cpp" startline="70" endline="86">play</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a924028da7c93fa34f9039f0374bb63cb" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; BufferAudioPlayer::onPlaybackPaused</definition>
+        <argsstring></argsstring>
+        <name>onPlaybackPaused</name>
+        <qualifiedname>BufferAudioPlayer::onPlaybackPaused</qualifiedname>
+        <briefdescription>
+<para>Called when playback pauses. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="130" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="130" bodyend="-1"/>
+        <referencedby refid="classBufferAudioPlayer_1a256360896b4c2060cfe6716a3d7a4436" compoundref="BufferAudioPlayer_8cpp" startline="88" endline="96">pause</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a32437934b0aea8cef097107faf2f1212" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; BufferAudioPlayer::onPlaybackStopped</definition>
+        <argsstring></argsstring>
+        <name>onPlaybackStopped</name>
+        <qualifiedname>BufferAudioPlayer::onPlaybackStopped</qualifiedname>
+        <briefdescription>
+<para>Called when playback stops (end of file). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="133" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="133" bodyend="-1"/>
+        <referencedby refid="classBufferAudioPlayer_1a43ebf5c65daa57136a8751a526fae48e" compoundref="BufferAudioPlayer_8cpp" startline="98" endline="111">stop</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1aeeb90cb795aeabec75483950b064a171" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(double progress)&gt;</type>
+        <definition>std::function&lt;void(double progress)&gt; BufferAudioPlayer::onProgressUpdate</definition>
+        <argsstring></argsstring>
+        <name>onProgressUpdate</name>
+        <qualifiedname>BufferAudioPlayer::onProgressUpdate</qualifiedname>
+        <briefdescription>
+<para>Called periodically with playback progress. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="136" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a0a727a33025322e59ebfeda67a67f6d5" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; BufferAudioPlayer::onPlaybackFinished</definition>
+        <argsstring></argsstring>
+        <name>onPlaybackFinished</name>
+        <qualifiedname>BufferAudioPlayer::onPlaybackFinished</qualifiedname>
+        <briefdescription>
+<para>Called when playback finishes (reached end of audio). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="139" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="139" bodyend="-1"/>
+        <referencedby refid="classBufferAudioPlayer_1aa456b1567f9c51b8e85256c5180a5953" compoundref="BufferAudioPlayer_8cpp" startline="187" endline="269">processBlock</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a99226e48fb82c0aa5572819da30626f9" prot="private" static="no" mutable="no">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt;float&gt; BufferAudioPlayer::audioBuffer</definition>
+        <argsstring></argsstring>
+        <name>audioBuffer</name>
+        <qualifiedname>BufferAudioPlayer::audioBuffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="144" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="144" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a3dc8c51c923d4563e23eec4cf939c253" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::bufferSampleRate</definition>
+        <argsstring></argsstring>
+        <name>bufferSampleRate</name>
+        <qualifiedname>BufferAudioPlayer::bufferSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="145" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="145" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a0e0848c8bd4031488e81c50c2454b57e" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int BufferAudioPlayer::numChannels</definition>
+        <argsstring></argsstring>
+        <name>numChannels</name>
+        <qualifiedname>BufferAudioPlayer::numChannels</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="146" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a32922053b9147291e8ed41dea2b5215e" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int BufferAudioPlayer::totalSamples</definition>
+        <argsstring></argsstring>
+        <name>totalSamples</name>
+        <qualifiedname>BufferAudioPlayer::totalSamples</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="147" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a57469b801aa8bfa3fe3cfd452dfe71c8" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; BufferAudioPlayer::playing</definition>
+        <argsstring></argsstring>
+        <name>playing</name>
+        <qualifiedname>BufferAudioPlayer::playing</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="150" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="150" bodyend="150"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a161d85f1546fadb5c46324cc47c542d2" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; BufferAudioPlayer::muted</definition>
+        <argsstring></argsstring>
+        <name>muted</name>
+        <qualifiedname>BufferAudioPlayer::muted</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="151" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="151" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a64184986cabf7e8e7a9be0169abe184e" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; float &gt;</type>
+        <definition>std::atomic&lt;float&gt; BufferAudioPlayer::volume</definition>
+        <argsstring></argsstring>
+        <name>volume</name>
+        <qualifiedname>BufferAudioPlayer::volume</qualifiedname>
+        <initializer>{ 0.8f }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="152" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="152" bodyend="152"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a1944a0160ce4085bca5a3eee09c920a6" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; juce::int64 &gt;</type>
+        <definition>std::atomic&lt;juce::int64&gt; BufferAudioPlayer::currentSamplePosition</definition>
+        <argsstring></argsstring>
+        <name>currentSamplePosition</name>
+        <qualifiedname>BufferAudioPlayer::currentSamplePosition</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="155" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="155" bodyend="155"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1ac14fcea4249ca1b659a70912ad45f32f" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::outputSampleRate</definition>
+        <argsstring></argsstring>
+        <name>outputSampleRate</name>
+        <qualifiedname>BufferAudioPlayer::outputSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="158" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="158" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a0f633a4fb742e9e92b81198d79c33ed8" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::resamplingRatio</definition>
+        <argsstring></argsstring>
+        <name>resamplingRatio</name>
+        <qualifiedname>BufferAudioPlayer::resamplingRatio</qualifiedname>
+        <initializer>= 1.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="159" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="159" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1ad163849679010fb2aee936016fdbd7da" prot="private" static="no" mutable="no">
+        <type>juce::LagrangeInterpolator</type>
+        <definition>juce::LagrangeInterpolator BufferAudioPlayer::interpolator</definition>
+        <argsstring></argsstring>
+        <name>interpolator</name>
+        <qualifiedname>BufferAudioPlayer::interpolator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="160" column="32" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="160" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1a174b6dc7871d67284bb5b24cd64cebc7" prot="private" static="no" mutable="no">
+        <type>juce::CriticalSection</type>
+        <definition>juce::CriticalSection BufferAudioPlayer::bufferLock</definition>
+        <argsstring></argsstring>
+        <name>bufferLock</name>
+        <qualifiedname>BufferAudioPlayer::bufferLock</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="163" column="27" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classBufferAudioPlayer_1abd5a97293d033b326976e810f02b52a3" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; ProgressTimer &gt;</type>
+        <definition>std::unique_ptr&lt;ProgressTimer&gt; BufferAudioPlayer::progressTimer</definition>
+        <argsstring></argsstring>
+        <name>progressTimer</name>
+        <qualifiedname>BufferAudioPlayer::progressTimer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="175" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="175" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classBufferAudioPlayer_1a856c68f639d4f14539429b7255b0f0ac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>BufferAudioPlayer::BufferAudioPlayer</definition>
+        <argsstring>()</argsstring>
+        <name>BufferAudioPlayer</name>
+        <qualifiedname>BufferAudioPlayer::BufferAudioPlayer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="25" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="6" bodyend="12"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a9624f827974e5badf26783a0602aed66" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>BufferAudioPlayer::~BufferAudioPlayer</definition>
+        <argsstring>()</argsstring>
+        <name>~BufferAudioPlayer</name>
+        <qualifiedname>BufferAudioPlayer::~BufferAudioPlayer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="26" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="14" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a1f481b20c78379896676e43cc8389158" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::loadBuffer</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;buffer, double sampleRate)</argsstring>
+        <name>loadBuffer</name>
+        <qualifiedname>BufferAudioPlayer::loadBuffer</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <briefdescription>
+<para>Load audio buffer for playback. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to play (copied internally) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The sample rate of the buffer </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="36" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="24" bodyend="48"/>
+        <references refid="classBufferAudioPlayer_1afc6d66bdabc244012931eb170e425f0e" compoundref="BufferAudioPlayer_8cpp" startline="152" endline="160">getDurationSeconds</references>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a85ebc4224b9681f847f490e176a419f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>BufferAudioPlayer::clear</qualifiedname>
+        <briefdescription>
+<para>Clear the loaded buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="41" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="50" bodyend="59"/>
+        <references refid="classBufferAudioPlayer_1a43ebf5c65daa57136a8751a526fae48e" compoundref="BufferAudioPlayer_8cpp" startline="98" endline="111">stop</references>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a30c7098bff890a8a27fe005787445e43" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::play</definition>
+        <argsstring>()</argsstring>
+        <name>play</name>
+        <qualifiedname>BufferAudioPlayer::play</qualifiedname>
+        <briefdescription>
+<para>Play the loaded audio. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="47" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="70" bodyend="86"/>
+        <references refid="classBufferAudioPlayer_1ac7780291b6fcff94ab37f1372954f596" compoundref="BufferAudioPlayer_8h" startline="127">onPlaybackStarted</references>
+        <referencedby refid="classBufferAudioPlayer_1a45c039c7613e38c88d8459ea1b00b537" compoundref="BufferAudioPlayer_8cpp" startline="113" endline="119">togglePlayPause</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a256360896b4c2060cfe6716a3d7a4436" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::pause</definition>
+        <argsstring>()</argsstring>
+        <name>pause</name>
+        <qualifiedname>BufferAudioPlayer::pause</qualifiedname>
+        <briefdescription>
+<para>Pause playback. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="50" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="88" bodyend="96"/>
+        <references refid="classBufferAudioPlayer_1a924028da7c93fa34f9039f0374bb63cb" compoundref="BufferAudioPlayer_8h" startline="130">onPlaybackPaused</references>
+        <referencedby refid="classBufferAudioPlayer_1a45c039c7613e38c88d8459ea1b00b537" compoundref="BufferAudioPlayer_8cpp" startline="113" endline="119">togglePlayPause</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a43ebf5c65daa57136a8751a526fae48e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::stop</definition>
+        <argsstring>()</argsstring>
+        <name>stop</name>
+        <qualifiedname>BufferAudioPlayer::stop</qualifiedname>
+        <briefdescription>
+<para>Stop playback and reset position. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="53" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="98" bodyend="111"/>
+        <references refid="classBufferAudioPlayer_1a32437934b0aea8cef097107faf2f1212" compoundref="BufferAudioPlayer_8h" startline="133">onPlaybackStopped</references>
+        <referencedby refid="classBufferAudioPlayer_1a85ebc4224b9681f847f490e176a419f7" compoundref="BufferAudioPlayer_8cpp" startline="50" endline="59">clear</referencedby>
+        <referencedby refid="classBufferAudioPlayer_1aa456b1567f9c51b8e85256c5180a5953" compoundref="BufferAudioPlayer_8cpp" startline="187" endline="269">processBlock</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a45c039c7613e38c88d8459ea1b00b537" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::togglePlayPause</definition>
+        <argsstring>()</argsstring>
+        <name>togglePlayPause</name>
+        <qualifiedname>BufferAudioPlayer::togglePlayPause</qualifiedname>
+        <briefdescription>
+<para>Toggle between play and pause. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="56" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="113" bodyend="119"/>
+        <references refid="classBufferAudioPlayer_1a256360896b4c2060cfe6716a3d7a4436" compoundref="BufferAudioPlayer_8cpp" startline="88" endline="96">pause</references>
+        <references refid="classBufferAudioPlayer_1a30c7098bff890a8a27fe005787445e43" compoundref="BufferAudioPlayer_8cpp" startline="70" endline="86">play</references>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1afa5ea8523e8196da5ba3076861e62d7d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::seekToPosition</definition>
+        <argsstring>(double positionSeconds)</argsstring>
+        <name>seekToPosition</name>
+        <qualifiedname>BufferAudioPlayer::seekToPosition</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>positionSeconds</declname>
+        </param>
+        <briefdescription>
+<para>Seek to a position. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>positionSeconds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Position in seconds </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="62" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="121" bodyend="134"/>
+        <referencedby refid="classBufferAudioPlayer_1a5ca5af7c2a99ad8c0aa318f7d19e58b2" compoundref="BufferAudioPlayer_8cpp" startline="136" endline="141">seekToNormalizedPosition</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a5ca5af7c2a99ad8c0aa318f7d19e58b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::seekToNormalizedPosition</definition>
+        <argsstring>(double normalizedPosition)</argsstring>
+        <name>seekToNormalizedPosition</name>
+        <qualifiedname>BufferAudioPlayer::seekToNormalizedPosition</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>normalizedPosition</declname>
+        </param>
+        <briefdescription>
+<para>Seek to a normalized position (0.0 to 1.0). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>normalizedPosition</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Position from 0 to 1 </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="68" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="136" bodyend="141"/>
+        <references refid="classBufferAudioPlayer_1afc6d66bdabc244012931eb170e425f0e" compoundref="BufferAudioPlayer_8cpp" startline="152" endline="160">getDurationSeconds</references>
+        <references refid="classBufferAudioPlayer_1afa5ea8523e8196da5ba3076861e62d7d" compoundref="BufferAudioPlayer_8cpp" startline="121" endline="134">seekToPosition</references>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a6f1b684d8ddcff2c16c175fae1b1c5ce" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool BufferAudioPlayer::isPlaying</definition>
+        <argsstring>() const</argsstring>
+        <name>isPlaying</name>
+        <qualifiedname>BufferAudioPlayer::isPlaying</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="73" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="73" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a5815465ce091c3cfed053128e929b2f5" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool BufferAudioPlayer::hasBuffer</definition>
+        <argsstring>() const</argsstring>
+        <name>hasBuffer</name>
+        <qualifiedname>BufferAudioPlayer::hasBuffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="74" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="61" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a4b74fce05db0c4dd2af042eb1212d624" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::getPositionSeconds</definition>
+        <argsstring>() const</argsstring>
+        <name>getPositionSeconds</name>
+        <qualifiedname>BufferAudioPlayer::getPositionSeconds</qualifiedname>
+        <briefdescription>
+<para>Get current playback position in seconds. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="77" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="146" bodyend="150"/>
+        <referencedby refid="classBufferAudioPlayer_1a51ae52e4b83349a6ed4b72f51027f62a" compoundref="BufferAudioPlayer_8cpp" startline="162" endline="169">getPlaybackProgress</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1afc6d66bdabc244012931eb170e425f0e" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::getDurationSeconds</definition>
+        <argsstring>() const</argsstring>
+        <name>getDurationSeconds</name>
+        <qualifiedname>BufferAudioPlayer::getDurationSeconds</qualifiedname>
+        <briefdescription>
+<para>Get total duration in seconds. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="80" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="152" bodyend="160"/>
+        <referencedby refid="classBufferAudioPlayer_1a51ae52e4b83349a6ed4b72f51027f62a" compoundref="BufferAudioPlayer_8cpp" startline="162" endline="169">getPlaybackProgress</referencedby>
+        <referencedby refid="classBufferAudioPlayer_1a1f481b20c78379896676e43cc8389158" compoundref="BufferAudioPlayer_8cpp" startline="24" endline="48">loadBuffer</referencedby>
+        <referencedby refid="classBufferAudioPlayer_1a5ca5af7c2a99ad8c0aa318f7d19e58b2" compoundref="BufferAudioPlayer_8cpp" startline="136" endline="141">seekToNormalizedPosition</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a51ae52e4b83349a6ed4b72f51027f62a" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::getPlaybackProgress</definition>
+        <argsstring>() const</argsstring>
+        <name>getPlaybackProgress</name>
+        <qualifiedname>BufferAudioPlayer::getPlaybackProgress</qualifiedname>
+        <briefdescription>
+<para>Get playback progress (0.0 to 1.0). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="83" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="162" bodyend="169"/>
+        <references refid="classBufferAudioPlayer_1afc6d66bdabc244012931eb170e425f0e" compoundref="BufferAudioPlayer_8cpp" startline="152" endline="160">getDurationSeconds</references>
+        <references refid="classBufferAudioPlayer_1a4b74fce05db0c4dd2af042eb1212d624" compoundref="BufferAudioPlayer_8cpp" startline="146" endline="150">getPositionSeconds</references>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1ad3c69927a2680781a687ebde93246d76" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::setVolume</definition>
+        <argsstring>(float newVolume)</argsstring>
+        <name>setVolume</name>
+        <qualifiedname>BufferAudioPlayer::setVolume</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>newVolume</declname>
+        </param>
+        <briefdescription>
+<para>Set volume (0.0 to 1.0). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="89" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="174" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a2e0c734ddfbc20af1ae0d42d37302672" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>float BufferAudioPlayer::getVolume</definition>
+        <argsstring>() const</argsstring>
+        <name>getVolume</name>
+        <qualifiedname>BufferAudioPlayer::getVolume</qualifiedname>
+        <briefdescription>
+<para>Get current volume. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="92" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="92" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a4835efb5b1afbfc186e379afb69b2b37" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::setMuted</definition>
+        <argsstring>(bool shouldMute)</argsstring>
+        <name>setMuted</name>
+        <qualifiedname>BufferAudioPlayer::setMuted</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>shouldMute</declname>
+        </param>
+        <briefdescription>
+<para>Mute/unmute. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="95" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="179" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1afd7037ea63b3ee96534e291f8326214b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool BufferAudioPlayer::isMuted</definition>
+        <argsstring>() const</argsstring>
+        <name>isMuted</name>
+        <qualifiedname>BufferAudioPlayer::isMuted</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="96" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="96" bodyend="96"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1aa456b1567f9c51b8e85256c5180a5953" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::processBlock</definition>
+        <argsstring>(juce::AudioBuffer&lt; float &gt; &amp;buffer, int numSamples)</argsstring>
+        <name>processBlock</name>
+        <qualifiedname>BufferAudioPlayer::processBlock</qualifiedname>
+        <param>
+          <type>juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>buffer</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>numSamples</declname>
+        </param>
+        <briefdescription>
+<para>Process and mix playback audio into the output buffer Should be called from the audio thread only. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>buffer</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The audio buffer to mix into </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>numSamples</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of samples to process </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="107" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="187" bodyend="269"/>
+        <references refid="classBufferAudioPlayer_1a0a727a33025322e59ebfeda67a67f6d5" compoundref="BufferAudioPlayer_8h" startline="139">onPlaybackFinished</references>
+        <references refid="classBufferAudioPlayer_1a43ebf5c65daa57136a8751a526fae48e" compoundref="BufferAudioPlayer_8cpp" startline="98" endline="111">stop</references>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a8850df50cc64ecd2a6c724020ff86f5a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::prepareToPlay</definition>
+        <argsstring>(double sampleRate, int blockSize)</argsstring>
+        <name>prepareToPlay</name>
+        <qualifiedname>BufferAudioPlayer::prepareToPlay</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>blockSize</declname>
+        </param>
+        <briefdescription>
+<para>Prepare for playback Should be called from PluginProcessor::prepareToPlay. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sampleRate</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The DAW&apos;s sample rate </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blockSize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum block size </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="115" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="271" bodyend="286"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1ad2fa30b54abe2a9f8f30d3cd9f2c006e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void BufferAudioPlayer::releaseResources</definition>
+        <argsstring>()</argsstring>
+        <name>releaseResources</name>
+        <qualifiedname>BufferAudioPlayer::releaseResources</qualifiedname>
+        <briefdescription>
+<para>Release resources Should be called from PluginProcessor::releaseResources. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="121" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="288" bodyend="291"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classBufferAudioPlayer_1aece84a06fae0dcf8c5ec804bfddab119" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double BufferAudioPlayer::samplePositionToSeconds</definition>
+        <argsstring>(juce::int64 samplePos) const</argsstring>
+        <name>samplePositionToSeconds</name>
+        <qualifiedname>BufferAudioPlayer::samplePositionToSeconds</qualifiedname>
+        <param>
+          <type>juce::int64</type>
+          <declname>samplePos</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="178" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="296" bodyend="304"/>
+      </memberdef>
+      <memberdef kind="function" id="classBufferAudioPlayer_1a2c3ec5183c7378e9ca1f73a19cba2bd7" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::int64</type>
+        <definition>juce::int64 BufferAudioPlayer::secondsToSamplePosition</definition>
+        <argsstring>(double seconds) const</argsstring>
+        <name>secondsToSamplePosition</name>
+        <qualifiedname>BufferAudioPlayer::secondsToSamplePosition</qualifiedname>
+        <param>
+          <type>double</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="179" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.cpp" bodystart="306" bodyend="314"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classBufferAudioPlayer" kindref="compound">BufferAudioPlayer</ref> - Handles audio playback from in-memory AudioBuffer. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This class is designed for playing audio directly from juce::AudioBuffer&lt;float&gt; without needing to encode/decode or save to files. Perfect for previewing recorded audio before upload.</para>
+<para>Key features:<itemizedlist>
+<listitem><para>Direct buffer-based playback (no file I/O)</para>
+</listitem><listitem><para>Transport controls (play, pause, seek)</para>
+</listitem><listitem><para>Playback progress tracking</para>
+</listitem><listitem><para>Volume control</para>
+</listitem><listitem><para>Automatic resampling to match DAW sample rate </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" line="22" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/BufferAudioPlayer.h" bodystart="23" bodyend="182"/>
+    <listofallmembers>
+      <member refid="classBufferAudioPlayer_1a99226e48fb82c0aa5572819da30626f9" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>audioBuffer</name></member>
+      <member refid="classBufferAudioPlayer_1a856c68f639d4f14539429b7255b0f0ac" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>BufferAudioPlayer</name></member>
+      <member refid="classBufferAudioPlayer_1a174b6dc7871d67284bb5b24cd64cebc7" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>bufferLock</name></member>
+      <member refid="classBufferAudioPlayer_1a3dc8c51c923d4563e23eec4cf939c253" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>bufferSampleRate</name></member>
+      <member refid="classBufferAudioPlayer_1a85ebc4224b9681f847f490e176a419f7" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>clear</name></member>
+      <member refid="classBufferAudioPlayer_1a1944a0160ce4085bca5a3eee09c920a6" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>currentSamplePosition</name></member>
+      <member refid="classBufferAudioPlayer_1afc6d66bdabc244012931eb170e425f0e" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>getDurationSeconds</name></member>
+      <member refid="classBufferAudioPlayer_1a51ae52e4b83349a6ed4b72f51027f62a" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>getPlaybackProgress</name></member>
+      <member refid="classBufferAudioPlayer_1a4b74fce05db0c4dd2af042eb1212d624" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>getPositionSeconds</name></member>
+      <member refid="classBufferAudioPlayer_1a2e0c734ddfbc20af1ae0d42d37302672" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>getVolume</name></member>
+      <member refid="classBufferAudioPlayer_1a5815465ce091c3cfed053128e929b2f5" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>hasBuffer</name></member>
+      <member refid="classBufferAudioPlayer_1ad163849679010fb2aee936016fdbd7da" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>interpolator</name></member>
+      <member refid="classBufferAudioPlayer_1afd7037ea63b3ee96534e291f8326214b" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>isMuted</name></member>
+      <member refid="classBufferAudioPlayer_1a6f1b684d8ddcff2c16c175fae1b1c5ce" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>isPlaying</name></member>
+      <member refid="classBufferAudioPlayer_1a1f481b20c78379896676e43cc8389158" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>loadBuffer</name></member>
+      <member refid="classBufferAudioPlayer_1a161d85f1546fadb5c46324cc47c542d2" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>muted</name></member>
+      <member refid="classBufferAudioPlayer_1a0e0848c8bd4031488e81c50c2454b57e" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>numChannels</name></member>
+      <member refid="classBufferAudioPlayer_1a0a727a33025322e59ebfeda67a67f6d5" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>onPlaybackFinished</name></member>
+      <member refid="classBufferAudioPlayer_1a924028da7c93fa34f9039f0374bb63cb" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>onPlaybackPaused</name></member>
+      <member refid="classBufferAudioPlayer_1ac7780291b6fcff94ab37f1372954f596" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>onPlaybackStarted</name></member>
+      <member refid="classBufferAudioPlayer_1a32437934b0aea8cef097107faf2f1212" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>onPlaybackStopped</name></member>
+      <member refid="classBufferAudioPlayer_1aeeb90cb795aeabec75483950b064a171" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>onProgressUpdate</name></member>
+      <member refid="classBufferAudioPlayer_1ac14fcea4249ca1b659a70912ad45f32f" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>outputSampleRate</name></member>
+      <member refid="classBufferAudioPlayer_1a256360896b4c2060cfe6716a3d7a4436" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>pause</name></member>
+      <member refid="classBufferAudioPlayer_1a30c7098bff890a8a27fe005787445e43" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>play</name></member>
+      <member refid="classBufferAudioPlayer_1a57469b801aa8bfa3fe3cfd452dfe71c8" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>playing</name></member>
+      <member refid="classBufferAudioPlayer_1a8850df50cc64ecd2a6c724020ff86f5a" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>prepareToPlay</name></member>
+      <member refid="classBufferAudioPlayer_1aa456b1567f9c51b8e85256c5180a5953" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>processBlock</name></member>
+      <member refid="classBufferAudioPlayer_1abd5a97293d033b326976e810f02b52a3" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>progressTimer</name></member>
+      <member refid="classBufferAudioPlayer_1ad2fa30b54abe2a9f8f30d3cd9f2c006e" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>releaseResources</name></member>
+      <member refid="classBufferAudioPlayer_1a0f633a4fb742e9e92b81198d79c33ed8" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>resamplingRatio</name></member>
+      <member refid="classBufferAudioPlayer_1aece84a06fae0dcf8c5ec804bfddab119" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>samplePositionToSeconds</name></member>
+      <member refid="classBufferAudioPlayer_1a2c3ec5183c7378e9ca1f73a19cba2bd7" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>secondsToSamplePosition</name></member>
+      <member refid="classBufferAudioPlayer_1a5ca5af7c2a99ad8c0aa318f7d19e58b2" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>seekToNormalizedPosition</name></member>
+      <member refid="classBufferAudioPlayer_1afa5ea8523e8196da5ba3076861e62d7d" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>seekToPosition</name></member>
+      <member refid="classBufferAudioPlayer_1a4835efb5b1afbfc186e379afb69b2b37" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>setMuted</name></member>
+      <member refid="classBufferAudioPlayer_1ad3c69927a2680781a687ebde93246d76" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>setVolume</name></member>
+      <member refid="classBufferAudioPlayer_1a43ebf5c65daa57136a8751a526fae48e" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>stop</name></member>
+      <member refid="classBufferAudioPlayer_1a45c039c7613e38c88d8459ea1b00b537" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>togglePlayPause</name></member>
+      <member refid="classBufferAudioPlayer_1a32922053b9147291e8ed41dea2b5215e" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>totalSamples</name></member>
+      <member refid="classBufferAudioPlayer_1a64184986cabf7e8e7a9be0169abe184e" prot="private" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>volume</name></member>
+      <member refid="classBufferAudioPlayer_1a9624f827974e5badf26783a0602aed66" prot="public" virt="non-virtual"><scope>BufferAudioPlayer</scope><name>~BufferAudioPlayer</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
