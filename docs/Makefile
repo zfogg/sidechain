@@ -1,10 +1,14 @@
 # Minimal Sphinx Makefile
 # This Makefile provides the standard Sphinx targets for building documentation
+# Automatically uses virtual environment if it exists
 
 SPHINXOPTS    ?=
-SPHINXBUILD  ?= sphinx-build
 SOURCEDIR    = .
 BUILDDIR     = _build
+
+# Check for virtual environment and use it if available
+VENV_PYTHON := $(shell if [ -f .venv/bin/python3 ]; then echo .venv/bin/python3; elif [ -f .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
+SPHINXBUILD  ?= $(VENV_PYTHON) -m sphinx
 
 # Put it first so that "make" without argument is like "make help".
 help:

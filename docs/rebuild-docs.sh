@@ -12,6 +12,24 @@ echo ""
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
+# Step 0: Setup virtual environment if it doesn't exist
+if [ ! -d ".venv" ]; then
+    echo "Step 0: Creating virtual environment..."
+    python3 -m venv .venv
+    echo "✓ Virtual environment created"
+    
+    echo ""
+    echo "Installing Python dependencies..."
+    .venv/bin/pip install --upgrade pip
+    .venv/bin/pip install -r requirements.txt
+    echo "✓ Dependencies installed"
+else
+    echo "Step 0: Using existing virtual environment"
+    # Activate venv for this script (though CMake will find it automatically)
+    source .venv/bin/activate
+fi
+
+echo ""
 echo "Step 1: Cleaning old generated files..."
 rm -rf build-docs doxygen api _build
 echo "✓ Cleaned"
