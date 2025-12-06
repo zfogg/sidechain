@@ -167,6 +167,7 @@ jobs:
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
+        if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: backend/coverage.out
@@ -274,6 +275,7 @@ jobs:
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
+        if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: plugin/build/coverage.info

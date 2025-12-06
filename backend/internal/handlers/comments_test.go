@@ -261,7 +261,7 @@ func (suite *CommentTestSuite) TestCreateCommentWithInvalidPost() {
 	}
 	jsonBody, _ := json.Marshal(body)
 
-	req, _ := http.NewRequest("POST", "/api/v1/posts/invalid-post-id/comments", bytes.NewBuffer(jsonBody))
+	req, _ := http.NewRequest("POST", "/api/v1/posts/00000000-0000-0000-0000-000000000000/comments", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", suite.testUser.ID)
 
