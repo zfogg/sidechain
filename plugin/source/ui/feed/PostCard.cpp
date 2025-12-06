@@ -116,7 +116,7 @@ void PostCard::paint(juce::Graphics& g)
 
 void PostCard::drawBackground(juce::Graphics& g)
 {
-    UI::drawCardWithHover(g, getLocalBounds(),
+    UIHelpers::drawCardWithHover(g, getLocalBounds(),
         SidechainColors::backgroundLight(),
         SidechainColors::backgroundLighter(),
         SidechainColors::border(),
@@ -258,13 +258,13 @@ void PostCard::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.fillRect(barX, barY, barWidth, barHeight);
     }
 
-    // Duration overlay at bottom-right of waveform - use UI::drawBadge
+    // Duration overlay at bottom-right of waveform - use UIHelpers::drawBadge
     if (post.durationSeconds > 0)
     {
         juce::String duration = StringFormatter::formatDuration(post.durationSeconds);
         auto durationBounds = juce::Rectangle<int>(bounds.getRight() - 45, bounds.getBottom() - 18, 40, 16);
 
-        UI::drawBadge(g, durationBounds, duration,
+        UIHelpers::drawBadge(g, durationBounds, duration,
             SidechainColors::background().withAlpha(0.85f),
             SidechainColors::textPrimary(), 10.0f, 3.0f);
     }
@@ -319,7 +319,7 @@ void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds
     if (post.bpm > 0)
     {
         auto bpmBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        UI::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
+        UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
             SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
         badgeY += BADGE_HEIGHT + 5;
     }
@@ -328,7 +328,7 @@ void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds
     if (post.key.isNotEmpty())
     {
         auto keyBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        UI::drawBadge(g, keyBounds, post.key,
+        UIHelpers::drawBadge(g, keyBounds, post.key,
             SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
         badgeY += BADGE_HEIGHT + 5;
     }
@@ -337,7 +337,7 @@ void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds
     for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i)
     {
         auto genreBounds = juce::Rectangle<int>(bounds.getX(), badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
-        UI::drawBadge(g, genreBounds, post.genres[i],
+        UIHelpers::drawBadge(g, genreBounds, post.genres[i],
             SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 10.0f, 3.0f);
         badgeY += BADGE_HEIGHT;
     }
@@ -586,86 +586,6 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         {
             onCardTapped(post);
         }
-    }
-
-    // If this was a simple click on the card (not on any interactive element), trigger card tap
-    if (event.mouseWasClicked() && !event.mods.isAnyModifierKeyDown())
-    {
-        if (onCardTapped)
-        {
-            onCardTapped(post);
-        }
-    }
-}
-    {
-        bool willBeLiked = !post.isLiked;
-
-        // Trigger animation when liking (not when unliking)
-        if (willBeLiked)
-            startLikeAnimation();
-
-        if (onLikeToggled)
-            onLikeToggled(post, willBeLiked);
-        return;
-    }
-
-    // Check comment button
-    if (getCommentButtonBounds().contains(pos))
-    {
-        if (onCommentClicked)
-            onCommentClicked(post);
-        return;
-    }
-
-    // Check share button
-    if (getShareButtonBounds().contains(pos))
-    {
-        if (onShareClicked)
-            onShareClicked(post);
-        return;
-    }
-
-    // Check more button
-    if (getMoreButtonBounds().contains(pos))
-    {
-        if (onMoreClicked)
-            onMoreClicked(post);
-        return;
-    }
-
-    // Check follow button (only if not own post)
-    if (!post.isOwnPost && getFollowButtonBounds().contains(pos))
-    {
-        bool willFollow = !post.isFollowing;
-        if (onFollowToggled)
-            onFollowToggled(post, willFollow);
-        return;
-    }
-
-    // Check avatar/user area
-    if (getAvatarBounds().contains(pos) || getUserInfoBounds().contains(pos))
-    {
-        if (onUserClicked)
-            onUserClicked(post);
-        return;
-    }
-
-    // Check waveform area (for seeking)
-    auto waveformBounds = getWaveformBounds();
-    if (waveformBounds.contains(pos))
-    {
-        float seekPosition = static_cast<float>(pos.x - waveformBounds.getX()) / static_cast<float>(waveformBounds.getWidth());
-        if (onWaveformClicked)
-            onWaveformClicked(post, seekPosition);
-        return;
-    }
-
-    // Check Add to DAW button
-    if (getAddToDAWButtonBounds().contains(pos))
-    {
-        if (onAddToDAWClicked)
-            onAddToDAWClicked(post);
-        return;
     }
 }
 

@@ -85,6 +85,7 @@ private:
     void drawSearchButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawRecordButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawMessagesButton(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawStoryButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawProfileSection(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds);
 
@@ -93,6 +94,7 @@ private:
     juce::Rectangle<int> getSearchButtonBounds() const;
     juce::Rectangle<int> getRecordButtonBounds() const;
     juce::Rectangle<int> getMessagesButtonBounds() const;
+    juce::Rectangle<int> getStoryButtonBounds() const;
     juce::Rectangle<int> getProfileBounds() const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Header)

@@ -423,7 +423,7 @@ void NotificationList::paint(juce::Graphics& g)
     drawHeader(g, headerBounds);
 
     // Separator line
-    UI::drawDivider(g, bounds.getX(), bounds.getY(), bounds.getWidth(), SidechainColors::border());
+    UIHelpers::drawDivider(g, bounds.getX(), bounds.getY(), bounds.getWidth(), SidechainColors::border());
     bounds.removeFromTop(1);
 
     // Content area - viewport handles the scrolling
@@ -444,7 +444,7 @@ void NotificationList::paint(juce::Graphics& g)
 void NotificationList::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Header background
-    UI::drawCard(g, bounds, SidechainColors::backgroundLight());
+    UIHelpers::drawCard(g, bounds, SidechainColors::backgroundLight());
 
     bounds = bounds.reduced(16, 0);
 

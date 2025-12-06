@@ -75,7 +75,7 @@ void UserCard::resized()
 //==============================================================================
 void UserCard::drawBackground(juce::Graphics& g)
 {
-    UI::drawCardWithHover(g, getLocalBounds().reduced(4, 2),
+    UIHelpers::drawCardWithHover(g, getLocalBounds().reduced(4, 2),
         Colors::background,
         Colors::backgroundHover,
         juce::Colours::transparentBlack,
@@ -163,7 +163,7 @@ void UserCard::drawGenreBadge(juce::Graphics& g, juce::Rectangle<int> bounds)
     if (user.genre.isEmpty())
         return;
 
-    UI::drawPillBadge(g, bounds.getX(), bounds.getY() + 1,
+    UIHelpers::drawPillBadge(g, bounds.getX(), bounds.getY() + 1,
         user.genre, Colors::badge, Colors::textSecondary, 10.0f, 6, 4);
 }
 
@@ -174,14 +174,14 @@ void UserCard::drawFollowButton(juce::Graphics& g, juce::Rectangle<int> bounds)
     if (user.isFollowing)
     {
         // "Following" button (muted)
-        UI::drawButton(g, buttonBounds, "Following",
+        UIHelpers::drawButton(g, buttonBounds, "Following",
             Colors::followingButton, Colors::textSecondary, false, 14.0f);
     }
     else
     {
         // "Follow" button (accent)
         g.setFont(juce::Font(11.0f).boldened());
-        UI::drawButton(g, buttonBounds, "Follow",
+        UIHelpers::drawButton(g, buttonBounds, "Follow",
             Colors::followButton, juce::Colours::black, false, 14.0f);
     }
 }

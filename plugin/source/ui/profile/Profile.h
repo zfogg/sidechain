@@ -103,6 +103,10 @@ public:
     // Refresh
     void refresh();
 
+    //==============================================================================
+    // Presence updates (6.5.2.7)
+    void updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status);
+
 private:
     //==============================================================================
     // Data

@@ -6,6 +6,7 @@
 #include "../social/UserCard.h"  // For DiscoveredUser struct and UserCard
 
 class NetworkClient;
+class StreamChatClient;
 
 //==============================================================================
 /**
@@ -34,6 +35,10 @@ public:
     // Network client integration
     void setNetworkClient(NetworkClient* client);
     void setCurrentUserId(const juce::String& userId) { currentUserId = userId; }
+    void setStreamChatClient(StreamChatClient* client);
+
+    // Presence updates (6.5.2.7)
+    void updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status);
 
     //==============================================================================
     // Callbacks
@@ -97,6 +102,7 @@ private:
     //==============================================================================
     // Data
     NetworkClient* networkClient = nullptr;
+    StreamChatClient* streamChatClient = nullptr;
     juce::String currentUserId;
 
     // Search query and results

@@ -437,85 +437,46 @@ void PostsFeed::queryPresenceForPosts()
     });
 }
 
+void PostsFeed::updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status)
+{
+    if (userId.isEmpty())
+        return;
+
+    bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
+
+    // Update presence in posts array
+    for (auto& post : posts)
+    {
+        if (post.userId == userId)
+        {
+            post.isOnline = isOnline;
+            post.isInStudio = isInStudio;
+
+            // Update corresponding PostCard
+            for (auto* card : postCards)
+            {
+                if (card->getPost().userId == userId)
+                {
+                    auto updatedPost = card->getPost();
+                    updatedPost.isOnline = isOnline;
+                    updatedPost.isInStudio = isInStudio;
+                    card->setPost(updatedPost);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Repaint to show updated online indicators
+    repaint();
+}
+
 void PostsFeed::onFeedError(const juce::String& error)
 {
     Log::error("PostsFeed::onFeedError: Feed error - " + error);
     errorMessage = error;
     feedState = FeedState::Error;
     repaint();
-}
-
-//==============================================================================
-void PostsFeed::queryPresenceForPosts()
-{
-    if (!streamChatClient || posts.isEmpty())
-    {
-        Log::debug("PostsFeed::queryPresenceForPosts: Skipping - streamChatClient is null or no posts");
-        return;
-    }
-
-    // Collect unique user IDs from posts
-    std::set<juce::String> uniqueUserIds;
-    for (const auto& post : posts)
-    {
-        if (post.userId.isNotEmpty() && !post.isOwnPost)
-        {
-            uniqueUserIds.insert(post.userId);
-        }
-    }
-
-    if (uniqueUserIds.empty())
-    {
-        Log::debug("PostsFeed::queryPresenceForPosts: No unique user IDs to query");
-        return;
-    }
-
-    // Convert to vector for queryPresence
-    std::vector<juce::String> userIds(uniqueUserIds.begin(), uniqueUserIds.end());
-
-    Log::debug("PostsFeed::queryPresenceForPosts: Querying presence for " + juce::String(userIds.size()) + " users");
-
-    // Query presence
-    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
-        if (result.isError())
-        {
-            Log::warn("PostsFeed::queryPresenceForPosts: Failed to query presence: " + result.getError());
-            return;
-        }
-
-        auto presenceList = result.getValue();
-        Log::debug("PostsFeed::queryPresenceForPosts: Received presence data for " + juce::String(presenceList.size()) + " users");
-
-        // Update posts with presence data
-        for (auto& post : posts)
-        {
-            for (const auto& presence : presenceList)
-            {
-                if (presence.userId == post.userId)
-                {
-                    post.isOnline = presence.online;
-                    post.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
-
-                    // Update corresponding PostCard
-                    for (auto* card : postCards)
-                    {
-                        if (card->getPost().userId == post.userId)
-                        {
-                            auto updatedPost = card->getPost();
-                            updatedPost.isOnline = post.isOnline;
-                            updatedPost.isInStudio = post.isInStudio;
-                            card->setPost(updatedPost);
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Repaint to show online indicators
-        repaint();
-    });
 }
 
 //==============================================================================
@@ -563,10 +524,10 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
     auto timelineTab = getTimelineTabBounds();
     bool isTimelineActive = (currentFeedType == FeedDataManager::FeedType::Timeline);
 
-    // Use UI::drawButton for consistent tab styling
+    // Use UIHelpers::drawButton for consistent tab styling
     if (isTimelineActive)
     {
-        UI::drawButton(g, timelineTab.reduced(5), "Following",
+        UIHelpers::drawButton(g, timelineTab.reduced(5), "Following",
             SidechainColors::primary(), SidechainColors::textPrimary(), false, 4.0f);
     }
     else
@@ -580,10 +541,10 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
     auto trendingTab = getTrendingTabBounds();
     bool isTrendingActive = (currentFeedType == FeedDataManager::FeedType::Trending);
 
-    // Use UI::drawButton for consistent tab styling
+    // Use UIHelpers::drawButton for consistent tab styling
     if (isTrendingActive)
     {
-        UI::drawButton(g, trendingTab.reduced(5), "Trending",
+        UIHelpers::drawButton(g, trendingTab.reduced(5), "Trending",
             SidechainColors::primary(), SidechainColors::textPrimary(), false, 4.0f);
     }
     else
@@ -597,10 +558,10 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
     auto globalTab = getGlobalTabBounds();
     bool isGlobalActive = (currentFeedType == FeedDataManager::FeedType::Global);
 
-    // Use UI::drawButton for consistent tab styling
+    // Use UIHelpers::drawButton for consistent tab styling
     if (isGlobalActive)
     {
-        UI::drawButton(g, globalTab.reduced(5), "Discover",
+        UIHelpers::drawButton(g, globalTab.reduced(5), "Discover",
             SidechainColors::primary(), SidechainColors::textPrimary(), false, 4.0f);
     }
     else
@@ -616,8 +577,8 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
     g.setFont(18.0f);
     g.drawText("Refresh", refreshBtn, juce::Justification::centred);
 
-    // Bottom border - use UI::drawDivider for consistency
-    UI::drawDivider(g, 0, tabsBounds.getBottom(), getWidth(),
+    // Bottom border - use UIHelpers::drawDivider for consistency
+    UIHelpers::drawDivider(g, 0, tabsBounds.getBottom(), getWidth(),
         SidechainColors::borderSubtle(), 1.0f);
 }
 
@@ -678,9 +639,9 @@ void PostsFeed::drawEmptyState(juce::Graphics& g)
     g.drawText(subtitle2, centerBounds.withY(centerBounds.getY() + 180).withHeight(30), juce::Justification::centred);
 
     // Action button
-    // Use UI::drawButton for consistent button styling
+    // Use UIHelpers::drawButton for consistent button styling
     auto actionBtn = getRecordButtonBounds();
-    UI::drawButton(g, actionBtn, "Start Recording",
+    UIHelpers::drawButton(g, actionBtn, "Start Recording",
         SidechainColors::primary(), SidechainColors::textPrimary(), false, 8.0f);
 }
 
@@ -706,9 +667,9 @@ void PostsFeed::drawErrorState(juce::Graphics& g)
     g.drawFittedText(displayError, centerBounds.withY(centerBounds.getY() + 130).withHeight(40), juce::Justification::centred, 2);
 
     // Retry button
-    // Use UI::drawButton for consistent button styling
+    // Use UIHelpers::drawButton for consistent button styling
     auto retryBtn = getRetryButtonBounds();
-    UI::drawButton(g, retryBtn, "Try Again",
+    UIHelpers::drawButton(g, retryBtn, "Try Again",
         SidechainColors::primary(), SidechainColors::textPrimary(), false, 8.0f);
 }
 
@@ -987,7 +948,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                                     }
                                     juce::MessageManager::callAsync([]() {
                                         juce::AlertWindow::showMessageBoxAsync(
-                                            juce::AlertWindow::InfoIcon,
+                                            juce::MessageBoxIconType::InfoIcon,
                                             "Post Deleted",
                                             "Your post has been deleted successfully.");
                                     });
@@ -997,7 +958,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                                     Log::error("PostsFeedComponent: Failed to delete post - " + result.getError());
                                     juce::MessageManager::callAsync([result]() {
                                         juce::AlertWindow::showMessageBoxAsync(
-                                            juce::AlertWindow::WarningIcon,
+                                            juce::MessageBoxIconType::WarningIcon,
                                             "Error",
                                             "Failed to delete post: " + result.getError());
                                     });
@@ -1031,7 +992,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                                     Log::info("PostsFeedComponent: Post reported successfully - " + postId + ", reason: " + reason);
                                     juce::MessageManager::callAsync([]() {
                                         juce::AlertWindow::showMessageBoxAsync(
-                                            juce::AlertWindow::InfoIcon,
+                                            juce::MessageBoxIconType::InfoIcon,
                                             "Report Submitted",
                                             "Thank you for reporting this post. We will review it shortly.");
                                     });
@@ -1041,7 +1002,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                                     Log::error("PostsFeedComponent: Failed to report post - " + result.getError());
                                     juce::MessageManager::callAsync([result]() {
                                         juce::AlertWindow::showMessageBoxAsync(
-                                            juce::AlertWindow::WarningIcon,
+                                            juce::MessageBoxIconType::WarningIcon,
                                             "Error",
                                             "Failed to report post: " + result.getError());
                                     });
@@ -1092,7 +1053,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                         juce::MessageManager::callAsync([targetFile]() {
                             Log::info("Audio saved to: " + targetFile.getFullPathName());
                             juce::AlertWindow::showMessageBoxAsync(
-                                juce::AlertWindow::InfoIcon,
+                                juce::MessageBoxIconType::InfoIcon,
                                 "Success",
                                 "Audio saved to:\n" + targetFile.getFullPathName());
                         });
@@ -1102,7 +1063,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                         juce::MessageManager::callAsync([targetFile]() {
                             Log::error("Failed to write audio file: " + targetFile.getFullPathName());
                             juce::AlertWindow::showMessageBoxAsync(
-                                juce::AlertWindow::WarningIcon,
+                                juce::MessageBoxIconType::WarningIcon,
                                 "Error",
                                 "Failed to save audio file:\n" + targetFile.getFullPathName());
                         });
@@ -1113,7 +1074,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                     juce::MessageManager::callAsync([post]() {
                         Log::error("Failed to download audio from: " + post.audioUrl);
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::WarningIcon,
+                            juce::MessageBoxIconType::WarningIcon,
                             "Error",
                             "Failed to download audio file. Please check your connection and try again.");
                     });
@@ -1129,7 +1090,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         {
             Log::warn("PostsFeedComponent: Cannot follow/unfollow - networkClient is null");
             juce::AlertWindow::showMessageBoxAsync(
-                juce::AlertWindow::WarningIcon,
+                juce::MessageBoxIconType::WarningIcon,
                 "Error",
                 "Unable to follow/unfollow user. Please try again later.");
             return;
@@ -1167,7 +1128,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                 // Show error to user
                 juce::MessageManager::callAsync([result, willFollow]() {
                     juce::AlertWindow::showMessageBoxAsync(
-                        juce::AlertWindow::WarningIcon,
+                        juce::MessageBoxIconType::WarningIcon,
                         "Error",
                         "Failed to " + juce::String(willFollow ? "follow" : "unfollow") + " user: " + result.getError());
                 });
@@ -1179,7 +1140,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                 // Optional: Show brief success toast (commented out to avoid notification spam)
                 // juce::MessageManager::callAsync([willFollow, username = post.username]() {
                 //     juce::AlertWindow::showMessageBoxAsync(
-                //         juce::AlertWindow::InfoIcon,
+                //         juce::MessageBoxIconType::InfoIcon,
                 //         "Success",
                 //         "Successfully " + juce::String(willFollow ? "following" : "unfollowed") + " " + username);
                 // });

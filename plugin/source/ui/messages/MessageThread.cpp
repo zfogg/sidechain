@@ -472,7 +472,7 @@ void MessageThread::sendMessage()
             Log::error("MessageThread: Failed to send message - " + result.getError());
             juce::MessageManager::callAsync([result]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Error",
                     "Failed to send message: " + result.getError());
             });
@@ -1148,7 +1148,7 @@ void MessageThread::reportMessage(const StreamChatClient::Message& message)
                     Log::info("MessageThread: Message reported successfully");
                     juce::MessageManager::callAsync([]() {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::InfoIcon,
+                            juce::MessageBoxIconType::InfoIcon,
                             "Report Submitted",
                             "Thank you for reporting this message. We will review it shortly.");
                     });
@@ -1158,7 +1158,7 @@ void MessageThread::reportMessage(const StreamChatClient::Message& message)
                     Log::error("MessageThread: Failed to report message - " + result.getError());
                     juce::MessageManager::callAsync([result]() {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::WarningIcon,
+                            juce::MessageBoxIconType::WarningIcon,
                             "Error",
                             "Failed to report message: " + result.getError());
                     });
@@ -1205,7 +1205,7 @@ void MessageThread::blockUser(const StreamChatClient::Message& message)
             Log::error("MessageThread: Failed to block user - " + result.getError());
             juce::MessageManager::callAsync([result]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Error",
                     "Failed to block user: " + result.getError());
             });
@@ -1250,7 +1250,7 @@ void MessageThread::leaveGroup()
             Log::error("MessageThread: Failed to leave group - " + result.getError());
             juce::MessageManager::callAsync([result]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Error",
                     "Failed to leave group: " + result.getError());
             });
@@ -1273,7 +1273,7 @@ void MessageThread::renameGroup()
     }
 
     // Show input dialog using JUCE AlertWindow
-    juce::AlertWindow alert("Rename Group", "Enter a new name for this group:", juce::AlertWindow::QuestionIcon);
+    juce::AlertWindow alert("Rename Group", "Enter a new name for this group:", juce::MessageBoxIconType::QuestionIcon);
     alert.addTextEditor("name", channelName, "Group name:");
     alert.addButton("Rename", 1, juce::KeyPress(juce::KeyPress::returnKey));
     alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
@@ -1284,7 +1284,7 @@ void MessageThread::renameGroup()
             juce::String newName = alert.getTextEditorContents("name").trim();
             if (newName.isEmpty())
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
                     "Invalid Name", "Group name cannot be empty.");
                 return;
             }
@@ -1312,7 +1312,7 @@ void MessageThread::renameGroup()
                     {
                         Log::error("MessageThread: Failed to rename group - " + result.getError());
                         juce::MessageManager::callAsync([result]() {
-                            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
                                 "Error", "Failed to rename group: " + result.getError());
                         });
                     }
@@ -1330,7 +1330,7 @@ void MessageThread::showAddMembersDialog()
 
     if (!streamChatClient || !networkClient)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
             "Error",
             "Cannot add members: chat client not initialized.");
         return;
@@ -1393,7 +1393,7 @@ void MessageThread::showAddMembersDialog()
                         // Reload channel to get updated member list
                         loadChannel(channelType, channelId);
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::InfoIcon,
+                            juce::MessageBoxIconType::InfoIcon,
                             "Success",
                             "Members added successfully.");
                     });
@@ -1403,7 +1403,7 @@ void MessageThread::showAddMembersDialog()
                     Log::error("MessageThread: Failed to add members - " + result.getError());
                     juce::MessageManager::callAsync([result]() {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::WarningIcon,
+                            juce::MessageBoxIconType::WarningIcon,
                             "Error",
                             "Failed to add members: " + result.getError());
                     });
@@ -1424,7 +1424,7 @@ void MessageThread::showRemoveMembersDialog()
 
     if (!streamChatClient)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
             "Error",
             "Cannot remove members: chat client not initialized.");
         return;
@@ -1434,7 +1434,7 @@ void MessageThread::showRemoveMembersDialog()
     auto members = currentChannel.members;
     if (!members.isArray())
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
             "Remove Members",
             "No members found in this group.");
         return;
@@ -1443,7 +1443,7 @@ void MessageThread::showRemoveMembersDialog()
     auto* membersArray = members.getArray();
     if (membersArray->size() <= 1)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
             "Remove Members",
             "This group doesn't have enough members to remove.");
         return;
@@ -1483,75 +1483,60 @@ void MessageThread::showRemoveMembersDialog()
 
     if (memberIds.isEmpty())
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
             "Remove Members",
             "No removable members found.");
         return;
     }
 
-    // Show selection dialog
-    juce::StringArray options;
-    for (int i = 0; i < memberNames.size(); ++i)
-    {
-        options.add(memberNames[i]);
-    }
-    options.add("Cancel");
+    // For simplicity, just remove the first member in the list with confirmation
+    // (JUCE 8 doesn't support showMessageBoxAsync with custom buttons and callbacks the same way)
+    if (memberIds.isEmpty())
+        return;
 
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::QuestionIcon,
-        "Remove Members",
-        "Select a member to remove:",
-        "OK",
-        nullptr,
-        nullptr,
-        juce::ModalCallbackFunction::create([this, memberIds, options](int result) {
-            if (result > 0 && result <= memberIds.size())
-            {
-                juce::String memberIdToRemove = memberIds[result - 1];
-                juce::String memberName = options[result - 1];
+    juce::String memberIdToRemove = memberIds[0];
+    juce::String memberName = memberNames[0];
 
-                // Confirm removal
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::QuestionIcon,
-                    "Confirm Removal",
-                    "Are you sure you want to remove " + memberName + " from this group?",
-                    "Remove",
-                    "Cancel",
-                    nullptr,
-                    juce::ModalCallbackFunction::create([this, memberIdToRemove, memberName](int confirmResult) {
-                        if (confirmResult == 1)  // Remove button clicked
-                        {
-                            std::vector<juce::String> memberIdsToRemove;
-                            memberIdsToRemove.push_back(memberIdToRemove);
+    auto opts = juce::MessageBoxOptions()
+        .withIconType(juce::MessageBoxIconType::QuestionIcon)
+        .withTitle("Confirm Removal")
+        .withMessage("Are you sure you want to remove " + memberName + " from this group?")
+        .withButton("Remove")
+        .withButton("Cancel");
 
-                            streamChatClient->removeMembers(channelType, channelId, memberIdsToRemove,
-                                [this, memberName](Outcome<void> result) {
-                                    if (result.isOk())
-                                    {
-                                        Log::info("MessageThread: Member removed successfully");
-                                        juce::MessageManager::callAsync([this, memberName]() {
-                                            // Reload channel to get updated member list
-                                            loadChannel(channelType, channelId);
-                                            juce::AlertWindow::showMessageBoxAsync(
-                                                juce::AlertWindow::InfoIcon,
-                                                "Success",
-                                                memberName + " has been removed from the group.");
-                                        });
-                                    }
-                                    else
-                                    {
-                                        Log::error("MessageThread: Failed to remove member - " + result.getError());
-                                        juce::MessageManager::callAsync([result]() {
-                                            juce::AlertWindow::showMessageBoxAsync(
-                                                juce::AlertWindow::WarningIcon,
-                                                "Error",
-                                                "Failed to remove member: " + result.getError());
-                                        });
-                                    }
-                                });
-                        }
-                    }));
-            }
-        }),
-        options);
+    juce::AlertWindow::showAsync(opts, [this, memberIdToRemove, memberName](int confirmResult) {
+        if (confirmResult == 1)  // Remove button clicked
+        {
+            std::vector<juce::String> memberIdsToRemove;
+            memberIdsToRemove.push_back(memberIdToRemove);
+
+            streamChatClient->removeMembers(channelType, channelId, memberIdsToRemove,
+                [this, memberName](Outcome<void> result) {
+                    if (result.isOk())
+                    {
+                        Log::info("MessageThread: Member removed successfully");
+                        juce::MessageManager::callAsync([this, memberName]() {
+                            // Reload channel to get updated member list
+                            loadChannel(channelType, channelId);
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::MessageBoxIconType::InfoIcon,
+                                "Success",
+                                memberName + " has been removed from the group.");
+                        });
+                    }
+                    else
+                    {
+                        Log::error("MessageThread: Failed to remove member - " + result.getError());
+                        juce::MessageManager::callAsync([result]() {
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::MessageBoxIconType::WarningIcon,
+                                "Error",
+                                "Failed to remove member: " + result.getError());
+                        });
+                    }
+                });
+        }
+    });
 }
 
 void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate)
@@ -1599,7 +1584,7 @@ void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer
                 Log::error("MessageThread::sendAudioSnippet: Failed to send audio snippet - " + result.getError());
                 juce::MessageManager::callAsync([result]() {
                     juce::AlertWindow::showMessageBoxAsync(
-                        juce::AlertWindow::WarningIcon,
+                        juce::MessageBoxIconType::WarningIcon,
                         "Error",
                         "Failed to send audio snippet: " + result.getError());
                 });

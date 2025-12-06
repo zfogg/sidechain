@@ -1138,7 +1138,7 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
         Log::debug("UserDiscovery::queryPresenceForUsers: Received presence data for " + juce::String(presenceList.size()) + " users");
 
         // Update user arrays with presence data
-        auto updateUserPresence = [&presenceList](juce::Array<DiscoveredUser>& userArray) {
+        auto updateUserPresenceInArray = [&presenceList](juce::Array<DiscoveredUser>& userArray) {
             for (auto& user : userArray)
             {
                 for (const auto& presence : presenceList)
@@ -1153,11 +1153,11 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
             }
         };
 
-        updateUserPresence(searchResults);
-        updateUserPresence(trendingUsers);
-        updateUserPresence(featuredProducers);
-        updateUserPresence(suggestedUsers);
-        updateUserPresence(genreUsers);
+        updateUserPresenceInArray(searchResults);
+        updateUserPresenceInArray(trendingUsers);
+        updateUserPresenceInArray(featuredProducers);
+        updateUserPresenceInArray(suggestedUsers);
+        updateUserPresenceInArray(genreUsers);
 
         // Update corresponding UserCards
         for (auto* card : userCards)
@@ -1178,4 +1178,47 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
         // Repaint to show online indicators
         repaint();
     });
+}
+
+void UserDiscovery::updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status)
+{
+    if (userId.isEmpty())
+        return;
+
+    bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
+
+    // Update presence in all user arrays
+    auto updatePresenceInArray = [userId, isOnline, isInStudio](juce::Array<DiscoveredUser>& userArray) {
+        for (auto& user : userArray)
+        {
+            if (user.id == userId)
+            {
+                user.isOnline = isOnline;
+                user.isInStudio = isInStudio;
+                break;
+            }
+        }
+    };
+
+    updatePresenceInArray(searchResults);
+    updatePresenceInArray(trendingUsers);
+    updatePresenceInArray(featuredProducers);
+    updatePresenceInArray(suggestedUsers);
+    updatePresenceInArray(genreUsers);
+
+    // Update corresponding UserCards
+    for (auto* card : userCards)
+    {
+        auto user = card->getUser();
+        if (user.id == userId)
+        {
+            user.isOnline = isOnline;
+            user.isInStudio = isInStudio;
+            card->setUser(user);
+            break;
+        }
+    }
+
+    // Repaint to show updated online indicators
+    repaint();
 }

@@ -32,6 +32,9 @@ public:
     void setStreamChatClient(StreamChatClient* client);
     void setCurrentUserId(const juce::String& userId) { currentUserId = userId; }
 
+    // Presence updates (6.5.2.7)
+    void updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status);
+
     //==============================================================================
     // Callbacks
     std::function<void()> onBackPressed;

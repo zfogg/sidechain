@@ -860,24 +860,22 @@ void Auth::handleLogin()
                         // Show email verification prompt if needed
                         if (!emailVerified)
                         {
-                            juce::AlertWindow::showMessageBoxAsync(
-                                juce::AlertWindow::WarningIcon,
-                                "Email Not Verified",
-                                "Please verify your email address to access all features.\n\n"
-                                "A verification email has been sent to " + email + ".\n\n"
-                                "You can still use the app, but some features may be limited.",
-                                "OK",
-                                nullptr,
-                                nullptr,
-                                juce::ModalCallbackFunction::create([this, username, email, token](int) {
-                                    // Continue with login even if email not verified
-                                    if (onLoginSuccess)
-                                    {
-                                        Log::info("Auth: Calling onLoginSuccess callback (email not verified)");
-                                        onLoginSuccess(username, email, token);
-                                    }
-                                })
-                            );
+                            auto opts = juce::MessageBoxOptions()
+                                .withIconType(juce::MessageBoxIconType::WarningIcon)
+                                .withTitle("Email Not Verified")
+                                .withMessage("Please verify your email address to access all features.\n\n"
+                                    "A verification email has been sent to " + email + ".\n\n"
+                                    "You can still use the app, but some features may be limited.")
+                                .withButton("OK");
+
+                            juce::AlertWindow::showAsync(opts, [this, username, email, token](int) {
+                                // Continue with login even if email not verified
+                                if (onLoginSuccess)
+                                {
+                                    Log::info("Auth: Calling onLoginSuccess callback (email not verified)");
+                                    onLoginSuccess(username, email, token);
+                                }
+                            });
                         }
                         else
                         {
@@ -966,7 +964,7 @@ void Auth::handleForgotPassword()
             }
 
             juce::AlertWindow::showMessageBoxAsync(
-                juce::AlertWindow::InfoIcon,
+                juce::MessageBoxIconType::InfoIcon,
                 "Password Reset",
                 message + "\n\nPlease check your email for reset instructions.");
         }

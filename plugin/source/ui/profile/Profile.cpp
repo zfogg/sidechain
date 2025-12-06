@@ -972,10 +972,8 @@ void Profile::handleFollowToggle()
     profile.followerCount += willFollow ? 1 : -1;
     repaint();
 
-    juce::String endpoint = "/users/" + profile.id + (wasFollowing ? "/unfollow" : "/follow");
-    Log::debug("Profile::handleFollowToggle: Calling endpoint: " + endpoint);
-
-    networkClient->post(endpoint, juce::var(), [this, wasFollowing](Outcome<juce::var> result) {
+    // Use NetworkClient methods for follow/unfollow
+    auto callback = [this, wasFollowing](Outcome<juce::var> result) {
         juce::MessageManager::callAsync([this, result, wasFollowing]() {
             if (result.isError())
             {
@@ -999,7 +997,18 @@ void Profile::handleFollowToggle()
                 }
             }
         });
-    });
+    };
+
+    if (willFollow)
+    {
+        Log::debug("Profile::handleFollowToggle: Calling followUser API");
+        networkClient->followUser(profile.id, callback);
+    }
+    else
+    {
+        Log::debug("Profile::handleFollowToggle: Calling unfollowUser API");
+        networkClient->unfollowUser(profile.id, callback);
+    }
 }
 
 void Profile::shareProfile()
@@ -1219,8 +1228,53 @@ void Profile::queryPresenceForProfile()
             }
         }
 
-        Log::debug("Profile::queryPresenceForProfile: Presence updated - online: " + juce::String(profile.isOnline) +
-                  ", inStudio: " + juce::String(profile.isInStudio));
+void Profile::updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status)
+{
+    if (userId.isEmpty() || userId != profile.id)
+        return;
+
+    bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
+
+    profile.isOnline = isOnline;
+    profile.isInStudio = isInStudio;
+
+    // Repaint to show updated online status
+    repaint();
+}
+
+void Profile::queryPresenceForProfile()
+{
+    if (!streamChatClient || profile.id.isEmpty())
+    {
+        Log::debug("Profile::queryPresenceForProfile: Skipping - streamChatClient is null or profile ID is empty");
+        return;
+    }
+
+    Log::debug("Profile::queryPresenceForProfile: Querying presence for user: " + profile.id);
+
+    std::vector<juce::String> userIds = { profile.id };
+    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (result.isError())
+        {
+            Log::warn("Profile::queryPresenceForProfile: Failed to query presence: " + result.getError());
+            return;
+        }
+
+        auto presenceList = result.getValue();
+        if (presenceList.empty())
+        {
+            Log::debug("Profile::queryPresenceForProfile: No presence data returned");
+            return;
+        }
+
+        // Update profile with presence data
+        const auto& presence = presenceList[0];
+        profile.isOnline = presence.online;
+        profile.isInStudio = (presence.status == "in_studio" || presence.status == "in studio" || presence.status == "recording");
+        profile.lastActive = presence.lastActive;
+
+        Log::debug("Profile::queryPresenceForProfile: Presence updated - online: " + juce::String(profile.isOnline ? "true" : "false") +
+                  ", inStudio: " + juce::String(profile.isInStudio ? "true" : "false"));
 
         repaint();
     });

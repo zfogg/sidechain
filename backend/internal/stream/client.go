@@ -422,6 +422,42 @@ func (c *Client) RemoveReaction(reactionID string) error {
 	return nil
 }
 
+// RemoveReactionByActivityAndUser removes a reaction from an activity for a specific user
+// It finds the reaction ID first, then deletes it
+func (c *Client) RemoveReactionByActivityAndUser(activityID, userID, kind string) error {
+	ctx := context.Background()
+
+	// Filter reactions by activity ID
+	resp, err := c.feedsClient.Reactions().Filter(ctx,
+		stream.ByActivityID(activityID),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to get reactions for activity: %w", err)
+	}
+
+	// Find the reaction by this user with the specified kind
+	var reactionID string
+	for _, r := range resp.Results {
+		if r.UserID == userID && r.Kind == kind {
+			reactionID = r.ID
+			break
+		}
+	}
+
+	if reactionID == "" {
+		return fmt.Errorf("reaction not found for user %s on activity %s", userID, activityID)
+	}
+
+	// Delete the reaction
+	_, err = c.feedsClient.Reactions().Delete(ctx, reactionID)
+	if err != nil {
+		return fmt.Errorf("failed to remove reaction: %w", err)
+	}
+
+	fmt.Printf("😀 Removed %s reaction %s by user %s on activity %s\n", kind, reactionID, userID, activityID)
+	return nil
+}
+
 // FollowStats contains follower and following counts
 type FollowStats struct {
 	FollowerCount  int `json:"follower_count"`

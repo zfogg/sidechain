@@ -174,10 +174,11 @@ void Header::paint(juce::Graphics& g)
     drawSearchButton(g, getSearchButtonBounds());
     drawRecordButton(g, getRecordButtonBounds());
     drawMessagesButton(g, getMessagesButtonBounds());
+    drawStoryButton(g, getStoryButtonBounds());
     drawProfileSection(g, getProfileBounds());
 
-    // Bottom border - use UI::drawDivider for consistency
-    UI::drawDivider(g, 0, bounds.getBottom() - 1, bounds.getWidth(),
+    // Bottom border - use UIHelpers::drawDivider for consistency
+    UIHelpers::drawDivider(g, 0, bounds.getBottom() - 1, bounds.getWidth(),
         SidechainColors::border(), 1.0f);
 }
 
@@ -224,6 +225,14 @@ void Header::mouseUp(const juce::MouseEvent& event)
         else
             Log::warn("Header::mouseUp: Messages clicked but callback not set");
     }
+    else if (getStoryButtonBounds().contains(pos))
+    {
+        Log::info("Header::mouseUp: Story button clicked");
+        if (onStoryClicked)
+            onStoryClicked();
+        else
+            Log::warn("Header::mouseUp: Story clicked but callback not set");
+    }
     else if (getProfileBounds().contains(pos))
     {
         Log::info("Header::mouseUp: Profile section clicked - username: " + username);
@@ -244,17 +253,17 @@ void Header::drawLogo(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void Header::drawSearchButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Use UI::drawOutlineButton for consistent button styling
+    // Use UIHelpers::drawOutlineButton for consistent button styling
     juce::String searchText = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8D")) + " Search users...";
-    UI::drawOutlineButton(g, bounds, searchText,
+    UIHelpers::drawOutlineButton(g, bounds, searchText,
         SidechainColors::border(), SidechainColors::textMuted(), false, 8.0f);
 }
 
 void Header::drawRecordButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Record button is wired up in PluginEditor.cpp (line 355-356) - navigates to Recording screen
-    // Use UI::drawButton for base button, then add custom recording dot
-    UI::drawButton(g, bounds, "Record",
+    // Use UIHelpers::drawButton for base button, then add custom recording dot
+    UIHelpers::drawButton(g, bounds, "Record",
         SidechainColors::primary(), juce::Colours::white, false, 8.0f);
 
     // Draw red recording dot indicator
@@ -295,6 +304,17 @@ void Header::drawMessagesButton(juce::Graphics& g, juce::Rectangle<int> bounds)
         juce::String countText = unreadMessageCount > 99 ? "99+" : juce::String(unreadMessageCount);
         g.drawText(countText, badgeBounds, juce::Justification::centred);
     }
+}
+
+void Header::drawStoryButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Draw story icon (camera/story icon)
+    juce::String storyIcon = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB7")); // Camera emoji
+
+    // Draw the icon button
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(20.0f);
+    g.drawText(storyIcon, bounds.withWidth(30), juce::Justification::centred);
 }
 
 void Header::drawProfileSection(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -351,11 +371,22 @@ juce::Rectangle<int> Header::getRecordButtonBounds() const
 
 juce::Rectangle<int> Header::getMessagesButtonBounds() const
 {
-    // Position the messages button between record and profile
+    // Position the messages button between record and story
     auto recordBounds = getRecordButtonBounds();
     int buttonWidth = 36;
     int buttonHeight = 36;
     int x = recordBounds.getRight() + 12;  // 12px gap after record
+    int y = (getHeight() - buttonHeight) / 2;
+    return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
+}
+
+juce::Rectangle<int> Header::getStoryButtonBounds() const
+{
+    // Position the story button between messages and profile
+    auto messagesBounds = getMessagesButtonBounds();
+    int buttonWidth = 36;
+    int buttonHeight = 36;
+    int x = messagesBounds.getRight() + 12;  // 12px gap after messages
     int y = (getHeight() - buttonHeight) / 2;
     return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
 }
