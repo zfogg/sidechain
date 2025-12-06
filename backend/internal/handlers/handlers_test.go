@@ -316,7 +316,7 @@ func (suite *HandlersTestSuite) TestGetUserProfile() {
 func (suite *HandlersTestSuite) TestGetUserProfileNotFound() {
 	t := suite.T()
 
-	req, _ := http.NewRequest("GET", "/api/users/nonexistent-user-id/profile", nil)
+	req, _ := http.NewRequest("GET", "/api/users/00000000-0000-0000-0000-000000000000/profile", nil)
 
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
@@ -1226,7 +1226,7 @@ func (suite *HandlersTestSuite) TestFollowUserByIDRequiresStream() {
 func (suite *HandlersTestSuite) TestFollowUserByIDNotFound() {
 	t := suite.T()
 
-	req, _ := http.NewRequest("POST", "/api/users/nonexistent-user-id/follow", nil)
+	req, _ := http.NewRequest("POST", "/api/users/00000000-0000-0000-0000-000000000000/follow", nil)
 	req.Header.Set("X-User-ID", suite.testUser.ID)
 
 	w := httptest.NewRecorder()
@@ -1261,7 +1261,7 @@ func (suite *HandlersTestSuite) TestUnfollowUserByIDRequiresStream() {
 func (suite *HandlersTestSuite) TestUnfollowUserByIDNotFound() {
 	t := suite.T()
 
-	req, _ := http.NewRequest("DELETE", "/api/users/nonexistent-user-id/follow", nil)
+	req, _ := http.NewRequest("DELETE", "/api/users/00000000-0000-0000-0000-000000000000/follow", nil)
 	req.Header.Set("X-User-ID", suite.testUser.ID)
 
 	w := httptest.NewRecorder()
@@ -1514,7 +1514,7 @@ func (suite *HandlersTestSuite) TestGetUserFollowingRequiresStream() {
 func (suite *HandlersTestSuite) TestGetUserFollowersNotFound() {
 	t := suite.T()
 
-	req, _ := http.NewRequest("GET", "/api/users/nonexistent-user-id/followers", nil)
+	req, _ := http.NewRequest("GET", "/api/users/00000000-0000-0000-0000-000000000000/followers", nil)
 	req.Header.Set("X-User-ID", suite.testUser.ID)
 
 	w := httptest.NewRecorder()
@@ -1526,7 +1526,7 @@ func (suite *HandlersTestSuite) TestGetUserFollowersNotFound() {
 func (suite *HandlersTestSuite) TestGetUserFollowingNotFound() {
 	t := suite.T()
 
-	req, _ := http.NewRequest("GET", "/api/users/nonexistent-user-id/following", nil)
+	req, _ := http.NewRequest("GET", "/api/users/00000000-0000-0000-0000-000000000000/following", nil)
 	req.Header.Set("X-User-ID", suite.testUser.ID)
 
 	w := httptest.NewRecorder()
@@ -1638,7 +1638,7 @@ func (suite *HandlersTestSuite) TestGetUserActivitySummaryRequiresStream() {
 func (suite *HandlersTestSuite) TestGetUserActivitySummaryNotFound() {
 	t := suite.T()
 
-	req, _ := http.NewRequest("GET", "/api/users/nonexistent-user-id/activity", nil)
+	req, _ := http.NewRequest("GET", "/api/users/00000000-0000-0000-0000-000000000000/activity", nil)
 	req.Header.Set("X-User-ID", suite.testUser.ID)
 
 	w := httptest.NewRecorder()
