@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "audio/NotificationSound.h"
 #include "util/Colors.h"
 #include "util/Constants.h"
 #include "util/Json.h"
@@ -511,29 +512,151 @@ void SidechainAudioProcessorEditor::resized()
 //==============================================================================
 void SidechainAudioProcessorEditor::showView(AppView view)
 {
-    // Hide all view components
-    if (authComponent)
-        authComponent->setVisible(false);
-    if (profileSetupComponent)
-        profileSetupComponent->setVisible(false);
-    if (postsFeedComponent)
-        postsFeedComponent->setVisible(false);
-    if (recordingComponent)
-        recordingComponent->setVisible(false);
-    if (uploadComponent)
-        uploadComponent->setVisible(false);
-    if (userDiscoveryComponent)
-        userDiscoveryComponent->setVisible(false);
-    if (profileComponent)
-        profileComponent->setVisible(false);
-    if (searchComponent)
-        searchComponent->setVisible(false);
-    if (messagesListComponent)
-        messagesListComponent->setVisible(false);
-    if (messageThreadComponent)
-        messageThreadComponent->setVisible(false);
-    if (storyRecordingComponent)
-        storyRecordingComponent->setVisible(false);
+    // Get the component to show
+    juce::Component* componentToShow = nullptr;
+    juce::Component* componentToHide = nullptr;
+
+    // Determine which component to show and which to hide
+    switch (view)
+    {
+        case AppView::Authentication:
+            componentToShow = authComponent.get();
+            break;
+        case AppView::ProfileSetup:
+            componentToShow = profileSetupComponent.get();
+            break;
+        case AppView::PostsFeed:
+            componentToShow = postsFeedComponent.get();
+            break;
+        case AppView::Recording:
+            componentToShow = recordingComponent.get();
+            break;
+        case AppView::Upload:
+            componentToShow = uploadComponent.get();
+            break;
+        case AppView::StoryRecording:
+            componentToShow = storyRecordingComponent.get();
+            break;
+        case AppView::Discovery:
+            componentToShow = userDiscoveryComponent.get();
+            break;
+        case AppView::Profile:
+            componentToShow = profileComponent.get();
+            break;
+        case AppView::Search:
+            componentToShow = searchComponent.get();
+            break;
+        case AppView::Messages:
+            componentToShow = messagesListComponent.get();
+            break;
+        case AppView::MessageThread:
+            componentToShow = messageThreadComponent.get();
+            break;
+    }
+
+    // Determine which component to hide (current view)
+    switch (currentView)
+    {
+        case AppView::Authentication:
+            componentToHide = authComponent.get();
+            break;
+        case AppView::ProfileSetup:
+            componentToHide = profileSetupComponent.get();
+            break;
+        case AppView::PostsFeed:
+            componentToHide = postsFeedComponent.get();
+            break;
+        case AppView::Recording:
+            componentToHide = recordingComponent.get();
+            break;
+        case AppView::Upload:
+            componentToHide = uploadComponent.get();
+            break;
+        case AppView::StoryRecording:
+            componentToHide = storyRecordingComponent.get();
+            break;
+        case AppView::Discovery:
+            componentToHide = userDiscoveryComponent.get();
+            break;
+        case AppView::Profile:
+            componentToHide = profileComponent.get();
+            break;
+        case AppView::Search:
+            componentToHide = searchComponent.get();
+            break;
+        case AppView::Messages:
+            componentToHide = messagesListComponent.get();
+            break;
+        case AppView::MessageThread:
+            componentToHide = messageThreadComponent.get();
+            break;
+    }
+
+    // Animate slide transition if both components exist and are different
+    if (componentToShow && componentToHide && componentToShow != componentToHide && currentView != AppView::Authentication)
+    {
+        // Set up initial positions for slide animation
+        auto bounds = getLocalBounds();
+        
+        // Hide all other components immediately (no animation)
+        if (authComponent && authComponent.get() != componentToShow && authComponent.get() != componentToHide)
+            authComponent->setVisible(false);
+        if (profileSetupComponent && profileSetupComponent.get() != componentToShow && profileSetupComponent.get() != componentToHide)
+            profileSetupComponent->setVisible(false);
+        if (postsFeedComponent && postsFeedComponent.get() != componentToShow && postsFeedComponent.get() != componentToHide)
+            postsFeedComponent->setVisible(false);
+        if (recordingComponent && recordingComponent.get() != componentToShow && recordingComponent.get() != componentToHide)
+            recordingComponent->setVisible(false);
+        if (uploadComponent && uploadComponent.get() != componentToShow && uploadComponent.get() != componentToHide)
+            uploadComponent->setVisible(false);
+        if (userDiscoveryComponent && userDiscoveryComponent.get() != componentToShow && userDiscoveryComponent.get() != componentToHide)
+            userDiscoveryComponent->setVisible(false);
+        if (profileComponent && profileComponent.get() != componentToShow && profileComponent.get() != componentToHide)
+            profileComponent->setVisible(false);
+        if (searchComponent && searchComponent.get() != componentToShow && searchComponent.get() != componentToHide)
+            searchComponent->setVisible(false);
+        if (messagesListComponent && messagesListComponent.get() != componentToShow && messagesListComponent.get() != componentToHide)
+            messagesListComponent->setVisible(false);
+        if (messageThreadComponent && messageThreadComponent.get() != componentToShow && messageThreadComponent.get() != componentToHide)
+            messageThreadComponent->setVisible(false);
+        if (storyRecordingComponent && storyRecordingComponent.get() != componentToShow && storyRecordingComponent.get() != componentToHide)
+            storyRecordingComponent->setVisible(false);
+
+        // Position new component off-screen to the right
+        componentToShow->setBounds(bounds.withX(bounds.getRight()));
+        componentToShow->setVisible(true);
+        componentToShow->toFront(false);
+
+        // Animate: slide old component to the left, new component from the right
+        viewAnimator.animateComponent(componentToHide, bounds.withX(-bounds.getWidth()), 1.0f, 250, false, 1.0, 1.0);
+        viewAnimator.animateComponent(componentToShow, bounds, 1.0f, 250, false, 1.0, 1.0);
+    }
+    else
+    {
+        // No animation - just show/hide immediately (for first view or authentication)
+        if (authComponent)
+            authComponent->setVisible(view == AppView::Authentication);
+        if (profileSetupComponent)
+            profileSetupComponent->setVisible(view == AppView::ProfileSetup);
+        if (postsFeedComponent)
+            postsFeedComponent->setVisible(view == AppView::PostsFeed);
+        if (recordingComponent)
+            recordingComponent->setVisible(view == AppView::Recording);
+        if (uploadComponent)
+            uploadComponent->setVisible(view == AppView::Upload);
+        if (userDiscoveryComponent)
+            userDiscoveryComponent->setVisible(view == AppView::Discovery);
+        if (profileComponent)
+            profileComponent->setVisible(view == AppView::Profile);
+        if (searchComponent)
+            searchComponent->setVisible(view == AppView::Search);
+        if (messagesListComponent)
+            messagesListComponent->setVisible(view == AppView::Messages);
+        if (messageThreadComponent)
+            messageThreadComponent->setVisible(view == AppView::MessageThread);
+        if (storyRecordingComponent)
+            storyRecordingComponent->setVisible(view == AppView::StoryRecording);
+    }
 
     // Push current view to navigation stack (except when going back)
     if (currentView != view && currentView != AppView::Authentication)
@@ -568,13 +691,14 @@ void SidechainAudioProcessorEditor::showView(AppView view)
     if (notificationBell)
         notificationBell->setVisible(showHeader);
 
+    // Set up components (this runs regardless of animation)
     switch (view)
     {
         case AppView::Authentication:
             if (authComponent)
             {
                 authComponent->reset();
-                authComponent->setVisible(true);
+                // Visibility already handled above
             }
             break;
 
@@ -587,7 +711,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 {
                     profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
                 }
-                profileSetupComponent->setVisible(true);
+                // Visibility already handled above
             }
             break;
 
@@ -595,31 +719,28 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             if (postsFeedComponent)
             {
                 postsFeedComponent->setUserInfo(username, email, profilePicUrl);
-                postsFeedComponent->setVisible(true);
+                // Visibility already handled above
                 postsFeedComponent->loadFeed();
             }
             break;
 
         case AppView::Recording:
-            if (recordingComponent)
-                recordingComponent->setVisible(true);
+            // Visibility already handled above
             break;
 
         case AppView::Upload:
-            if (uploadComponent)
-                uploadComponent->setVisible(true);
+            // Visibility already handled above
             break;
 
         case AppView::StoryRecording:
-            if (storyRecordingComponent)
-                storyRecordingComponent->setVisible(true);
+            // Visibility already handled above
             break;
 
         case AppView::Discovery:
             if (userDiscoveryComponent)
             {
                 userDiscoveryComponent->setCurrentUserId(authToken);  // Use auth token or actual user ID
-                userDiscoveryComponent->setVisible(true);
+                // Visibility already handled above
                 userDiscoveryComponent->loadDiscoveryData();
             }
             break;
@@ -633,7 +754,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
 
                 // Load the profile for the specified user
                 profileComponent->loadProfile(profileUserIdToView);
-                profileComponent->setVisible(true);
+                // Visibility already handled above
             }
             break;
 
@@ -642,7 +763,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             {
                 if (userDataStore)
                     searchComponent->setCurrentUserId(userDataStore->getUserId());
-                searchComponent->setVisible(true);
+                // Visibility already handled above
                 searchComponent->focusSearchInput();
             }
             break;
@@ -650,7 +771,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         case AppView::Messages:
             if (messagesListComponent)
             {
-                messagesListComponent->setVisible(true);
+                // Visibility already handled above
                 messagesListComponent->loadChannels();
             }
             break;
@@ -661,7 +782,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 if (userDataStore)
                     messageThreadComponent->setCurrentUserId(userDataStore->getUserId());
                 messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
-                messageThreadComponent->setVisible(true);
+                // Visibility already handled above
             }
             break;
     }
@@ -1418,11 +1539,22 @@ void SidechainAudioProcessorEditor::fetchNotifications()
 
         auto notifResult = result.getValue();
 
+        // Check if new notifications arrived (unseen count increased)
+        static int previousUnseenCount = -1;
+        bool newNotifications = notifResult.unseen > previousUnseenCount && previousUnseenCount >= 0;
+        previousUnseenCount = notifResult.unseen;
+        
         // Update counts
         if (notificationBell)
         {
             notificationBell->setUnseenCount(notifResult.unseen);
             notificationBell->setUnreadCount(notifResult.unread);
+        }
+        
+        // Play notification sound if enabled and new notifications arrived
+        if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled())
+        {
+            NotificationSound::playBeep();
         }
         if (notificationList)
         {
@@ -1451,10 +1583,21 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts()
         return;
 
     networkClient->getNotificationCounts([this](int unseen, int unread) {
+        // Check if new notifications arrived (unseen count increased)
+        static int previousUnseenCount = 0;
+        bool newNotifications = unseen > previousUnseenCount && previousUnseenCount >= 0;
+        previousUnseenCount = unseen;
+        
         if (notificationBell)
         {
             notificationBell->setUnseenCount(unseen);
             notificationBell->setUnreadCount(unread);
+        }
+        
+        // Play notification sound if enabled and new notifications arrived
+        if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled())
+        {
+            NotificationSound::playBeep();
         }
     });
 }
