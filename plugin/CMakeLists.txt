@@ -4,12 +4,15 @@
 cmake_minimum_required(VERSION 3.22)
 
 # Prefer Ninja generator for faster builds (auto-parallelizes)
-# Note: Generator must be specified via -G Ninja on command line or CMakePresets.json
-# We check here to provide helpful messages
+# Note: CMAKE_GENERATOR is determined when CMake starts and cannot be changed from CMakeLists.txt
+# Use -G Ninja on command line, CMakePresets.json, or the Makefile which auto-detects Ninja
 find_program(NINJA_EXECUTABLE ninja)
-if(NOT CMAKE_GENERATOR AND NINJA_EXECUTABLE)
-    message(STATUS "Ninja is available. For faster builds, use: cmake -G Ninja -S plugin -B build")
-elseif(NOT CMAKE_GENERATOR AND NOT NINJA_EXECUTABLE)
+if(CMAKE_GENERATOR STREQUAL "Ninja" OR CMAKE_GENERATOR MATCHES "Ninja")
+    message(STATUS "Using Ninja generator for faster parallel builds")
+elseif(NINJA_EXECUTABLE AND NOT CMAKE_GENERATOR MATCHES "Ninja")
+    message(STATUS "Ninja is available. For faster builds, specify: cmake -G Ninja ...")
+    message(STATUS "Or use: make plugin-configure (auto-detects Ninja)")
+elseif(NOT NINJA_EXECUTABLE)
     message(STATUS "Ninja not found. Install it for faster parallel builds:")
     if(UNIX AND NOT APPLE)
         message(STATUS "  sudo apt install ninja-build  # Ubuntu/Debian")
