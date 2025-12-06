@@ -10,6 +10,24 @@
 
 class NetworkClient;
 
+//==============================================================================
+/**
+ * PostsFeedComponent displays the main social feed of audio posts
+ *
+ * Features:
+ * - Multiple feed types (Timeline, Trending, Global)
+ * - Infinite scroll with pagination
+ * - Real-time updates via WebSocket notifications
+ * - Comments panel (slide-in overlay)
+ * - New posts toast notification
+ * - Keyboard navigation support
+ * - Playback progress tracking
+ * - Pull-to-refresh functionality
+ *
+ * Thread Safety:
+ * - All UI operations must be on the message thread
+ * - Network callbacks are automatically marshalled to message thread
+ */
 class PostsFeedComponent : public juce::Component,
                            public juce::ScrollBar::Listener,
                            public juce::KeyListener,
