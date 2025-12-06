@@ -66,10 +66,10 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Configure CMake
-        run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} --preset release
 
       - name: Build Plugin
-        run: cmake --build plugin/build --config Release --parallel
+        run: cmake --build plugin/build --config release --parallel
 
       - name: Package VST3 (macOS)
         if: runner.os == 'macOS'

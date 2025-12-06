@@ -1,4 +1,4 @@
-name: Build Plugin
+name: Build and Test Plugin and Backend
 
 on:
   push:
@@ -85,7 +85,14 @@ jobs:
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Plugin
-        run: cmake --build plugin/build --config Release --parallel
+        run: |
+          # Limit parallel jobs on Linux to avoid OOM (GitHub runners have limited RAM)
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            cmake --build plugin/build --config Release --parallel 2
+          else
+            cmake --build plugin/build --config Release --parallel
+          fi
+        shell: bash
 
       - name: List Build Artifacts
         shell: bash
@@ -245,7 +252,7 @@ jobs:
       - name: Configure CMake with Tests and Coverage
         run: |
           cmake -S plugin -B plugin/build \
-            -DCMAKE_BUILD_TYPE=Debug \
+            --preset debug \
             -DSIDECHAIN_BUILD_TESTS=ON \
             -DSIDECHAIN_ENABLE_COVERAGE=ON \
             -DSIDECHAIN_BUILD_PLUGIN_HOST=OFF
