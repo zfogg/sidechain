@@ -94,3 +94,5 @@ node_modules/
 build
 build-release
 build-docs
+
+/plugin/bin/
