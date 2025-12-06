@@ -275,6 +275,12 @@ void HttpAudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamp
                                 onAutoPlayNext(nextPostId);
 
                             loadAndPlay(nextPostId, nextUrl);
+                            
+                            // Pre-buffer the post after the next one for seamless playback
+                            if (nextIndex + 1 < playlistPostIds.size())
+                            {
+                                preloadAudio(playlistPostIds[nextIndex + 1], playlistAudioUrls[nextIndex + 1]);
+                            }
                             return;
                         }
                         else
@@ -547,7 +553,14 @@ void HttpAudioPlayer::playNext()
 
     if (currentIndex >= 0 && currentIndex + 1 < playlistPostIds.size())
     {
-        loadAndPlay(playlistPostIds[currentIndex + 1], playlistAudioUrls[currentIndex + 1]);
+        int nextIndex = currentIndex + 1;
+        loadAndPlay(playlistPostIds[nextIndex], playlistAudioUrls[nextIndex]);
+        
+        // Pre-buffer the post after the next one for seamless playback
+        if (nextIndex + 1 < playlistPostIds.size())
+        {
+            preloadAudio(playlistPostIds[nextIndex + 1], playlistAudioUrls[nextIndex + 1]);
+        }
     }
 }
 
