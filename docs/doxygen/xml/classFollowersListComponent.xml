@@ -1,0 +1,622 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classFollowersListComponent" kind="class" language="C++" prot="public">
+    <compoundname>FollowersListComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="private" virt="non-virtual">juce::Timer</basecompoundref>
+    <includes refid="FollowersListComponent_8h" local="no">FollowersListComponent.h</includes>
+    <sectiondef kind="public-type">
+      <memberdef kind="enum" id="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fb" prot="public" static="no" strong="yes">
+        <type></type>
+        <name>ListType</name>
+        <qualifiedname>FollowersListComponent::ListType</qualifiedname>
+        <enumvalue id="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fba24c714ccb3857346b52bfe17e287d210" prot="public">
+          <name>Followers</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fba6f796b0e6deb4f4c2c0ee0ed5e10e117" prot="public">
+          <name>Following</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="102" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="103" bodyend="106"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classFollowersListComponent_1adb46812347d26e42125c3234ecf1222e" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; FollowersListComponent::onClose</definition>
+        <argsstring></argsstring>
+        <name>onClose</name>
+        <qualifiedname>FollowersListComponent::onClose</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="122" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a9454c020a1aa32bb45de379c27991900" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId)&gt; FollowersListComponent::onUserClicked</definition>
+        <argsstring></argsstring>
+        <name>onUserClicked</name>
+        <qualifiedname>FollowersListComponent::onUserClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="123" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classFollowersListComponent_1af568789d325e32e8cc5baeafdf487743" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int FollowersListComponent::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>FollowersListComponent::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 50</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="132" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classFollowersListComponent_1abef10a5c8f8eba98e8566a749dca0a60" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* FollowersListComponent::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>FollowersListComponent::networkClient</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="141" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a5a8087e87f862b7a67ff1a0a48fe7a83" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowersListComponent::targetUserId</definition>
+        <argsstring></argsstring>
+        <name>targetUserId</name>
+        <qualifiedname>FollowersListComponent::targetUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="142" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a4c093db27e6cf3fe347589fd986505f3" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowersListComponent::currentUserId</definition>
+        <argsstring></argsstring>
+        <name>currentUserId</name>
+        <qualifiedname>FollowersListComponent::currentUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="143" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="143" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a68c5a7a3fb38e040fddfbfaf89f8399b" prot="private" static="no" mutable="no">
+        <type><ref refid="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fb" kindref="member">ListType</ref></type>
+        <definition>ListType FollowersListComponent::listType</definition>
+        <argsstring></argsstring>
+        <name>listType</name>
+        <qualifiedname>FollowersListComponent::listType</qualifiedname>
+        <initializer>= <ref refid="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fba24c714ccb3857346b52bfe17e287d210" kindref="member">ListType::Followers</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="144" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="144" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1aa87065dc8ea94f7f5de872627986d08a" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structFollowListUser" kindref="compound">FollowListUser</ref> &gt;</type>
+        <definition>juce::Array&lt;FollowListUser&gt; FollowersListComponent::users</definition>
+        <argsstring></argsstring>
+        <name>users</name>
+        <qualifiedname>FollowersListComponent::users</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="145" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="145" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a0dc737b25330dd71284b591d2c505e3e" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FollowersListComponent::totalCount</definition>
+        <argsstring></argsstring>
+        <name>totalCount</name>
+        <qualifiedname>FollowersListComponent::totalCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="146" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a50b302316efb4e8474e8f1b712dc359f" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FollowersListComponent::isLoading</definition>
+        <argsstring></argsstring>
+        <name>isLoading</name>
+        <qualifiedname>FollowersListComponent::isLoading</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="147" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="147" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a68b3bd7e68a56a5b477f86d83dcc69c7" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FollowersListComponent::hasMore</definition>
+        <argsstring></argsstring>
+        <name>hasMore</name>
+        <qualifiedname>FollowersListComponent::hasMore</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="148" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="148" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1acee84c8634fc9b0fb9b88ca65ba11212" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FollowersListComponent::currentOffset</definition>
+        <argsstring></argsstring>
+        <name>currentOffset</name>
+        <qualifiedname>FollowersListComponent::currentOffset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="149" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="149" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a4a3a7d06d9ee148249af3f4c2ef1ea1b" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowersListComponent::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>FollowersListComponent::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="150" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="150" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1ab815be206260054c68e38c4e6e51089a" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::Viewport &gt;</type>
+        <definition>std::unique_ptr&lt;juce::Viewport&gt; FollowersListComponent::viewport</definition>
+        <argsstring></argsstring>
+        <name>viewport</name>
+        <qualifiedname>FollowersListComponent::viewport</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="154" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="154" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1ab511301f89e4a3515ac7d30057915466" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::Component &gt;</type>
+        <definition>std::unique_ptr&lt;juce::Component&gt; FollowersListComponent::contentContainer</definition>
+        <argsstring></argsstring>
+        <name>contentContainer</name>
+        <qualifiedname>FollowersListComponent::contentContainer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="155" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="155" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a154f7918f775eab87228db0471525160" prot="private" static="no" mutable="no">
+        <type>juce::OwnedArray&lt; <ref refid="classFollowUserRowComponent" kindref="compound">FollowUserRowComponent</ref> &gt;</type>
+        <definition>juce::OwnedArray&lt;FollowUserRowComponent&gt; FollowersListComponent::userRows</definition>
+        <argsstring></argsstring>
+        <name>userRows</name>
+        <qualifiedname>FollowersListComponent::userRows</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="156" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="156" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFollowersListComponent_1a19908b1c340034a0988cd851e36a51a9" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; FollowersListComponent::closeButton</definition>
+        <argsstring></argsstring>
+        <name>closeButton</name>
+        <qualifiedname>FollowersListComponent::closeButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="157" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="157" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classFollowersListComponent_1a98f6d7fbb47ee4b9ef4db29396e7cf5e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>FollowersListComponent::FollowersListComponent</definition>
+        <argsstring>()</argsstring>
+        <name>FollowersListComponent</name>
+        <qualifiedname>FollowersListComponent::FollowersListComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="108" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="158" bodyend="162"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1adcefe253a2c29f234f549ac558640da0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>FollowersListComponent::~FollowersListComponent</definition>
+        <argsstring>() override</argsstring>
+        <name>~FollowersListComponent</name>
+        <qualifiedname>FollowersListComponent::~FollowersListComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="109" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="164" bodyend="168"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a0fa34f376e5b6ec189ef4cc0372a1914" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>FollowersListComponent::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="113" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="113" bodyend="113"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a24c29b6192396fd27b9d7ed9ebbbb9d3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::setCurrentUserId</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>setCurrentUserId</name>
+        <qualifiedname>FollowersListComponent::setCurrentUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="114" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="114" bodyend="114"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a3cbbb82f0cad880b0fd45bcc1ba70966" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::loadList</definition>
+        <argsstring>(const juce::String &amp;userId, ListType type)</argsstring>
+        <name>loadList</name>
+        <qualifiedname>FollowersListComponent::loadList</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <param>
+          <type><ref refid="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fb" kindref="member">ListType</ref></type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="117" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="188" bodyend="219"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a6c647d75553b7ce75fc5eba441229eb8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::refresh</definition>
+        <argsstring>()</argsstring>
+        <name>refresh</name>
+        <qualifiedname>FollowersListComponent::refresh</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="118" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="221" bodyend="227"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a5cfec829128a9eb3742692ff506f30af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>FollowersListComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="127" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="396" bodyend="439"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a270454d1108b29d658eec8c0702b2cc6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>FollowersListComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="128" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="441" bodyend="455"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classFollowersListComponent_1ade38a4b8a85792bb3f1ea7deffe0b0e5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>FollowersListComponent::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="137" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="390" bodyend="394"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1ada4784003e718172b828b5958067e34d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::setupUI</definition>
+        <argsstring>()</argsstring>
+        <name>setupUI</name>
+        <qualifiedname>FollowersListComponent::setupUI</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="161" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="170" bodyend="186"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a61c8ca1c426bb39303c1937c171ce945" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::updateUsersList</definition>
+        <argsstring>()</argsstring>
+        <name>updateUsersList</name>
+        <qualifiedname>FollowersListComponent::updateUsersList</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="162" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="320" bodyend="338"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a10a0d820340fbc20af97ef5c2c2cd771" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::loadMoreUsers</definition>
+        <argsstring>()</argsstring>
+        <name>loadMoreUsers</name>
+        <qualifiedname>FollowersListComponent::loadMoreUsers</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="163" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="270" bodyend="318"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a4d6b6127c80bba7004dc67c324e0ad64" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::handleUsersLoaded</definition>
+        <argsstring>(bool success, const juce::var &amp;usersData)</argsstring>
+        <name>handleUsersLoaded</name>
+        <qualifiedname>FollowersListComponent::handleUsersLoaded</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>success</declname>
+        </param>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>usersData</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="166" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="229" bodyend="268"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a6ff1bcfd5bc07b3bb7039a1f09252741" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::handleFollowToggled</definition>
+        <argsstring>(const FollowListUser &amp;user, bool willFollow)</argsstring>
+        <name>handleFollowToggled</name>
+        <qualifiedname>FollowersListComponent::handleFollowToggled</qualifiedname>
+        <param>
+          <type>const <ref refid="structFollowListUser" kindref="compound">FollowListUser</ref> &amp;</type>
+          <declname>user</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>willFollow</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="167" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="352" bodyend="388"/>
+      </memberdef>
+      <memberdef kind="function" id="classFollowersListComponent_1a33fffe4ef3949d637595873ddd5a6f33" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void FollowersListComponent::setupRowCallbacks</definition>
+        <argsstring>(FollowUserRowComponent *row)</argsstring>
+        <name>setupRowCallbacks</name>
+        <qualifiedname>FollowersListComponent::setupRowCallbacks</qualifiedname>
+        <param>
+          <type><ref refid="classFollowUserRowComponent" kindref="compound">FollowUserRowComponent</ref> *</type>
+          <declname>row</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="170" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.cpp" bodystart="340" bodyend="350"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classFollowersListComponent" kindref="compound">FollowersListComponent</ref> displays a list of followers or following users. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Scrollable list of users</para>
+</listitem><listitem><para>Follow/unfollow buttons</para>
+</listitem><listitem><para>Click to view profile</para>
+</listitem><listitem><para>Pagination support </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>FollowersListComponent</label>
+        <link refid="classFollowersListComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>FollowersListComponent</label>
+        <link refid="classFollowersListComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" line="98" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersListComponent.h" bodystart="100" bodyend="173"/>
+    <listofallmembers>
+      <member refid="classFollowersListComponent_1a19908b1c340034a0988cd851e36a51a9" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>closeButton</name></member>
+      <member refid="classFollowersListComponent_1ab511301f89e4a3515ac7d30057915466" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>contentContainer</name></member>
+      <member refid="classFollowersListComponent_1acee84c8634fc9b0fb9b88ca65ba11212" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>currentOffset</name></member>
+      <member refid="classFollowersListComponent_1a4c093db27e6cf3fe347589fd986505f3" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>currentUserId</name></member>
+      <member refid="classFollowersListComponent_1a4a3a7d06d9ee148249af3f4c2ef1ea1b" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>errorMessage</name></member>
+      <member refid="classFollowersListComponent_1a98f6d7fbb47ee4b9ef4db29396e7cf5e" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>FollowersListComponent</name></member>
+      <member refid="classFollowersListComponent_1a6ff1bcfd5bc07b3bb7039a1f09252741" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>handleFollowToggled</name></member>
+      <member refid="classFollowersListComponent_1a4d6b6127c80bba7004dc67c324e0ad64" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>handleUsersLoaded</name></member>
+      <member refid="classFollowersListComponent_1a68b3bd7e68a56a5b477f86d83dcc69c7" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>hasMore</name></member>
+      <member refid="classFollowersListComponent_1af568789d325e32e8cc5baeafdf487743" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classFollowersListComponent_1a50b302316efb4e8474e8f1b712dc359f" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>isLoading</name></member>
+      <member refid="classFollowersListComponent_1a8c410c023bd2d202ccec6b56a165b0fb" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>ListType</name></member>
+      <member refid="classFollowersListComponent_1a68c5a7a3fb38e040fddfbfaf89f8399b" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>listType</name></member>
+      <member refid="classFollowersListComponent_1a3cbbb82f0cad880b0fd45bcc1ba70966" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>loadList</name></member>
+      <member refid="classFollowersListComponent_1a10a0d820340fbc20af97ef5c2c2cd771" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>loadMoreUsers</name></member>
+      <member refid="classFollowersListComponent_1abef10a5c8f8eba98e8566a749dca0a60" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>networkClient</name></member>
+      <member refid="classFollowersListComponent_1adb46812347d26e42125c3234ecf1222e" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>onClose</name></member>
+      <member refid="classFollowersListComponent_1a9454c020a1aa32bb45de379c27991900" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>onUserClicked</name></member>
+      <member refid="classFollowersListComponent_1a5cfec829128a9eb3742692ff506f30af" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>paint</name></member>
+      <member refid="classFollowersListComponent_1a6c647d75553b7ce75fc5eba441229eb8" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>refresh</name></member>
+      <member refid="classFollowersListComponent_1a270454d1108b29d658eec8c0702b2cc6" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>resized</name></member>
+      <member refid="classFollowersListComponent_1a24c29b6192396fd27b9d7ed9ebbbb9d3" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>setCurrentUserId</name></member>
+      <member refid="classFollowersListComponent_1a0fa34f376e5b6ec189ef4cc0372a1914" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>setNetworkClient</name></member>
+      <member refid="classFollowersListComponent_1a33fffe4ef3949d637595873ddd5a6f33" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>setupRowCallbacks</name></member>
+      <member refid="classFollowersListComponent_1ada4784003e718172b828b5958067e34d" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>setupUI</name></member>
+      <member refid="classFollowersListComponent_1a5a8087e87f862b7a67ff1a0a48fe7a83" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>targetUserId</name></member>
+      <member refid="classFollowersListComponent_1ade38a4b8a85792bb3f1ea7deffe0b0e5" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>timerCallback</name></member>
+      <member refid="classFollowersListComponent_1a0dc737b25330dd71284b591d2c505e3e" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>totalCount</name></member>
+      <member refid="classFollowersListComponent_1a61c8ca1c426bb39303c1937c171ce945" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>updateUsersList</name></member>
+      <member refid="classFollowersListComponent_1a154f7918f775eab87228db0471525160" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>userRows</name></member>
+      <member refid="classFollowersListComponent_1aa87065dc8ea94f7f5de872627986d08a" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>users</name></member>
+      <member refid="classFollowersListComponent_1ab815be206260054c68e38c4e6e51089a" prot="private" virt="non-virtual"><scope>FollowersListComponent</scope><name>viewport</name></member>
+      <member refid="classFollowersListComponent_1adcefe253a2c29f234f549ac558640da0" prot="public" virt="non-virtual"><scope>FollowersListComponent</scope><name>~FollowersListComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

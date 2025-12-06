@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceTimeUtils" kind="namespace" language="C++">
+    <compoundname>TimeUtils</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceTimeUtils_1a7266ad5afd8f4aa72ecc4d5d9d5fd813" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String TimeUtils::formatTimeAgo</definition>
+        <argsstring>(const juce::Time &amp;time)</argsstring>
+        <name>formatTimeAgo</name>
+        <qualifiedname>TimeUtils::formatTimeAgo</qualifiedname>
+        <param>
+          <type>const juce::Time &amp;</type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+<para>Format a timestamp as a human-readable &quot;time ago&quot; string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples:<itemizedlist>
+<listitem><para>&quot;just now&quot; (&lt; 60 seconds)</para>
+</listitem><listitem><para>&quot;1 min ago&quot;, &quot;5 mins ago&quot;</para>
+</listitem><listitem><para>&quot;1 hour ago&quot;, &quot;3 hours ago&quot;</para>
+</listitem><listitem><para>&quot;1 day ago&quot;, &quot;5 days ago&quot;</para>
+</listitem><listitem><para>&quot;1 week ago&quot;, &quot;2 weeks ago&quot;</para>
+</listitem><listitem><para>&quot;1 month ago&quot;, &quot;6 months ago&quot;</para>
+</listitem><listitem><para>&quot;1 year ago&quot;, &quot;2 years ago&quot;</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The timestamp to format </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Human-readable relative time string </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.cpp" line="6" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.cpp" bodystart="6" bodyend="64" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.h" declline="26" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTimeUtils_1a109121871714731f7a476e63f3603234" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String TimeUtils::formatTimeAgoShort</definition>
+        <argsstring>(const juce::Time &amp;time)</argsstring>
+        <name>formatTimeAgoShort</name>
+        <qualifiedname>TimeUtils::formatTimeAgoShort</qualifiedname>
+        <param>
+          <type>const juce::Time &amp;</type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+<para>Format a timestamp as a short &quot;time ago&quot; string (for compact <ref refid="namespaceUI" kindref="compound">UI</ref>). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Examples:<itemizedlist>
+<listitem><para>&quot;now&quot; (&lt; 60 seconds)</para>
+</listitem><listitem><para>&quot;1m&quot;, &quot;5m&quot;</para>
+</listitem><listitem><para>&quot;1h&quot;, &quot;3h&quot;</para>
+</listitem><listitem><para>&quot;1d&quot;, &quot;5d&quot;</para>
+</listitem><listitem><para>&quot;1w&quot;, &quot;2w&quot;</para>
+</listitem><listitem><para>&quot;Jan 15&quot; (for older dates)</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>time</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The timestamp to format </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Short relative time string </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.cpp" line="66" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.cpp" bodystart="66" bodyend="99" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.h" declline="42" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="namespaceTimeUtils" kindref="compound">TimeUtils</ref> provides utility functions for time formatting. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Time.cpp" line="3" column="1"/>
+  </compounddef>
+</doxygen>

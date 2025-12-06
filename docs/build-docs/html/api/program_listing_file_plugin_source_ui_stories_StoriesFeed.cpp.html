@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File StoriesFeed.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File StoriesFeed.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_stories_StoriesFeed.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-storiesfeed-cpp">
+<span id="program-listing-file-plugin-source-ui-stories-storiesfeed-cpp"></span><h1>Program Listing for File StoriesFeed.cpp<a class="headerlink" href="#program-listing-for-file-storiesfeed-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.cpp.html#file-plugin-source-ui-stories-storiesfeed-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoriesFeed.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;StoriesFeed.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../network/NetworkClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Async.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Result.h&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">StoryFeedColors</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">background</span><span class="p">(</span><span class="mh">0xff1a1a2e</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">surface</span><span class="p">(</span><span class="mh">0xff25253a</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">ringUnviewed</span><span class="p">(</span><span class="mh">0xff7c4dff</span><span class="p">);</span><span class="w">      </span><span class="c1">// Purple gradient ring</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">ringViewed</span><span class="p">(</span><span class="mh">0xff4a4a5a</span><span class="p">);</span><span class="w">        </span><span class="c1">// Gray ring for viewed</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">createBg</span><span class="p">(</span><span class="mh">0xff2d2d44</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">createPlus</span><span class="p">(</span><span class="mh">0xff7c4dff</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">textPrimary</span><span class="p">(</span><span class="mh">0xffffffff</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">textSecondary</span><span class="p">(</span><span class="mh">0xffb0b0b0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="nf">badgeRed</span><span class="p">(</span><span class="mh">0xffe53935</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">StoriesFeed</span><span class="o">::</span><span class="n">StoriesFeed</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Start animation timer</span>
+<span class="w">    </span><span class="n">startTimerHz</span><span class="p">(</span><span class="mi">60</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;StoriesFeed created&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">StoriesFeed</span><span class="o">::~</span><span class="n">StoriesFeed</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">stopTimer</span><span class="p">();</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;StoriesFeed destroyed&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillAll</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">background</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw &quot;Create Story&quot; circle (always first)</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">createBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCircleBounds</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">createBounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">createBounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">createBounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">getWidth</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">drawCreateStoryCircle</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">createBounds</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Draw user story circles</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">size</span><span class="p">());</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCircleBounds</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">getWidth</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">drawStoryCircle</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="n">userStoriesGroups</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">i</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Fade edges for scroll indication</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">scrollOffset</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Left fade</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">ColourGradient</span><span class="w"> </span><span class="nf">leftFade</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">background</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">background</span><span class="p">.</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">),</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setGradientFill</span><span class="p">(</span><span class="n">leftFade</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRect</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="n">getHeight</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">scrollOffset</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">maxScrollOffset</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Right fade</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">ColourGradient</span><span class="w"> </span><span class="nf">rightFade</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">background</span><span class="p">.</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">),</span><span class="w"> </span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">                                       </span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">background</span><span class="p">,</span><span class="w"> </span><span class="n">getWidth</span><span class="p">(),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setGradientFill</span><span class="p">(</span><span class="n">rightFade</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRect</span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="n">getHeight</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Calculate max scroll offset</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">contentWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculateContentWidth</span><span class="p">();</span>
+<span class="w">    </span><span class="n">maxScrollOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jmax</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">contentWidth</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">getWidth</span><span class="p">()));</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Check &quot;Create Story&quot; circle</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">createBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCircleBounds</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">createBounds</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onCreateStory</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onCreateStory</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Check user story circles</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">size</span><span class="p">());</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCircleBounds</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onStoryTapped</span><span class="p">)</span>
+<span class="w">                </span><span class="n">onStoryTapped</span><span class="p">(</span><span class="n">userStoriesGroups</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">mouseWheelMove</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="cm">/*event*/</span><span class="p">,</span>
+<span class="w">                                           </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseWheelDetails</span><span class="o">&amp;</span><span class="w"> </span><span class="n">wheel</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Horizontal scroll</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">delta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wheel</span><span class="p">.</span><span class="n">deltaX</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">wheel</span><span class="p">.</span><span class="n">deltaX</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">wheel</span><span class="p">.</span><span class="n">deltaY</span><span class="p">;</span>
+<span class="w">    </span><span class="n">targetScrollOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jlimit</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="n">maxScrollOffset</span><span class="p">,</span>
+<span class="w">                                       </span><span class="n">targetScrollOffset</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">delta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">50.0f</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">timerCallback</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Smooth scroll animation</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">abs</span><span class="p">(</span><span class="n">scrollOffset</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">targetScrollOffset</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">scrollOffset</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="p">(</span><span class="n">targetScrollOffset</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">scrollOffset</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.2f</span><span class="p">;</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">scrollOffset</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">targetScrollOffset</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">scrollOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">targetScrollOffset</span><span class="p">;</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">loadStories</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">networkClient</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;StoriesFeed: No network client set&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;StoriesFeed: Loading stories...&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getStoriesFeed</span><span class="p">([</span><span class="k">this</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&gt;</span><span class="w"> </span><span class="n">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">result</span><span class="p">.</span><span class="n">isOk</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;StoriesFeed: Failed to load stories: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">getError</span><span class="p">());</span>
+<span class="w">                </span><span class="k">return</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">getValue</span><span class="p">();</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">hasProperty</span><span class="p">(</span><span class="s">&quot;stories&quot;</span><span class="p">))</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">storiesArray</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response</span><span class="p">[</span><span class="s">&quot;stories&quot;</span><span class="p">].</span><span class="n">getArray</span><span class="p">();</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">storiesArray</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">StoryData</span><span class="o">&gt;</span><span class="w"> </span><span class="n">stories</span><span class="p">;</span>
+<span class="w">                    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">storyVar</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="o">*</span><span class="n">storiesArray</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">StoryData</span><span class="w"> </span><span class="n">story</span><span class="p">;</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">].</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">userId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;user_id&quot;</span><span class="p">].</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">audioUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;audio_url&quot;</span><span class="p">].</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">audioDuration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;audio_duration&quot;</span><span class="p">]);</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">midiData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;midi_data&quot;</span><span class="p">];</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">viewCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;view_count&quot;</span><span class="p">]);</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">viewed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;viewed&quot;</span><span class="p">]);</span>
+
+<span class="w">                        </span><span class="c1">// Parse user info</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">storyVar</span><span class="p">.</span><span class="n">hasProperty</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">))</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="n">story</span><span class="p">.</span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;user&quot;</span><span class="p">][</span><span class="s">&quot;username&quot;</span><span class="p">].</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">                            </span><span class="n">story</span><span class="p">.</span><span class="n">userAvatarUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">storyVar</span><span class="p">[</span><span class="s">&quot;user&quot;</span><span class="p">][</span><span class="s">&quot;avatar_url&quot;</span><span class="p">].</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">                        </span><span class="p">}</span>
+
+<span class="w">                        </span><span class="c1">// Parse timestamps (ISO 8601 format)</span>
+<span class="w">                        </span><span class="c1">// Simplified - would need proper date parsing</span>
+<span class="w">                        </span><span class="n">story</span><span class="p">.</span><span class="n">expiresAt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">getCurrentTime</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">RelativeTime</span><span class="o">::</span><span class="n">hours</span><span class="p">(</span><span class="mi">24</span><span class="p">);</span>
+
+<span class="w">                        </span><span class="n">stories</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">story</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+
+<span class="w">                    </span><span class="n">setStories</span><span class="p">(</span><span class="n">stories</span><span class="p">);</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;StoriesFeed: Loaded &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">stories</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; stories&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">});</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">setStories</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">StoryData</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">newStories</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Group stories by user</span>
+<span class="w">    </span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">UserStories</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userMap</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">story</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">newStories</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">story</span><span class="p">.</span><span class="n">isExpired</span><span class="p">())</span>
+<span class="w">            </span><span class="k">continue</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userStories</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userMap</span><span class="p">[</span><span class="n">story</span><span class="p">.</span><span class="n">userId</span><span class="p">];</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">userId</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">userStories</span><span class="p">.</span><span class="n">userId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">story</span><span class="p">.</span><span class="n">userId</span><span class="p">;</span>
+<span class="w">            </span><span class="n">userStories</span><span class="p">.</span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">story</span><span class="p">.</span><span class="n">username</span><span class="p">;</span>
+<span class="w">            </span><span class="n">userStories</span><span class="p">.</span><span class="n">avatarUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">story</span><span class="p">.</span><span class="n">userAvatarUrl</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">userStories</span><span class="p">.</span><span class="n">stories</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">story</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">story</span><span class="p">.</span><span class="n">viewed</span><span class="p">)</span>
+<span class="w">            </span><span class="n">userStories</span><span class="p">.</span><span class="n">hasUnviewed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Convert map to vector</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">userMap</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">pair</span><span class="p">.</span><span class="n">second</span><span class="p">));</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Sort: unviewed first, then by most recent</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span>
+<span class="w">              </span><span class="p">[](</span><span class="k">const</span><span class="w"> </span><span class="n">UserStories</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">UserStories</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">hasUnviewed</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">b</span><span class="p">.</span><span class="n">hasUnviewed</span><span class="p">)</span>
+<span class="w">                      </span><span class="k">return</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">hasUnviewed</span><span class="p">;</span>
+<span class="w">                  </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"> </span><span class="c1">// Keep original order otherwise</span>
+<span class="w">              </span><span class="p">});</span>
+
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">hasOwnStory</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">userStoriesGroups</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">group</span><span class="p">.</span><span class="n">userId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">currentUserId</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">drawCreateStoryCircle</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">circleBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Center the circle</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">circleBounds</span><span class="p">.</span><span class="n">getCentre</span><span class="p">().</span><span class="n">toFloat</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Background circle</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">createBg</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Avatar if user has one</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentUserAvatarUrl</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">avatarCache</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">currentUserId</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">avatarCache</span><span class="p">.</span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Draw avatar</span>
+<span class="w">            </span><span class="n">g</span><span class="p">.</span><span class="n">saveState</span><span class="p">();</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">clipPath</span><span class="p">;</span>
+<span class="w">            </span><span class="n">clipPath</span><span class="p">.</span><span class="n">addEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="w">            </span><span class="n">g</span><span class="p">.</span><span class="n">reduceClipRegion</span><span class="p">(</span><span class="n">clipPath</span><span class="p">);</span>
+<span class="w">            </span><span class="n">g</span><span class="p">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">),</span>
+<span class="w">                        </span><span class="n">juce</span><span class="o">::</span><span class="n">RectanglePlacement</span><span class="o">::</span><span class="n">centred</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">RectanglePlacement</span><span class="o">::</span><span class="n">fillDestination</span><span class="p">);</span>
+<span class="w">            </span><span class="n">g</span><span class="p">.</span><span class="n">restoreState</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Load avatar</span>
+<span class="w">            </span><span class="n">loadAvatarImage</span><span class="p">(</span><span class="n">currentUserId</span><span class="p">,</span><span class="w"> </span><span class="n">currentUserAvatarUrl</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Plus icon overlay</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">plusSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">plusBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">plusSize</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.6f</span><span class="p">,</span>
+<span class="w">                                              </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">plusSize</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.6f</span><span class="p">,</span>
+<span class="w">                                              </span><span class="n">plusSize</span><span class="p">,</span><span class="w"> </span><span class="n">plusSize</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">createPlus</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">plusBounds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="p">(</span><span class="mf">16.0f</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="o">::</span><span class="n">bold</span><span class="p">));</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;+&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">plusBounds</span><span class="p">.</span><span class="n">toNearestInt</span><span class="p">(),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// &quot;Your Story&quot; label</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">labelBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">LABEL_HEIGHT</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">10.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Your Story&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">labelBounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredTop</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">drawStoryCircle</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span>
+<span class="w">                                            </span><span class="k">const</span><span class="w"> </span><span class="n">UserStories</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userStories</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="cm">/*index*/</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">circleBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">circleBounds</span><span class="p">.</span><span class="n">getCentre</span><span class="p">().</span><span class="n">toFloat</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">outerRadius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Draw ring (purple gradient if unviewed, gray if viewed)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">hasUnviewed</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Purple gradient ring</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">ColourGradient</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xff9c27b0</span><span class="p">),</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">outerRadius</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xff2196f3</span><span class="p">),</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">outerRadius</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setGradientFill</span><span class="p">(</span><span class="n">gradient</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">ringViewed</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">outerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">outerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">outerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">outerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Inner circle (gap)</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">background</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">gapRadius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">gapRadius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">gapRadius</span><span class="p">,</span><span class="w"> </span><span class="n">gapRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">gapRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Avatar</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">avatarCache</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">userId</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">avatarCache</span><span class="p">.</span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">saveState</span><span class="p">();</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">clipPath</span><span class="p">;</span>
+<span class="w">        </span><span class="n">clipPath</span><span class="p">.</span><span class="n">addEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">reduceClipRegion</span><span class="p">(</span><span class="n">clipPath</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawImage</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">),</span>
+<span class="w">                    </span><span class="n">juce</span><span class="o">::</span><span class="n">RectanglePlacement</span><span class="o">::</span><span class="n">centred</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">RectanglePlacement</span><span class="o">::</span><span class="n">fillDestination</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">restoreState</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Placeholder avatar</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">surface</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="p">,</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Initials</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="p">(</span><span class="mf">18.0f</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="o">::</span><span class="n">bold</span><span class="p">));</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userStories</span><span class="p">.</span><span class="n">username</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">?</span>
+<span class="w">                               </span><span class="n">userStories</span><span class="p">.</span><span class="n">username</span><span class="p">.</span><span class="n">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">).</span><span class="n">toUpperCase</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;?&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span><span class="w"> </span><span class="n">circleBounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Load avatar async</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">avatarUrl</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">            </span><span class="n">loadAvatarImage</span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="n">userStories</span><span class="p">.</span><span class="n">avatarUrl</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Story count badge (if multiple stories)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">stories</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">badgeSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">18.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">badgeBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">badgeSize</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">,</span>
+<span class="w">                                                   </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">innerRadius</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">badgeSize</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.3f</span><span class="p">,</span>
+<span class="w">                                                   </span><span class="n">badgeSize</span><span class="p">,</span><span class="w"> </span><span class="n">badgeSize</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">badgeRed</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">badgeBounds</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">10.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">userStories</span><span class="p">.</span><span class="n">stories</span><span class="p">.</span><span class="n">size</span><span class="p">()),</span><span class="w"> </span><span class="n">badgeBounds</span><span class="p">.</span><span class="n">toNearestInt</span><span class="p">(),</span>
+<span class="w">                   </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Username label</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">labelBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">LABEL_HEIGHT</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">StoryFeedColors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">10.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">displayName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userStories</span><span class="p">.</span><span class="n">username</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">displayName</span><span class="p">.</span><span class="n">length</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
+<span class="w">        </span><span class="n">displayName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">displayName</span><span class="p">.</span><span class="n">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;...&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">displayName</span><span class="p">,</span><span class="w"> </span><span class="n">labelBounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredTop</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">calculateContentWidth</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numCircles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">userStoriesGroups</span><span class="p">.</span><span class="n">size</span><span class="p">());</span><span class="w"> </span><span class="c1">// +1 for create story</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">CIRCLE_PADDING</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">numCircles</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">CIRCLE_PADDING</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">getCircleBounds</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CIRCLE_PADDING</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">CIRCLE_PADDING</span><span class="p">);</span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">scrollOffset</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">CIRCLE_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">RING_THICKNESS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">LABEL_HEIGHT</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">StoriesFeed</span><span class="o">::</span><span class="n">loadAvatarImage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">avatarUrl</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">avatarUrl</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">avatarCache</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">userId</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Mark as loading (placeholder)</span>
+<span class="w">    </span><span class="n">avatarCache</span><span class="p">[</span><span class="n">userId</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Async</span><span class="o">::</span><span class="n">runVoid</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="n">avatarUrl</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="w"> </span><span class="nf">url</span><span class="p">(</span><span class="n">avatarUrl</span><span class="p">);</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">inputStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">url</span><span class="p">.</span><span class="n">createInputStream</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">InputStreamOptions</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">ParameterHandling</span><span class="o">::</span><span class="n">inAddress</span><span class="p">)</span>
+<span class="w">                                                   </span><span class="p">.</span><span class="n">withConnectionTimeoutMs</span><span class="p">(</span><span class="mi">5000</span><span class="p">));</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">inputStream</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MemoryBlock</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
+<span class="w">            </span><span class="n">inputStream</span><span class="o">-&gt;</span><span class="n">readIntoMemoryBlock</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ImageFileFormat</span><span class="o">::</span><span class="n">loadFrom</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">getData</span><span class="p">(),</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">getSize</span><span class="p">());</span>
+
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="n">image</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">avatarCache</span><span class="p">[</span><span class="n">userId</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">                    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">});</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

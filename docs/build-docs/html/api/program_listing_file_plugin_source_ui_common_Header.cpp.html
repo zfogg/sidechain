@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File Header.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File Header.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_common_Header.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-header-cpp">
+<span id="program-listing-file-plugin-source-ui-common-header-cpp"></span><h1>Program Listing for File Header.cpp<a class="headerlink" href="#program-listing-for-file-header-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_common_Header.cpp.html#file-plugin-source-ui-common-header-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/common/Header.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;Header.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../network/NetworkClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Async.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Constants.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Colors.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/ImageCache.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Validate.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/UIHelpers.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Log.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">Header</span><span class="o">::</span><span class="n">Header</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header: Initializing header component&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setSize</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="n">HEADER_HEIGHT</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header: Initialization complete&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">setNetworkClient</span><span class="p">(</span><span class="n">NetworkClient</span><span class="o">*</span><span class="w"> </span><span class="n">client</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">networkClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::setNetworkClient: NetworkClient set &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">client</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;(valid)&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;(null)&quot;</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">setUserInfo</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">picUrl</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::setUserInfo: Setting user info - username: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">user</span><span class="p">);</span>
+<span class="w">    </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Only reload image if URL changed and we don&#39;t already have a cached image</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">profilePicUrl</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">picUrl</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::setUserInfo: Profile picture URL changed - old: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">profilePicUrl</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, new: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">picUrl</span><span class="p">);</span>
+<span class="w">        </span><span class="n">profilePicUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">picUrl</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Only download if we don&#39;t have an image and URL is valid</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">cachedProfileImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">Validate</span><span class="o">::</span><span class="n">isUrl</span><span class="p">(</span><span class="n">profilePicUrl</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::setUserInfo: Loading profile image from URL&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">loadProfileImage</span><span class="p">(</span><span class="n">profilePicUrl</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cachedProfileImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::setUserInfo: Using cached profile image&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Validate</span><span class="o">::</span><span class="n">isUrl</span><span class="p">(</span><span class="n">profilePicUrl</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::setUserInfo: Invalid profile picture URL: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">picUrl</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::setUserInfo: Profile picture URL unchanged, skipping reload&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">setProfileImage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::setProfileImage: Setting profile image directly - size: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">getHeight</span><span class="p">()));</span>
+<span class="w">        </span><span class="n">cachedProfileImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::setProfileImage: Invalid image provided&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">cachedProfileImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">loadProfileImage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Loading profile image from: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Use Async::run to download image on background thread</span>
+<span class="w">    </span><span class="n">Async</span><span class="o">::</span><span class="n">run</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="c1">// Background work: download image</span>
+<span class="w">        </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="p">]()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Starting download on background thread&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MemoryBlock</span><span class="w"> </span><span class="n">imageData</span><span class="p">;</span>
+<span class="w">            </span><span class="kt">bool</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">            </span><span class="c1">// Use NetworkClient if available, otherwise fall back to JUCE URL</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Using NetworkClient for download&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="k">auto</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">makeAbsoluteRequestSync</span><span class="p">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">(),</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">StringPairArray</span><span class="p">(),</span><span class="w"> </span><span class="o">&amp;</span><span class="n">imageData</span><span class="p">);</span>
+<span class="w">                </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">success</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">imageData</span><span class="p">.</span><span class="n">getSize</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">success</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Download successful via NetworkClient - size: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">imageData</span><span class="p">.</span><span class="n">getSize</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; bytes&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Download failed via NetworkClient - error: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">errorMessage</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: NetworkClient not available, using JUCE URL fallback&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="c1">// Fallback to JUCE URL</span>
+<span class="w">                </span><span class="k">auto</span><span class="w"> </span><span class="n">urlObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+<span class="w">                </span><span class="k">auto</span><span class="w"> </span><span class="n">inputStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">urlObj</span><span class="p">.</span><span class="n">createInputStream</span><span class="p">(</span>
+<span class="w">                    </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">InputStreamOptions</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">ParameterHandling</span><span class="o">::</span><span class="n">inAddress</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">.</span><span class="n">withConnectionTimeoutMs</span><span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">Api</span><span class="o">::</span><span class="n">QUICK_TIMEOUT_MS</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">.</span><span class="n">withNumRedirectsToFollow</span><span class="p">(</span><span class="n">Constants</span><span class="o">::</span><span class="n">Api</span><span class="o">::</span><span class="n">MAX_REDIRECTS</span><span class="p">));</span>
+
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">inputStream</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">inputStream</span><span class="o">-&gt;</span><span class="n">readIntoMemoryBlock</span><span class="p">(</span><span class="n">imageData</span><span class="p">);</span>
+<span class="w">                    </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">imageData</span><span class="p">.</span><span class="n">getSize</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">success</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Download successful via JUCE URL - size: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">imageData</span><span class="p">.</span><span class="n">getSize</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; bytes&quot;</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                    </span><span class="k">else</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Download failed via JUCE URL - empty data&quot;</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Failed to create input stream from URL&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">success</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">auto</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ImageFileFormat</span><span class="o">::</span><span class="n">loadFrom</span><span class="p">(</span><span class="n">imageData</span><span class="p">.</span><span class="n">getData</span><span class="p">(),</span><span class="w"> </span><span class="n">imageData</span><span class="p">.</span><span class="n">getSize</span><span class="p">());</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Image decoded successfully - size: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">getHeight</span><span class="p">()));</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Failed to decode image from downloaded data&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="p">{};</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="c1">// Callback on message thread: update UI</span>
+<span class="w">        </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">url</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Profile image loaded successfully from: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">                </span><span class="n">cachedProfileImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">                </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Header::loadProfileImage: Failed to load profile image from: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">url</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">backgroundLight</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRect</span><span class="p">(</span><span class="n">bounds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw sections</span>
+<span class="w">    </span><span class="n">drawLogo</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">getLogoBounds</span><span class="p">());</span>
+<span class="w">    </span><span class="n">drawSearchButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">getSearchButtonBounds</span><span class="p">());</span>
+<span class="w">    </span><span class="n">drawRecordButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">getRecordButtonBounds</span><span class="p">());</span>
+<span class="w">    </span><span class="n">drawMessagesButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">getMessagesButtonBounds</span><span class="p">());</span>
+<span class="w">    </span><span class="n">drawProfileSection</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">getProfileBounds</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Bottom border - use UI::drawDivider for consistency</span>
+<span class="w">    </span><span class="n">UI</span><span class="o">::</span><span class="n">drawDivider</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getBottom</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">border</span><span class="p">(),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::resized: Component resized to &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">getHeight</span><span class="p">()));</span>
+<span class="w">    </span><span class="c1">// Layout is handled in getBounds methods</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">();</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Mouse clicked at (&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">pos</span><span class="p">.</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">pos</span><span class="p">.</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getLogoBounds</span><span class="p">().</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Logo clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onLogoClicked</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onLogoClicked</span><span class="p">();</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Logo clicked but callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getSearchButtonBounds</span><span class="p">().</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Search button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onSearchClicked</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onSearchClicked</span><span class="p">();</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Search clicked but callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getRecordButtonBounds</span><span class="p">().</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Record button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onRecordClicked</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onRecordClicked</span><span class="p">();</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Record clicked but callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getMessagesButtonBounds</span><span class="p">().</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Messages button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onMessagesClicked</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onMessagesClicked</span><span class="p">();</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Messages clicked but callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getProfileBounds</span><span class="p">().</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Profile section clicked - username: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onProfileClicked</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onProfileClicked</span><span class="p">();</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Header::mouseUp: Profile clicked but callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">drawLogo</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Font</span><span class="p">(</span><span class="mf">20.0f</span><span class="p">).</span><span class="n">boldened</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Sidechain&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">drawSearchButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Use UI::drawOutlineButton for consistent button styling</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">searchText</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">CharPointer_UTF8</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\xF0\x9F\x94\x8D</span><span class="s">&quot;</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; Search users...&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">UI</span><span class="o">::</span><span class="n">drawOutlineButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="n">searchText</span><span class="p">,</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">border</span><span class="p">(),</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">(),</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mf">8.0f</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">drawRecordButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Use UI::drawButton for base button, then add custom recording dot</span>
+<span class="w">    </span><span class="n">UI</span><span class="o">::</span><span class="n">drawButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Record&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">(),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mf">8.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw red recording dot indicator</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">dotBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">withWidth</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getHeight</span><span class="p">()).</span><span class="n">reduced</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getHeight</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dotBounds</span><span class="p">.</span><span class="n">setX</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">12</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xFFFF4444</span><span class="p">));</span><span class="w">  </span><span class="c1">// Red recording indicator</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">dotBounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">drawMessagesButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Draw messages icon as a chat bubble icon</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">messageIcon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">CharPointer_UTF8</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\xF0\x9F\x92\xAC</span><span class="s">&quot;</span><span class="p">));</span><span class="w"> </span><span class="c1">// Speech balloon emoji</span>
+
+<span class="w">    </span><span class="c1">// Draw the icon button</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">20.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">messageIcon</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">withWidth</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Draw unread badge if there are unread messages</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">unreadMessageCount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">badgeSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span><span class="p">;</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">badgeBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">            </span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+<span class="w">            </span><span class="n">bounds</span><span class="p">.</span><span class="n">getY</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
+<span class="w">            </span><span class="n">badgeSize</span><span class="p">,</span>
+<span class="w">            </span><span class="n">badgeSize</span>
+<span class="w">        </span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Draw red badge background</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xFFFF4444</span><span class="p">));</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">badgeBounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">        </span><span class="c1">// Draw badge text</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">10.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">countText</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">unreadMessageCount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">99</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;99+&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">unreadMessageCount</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">countText</span><span class="p">,</span><span class="w"> </span><span class="n">badgeBounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">drawProfileSection</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Profile picture</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">picBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">(),</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getCentreY</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">18</span><span class="p">,</span><span class="w"> </span><span class="mi">36</span><span class="p">,</span><span class="w"> </span><span class="mi">36</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawCircularProfilePic</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">picBounds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Username</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">14.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">textBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">picBounds</span><span class="p">.</span><span class="n">getRight</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">8</span><span class="p">).</span><span class="n">withWidth</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">44</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">textBounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">drawCircularProfilePic</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">ImageLoader</span><span class="o">::</span><span class="n">drawCircularAvatar</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="n">cachedProfileImage</span><span class="p">,</span>
+<span class="w">        </span><span class="n">ImageLoader</span><span class="o">::</span><span class="n">getInitials</span><span class="p">(</span><span class="n">username</span><span class="p">),</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">(),</span>
+<span class="w">        </span><span class="mf">14.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Border</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">border</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawEllipse</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">().</span><span class="n">reduced</span><span class="p">(</span><span class="mf">0.5f</span><span class="p">),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">getLogoBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span><span class="w"> </span><span class="n">getHeight</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">getSearchButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">220</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">36</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buttonWidth</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">getHeight</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">buttonWidth</span><span class="p">,</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">getRecordButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Position the record button between search and profile</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">searchBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getSearchButtonBounds</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">36</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">searchBounds</span><span class="p">.</span><span class="n">getRight</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">16</span><span class="p">;</span><span class="w">  </span><span class="c1">// 16px gap after search</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">getHeight</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">buttonWidth</span><span class="p">,</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">getMessagesButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Position the messages button between record and profile</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">recordBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getRecordButtonBounds</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">36</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">36</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">recordBounds</span><span class="p">.</span><span class="n">getRight</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">12</span><span class="p">;</span><span class="w">  </span><span class="c1">// 12px gap after record</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">getHeight</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">buttonWidth</span><span class="p">,</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">getProfileBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">160</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">140</span><span class="p">,</span><span class="w"> </span><span class="n">getHeight</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Header</span><span class="o">::</span><span class="n">setUnreadMessageCount</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">unreadMessageCount</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">unreadMessageCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">count</span><span class="p">;</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceConstants" kind="namespace" language="C++">
+    <compoundname>Constants</compoundname>
+    <innernamespace refid="namespaceConstants_1_1Endpoints">Constants::Endpoints</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Errors">Constants::Errors</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Api">Constants::Api</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Audio">Constants::Audio</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Ui">Constants::Ui</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Cache">Constants::Cache</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Pagination">Constants::Pagination</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Timing">Constants::Timing</innernamespace>
+    <innernamespace refid="namespaceConstants_1_1Limits">Constants::Limits</innernamespace>
+    <briefdescription>
+<para><ref refid="namespaceConstants" kindref="compound">Constants</ref> - Centralized magic numbers for the Sidechain plugin. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This header consolidates configuration values that were previously scattered throughout the codebase. Groupings:<itemizedlist>
+<listitem><para><ref refid="namespaceConstants_1_1Endpoints" kindref="compound">Endpoints</ref>: API URLs for different environments</para>
+</listitem><listitem><para><ref refid="namespaceConstants_1_1Api" kindref="compound">Api</ref>: Network timeouts, retry limits</para>
+</listitem><listitem><para><ref refid="namespaceConstants_1_1Audio" kindref="compound">Audio</ref>: Recording limits, BPM ranges, cache sizes</para>
+</listitem><listitem><para><ref refid="namespaceUI" kindref="compound">UI</ref>: Component dimensions, corner radii, avatar sizes</para>
+</listitem><listitem><para><ref refid="namespaceConstants_1_1Cache" kindref="compound">Cache</ref>: Image and audio cache limits</para>
+</listitem></itemizedlist>
+</para>
+<para>Usage: #include &quot;util/Constants.h&quot;</para>
+<para>// API URLs juce::URL url(<ref refid="namespaceConstants_1_1Endpoints_1a7b65063764ff71578971c84a3d11211f" kindref="member">Constants::Endpoints::DEV_BASE_URL</ref> + &quot;/api/v1/auth/login&quot;);</para>
+<para>// API timeouts .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)</para>
+<para>// <ref refid="namespaceUI" kindref="compound">UI</ref> dimensions setSize(width, Constants::Ui::HEADER_HEIGHT) </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="29" column="1"/>
+  </compounddef>
+</doxygen>

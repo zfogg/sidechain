@@ -1,0 +1,572 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File FeedDataManager.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File FeedDataManager.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_network_FeedDataManager.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-feeddatamanager-cpp">
+<span id="program-listing-file-plugin-source-network-feeddatamanager-cpp"></span><h1>Program Listing for File FeedDataManager.cpp<a class="headerlink" href="#program-listing-for-file-feeddatamanager-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_network_FeedDataManager.cpp.html#file-plugin-source-network-feeddatamanager-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/FeedDataManager.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;FeedDataManager.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../util/Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../util/Result.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">FeedDataManager</span><span class="o">::</span><span class="n">FeedDataManager</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Start timer to periodically check cache validity (every 60 seconds)</span>
+<span class="w">    </span><span class="n">startTimer</span><span class="p">(</span><span class="mi">60000</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Initialized&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">FeedDataManager</span><span class="o">::~</span><span class="n">FeedDataManager</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Destroying&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stopTimer</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">fetchFeed</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">FeedCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Timeline</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Timeline&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Global</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Global&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Trending&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Fetching feed - type: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, limit: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, offset: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">offset</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// Check cache first (only for offset 0, i.e., first page)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">offset</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">isCacheValid</span><span class="p">(</span><span class="n">feedType</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">cached</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCachedFeed</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">cached</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Using cached feed - type: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, posts: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">cached</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">size</span><span class="p">()));</span>
+<span class="w">            </span><span class="c1">// Use cached data</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="n">callback</span><span class="p">,</span><span class="w"> </span><span class="n">cached</span><span class="p">]()</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">callback</span><span class="p">(</span><span class="n">cached</span><span class="p">);</span>
+<span class="w">            </span><span class="p">});</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">performFetch</span><span class="p">(</span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">fetchFeed</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">FeedCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">fetchFeed</span><span class="p">(</span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">currentLimit</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">refreshFeed</span><span class="p">(</span><span class="n">RefreshCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">pendingRefreshCallback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">callback</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Clear cache for current feed type to force fresh fetch</span>
+<span class="w">    </span><span class="n">clearCache</span><span class="p">(</span><span class="n">currentFeedType</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Reset pagination</span>
+<span class="w">    </span><span class="n">currentOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="n">loadedPosts</span><span class="p">[</span><span class="n">currentFeedType</span><span class="p">].</span><span class="n">clear</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">fetchFeed</span><span class="p">(</span><span class="n">currentFeedType</span><span class="p">,</span><span class="w"> </span><span class="n">currentLimit</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">callback</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">FeedResponse</span><span class="o">&amp;</span><span class="w"> </span><span class="n">response</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">error</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="w">                </span><span class="n">callback</span><span class="p">(</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="p">.</span><span class="n">error</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+<span class="w">                </span><span class="n">callback</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">loadMorePosts</span><span class="p">(</span><span class="n">FeedCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">hasMore</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">fetchingInProgress</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Nothing more to load or already loading</span>
+<span class="w">        </span><span class="n">FeedResponse</span><span class="w"> </span><span class="n">emptyResponse</span><span class="p">;</span>
+<span class="w">        </span><span class="n">emptyResponse</span><span class="p">.</span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hasMore</span><span class="p">;</span>
+<span class="w">        </span><span class="n">callback</span><span class="p">(</span><span class="n">emptyResponse</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">nextOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">currentOffset</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">currentLimit</span><span class="p">;</span>
+<span class="w">    </span><span class="n">fetchFeed</span><span class="p">(</span><span class="n">currentFeedType</span><span class="p">,</span><span class="w"> </span><span class="n">currentLimit</span><span class="p">,</span><span class="w"> </span><span class="n">nextOffset</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">performFetch</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">FeedCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Cannot fetch - network client not configured&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">FeedResponse</span><span class="w"> </span><span class="n">errorResponse</span><span class="p">;</span>
+<span class="w">        </span><span class="n">errorResponse</span><span class="p">.</span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Network client not configured&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="n">callback</span><span class="p">(</span><span class="n">errorResponse</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Timeline</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Timeline&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Global</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Global&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Trending&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Performing network fetch - type: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, limit: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, offset: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">offset</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">fetchingInProgress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="n">pendingCallback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">callback</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Use existing NetworkClient methods</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">networkCallback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&gt;</span><span class="w"> </span><span class="n">feedResult</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">fetchingInProgress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">feedResult</span><span class="p">.</span><span class="n">isOk</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">handleFetchResponse</span><span class="p">(</span><span class="n">feedResult</span><span class="p">.</span><span class="n">getValue</span><span class="p">(),</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">handleFetchError</span><span class="p">(</span><span class="s">&quot;Failed to fetch feed data: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">feedResult</span><span class="p">.</span><span class="n">getError</span><span class="p">(),</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Timeline</span><span class="p">:</span>
+<span class="w">            </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getTimelineFeed</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">networkCallback</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Global</span><span class="p">:</span>
+<span class="w">            </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getGlobalFeed</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">networkCallback</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Trending</span><span class="p">:</span>
+<span class="w">            </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getTrendingFeed</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">networkCallback</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">handleFetchResponse</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">feedData</span><span class="p">,</span><span class="w"> </span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span>
+<span class="w">                                          </span><span class="kt">int</span><span class="w"> </span><span class="n">limit</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="n">FeedCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">FeedResponse</span><span class="w"> </span><span class="n">feedResponse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">parseJsonResponse</span><span class="p">(</span><span class="n">feedData</span><span class="p">);</span>
+<span class="w">    </span><span class="n">feedResponse</span><span class="p">.</span><span class="n">limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">limit</span><span class="p">;</span>
+<span class="w">    </span><span class="n">feedResponse</span><span class="p">.</span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offset</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Timeline</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Timeline&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Global</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Global&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Trending&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Fetch response received - type: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, posts: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">feedResponse</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, hasMore: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">feedResponse</span><span class="p">.</span><span class="n">hasMore</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// Update pagination state</span>
+<span class="w">    </span><span class="n">currentFeedType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedType</span><span class="p">;</span>
+<span class="w">    </span><span class="n">currentOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offset</span><span class="p">;</span>
+<span class="w">    </span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedResponse</span><span class="p">.</span><span class="n">hasMore</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Accumulate posts for infinite scroll</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">offset</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// First page - replace existing posts</span>
+<span class="w">        </span><span class="n">loadedPosts</span><span class="p">[</span><span class="n">feedType</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedResponse</span><span class="p">.</span><span class="n">posts</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Subsequent page - append to existing</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">feedResponse</span><span class="p">.</span><span class="n">posts</span><span class="p">)</span>
+<span class="w">            </span><span class="n">loadedPosts</span><span class="p">[</span><span class="n">feedType</span><span class="p">].</span><span class="n">add</span><span class="p">(</span><span class="n">post</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Update cache (only for first page)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">offset</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">updateCache</span><span class="p">(</span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">feedResponse</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Dispatch callback on message thread</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="n">callback</span><span class="p">,</span><span class="w"> </span><span class="n">feedResponse</span><span class="p">]()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">callback</span><span class="p">(</span><span class="n">feedResponse</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">handleFetchError</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">error</span><span class="p">,</span><span class="w"> </span><span class="n">FeedCallback</span><span class="w"> </span><span class="n">callback</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;FeedDataManager: Fetch error - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="w">    </span><span class="n">FeedResponse</span><span class="w"> </span><span class="n">errorResponse</span><span class="p">;</span>
+<span class="w">    </span><span class="n">errorResponse</span><span class="p">.</span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="n">callback</span><span class="p">,</span><span class="w"> </span><span class="n">errorResponse</span><span class="p">]()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">callback</span><span class="p">(</span><span class="n">errorResponse</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">FeedResponse</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">parseJsonResponse</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">json</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">FeedResponse</span><span class="w"> </span><span class="n">response</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">isVoid</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">response</span><span class="p">.</span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Invalid JSON response&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">response</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Parse activities array (from backend /api/feed/timeline or /api/feed/global)</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">activities</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;activities&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">());</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">activities</span><span class="p">.</span><span class="n">isArray</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Try alternate format (direct array)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">isArray</span><span class="p">())</span>
+<span class="w">            </span><span class="n">activities</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">;</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// If activities is null/missing, treat as empty feed (not an error)</span>
+<span class="w">            </span><span class="c1">// This happens when the user has no posts or follows no one</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">response</span><span class="p">;</span><span class="w">  </span><span class="c1">// Empty response with no error</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Parse each activity into a FeedPost</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">activities</span><span class="p">.</span><span class="n">size</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FeedPost</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">activities</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">post</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">            </span><span class="n">response</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">post</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Parse pagination info</span>
+<span class="w">    </span><span class="n">response</span><span class="p">.</span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;total&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<span class="w">    </span><span class="n">response</span><span class="p">.</span><span class="n">limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;limit&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">));</span>
+<span class="w">    </span><span class="n">response</span><span class="p">.</span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;offset&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// Determine if there are more posts</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">hasProperty</span><span class="p">(</span><span class="s">&quot;has_more&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">response</span><span class="p">.</span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;has_more&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">));</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Infer from total and current position</span>
+<span class="w">        </span><span class="n">response</span><span class="p">.</span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">offset</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">response</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">response</span><span class="p">.</span><span class="n">total</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">response</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">getEndpointForFeedType</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Timeline</span><span class="p">:</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;/api/feed/timeline&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Global</span><span class="p">:</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;/api/feed/global&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;/api/feed/global&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Cache Management</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">clearCache</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">cache</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">loadedPosts</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Delete cache files</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">feedType</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Timeline</span><span class="p">,</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Global</span><span class="p">,</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Trending</span><span class="w"> </span><span class="p">})</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">cacheFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCacheFile</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cacheFile</span><span class="p">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="w">            </span><span class="n">cacheFile</span><span class="p">.</span><span class="n">deleteFile</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">clearCache</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">cache</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="n">loadedPosts</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cacheFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCacheFile</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cacheFile</span><span class="p">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="w">        </span><span class="n">cacheFile</span><span class="p">.</span><span class="n">deleteFile</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">bool</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">isCacheValid</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">cacheTTLSeconds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Check disk cache</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cacheFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCacheFile</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cacheFile</span><span class="p">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Check file modification time as proxy for cache age</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">fileTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheFile</span><span class="p">.</span><span class="n">getLastModificationTime</span><span class="p">();</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">getCurrentTime</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">fileTime</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">age</span><span class="p">.</span><span class="n">inSeconds</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">cacheTTLSeconds</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">FeedResponse</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">getCachedFeed</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Check memory cache first</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">cacheTTLSeconds</span><span class="p">))</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">response</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Try loading from disk</span>
+<span class="w">    </span><span class="k">const_cast</span><span class="o">&lt;</span><span class="n">FeedDataManager</span><span class="o">*&gt;</span><span class="p">(</span><span class="k">this</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">loadCacheFromDisk</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Check again after loading</span>
+<span class="w">    </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">cacheTTLSeconds</span><span class="p">))</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">response</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">FeedResponse</span><span class="p">{};</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">updateCache</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">FeedResponse</span><span class="o">&amp;</span><span class="w"> </span><span class="n">response</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">offset</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">CacheEntry</span><span class="w"> </span><span class="n">entry</span><span class="p">;</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response</span><span class="p">;</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">getCurrentTime</span><span class="p">();</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">feedType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedType</span><span class="p">;</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offset</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">cache</span><span class="p">[</span><span class="n">feedType</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">entry</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Persist to disk</span>
+<span class="w">    </span><span class="n">saveCacheToDisk</span><span class="p">(</span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">juce</span><span class="o">::</span><span class="n">File</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">getCacheFile</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cacheDir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">File</span><span class="o">::</span><span class="n">getSpecialLocation</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">File</span><span class="o">::</span><span class="n">userApplicationDataDirectory</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">.</span><span class="n">getChildFile</span><span class="p">(</span><span class="s">&quot;Sidechain&quot;</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">.</span><span class="n">getChildFile</span><span class="p">(</span><span class="s">&quot;cache&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">cacheDir</span><span class="p">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="w">        </span><span class="n">cacheDir</span><span class="p">.</span><span class="n">createDirectory</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">filename</span><span class="p">;</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Timeline</span><span class="p">:</span><span class="w"> </span><span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;feed_timeline.json&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Global</span><span class="p">:</span><span class="w">   </span><span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;feed_global.json&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">FeedType</span><span class="o">::</span><span class="no">Trending</span><span class="p">:</span><span class="w"> </span><span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;feed_trending.json&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span><span class="w">                 </span><span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;feed_unknown.json&quot;</span><span class="p">;</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">cacheDir</span><span class="p">.</span><span class="n">getChildFile</span><span class="p">(</span><span class="n">filename</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">loadCacheFromDisk</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cacheFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCacheFile</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">cacheFile</span><span class="p">.</span><span class="n">exists</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">jsonStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheFile</span><span class="p">.</span><span class="n">loadFileAsString</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">jsonStr</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">JSON</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">jsonStr</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">isVoid</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">CacheEntry</span><span class="w"> </span><span class="n">entry</span><span class="p">;</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">feedType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">feedType</span><span class="p">;</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Parse timestamp</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">timestampStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;cache_timestamp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">timestampStr</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="n">entry</span><span class="p">.</span><span class="n">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">fromISO8601</span><span class="p">(</span><span class="n">timestampStr</span><span class="p">);</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">        </span><span class="n">entry</span><span class="p">.</span><span class="n">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cacheFile</span><span class="p">.</span><span class="n">getLastModificationTime</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Parse posts</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">postsVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;posts&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">());</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">postsVar</span><span class="p">.</span><span class="n">isArray</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">postsVar</span><span class="p">.</span><span class="n">size</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FeedPost</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">postsVar</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">post</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">post</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">limit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;limit&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">));</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;offset&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;total&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<span class="w">    </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;has_more&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">cacheTTLSeconds</span><span class="p">))</span>
+<span class="w">        </span><span class="n">cache</span><span class="p">[</span><span class="n">feedType</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">entry</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">saveCacheToDisk</span><span class="p">(</span><span class="n">FeedType</span><span class="w"> </span><span class="n">feedType</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">CacheEntry</span><span class="o">&amp;</span><span class="w"> </span><span class="n">entry</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">DynamicObject</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Add cache metadata</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;cache_timestamp&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">timestamp</span><span class="p">.</span><span class="n">toISO8601</span><span class="p">(</span><span class="nb">true</span><span class="p">));</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Timeline</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;timeline&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">                               </span><span class="p">(</span><span class="n">feedType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FeedType</span><span class="o">::</span><span class="n">Global</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;global&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;trending&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;feed_type&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">feedTypeStr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Serialize posts</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&gt;</span><span class="w"> </span><span class="n">postsArray</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">posts</span><span class="p">)</span>
+<span class="w">        </span><span class="n">postsArray</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">post</span><span class="p">.</span><span class="n">toJson</span><span class="p">());</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;posts&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">postsArray</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Pagination info</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;limit&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">limit</span><span class="p">);</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;offset&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">offset</span><span class="p">);</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;total&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">total</span><span class="p">);</span>
+<span class="w">    </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;has_more&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">hasMore</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Write to file</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">cacheFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getCacheFile</span><span class="p">(</span><span class="n">feedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">jsonStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">JSON</span><span class="o">::</span><span class="n">toString</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cacheFile</span><span class="p">.</span><span class="n">replaceWithText</span><span class="p">(</span><span class="n">jsonStr</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">timerCallback</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Periodically clean up expired cache entries</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">end</span><span class="p">();)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">isValid</span><span class="p">(</span><span class="n">cacheTTLSeconds</span><span class="p">))</span>
+<span class="w">            </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cache</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">it</span><span class="p">);</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="o">++</span><span class="n">it</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">getLoadedPostsCount</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">loadedPosts</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">currentFeedType</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">loadedPosts</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

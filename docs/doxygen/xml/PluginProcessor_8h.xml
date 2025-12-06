@@ -1,0 +1,268 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="PluginProcessor_8h" kind="file" language="C++">
+    <compoundname>PluginProcessor.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes refid="AudioCapture_8h" local="yes">audio/AudioCapture.h</includes>
+    <includes refid="HttpAudioPlayer_8h" local="yes">audio/HttpAudioPlayer.h</includes>
+    <includes refid="MIDICapture_8h" local="yes">audio/MIDICapture.h</includes>
+    <includedby refid="AudioSnippetRecorder_8cpp" local="yes">AudioSnippetRecorder.cpp</includedby>
+    <includedby refid="MessageThreadComponent_8cpp" local="yes">MessageThreadComponent.cpp</includedby>
+    <includedby refid="PluginEditor_8cpp" local="yes">PluginEditor.cpp</includedby>
+    <includedby refid="PluginEditor_8h" local="yes">PluginEditor.h</includedby>
+    <includedby refid="PluginProcessor_8cpp" local="yes">PluginProcessor.cpp</includedby>
+    <includedby refid="RecordingComponent_8cpp" local="yes">RecordingComponent.cpp</includedby>
+    <includedby refid="StoryRecordingComponent_8cpp" local="yes">StoryRecordingComponent.cpp</includedby>
+    <includedby refid="UploadComponent_8cpp" local="yes">UploadComponent.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>PluginProcessor.h</label>
+        <link refid="PluginProcessor_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>audio/AudioCapture.h</label>
+        <link refid="AudioCapture_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>audio/HttpAudioPlayer.h</label>
+        <link refid="HttpAudioPlayer_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>audio/MIDICapture.h</label>
+        <link refid="MIDICapture_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+      <node id="9">
+        <label>atomic</label>
+      </node>
+      <node id="5">
+        <label>functional</label>
+      </node>
+      <node id="7">
+        <label>map</label>
+      </node>
+      <node id="6">
+        <label>memory</label>
+      </node>
+      <node id="10">
+        <label>vector</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="4">
+        <label>PluginEditor.cpp</label>
+        <link refid="PluginEditor_8cpp"/>
+      </node>
+      <node id="5">
+        <label>PluginEditor.h</label>
+        <link refid="PluginEditor_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>PluginProcessor.cpp</label>
+        <link refid="PluginProcessor_8cpp"/>
+      </node>
+      <node id="1">
+        <label>PluginProcessor.h</label>
+        <link refid="PluginProcessor_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>AudioSnippetRecorder.cpp</label>
+        <link refid="AudioSnippetRecorder_8cpp"/>
+      </node>
+      <node id="3">
+        <label>MessageThreadComponent.cpp</label>
+        <link refid="MessageThreadComponent_8cpp"/>
+      </node>
+      <node id="7">
+        <label>RecordingComponent.cpp</label>
+        <link refid="RecordingComponent_8cpp"/>
+      </node>
+      <node id="9">
+        <label>UploadComponent.cpp</label>
+        <link refid="UploadComponent_8cpp"/>
+      </node>
+      <node id="8">
+        <label>StoryRecordingComponent.cpp</label>
+        <link refid="StoryRecordingComponent_8cpp"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classSidechainAudioProcessor" prot="public">SidechainAudioProcessor</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="AudioCapture_8h" kindref="compound">audio/AudioCapture.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="HttpAudioPlayer_8h" kindref="compound">audio/HttpAudioPlayer.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="MIDICapture_8h" kindref="compound">audio/MIDICapture.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classBufferAudioPlayer" kindref="compound">BufferAudioPlayer</ref>;</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17" refid="classSidechainAudioProcessor" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classSidechainAudioProcessor_1ac13616012d683f92574ad52f7c07bca9" kindref="member">SidechainAudioProcessor</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::AudioProcessor</highlight></codeline>
+<codeline lineno="18"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classSidechainAudioProcessor_1ac13616012d683f92574ad52f7c07bca9" kindref="member">SidechainAudioProcessor</ref>();</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classSidechainAudioProcessor_1a5e56db9c2a2a0693b80c81f8b231818a" kindref="member">~SidechainAudioProcessor</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1afb739b0df42f40faacacb3f2e7c2f15c" kindref="member">prepareToPlay</ref><sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>sampleRate,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>samplesPerBlock)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a09bcc444c806b3a3895d2dbf476b6cd2" kindref="member">releaseResources</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/>#ifndef<sp/>JucePlugin_PreferredChannelConfigurations</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a64a8604255454ddad64458a8e5a1349e" kindref="member">isBusesLayoutSupported</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>BusesLayout&amp;<sp/>layouts)<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a19610c04c76985c798d246ae9e082719" kindref="member">processBlock</ref><sp/>(juce::AudioBuffer&lt;float&gt;&amp;,<sp/>juce::MidiBuffer&amp;)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::AudioProcessorEditor*<sp/><ref refid="classSidechainAudioProcessor_1a4ef93f613ba64a4e8c27def6bb866ce4" kindref="member">createEditor</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1aa93cd6bba16173710f3e39fe365a4b64" kindref="member">hasEditor</ref>()<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String<sp/><ref refid="classSidechainAudioProcessor_1a0503e16eaab6b928a1defb178ab80e0d" kindref="member">getName</ref>()<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a668c71757236d6d8a17463e56fccfdb8" kindref="member">acceptsMidi</ref>()<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a7e0923408ee46eb5727d6bb8abe44358" kindref="member">producesMidi</ref>()<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a9f0528aa38da1f6aaa62d6f3ee741823" kindref="member">isMidiEffect</ref>()<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1abfc222b6faf8f01b88ff5c19944ce9e3" kindref="member">getTailLengthSeconds</ref>()<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1ad4298b48c62ff7b613f91be0bb2f6104" kindref="member">getNumPrograms</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1aafeb56ff9cb139363a56d4484fc3d162" kindref="member">getCurrentProgram</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a5d0e115070dc8a3e96ac425bc2a9e479" kindref="member">setCurrentProgram</ref><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String<sp/><ref refid="classSidechainAudioProcessor_1a8f2bd117f6aa77563cc970f419df0fec" kindref="member">getProgramName</ref><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a7830d51d2f62793d6b84949106f6b260" kindref="member">changeProgramName</ref><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>newName)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1ada8800942fe488dab326d42dbdf0029f" kindref="member">getStateInformation</ref><sp/>(juce::MemoryBlock&amp;<sp/>destData)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a411c1b43a15d2833c3c98adf2e721518" kindref="member">setStateInformation</ref><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/>data,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>sizeInBytes)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Authentication<sp/>state</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="classSidechainAudioProcessor_1a34820d1ee6118a9e21552b613b860eaf" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a34820d1ee6118a9e21552b613b860eaf" kindref="member">isAuthenticated</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>authenticated;<sp/>}</highlight></codeline>
+<codeline lineno="60" refid="classSidechainAudioProcessor_1aa62a0cdb728d8e31a37a6182a9c790ef" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1aa62a0cdb728d8e31a37a6182a9c790ef" kindref="member">setAuthenticated</ref>(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>auth)<sp/>{<sp/>authenticated<sp/>=<sp/>auth;<sp/>}</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>Recording<sp/>API<sp/>(called<sp/>from<sp/>Editor/UI<sp/>thread)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a3768ca8dc732003c44e9845d39a284b2" kindref="member">startRecording</ref>();</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a97c450c2d9d412d9f2cd9b0e277a6977" kindref="member">stopRecording</ref>();</highlight></codeline>
+<codeline lineno="66" refid="classSidechainAudioProcessor_1a760275f4698dbb159407817dd91085e9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a760275f4698dbb159407817dd91085e9" kindref="member">isRecording</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.isRecording();<sp/>}</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>recorded<sp/>audio<sp/>buffer<sp/>(call<sp/>after<sp/>stopRecording)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::AudioBuffer&lt;float&gt;<sp/><ref refid="classSidechainAudioProcessor_1aa37417015874301f457bae1e19c4a07a" kindref="member">getRecordedAudio</ref>();</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>captured<sp/>MIDI<sp/>data<sp/>(call<sp/>after<sp/>stopRecording)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72" refid="classSidechainAudioProcessor_1a9d6a3f0065588d8e91f76093051d7fa0" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::var<sp/><ref refid="classSidechainAudioProcessor_1a9d6a3f0065588d8e91f76093051d7fa0" kindref="member">getCapturedMIDIData</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>midiCapture.getMIDIDataAsJSON();<sp/>}</highlight></codeline>
+<codeline lineno="73" refid="classSidechainAudioProcessor_1a671d09cbedb64a91ce4fc6bbab0ab047" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a671d09cbedb64a91ce4fc6bbab0ab047" kindref="member">hasMIDIData</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>midiCapture.isCapturing()<sp/>||<sp/>midiCapture.getTotalTime()<sp/>&gt;<sp/>0.0;<sp/>}</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Recording<sp/>info</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76" refid="classSidechainAudioProcessor_1a82c9daebc58599c923e2b80afd6a5409" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a82c9daebc58599c923e2b80afd6a5409" kindref="member">getRecordingLengthSeconds</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.getRecordingLengthSeconds();<sp/>}</highlight></codeline>
+<codeline lineno="77" refid="classSidechainAudioProcessor_1ad8eea24ba71962e8ee946a384f9b76cc" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1ad8eea24ba71962e8ee946a384f9b76cc" kindref="member">getMaxRecordingLengthSeconds</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.getMaxRecordingLengthSeconds();<sp/>}</highlight></codeline>
+<codeline lineno="78" refid="classSidechainAudioProcessor_1a6d5210e07d1ebe116aa872b5c0f1f54f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a6d5210e07d1ebe116aa872b5c0f1f54f" kindref="member">getRecordingProgress</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.getRecordingProgress();<sp/>}</highlight></codeline>
+<codeline lineno="79" refid="classSidechainAudioProcessor_1aee61e61e894c8f501b79b388c76c33f6" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1aee61e61e894c8f501b79b388c76c33f6" kindref="member">isRecordingBufferFull</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.isBufferFull();<sp/>}</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Level<sp/>metering<sp/>(for<sp/>UI<sp/>display)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="82" refid="classSidechainAudioProcessor_1a3b94f4c02b52b1c153e4d9d10b2dea74" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a3b94f4c02b52b1c153e4d9d10b2dea74" kindref="member">getPeakLevel</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>channel)</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.getPeakLevel(channel);<sp/>}</highlight></codeline>
+<codeline lineno="83" refid="classSidechainAudioProcessor_1a7420e182665bb4bba01ba13f3286bf0f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a7420e182665bb4bba01ba13f3286bf0f" kindref="member">getRMSLevel</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>channel)</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioCapture.getRMSLevel(channel);<sp/>}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Sample<sp/>rate<sp/>(for<sp/>UI<sp/>calculations)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86" refid="classSidechainAudioProcessor_1a3ed3dfc9894b55f89e1e37737a363f1e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a3ed3dfc9894b55f89e1e37737a363f1e" kindref="member">getCurrentSampleRate</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentSampleRate;<sp/>}</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>DAW<sp/>Transport<sp/>Info<sp/>(BPM<sp/>detection<sp/>via<sp/>AudioPlayHead)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Returns<sp/>0.0<sp/>if<sp/>BPM<sp/>is<sp/>not<sp/>available<sp/>from<sp/>the<sp/>host</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91" refid="classSidechainAudioProcessor_1aa9bdc17b7b1107aac3043f24266785c2" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1aa9bdc17b7b1107aac3043f24266785c2" kindref="member">getCurrentBPM</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>currentBPM.load();<sp/>}</highlight></codeline>
+<codeline lineno="92" refid="classSidechainAudioProcessor_1a4dca8d8c7b978e0bd8c991bd4b429561" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a4dca8d8c7b978e0bd8c991bd4b429561" kindref="member">isBPMAvailable</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>bpmAvailable.load();<sp/>}</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>Playback<sp/>(for<sp/>feed<sp/>audio)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="classSidechainAudioProcessor_1ae8d727aca7e32b428bde14254fe3472a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref>&amp;<sp/><ref refid="classSidechainAudioProcessor_1ae8d727aca7e32b428bde14254fe3472a" kindref="member">getAudioPlayer</ref>()<sp/>{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioPlayer;<sp/>}</highlight></codeline>
+<codeline lineno="97" refid="classSidechainAudioProcessor_1a9fa37166d519b3b6bfc7c42a23c681bd" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref>&amp;<sp/><ref refid="classSidechainAudioProcessor_1a9fa37166d519b3b6bfc7c42a23c681bd" kindref="member">getAudioPlayer</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>audioPlayer;<sp/>}</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Buffer<sp/>audio<sp/>player<sp/>for<sp/>story<sp/>preview<sp/>(set<sp/>by<sp/>StoryRecordingComponent)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100" refid="classSidechainAudioProcessor_1a774062863f1300d60a83412c02b17688" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classSidechainAudioProcessor_1a774062863f1300d60a83412c02b17688" kindref="member">setBufferAudioPlayer</ref>(<ref refid="classBufferAudioPlayer" kindref="compound">BufferAudioPlayer</ref>*<sp/>player)<sp/>{<sp/>bufferAudioPlayer<sp/>=<sp/>player;<sp/>}</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>capture<sp/>system</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classAudioCapture" kindref="compound">AudioCapture</ref><sp/>audioCapture;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::AudioBuffer&lt;float&gt;<sp/>lastRecordedAudio;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>MIDI<sp/>capture<sp/>system<sp/>(for<sp/>stories)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classMIDICapture" kindref="compound">MIDICapture</ref><sp/>midiCapture;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>playback<sp/>for<sp/>feed</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classHttpAudioPlayer" kindref="compound">HttpAudioPlayer</ref><sp/>audioPlayer;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Buffer<sp/>audio<sp/>player<sp/>for<sp/>story<sp/>preview<sp/>(set<sp/>by<sp/>StoryRecordingComponent)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classBufferAudioPlayer" kindref="compound">BufferAudioPlayer</ref>*<sp/>bufferAudioPlayer<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Audio<sp/>settings<sp/>(cached<sp/>from<sp/>prepareToPlay)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>currentSampleRate<sp/>=<sp/>44100.0;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>currentBlockSize<sp/>=<sp/>512;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>State</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>authenticated<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>DAW<sp/>transport<sp/>info<sp/>(updated<sp/>on<sp/>audio<sp/>thread,<sp/>read<sp/>from<sp/>UI<sp/>thread)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;double&gt;<sp/>currentBPM<sp/>{<sp/>0.0<sp/>};</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;bool&gt;<sp/>bpmAvailable<sp/>{<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal"><sp/>};</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>std::atomic&lt;bool&gt;<sp/>dawTransportPlaying<sp/>{<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal"><sp/>};</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR<sp/>(<ref refid="classSidechainAudioProcessor_1ac13616012d683f92574ad52f7c07bca9" kindref="member">SidechainAudioProcessor</ref>)</highlight></codeline>
+<codeline lineno="130"><highlight class="normal">};</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginProcessor.h"/>
+  </compounddef>
+</doxygen>

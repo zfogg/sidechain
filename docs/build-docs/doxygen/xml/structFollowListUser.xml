@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structFollowListUser" kind="struct" language="C++" prot="public">
+    <compoundname>FollowListUser</compoundname>
+    <includes refid="FollowersList_8h" local="no">FollowersList.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structFollowListUser_1a5f88253037a23de34f8d209e1c24c875" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowListUser::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>FollowListUser::id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="16" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structFollowListUser_1aab9f8ea11eade7a7ff31a065e26f1c34" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowListUser::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>FollowListUser::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="17" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structFollowListUser_1a157e4b81a11c0d8b3819d981353cc2bf" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowListUser::displayName</definition>
+        <argsstring></argsstring>
+        <name>displayName</name>
+        <qualifiedname>FollowListUser::displayName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="18" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structFollowListUser_1aac58206634340a029d51217855df7ae0" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowListUser::avatarUrl</definition>
+        <argsstring></argsstring>
+        <name>avatarUrl</name>
+        <qualifiedname>FollowListUser::avatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="19" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structFollowListUser_1a6bfc9073f92c39939e8f2600bdcb4733" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FollowListUser::bio</definition>
+        <argsstring></argsstring>
+        <name>bio</name>
+        <qualifiedname>FollowListUser::bio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="20" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structFollowListUser_1a5d900d28961b2bd37767d9d2903f5dc3" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FollowListUser::isFollowing</definition>
+        <argsstring></argsstring>
+        <name>isFollowing</name>
+        <qualifiedname>FollowListUser::isFollowing</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="21" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structFollowListUser_1afbb90954aa485c4d9b1a1b0049c2b631" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FollowListUser::followsYou</definition>
+        <argsstring></argsstring>
+        <name>followsYou</name>
+        <qualifiedname>FollowListUser::followsYou</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="22" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structFollowListUser_1a297daf23d611f015ce94df4eb5356011" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structFollowListUser" kindref="compound">FollowListUser</ref></type>
+        <definition>static FollowListUser FollowListUser::fromJson</definition>
+        <argsstring>(const juce::var &amp;json)</argsstring>
+        <name>fromJson</name>
+        <qualifiedname>FollowListUser::fromJson</qualifiedname>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>json</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="24" column="27" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="24" bodyend="40"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structFollowListUser_1a28018eaf72fda32464b1f70de032e06a" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool FollowListUser::isValid</definition>
+        <argsstring>() const</argsstring>
+        <name>isValid</name>
+        <qualifiedname>FollowListUser::isValid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="42" bodyend="42"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="structFollowListUser" kindref="compound">FollowListUser</ref> represents a user in a followers/following list. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" line="14" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/social/FollowersList.h" bodystart="15" bodyend="43"/>
+    <listofallmembers>
+      <member refid="structFollowListUser_1aac58206634340a029d51217855df7ae0" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>avatarUrl</name></member>
+      <member refid="structFollowListUser_1a6bfc9073f92c39939e8f2600bdcb4733" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>bio</name></member>
+      <member refid="structFollowListUser_1a157e4b81a11c0d8b3819d981353cc2bf" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>displayName</name></member>
+      <member refid="structFollowListUser_1afbb90954aa485c4d9b1a1b0049c2b631" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>followsYou</name></member>
+      <member refid="structFollowListUser_1a297daf23d611f015ce94df4eb5356011" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>fromJson</name></member>
+      <member refid="structFollowListUser_1a5f88253037a23de34f8d209e1c24c875" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>id</name></member>
+      <member refid="structFollowListUser_1a5d900d28961b2bd37767d9d2903f5dc3" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>isFollowing</name></member>
+      <member refid="structFollowListUser_1a28018eaf72fda32464b1f70de032e06a" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>isValid</name></member>
+      <member refid="structFollowListUser_1aab9f8ea11eade7a7ff31a065e26f1c34" prot="public" virt="non-virtual"><scope>FollowListUser</scope><name>username</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

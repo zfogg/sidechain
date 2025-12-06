@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_060c56a93d97ff6c0f0445d4db76d7bc" kind="dir">
+    <compoundname>profile</compoundname>
+    <innerfile refid="EditProfile_8cpp">EditProfile.cpp</innerfile>
+    <innerfile refid="EditProfile_8h">EditProfile.h</innerfile>
+    <innerfile refid="Profile_8cpp">Profile.cpp</innerfile>
+    <innerfile refid="Profile_8h">Profile.h</innerfile>
+    <innerfile refid="ProfileSetup_8cpp">ProfileSetup.cpp</innerfile>
+    <innerfile refid="ProfileSetup_8h">ProfileSetup.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/"/>
+  </compounddef>
+</doxygen>

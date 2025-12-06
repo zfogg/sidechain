@@ -1,0 +1,667 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classCommentRowComponent" kind="class" language="C++" prot="public">
+    <compoundname>CommentRowComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <includes refid="CommentComponent_8h" local="no">CommentComponent.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classCommentRowComponent_1a2f2f593a5891208fa26673b4d039db89" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structComment" kindref="compound">Comment</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const Comment&amp;)&gt; CommentRowComponent::onUserClicked</definition>
+        <argsstring></argsstring>
+        <name>onUserClicked</name>
+        <qualifiedname>CommentRowComponent::onUserClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="102" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a86f64d27ee5ad51d7500f939e6a81d0b" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structComment" kindref="compound">Comment</ref> &amp;, bool liked)&gt;</type>
+        <definition>std::function&lt;void(const Comment&amp;, bool liked)&gt; CommentRowComponent::onLikeToggled</definition>
+        <argsstring></argsstring>
+        <name>onLikeToggled</name>
+        <qualifiedname>CommentRowComponent::onLikeToggled</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="103" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1ae362a5eefbe22611a42679bc9e225a43" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structComment" kindref="compound">Comment</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const Comment&amp;)&gt; CommentRowComponent::onReplyClicked</definition>
+        <argsstring></argsstring>
+        <name>onReplyClicked</name>
+        <qualifiedname>CommentRowComponent::onReplyClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="104" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a7c12adfc22f135057e4f449011c0f559" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structComment" kindref="compound">Comment</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const Comment&amp;)&gt; CommentRowComponent::onEditClicked</definition>
+        <argsstring></argsstring>
+        <name>onEditClicked</name>
+        <qualifiedname>CommentRowComponent::onEditClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="105" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a3091dbaae43748bd53b9e2867ff524a0" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structComment" kindref="compound">Comment</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const Comment&amp;)&gt; CommentRowComponent::onDeleteClicked</definition>
+        <argsstring></argsstring>
+        <name>onDeleteClicked</name>
+        <qualifiedname>CommentRowComponent::onDeleteClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="106" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1afc666acca87a9a5b46ce2772b4ba624c" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structComment" kindref="compound">Comment</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const Comment&amp;)&gt; CommentRowComponent::onReportClicked</definition>
+        <argsstring></argsstring>
+        <name>onReportClicked</name>
+        <qualifiedname>CommentRowComponent::onReportClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="107" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classCommentRowComponent_1a11b452f7e8b7af3049c75c7539661b20" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int CommentRowComponent::ROW_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>ROW_HEIGHT</name>
+        <qualifiedname>CommentRowComponent::ROW_HEIGHT</qualifiedname>
+        <initializer>= 80</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="119" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a2df0cef6d6c6d6ba223d7ba9fd373ea4" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int CommentRowComponent::REPLY_ROW_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>REPLY_ROW_HEIGHT</name>
+        <qualifiedname>CommentRowComponent::REPLY_ROW_HEIGHT</qualifiedname>
+        <initializer>= 70</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="120" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a4e9409e00a9fe3593dd41cea2bb0e3af" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int CommentRowComponent::AVATAR_SIZE</definition>
+        <argsstring></argsstring>
+        <name>AVATAR_SIZE</name>
+        <qualifiedname>CommentRowComponent::AVATAR_SIZE</qualifiedname>
+        <initializer>= 36</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="121" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1aabc4c4cf1ef82ba9725f1dac1a713387" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int CommentRowComponent::REPLY_INDENT</definition>
+        <argsstring></argsstring>
+        <name>REPLY_INDENT</name>
+        <qualifiedname>CommentRowComponent::REPLY_INDENT</qualifiedname>
+        <initializer>= 40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="122" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classCommentRowComponent_1acf3cf2d80cfa2eaffa7a6da7d9e67b85" prot="private" static="no" mutable="no">
+        <type><ref refid="structComment" kindref="compound">Comment</ref></type>
+        <definition>Comment CommentRowComponent::comment</definition>
+        <argsstring></argsstring>
+        <name>comment</name>
+        <qualifiedname>CommentRowComponent::comment</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="125" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="125" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a422f683c1254fbf3afb33d5bcd785725" prot="private" static="no" mutable="no">
+        <type><ref refid="classHoverState" kindref="compound">HoverState</ref></type>
+        <definition>HoverState CommentRowComponent::hoverState</definition>
+        <argsstring></argsstring>
+        <name>hoverState</name>
+        <qualifiedname>CommentRowComponent::hoverState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="126" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a056d2ce232dd0390c6bca717b441a7f9" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool CommentRowComponent::isReply</definition>
+        <argsstring></argsstring>
+        <name>isReply</name>
+        <qualifiedname>CommentRowComponent::isReply</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="127" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="127" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentRowComponent_1a5b29bcdb58883270e091c445fd6c6ae8" prot="private" static="no" mutable="no">
+        <type>juce::Image</type>
+        <definition>juce::Image CommentRowComponent::avatarImage</definition>
+        <argsstring></argsstring>
+        <name>avatarImage</name>
+        <qualifiedname>CommentRowComponent::avatarImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="130" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classCommentRowComponent_1a06ebf6817ded40217a131d8058de0155" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>CommentRowComponent::CommentRowComponent</definition>
+        <argsstring>()</argsstring>
+        <name>CommentRowComponent</name>
+        <qualifiedname>CommentRowComponent::CommentRowComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="85" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="13" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1ae53acae7ccce48073f1718e6b0631d84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>CommentRowComponent::~CommentRowComponent</definition>
+        <argsstring>() override=default</argsstring>
+        <name>~CommentRowComponent</name>
+        <qualifiedname>CommentRowComponent::~CommentRowComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="86" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a4cf2f2a95756f1daa83eb84fe65341dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::setComment</definition>
+        <argsstring>(const Comment &amp;comment)</argsstring>
+        <name>setComment</name>
+        <qualifiedname>CommentRowComponent::setComment</qualifiedname>
+        <param>
+          <type>const <ref refid="structComment" kindref="compound">Comment</ref> &amp;</type>
+          <declname>comment</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="90" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="25" bodyend="40"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1acd60233f540806c99369ab35c9e6ce0f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="structComment" kindref="compound">Comment</ref> &amp;</type>
+        <definition>const Comment &amp; CommentRowComponent::getComment</definition>
+        <argsstring>() const</argsstring>
+        <name>getComment</name>
+        <qualifiedname>CommentRowComponent::getComment</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="91" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="91" bodyend="91"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a8f3a48b42c4a5ba1162383bc923b84c6" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String CommentRowComponent::getCommentId</definition>
+        <argsstring>() const</argsstring>
+        <name>getCommentId</name>
+        <qualifiedname>CommentRowComponent::getCommentId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="92" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="92" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a9bc7a89ab24f59699de4aa3ec2dd3645" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::setIsReply</definition>
+        <argsstring>(bool reply)</argsstring>
+        <name>setIsReply</name>
+        <qualifiedname>CommentRowComponent::setIsReply</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>reply</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="95" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="95" bodyend="95"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1ad4435b1390b0077bc77927fe2ffc2996" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::updateLikeCount</definition>
+        <argsstring>(int count, bool liked)</argsstring>
+        <name>updateLikeCount</name>
+        <qualifiedname>CommentRowComponent::updateLikeCount</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>liked</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="98" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="42" bodyend="49"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a79efd80d7d5f13ed0bbda024062002b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>CommentRowComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="111" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="52" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1abc4b37e8863bd82a4a4cf8934d0fec71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>CommentRowComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="112" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="162" bodyend="165"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a234fe34b0b8fd090c80721ab02dbc06a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>CommentRowComponent::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="113" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="167" bodyend="239"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a7602ed40744a061c9a8f07d7e36a85e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::mouseEnter</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseEnter</name>
+        <qualifiedname>CommentRowComponent::mouseEnter</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="114" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="241" bodyend="244"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a3444a64acc8977a704a5440ad9582cad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::mouseExit</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseExit</name>
+        <qualifiedname>CommentRowComponent::mouseExit</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="115" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="246" bodyend="249"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classCommentRowComponent_1a79164ba2804f721020110c86829ff125" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::drawAvatar</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawAvatar</name>
+        <qualifiedname>CommentRowComponent::drawAvatar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="134" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="79" bodyend="89"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1ae7875ea0306224f60d08917715a9c55f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::drawUserInfo</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawUserInfo</name>
+        <qualifiedname>CommentRowComponent::drawUserInfo</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="135" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="91" bodyend="113"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a82504653303306adbe39e8b495b8975d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::drawContent</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawContent</name>
+        <qualifiedname>CommentRowComponent::drawContent</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="136" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="115" bodyend="122"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1aac37cf2359ad8e87a44e8539264a0968" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentRowComponent::drawActions</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawActions</name>
+        <qualifiedname>CommentRowComponent::drawActions</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="137" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="124" bodyend="159"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a241318fdc55935f183f0a289f7428fe4" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; CommentRowComponent::getAvatarBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getAvatarBounds</name>
+        <qualifiedname>CommentRowComponent::getAvatarBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="141" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="252" bodyend="257"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1af99ea0e40175ddda05e65bdc36b760d0" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; CommentRowComponent::getUserInfoBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getUserInfoBounds</name>
+        <qualifiedname>CommentRowComponent::getUserInfoBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="142" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="259" bodyend="263"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a1ccbf551e3d7471c08bc63fa67326615" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; CommentRowComponent::getContentBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getContentBounds</name>
+        <qualifiedname>CommentRowComponent::getContentBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="143" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="265" bodyend="270"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a5abde1fe88602a8bda6977a837366997" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; CommentRowComponent::getLikeButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getLikeButtonBounds</name>
+        <qualifiedname>CommentRowComponent::getLikeButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="144" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="272" bodyend="277"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a34fb58596e2577a747436c0ebd2501a2" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; CommentRowComponent::getReplyButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getReplyButtonBounds</name>
+        <qualifiedname>CommentRowComponent::getReplyButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="145" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="279" bodyend="283"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentRowComponent_1a9e96c4339bb3c97e602a4ce795f56c37" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; CommentRowComponent::getMoreButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getMoreButtonBounds</name>
+        <qualifiedname>CommentRowComponent::getMoreButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="146" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.cpp" bodystart="285" bodyend="289"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classCommentRowComponent" kindref="compound">CommentRowComponent</ref> displays a single comment. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>User avatar with circular clip and fallback to initials</para>
+</listitem><listitem><para>Username and relative timestamp</para>
+</listitem><listitem><para><ref refid="structComment" kindref="compound">Comment</ref> text content</para>
+</listitem><listitem><para>Like button with count</para>
+</listitem><listitem><para>Reply button</para>
+</listitem><listitem><para>Edit/delete menu for own comments</para>
+</listitem><listitem><para>Indentation for replies (1 level deep) </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>CommentRowComponent</label>
+        <link refid="classCommentRowComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>CommentRowComponent</label>
+        <link refid="classCommentRowComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" line="82" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/CommentComponent.h" bodystart="83" bodyend="149"/>
+    <listofallmembers>
+      <member refid="classCommentRowComponent_1a4e9409e00a9fe3593dd41cea2bb0e3af" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>AVATAR_SIZE</name></member>
+      <member refid="classCommentRowComponent_1a5b29bcdb58883270e091c445fd6c6ae8" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>avatarImage</name></member>
+      <member refid="classCommentRowComponent_1acf3cf2d80cfa2eaffa7a6da7d9e67b85" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>comment</name></member>
+      <member refid="classCommentRowComponent_1a06ebf6817ded40217a131d8058de0155" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>CommentRowComponent</name></member>
+      <member refid="classCommentRowComponent_1aac37cf2359ad8e87a44e8539264a0968" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>drawActions</name></member>
+      <member refid="classCommentRowComponent_1a79164ba2804f721020110c86829ff125" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>drawAvatar</name></member>
+      <member refid="classCommentRowComponent_1a82504653303306adbe39e8b495b8975d" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>drawContent</name></member>
+      <member refid="classCommentRowComponent_1ae7875ea0306224f60d08917715a9c55f" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>drawUserInfo</name></member>
+      <member refid="classCommentRowComponent_1a241318fdc55935f183f0a289f7428fe4" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>getAvatarBounds</name></member>
+      <member refid="classCommentRowComponent_1acd60233f540806c99369ab35c9e6ce0f" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>getComment</name></member>
+      <member refid="classCommentRowComponent_1a8f3a48b42c4a5ba1162383bc923b84c6" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>getCommentId</name></member>
+      <member refid="classCommentRowComponent_1a1ccbf551e3d7471c08bc63fa67326615" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>getContentBounds</name></member>
+      <member refid="classCommentRowComponent_1a5abde1fe88602a8bda6977a837366997" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>getLikeButtonBounds</name></member>
+      <member refid="classCommentRowComponent_1a9e96c4339bb3c97e602a4ce795f56c37" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>getMoreButtonBounds</name></member>
+      <member refid="classCommentRowComponent_1a34fb58596e2577a747436c0ebd2501a2" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>getReplyButtonBounds</name></member>
+      <member refid="classCommentRowComponent_1af99ea0e40175ddda05e65bdc36b760d0" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>getUserInfoBounds</name></member>
+      <member refid="classCommentRowComponent_1a422f683c1254fbf3afb33d5bcd785725" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>hoverState</name></member>
+      <member refid="classCommentRowComponent_1a056d2ce232dd0390c6bca717b441a7f9" prot="private" virt="non-virtual"><scope>CommentRowComponent</scope><name>isReply</name></member>
+      <member refid="classCommentRowComponent_1a7602ed40744a061c9a8f07d7e36a85e8" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>mouseEnter</name></member>
+      <member refid="classCommentRowComponent_1a3444a64acc8977a704a5440ad9582cad" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>mouseExit</name></member>
+      <member refid="classCommentRowComponent_1a234fe34b0b8fd090c80721ab02dbc06a" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>mouseUp</name></member>
+      <member refid="classCommentRowComponent_1a3091dbaae43748bd53b9e2867ff524a0" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>onDeleteClicked</name></member>
+      <member refid="classCommentRowComponent_1a7c12adfc22f135057e4f449011c0f559" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>onEditClicked</name></member>
+      <member refid="classCommentRowComponent_1a86f64d27ee5ad51d7500f939e6a81d0b" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>onLikeToggled</name></member>
+      <member refid="classCommentRowComponent_1ae362a5eefbe22611a42679bc9e225a43" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>onReplyClicked</name></member>
+      <member refid="classCommentRowComponent_1afc666acca87a9a5b46ce2772b4ba624c" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>onReportClicked</name></member>
+      <member refid="classCommentRowComponent_1a2f2f593a5891208fa26673b4d039db89" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>onUserClicked</name></member>
+      <member refid="classCommentRowComponent_1a79efd80d7d5f13ed0bbda024062002b5" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>paint</name></member>
+      <member refid="classCommentRowComponent_1aabc4c4cf1ef82ba9725f1dac1a713387" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>REPLY_INDENT</name></member>
+      <member refid="classCommentRowComponent_1a2df0cef6d6c6d6ba223d7ba9fd373ea4" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>REPLY_ROW_HEIGHT</name></member>
+      <member refid="classCommentRowComponent_1abc4b37e8863bd82a4a4cf8934d0fec71" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>resized</name></member>
+      <member refid="classCommentRowComponent_1a11b452f7e8b7af3049c75c7539661b20" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>ROW_HEIGHT</name></member>
+      <member refid="classCommentRowComponent_1a4cf2f2a95756f1daa83eb84fe65341dc" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>setComment</name></member>
+      <member refid="classCommentRowComponent_1a9bc7a89ab24f59699de4aa3ec2dd3645" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>setIsReply</name></member>
+      <member refid="classCommentRowComponent_1ad4435b1390b0077bc77927fe2ffc2996" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>updateLikeCount</name></member>
+      <member refid="classCommentRowComponent_1ae53acae7ccce48073f1718e6b0631d84" prot="public" virt="non-virtual"><scope>CommentRowComponent</scope><name>~CommentRowComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

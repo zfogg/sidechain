@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_0db78fdef8131b7bdd9731a5ff95f6f2" kind="dir">
+    <compoundname>audio</compoundname>
+    <innerfile refid="AudioCapture_8cpp">AudioCapture.cpp</innerfile>
+    <innerfile refid="AudioCapture_8h">AudioCapture.h</innerfile>
+    <innerfile refid="BufferAudioPlayer_8cpp">BufferAudioPlayer.cpp</innerfile>
+    <innerfile refid="BufferAudioPlayer_8h">BufferAudioPlayer.h</innerfile>
+    <innerfile refid="HttpAudioPlayer_8cpp">HttpAudioPlayer.cpp</innerfile>
+    <innerfile refid="HttpAudioPlayer_8h">HttpAudioPlayer.h</innerfile>
+    <innerfile refid="KeyDetector_8cpp">KeyDetector.cpp</innerfile>
+    <innerfile refid="KeyDetector_8h">KeyDetector.h</innerfile>
+    <innerfile refid="MIDICapture_8cpp">MIDICapture.cpp</innerfile>
+    <innerfile refid="MIDICapture_8h">MIDICapture.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/audio/"/>
+  </compounddef>
+</doxygen>

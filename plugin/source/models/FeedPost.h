@@ -88,23 +88,41 @@ public:
 
     //==============================================================================
     // Factory methods to create from JSON
+
+    /** Create a FeedPost from JSON data
+     *  @param json JSON var containing post data
+     *  @return FeedPost instance (may be invalid if JSON is malformed)
+     */
     static FeedPost fromJson(const juce::var& json);
 
-    // Type-safe parsing with validation - returns error if required fields are missing
+    /** Type-safe parsing with validation - returns error if required fields are missing
+     *  @param json JSON var containing post data
+     *  @return Outcome with FeedPost if valid, or error message if invalid
+     */
     static Outcome<FeedPost> tryFromJson(const juce::var& json);
 
-    // Convert to JSON (for caching)
+    /** Convert to JSON (for caching)
+     *  @return JSON var representation of this post
+     */
     juce::var toJson() const;
 
-    // Extract user ID from actor string (e.g., "user:12345" -> "12345")
+    /** Extract user ID from actor string (e.g., "user:12345" -> "12345")
+     *  @param actor Actor string in format "user:ID"
+     *  @return Extracted user ID, or empty string if format is invalid
+     */
     static juce::String extractUserId(const juce::String& actor);
 
-    // Format timestamp as "time ago" string
-    // @deprecated Use TimeUtils::formatTimeAgo() instead
+    /** Format timestamp as "time ago" string
+     *  @deprecated Use TimeUtils::formatTimeAgo() instead
+     *  @param time Timestamp to format
+     *  @return Human-readable time string (e.g., "2h ago")
+     */
     [[deprecated("Use TimeUtils::formatTimeAgo() instead")]]
     static juce::String formatTimeAgo(const juce::Time& time);
 
-    // Check if post is valid (has required fields)
+    /** Check if post is valid (has required fields)
+     *  @return true if post has all required fields, false otherwise
+     */
     bool isValid() const;
 
     //==============================================================================

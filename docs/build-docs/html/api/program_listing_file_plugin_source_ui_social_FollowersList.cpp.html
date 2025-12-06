@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File FollowersList.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File FollowersList.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_social_FollowersList.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-followerslist-cpp">
+<span id="program-listing-file-plugin-source-ui-social-followerslist-cpp"></span><h1>Program Listing for File FollowersList.cpp<a class="headerlink" href="#program-listing-for-file-followerslist-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_social_FollowersList.cpp.html#file-plugin-source-ui-social-followerslist-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/FollowersList.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;FollowersList.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../network/NetworkClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Json.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/ImageCache.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Colors.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/UIHelpers.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Result.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// FollowUserRow Implementation</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="n">FollowUserRow</span><span class="o">::</span><span class="n">FollowUserRow</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">setSize</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="n">ROW_HEIGHT</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Set up hover state</span>
+<span class="w">    </span><span class="n">hoverState</span><span class="p">.</span><span class="n">onHoverChanged</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="kt">bool</span><span class="w"> </span><span class="n">hovered</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">setUser</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FollowListUser</span><span class="o">&amp;</span><span class="w"> </span><span class="n">newUser</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">newUser</span><span class="p">;</span>
+<span class="w">    </span><span class="n">avatarImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Load avatar via ImageCache</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">avatarUrl</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">ImageLoader</span><span class="o">::</span><span class="n">load</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">avatarUrl</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">img</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">avatarImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">img</span><span class="p">;</span>
+<span class="w">            </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">        </span><span class="p">});</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">setFollowing</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="n">following</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">user</span><span class="p">.</span><span class="n">isFollowing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">following</span><span class="p">;</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">hoverState</span><span class="p">.</span><span class="n">isHovered</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">backgroundLighter</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">backgroundLight</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRect</span><span class="p">(</span><span class="n">getLocalBounds</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Border at bottom</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">border</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawLine</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getHeight</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getWidth</span><span class="p">()),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getHeight</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">avatarBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getAvatarBounds</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Avatar</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">displayName</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">displayName</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ImageLoader</span><span class="o">::</span><span class="n">drawCircularAvatar</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">avatarBounds</span><span class="p">,</span><span class="w"> </span><span class="n">avatarImage</span><span class="p">,</span>
+<span class="w">        </span><span class="n">ImageLoader</span><span class="o">::</span><span class="n">getInitials</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">surface</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">(),</span>
+<span class="w">        </span><span class="mf">18.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Avatar border</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">border</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawEllipse</span><span class="p">(</span><span class="n">avatarBounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// User info</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">textX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">avatarBounds</span><span class="p">.</span><span class="n">getRight</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">12</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">textWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getFollowButtonBounds</span><span class="p">().</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">textX</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Display name or username</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">15.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">textX</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="n">textWidth</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// @username (if display name is different)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">displayName</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">displayName</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">12.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">textX</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="n">textWidth</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// &quot;Follows you&quot; badge</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">followsYou</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">10.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">badgeY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">displayName</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">48</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Follows you&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">textX</span><span class="p">,</span><span class="w"> </span><span class="n">badgeY</span><span class="p">,</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"> </span><span class="mi">14</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Follow button (don&#39;t show for current user)</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">followBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getFollowButtonBounds</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">isFollowing</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">UI</span><span class="o">::</span><span class="n">drawOutlineButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">followBounds</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Following&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">border</span><span class="p">(),</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">(),</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mf">4.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">UI</span><span class="o">::</span><span class="n">drawButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">followBounds</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Follow&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">accent</span><span class="p">(),</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">background</span><span class="p">(),</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mf">4.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Layout handled in paint</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Check follow button click</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getFollowButtonBounds</span><span class="p">().</span><span class="n">contains</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onFollowToggled</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onFollowToggled</span><span class="p">(</span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="o">!</span><span class="n">user</span><span class="p">.</span><span class="n">isFollowing</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Otherwise, navigate to user</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onUserClicked</span><span class="p">)</span>
+<span class="w">        </span><span class="n">onUserClicked</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">mouseEnter</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="cm">/*event*/</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">hoverState</span><span class="p">.</span><span class="n">setHovered</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">mouseExit</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="cm">/*event*/</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">hoverState</span><span class="p">.</span><span class="n">setHovered</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">getAvatarBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">getFollowButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">95</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// FollowersList Implementation</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="n">FollowersList</span><span class="o">::</span><span class="n">FollowersList</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FollowersList: Initializing&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setupUI</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">FollowersList</span><span class="o">::~</span><span class="n">FollowersList</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;FollowersList: Destroying&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stopTimer</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">setupUI</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Close button</span>
+<span class="w">    </span><span class="n">closeButton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">TextButton</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;X&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">closeButton</span><span class="o">-&gt;</span><span class="n">onClick</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onClose</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onClose</span><span class="p">();</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="w">    </span><span class="n">addAndMakeVisible</span><span class="p">(</span><span class="n">closeButton</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Viewport for scrollable list</span>
+<span class="w">    </span><span class="n">viewport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">Viewport</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">contentContainer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">Component</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">    </span><span class="n">viewport</span><span class="o">-&gt;</span><span class="n">setViewedComponent</span><span class="p">(</span><span class="n">contentContainer</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">viewport</span><span class="o">-&gt;</span><span class="n">setScrollBarsShown</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">addAndMakeVisible</span><span class="p">(</span><span class="n">viewport</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">loadList</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="n">ListType</span><span class="w"> </span><span class="n">type</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">userId</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">networkClient</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;FollowersList: Cannot load list - userId empty or network client null&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;followers&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;following&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FollowersList: Loading &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; for user: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">userId</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">targetUserId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userId</span><span class="p">;</span>
+<span class="w">    </span><span class="n">listType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">type</span><span class="p">;</span>
+<span class="w">    </span><span class="n">currentOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">users</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">userRows</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="n">errorMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">callback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&gt;</span><span class="w"> </span><span class="n">responseOutcome</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">responseOutcome</span><span class="p">.</span><span class="n">isOk</span><span class="p">())</span>
+<span class="w">            </span><span class="n">handleUsersLoaded</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">responseOutcome</span><span class="p">.</span><span class="n">getValue</span><span class="p">());</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">handleUsersLoaded</span><span class="p">(</span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">());</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="p">)</span>
+<span class="w">        </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getFollowers</span><span class="p">(</span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">        </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getFollowing</span><span class="p">(</span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">refresh</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">targetUserId</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">loadList</span><span class="p">(</span><span class="n">targetUserId</span><span class="p">,</span><span class="w"> </span><span class="n">listType</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">handleUsersLoaded</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="n">success</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">usersData</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">listType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;followers&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;following&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">success</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">Json</span><span class="o">::</span><span class="n">isObject</span><span class="p">(</span><span class="n">usersData</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Parse users array</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">usersKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">listType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;followers&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;following&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">usersArray</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Json</span><span class="o">::</span><span class="n">getArray</span><span class="p">(</span><span class="n">usersData</span><span class="p">,</span><span class="w"> </span><span class="n">usersKey</span><span class="p">.</span><span class="n">toRawUTF8</span><span class="p">());</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Json</span><span class="o">::</span><span class="n">isArray</span><span class="p">(</span><span class="n">usersArray</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">arr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">usersArray</span><span class="p">.</span><span class="n">getArray</span><span class="p">();</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="o">*</span><span class="n">arr</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">FollowListUser</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FollowListUser</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                        </span><span class="n">users</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">totalCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Json</span><span class="o">::</span><span class="n">getInt</span><span class="p">(</span><span class="n">usersData</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;total_count&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+<span class="w">        </span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">totalCount</span><span class="p">;</span>
+<span class="w">        </span><span class="n">currentOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;FollowersList: Loaded &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; (total: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">totalCount</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">updateUsersList</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;FollowersList: Failed to load &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">typeStr</span><span class="p">);</span>
+<span class="w">        </span><span class="n">errorMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Failed to load &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">typeStr</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">loadMoreUsers</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isLoading</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="n">hasMore</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">networkClient</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">callback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&gt;</span><span class="w"> </span><span class="n">responseOutcome</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">responseOutcome</span><span class="p">.</span><span class="n">isOk</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">responseOutcome</span><span class="p">.</span><span class="n">getValue</span><span class="p">();</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Json</span><span class="o">::</span><span class="n">isObject</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">usersKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">listType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;followers&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;following&quot;</span><span class="p">;</span>
+<span class="w">                </span><span class="k">auto</span><span class="w"> </span><span class="n">usersArray</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Json</span><span class="o">::</span><span class="n">getArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">usersKey</span><span class="p">.</span><span class="n">toRawUTF8</span><span class="p">());</span>
+
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Json</span><span class="o">::</span><span class="n">isArray</span><span class="p">(</span><span class="n">usersArray</span><span class="p">))</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">arr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">usersArray</span><span class="p">.</span><span class="n">getArray</span><span class="p">();</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="o">*</span><span class="n">arr</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">{</span>
+<span class="w">                            </span><span class="n">FollowListUser</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FollowListUser</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<span class="w">                            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">                                </span><span class="n">users</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="n">totalCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Json</span><span class="o">::</span><span class="n">getInt</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;total_count&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+<span class="w">                </span><span class="n">hasMore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">totalCount</span><span class="p">;</span>
+<span class="w">                </span><span class="n">currentOffset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+
+<span class="w">                </span><span class="n">updateUsersList</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">listType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="p">)</span>
+<span class="w">        </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getFollowers</span><span class="p">(</span><span class="n">targetUserId</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="n">currentOffset</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">        </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">getFollowing</span><span class="p">(</span><span class="n">targetUserId</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="n">currentOffset</span><span class="p">,</span><span class="w"> </span><span class="n">callback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">updateUsersList</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">userRows</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">yPos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">users</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="p">();</span>
+<span class="w">        </span><span class="n">row</span><span class="o">-&gt;</span><span class="n">setUser</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+<span class="w">        </span><span class="n">setupRowCallbacks</span><span class="p">(</span><span class="n">row</span><span class="p">);</span>
+<span class="w">        </span><span class="n">row</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">yPos</span><span class="p">,</span><span class="w"> </span><span class="n">contentContainer</span><span class="o">-&gt;</span><span class="n">getWidth</span><span class="p">(),</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">ROW_HEIGHT</span><span class="p">);</span>
+<span class="w">        </span><span class="n">contentContainer</span><span class="o">-&gt;</span><span class="n">addAndMakeVisible</span><span class="p">(</span><span class="n">row</span><span class="p">);</span>
+<span class="w">        </span><span class="n">userRows</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">yPos</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">FollowUserRow</span><span class="o">::</span><span class="n">ROW_HEIGHT</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">contentContainer</span><span class="o">-&gt;</span><span class="n">setSize</span><span class="p">(</span><span class="n">viewport</span><span class="o">-&gt;</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="n">yPos</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">setupRowCallbacks</span><span class="p">(</span><span class="n">FollowUserRow</span><span class="o">*</span><span class="w"> </span><span class="n">row</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">row</span><span class="o">-&gt;</span><span class="n">onUserClicked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">FollowListUser</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onUserClicked</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onUserClicked</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">);</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">row</span><span class="o">-&gt;</span><span class="n">onFollowToggled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">FollowListUser</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">willFollow</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">handleFollowToggled</span><span class="p">(</span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="n">willFollow</span><span class="p">);</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">handleFollowToggled</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FollowListUser</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">willFollow</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">networkClient</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Optimistic update</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">userRows</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="o">-&gt;</span><span class="n">getUser</span><span class="p">().</span><span class="n">id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">row</span><span class="o">-&gt;</span><span class="n">setFollowing</span><span class="p">(</span><span class="n">willFollow</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Send to server</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">revertCallback</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">userId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">wasFollowing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">isFollowing</span><span class="p">](</span><span class="n">Outcome</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&gt;</span><span class="w"> </span><span class="n">responseOutcome</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">responseOutcome</span><span class="p">.</span><span class="n">isOk</span><span class="p">();</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">success</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Revert on failure</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">userRows</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="o">-&gt;</span><span class="n">getUser</span><span class="p">().</span><span class="n">id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">userId</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">row</span><span class="o">-&gt;</span><span class="n">setFollowing</span><span class="p">(</span><span class="n">wasFollowing</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">break</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">willFollow</span><span class="p">)</span>
+<span class="w">        </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">followUser</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">revertCallback</span><span class="p">);</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">        </span><span class="n">networkClient</span><span class="o">-&gt;</span><span class="n">unfollowUser</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">revertCallback</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">timerCallback</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Auto-refresh every 60 seconds</span>
+<span class="w">    </span><span class="n">refresh</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillAll</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">background</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Header</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">headerBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">HEADER_HEIGHT</span><span class="p">);</span>
+<span class="w">    </span><span class="n">UI</span><span class="o">::</span><span class="n">drawCard</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">headerBounds</span><span class="p">,</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">backgroundLight</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Header title</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">16.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">listType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Followers&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Following&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">totalCount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="n">title</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="s">&quot; (&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">totalCount</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="w"> </span><span class="n">headerBounds</span><span class="p">.</span><span class="n">withTrimmedLeft</span><span class="p">(</span><span class="mi">15</span><span class="p">),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centredLeft</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Loading indicator</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isLoading</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">12.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Loading...&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">(),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Error message</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">errorMessage</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">buttonDanger</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">12.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">errorMessage</span><span class="p">,</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">(),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Empty state</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">isLoading</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">errorMessage</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">14.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">emptyText</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">listType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ListType</span><span class="o">::</span><span class="n">Followers</span><span class="p">)</span>
+<span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;No followers yet&quot;</span>
+<span class="w">            </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Not following anyone yet&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">emptyText</span><span class="p">,</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">(),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">FollowersList</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Close button</span>
+<span class="w">    </span><span class="n">closeButton</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Header at top</span>
+<span class="w">    </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromTop</span><span class="p">(</span><span class="n">HEADER_HEIGHT</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Viewport fills the rest</span>
+<span class="w">    </span><span class="n">viewport</span><span class="o">-&gt;</span><span class="n">setBounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">);</span>
+<span class="w">    </span><span class="n">contentContainer</span><span class="o">-&gt;</span><span class="n">setSize</span><span class="p">(</span><span class="n">viewport</span><span class="o">-&gt;</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="n">contentContainer</span><span class="o">-&gt;</span><span class="n">getHeight</span><span class="p">());</span>
+<span class="w">    </span><span class="n">updateUsersList</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

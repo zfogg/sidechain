@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File UserCard.h &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File UserCard.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_social_UserCard.h.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-usercard-h">
+<span id="program-listing-file-plugin-source-ui-social-usercard-h"></span><h1>Program Listing for File UserCard.h<a class="headerlink" href="#program-listing-for-file-usercard-h" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_social_UserCard.h.html#file-plugin-source-ui-social-usercard-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/UserCard.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;JuceHeader.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/HoverState.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">DiscoveredUser</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">id</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">username</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">displayName</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">bio</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">avatarUrl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">genre</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">followerCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">postCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">isFollowing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">isOnline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w">       </span><span class="c1">// Online presence indicator</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">isInStudio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w">     </span><span class="c1">// Currently producing in DAW</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">currentDAW</span><span class="p">;</span><span class="w">     </span><span class="c1">// Which DAW they&#39;re using (if in studio)</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">similarityScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span><span class="w">  </span><span class="c1">// For &quot;similar users&quot; results</span>
+
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">DiscoveredUser</span><span class="w"> </span><span class="nf">fromJson</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">json</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">DiscoveredUser</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">isObject</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;username&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">displayName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;display_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">bio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;bio&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">avatarUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;profile_picture_url&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">avatarUrl</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">                </span><span class="n">user</span><span class="p">.</span><span class="n">avatarUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;avatar_url&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">genre</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;genre&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">followerCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;follower_count&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">postCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;post_count&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">));</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">isFollowing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;is_following&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">));</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">isOnline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;is_online&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">));</span>
+<span class="w">            </span><span class="n">user</span><span class="p">.</span><span class="n">similarityScore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;similarity_score&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">));</span>
+
+<span class="w">            </span><span class="c1">// Parse presence info if available</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">presence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;presence&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">());</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">presence</span><span class="p">.</span><span class="n">isObject</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">presence</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;status&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">                </span><span class="n">user</span><span class="p">.</span><span class="n">isOnline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;online&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;in_studio&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="n">user</span><span class="p">.</span><span class="n">isInStudio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;in_studio&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="n">user</span><span class="p">.</span><span class="n">currentDAW</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">presence</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;daw&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="nf">getDisplayNameOrUsername</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">displayName</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">displayName</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserCard</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Component</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">UserCard</span><span class="p">();</span>
+<span class="w">    </span><span class="o">~</span><span class="n">UserCard</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Data binding</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setUser</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">DiscoveredUser</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">DiscoveredUser</span><span class="o">&amp;</span><span class="w"> </span><span class="nf">getUser</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">user</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="nf">getUserId</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Update follow state</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setIsFollowing</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="n">following</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Callbacks</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">DiscoveredUser</span><span class="o">&amp;</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onUserClicked</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">DiscoveredUser</span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">willFollow</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onFollowToggled</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Component overrides</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">resized</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mouseEnter</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mouseExit</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Layout constants</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">CARD_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">72</span><span class="p">;</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">AVATAR_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">48</span><span class="p">;</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">DiscoveredUser</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+<span class="w">    </span><span class="n">HoverState</span><span class="w"> </span><span class="n">hoverState</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Cached avatar image</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="w"> </span><span class="n">avatarImage</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Drawing methods</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawBackground</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawAvatar</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawUserInfo</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawFollowButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawGenreBadge</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Hit testing helpers</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getAvatarBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getUserInfoBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getFollowButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Colors (matching app theme)</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Colors</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">background</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff2d2d32</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">backgroundHover</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff3a3a3e</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">textPrimary</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xffffffff</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">textSecondary</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xffa0a0a0</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">accent</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff00d4ff</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">followButton</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff00d4ff</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">followingButton</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff3a3a3e</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">badge</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff3a3a3e</span><span class="w"> </span><span class="p">};</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">onlineIndicator</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff00d464</span><span class="w"> </span><span class="p">};</span><span class="w">    </span><span class="c1">// Green dot for online</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">inStudioIndicator</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mh">0xff00d4ff</span><span class="w"> </span><span class="p">};</span><span class="w">  </span><span class="c1">// Cyan for &quot;in studio&quot;</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR</span><span class="p">(</span><span class="n">UserCard</span><span class="p">)</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

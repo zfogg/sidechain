@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_a1fd4ae4ec8a59a843153562bb9482a7" kind="dir">
+    <compoundname>notifications</compoundname>
+    <innerfile refid="NotificationBell_8cpp">NotificationBell.cpp</innerfile>
+    <innerfile refid="NotificationBell_8h">NotificationBell.h</innerfile>
+    <innerfile refid="NotificationList_8cpp">NotificationList.cpp</innerfile>
+    <innerfile refid="NotificationList_8h">NotificationList.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/"/>
+  </compounddef>
+</doxygen>

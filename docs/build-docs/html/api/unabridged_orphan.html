@@ -1,0 +1,1296 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Full API &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Full API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/unabridged_orphan.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="full-api">
+<h1>Full API<a class="headerlink" href="#full-api" title="Link to this heading"></a></h1>
+<section id="directories">
+<h2>Directories<a class="headerlink" href="#directories" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_audio.html">Directory audio</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_auth.html">Directory auth</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_common.html">Directory common</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_feed.html">Directory feed</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_messages.html">Directory messages</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_models.html">Directory models</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_network.html">Directory network</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_notifications.html">Directory notifications</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_plugin.html">Directory plugin</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_profile.html">Directory profile</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_recording.html">Directory recording</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_search.html">Directory search</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_social.html">Directory social</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_source.html">Directory source</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_stores.html">Directory stores</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_stories.html">Directory stories</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_ui.html">Directory ui</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dir_util.html">Directory util</a></li>
+</ul>
+</div>
+</section>
+<section id="files">
+<h2>Files<a class="headerlink" href="#files" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedGroup.h.html">File AggregatedFeedGroup.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedGroup.h.html#definition-plugin-source-models-aggregatedfeedgroup-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/AggregatedFeedGroup.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedGroup.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedGroup.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedResponse.h.html">File AggregatedFeedResponse.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedResponse.h.html#definition-plugin-source-models-aggregatedfeedresponse-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/AggregatedFeedResponse.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedResponse.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_AggregatedFeedResponse.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Animation.cpp.html">File Animation.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Animation.cpp.html#definition-plugin-source-util-animation-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Animation.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Animation.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Animation.h.html">File Animation.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Animation.h.html#definition-plugin-source-util-animation-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Animation.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Animation.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Animation.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_asio_compat.h.html">File asio_compat.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_asio_compat.h.html#definition-plugin-source-network-asio-compat-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/asio_compat.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_asio_compat.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_asio_compat.h.html#typedefs">Typedefs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_asio_compat.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Async.cpp.html">File Async.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Async.cpp.html#definition-plugin-source-util-async-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Async.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Async.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Async.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Async.h.html">File Async.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Async.h.html#definition-plugin-source-util-async-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Async.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Async.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Async.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.cpp.html">File AudioCapture.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.cpp.html#definition-plugin-source-audio-audiocapture-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/AudioCapture.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.h.html">File AudioCapture.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.h.html#definition-plugin-source-audio-audiocapture-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/AudioCapture.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_AudioCapture.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.cpp.html">File AudioSnippetRecorder.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.cpp.html#definition-plugin-source-ui-messages-audiosnippetrecorder-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/AudioSnippetRecorder.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.h.html">File AudioSnippetRecorder.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.h.html#definition-plugin-source-ui-messages-audiosnippetrecorder-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/AudioSnippetRecorder.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.cpp.html">File Auth.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.cpp.html#definition-plugin-source-ui-auth-auth-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/auth/Auth.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.h.html">File Auth.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.h.html#definition-plugin-source-ui-auth-auth-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/auth/Auth.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_auth_Auth.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.cpp.html">File BufferAudioPlayer.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.cpp.html#definition-plugin-source-audio-bufferaudioplayer-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/BufferAudioPlayer.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.h.html">File BufferAudioPlayer.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.h.html#definition-plugin-source-audio-bufferaudioplayer-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/BufferAudioPlayer.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_BufferAudioPlayer.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Colors.h.html">File Colors.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Colors.h.html#definition-plugin-source-util-colors-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Colors.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Colors.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Colors.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.cpp.html">File Comment.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.cpp.html#definition-plugin-source-ui-feed-comment-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/Comment.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.h.html">File Comment.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.h.html#definition-plugin-source-ui-feed-comment-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/Comment.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_Comment.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_common_ConnectionIndicator.h.html">File ConnectionIndicator.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_ConnectionIndicator.h.html#definition-plugin-source-ui-common-connectionindicator-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/common/ConnectionIndicator.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_ConnectionIndicator.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_ConnectionIndicator.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Constants.h.html">File Constants.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Constants.h.html#definition-plugin-source-util-constants-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Constants.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Constants.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Constants.h.html#variables">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Constants.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.cpp.html">File EditProfile.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.cpp.html#definition-plugin-source-ui-profile-editprofile-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/EditProfile.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.h.html">File EditProfile.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.h.html#definition-plugin-source-ui-profile-editprofile-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/EditProfile.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_EditProfile.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.cpp.html">File EmojiReactionsPanel.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.cpp.html#definition-plugin-source-ui-feed-emojireactionspanel-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/EmojiReactionsPanel.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.h.html">File EmojiReactionsPanel.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.h.html#definition-plugin-source-ui-feed-emojireactionspanel-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/EmojiReactionsPanel.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_EmojiReactionsPanel.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.cpp.html">File FeedDataManager.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.cpp.html#definition-plugin-source-network-feeddatamanager-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/FeedDataManager.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.h.html">File FeedDataManager.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.h.html#definition-plugin-source-network-feeddatamanager-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/FeedDataManager.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_FeedDataManager.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_FeedPost.cpp.html">File FeedPost.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedPost.cpp.html#definition-plugin-source-models-feedpost-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/FeedPost.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedPost.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_FeedPost.h.html">File FeedPost.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedPost.h.html#definition-plugin-source-models-feedpost-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/FeedPost.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedPost.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedPost.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html">File FeedResponse.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#definition-plugin-source-models-feedresponse-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/FeedResponse.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.cpp.html">File FollowersList.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.cpp.html#definition-plugin-source-ui-social-followerslist-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/FollowersList.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.h.html">File FollowersList.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.h.html#definition-plugin-source-ui-social-followerslist-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/FollowersList.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_FollowersList.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_common_Header.cpp.html">File Header.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_Header.cpp.html#definition-plugin-source-ui-common-header-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/common/Header.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_Header.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_common_Header.h.html">File Header.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_Header.h.html#definition-plugin-source-ui-common-header-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/common/Header.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_Header.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_common_Header.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_HoverState.h.html">File HoverState.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_HoverState.h.html#definition-plugin-source-util-hoverstate-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/HoverState.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_HoverState.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_HoverState.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.cpp.html">File HttpAudioPlayer.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.cpp.html#definition-plugin-source-audio-httpaudioplayer-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/HttpAudioPlayer.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.h.html">File HttpAudioPlayer.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.h.html#definition-plugin-source-audio-httpaudioplayer-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/HttpAudioPlayer.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_HttpAudioPlayer.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_HttpErrorHandler.h.html">File HttpErrorHandler.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_HttpErrorHandler.h.html#definition-plugin-source-util-httperrorhandler-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/HttpErrorHandler.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_HttpErrorHandler.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_HttpErrorHandler.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Image.cpp.html">File Image.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Image.cpp.html#definition-plugin-source-util-image-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Image.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Image.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Image.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Image.h.html">File Image.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Image.h.html#definition-plugin-source-util-image-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Image.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Image.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Image.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_ImageCache.cpp.html">File ImageCache.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.cpp.html#definition-plugin-source-util-imagecache-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/ImageCache.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_ImageCache.h.html">File ImageCache.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.h.html#definition-plugin-source-util-imagecache-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/ImageCache.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_ImageCache.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Json.cpp.html">File Json.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Json.cpp.html#definition-plugin-source-util-json-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Json.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Json.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Json.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Json.h.html">File Json.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Json.h.html#definition-plugin-source-util-json-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Json.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Json.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Json.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html">File KeyDetector.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html#definition-plugin-source-audio-keydetector-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/KeyDetector.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html#variables">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.h.html">File KeyDetector.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.h.html#definition-plugin-source-audio-keydetector-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/KeyDetector.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_KeyDetector.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Log.cpp.html">File Log.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Log.cpp.html#definition-plugin-source-util-log-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Log.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Log.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Log.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Log.h.html">File Log.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Log.h.html#definition-plugin-source-util-log-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Log.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Log.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Log.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_LongPressDetector.h.html">File LongPressDetector.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_LongPressDetector.h.html#definition-plugin-source-util-longpressdetector-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/LongPressDetector.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_LongPressDetector.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_LongPressDetector.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.cpp.html">File MessagesList.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.cpp.html#definition-plugin-source-ui-messages-messageslist-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/MessagesList.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.h.html">File MessagesList.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.h.html#definition-plugin-source-ui-messages-messageslist-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/MessagesList.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessagesList.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.cpp.html">File MessageThread.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.cpp.html#definition-plugin-source-ui-messages-messagethread-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/MessageThread.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.cpp.html#variables">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.h.html">File MessageThread.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.h.html#definition-plugin-source-ui-messages-messagethread-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/MessageThread.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThread.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.cpp.html">File MessageThreadComponent.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.cpp.html#definition-plugin-source-ui-messages-messagethreadcomponent-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/MessageThreadComponent.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.cpp.html#variables">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.h.html">File MessageThreadComponent.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.h.html#definition-plugin-source-ui-messages-messagethreadcomponent-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/MessageThreadComponent.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_messages_MessageThreadComponent.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.cpp.html">File MIDICapture.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.cpp.html#definition-plugin-source-audio-midicapture-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/MIDICapture.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html">File MIDICapture.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html#definition-plugin-source-audio-midicapture-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/MIDICapture.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_NetworkClient.cpp.html">File NetworkClient.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_NetworkClient.cpp.html#definition-plugin-source-network-networkclient-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/NetworkClient.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_NetworkClient.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_NetworkClient.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_NetworkClient.h.html">File NetworkClient.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_NetworkClient.h.html#definition-plugin-source-network-networkclient-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/NetworkClient.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_NetworkClient.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_NetworkClient.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.cpp.html">File NotificationBell.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.cpp.html#definition-plugin-source-ui-notifications-notificationbell-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/notifications/NotificationBell.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.h.html">File NotificationBell.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.h.html#definition-plugin-source-ui-notifications-notificationbell-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/notifications/NotificationBell.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationBell.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.cpp.html">File NotificationList.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.cpp.html#definition-plugin-source-ui-notifications-notificationlist-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/notifications/NotificationList.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html">File NotificationList.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#definition-plugin-source-ui-notifications-notificationlist-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/notifications/NotificationList.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_notifications_NotificationList.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.cpp.html">File PianoRoll.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.cpp.html#definition-plugin-source-ui-stories-pianoroll-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/PianoRoll.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.cpp.html#variables">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.h.html">File PianoRoll.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.h.html#definition-plugin-source-ui-stories-pianoroll-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/PianoRoll.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_PianoRoll.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_PluginEditor.cpp.html">File PluginEditor.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginEditor.cpp.html#definition-plugin-source-plugineditor-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/PluginEditor.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginEditor.cpp.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginEditor.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_PluginEditor.h.html">File PluginEditor.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginEditor.h.html#definition-plugin-source-plugineditor-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/PluginEditor.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginEditor.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginEditor.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_PluginProcessor.cpp.html">File PluginProcessor.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginProcessor.cpp.html#definition-plugin-source-pluginprocessor-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/PluginProcessor.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginProcessor.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginProcessor.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_PluginProcessor.h.html">File PluginProcessor.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginProcessor.h.html#definition-plugin-source-pluginprocessor-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/PluginProcessor.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginProcessor.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_PluginProcessor.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.cpp.html">File PostCard.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.cpp.html#definition-plugin-source-ui-feed-postcard-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/PostCard.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.h.html">File PostCard.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.h.html#definition-plugin-source-ui-feed-postcard-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/PostCard.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostCard.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.cpp.html">File PostsFeed.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.cpp.html#definition-plugin-source-ui-feed-postsfeed-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/PostsFeed.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.h.html">File PostsFeed.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.h.html#definition-plugin-source-ui-feed-postsfeed-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/PostsFeed.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.cpp.html">File Profile.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.cpp.html#definition-plugin-source-ui-profile-profile-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/Profile.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.h.html">File Profile.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.h.html#definition-plugin-source-ui-profile-profile-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/Profile.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_Profile.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.cpp.html">File ProfileSetup.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.cpp.html#definition-plugin-source-ui-profile-profilesetup-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/ProfileSetup.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.h.html">File ProfileSetup.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.h.html#definition-plugin-source-ui-profile-profilesetup-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/ProfileSetup.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.cpp.html">File Recording.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.cpp.html#definition-plugin-source-ui-recording-recording-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/recording/Recording.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.h.html">File Recording.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.h.html#definition-plugin-source-ui-recording-recording-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/recording/Recording.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Recording.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Result.h.html">File Result.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Result.h.html#definition-plugin-source-util-result-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Result.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Result.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Result.h.html#typedefs">Typedefs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Result.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_search_Search.cpp.html">File Search.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_search_Search.cpp.html#definition-plugin-source-ui-search-search-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/search/Search.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_search_Search.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_search_Search.h.html">File Search.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_search_Search.h.html#definition-plugin-source-ui-search-search-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/search/Search.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_search_Search.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_search_Search.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.cpp.html">File StoriesFeed.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.cpp.html#definition-plugin-source-ui-stories-storiesfeed-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoriesFeed.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.h.html">File StoriesFeed.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.h.html#definition-plugin-source-ui-stories-storiesfeed-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoriesFeed.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoriesFeed.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_Story.cpp.html">File Story.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_Story.cpp.html#definition-plugin-source-models-story-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/Story.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_Story.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_models_Story.h.html">File Story.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_Story.h.html#definition-plugin-source-models-story-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/models/Story.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_Story.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_models_Story.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.cpp.html">File StoryRecording.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.cpp.html#definition-plugin-source-ui-stories-storyrecording-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoryRecording.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.h.html">File StoryRecording.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.h.html#definition-plugin-source-ui-stories-storyrecording-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoryRecording.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryRecording.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.cpp.html">File StoryViewer.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.cpp.html#definition-plugin-source-ui-stories-storyviewer-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoryViewer.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.cpp.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.h.html">File StoryViewer.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.h.html#definition-plugin-source-ui-stories-storyviewer-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/stories/StoryViewer.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_stories_StoryViewer.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.cpp.html">File StreamChatClient.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.cpp.html#definition-plugin-source-network-streamchatclient-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/StreamChatClient.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.cpp.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.h.html">File StreamChatClient.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.h.html#definition-plugin-source-network-streamchatclient-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/StreamChatClient.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_StreamChatClient.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_StringFormatter.cpp.html">File StringFormatter.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_StringFormatter.cpp.html#definition-plugin-source-util-stringformatter-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/StringFormatter.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_StringFormatter.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_StringFormatter.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_StringFormatter.h.html">File StringFormatter.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_StringFormatter.h.html#definition-plugin-source-util-stringformatter-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/StringFormatter.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_StringFormatter.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_StringFormatter.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.cpp.html">File TextEditorStyler.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.cpp.html#definition-plugin-source-util-texteditorstyler-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/TextEditorStyler.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.h.html">File TextEditorStyler.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.h.html#definition-plugin-source-util-texteditorstyler-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/TextEditorStyler.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_TextEditorStyler.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Time.cpp.html">File Time.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Time.cpp.html#definition-plugin-source-util-time-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Time.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Time.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Time.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Time.h.html">File Time.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Time.h.html#definition-plugin-source-util-time-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Time.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Time.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Time.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_UIHelpers.cpp.html">File UIHelpers.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_UIHelpers.cpp.html#definition-plugin-source-util-uihelpers-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/UIHelpers.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_UIHelpers.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_UIHelpers.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_UIHelpers.h.html">File UIHelpers.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_UIHelpers.h.html#definition-plugin-source-util-uihelpers-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/UIHelpers.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_UIHelpers.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_UIHelpers.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.cpp.html">File Upload.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.cpp.html#definition-plugin-source-ui-recording-upload-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/recording/Upload.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.h.html">File Upload.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.h.html#definition-plugin-source-ui-recording-upload-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/recording/Upload.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_recording_Upload.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.cpp.html">File UserCard.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.cpp.html#definition-plugin-source-ui-social-usercard-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/UserCard.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.h.html">File UserCard.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.h.html#definition-plugin-source-ui-social-usercard-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/UserCard.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserCard.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.cpp.html">File UserDataStore.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.cpp.html#definition-plugin-source-stores-userdatastore-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/stores/UserDataStore.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.h.html">File UserDataStore.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.h.html#definition-plugin-source-stores-userdatastore-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/stores/UserDataStore.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_stores_UserDataStore.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.cpp.html">File UserDiscovery.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.cpp.html#definition-plugin-source-ui-social-userdiscovery-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/UserDiscovery.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.h.html">File UserDiscovery.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.h.html#definition-plugin-source-ui-social-userdiscovery-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/social/UserDiscovery.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_ui_social_UserDiscovery.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Validate.cpp.html">File Validate.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Validate.cpp.html#definition-plugin-source-util-validate-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Validate.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Validate.cpp.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Validate.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_util_Validate.h.html">File Validate.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Validate.h.html#definition-plugin-source-util-validate-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Validate.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Validate.h.html#namespaces">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_util_Validate.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.cpp.html">File WebSocketClient.cpp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.cpp.html#definition-plugin-source-network-websocketclient-cpp">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/WebSocketClient.cpp</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.cpp.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.h.html">File WebSocketClient.h</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.h.html#definition-plugin-source-network-websocketclient-h">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/WebSocketClient.h</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.h.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file_plugin_source_network_WebSocketClient.h.html#full-file-listing">Full File Listing</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceasio_1_1io__context__work" kind="namespace" language="C++">
+    <compoundname>asio::io_context_work</compoundname>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="asio__compat_8h_1aea270ba8cf9482d8ead272dec6946057" prot="public" static="no">
+        <type>executor_work_guard&lt; io_context::executor_type &gt;</type>
+        <definition>using asio::io_context_work::work =  executor_work_guard&lt;io_context::executor_type&gt;</definition>
+        <argsstring></argsstring>
+        <name>work</name>
+        <qualifiedname>asio::io_context_work::work</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/asio_compat.h" line="37" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/asio_compat.h" bodystart="37" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/asio_compat.h" line="36" column="5"/>
+  </compounddef>
+</doxygen>

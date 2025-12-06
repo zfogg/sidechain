@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File PluginProcessor.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File PluginProcessor.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_PluginProcessor.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-pluginprocessor-cpp">
+<span id="program-listing-file-plugin-source-pluginprocessor-cpp"></span><h1>Program Listing for File PluginProcessor.cpp<a class="headerlink" href="#program-listing-for-file-pluginprocessor-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_PluginProcessor.cpp.html#file-plugin-source-pluginprocessor-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/PluginProcessor.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;PluginProcessor.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;PluginEditor.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;audio/BufferAudioPlayer.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;util/Log.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">SidechainAudioProcessor</span><span class="p">()</span>
+<span class="cp">#ifndef JucePlugin_PreferredChannelConfigurations</span>
+<span class="w">     </span><span class="o">:</span><span class="w"> </span><span class="n">AudioProcessor</span><span class="w"> </span><span class="p">(</span><span class="n">BusesProperties</span><span class="p">()</span>
+<span class="w">                     </span><span class="cp">#if ! JucePlugin_IsMidiEffect</span>
+<span class="w">                      </span><span class="cp">#if ! JucePlugin_IsSynth</span>
+<span class="w">                       </span><span class="p">.</span><span class="n">withInput</span><span class="w">  </span><span class="p">(</span><span class="s">&quot;Input&quot;</span><span class="p">,</span><span class="w">  </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioChannelSet</span><span class="o">::</span><span class="n">stereo</span><span class="p">(),</span><span class="w"> </span><span class="nb">true</span><span class="p">)</span>
+<span class="w">                      </span><span class="cp">#endif</span>
+<span class="w">                       </span><span class="p">.</span><span class="n">withOutput</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Output&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioChannelSet</span><span class="o">::</span><span class="n">stereo</span><span class="p">(),</span><span class="w"> </span><span class="nb">true</span><span class="p">)</span>
+<span class="w">                     </span><span class="cp">#endif</span>
+<span class="w">                       </span><span class="p">)</span>
+<span class="cp">#endif</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Simple initialization for now</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Plugin initialized&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">SidechainAudioProcessor</span><span class="o">::~</span><span class="n">SidechainAudioProcessor</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Destroying&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getName</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">JucePlugin_Name</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">acceptsMidi</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="cp">#if JucePlugin_WantsMidiInput</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#else</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#endif</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">producesMidi</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="cp">#if JucePlugin_ProducesMidiOutput</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#else</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#endif</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">isMidiEffect</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="cp">#if JucePlugin_IsMidiEffect</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#else</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#endif</span>
+<span class="p">}</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getTailLengthSeconds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getNumPrograms</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">   </span><span class="c1">// NB: some hosts don&#39;t cope very well if you tell them there are 0 programs,</span>
+<span class="w">                </span><span class="c1">// so this should be at least 1, even if you&#39;re not really implementing programs.</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getCurrentProgram</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">setCurrentProgram</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="p">}</span>
+
+<span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getProgramName</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">{};</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">changeProgramName</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">newName</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">prepareToPlay</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplesPerBlock</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">currentSampleRate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">;</span>
+<span class="w">    </span><span class="n">currentBlockSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">samplesPerBlock</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Prepare audio capture with current settings</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numChannels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getTotalNumInputChannels</span><span class="p">();</span>
+<span class="w">    </span><span class="n">audioCapture</span><span class="p">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="n">samplesPerBlock</span><span class="p">,</span><span class="w"> </span><span class="n">numChannels</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Prepare MIDI capture</span>
+<span class="w">    </span><span class="n">midiCapture</span><span class="p">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="n">samplesPerBlock</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Prepare audio player for feed playback</span>
+<span class="w">    </span><span class="n">audioPlayer</span><span class="p">.</span><span class="n">prepareToPlay</span><span class="p">(</span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="n">samplesPerBlock</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Prepared - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">sampleRate</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;Hz, &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">samplesPerBlock</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; samples, &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">numChannels</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; channels&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">releaseResources</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Releasing resources&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">audioPlayer</span><span class="p">.</span><span class="n">releaseResources</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="cp">#ifndef JucePlugin_PreferredChannelConfigurations</span>
+<span class="kt">bool</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">isBusesLayoutSupported</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">BusesLayout</span><span class="o">&amp;</span><span class="w"> </span><span class="n">layouts</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="cp">#if JucePlugin_IsMidiEffect</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">ignoreUnused</span><span class="w"> </span><span class="p">(</span><span class="n">layouts</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">  </span><span class="cp">#else</span>
+<span class="w">    </span><span class="c1">// This is the place where you check if the layout is supported.</span>
+<span class="w">    </span><span class="c1">// In this template code we only support mono or stereo.</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">layouts</span><span class="p">.</span><span class="n">getMainOutputChannelSet</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioChannelSet</span><span class="o">::</span><span class="n">mono</span><span class="p">()</span>
+<span class="w">     </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">layouts</span><span class="p">.</span><span class="n">getMainOutputChannelSet</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioChannelSet</span><span class="o">::</span><span class="n">stereo</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// This checks if the input layout matches the output layout</span>
+<span class="w">   </span><span class="cp">#if ! JucePlugin_IsSynth</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">layouts</span><span class="p">.</span><span class="n">getMainOutputChannelSet</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">layouts</span><span class="p">.</span><span class="n">getMainInputChannelSet</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">   </span><span class="cp">#endif</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">  </span><span class="cp">#endif</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">processBlock</span><span class="w"> </span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MidiBuffer</span><span class="o">&amp;</span><span class="w"> </span><span class="n">midiMessages</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">ScopedNoDenormals</span><span class="w"> </span><span class="n">noDenormals</span><span class="p">;</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">totalNumInputChannels</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">getTotalNumInputChannels</span><span class="p">();</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">totalNumOutputChannels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getTotalNumOutputChannels</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Clear any output channels that don&#39;t contain input data</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">totalNumInputChannels</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">totalNumOutputChannels</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="n">buffer</span><span class="p">.</span><span class="n">clear</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Read transport info from DAW via AudioPlayHead</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">playHead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getPlayHead</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">playHead</span><span class="o">-&gt;</span><span class="n">getPosition</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Get BPM</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">bpm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">position</span><span class="o">-&gt;</span><span class="n">getBpm</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">currentBPM</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="o">*</span><span class="n">bpm</span><span class="p">);</span>
+<span class="w">                </span><span class="n">bpmAvailable</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">bpmAvailable</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// Detect DAW transport state changes for audio focus</span>
+<span class="w">            </span><span class="kt">bool</span><span class="w"> </span><span class="n">isDAWPlaying</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">position</span><span class="o">-&gt;</span><span class="n">getIsPlaying</span><span class="p">();</span>
+<span class="w">            </span><span class="kt">bool</span><span class="w"> </span><span class="n">wasDAWPlaying</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dawTransportPlaying</span><span class="p">.</span><span class="n">load</span><span class="p">();</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isDAWPlaying</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">wasDAWPlaying</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">dawTransportPlaying</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">isDAWPlaying</span><span class="p">);</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: DAW transport state changed - playing: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">isDAWPlaying</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span><span class="p">));</span>
+
+<span class="w">                </span><span class="c1">// Notify audio player on message thread (not audio thread)</span>
+<span class="w">                </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">isDAWPlaying</span><span class="p">]()</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isDAWPlaying</span><span class="p">)</span>
+<span class="w">                        </span><span class="n">audioPlayer</span><span class="p">.</span><span class="n">onDAWTransportStarted</span><span class="p">();</span>
+<span class="w">                    </span><span class="k">else</span>
+<span class="w">                        </span><span class="n">audioPlayer</span><span class="p">.</span><span class="n">onDAWTransportStopped</span><span class="p">();</span>
+<span class="w">                </span><span class="p">});</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Capture audio for recording (lock-free, called on audio thread)</span>
+<span class="w">    </span><span class="c1">// This captures the incoming audio before any processing</span>
+<span class="w">    </span><span class="n">audioCapture</span><span class="p">.</span><span class="n">captureAudio</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Capture MIDI events for stories (lock-free, called on audio thread)</span>
+<span class="w">    </span><span class="n">midiCapture</span><span class="p">.</span><span class="n">captureMIDI</span><span class="p">(</span><span class="n">midiMessages</span><span class="p">,</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">(),</span><span class="w"> </span><span class="n">currentSampleRate</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Mix in feed audio playback (adds to the output buffer)</span>
+<span class="w">    </span><span class="c1">// This allows users to hear posts while working in their DAW</span>
+<span class="w">    </span><span class="n">audioPlayer</span><span class="p">.</span><span class="n">processBlock</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Mix in buffer audio player (for story preview)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">bufferAudioPlayer</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">bufferAudioPlayer</span><span class="o">-&gt;</span><span class="n">processBlock</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">bool</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">hasEditor</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"> </span><span class="c1">// We want a UI for the social feed</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">AudioProcessorEditor</span><span class="o">*</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">createEditor</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Creating editor&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SidechainAudioProcessorEditor</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getStateInformation</span><span class="w"> </span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">MemoryBlock</span><span class="o">&amp;</span><span class="w"> </span><span class="n">destData</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Save plugin state (simplified)</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Saving state&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ValueTree</span><span class="p">(</span><span class="s">&quot;SidechainState&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">state</span><span class="p">.</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;authenticated&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">authenticated</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">xml</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">createXml</span><span class="p">())</span>
+<span class="w">        </span><span class="n">copyXmlToBinary</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">xml</span><span class="p">,</span><span class="w"> </span><span class="n">destData</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">setStateInformation</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sizeInBytes</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Restore plugin state (simplified)</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Restoring state&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">xml</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getXmlFromBinary</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">sizeInBytes</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ValueTree</span><span class="o">::</span><span class="n">fromXml</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">xml</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">authenticated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;authenticated&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: State restored - authenticated: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">authenticated</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span><span class="p">));</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Invalid state data&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Failed to parse state data&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Audio Recording API</span>
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">startRecording</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Generate a unique recording ID</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">recordingId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Uuid</span><span class="p">().</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">    </span><span class="n">audioCapture</span><span class="p">.</span><span class="n">startRecording</span><span class="p">(</span><span class="n">recordingId</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Start MIDI capture simultaneously</span>
+<span class="w">    </span><span class="n">midiCapture</span><span class="p">.</span><span class="n">startCapture</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Started recording - ID: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">recordingId</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">stopRecording</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">lastRecordedAudio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">audioCapture</span><span class="p">.</span><span class="n">stopRecording</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Stop MIDI capture</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">midiEvents</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">midiCapture</span><span class="p">.</span><span class="n">stopCapture</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lastRecordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">())</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">currentSampleRate</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;SidechainAudioProcessor: Stopped recording - &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">              </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">lastRecordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; samples, &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">              </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; seconds, &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">              </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">midiEvents</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; MIDI events&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="o">::</span><span class="n">getRecordedAudio</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">lastRecordedAudio</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// This creates new instances of the plugin..</span>
+<span class="n">juce</span><span class="o">::</span><span class="n">AudioProcessor</span><span class="o">*</span><span class="w"> </span><span class="n">JUCE_CALLTYPE</span><span class="w"> </span><span class="n">createPluginFilter</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SidechainAudioProcessor</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

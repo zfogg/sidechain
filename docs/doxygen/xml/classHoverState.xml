@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classHoverState" kind="class" language="C++" prot="public">
+    <compoundname>HoverState</compoundname>
+    <includes refid="HoverState_8h" local="no">HoverState.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classHoverState_1a288dec6be82ebe3a1fe13bfa97911c97" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(bool <ref refid="classHoverState_1aee878351c666908cd00031e065c5edfe" kindref="member">isHovered</ref>)&gt;</type>
+        <definition>std::function&lt;void(bool isHovered)&gt; HoverState::onHoverChanged</definition>
+        <argsstring></argsstring>
+        <name>onHoverChanged</name>
+        <qualifiedname>HoverState::onHoverChanged</qualifiedname>
+        <briefdescription>
+<para>Called when hover state changes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="66" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classHoverState_1a180740bf96d6ba504a0a751418649b5e" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool HoverState::isHoveredState</definition>
+        <argsstring></argsstring>
+        <name>isHoveredState</name>
+        <qualifiedname>HoverState::isHoveredState</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="69" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classHoverState_1aa329e023996e5db4d501e4b2657760b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>HoverState::HoverState</definition>
+        <argsstring>()=default</argsstring>
+        <name>HoverState</name>
+        <qualifiedname>HoverState::HoverState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="32" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="classHoverState_1ae51760870832b029d58fa8afc17b691d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void HoverState::setHovered</definition>
+        <argsstring>(bool hovered)</argsstring>
+        <name>setHovered</name>
+        <qualifiedname>HoverState::setHovered</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>hovered</declname>
+        </param>
+        <briefdescription>
+<para>Set hover state and trigger callback if changed. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="40" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="40" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="function" id="classHoverState_1aee878351c666908cd00031e065c5edfe" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool HoverState::isHovered</definition>
+        <argsstring>() const</argsstring>
+        <name>isHovered</name>
+        <qualifiedname>HoverState::isHovered</qualifiedname>
+        <briefdescription>
+<para>Check if currently hovered. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="53" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="53" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="function" id="classHoverState_1ac4fcbb0c858e9debd7728077d002d353" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void HoverState::reset</definition>
+        <argsstring>()</argsstring>
+        <name>reset</name>
+        <qualifiedname>HoverState::reset</qualifiedname>
+        <briefdescription>
+<para>Reset hover state without triggering callback. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="58" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="58" bodyend="58"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classHoverState" kindref="compound">HoverState</ref> - Mouse hover state management. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Tracks hover state for a component and provides callbacks for state changes. Handles mouse cursor changes and hover-based styling.</para>
+<para>Usage: class MyComponent : public juce::Component { <ref refid="classHoverState" kindref="compound">HoverState</ref> hoverState;</para>
+<para>MyComponent() { hoverState.onHoverChanged = [this](bool h) { repaint(); }; }</para>
+<para>void mouseEnter(const juce::MouseEvent&amp;) override { hoverState.setHovered(true); } void mouseExit(const juce::MouseEvent&amp;) override { hoverState.setHovered(false); }</para>
+<para>void paint(juce::Graphics&amp; g) override { g.setColour(hoverState.isHovered() ? hoverColor : normalColor); } }; </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="29" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="30" bodyend="70"/>
+    <listofallmembers>
+      <member refid="classHoverState_1aa329e023996e5db4d501e4b2657760b2" prot="public" virt="non-virtual"><scope>HoverState</scope><name>HoverState</name></member>
+      <member refid="classHoverState_1aee878351c666908cd00031e065c5edfe" prot="public" virt="non-virtual"><scope>HoverState</scope><name>isHovered</name></member>
+      <member refid="classHoverState_1a180740bf96d6ba504a0a751418649b5e" prot="private" virt="non-virtual"><scope>HoverState</scope><name>isHoveredState</name></member>
+      <member refid="classHoverState_1a288dec6be82ebe3a1fe13bfa97911c97" prot="public" virt="non-virtual"><scope>HoverState</scope><name>onHoverChanged</name></member>
+      <member refid="classHoverState_1ac4fcbb0c858e9debd7728077d002d353" prot="public" virt="non-virtual"><scope>HoverState</scope><name>reset</name></member>
+      <member refid="classHoverState_1ae51760870832b029d58fa8afc17b691d" prot="public" virt="non-virtual"><scope>HoverState</scope><name>setHovered</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

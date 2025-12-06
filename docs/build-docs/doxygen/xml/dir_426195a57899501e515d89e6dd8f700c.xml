@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_426195a57899501e515d89e6dd8f700c" kind="dir">
+    <compoundname>util</compoundname>
+    <innerfile refid="Animation_8cpp">Animation.cpp</innerfile>
+    <innerfile refid="Animation_8h">Animation.h</innerfile>
+    <innerfile refid="Async_8cpp">Async.cpp</innerfile>
+    <innerfile refid="Async_8h">Async.h</innerfile>
+    <innerfile refid="Colors_8h">Colors.h</innerfile>
+    <innerfile refid="Constants_8h">Constants.h</innerfile>
+    <innerfile refid="HoverState_8h">HoverState.h</innerfile>
+    <innerfile refid="HttpErrorHandler_8h">HttpErrorHandler.h</innerfile>
+    <innerfile refid="Image_8cpp">Image.cpp</innerfile>
+    <innerfile refid="Image_8h">Image.h</innerfile>
+    <innerfile refid="ImageCache_8cpp">ImageCache.cpp</innerfile>
+    <innerfile refid="ImageCache_8h">ImageCache.h</innerfile>
+    <innerfile refid="Json_8cpp">Json.cpp</innerfile>
+    <innerfile refid="Json_8h">Json.h</innerfile>
+    <innerfile refid="Log_8cpp">Log.cpp</innerfile>
+    <innerfile refid="Log_8h">Log.h</innerfile>
+    <innerfile refid="LongPressDetector_8h">LongPressDetector.h</innerfile>
+    <innerfile refid="Result_8h">Result.h</innerfile>
+    <innerfile refid="StringFormatter_8cpp">StringFormatter.cpp</innerfile>
+    <innerfile refid="StringFormatter_8h">StringFormatter.h</innerfile>
+    <innerfile refid="TextEditorStyler_8cpp">TextEditorStyler.cpp</innerfile>
+    <innerfile refid="TextEditorStyler_8h">TextEditorStyler.h</innerfile>
+    <innerfile refid="Time_8cpp">Time.cpp</innerfile>
+    <innerfile refid="Time_8h">Time.h</innerfile>
+    <innerfile refid="UIHelpers_8cpp">UIHelpers.cpp</innerfile>
+    <innerfile refid="UIHelpers_8h">UIHelpers.h</innerfile>
+    <innerfile refid="Validate_8cpp">Validate.cpp</innerfile>
+    <innerfile refid="Validate_8h">Validate.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/"/>
+  </compounddef>
+</doxygen>

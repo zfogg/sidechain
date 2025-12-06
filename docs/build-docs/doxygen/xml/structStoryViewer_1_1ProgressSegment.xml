@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structStoryViewer_1_1ProgressSegment" kind="struct" language="C++" prot="private">
+    <compoundname>StoryViewer::ProgressSegment</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structStoryViewer_1_1ProgressSegment_1a5d630c25c69438578da77f913402bd1e" prot="public" static="no" mutable="no">
+        <type>float</type>
+        <definition>float StoryViewer::ProgressSegment::progress</definition>
+        <argsstring></argsstring>
+        <name>progress</name>
+        <qualifiedname>StoryViewer::ProgressSegment::progress</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="98" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStoryViewer_1_1ProgressSegment_1acaecdde29088f36be4ba30a517c65c58" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool StoryViewer::ProgressSegment::completed</definition>
+        <argsstring></argsstring>
+        <name>completed</name>
+        <qualifiedname>StoryViewer::ProgressSegment::completed</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="99" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" line="96" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoryViewer.h" bodystart="97" bodyend="100"/>
+    <listofallmembers>
+      <member refid="structStoryViewer_1_1ProgressSegment_1acaecdde29088f36be4ba30a517c65c58" prot="public" virt="non-virtual"><scope>StoryViewer::ProgressSegment</scope><name>completed</name></member>
+      <member refid="structStoryViewer_1_1ProgressSegment_1a5d630c25c69438578da77f913402bd1e" prot="public" virt="non-virtual"><scope>StoryViewer::ProgressSegment</scope><name>progress</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

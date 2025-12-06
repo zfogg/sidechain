@@ -1,0 +1,475 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceValidate" kind="namespace" language="C++">
+    <compoundname>Validate</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceValidate_1a95125fe8c590a9d36a483bac58f48c39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isEmail</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isEmail</name>
+        <qualifiedname>Validate::isEmail</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is a valid email address. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Uses a practical regex that catches most invalid emails without being overly strict. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="10" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="10" bodyend="24" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="25" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1aed0dea949aa1330d34a9bf1d9973841a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isUrl</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isUrl</name>
+        <qualifiedname>Validate::isUrl</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is a valid URL (<ulink url="http://">http://</ulink> or <ulink url="https://">https://</ulink>). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="26" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="26" bodyend="42" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="30" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a7cf48901d9a900d758205953f2d9e3f1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isUsername</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isUsername</name>
+        <qualifiedname>Validate::isUsername</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is a valid username. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Rules: alphanumeric + underscore, 3-30 characters, starts with letter. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="44" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="44" bodyend="66" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="36" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a64d3681f91288e080aab022d6a8db574" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isDisplayName</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isDisplayName</name>
+        <qualifiedname>Validate::isDisplayName</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is a valid display name. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Rules: 1-50 characters, no control characters. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="68" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="68" bodyend="86" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="42" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a2a3fa5f061f136138ca2cd649437aa42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isUuid</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isUuid</name>
+        <qualifiedname>Validate::isUuid</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string looks like a valid UUID. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="88" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="88" bodyend="100" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="47" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a5bcd9bedba193d4d740f9d8119e7ed73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::inRange</definition>
+        <argsstring>(int val, int min, int max)</argsstring>
+        <name>inRange</name>
+        <qualifiedname>Validate::inRange</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>val</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>min</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>max</declname>
+        </param>
+        <briefdescription>
+<para>Check if integer is within range [min, max] (inclusive). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="105" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="105" bodyend="108" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="55" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1aa0988a30cd59bce6c6febb5db983a8d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::inRange</definition>
+        <argsstring>(float val, float min, float max)</argsstring>
+        <name>inRange</name>
+        <qualifiedname>Validate::inRange</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>val</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>min</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>max</declname>
+        </param>
+        <briefdescription>
+<para>Check if float is within range [min, max] (inclusive). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="110" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="110" bodyend="113" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="60" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a337edbbdfc8ee8758e4d29f82ff0c5be" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::lengthInRange</definition>
+        <argsstring>(const juce::String &amp;str, int minLen, int maxLen)</argsstring>
+        <name>lengthInRange</name>
+        <qualifiedname>Validate::lengthInRange</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>minLen</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxLen</declname>
+        </param>
+        <briefdescription>
+<para>Check if string length is within range [min, max] (inclusive). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="115" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="115" bodyend="119" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="65" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1ad7c02830813a6434a14e73c2589d373d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isBlank</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isBlank</name>
+        <qualifiedname>Validate::isBlank</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is empty or contains only whitespace. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="124" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="124" bodyend="127" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="73" declcolumn="10"/>
+        <referencedby refid="namespaceValidate_1a9aced7b0dc1685acac86ce178213d34d" compoundref="Validate_8cpp" startline="129" endline="132">isNotBlank</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a9aced7b0dc1685acac86ce178213d34d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isNotBlank</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isNotBlank</name>
+        <qualifiedname>Validate::isNotBlank</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is not empty and not just whitespace. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="129" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="129" bodyend="132" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="78" declcolumn="10"/>
+        <references refid="namespaceValidate_1ad7c02830813a6434a14e73c2589d373d" compoundref="Validate_8cpp" startline="124" endline="127">isBlank</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1afb0f29d6e2b40b220a5df263df507ea4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isAlphanumeric</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isAlphanumeric</name>
+        <qualifiedname>Validate::isAlphanumeric</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string contains only alphanumeric characters. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="134" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="134" bodyend="146" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="83" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1aa48c7eda9925763fad2e9087a7e65df4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isNumeric</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isNumeric</name>
+        <qualifiedname>Validate::isNumeric</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string contains only digits. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="148" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="148" bodyend="160" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="88" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a15ae4efa3f1fa3477431d722725fc138" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isValidJson</definition>
+        <argsstring>(const juce::String &amp;str)</argsstring>
+        <name>isValidJson</name>
+        <qualifiedname>Validate::isValidJson</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>str</declname>
+        </param>
+        <briefdescription>
+<para>Check if string is valid JSON. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="162" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="162" bodyend="170" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="93" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a6ebeaec5c1fd6ba870a1a50244e69596" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isValidBpm</definition>
+        <argsstring>(float bpm)</argsstring>
+        <name>isValidBpm</name>
+        <qualifiedname>Validate::isValidBpm</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>bpm</declname>
+        </param>
+        <briefdescription>
+<para>Check if BPM is in valid range (20-300). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="175" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="175" bodyend="178" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="101" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a4d6370a510e1c3decb062440d8c945b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isValidKey</definition>
+        <argsstring>(const juce::String &amp;key)</argsstring>
+        <name>isValidKey</name>
+        <qualifiedname>Validate::isValidKey</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+<para>Check if musical key is valid (e.g., &quot;C&quot;, &quot;Am&quot;, &quot;F#m&quot;, &quot;Bb&quot;). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="180" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="180" bodyend="193" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="106" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a8141056943c43acaad8d4c5726780014" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Validate::isValidDuration</definition>
+        <argsstring>(float seconds)</argsstring>
+        <name>isValidDuration</name>
+        <qualifiedname>Validate::isValidDuration</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>seconds</declname>
+        </param>
+        <briefdescription>
+<para>Check if duration is valid (positive, reasonable for a loop: 0.1s - 300s). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="195" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="195" bodyend="198" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="111" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a322e805129fefa712a0ef9b90e18d4b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Validate::sanitizeUsername</definition>
+        <argsstring>(const juce::String &amp;input)</argsstring>
+        <name>sanitizeUsername</name>
+        <qualifiedname>Validate::sanitizeUsername</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+<para>Sanitize username: lowercase, remove invalid chars, truncate. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns empty string if input can&apos;t be made valid. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="203" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="203" bodyend="235" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="120" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a34ab0066d12b44df9d74bf4309409703" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Validate::sanitizeDisplayName</definition>
+        <argsstring>(const juce::String &amp;input)</argsstring>
+        <name>sanitizeDisplayName</name>
+        <qualifiedname>Validate::sanitizeDisplayName</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+<para>Sanitize display name: trim whitespace, normalize spaces, truncate. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="237" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="237" bodyend="261" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="125" declcolumn="18"/>
+        <references refid="namespaceValidate_1a5c3fb2822ba981d258328267e355fb4e" compoundref="Validate_8cpp" startline="320" endline="354">normalizeWhitespace</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a7f7bded9b08540c783bcf95d07c12e87" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Validate::escapeHtml</definition>
+        <argsstring>(const juce::String &amp;input)</argsstring>
+        <name>escapeHtml</name>
+        <qualifiedname>Validate::escapeHtml</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+<para>Escape HTML special characters to prevent XSS. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Converts: &amp; &lt; &gt; " &apos; to HTML entities. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="263" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="263" bodyend="287" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="131" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1ab7060d6c5950be20187bac52a2aba9b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Validate::stripHtml</definition>
+        <argsstring>(const juce::String &amp;input)</argsstring>
+        <name>stripHtml</name>
+        <qualifiedname>Validate::stripHtml</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+<para>Remove all HTML tags from string. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="289" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="289" bodyend="318" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="136" declcolumn="18"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a5c3fb2822ba981d258328267e355fb4e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Validate::normalizeWhitespace</definition>
+        <argsstring>(const juce::String &amp;input)</argsstring>
+        <name>normalizeWhitespace</name>
+        <qualifiedname>Validate::normalizeWhitespace</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>input</declname>
+        </param>
+        <briefdescription>
+<para>Trim and collapse multiple whitespace to single spaces. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="320" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="320" bodyend="354" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="141" declcolumn="18"/>
+        <referencedby refid="namespaceValidate_1a34ab0066d12b44df9d74bf4309409703" compoundref="Validate_8cpp" startline="237" endline="261">sanitizeDisplayName</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceValidate_1a71abf1746885fcbe4e0ff547273eb7dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Validate::truncate</definition>
+        <argsstring>(const juce::String &amp;input, int maxLength, bool addEllipsis=true)</argsstring>
+        <name>truncate</name>
+        <qualifiedname>Validate::truncate</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>input</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxLength</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>addEllipsis</declname>
+        </param>
+        <briefdescription>
+<para>Truncate string to max length, optionally adding ellipsis. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="356" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" bodystart="356" bodyend="370" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.h" declline="146" declcolumn="18"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="namespaceValidate" kindref="compound">Validate</ref> - Input validation and sanitization utilities. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Centralizes validation logic that was previously scattered across the codebase. All functions are stateless and thread-safe.</para>
+<para>Usage: if (Validate::isEmail(email)) { ... } auto cleanUsername = Validate::sanitizeUsername(input); </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Validate.cpp" line="4" column="1"/>
+  </compounddef>
+</doxygen>

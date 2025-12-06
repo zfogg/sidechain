@@ -1,0 +1,233 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classMultiHoverState" kind="class" language="C++" prot="public">
+    <compoundname>MultiHoverState</compoundname>
+    <includes refid="HoverState_8h" local="no">HoverState.h</includes>
+    <innerclass refid="structMultiHoverState_1_1Region" prot="private">MultiHoverState::Region</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classMultiHoverState_1ab511a6130f6110c69b7e163841e6cf61" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;regionId, bool isHovered)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; regionId, bool isHovered)&gt; MultiHoverState::onRegionHoverChanged</definition>
+        <argsstring></argsstring>
+        <name>onRegionHoverChanged</name>
+        <qualifiedname>MultiHoverState::onRegionHoverChanged</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="269" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="269" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classMultiHoverState_1a073f63f0cd6e1311936a06d19f1f0422" prot="private" static="no" mutable="no">
+        <type>std::map&lt; juce::String, Region &gt;</type>
+        <definition>std::map&lt;juce::String, Region&gt; MultiHoverState::regions</definition>
+        <argsstring></argsstring>
+        <name>regions</name>
+        <qualifiedname>MultiHoverState::regions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="278" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="278" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classMultiHoverState_1a7e262918c13e4c4d57891764a90344f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MultiHoverState::MultiHoverState</definition>
+        <argsstring>()=default</argsstring>
+        <name>MultiHoverState</name>
+        <qualifiedname>MultiHoverState::MultiHoverState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="182" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1a457e98814e258f9fd5a18148bb8396c9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MultiHoverState::addRegion</definition>
+        <argsstring>(const juce::String &amp;id, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>addRegion</name>
+        <qualifiedname>MultiHoverState::addRegion</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="187" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="187" bodyend="190"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1ada978fcac52de8014bb5bc0db3a5df8e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MultiHoverState::updateRegion</definition>
+        <argsstring>(const juce::String &amp;id, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>updateRegion</name>
+        <qualifiedname>MultiHoverState::updateRegion</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="192" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="192" bodyend="198"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1a2845d906a79fc0715b81fbdc93e36c3d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MultiHoverState::removeRegion</definition>
+        <argsstring>(const juce::String &amp;id)</argsstring>
+        <name>removeRegion</name>
+        <qualifiedname>MultiHoverState::removeRegion</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="200" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="200" bodyend="203"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1aac114cfecef39401056944e2db7a3de8" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MultiHoverState::clearRegions</definition>
+        <argsstring>()</argsstring>
+        <name>clearRegions</name>
+        <qualifiedname>MultiHoverState::clearRegions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="205" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="205" bodyend="208"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1af4d39d7d0d39f1d0b5e93fca334e7fd9" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool MultiHoverState::isHovered</definition>
+        <argsstring>(const juce::String &amp;id) const</argsstring>
+        <name>isHovered</name>
+        <qualifiedname>MultiHoverState::isHovered</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="213" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="213" bodyend="217"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1af6ca5268d549673d8537992459262246" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String MultiHoverState::getHoveredRegion</definition>
+        <argsstring>() const</argsstring>
+        <name>getHoveredRegion</name>
+        <qualifiedname>MultiHoverState::getHoveredRegion</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="219" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="219" bodyend="225"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1ad7918661f587c03e767038674d36ef1e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool MultiHoverState::isAnyHovered</definition>
+        <argsstring>() const</argsstring>
+        <name>isAnyHovered</name>
+        <qualifiedname>MultiHoverState::isAnyHovered</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="227" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="227" bodyend="233"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1a8d0dbbf54b816d32de54d9f20d28d3c6" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MultiHoverState::updateFromPoint</definition>
+        <argsstring>(juce::Point&lt; int &gt; point)</argsstring>
+        <name>updateFromPoint</name>
+        <qualifiedname>MultiHoverState::updateFromPoint</qualifiedname>
+        <param>
+          <type>juce::Point&lt; int &gt;</type>
+          <declname>point</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="238" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="238" bodyend="251"/>
+      </memberdef>
+      <memberdef kind="function" id="classMultiHoverState_1aedfa2e3f3027af85f39555f84fdb082d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void MultiHoverState::clearAllHover</definition>
+        <argsstring>()</argsstring>
+        <name>clearAllHover</name>
+        <qualifiedname>MultiHoverState::clearAllHover</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="253" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="253" bodyend="264"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classMultiHoverState" kindref="compound">MultiHoverState</ref> - Track hover state for multiple regions. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Useful when a component has multiple interactive areas.</para>
+<para>Usage: <ref refid="classMultiHoverState" kindref="compound">MultiHoverState</ref> hovers; hovers.addRegion(&quot;like&quot;, likeBounds); hovers.addRegion(&quot;comment&quot;, commentBounds); hovers.onRegionHoverChanged = [this](const String&amp; id, bool h) { repaint(); };</para>
+<para>void mouseMove(const MouseEvent&amp; e) { hovers.updateFromPoint(e.getPosition()); } </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" line="179" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/HoverState.h" bodystart="180" bodyend="279"/>
+    <listofallmembers>
+      <member refid="classMultiHoverState_1a457e98814e258f9fd5a18148bb8396c9" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>addRegion</name></member>
+      <member refid="classMultiHoverState_1aedfa2e3f3027af85f39555f84fdb082d" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>clearAllHover</name></member>
+      <member refid="classMultiHoverState_1aac114cfecef39401056944e2db7a3de8" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>clearRegions</name></member>
+      <member refid="classMultiHoverState_1af6ca5268d549673d8537992459262246" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>getHoveredRegion</name></member>
+      <member refid="classMultiHoverState_1ad7918661f587c03e767038674d36ef1e" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>isAnyHovered</name></member>
+      <member refid="classMultiHoverState_1af4d39d7d0d39f1d0b5e93fca334e7fd9" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>isHovered</name></member>
+      <member refid="classMultiHoverState_1a7e262918c13e4c4d57891764a90344f5" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>MultiHoverState</name></member>
+      <member refid="classMultiHoverState_1ab511a6130f6110c69b7e163841e6cf61" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>onRegionHoverChanged</name></member>
+      <member refid="classMultiHoverState_1a073f63f0cd6e1311936a06d19f1f0422" prot="private" virt="non-virtual"><scope>MultiHoverState</scope><name>regions</name></member>
+      <member refid="classMultiHoverState_1a2845d906a79fc0715b81fbdc93e36c3d" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>removeRegion</name></member>
+      <member refid="classMultiHoverState_1a8d0dbbf54b816d32de54d9f20d28d3c6" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>updateFromPoint</name></member>
+      <member refid="classMultiHoverState_1ada978fcac52de8014bb5bc0db3a5df8e" prot="public" virt="non-virtual"><scope>MultiHoverState</scope><name>updateRegion</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

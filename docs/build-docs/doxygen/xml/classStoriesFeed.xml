@@ -1,0 +1,624 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classStoriesFeed" kind="class" language="C++" prot="public">
+    <compoundname>StoriesFeed</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <includes refid="StoriesFeed_8h" local="no">StoriesFeed.h</includes>
+    <innerclass refid="structStoriesFeed_1_1UserStories" prot="private">StoriesFeed::UserStories</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classStoriesFeed_1a00124e0af5d6f7b9f512616153a33428" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; StoriesFeed::onCreateStory</definition>
+        <argsstring></argsstring>
+        <name>onCreateStory</name>
+        <qualifiedname>StoriesFeed::onCreateStory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="95" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a2f8d806265d8a135af51767da00439ac" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId, int storyIndex)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId, int storyIndex)&gt; StoriesFeed::onStoryTapped</definition>
+        <argsstring></argsstring>
+        <name>onStoryTapped</name>
+        <qualifiedname>StoriesFeed::onStoryTapped</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="98" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="98" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classStoriesFeed_1abd7a078cfafaa0f12f397dda68d4e1b2" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* StoriesFeed::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>StoriesFeed::networkClient</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="102" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a305cd1f59df3e6b68f7b972ef7afab08" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StoriesFeed::currentUserId</definition>
+        <argsstring></argsstring>
+        <name>currentUserId</name>
+        <qualifiedname>StoriesFeed::currentUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="103" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a00365298e9873fcdab4ca5634b2e5c05" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StoriesFeed::currentUserAvatarUrl</definition>
+        <argsstring></argsstring>
+        <name>currentUserAvatarUrl</name>
+        <qualifiedname>StoriesFeed::currentUserAvatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="104" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1acbb1996addbed8b3b2d0ae3547adfc37" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; UserStories &gt;</type>
+        <definition>std::vector&lt;UserStories&gt; StoriesFeed::userStoriesGroups</definition>
+        <argsstring></argsstring>
+        <name>userStoriesGroups</name>
+        <qualifiedname>StoriesFeed::userStoriesGroups</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="116" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a552f57024cc779b5f85c9755b2b7f5cd" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float StoriesFeed::scrollOffset</definition>
+        <argsstring></argsstring>
+        <name>scrollOffset</name>
+        <qualifiedname>StoriesFeed::scrollOffset</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="119" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a5a0e692f4cc4ea77ed2d722d0f1b6499" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float StoriesFeed::targetScrollOffset</definition>
+        <argsstring></argsstring>
+        <name>targetScrollOffset</name>
+        <qualifiedname>StoriesFeed::targetScrollOffset</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="120" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1afbda15d809594cec69d3877407b09f67" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float StoriesFeed::maxScrollOffset</definition>
+        <argsstring></argsstring>
+        <name>maxScrollOffset</name>
+        <qualifiedname>StoriesFeed::maxScrollOffset</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="121" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a0b19c9d20ec43c2c0126d12386ea2c12" prot="private" static="no" mutable="no">
+        <type>std::map&lt; juce::String, juce::Image &gt;</type>
+        <definition>std::map&lt;juce::String, juce::Image&gt; StoriesFeed::avatarCache</definition>
+        <argsstring></argsstring>
+        <name>avatarCache</name>
+        <qualifiedname>StoriesFeed::avatarCache</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="130" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classStoriesFeed_1a61afa9c434983ca45259ae3b10348aa2" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int StoriesFeed::CIRCLE_SIZE</definition>
+        <argsstring></argsstring>
+        <name>CIRCLE_SIZE</name>
+        <qualifiedname>StoriesFeed::CIRCLE_SIZE</qualifiedname>
+        <initializer>= 64</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="124" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a45bf279e5ea7aae82bf9872b6e0d1170" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int StoriesFeed::CIRCLE_PADDING</definition>
+        <argsstring></argsstring>
+        <name>CIRCLE_PADDING</name>
+        <qualifiedname>StoriesFeed::CIRCLE_PADDING</qualifiedname>
+        <initializer>= 12</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="125" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="125" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1a5f5a6460202551e2e4a3d3982bdd4a42" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int StoriesFeed::RING_THICKNESS</definition>
+        <argsstring></argsstring>
+        <name>RING_THICKNESS</name>
+        <qualifiedname>StoriesFeed::RING_THICKNESS</qualifiedname>
+        <initializer>= 3</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="126" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="126" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classStoriesFeed_1afa158aa2bfe897f28f1592f81defaab5" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int StoriesFeed::LABEL_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>LABEL_HEIGHT</name>
+        <qualifiedname>StoriesFeed::LABEL_HEIGHT</qualifiedname>
+        <initializer>= 20</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="127" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="127" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classStoriesFeed_1a6b6de760093b94f3fbfa018709059385" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>StoriesFeed::StoriesFeed</definition>
+        <argsstring>()</argsstring>
+        <name>StoriesFeed</name>
+        <qualifiedname>StoriesFeed::StoriesFeed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="63" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="21" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1ae7bbeca5850dfae1f8467f56b0617ce2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>StoriesFeed::~StoriesFeed</definition>
+        <argsstring>() override</argsstring>
+        <name>~StoriesFeed</name>
+        <qualifiedname>StoriesFeed::~StoriesFeed</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="64" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="29" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a7b41ec696275b1f238c689d22cdc05e3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::paint</definition>
+        <argsstring>(juce::Graphics &amp;) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>StoriesFeed::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <defname>g</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="67" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="36" bodyend="76"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a04a647e4467f0355e7f6321a7311d6cf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>StoriesFeed::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="68" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="78" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a46793e24d601ceb5b2e063574e4157c4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>StoriesFeed::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="69" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="85" bodyend="109"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1aa33b7d6dac8db4bb5f3ac6b3468beb7a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::mouseWheelMove</definition>
+        <argsstring>(const juce::MouseEvent &amp;event, const juce::MouseWheelDetails &amp;wheel) override</argsstring>
+        <name>mouseWheelMove</name>
+        <qualifiedname>StoriesFeed::mouseWheelMove</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <param>
+          <type>const juce::MouseWheelDetails &amp;</type>
+          <declname>wheel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="70" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="111" bodyend="118"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a03f08ed8ee42f601107713e3397418f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>StoriesFeed::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="74" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="121" bodyend="134"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a2199aa1115a86cc7eab3e5f2998ba60b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>StoriesFeed::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="78" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="78" bodyend="78"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a9dd070c1a66c4f917dcb7bb8d10f4dfc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::setCurrentUserId</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>setCurrentUserId</name>
+        <qualifiedname>StoriesFeed::setCurrentUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="79" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="79" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1ae41b9c3b91ad583bee1ffaaee57f11d1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::setCurrentUserAvatarUrl</definition>
+        <argsstring>(const juce::String &amp;url)</argsstring>
+        <name>setCurrentUserAvatarUrl</name>
+        <qualifiedname>StoriesFeed::setCurrentUserAvatarUrl</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="80" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="80" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1af119ab019adc39be660fe0ee4982b4fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::loadStories</definition>
+        <argsstring>()</argsstring>
+        <name>loadStories</name>
+        <qualifiedname>StoriesFeed::loadStories</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="83" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="137" bodyend="193"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1af5f2b8824e6777eaa6661dcabb9aea63" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::setStories</definition>
+        <argsstring>(const std::vector&lt; StoryData &gt; &amp;newStories)</argsstring>
+        <name>setStories</name>
+        <qualifiedname>StoriesFeed::setStories</qualifiedname>
+        <param>
+          <type>const std::vector&lt; <ref refid="structStoryData" kindref="compound">StoryData</ref> &gt; &amp;</type>
+          <declname>newStories</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="86" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="195" bodyend="236"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a983bc3bfc00fadb67eda7c43e0c196a0" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool StoriesFeed::hasOwnStory</definition>
+        <argsstring>() const</argsstring>
+        <name>hasOwnStory</name>
+        <qualifiedname>StoriesFeed::hasOwnStory</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="89" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="238" bodyend="246"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classStoriesFeed_1a011576870a44276f9a0abe7155b93291" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::drawCreateStoryCircle</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawCreateStoryCircle</name>
+        <qualifiedname>StoriesFeed::drawCreateStoryCircle</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="134" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="249" bodyend="302"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a4ab685f5629d6efcc7daf94392ec8204" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::drawStoryCircle</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const UserStories &amp;userStories, int index)</argsstring>
+        <name>drawStoryCircle</name>
+        <qualifiedname>StoriesFeed::drawStoryCircle</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const UserStories &amp;</type>
+          <declname>userStories</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="135" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="304" bodyend="389"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1a0e865da90d7e9806b40f4f9d69a1b39c" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int StoriesFeed::calculateContentWidth</definition>
+        <argsstring>() const</argsstring>
+        <name>calculateContentWidth</name>
+        <qualifiedname>StoriesFeed::calculateContentWidth</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="139" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="391" bodyend="395"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1ac96804e7d659ba77bbb401c7ba043c2e" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; StoriesFeed::getCircleBounds</definition>
+        <argsstring>(int index) const</argsstring>
+        <name>getCircleBounds</name>
+        <qualifiedname>StoriesFeed::getCircleBounds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="142" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="397" bodyend="403"/>
+      </memberdef>
+      <memberdef kind="function" id="classStoriesFeed_1acc9a2877b9f0d60d56ab490b530240bd" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void StoriesFeed::loadAvatarImage</definition>
+        <argsstring>(const juce::String &amp;userId, const juce::String &amp;avatarUrl)</argsstring>
+        <name>loadAvatarImage</name>
+        <qualifiedname>StoriesFeed::loadAvatarImage</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>avatarUrl</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="145" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.cpp" bodystart="405" bodyend="434"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classStoriesFeed" kindref="compound">StoriesFeed</ref> displays a horizontal scrollable list of story circles (7.5.4.1.1). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Horizontal scroll with story avatar circles</para>
+</listitem><listitem><para>Ring indicator for unviewed stories</para>
+</listitem><listitem><para>&quot;Your Story&quot; circle at start</para>
+</listitem><listitem><para><ref refid="structStory" kindref="compound">Story</ref> count badge for multiple stories</para>
+</listitem><listitem><para>Tap to open story viewer </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>StoriesFeed</label>
+        <link refid="classStoriesFeed"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>StoriesFeed</label>
+        <link refid="classStoriesFeed"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" line="59" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeed.h" bodystart="61" bodyend="148"/>
+    <listofallmembers>
+      <member refid="classStoriesFeed_1a0b19c9d20ec43c2c0126d12386ea2c12" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>avatarCache</name></member>
+      <member refid="classStoriesFeed_1a0e865da90d7e9806b40f4f9d69a1b39c" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>calculateContentWidth</name></member>
+      <member refid="classStoriesFeed_1a45bf279e5ea7aae82bf9872b6e0d1170" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>CIRCLE_PADDING</name></member>
+      <member refid="classStoriesFeed_1a61afa9c434983ca45259ae3b10348aa2" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>CIRCLE_SIZE</name></member>
+      <member refid="classStoriesFeed_1a00365298e9873fcdab4ca5634b2e5c05" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>currentUserAvatarUrl</name></member>
+      <member refid="classStoriesFeed_1a305cd1f59df3e6b68f7b972ef7afab08" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>currentUserId</name></member>
+      <member refid="classStoriesFeed_1a011576870a44276f9a0abe7155b93291" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>drawCreateStoryCircle</name></member>
+      <member refid="classStoriesFeed_1a4ab685f5629d6efcc7daf94392ec8204" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>drawStoryCircle</name></member>
+      <member refid="classStoriesFeed_1ac96804e7d659ba77bbb401c7ba043c2e" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>getCircleBounds</name></member>
+      <member refid="classStoriesFeed_1a983bc3bfc00fadb67eda7c43e0c196a0" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>hasOwnStory</name></member>
+      <member refid="classStoriesFeed_1afa158aa2bfe897f28f1592f81defaab5" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>LABEL_HEIGHT</name></member>
+      <member refid="classStoriesFeed_1acc9a2877b9f0d60d56ab490b530240bd" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>loadAvatarImage</name></member>
+      <member refid="classStoriesFeed_1af119ab019adc39be660fe0ee4982b4fb" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>loadStories</name></member>
+      <member refid="classStoriesFeed_1afbda15d809594cec69d3877407b09f67" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>maxScrollOffset</name></member>
+      <member refid="classStoriesFeed_1a46793e24d601ceb5b2e063574e4157c4" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>mouseUp</name></member>
+      <member refid="classStoriesFeed_1aa33b7d6dac8db4bb5f3ac6b3468beb7a" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>mouseWheelMove</name></member>
+      <member refid="classStoriesFeed_1abd7a078cfafaa0f12f397dda68d4e1b2" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>networkClient</name></member>
+      <member refid="classStoriesFeed_1a00124e0af5d6f7b9f512616153a33428" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>onCreateStory</name></member>
+      <member refid="classStoriesFeed_1a2f8d806265d8a135af51767da00439ac" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>onStoryTapped</name></member>
+      <member refid="classStoriesFeed_1a7b41ec696275b1f238c689d22cdc05e3" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>paint</name></member>
+      <member refid="classStoriesFeed_1a04a647e4467f0355e7f6321a7311d6cf" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>resized</name></member>
+      <member refid="classStoriesFeed_1a5f5a6460202551e2e4a3d3982bdd4a42" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>RING_THICKNESS</name></member>
+      <member refid="classStoriesFeed_1a552f57024cc779b5f85c9755b2b7f5cd" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>scrollOffset</name></member>
+      <member refid="classStoriesFeed_1ae41b9c3b91ad583bee1ffaaee57f11d1" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>setCurrentUserAvatarUrl</name></member>
+      <member refid="classStoriesFeed_1a9dd070c1a66c4f917dcb7bb8d10f4dfc" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>setCurrentUserId</name></member>
+      <member refid="classStoriesFeed_1a2199aa1115a86cc7eab3e5f2998ba60b" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>setNetworkClient</name></member>
+      <member refid="classStoriesFeed_1af5f2b8824e6777eaa6661dcabb9aea63" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>setStories</name></member>
+      <member refid="classStoriesFeed_1a6b6de760093b94f3fbfa018709059385" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>StoriesFeed</name></member>
+      <member refid="classStoriesFeed_1a5a0e692f4cc4ea77ed2d722d0f1b6499" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>targetScrollOffset</name></member>
+      <member refid="classStoriesFeed_1a03f08ed8ee42f601107713e3397418f5" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>timerCallback</name></member>
+      <member refid="classStoriesFeed_1acbb1996addbed8b3b2d0ae3547adfc37" prot="private" virt="non-virtual"><scope>StoriesFeed</scope><name>userStoriesGroups</name></member>
+      <member refid="classStoriesFeed_1ae7bbeca5850dfae1f8467f56b0617ce2" prot="public" virt="non-virtual"><scope>StoriesFeed</scope><name>~StoriesFeed</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

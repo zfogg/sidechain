@@ -1,0 +1,1413 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classUploadComponent" kind="class" language="C++" prot="public">
+    <compoundname>UploadComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <includes refid="UploadComponent_8h" local="no">UploadComponent.h</includes>
+    <innerclass refid="structUploadComponent_1_1MusicalKey" prot="public">UploadComponent::MusicalKey</innerclass>
+    <sectiondef kind="private-type">
+      <memberdef kind="enum" id="classUploadComponent_1abf14958abea483e9ea00b78fe32b9526" prot="private" static="no" strong="yes">
+        <type></type>
+        <name>UploadState</name>
+        <qualifiedname>UploadComponent::UploadState</qualifiedname>
+        <enumvalue id="classUploadComponent_1abf14958abea483e9ea00b78fe32b9526ab1caf7f21c1b8899e11165a6aed71af9" prot="private">
+          <name>Editing</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classUploadComponent_1abf14958abea483e9ea00b78fe32b9526a3f1c5b0049a9751e6f5f9e702b74a0dd" prot="private">
+          <name>Uploading</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classUploadComponent_1abf14958abea483e9ea00b78fe32b9526a505a83f220c02df2f85c3810cd9ceb38" prot="private">
+          <name>Success</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classUploadComponent_1abf14958abea483e9ea00b78fe32b9526a902b0d55fddef6f8d651fe1035b7d4bd" prot="private">
+          <name>Error</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="80" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="81" bodyend="86"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classUploadComponent_1a8f994ac4d25e4e2ca812d8f244f62f44" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UploadComponent::NUM_KEYS</definition>
+        <argsstring></argsstring>
+        <name>NUM_KEYS</name>
+        <qualifiedname>UploadComponent::NUM_KEYS</qualifiedname>
+        <initializer>= 25</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="31" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a62ac6f2c055281dc2507347dd4323467" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int UploadComponent::NUM_GENRES</definition>
+        <argsstring></argsstring>
+        <name>NUM_GENRES</name>
+        <qualifiedname>UploadComponent::NUM_GENRES</qualifiedname>
+        <initializer>= 12</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="43" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classUploadComponent_1ac931399c7cc9e8c3e63314e6e9d86af7" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; UploadComponent::onUploadComplete</definition>
+        <argsstring></argsstring>
+        <name>onUploadComplete</name>
+        <qualifiedname>UploadComponent::onUploadComplete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="67" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1aab1a6dfa6f60f8e77da528fe7881e742" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; UploadComponent::onCancel</definition>
+        <argsstring></argsstring>
+        <name>onCancel</name>
+        <qualifiedname>UploadComponent::onCancel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="68" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classUploadComponent_1a1035384fae966e2a7b69d9bb6ca47a03" prot="private" static="no" mutable="no">
+        <type><ref refid="classSidechainAudioProcessor" kindref="compound">SidechainAudioProcessor</ref> &amp;</type>
+        <definition>SidechainAudioProcessor&amp; UploadComponent::audioProcessor</definition>
+        <argsstring></argsstring>
+        <name>audioProcessor</name>
+        <qualifiedname>UploadComponent::audioProcessor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="72" column="29" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1adf824f835d9018494cb68125067f1407" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> &amp;</type>
+        <definition>NetworkClient&amp; UploadComponent::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>UploadComponent::networkClient</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="73" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a5ebc884aeb733d3eff401ecfbc9f73e5" prot="private" static="no" mutable="no">
+        <type>juce::AudioBuffer&lt; float &gt;</type>
+        <definition>juce::AudioBuffer&lt;float&gt; UploadComponent::audioBuffer</definition>
+        <argsstring></argsstring>
+        <name>audioBuffer</name>
+        <qualifiedname>UploadComponent::audioBuffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="76" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a139782e7663d9bc443d8964a5956c3c7" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double UploadComponent::audioSampleRate</definition>
+        <argsstring></argsstring>
+        <name>audioSampleRate</name>
+        <qualifiedname>UploadComponent::audioSampleRate</qualifiedname>
+        <initializer>= 44100.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="77" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1abe4d1698aabc2f351b7fc43c4b98da04" prot="private" static="no" mutable="no">
+        <type>UploadState</type>
+        <definition>UploadState UploadComponent::uploadState</definition>
+        <argsstring></argsstring>
+        <name>uploadState</name>
+        <qualifiedname>UploadComponent::uploadState</qualifiedname>
+        <initializer>= UploadState::Editing</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="87" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a4c18c520172e4eb7f29cf0cc85e2067c" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float UploadComponent::uploadProgress</definition>
+        <argsstring></argsstring>
+        <name>uploadProgress</name>
+        <qualifiedname>UploadComponent::uploadProgress</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="88" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a01d59bafd9151182c5218b8c9c5512c1" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>UploadComponent::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="89" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a78c448dd506e522706d3d46d113d7b92" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::title</definition>
+        <argsstring></argsstring>
+        <name>title</name>
+        <qualifiedname>UploadComponent::title</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="92" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a51597f3932e2452a43733e0166a3fc36" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double UploadComponent::bpm</definition>
+        <argsstring></argsstring>
+        <name>bpm</name>
+        <qualifiedname>UploadComponent::bpm</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="93" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a0d7e6a8e9e3c8c9ee133c1fb38dce29f" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UploadComponent::bpmFromDAW</definition>
+        <argsstring></argsstring>
+        <name>bpmFromDAW</name>
+        <qualifiedname>UploadComponent::bpmFromDAW</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="94" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a2bb5cabb5608f1d60a5e86c063a9315c" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UploadComponent::selectedKeyIndex</definition>
+        <argsstring></argsstring>
+        <name>selectedKeyIndex</name>
+        <qualifiedname>UploadComponent::selectedKeyIndex</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="95" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="95" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a0b374a4d0079d189d91a58e48512bd30" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UploadComponent::selectedGenreIndex</definition>
+        <argsstring></argsstring>
+        <name>selectedGenreIndex</name>
+        <qualifiedname>UploadComponent::selectedGenreIndex</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="96" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1afedd1a11730c26303ef0dce7cd24ebba" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UploadComponent::activeField</definition>
+        <argsstring></argsstring>
+        <name>activeField</name>
+        <qualifiedname>UploadComponent::activeField</qualifiedname>
+        <initializer>= -1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="99" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a76b913af94ba49078f138b68b0c148e0" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UploadComponent::hoveredButton</definition>
+        <argsstring></argsstring>
+        <name>hoveredButton</name>
+        <qualifiedname>UploadComponent::hoveredButton</qualifiedname>
+        <initializer>= -1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="100" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a227912bc5fccddd54678c073cb9faac7" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; double &gt;</type>
+        <definition>std::vector&lt;double&gt; UploadComponent::tapTimes</definition>
+        <argsstring></argsstring>
+        <name>tapTimes</name>
+        <qualifiedname>UploadComponent::tapTimes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="103" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a5eb5602a312f7717a63965e71a4c1672" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double UploadComponent::lastTapTime</definition>
+        <argsstring></argsstring>
+        <name>lastTapTime</name>
+        <qualifiedname>UploadComponent::lastTapTime</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="104" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="104" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1ae501c7915afee99f892b7c1cf77fd7e5" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::lastUploadedTitle</definition>
+        <argsstring></argsstring>
+        <name>lastUploadedTitle</name>
+        <qualifiedname>UploadComponent::lastUploadedTitle</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="107" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1aec595da811ee0d53a0d208137e4a1c05" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::lastUploadedGenre</definition>
+        <argsstring></argsstring>
+        <name>lastUploadedGenre</name>
+        <qualifiedname>UploadComponent::lastUploadedGenre</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="108" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a0ff0338dc7612e19ff164c23a4f7ee48" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double UploadComponent::lastUploadedBpm</definition>
+        <argsstring></argsstring>
+        <name>lastUploadedBpm</name>
+        <qualifiedname>UploadComponent::lastUploadedBpm</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="109" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1aaec9f6f503a25bf1ed2a4f82e37d5163" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::lastUploadedUrl</definition>
+        <argsstring></argsstring>
+        <name>lastUploadedUrl</name>
+        <qualifiedname>UploadComponent::lastUploadedUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="110" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a583f191767a31e0672af9617655e24d1" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::headerArea</definition>
+        <argsstring></argsstring>
+        <name>headerArea</name>
+        <qualifiedname>UploadComponent::headerArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="113" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a6bed8cd530953cebcf321380af88199d" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::waveformArea</definition>
+        <argsstring></argsstring>
+        <name>waveformArea</name>
+        <qualifiedname>UploadComponent::waveformArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="114" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a06c279b60af970e9c90abfd3df627f44" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::titleFieldArea</definition>
+        <argsstring></argsstring>
+        <name>titleFieldArea</name>
+        <qualifiedname>UploadComponent::titleFieldArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="115" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1af4cee53322c0af193c3cf02f93188db9" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::bpmFieldArea</definition>
+        <argsstring></argsstring>
+        <name>bpmFieldArea</name>
+        <qualifiedname>UploadComponent::bpmFieldArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="116" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1abebffe4c23c9772bb8ed589cf998d410" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::tapTempoButtonArea</definition>
+        <argsstring></argsstring>
+        <name>tapTempoButtonArea</name>
+        <qualifiedname>UploadComponent::tapTempoButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="117" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a0b9480e3b1e075c4ec1798b07c5076a8" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::keyDropdownArea</definition>
+        <argsstring></argsstring>
+        <name>keyDropdownArea</name>
+        <qualifiedname>UploadComponent::keyDropdownArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="118" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1abac91a2650febb5f47fab210a75d0abf" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::detectKeyButtonArea</definition>
+        <argsstring></argsstring>
+        <name>detectKeyButtonArea</name>
+        <qualifiedname>UploadComponent::detectKeyButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="119" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1af8a941dc45e83440d8f088f908cfaf36" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::genreDropdownArea</definition>
+        <argsstring></argsstring>
+        <name>genreDropdownArea</name>
+        <qualifiedname>UploadComponent::genreDropdownArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="120" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a3d6c0170105e458c6af3e277038397d7" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::progressBarArea</definition>
+        <argsstring></argsstring>
+        <name>progressBarArea</name>
+        <qualifiedname>UploadComponent::progressBarArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="121" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1af4814ff38a67cf2ffff9eca859b8b203" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::cancelButtonArea</definition>
+        <argsstring></argsstring>
+        <name>cancelButtonArea</name>
+        <qualifiedname>UploadComponent::cancelButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="122" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a3459e051aad5e9b482b31e786c8ee9ab" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::shareButtonArea</definition>
+        <argsstring></argsstring>
+        <name>shareButtonArea</name>
+        <qualifiedname>UploadComponent::shareButtonArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="123" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a5a95a71328313a3cf945c7a70a025497" prot="private" static="no" mutable="no">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt;int&gt; UploadComponent::statusArea</definition>
+        <argsstring></argsstring>
+        <name>statusArea</name>
+        <qualifiedname>UploadComponent::statusArea</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="124" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="124" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1a390108a999e2426b41718f1606064149" prot="private" static="no" mutable="no">
+        <type><ref refid="classKeyDetector" kindref="compound">KeyDetector</ref></type>
+        <definition>KeyDetector UploadComponent::keyDetector</definition>
+        <argsstring></argsstring>
+        <name>keyDetector</name>
+        <qualifiedname>UploadComponent::keyDetector</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="163" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="163" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1af031f3ede7a399cbeff3890898aa0370" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UploadComponent::isDetectingKey</definition>
+        <argsstring></argsstring>
+        <name>isDetectingKey</name>
+        <qualifiedname>UploadComponent::isDetectingKey</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="164" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="164" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classUploadComponent_1afff389e27183b867e54d2467cec6da90" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::keyDetectionStatus</definition>
+        <argsstring></argsstring>
+        <name>keyDetectionStatus</name>
+        <qualifiedname>UploadComponent::keyDetectionStatus</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="165" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="165" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classUploadComponent_1a6775f33098e077fa88a12f108e57d1fb" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const std::array&lt; <ref refid="structUploadComponent_1_1MusicalKey" kindref="compound">MusicalKey</ref>, <ref refid="classUploadComponent_1a8f994ac4d25e4e2ca812d8f244f62f44" kindref="member">NUM_KEYS</ref> &gt; &amp;</type>
+        <definition>const std::array&lt; UploadComponent::MusicalKey, UploadComponent::NUM_KEYS &gt; &amp; UploadComponent::getMusicalKeys</definition>
+        <argsstring>()</argsstring>
+        <name>getMusicalKeys</name>
+        <qualifiedname>UploadComponent::getMusicalKeys</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="39" column="29" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="12" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a2d0e2015a771eb4e39df71787925f536" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const std::array&lt; juce::String, <ref refid="classUploadComponent_1a62ac6f2c055281dc2507347dd4323467" kindref="member">NUM_GENRES</ref> &gt; &amp;</type>
+        <definition>const std::array&lt; juce::String, UploadComponent::NUM_GENRES &gt; &amp; UploadComponent::getGenres</definition>
+        <argsstring>()</argsstring>
+        <name>getGenres</name>
+        <qualifiedname>UploadComponent::getGenres</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="44" column="29" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="45" bodyend="62"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classUploadComponent_1aa4b5e4eb01017b944d5a42249b7be66b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UploadComponent::UploadComponent</definition>
+        <argsstring>(SidechainAudioProcessor &amp;processor, NetworkClient &amp;network)</argsstring>
+        <name>UploadComponent</name>
+        <qualifiedname>UploadComponent::UploadComponent</qualifiedname>
+        <param>
+          <type><ref refid="classSidechainAudioProcessor" kindref="compound">SidechainAudioProcessor</ref> &amp;</type>
+          <declname>processor</declname>
+        </param>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> &amp;</type>
+          <declname>network</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="47" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="65" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ae678e92e7a5b319009358b883220506b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>UploadComponent::~UploadComponent</definition>
+        <argsstring>() override</argsstring>
+        <name>~UploadComponent</name>
+        <qualifiedname>UploadComponent::~UploadComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="48" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="75" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a22301e3a16c7db26eea8433a36607b39" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::setAudioToUpload</definition>
+        <argsstring>(const juce::AudioBuffer&lt; float &gt; &amp;audio, double sampleRate)</argsstring>
+        <name>setAudioToUpload</name>
+        <qualifiedname>UploadComponent::setAudioToUpload</qualifiedname>
+        <param>
+          <type>const juce::AudioBuffer&lt; float &gt; &amp;</type>
+          <declname>audio</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>sampleRate</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="52" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="82" bodyend="109"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a0f5c885cd7fd0a63ebd5eecce4bf1928" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::reset</definition>
+        <argsstring>()</argsstring>
+        <name>reset</name>
+        <qualifiedname>UploadComponent::reset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="55" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="111" bodyend="127"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a051eeecc7cf3fee528c80c2937b76b65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>UploadComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <defname>g</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="58" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="153" bodyend="179"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1acc4c539336c0d30f8f0c3963d25a852b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>UploadComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="59" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="181" bodyend="231"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a6be2f1832d3a07ce297f37017c376f3e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>UploadComponent::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="60" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="234" bodyend="334"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ae0ee52d6e769f693a00b134ffe790dc6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>UploadComponent::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="61" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="130" bodyend="150"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a5eb0aa1e4cf799d9c35d77a3821e6287" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool UploadComponent::keyPressed</definition>
+        <argsstring>(const juce::KeyPress &amp;key) override</argsstring>
+        <name>keyPressed</name>
+        <qualifiedname>UploadComponent::keyPressed</qualifiedname>
+        <param>
+          <type>const juce::KeyPress &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="62" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="959" bodyend="1059"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ae247dcc9a5eaf608a0f7ff75d19a991d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::focusGained</definition>
+        <argsstring>(FocusChangeType cause) override</argsstring>
+        <name>focusGained</name>
+        <qualifiedname>UploadComponent::focusGained</qualifiedname>
+        <param>
+          <type>FocusChangeType</type>
+          <declname>cause</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="63" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="1061" bodyend="1070"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classUploadComponent_1a018410532fdba8121351daa688adebe5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>UploadComponent::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="128" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="337" bodyend="348"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a60d6acb901b75d20ed7237b091a2ed4f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawWaveform</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawWaveform</name>
+        <qualifiedname>UploadComponent::drawWaveform</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="129" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="350" bodyend="363"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a6b0f0ca1e604ad4ca9aab1be1cee0988" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawTitleField</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawTitleField</name>
+        <qualifiedname>UploadComponent::drawTitleField</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="130" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="365" bodyend="368"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a691283edb9cb2da06ed0c3c756f45f27" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawBPMField</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawBPMField</name>
+        <qualifiedname>UploadComponent::drawBPMField</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="131" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="370" bodyend="375"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1aaf6ca037bcf5f61a47ffb48cc5d6c303" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawTapTempoButton</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawTapTempoButton</name>
+        <qualifiedname>UploadComponent::drawTapTempoButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="132" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="377" bodyend="393"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a0b0fb6380828406fe34df2d7f566568a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawKeyDropdown</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawKeyDropdown</name>
+        <qualifiedname>UploadComponent::drawKeyDropdown</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="133" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="395" bodyend="401"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a355cee03454627ba6a854ef12cc0f842" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawDetectKeyButton</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawDetectKeyButton</name>
+        <qualifiedname>UploadComponent::drawDetectKeyButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="134" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="403" bodyend="426"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a4646cb3ddb576a77e0dad61329f70a70" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawGenreDropdown</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawGenreDropdown</name>
+        <qualifiedname>UploadComponent::drawGenreDropdown</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="135" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="428" bodyend="434"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a3ffa193a7b524e8db2ec316ad64e7e7e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawProgressBar</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawProgressBar</name>
+        <qualifiedname>UploadComponent::drawProgressBar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="136" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="436" bodyend="450"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ac46663151b2b174d6e64e21e0d422b5c" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawButtons</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawButtons</name>
+        <qualifiedname>UploadComponent::drawButtons</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="137" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="452" bodyend="470"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ae1e63fe27fc29b4df3b33852ad7459b5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawStatus</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawStatus</name>
+        <qualifiedname>UploadComponent::drawStatus</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="138" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="472" bodyend="512"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ac684468300c854efb2d045478904f2a4" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawTextField</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;label, const juce::String &amp;value, bool isActive, bool isEditable=true)</argsstring>
+        <name>drawTextField</name>
+        <qualifiedname>UploadComponent::drawTextField</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>label</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isActive</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isEditable</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="140" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="515" bodyend="551"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ab6f4aacbfbd8e9e2080cbdfde5273dd5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawDropdown</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;label, const juce::String &amp;value, bool isHovered)</argsstring>
+        <name>drawDropdown</name>
+        <qualifiedname>UploadComponent::drawDropdown</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>label</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isHovered</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="143" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="553" bodyend="587"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a8b07317269c31c70838acf45ef5e69e5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::drawButton</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds, const juce::String &amp;text, juce::Colour bgColor, bool isHovered, bool isEnabled=true)</argsstring>
+        <name>drawButton</name>
+        <qualifiedname>UploadComponent::drawButton</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>bgColor</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isHovered</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isEnabled</declname>
+          <defval>true</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="146" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="589" bodyend="600"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a4d121f9f456a7dac6256b58a1bc1ab09" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Path</type>
+        <definition>juce::Path UploadComponent::generateWaveformPath</definition>
+        <argsstring>(juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>generateWaveformPath</name>
+        <qualifiedname>UploadComponent::generateWaveformPath</qualifiedname>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="150" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="602" bodyend="635"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a8b365e4c1efe4f2b0fb7e588d1b65658" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String UploadComponent::formatDuration</definition>
+        <argsstring>() const</argsstring>
+        <name>formatDuration</name>
+        <qualifiedname>UploadComponent::formatDuration</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="151" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="637" bodyend="644"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a575dc36f3d1fd3dbb2acef14f93102a6" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::handleTapTempo</definition>
+        <argsstring>()</argsstring>
+        <name>handleTapTempo</name>
+        <qualifiedname>UploadComponent::handleTapTempo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="155" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="647" bodyend="685"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1abe7989a9a1698b15f1e0864a17de4c96" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::detectKey</definition>
+        <argsstring>()</argsstring>
+        <name>detectKey</name>
+        <qualifiedname>UploadComponent::detectKey</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="156" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="687" bodyend="785"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1af4b713f859942af91c236d31a4a2f215" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::showKeyPicker</definition>
+        <argsstring>()</argsstring>
+        <name>showKeyPicker</name>
+        <qualifiedname>UploadComponent::showKeyPicker</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="157" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="787" bodyend="811"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a8741a7add5c5c436f68f001b169ccc7d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::showGenrePicker</definition>
+        <argsstring>()</argsstring>
+        <name>showGenrePicker</name>
+        <qualifiedname>UploadComponent::showGenrePicker</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="158" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="813" bodyend="837"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ab8799bc02ad604f3a71d3210afa92b96" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::cancelUpload</definition>
+        <argsstring>()</argsstring>
+        <name>cancelUpload</name>
+        <qualifiedname>UploadComponent::cancelUpload</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="159" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="839" bodyend="851"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ae6d537317241e7e56b6f70f09dc59243" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::startUpload</definition>
+        <argsstring>()</argsstring>
+        <name>startUpload</name>
+        <qualifiedname>UploadComponent::startUpload</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="160" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.cpp" bodystart="853" bodyend="957"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1ad552cd38180dd745dd40db8255565088" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::handleKeyPress</definition>
+        <argsstring>(const juce::KeyPress &amp;key)</argsstring>
+        <name>handleKeyPress</name>
+        <qualifiedname>UploadComponent::handleKeyPress</qualifiedname>
+        <param>
+          <type>const juce::KeyPress &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="168" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classUploadComponent_1a2721c692ecc44eb4911c3fbb4e08dc88" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void UploadComponent::handleTextInput</definition>
+        <argsstring>(juce::juce_wchar character)</argsstring>
+        <name>handleTextInput</name>
+        <qualifiedname>UploadComponent::handleTextInput</qualifiedname>
+        <param>
+          <type>juce::juce_wchar</type>
+          <declname>character</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="169" column="10"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classUploadComponent" kindref="compound">UploadComponent</ref> provides the <ref refid="namespaceUI" kindref="compound">UI</ref> for sharing a recorded loop. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Title input (required)</para>
+</listitem><listitem><para>BPM display (auto-detected from DAW via AudioPlayHead)</para>
+</listitem><listitem><para>Musical key dropdown (24 keys + &quot;Not set&quot;)</para>
+</listitem><listitem><para>Genre dropdown</para>
+</listitem><listitem><para>Waveform preview of the recording</para>
+</listitem><listitem><para>Upload progress indicator</para>
+</listitem><listitem><para>Cancel/Share buttons</para>
+</listitem></itemizedlist>
+</para>
+<para>Design: Dark theme matching the plugin aesthetic, producer-friendly </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>UploadComponent</label>
+        <link refid="classUploadComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>UploadComponent</label>
+        <link refid="classUploadComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" line="25" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/UploadComponent.h" bodystart="27" bodyend="172"/>
+    <listofallmembers>
+      <member refid="classUploadComponent_1afedd1a11730c26303ef0dce7cd24ebba" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>activeField</name></member>
+      <member refid="classUploadComponent_1a5ebc884aeb733d3eff401ecfbc9f73e5" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>audioBuffer</name></member>
+      <member refid="classUploadComponent_1a1035384fae966e2a7b69d9bb6ca47a03" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>audioProcessor</name></member>
+      <member refid="classUploadComponent_1a139782e7663d9bc443d8964a5956c3c7" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>audioSampleRate</name></member>
+      <member refid="classUploadComponent_1a51597f3932e2452a43733e0166a3fc36" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>bpm</name></member>
+      <member refid="classUploadComponent_1af4cee53322c0af193c3cf02f93188db9" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>bpmFieldArea</name></member>
+      <member refid="classUploadComponent_1a0d7e6a8e9e3c8c9ee133c1fb38dce29f" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>bpmFromDAW</name></member>
+      <member refid="classUploadComponent_1af4814ff38a67cf2ffff9eca859b8b203" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>cancelButtonArea</name></member>
+      <member refid="classUploadComponent_1ab8799bc02ad604f3a71d3210afa92b96" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>cancelUpload</name></member>
+      <member refid="classUploadComponent_1abe7989a9a1698b15f1e0864a17de4c96" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>detectKey</name></member>
+      <member refid="classUploadComponent_1abac91a2650febb5f47fab210a75d0abf" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>detectKeyButtonArea</name></member>
+      <member refid="classUploadComponent_1a691283edb9cb2da06ed0c3c756f45f27" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawBPMField</name></member>
+      <member refid="classUploadComponent_1a8b07317269c31c70838acf45ef5e69e5" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawButton</name></member>
+      <member refid="classUploadComponent_1ac46663151b2b174d6e64e21e0d422b5c" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawButtons</name></member>
+      <member refid="classUploadComponent_1a355cee03454627ba6a854ef12cc0f842" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawDetectKeyButton</name></member>
+      <member refid="classUploadComponent_1ab6f4aacbfbd8e9e2080cbdfde5273dd5" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawDropdown</name></member>
+      <member refid="classUploadComponent_1a4646cb3ddb576a77e0dad61329f70a70" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawGenreDropdown</name></member>
+      <member refid="classUploadComponent_1a018410532fdba8121351daa688adebe5" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawHeader</name></member>
+      <member refid="classUploadComponent_1a0b0fb6380828406fe34df2d7f566568a" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawKeyDropdown</name></member>
+      <member refid="classUploadComponent_1a3ffa193a7b524e8db2ec316ad64e7e7e" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawProgressBar</name></member>
+      <member refid="classUploadComponent_1ae1e63fe27fc29b4df3b33852ad7459b5" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawStatus</name></member>
+      <member refid="classUploadComponent_1aaf6ca037bcf5f61a47ffb48cc5d6c303" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawTapTempoButton</name></member>
+      <member refid="classUploadComponent_1ac684468300c854efb2d045478904f2a4" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawTextField</name></member>
+      <member refid="classUploadComponent_1a6b0f0ca1e604ad4ca9aab1be1cee0988" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawTitleField</name></member>
+      <member refid="classUploadComponent_1a60d6acb901b75d20ed7237b091a2ed4f" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>drawWaveform</name></member>
+      <member refid="classUploadComponent_1a01d59bafd9151182c5218b8c9c5512c1" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>errorMessage</name></member>
+      <member refid="classUploadComponent_1ae247dcc9a5eaf608a0f7ff75d19a991d" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>focusGained</name></member>
+      <member refid="classUploadComponent_1a8b365e4c1efe4f2b0fb7e588d1b65658" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>formatDuration</name></member>
+      <member refid="classUploadComponent_1a4d121f9f456a7dac6256b58a1bc1ab09" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>generateWaveformPath</name></member>
+      <member refid="classUploadComponent_1af8a941dc45e83440d8f088f908cfaf36" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>genreDropdownArea</name></member>
+      <member refid="classUploadComponent_1a2d0e2015a771eb4e39df71787925f536" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>getGenres</name></member>
+      <member refid="classUploadComponent_1a6775f33098e077fa88a12f108e57d1fb" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>getMusicalKeys</name></member>
+      <member refid="classUploadComponent_1ad552cd38180dd745dd40db8255565088" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>handleKeyPress</name></member>
+      <member refid="classUploadComponent_1a575dc36f3d1fd3dbb2acef14f93102a6" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>handleTapTempo</name></member>
+      <member refid="classUploadComponent_1a2721c692ecc44eb4911c3fbb4e08dc88" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>handleTextInput</name></member>
+      <member refid="classUploadComponent_1a583f191767a31e0672af9617655e24d1" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>headerArea</name></member>
+      <member refid="classUploadComponent_1a76b913af94ba49078f138b68b0c148e0" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>hoveredButton</name></member>
+      <member refid="classUploadComponent_1af031f3ede7a399cbeff3890898aa0370" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>isDetectingKey</name></member>
+      <member refid="classUploadComponent_1afff389e27183b867e54d2467cec6da90" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>keyDetectionStatus</name></member>
+      <member refid="classUploadComponent_1a390108a999e2426b41718f1606064149" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>keyDetector</name></member>
+      <member refid="classUploadComponent_1a0b9480e3b1e075c4ec1798b07c5076a8" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>keyDropdownArea</name></member>
+      <member refid="classUploadComponent_1a5eb0aa1e4cf799d9c35d77a3821e6287" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>keyPressed</name></member>
+      <member refid="classUploadComponent_1a5eb5602a312f7717a63965e71a4c1672" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>lastTapTime</name></member>
+      <member refid="classUploadComponent_1a0ff0338dc7612e19ff164c23a4f7ee48" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>lastUploadedBpm</name></member>
+      <member refid="classUploadComponent_1aec595da811ee0d53a0d208137e4a1c05" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>lastUploadedGenre</name></member>
+      <member refid="classUploadComponent_1ae501c7915afee99f892b7c1cf77fd7e5" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>lastUploadedTitle</name></member>
+      <member refid="classUploadComponent_1aaec9f6f503a25bf1ed2a4f82e37d5163" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>lastUploadedUrl</name></member>
+      <member refid="classUploadComponent_1a6be2f1832d3a07ce297f37017c376f3e" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>mouseUp</name></member>
+      <member refid="classUploadComponent_1adf824f835d9018494cb68125067f1407" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>networkClient</name></member>
+      <member refid="classUploadComponent_1a62ac6f2c055281dc2507347dd4323467" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>NUM_GENRES</name></member>
+      <member refid="classUploadComponent_1a8f994ac4d25e4e2ca812d8f244f62f44" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>NUM_KEYS</name></member>
+      <member refid="classUploadComponent_1aab1a6dfa6f60f8e77da528fe7881e742" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>onCancel</name></member>
+      <member refid="classUploadComponent_1ac931399c7cc9e8c3e63314e6e9d86af7" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>onUploadComplete</name></member>
+      <member refid="classUploadComponent_1a051eeecc7cf3fee528c80c2937b76b65" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>paint</name></member>
+      <member refid="classUploadComponent_1a3d6c0170105e458c6af3e277038397d7" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>progressBarArea</name></member>
+      <member refid="classUploadComponent_1a0f5c885cd7fd0a63ebd5eecce4bf1928" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>reset</name></member>
+      <member refid="classUploadComponent_1acc4c539336c0d30f8f0c3963d25a852b" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>resized</name></member>
+      <member refid="classUploadComponent_1a0b374a4d0079d189d91a58e48512bd30" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>selectedGenreIndex</name></member>
+      <member refid="classUploadComponent_1a2bb5cabb5608f1d60a5e86c063a9315c" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>selectedKeyIndex</name></member>
+      <member refid="classUploadComponent_1a22301e3a16c7db26eea8433a36607b39" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>setAudioToUpload</name></member>
+      <member refid="classUploadComponent_1a3459e051aad5e9b482b31e786c8ee9ab" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>shareButtonArea</name></member>
+      <member refid="classUploadComponent_1a8741a7add5c5c436f68f001b169ccc7d" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>showGenrePicker</name></member>
+      <member refid="classUploadComponent_1af4b713f859942af91c236d31a4a2f215" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>showKeyPicker</name></member>
+      <member refid="classUploadComponent_1ae6d537317241e7e56b6f70f09dc59243" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>startUpload</name></member>
+      <member refid="classUploadComponent_1a5a95a71328313a3cf945c7a70a025497" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>statusArea</name></member>
+      <member refid="classUploadComponent_1abebffe4c23c9772bb8ed589cf998d410" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>tapTempoButtonArea</name></member>
+      <member refid="classUploadComponent_1a227912bc5fccddd54678c073cb9faac7" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>tapTimes</name></member>
+      <member refid="classUploadComponent_1ae0ee52d6e769f693a00b134ffe790dc6" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>timerCallback</name></member>
+      <member refid="classUploadComponent_1a78c448dd506e522706d3d46d113d7b92" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>title</name></member>
+      <member refid="classUploadComponent_1a06c279b60af970e9c90abfd3df627f44" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>titleFieldArea</name></member>
+      <member refid="classUploadComponent_1aa4b5e4eb01017b944d5a42249b7be66b" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>UploadComponent</name></member>
+      <member refid="classUploadComponent_1a4c18c520172e4eb7f29cf0cc85e2067c" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>uploadProgress</name></member>
+      <member refid="classUploadComponent_1abf14958abea483e9ea00b78fe32b9526" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>UploadState</name></member>
+      <member refid="classUploadComponent_1abe4d1698aabc2f351b7fc43c4b98da04" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>uploadState</name></member>
+      <member refid="classUploadComponent_1a6bed8cd530953cebcf321380af88199d" prot="private" virt="non-virtual"><scope>UploadComponent</scope><name>waveformArea</name></member>
+      <member refid="classUploadComponent_1ae678e92e7a5b319009358b883220506b" prot="public" virt="non-virtual"><scope>UploadComponent</scope><name>~UploadComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

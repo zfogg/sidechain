@@ -13,7 +13,7 @@ UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
 
 # JUCE version for FetchContent fallback info
-JUCE_VERSION = 8.0.8
+JUCE_VERSION = 8.0.11
 JUCE_DIR = ./deps/JUCE
 
 

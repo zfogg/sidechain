@@ -1,0 +1,237 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="StoriesFeedComponent_8h" kind="file" language="C++">
+    <compoundname>StoriesFeedComponent.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes refid="FeedPost_8h" local="yes">../../models/FeedPost.h</includes>
+    <includedby refid="StoriesFeedComponent_8cpp" local="yes">StoriesFeedComponent.cpp</includedby>
+    <includedby refid="StoryViewerComponent_8h" local="yes">StoryViewerComponent.h</includedby>
+    <incdepgraph>
+      <node id="3">
+        <label>../../models/FeedPost.h</label>
+        <link refid="FeedPost_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>StoriesFeedComponent.h</label>
+        <link refid="StoriesFeedComponent_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>Log.h</label>
+        <link refid="Log_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>../util/Result.h</label>
+        <link refid="Result_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>../util/Time.h</label>
+        <link refid="Time_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+      <node id="7">
+        <label>functional</label>
+      </node>
+      <node id="4">
+        <label>map</label>
+      </node>
+      <node id="8">
+        <label>optional</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>StoriesFeedComponent.cpp</label>
+        <link refid="StoriesFeedComponent_8cpp"/>
+      </node>
+      <node id="1">
+        <label>StoriesFeedComponent.h</label>
+        <link refid="StoriesFeedComponent_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>StoryViewerComponent.cpp</label>
+        <link refid="StoryViewerComponent_8cpp"/>
+      </node>
+      <node id="3">
+        <label>StoryViewerComponent.h</label>
+        <link refid="StoryViewerComponent_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structStoryData" prot="public">StoryData</innerclass>
+    <innerclass refid="classStoriesFeedComponent" prot="public">StoriesFeedComponent</innerclass>
+    <innerclass refid="structStoriesFeedComponent_1_1UserStories" prot="private">StoriesFeedComponent::UserStories</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="FeedPost_8h" kindref="compound">../../models/FeedPost.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref>;</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12" refid="structStoryData" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structStoryData" kindref="compound">StoryData</ref></highlight></codeline>
+<codeline lineno="13"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="14" refid="structStoryData_1a209c8686c3f663e66958944d38232134" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structStoryData_1a209c8686c3f663e66958944d38232134" kindref="member">id</ref>;</highlight></codeline>
+<codeline lineno="15" refid="structStoryData_1ab9c1da59626bda7213996e10b53064a9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structStoryData_1ab9c1da59626bda7213996e10b53064a9" kindref="member">userId</ref>;</highlight></codeline>
+<codeline lineno="16" refid="structStoryData_1ad22cf5ee947fa46b240f002c8ff0be53" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structStoryData_1ad22cf5ee947fa46b240f002c8ff0be53" kindref="member">username</ref>;</highlight></codeline>
+<codeline lineno="17" refid="structStoryData_1accaf76a6b6ee97ddcffdca74c8b78039" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structStoryData_1accaf76a6b6ee97ddcffdca74c8b78039" kindref="member">userAvatarUrl</ref>;</highlight></codeline>
+<codeline lineno="18" refid="structStoryData_1a1e925df5112c446be3da559f6f4fb535" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structStoryData_1a1e925df5112c446be3da559f6f4fb535" kindref="member">audioUrl</ref>;</highlight></codeline>
+<codeline lineno="19" refid="structStoryData_1ac4c7e0e7d507f195db0bbbd9a80b49c9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="structStoryData_1ac4c7e0e7d507f195db0bbbd9a80b49c9" kindref="member">audioDuration</ref><sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="20" refid="structStoryData_1a1436bd6f6017fd2696dca36102807a8a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::var<sp/><ref refid="structStoryData_1a1436bd6f6017fd2696dca36102807a8a" kindref="member">midiData</ref>;</highlight></codeline>
+<codeline lineno="21" refid="structStoryData_1adab4b82f9bf922b2b8daa58f64980ca9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structStoryData_1adab4b82f9bf922b2b8daa58f64980ca9" kindref="member">viewCount</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="22" refid="structStoryData_1ab959002474ca574d1ff1761019b011f4" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structStoryData_1ab959002474ca574d1ff1761019b011f4" kindref="member">viewed</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="23" refid="structStoryData_1aeb1c4498a1c4695fda4973311ecca982" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Time<sp/><ref refid="structStoryData_1aeb1c4498a1c4695fda4973311ecca982" kindref="member">expiresAt</ref>;</highlight></codeline>
+<codeline lineno="24" refid="structStoryData_1a95109bcef4489f97267698259f4ce294" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Time<sp/><ref refid="structStoryData_1a95109bcef4489f97267698259f4ce294" kindref="member">createdAt</ref>;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Check<sp/>if<sp/>story<sp/>is<sp/>expired</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="structStoryData_1a1bceaf9fb94575619f77d325008feb4c" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structStoryData_1a1bceaf9fb94575619f77d325008feb4c" kindref="member">isExpired</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="28"><highlight class="keyword"><sp/><sp/><sp/><sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>juce::Time::getCurrentTime()<sp/>&gt;<sp/><ref refid="structStoryData_1aeb1c4498a1c4695fda4973311ecca982" kindref="member">expiresAt</ref>;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>time<sp/>until<sp/>expiration</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33" refid="structStoryData_1a80a2ac3a6e27792d331937970205cbd1" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="structStoryData_1a80a2ac3a6e27792d331937970205cbd1" kindref="member">getExpirationText</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="34"><highlight class="keyword"><sp/><sp/><sp/><sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>now<sp/>=<sp/>juce::Time::getCurrentTime();</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>diff<sp/>=<sp/><ref refid="structStoryData_1aeb1c4498a1c4695fda4973311ecca982" kindref="member">expiresAt</ref><sp/>-<sp/>now;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>hours<sp/>=<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">int</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(diff.inHours());</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(hours<sp/>&lt;<sp/>1)</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>minutes<sp/>=<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="keywordtype">int</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(diff.inMinutes());</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>juce::String(minutes)<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;m<sp/>left&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>juce::String(hours)<sp/>+<sp/></highlight><highlight class="stringliteral">&quot;h<sp/>left&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="46"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="classStoriesFeedComponent" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classStoriesFeedComponent_1a78dcc6192c9c036b8f89f6c033b00f9f" kindref="member">StoriesFeedComponent</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::Component,</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::Timer</highlight></codeline>
+<codeline lineno="61"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classStoriesFeedComponent_1a78dcc6192c9c036b8f89f6c033b00f9f" kindref="member">StoriesFeedComponent</ref>();</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classStoriesFeedComponent_1aba41e7381989f21fbb8935cc937fa0b3" kindref="member">~StoriesFeedComponent</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1ae6e91f2b189c33a67a9e30a1e4e1ee25" kindref="member">paint</ref>(juce::Graphics&amp;)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a5c49d149293040095b0b124ba0e7a6fe" kindref="member">resized</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a44c5ae5edf6d40cc3a6ba5fa900abc06" kindref="member">mouseUp</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1ac6d5917dc68a2f8609eda4f33c8a0c99" kindref="member">mouseWheelMove</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseWheelDetails&amp;<sp/>wheel)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Timer<sp/>callback<sp/>for<sp/>scroll<sp/>animation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a73719a3429011e6f5b533bcd053d83d9" kindref="member">timerCallback</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Data<sp/>management</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78" refid="classStoriesFeedComponent_1a66811f9691cfb97766ca45e0b199e588" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a66811f9691cfb97766ca45e0b199e588" kindref="member">setNetworkClient</ref>(<ref refid="classNetworkClient" kindref="compound">NetworkClient</ref>*<sp/>client)<sp/>{<sp/>networkClient<sp/>=<sp/>client;<sp/>}</highlight></codeline>
+<codeline lineno="79" refid="classStoriesFeedComponent_1a0266f4ae67cf4822c96c50b33db0ab02" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a0266f4ae67cf4822c96c50b33db0ab02" kindref="member">setCurrentUserId</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId)<sp/>{<sp/>currentUserId<sp/>=<sp/>userId;<sp/>}</highlight></codeline>
+<codeline lineno="80" refid="classStoriesFeedComponent_1a462a1ac5fa8495aed2829b0a8d9ce5ed" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a462a1ac5fa8495aed2829b0a8d9ce5ed" kindref="member">setCurrentUserAvatarUrl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>url)<sp/>{<sp/>currentUserAvatarUrl<sp/>=<sp/>url;<sp/>}</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Load<sp/>stories<sp/>from<sp/>network</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a1042ff80324cc5aa27b4ab779a311ddd" kindref="member">loadStories</ref>();</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Set<sp/>stories<sp/>data<sp/>directly</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1aaea94649d09584ee9aa7bc1c60d5834c" kindref="member">setStories</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>std::vector&lt;StoryData&gt;&amp;<sp/>newStories);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Check<sp/>if<sp/>user<sp/>has<sp/>active<sp/>story</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="classStoriesFeedComponent_1a46c91fc155f15643c244a1daa8de95ed" kindref="member">hasOwnStory</ref>()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callbacks</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Called<sp/>when<sp/>user<sp/>taps<sp/>on<sp/>&quot;Create<sp/>Story&quot;<sp/>/<sp/>own<sp/>story</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95" refid="classStoriesFeedComponent_1a3a08060975159875dc89948cb3fbc0bf" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void()&gt;<sp/><ref refid="classStoriesFeedComponent_1a3a08060975159875dc89948cb3fbc0bf" kindref="member">onCreateStory</ref>;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Called<sp/>when<sp/>user<sp/>taps<sp/>on<sp/>a<sp/>story<sp/>circle<sp/>(userId,<sp/>storyIndex)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98" refid="classStoriesFeedComponent_1ab76ab0445415fc1996fbb01d0172b814" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>storyIndex)&gt;<sp/><ref refid="classStoriesFeedComponent_1ab76ab0445415fc1996fbb01d0172b814" kindref="member">onStoryTapped</ref>;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref>*<sp/>networkClient<sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>currentUserId;</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/>currentUserAvatarUrl;</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Story<sp/>data<sp/>grouped<sp/>by<sp/>user</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">UserStories</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/>userId;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/>username;</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>juce::String<sp/>avatarUrl;</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>std::vector&lt;StoryData&gt;<sp/>stories;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>hasUnviewed<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/>};</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/>std::vector&lt;UserStories&gt;<sp/>userStoriesGroups;</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Scroll<sp/>state</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>scrollOffset<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>targetScrollOffset<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>maxScrollOffset<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>UI<sp/>constants</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>CIRCLE_SIZE<sp/>=<sp/>64;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>CIRCLE_PADDING<sp/>=<sp/>12;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>RING_THICKNESS<sp/>=<sp/>3;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>LABEL_HEIGHT<sp/>=<sp/>20;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Cached<sp/>avatar<sp/>images</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>std::map&lt;juce::String,<sp/>juce::Image&gt;<sp/>avatarCache;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Drawing<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawCreateStoryCircle(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawStoryCircle(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds,</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>UserStories&amp;<sp/>userStories,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index);</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Calculate<sp/>total<sp/>content<sp/>width</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>calculateContentWidth()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>circle<sp/>bounds<sp/>at<sp/>index<sp/>(0<sp/>=<sp/>create<sp/>story,<sp/>1+<sp/>=<sp/>user<sp/>stories)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getCircleBounds(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index)<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Download<sp/>avatar<sp/>image</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>loadAvatarImage(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>userId,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>avatarUrl);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(<ref refid="classStoriesFeedComponent" kindref="compound">StoriesFeedComponent</ref>)</highlight></codeline>
+<codeline lineno="148"><highlight class="normal">};</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h"/>
+  </compounddef>
+</doxygen>

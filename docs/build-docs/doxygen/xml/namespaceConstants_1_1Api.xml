@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceConstants_1_1Api" kind="namespace" language="C++">
+    <compoundname>Constants::Api</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="Constants_8h_1afae980920a9820be1db0e8e4ddbb16d3" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::DEFAULT_TIMEOUT_MS</definition>
+        <argsstring></argsstring>
+        <name>DEFAULT_TIMEOUT_MS</name>
+        <qualifiedname>Constants::Api::DEFAULT_TIMEOUT_MS</qualifiedname>
+        <initializer>= 30000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="85" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1a2957945cb55f43c2e905ecd4d42533d0" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::IMAGE_TIMEOUT_MS</definition>
+        <argsstring></argsstring>
+        <name>IMAGE_TIMEOUT_MS</name>
+        <qualifiedname>Constants::Api::IMAGE_TIMEOUT_MS</qualifiedname>
+        <initializer>= 10000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="88" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1ae0dd09cac73ee1f03c0b0da22c856556" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::QUICK_TIMEOUT_MS</definition>
+        <argsstring></argsstring>
+        <name>QUICK_TIMEOUT_MS</name>
+        <qualifiedname>Constants::Api::QUICK_TIMEOUT_MS</qualifiedname>
+        <initializer>= 5000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="91" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1a98de1937e69f490e2d3c95818d9f1cc0" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::UPLOAD_TIMEOUT_MS</definition>
+        <argsstring></argsstring>
+        <name>UPLOAD_TIMEOUT_MS</name>
+        <qualifiedname>Constants::Api::UPLOAD_TIMEOUT_MS</qualifiedname>
+        <initializer>= 60000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="94" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1acdf17ce61c8da9411d24210e056bbd64" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t Constants::Api::MAX_UPLOAD_SIZE_BYTES</definition>
+        <argsstring></argsstring>
+        <name>MAX_UPLOAD_SIZE_BYTES</name>
+        <qualifiedname>Constants::Api::MAX_UPLOAD_SIZE_BYTES</qualifiedname>
+        <initializer>= 50 * 1024 * 1024</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="97" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="97" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1ad1ebc4869c336f250a0bfc6b2b14f4ba" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::MAX_RETRIES</definition>
+        <argsstring></argsstring>
+        <name>MAX_RETRIES</name>
+        <qualifiedname>Constants::Api::MAX_RETRIES</qualifiedname>
+        <initializer>= 3</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="100" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="100" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1ae7bf4646ae54f96ee74219802c906a65" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::RETRY_DELAY_BASE_MS</definition>
+        <argsstring></argsstring>
+        <name>RETRY_DELAY_BASE_MS</name>
+        <qualifiedname>Constants::Api::RETRY_DELAY_BASE_MS</qualifiedname>
+        <initializer>= 1000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="103" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="103" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1a133f82f1398c3519e0cc07f4f51ad5a5" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::WEBSOCKET_TIMEOUT_MS</definition>
+        <argsstring></argsstring>
+        <name>WEBSOCKET_TIMEOUT_MS</name>
+        <qualifiedname>Constants::Api::WEBSOCKET_TIMEOUT_MS</qualifiedname>
+        <initializer>= 10000</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="106" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="106" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Constants_8h_1afe6b6a82b520bb359168467d166c909a" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int Constants::Api::MAX_REDIRECTS</definition>
+        <argsstring></argsstring>
+        <name>MAX_REDIRECTS</name>
+        <qualifiedname>Constants::Api::MAX_REDIRECTS</qualifiedname>
+        <initializer>= 5</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="109" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/Constants.h" line="82" column="5"/>
+  </compounddef>
+</doxygen>

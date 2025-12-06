@@ -1,0 +1,496 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File FeedDataManager.h &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">File FeedDataManager.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/file_plugin_source_network_FeedDataManager.h.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="file-feeddatamanager-h">
+<span id="file-plugin-source-network-feeddatamanager-h"></span><h1>File FeedDataManager.h<a class="headerlink" href="#file-feeddatamanager-h" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#definition-plugin-source-network-feeddatamanager-h" id="id1">Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/FeedDataManager.h</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#classes" id="id2">Classes</a></p></li>
+<li><p><a class="reference internal" href="#full-file-listing" id="id3">Full File Listing</a></p></li>
+</ul>
+</nav>
+<section id="definition-plugin-source-network-feeddatamanager-h">
+<h2>Definition (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/FeedDataManager.h</span></code>)<a class="headerlink" href="#definition-plugin-source-network-feeddatamanager-h" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="program_listing_file_plugin_source_network_FeedDataManager.h.html">Program Listing for File FeedDataManager.h</a></li>
+</ul>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="structFeedDataManager_1_1CacheEntry.html#exhale-struct-structfeeddatamanager-1-1cacheentry"><span class="std std-ref">Struct FeedDataManager::CacheEntry</span></a></p></li>
+<li><p><a class="reference internal" href="classFeedDataManager.html#exhale-class-classfeeddatamanager"><span class="std std-ref">Class FeedDataManager</span></a></p></li>
+</ul>
+</section>
+<section id="full-file-listing">
+<h2>Full File Listing<a class="headerlink" href="#full-file-listing" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv415FeedDataManager">
+<span id="_CPPv315FeedDataManager"></span><span id="_CPPv215FeedDataManager"></span><span id="FeedDataManager"></span><span class="target" id="classFeedDataManager"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FeedDataManager</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">private</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Timer</span></span><a class="headerlink" href="#_CPPv415FeedDataManager" title="Link to this definition"></a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;FeedDataManager.h&gt;</em></div>
+<p><a class="reference internal" href="#classFeedDataManager"><span class="std std-ref">FeedDataManager</span></a> handles fetching, caching, and pagination of feed data. </p>
+<p>Features:<ul class="simple">
+<li><p><a class="reference internal" href="file_plugin_source_util_Async.h.html#namespaceAsync"><span class="std std-ref">Async</span></a> feed fetching with callback-based API</p></li>
+<li><p>Local JSON cache with configurable TTL (default 5 minutes)</p></li>
+<li><p>Pagination support for infinite scroll</p></li>
+<li><p>Multiple feed types (timeline, global)</p></li>
+<li><p>Error handling and retry logic</p></li>
+</ul>
+</p>
+<p>Thread Safety:<ul class="simple">
+<li><p>All public methods should be called from MESSAGE THREAD</p></li>
+<li><p>Network callbacks are dispatched to message thread automatically </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager8FeedTypeE">
+<span id="_CPPv3N15FeedDataManager8FeedTypeE"></span><span id="_CPPv2N15FeedDataManager8FeedTypeE"></span><span class="target" id="classFeedDataManager_1a00db918f2778fc3527cd302241688d40"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FeedType</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager8FeedTypeE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager8FeedType8TimelineE">
+<span id="_CPPv3N15FeedDataManager8FeedType8TimelineE"></span><span id="_CPPv2N15FeedDataManager8FeedType8TimelineE"></span><span class="target" id="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a3d1f92a565d3b1a61880236e33c49bf3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Timeline</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager8FeedType8TimelineE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager8FeedType6GlobalE">
+<span id="_CPPv3N15FeedDataManager8FeedType6GlobalE"></span><span id="_CPPv2N15FeedDataManager8FeedType6GlobalE"></span><span class="target" id="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a4cc6684df7b4a92b1dec6fce3264fac8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Global</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager8FeedType6GlobalE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager8FeedType8TrendingE">
+<span id="_CPPv3N15FeedDataManager8FeedType8TrendingE"></span><span id="_CPPv2N15FeedDataManager8FeedType8TrendingE"></span><span class="target" id="classFeedDataManager_1a00db918f2778fc3527cd302241688d40a37528894f18a085f9a078496a68eaaa8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Trending</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager8FeedType8TrendingE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager12FeedCallbackE">
+<span id="_CPPv3N15FeedDataManager12FeedCallbackE"></span><span id="_CPPv2N15FeedDataManager12FeedCallbackE"></span><span class="target" id="classFeedDataManager_1afcbdf7cc7f5ed52f389169320ca365a9"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FeedCallback</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#_CPPv412FeedResponse" title="FeedResponse"><span class="n"><span class="pre">FeedResponse</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager12FeedCallbackE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager15RefreshCallbackE">
+<span id="_CPPv3N15FeedDataManager15RefreshCallbackE"></span><span id="_CPPv2N15FeedDataManager15RefreshCallbackE"></span><span class="target" id="classFeedDataManager_1a9c503e21a516d041aaa517daee28ac13"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RefreshCallback</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">void</span></span><span class="p"><span class="pre">(</span></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager15RefreshCallbackE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager15FeedDataManagerEv">
+<span id="_CPPv3N15FeedDataManager15FeedDataManagerEv"></span><span id="_CPPv2N15FeedDataManager15FeedDataManagerEv"></span><span id="FeedDataManager::FeedDataManager"></span><span class="target" id="classFeedDataManager_1a9c8170bfb845e682c402926b9e8dca51"></span><span class="sig-name descname"><span class="n"><span class="pre">FeedDataManager</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager15FeedDataManagerEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManagerD0Ev">
+<span id="_CPPv3N15FeedDataManagerD0Ev"></span><span id="_CPPv2N15FeedDataManagerD0Ev"></span><span id="FeedDataManager::~FeedDataManager"></span><span class="target" id="classFeedDataManager_1aba8c8cfe42e691c92c4793e41bd95d53"></span><span class="sig-name descname"><span class="n"><span class="pre">~FeedDataManager</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManagerD0Ev" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager9fetchFeedE8FeedTypeii12FeedCallback">
+<span id="_CPPv3N15FeedDataManager9fetchFeedE8FeedTypeii12FeedCallback"></span><span id="_CPPv2N15FeedDataManager9fetchFeedE8FeedTypeii12FeedCallback"></span><span id="FeedDataManager::fetchFeed__FeedType.i.i.FeedCallback"></span><span class="target" id="classFeedDataManager_1a47075ef744c0011efb7bf8b563a57f88"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fetchFeed</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limit</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">offset</span></span>, <a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager9fetchFeedE8FeedTypeii12FeedCallback" title="Link to this definition"></a><br /></dt>
+<dd><p>Fetch a page of feed posts. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feedType</strong> – Which feed to fetch </p></li>
+<li><p><strong>limit</strong> – Number of posts per page (default 20) </p></li>
+<li><p><strong>offset</strong> – Starting offset for pagination </p></li>
+<li><p><strong>callback</strong> – Called when fetch completes (on message thread) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager9fetchFeedE8FeedType12FeedCallback">
+<span id="_CPPv3N15FeedDataManager9fetchFeedE8FeedType12FeedCallback"></span><span id="_CPPv2N15FeedDataManager9fetchFeedE8FeedType12FeedCallback"></span><span id="FeedDataManager::fetchFeed__FeedType.FeedCallback"></span><span class="target" id="classFeedDataManager_1ade0d403154229467d887d64ca8ca8a45"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fetchFeed</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span>, <a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager9fetchFeedE8FeedType12FeedCallback" title="Link to this definition"></a><br /></dt>
+<dd><p>Convenience method to fetch first page. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager11refreshFeedE15RefreshCallback">
+<span id="_CPPv3N15FeedDataManager11refreshFeedE15RefreshCallback"></span><span id="_CPPv2N15FeedDataManager11refreshFeedE15RefreshCallback"></span><span id="FeedDataManager::refreshFeed__RefreshCallback"></span><span class="target" id="classFeedDataManager_1a1fd36517c3a2d385af2157f70b88989f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">refreshFeed</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager15RefreshCallbackE" title="FeedDataManager::RefreshCallback"><span class="n"><span class="pre">RefreshCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager11refreshFeedE15RefreshCallback" title="Link to this definition"></a><br /></dt>
+<dd><p>Refresh the current feed (fetch fresh data, ignore cache). </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>callback</strong> – Called when refresh completes </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager13loadMorePostsE12FeedCallback">
+<span id="_CPPv3N15FeedDataManager13loadMorePostsE12FeedCallback"></span><span id="_CPPv2N15FeedDataManager13loadMorePostsE12FeedCallback"></span><span id="FeedDataManager::loadMorePosts__FeedCallback"></span><span class="target" id="classFeedDataManager_1ab7dba172c73fa0777925645f700d1239"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">loadMorePosts</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager13loadMorePostsE12FeedCallback" title="Link to this definition"></a><br /></dt>
+<dd><p>Load more posts (pagination). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager11setCacheTTLEi">
+<span id="_CPPv3N15FeedDataManager11setCacheTTLEi"></span><span id="_CPPv2N15FeedDataManager11setCacheTTLEi"></span><span id="FeedDataManager::setCacheTTL__i"></span><span class="target" id="classFeedDataManager_1a07692f8a832426e89281830d3e030786"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setCacheTTL</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">seconds</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager11setCacheTTLEi" title="Link to this definition"></a><br /></dt>
+<dd><p>Set cache TTL in seconds (default 300 = 5 minutes). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager11getCacheTTLEv">
+<span id="_CPPv3NK15FeedDataManager11getCacheTTLEv"></span><span id="_CPPv2NK15FeedDataManager11getCacheTTLEv"></span><span id="FeedDataManager::getCacheTTLC"></span><span class="target" id="classFeedDataManager_1a44bc0d50ded84c317329538b547c1e65"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCacheTTL</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager11getCacheTTLEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10clearCacheEv">
+<span id="_CPPv3N15FeedDataManager10clearCacheEv"></span><span id="_CPPv2N15FeedDataManager10clearCacheEv"></span><span id="FeedDataManager::clearCache"></span><span class="target" id="classFeedDataManager_1a2c4da403ebfeac3e84ac858f7cae9f07"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clearCache</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager10clearCacheEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Clear all cached data. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10clearCacheE8FeedType">
+<span id="_CPPv3N15FeedDataManager10clearCacheE8FeedType"></span><span id="_CPPv2N15FeedDataManager10clearCacheE8FeedType"></span><span id="FeedDataManager::clearCache__FeedType"></span><span class="target" id="classFeedDataManager_1a55db44110250538ba67483d0e086e653"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clearCache</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager10clearCacheE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd><p>Clear cache for a specific feed type. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager12isCacheValidE8FeedType">
+<span id="_CPPv3NK15FeedDataManager12isCacheValidE8FeedType"></span><span id="_CPPv2NK15FeedDataManager12isCacheValidE8FeedType"></span><span id="FeedDataManager::isCacheValid__FeedTypeC"></span><span class="target" id="classFeedDataManager_1a1886f695799e9766c69bba90d1ab3570"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isCacheValid</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager12isCacheValidE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if cache is valid for a feed type. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager13getCachedFeedE8FeedType">
+<span id="_CPPv3NK15FeedDataManager13getCachedFeedE8FeedType"></span><span id="_CPPv2NK15FeedDataManager13getCachedFeedE8FeedType"></span><span id="FeedDataManager::getCachedFeed__FeedTypeC"></span><span class="target" id="classFeedDataManager_1a8c18b3667ae488a7ebe622d9a8d2594b"></span><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#_CPPv412FeedResponse" title="FeedResponse"><span class="n"><span class="pre">FeedResponse</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCachedFeed</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager13getCachedFeedE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd><p>Get cached posts (returns empty if cache invalid). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager10isFetchingEv">
+<span id="_CPPv3NK15FeedDataManager10isFetchingEv"></span><span id="_CPPv2NK15FeedDataManager10isFetchingEv"></span><span id="FeedDataManager::isFetchingC"></span><span class="target" id="classFeedDataManager_1a0e65e4a904c51191c76f0fbb59fc3f9d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isFetching</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager10isFetchingEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if currently fetching data. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager18getCurrentFeedTypeEv">
+<span id="_CPPv3NK15FeedDataManager18getCurrentFeedTypeEv"></span><span id="_CPPv2NK15FeedDataManager18getCurrentFeedTypeEv"></span><span id="FeedDataManager::getCurrentFeedTypeC"></span><span class="target" id="classFeedDataManager_1ad5edc808d5a6911594febc2f202344d6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentFeedType</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager18getCurrentFeedTypeEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the current feed type. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager18setCurrentFeedTypeE8FeedType">
+<span id="_CPPv3N15FeedDataManager18setCurrentFeedTypeE8FeedType"></span><span id="_CPPv2N15FeedDataManager18setCurrentFeedTypeE8FeedType"></span><span id="FeedDataManager::setCurrentFeedType__FeedType"></span><span class="target" id="classFeedDataManager_1aac82d3bd69b74422450863387a2b4a99"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setCurrentFeedType</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager18setCurrentFeedTypeE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the current feed type (for pagination context). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager16getCurrentOffsetEv">
+<span id="_CPPv3NK15FeedDataManager16getCurrentOffsetEv"></span><span id="_CPPv2NK15FeedDataManager16getCurrentOffsetEv"></span><span id="FeedDataManager::getCurrentOffsetC"></span><span class="target" id="classFeedDataManager_1a309b232ca50cc281d1c5c23c394199bc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentOffset</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager16getCurrentOffsetEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get current pagination state. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager15getCurrentLimitEv">
+<span id="_CPPv3NK15FeedDataManager15getCurrentLimitEv"></span><span id="_CPPv2NK15FeedDataManager15getCurrentLimitEv"></span><span id="FeedDataManager::getCurrentLimitC"></span><span class="target" id="classFeedDataManager_1ac1fded21a5ebd74d52c0c13f360b94da"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCurrentLimit</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager15getCurrentLimitEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager12hasMorePostsEv">
+<span id="_CPPv3NK15FeedDataManager12hasMorePostsEv"></span><span id="_CPPv2NK15FeedDataManager12hasMorePostsEv"></span><span id="FeedDataManager::hasMorePostsC"></span><span class="target" id="classFeedDataManager_1a3fafd3b5e48c22267352e0bf6d753730"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hasMorePosts</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager12hasMorePostsEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager19getLoadedPostsCountEv">
+<span id="_CPPv3NK15FeedDataManager19getLoadedPostsCountEv"></span><span id="_CPPv2NK15FeedDataManager19getLoadedPostsCountEv"></span><span id="FeedDataManager::getLoadedPostsCountC"></span><span class="target" id="classFeedDataManager_1a18575207354b92b085bfcb7b7b6c1474"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getLoadedPostsCount</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager19getLoadedPostsCountEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get total loaded posts count. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager16setNetworkClientEP13NetworkClient">
+<span id="_CPPv3N15FeedDataManager16setNetworkClientEP13NetworkClient"></span><span id="_CPPv2N15FeedDataManager16setNetworkClientEP13NetworkClient"></span><span id="FeedDataManager::setNetworkClient__NetworkClientP"></span><span class="target" id="classFeedDataManager_1a38362ef9448413114e57d59b0e1dad0f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setNetworkClient</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classNetworkClient.html#_CPPv413NetworkClient" title="NetworkClient"><span class="n"><span class="pre">NetworkClient</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">client</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager16setNetworkClientEP13NetworkClient" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the network client to use for requests. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager16getNetworkClientEv">
+<span id="_CPPv3NK15FeedDataManager16getNetworkClientEv"></span><span id="_CPPv2NK15FeedDataManager16getNetworkClientEv"></span><span id="FeedDataManager::getNetworkClientC"></span><span class="target" id="classFeedDataManager_1aebccfa323a6b0647c10821c9e3aad4ff"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="classNetworkClient.html#_CPPv413NetworkClient" title="NetworkClient"><span class="n"><span class="pre">NetworkClient</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">getNetworkClient</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager16getNetworkClientEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the network client. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10setBaseURLERKN4juce6StringE">
+<span id="_CPPv3N15FeedDataManager10setBaseURLERKN4juce6StringE"></span><span id="_CPPv2N15FeedDataManager10setBaseURLERKN4juce6StringE"></span><span id="FeedDataManager::setBaseURL__juce::StringCR"></span><span class="target" id="classFeedDataManager_1a550b1f631201629ce24ce4fba240d9a6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setBaseURL</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">url</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager10setBaseURLERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the base URL for API requests. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager12setAuthTokenERKN4juce6StringE">
+<span id="_CPPv3N15FeedDataManager12setAuthTokenERKN4juce6StringE"></span><span id="_CPPv2N15FeedDataManager12setAuthTokenERKN4juce6StringE"></span><span id="FeedDataManager::setAuthToken__juce::StringCR"></span><span class="target" id="classFeedDataManager_1a5734aaa53aa3d06712196d69a54179e2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setAuthToken</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">token</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager12setAuthTokenERKN4juce6StringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set authentication token. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-functions">Private Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager13timerCallbackEv">
+<span id="_CPPv3N15FeedDataManager13timerCallbackEv"></span><span id="_CPPv2N15FeedDataManager13timerCallbackEv"></span><span id="FeedDataManager::timerCallback"></span><span class="target" id="classFeedDataManager_1a54cb30d1ebb78804156ff1252a5cf6da"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">timerCallback</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager13timerCallbackEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager12performFetchE8FeedTypeii12FeedCallback">
+<span id="_CPPv3N15FeedDataManager12performFetchE8FeedTypeii12FeedCallback"></span><span id="_CPPv2N15FeedDataManager12performFetchE8FeedTypeii12FeedCallback"></span><span id="FeedDataManager::performFetch__FeedType.i.i.FeedCallback"></span><span class="target" id="classFeedDataManager_1a4ebde4d0547a74ee6757d7501d2880de"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">performFetch</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limit</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">offset</span></span>, <a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager12performFetchE8FeedTypeii12FeedCallback" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager19handleFetchResponseERKN4juce3varE8FeedTypeii12FeedCallback">
+<span id="_CPPv3N15FeedDataManager19handleFetchResponseERKN4juce3varE8FeedTypeii12FeedCallback"></span><span id="_CPPv2N15FeedDataManager19handleFetchResponseERKN4juce3varE8FeedTypeii12FeedCallback"></span><span id="FeedDataManager::handleFetchResponse__juce::varCR.FeedType.i.i.FeedCallback"></span><span class="target" id="classFeedDataManager_1a1a9123e98b3a6db62c886187c9d96e7f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">handleFetchResponse</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">var</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">feedData</span></span>, <a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limit</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">offset</span></span>, <a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager19handleFetchResponseERKN4juce3varE8FeedTypeii12FeedCallback" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager16handleFetchErrorERKN4juce6StringE12FeedCallback">
+<span id="_CPPv3N15FeedDataManager16handleFetchErrorERKN4juce6StringE12FeedCallback"></span><span id="_CPPv2N15FeedDataManager16handleFetchErrorERKN4juce6StringE12FeedCallback"></span><span id="FeedDataManager::handleFetchError__juce::StringCR.FeedCallback"></span><span class="target" id="classFeedDataManager_1a94b669fe4ced35c57c2d7a55eab1af57"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">handleFetchError</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">error</span></span>, <a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">callback</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager16handleFetchErrorERKN4juce6StringE12FeedCallback" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager12getCacheFileE8FeedType">
+<span id="_CPPv3NK15FeedDataManager12getCacheFileE8FeedType"></span><span id="_CPPv2NK15FeedDataManager12getCacheFileE8FeedType"></span><span id="FeedDataManager::getCacheFile__FeedTypeC"></span><span class="target" id="classFeedDataManager_1a4d5953b6d2ac4ec7f768f1a8bd1fa4d5"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">File</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCacheFile</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager12getCacheFileE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager17loadCacheFromDiskE8FeedType">
+<span id="_CPPv3N15FeedDataManager17loadCacheFromDiskE8FeedType"></span><span id="_CPPv2N15FeedDataManager17loadCacheFromDiskE8FeedType"></span><span id="FeedDataManager::loadCacheFromDisk__FeedType"></span><span class="target" id="classFeedDataManager_1a6fb2cde2f83751315ce16ec83f01a58a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">loadCacheFromDisk</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager17loadCacheFromDiskE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager15saveCacheToDiskE8FeedTypeRK10CacheEntry">
+<span id="_CPPv3N15FeedDataManager15saveCacheToDiskE8FeedTypeRK10CacheEntry"></span><span id="_CPPv2N15FeedDataManager15saveCacheToDiskE8FeedTypeRK10CacheEntry"></span><span id="FeedDataManager::saveCacheToDisk__FeedType.CacheEntryCR"></span><span class="target" id="classFeedDataManager_1a72aee88c5ac05cc266eecb7d69acfa38"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">saveCacheToDisk</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15FeedDataManager10CacheEntryE" title="FeedDataManager::CacheEntry"><span class="n"><span class="pre">CacheEntry</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">entry</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager15saveCacheToDiskE8FeedTypeRK10CacheEntry" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager11updateCacheE8FeedTypeRK12FeedResponsei">
+<span id="_CPPv3N15FeedDataManager11updateCacheE8FeedTypeRK12FeedResponsei"></span><span id="_CPPv2N15FeedDataManager11updateCacheE8FeedTypeRK12FeedResponsei"></span><span id="FeedDataManager::updateCache__FeedType.FeedResponseCR.i"></span><span class="target" id="classFeedDataManager_1a92153c6fd13602f0613695e32b9d9068"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">updateCache</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#_CPPv412FeedResponse" title="FeedResponse"><span class="n"><span class="pre">FeedResponse</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">response</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">offset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager11updateCacheE8FeedTypeRK12FeedResponsei" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager17parseJsonResponseERKN4juce3varE">
+<span id="_CPPv3N15FeedDataManager17parseJsonResponseERKN4juce3varE"></span><span id="_CPPv2N15FeedDataManager17parseJsonResponseERKN4juce3varE"></span><span id="FeedDataManager::parseJsonResponse__juce::varCR"></span><span class="target" id="classFeedDataManager_1ae2d069829cf822c389d5cb7e0d90e32f"></span><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#_CPPv412FeedResponse" title="FeedResponse"><span class="n"><span class="pre">FeedResponse</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">parseJsonResponse</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">var</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">json</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N15FeedDataManager17parseJsonResponseERKN4juce3varE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager22getEndpointForFeedTypeE8FeedType">
+<span id="_CPPv3NK15FeedDataManager22getEndpointForFeedTypeE8FeedType"></span><span id="_CPPv2NK15FeedDataManager22getEndpointForFeedTypeE8FeedType"></span><span id="FeedDataManager::getEndpointForFeedType__FeedTypeC"></span><span class="target" id="classFeedDataManager_1a54ed96d346798323a371f0356a11283c"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getEndpointForFeedType</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">feedType</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager22getEndpointForFeedTypeE8FeedType" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-members">Private Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager13networkClientE">
+<span id="_CPPv3N15FeedDataManager13networkClientE"></span><span id="_CPPv2N15FeedDataManager13networkClientE"></span><span id="FeedDataManager::networkClient__NetworkClientP"></span><span class="target" id="classFeedDataManager_1a089d0511e82c6964ca7ce6de4e309a9e"></span><a class="reference internal" href="classNetworkClient.html#_CPPv413NetworkClient" title="NetworkClient"><span class="n"><span class="pre">NetworkClient</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">networkClient</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager13networkClientE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager7baseURLE">
+<span id="_CPPv3N15FeedDataManager7baseURLE"></span><span id="_CPPv2N15FeedDataManager7baseURLE"></span><span id="FeedDataManager::baseURL__juce::String"></span><span class="target" id="classFeedDataManager_1a2545f52156f8bb09185c6ef65d63f3b1"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">baseURL</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager7baseURLE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager9authTokenE">
+<span id="_CPPv3N15FeedDataManager9authTokenE"></span><span id="_CPPv2N15FeedDataManager9authTokenE"></span><span id="FeedDataManager::authToken__juce::String"></span><span class="target" id="classFeedDataManager_1a2dcedd0a0f35d76506af9985802ebf9b"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">String</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">authToken</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager9authTokenE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager15currentFeedTypeE">
+<span id="_CPPv3N15FeedDataManager15currentFeedTypeE"></span><span id="_CPPv2N15FeedDataManager15currentFeedTypeE"></span><span id="FeedDataManager::currentFeedType__FeedType"></span><span class="target" id="classFeedDataManager_1a31d85f2cef83a1983b45796e1815d744"></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">currentFeedType</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedType8TimelineE" title="FeedDataManager::FeedType::Timeline"><span class="n"><span class="pre">Timeline</span></span></a><a class="headerlink" href="#_CPPv4N15FeedDataManager15currentFeedTypeE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager13currentOffsetE">
+<span id="_CPPv3N15FeedDataManager13currentOffsetE"></span><span id="_CPPv2N15FeedDataManager13currentOffsetE"></span><span id="FeedDataManager::currentOffset__i"></span><span class="target" id="classFeedDataManager_1a56f3319eb429c66184b6e6674ed4e1b1"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">currentOffset</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager13currentOffsetE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager12currentLimitE">
+<span id="_CPPv3N15FeedDataManager12currentLimitE"></span><span id="_CPPv2N15FeedDataManager12currentLimitE"></span><span id="FeedDataManager::currentLimit__i"></span><span class="target" id="classFeedDataManager_1a36b2f589d753ede739cb32f288da576e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">currentLimit</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager12currentLimitE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager7hasMoreE">
+<span id="_CPPv3N15FeedDataManager7hasMoreE"></span><span id="_CPPv2N15FeedDataManager7hasMoreE"></span><span id="FeedDataManager::hasMore__b"></span><span class="target" id="classFeedDataManager_1a3538f4558f7ef207f171216f95fef4c8"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hasMore</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager7hasMoreE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager18fetchingInProgressE">
+<span id="_CPPv3N15FeedDataManager18fetchingInProgressE"></span><span id="_CPPv2N15FeedDataManager18fetchingInProgressE"></span><span id="FeedDataManager::fetchingInProgress__b"></span><span class="target" id="classFeedDataManager_1ab54ff2cdf02213db1a7c028d95446c18"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fetchingInProgress</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager18fetchingInProgressE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager5cacheE">
+<span id="_CPPv3N15FeedDataManager5cacheE"></span><span id="_CPPv2N15FeedDataManager5cacheE"></span><span id="FeedDataManager::cache__std::map:FeedType.CacheEntry:"></span><span class="target" id="classFeedDataManager_1a5ff548616127165fb63d13bbfa804424"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">map</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N15FeedDataManager10CacheEntryE" title="FeedDataManager::CacheEntry"><span class="n"><span class="pre">CacheEntry</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cache</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager5cacheE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager11loadedPostsE">
+<span id="_CPPv3N15FeedDataManager11loadedPostsE"></span><span id="_CPPv2N15FeedDataManager11loadedPostsE"></span><span id="FeedDataManager::loadedPosts__std::map:FeedType.juce::Array:FeedPost::"></span><span class="target" id="classFeedDataManager_1af3bb04617b359276e897e6276ad695a8"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">map</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="classFeedPost.html#_CPPv48FeedPost" title="FeedPost"><span class="n"><span class="pre">FeedPost</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">loadedPosts</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager11loadedPostsE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager15cacheTTLSecondsE">
+<span id="_CPPv3N15FeedDataManager15cacheTTLSecondsE"></span><span id="_CPPv2N15FeedDataManager15cacheTTLSecondsE"></span><span id="FeedDataManager::cacheTTLSeconds__i"></span><span class="target" id="classFeedDataManager_1a7fe6e9553e6c548ba6cca323739504d9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cacheTTLSeconds</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">300</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager15cacheTTLSecondsE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager15pendingCallbackE">
+<span id="_CPPv3N15FeedDataManager15pendingCallbackE"></span><span id="_CPPv2N15FeedDataManager15pendingCallbackE"></span><span id="FeedDataManager::pendingCallback__FeedCallback"></span><span class="target" id="classFeedDataManager_1a006c28153af357a0471fd58e5c32b33b"></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager12FeedCallbackE" title="FeedDataManager::FeedCallback"><span class="n"><span class="pre">FeedCallback</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pendingCallback</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager15pendingCallbackE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager22pendingRefreshCallbackE">
+<span id="_CPPv3N15FeedDataManager22pendingRefreshCallbackE"></span><span id="_CPPv2N15FeedDataManager22pendingRefreshCallbackE"></span><span id="FeedDataManager::pendingRefreshCallback__RefreshCallback"></span><span class="target" id="classFeedDataManager_1ae3352a96bc21a1f49acec7e68625e804"></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager15RefreshCallbackE" title="FeedDataManager::RefreshCallback"><span class="n"><span class="pre">RefreshCallback</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pendingRefreshCallback</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager22pendingRefreshCallbackE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10CacheEntryE">
+<span id="_CPPv3N15FeedDataManager10CacheEntryE"></span><span id="_CPPv2N15FeedDataManager10CacheEntryE"></span><span id="FeedDataManager::CacheEntry"></span><span class="target" id="structFeedDataManager_1_1CacheEntry"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CacheEntry</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager10CacheEntryE" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15FeedDataManager10CacheEntry7isValidEi">
+<span id="_CPPv3NK15FeedDataManager10CacheEntry7isValidEi"></span><span id="_CPPv2NK15FeedDataManager10CacheEntry7isValidEi"></span><span id="FeedDataManager::CacheEntry::isValid__iC"></span><span class="target" id="structFeedDataManager_1_1CacheEntry_1a5ac681e7c8592cbaf7f0a23368f01c23"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">isValid</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ttlSeconds</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK15FeedDataManager10CacheEntry7isValidEi" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10CacheEntry8responseE">
+<span id="_CPPv3N15FeedDataManager10CacheEntry8responseE"></span><span id="_CPPv2N15FeedDataManager10CacheEntry8responseE"></span><span id="FeedDataManager::CacheEntry::response__FeedResponse"></span><span class="target" id="structFeedDataManager_1_1CacheEntry_1a76324f1de2be4ac177d3d3508a736db6"></span><a class="reference internal" href="file_plugin_source_models_FeedResponse.h.html#_CPPv412FeedResponse" title="FeedResponse"><span class="n"><span class="pre">FeedResponse</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">response</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager10CacheEntry8responseE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10CacheEntry9timestampE">
+<span id="_CPPv3N15FeedDataManager10CacheEntry9timestampE"></span><span id="_CPPv2N15FeedDataManager10CacheEntry9timestampE"></span><span id="FeedDataManager::CacheEntry::timestamp__juce::Time"></span><span class="target" id="structFeedDataManager_1_1CacheEntry_1a34739fda180ce41f44149683b6af54fc"></span><span class="n"><span class="pre">juce</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Time</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">timestamp</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager10CacheEntry9timestampE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10CacheEntry8feedTypeE">
+<span id="_CPPv3N15FeedDataManager10CacheEntry8feedTypeE"></span><span id="_CPPv2N15FeedDataManager10CacheEntry8feedTypeE"></span><span id="FeedDataManager::CacheEntry::feedType__FeedType"></span><span class="target" id="structFeedDataManager_1_1CacheEntry_1a96795f92096d608b4a09f3f4cd68c306"></span><a class="reference internal" href="classFeedDataManager.html#_CPPv4N15FeedDataManager8FeedTypeE" title="FeedDataManager::FeedType"><span class="n"><span class="pre">FeedType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">feedType</span></span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager10CacheEntry8feedTypeE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15FeedDataManager10CacheEntry6offsetE">
+<span id="_CPPv3N15FeedDataManager10CacheEntry6offsetE"></span><span id="_CPPv2N15FeedDataManager10CacheEntry6offsetE"></span><span id="FeedDataManager::CacheEntry::offset__i"></span><span class="target" id="structFeedDataManager_1_1CacheEntry_1a7692f97ea33bc6d06b780e3ee38f5cfe"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N15FeedDataManager10CacheEntry6offsetE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

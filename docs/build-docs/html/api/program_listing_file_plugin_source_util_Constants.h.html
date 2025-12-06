@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File Constants.h &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File Constants.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_util_Constants.h.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-constants-h">
+<span id="program-listing-file-plugin-source-util-constants-h"></span><h1>Program Listing for File Constants.h<a class="headerlink" href="#program-listing-for-file-constants-h" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_util_Constants.h.html#file-plugin-source-util-constants-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/util/Constants.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstddef&gt;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">namespace</span><span class="w"> </span><span class="nn">Constants</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// API Endpoints</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Endpoints</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Development server (local)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">DEV_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;http://localhost:8787&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Production server</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">PROD_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;https://api.sidechain.app&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// WebSocket endpoints</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">DEV_WS_HOST</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;localhost&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">DEV_WS_PORT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8787</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">PROD_WS_HOST</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;api.sidechain.app&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">PROD_WS_PORT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">443</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">WS_PATH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/api/v1/ws&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// API version prefix</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">API_VERSION</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/api/v1&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Auth endpoints</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">AUTH_LOGIN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/api/v1/auth/login&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">AUTH_REGISTER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/api/v1/auth/register&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">AUTH_OAUTH_POLL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/api/v1/auth/oauth/poll&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// User endpoints</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">USERS_PROFILE_PICTURE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/api/v1/users/upload-profile-picture&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Error Messages</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Errors</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Authentication errors</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">NOT_AUTHENTICATED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;🚫 Not authenticated&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">AUTH_REQUIRED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;🔒 Authentication required&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Network errors</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">NETWORK_ERROR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;🚨 Network error occurred&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">REQUEST_FAILED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;🔴 Request failed&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">TIMEOUT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;⌛ Request timed out&quot;</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Validation errors</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">INVALID_INPUT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;❌ Invalid input&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">MISSING_REQUIRED_FIELD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;⛔ Missing required field&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// API Configuration</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Api</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Default HTTP request timeout (30 seconds)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">DEFAULT_TIMEOUT_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Image download timeout (shorter for better UX)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">IMAGE_TIMEOUT_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Quick operations (profile pic in header)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">QUICK_TIMEOUT_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Large upload timeout (audio files)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">UPLOAD_TIMEOUT_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Maximum upload size in bytes (50MB)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">MAX_UPLOAD_SIZE_BYTES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Maximum retries for failed requests</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MAX_RETRIES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Retry delay base (exponential backoff)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">RETRY_DELAY_BASE_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// WebSocket connect timeout</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">WEBSOCKET_TIMEOUT_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Number of redirects to follow</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MAX_REDIRECTS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Audio Configuration</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Audio</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Maximum recording duration in seconds</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">MAX_RECORDING_SECONDS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">60.0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default BPM when none detected</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">DEFAULT_BPM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">120.0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Valid BPM range</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">MIN_BPM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20.0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">MAX_BPM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">300.0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Target loudness for normalization (LUFS)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">TARGET_LUFS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-14.0f</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Audio player cache size in bytes (50MB)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">AUDIO_CACHE_SIZE_BYTES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default sample rate</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">DEFAULT_SAMPLE_RATE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">44100.0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Number of channels for recording</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">RECORDING_CHANNELS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// UI Dimensions</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Ui</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Header component height</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">HEADER_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Feed post card height</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">POST_CARD_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Comment row heights</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">COMMENT_ROW_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">70</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">REPLY_ROW_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Follower/Following list row height</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">USER_ROW_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">70</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Avatar sizes</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">AVATAR_SIZE_LARGE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">AVATAR_SIZE_MEDIUM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">AVATAR_SIZE_SMALL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Standard corner radii</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">CORNER_RADIUS_LARGE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">12.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">CORNER_RADIUS_MEDIUM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">CORNER_RADIUS_SMALL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">4.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">CORNER_RADIUS_PILL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">14.0f</span><span class="p">;</span><span class="w">  </span><span class="c1">// For pill-shaped buttons</span>
+
+<span class="w">        </span><span class="c1">// Badge heights</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">BADGE_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">18</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">GENRE_CHIP_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">24</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Standard spacing</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SPACING_XS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SPACING_SM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SPACING_MD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SPACING_LG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SPACING_XL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">24</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default border width</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">BORDER_WIDTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default font sizes</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">FONT_SIZE_XS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">10.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">FONT_SIZE_SM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">12.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">FONT_SIZE_MD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">14.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">FONT_SIZE_LG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">16.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">FONT_SIZE_XL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">FONT_SIZE_TITLE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">24.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Cache Configuration</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Cache</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Maximum images to keep in LRU cache</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">IMAGE_CACHE_MAX_ITEMS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Audio preview cache item limit</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">AUDIO_CACHE_MAX_ITEMS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Feed data cache duration (milliseconds)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">FEED_CACHE_DURATION_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60000</span><span class="p">;</span><span class="w">  </span><span class="c1">// 1 minute</span>
+
+<span class="w">        </span><span class="c1">// Profile cache duration (milliseconds)</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">PROFILE_CACHE_DURATION_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">300000</span><span class="p">;</span><span class="w">  </span><span class="c1">// 5 minutes</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Pagination</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Pagination</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Default page size for feed</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">FEED_PAGE_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default page size for comments</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">COMMENTS_PAGE_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default page size for followers/following lists</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">FOLLOW_LIST_PAGE_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Default page size for user search</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SEARCH_PAGE_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Animation &amp; Timing</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Timing</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Debounce delay for search input</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SEARCH_DEBOUNCE_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">300</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Auto-refresh interval for feed</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">FEED_REFRESH_INTERVAL_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60000</span><span class="p">;</span><span class="w">  </span><span class="c1">// 1 minute</span>
+
+<span class="w">        </span><span class="c1">// Timer interval for progress updates</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">PROGRESS_UPDATE_INTERVAL_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Tooltip show delay</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">TOOLTIP_DELAY_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Animation duration</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ANIMATION_DURATION_MS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="c1">// Validation Limits</span>
+<span class="w">    </span><span class="c1">//==========================================================================</span>
+<span class="w">    </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Limits</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Username limits</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">USERNAME_MIN_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">USERNAME_MAX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Display name limits</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">DISPLAY_NAME_MAX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Bio limits</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">BIO_MAX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Comment limits</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">COMMENT_MAX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Post title limits</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">POST_TITLE_MAX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Post description limits</span>
+<span class="w">        </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">POST_DESCRIPTION_MAX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">500</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span><span class="w">  </span><span class="c1">// namespace Constants</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

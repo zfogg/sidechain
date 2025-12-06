@@ -1,0 +1,792 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File WebSocketClient.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File WebSocketClient.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_network_WebSocketClient.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-websocketclient-cpp">
+<span id="program-listing-file-plugin-source-network-websocketclient-cpp"></span><h1>Program Listing for File WebSocketClient.cpp<a class="headerlink" href="#program-listing-for-file-websocketclient-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_network_WebSocketClient.cpp.html#file-plugin-source-network-websocketclient-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/network/WebSocketClient.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;WebSocketClient.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../util/Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;websocketpp/common/thread.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;websocketpp/common/memory.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thread&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;chrono&gt;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">WebSocketClient</span><span class="o">::</span><span class="n">WebSocketClient</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Config</span><span class="o">&amp;</span><span class="w"> </span><span class="n">cfg</span><span class="p">)</span>
+<span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">Thread</span><span class="p">(</span><span class="s">&quot;WebSocketClient&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">config</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;WebSocketClient initialized - host: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">host</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;:&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">port</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="n">WebSocketClient</span><span class="o">::~</span><span class="n">WebSocketClient</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">disconnect</span><span class="p">();</span>
+<span class="w">    </span><span class="n">stopThread</span><span class="p">(</span><span class="mi">5000</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">connect</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="w"> </span><span class="o">||</span>
+<span class="w">        </span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connecting</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Already connected or connecting&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">shouldReconnect</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">reconnectAttempts</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">isThreadRunning</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">startThread</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">notify</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">disconnect</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">shouldReconnect</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Close websocket connection if active</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">client</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">connection_ptr</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">get_con_from_hdl</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">con</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_state</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">session</span><span class="o">::</span><span class="n">state</span><span class="o">::</span><span class="n">open</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">close</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">,</span><span class="w"> </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">close</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">going_away</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Client disconnect&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Error during disconnect - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// Stop ASIO event loop</span>
+<span class="w">        </span><span class="k">try</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">stop_perpetual</span><span class="p">();</span>
+<span class="w">            </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">stop</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Error stopping ASIO - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">setState</span><span class="p">(</span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Disconnected</span><span class="p">);</span>
+<span class="w">    </span><span class="n">notify</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">setAuthToken</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">token</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">authToken</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">token</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Auth token set&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">clearAuthToken</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">authToken</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">setConfig</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Config</span><span class="o">&amp;</span><span class="w"> </span><span class="n">newConfig</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">newConfig</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">bool</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">JSON</span><span class="o">::</span><span class="n">toString</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">queueMessage</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Message queued (not connected)&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">try</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">connection_ptr</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">get_con_from_hdl</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">con</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_state</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">session</span><span class="o">::</span><span class="n">state</span><span class="o">::</span><span class="n">open</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">lib</span><span class="o">::</span><span class="n">error_code</span><span class="w"> </span><span class="n">ec</span><span class="p">;</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">utf8</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="n">toUTF8</span><span class="p">();</span>
+<span class="w">            </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">send</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">,</span><span class="w"> </span><span class="n">utf8</span><span class="p">.</span><span class="n">getAddress</span><span class="p">(),</span><span class="w"> </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">frame</span><span class="o">::</span><span class="n">opcode</span><span class="o">::</span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">ec</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ec</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Failed to send message - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">().</span><span class="n">c_str</span><span class="p">()));</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">statsMutex</span><span class="p">);</span>
+<span class="w">                </span><span class="n">stats</span><span class="p">.</span><span class="n">messagesSent</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Exception sending message - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">send</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">data</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="w"> </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">DynamicObject</span><span class="p">());</span>
+<span class="w">    </span><span class="n">message</span><span class="p">.</span><span class="n">getDynamicObject</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="p">);</span>
+<span class="w">    </span><span class="n">message</span><span class="p">.</span><span class="n">getDynamicObject</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;data&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">);</span>
+<span class="w">    </span><span class="n">message</span><span class="p">.</span><span class="n">getDynamicObject</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">setProperty</span><span class="p">(</span><span class="s">&quot;timestamp&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">());</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">WebSocketClient</span><span class="o">::</span><span class="n">Stats</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">getStats</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">statsMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">stats</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Thread implementation</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">run</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">threadShouldExit</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">shouldReconnect</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Check if we should wait before reconnecting</span>
+<span class="w">            </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">();</span>
+<span class="w">            </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">nextReconnect</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nextReconnectTime</span><span class="p">.</span><span class="n">load</span><span class="p">();</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nextReconnect</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nextReconnect</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">wait</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">nextReconnect</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">now</span><span class="p">));</span>
+<span class="w">                </span><span class="k">continue</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="n">attemptConnection</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Wait for reconnect signal or shutdown</span>
+<span class="w">            </span><span class="n">wait</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Clean up - stop any running connections</span>
+<span class="w">    </span><span class="n">cleanupClient</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">cleanupClient</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Stop ASIO event loop</span>
+<span class="w">            </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">stop_perpetual</span><span class="p">();</span>
+
+<span class="w">            </span><span class="c1">// Close connection if open</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">try</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">connection_ptr</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">get_con_from_hdl</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">con</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_state</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">session</span><span class="o">::</span><span class="n">state</span><span class="o">::</span><span class="n">open</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">close</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">,</span><span class="w"> </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">close</span><span class="o">::</span><span class="n">status</span><span class="o">::</span><span class="n">going_away</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Client shutdown&quot;</span><span class="p">);</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">catch</span><span class="w"> </span><span class="p">(...)</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">stop</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Error stopping client - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// Wait for ASIO thread to finish (with timeout)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">asioThread</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">asioThread</span><span class="o">-&gt;</span><span class="n">joinable</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Give it a moment to finish</span>
+<span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">100</span><span class="p">));</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">asioThread</span><span class="o">-&gt;</span><span class="n">joinable</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">asioThread</span><span class="o">-&gt;</span><span class="n">detach</span><span class="p">();</span><span class="w">  </span><span class="c1">// Detach if still running after timeout</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">asioThread</span><span class="p">.</span><span class="n">reset</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">client</span><span class="p">.</span><span class="n">reset</span><span class="p">();</span>
+<span class="w">        </span><span class="n">connectionActive</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">attemptConnection</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">setState</span><span class="p">(</span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connecting</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Clean up any existing client before creating a new one</span>
+<span class="w">    </span><span class="n">cleanupClient</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">try</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Create and initialize client</span>
+<span class="w">        </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">wspp_client</span><span class="o">&gt;</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// Initialize ASIO</span>
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">init_asio</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// Set up event handlers</span>
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">set_open_handler</span><span class="p">([</span><span class="k">this</span><span class="p">](</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">onWsOpen</span><span class="p">(</span><span class="n">hdl</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">set_close_handler</span><span class="p">([</span><span class="k">this</span><span class="p">](</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">onWsClose</span><span class="p">(</span><span class="n">hdl</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">set_message_handler</span><span class="p">([</span><span class="k">this</span><span class="p">](</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">,</span><span class="w"> </span><span class="n">message_ptr</span><span class="w"> </span><span class="n">msg</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">onWsMessage</span><span class="p">(</span><span class="n">hdl</span><span class="p">,</span><span class="w"> </span><span class="n">msg</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">set_fail_handler</span><span class="p">([</span><span class="k">this</span><span class="p">](</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">onWsFail</span><span class="p">(</span><span class="n">hdl</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">set_pong_handler</span><span class="p">([</span><span class="k">this</span><span class="p">](</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">appData</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">onWsPong</span><span class="p">(</span><span class="n">hdl</span><span class="p">,</span><span class="w"> </span><span class="n">appData</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+
+<span class="w">        </span><span class="c1">// Build URI</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buildUri</span><span class="p">();</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;WebSocket: Connecting to &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">uri</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Create connection</span>
+<span class="w">        </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">lib</span><span class="o">::</span><span class="n">error_code</span><span class="w"> </span><span class="n">ec</span><span class="p">;</span>
+<span class="w">        </span><span class="n">connection_ptr</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">get_connection</span><span class="p">(</span><span class="n">uri</span><span class="p">.</span><span class="n">toStdString</span><span class="p">(),</span><span class="w"> </span><span class="n">ec</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ec</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Connection error - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">().</span><span class="n">c_str</span><span class="p">()));</span>
+<span class="w">            </span><span class="n">handleDisconnect</span><span class="p">(</span><span class="s">&quot;Connection error: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">().</span><span class="n">c_str</span><span class="p">()));</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">currentConnection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_handle</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// Start ASIO event loop in background (runs until stopped)</span>
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">start_perpetual</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// Connect (non-blocking)</span>
+<span class="w">        </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">connect</span><span class="p">(</span><span class="n">con</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Run ASIO event loop in a separate thread context (blocks until stop() is called)</span>
+<span class="w">        </span><span class="n">asioThread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="o">&gt;</span><span class="p">([</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">try</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">run</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: ASIO thread exception - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">});</span>
+
+<span class="w">        </span><span class="c1">// Wait for connection to complete or fail</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">connectTimeoutMs</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">waited</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">waited</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">timeout</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">threadShouldExit</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">wait</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+<span class="w">            </span><span class="n">waited</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// Connection successful, enter heartbeat/maintenance loop</span>
+<span class="w">                </span><span class="n">connectionLoop</span><span class="p">();</span>
+<span class="w">                </span><span class="k">return</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Disconnected</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// Connection failed, will reconnect</span>
+<span class="w">                </span><span class="k">return</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">waited</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Connection timeout&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">handleDisconnect</span><span class="p">(</span><span class="s">&quot;Connection timeout&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Exception during connection - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">        </span><span class="n">handleDisconnect</span><span class="p">(</span><span class="s">&quot;Exception: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">connectionLoop</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">lastPingSentTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lastPongReceivedTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">());</span>
+<span class="w">    </span><span class="n">lastHeartbeatSent</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">threadShouldExit</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">shouldReconnect</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// Check for heartbeat timeout</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isHeartbeatTimedOut</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;WebSocket: Heartbeat timeout&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">handleDisconnect</span><span class="p">(</span><span class="s">&quot;Heartbeat timeout&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">return</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// Send heartbeat if needed</span>
+<span class="w">        </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">();</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">now</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">lastHeartbeatSent</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">heartbeatIntervalMs</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">sendHeartbeat</span><span class="p">();</span>
+<span class="w">            </span><span class="n">lastHeartbeatSent</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">now</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// ASIO event loop runs in separate thread, just check state and send heartbeats</span>
+<span class="w">        </span><span class="n">wait</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span><span class="w"> </span><span class="c1">// Check heartbeat interval periodically</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// websocketpp event handlers</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">onWsOpen</span><span class="p">(</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;WebSocket: Connected&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">connectionActive</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setState</span><span class="p">(</span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="p">);</span>
+<span class="w">    </span><span class="n">reconnectAttempts</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="n">nextReconnectTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">statsMutex</span><span class="p">);</span>
+<span class="w">        </span><span class="n">stats</span><span class="p">.</span><span class="n">connectedTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Flush queued messages</span>
+<span class="w">    </span><span class="n">flushMessageQueue</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">onWsClose</span><span class="p">(</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;WebSocket: Connection closed&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">connectionActive</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentConnection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">connection_hdl</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">connection_ptr</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">get_con_from_hdl</span><span class="p">(</span><span class="n">hdl</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">con</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">reason</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_remote_close_reason</span><span class="p">().</span><span class="n">c_str</span><span class="p">());</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_remote_close_code</span><span class="p">());</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Close code: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, reason: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">reason</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">handleDisconnect</span><span class="p">(</span><span class="s">&quot;Server closed connection&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">onWsMessage</span><span class="p">(</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">,</span><span class="w"> </span><span class="n">message_ptr</span><span class="w"> </span><span class="n">msg</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">payload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">msg</span><span class="o">-&gt;</span><span class="n">get_payload</span><span class="p">();</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">::</span><span class="n">fromUTF8</span><span class="p">(</span><span class="n">payload</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">payload</span><span class="p">.</span><span class="n">length</span><span class="p">()));</span>
+<span class="w">    </span><span class="n">processTextMessage</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">statsMutex</span><span class="p">);</span>
+<span class="w">        </span><span class="n">stats</span><span class="p">.</span><span class="n">messagesReceived</span><span class="o">++</span><span class="p">;</span>
+<span class="w">        </span><span class="n">stats</span><span class="p">.</span><span class="n">lastMessageTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">onWsFail</span><span class="p">(</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Connection failed&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">connectionActive</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentConnection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">connection_hdl</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">connection_ptr</span><span class="w"> </span><span class="n">con</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">get_con_from_hdl</span><span class="p">(</span><span class="n">hdl</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">con</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">errorMsg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">con</span><span class="o">-&gt;</span><span class="n">get_ec</span><span class="p">().</span><span class="n">message</span><span class="p">().</span><span class="n">c_str</span><span class="p">());</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;WebSocket: Error - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">errorMsg</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Check for authentication error</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">errorMsg</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;401&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">errorMsg</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;Unauthorized&quot;</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onError</span><span class="p">)</span>
+<span class="w">                    </span><span class="n">onError</span><span class="p">(</span><span class="s">&quot;Authentication failed - please log in again&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="p">});</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">handleDisconnect</span><span class="p">(</span><span class="s">&quot;Connection failed&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">onWsPong</span><span class="p">(</span><span class="n">connection_hdl</span><span class="w"> </span><span class="n">hdl</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">appData</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">lastPongReceivedTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">handleDisconnect</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">reason</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;WebSocket: Disconnected - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">reason</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">connectionActive</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setState</span><span class="p">(</span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Disconnected</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Note: We don&#39;t cleanupClient here because we want to preserve the client</span>
+<span class="w">    </span><span class="c1">// for potential immediate reconnection. cleanupClient will be called in</span>
+<span class="w">    </span><span class="c1">// attemptConnection() before creating a new client, or in destructor.</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">shouldReconnect</span><span class="p">.</span><span class="n">load</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">scheduleReconnect</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">scheduleReconnect</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">attempts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reconnectAttempts</span><span class="p">.</span><span class="n">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Check max attempts</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">maxReconnectAttempts</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">attempts</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">maxReconnectAttempts</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;WebSocket: Max reconnect attempts reached&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">shouldReconnect</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onError</span><span class="p">)</span>
+<span class="w">                </span><span class="n">onError</span><span class="p">(</span><span class="s">&quot;Connection lost - max reconnect attempts reached&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Calculate backoff delay (exponential with jitter)</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">baseDelay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">reconnectBaseDelayMs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jmin</span><span class="p">(</span><span class="n">attempts</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">));</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">maxDelay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jmin</span><span class="p">(</span><span class="n">baseDelay</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">reconnectMaxDelayMs</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">jitter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Random</span><span class="o">::</span><span class="n">getSystemRandom</span><span class="p">().</span><span class="n">nextInt</span><span class="p">(</span><span class="n">maxDelay</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">4</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">delay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxDelay</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">jitter</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Reconnecting in &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;ms (attempt &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">attempts</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">nextReconnectTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delay</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setState</span><span class="p">(</span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Reconnecting</span><span class="p">);</span>
+
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">statsMutex</span><span class="p">);</span>
+<span class="w">        </span><span class="n">stats</span><span class="p">.</span><span class="n">reconnectAttempts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">attempts</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">processTextMessage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">text</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket received: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">text</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">Message</span><span class="w"> </span><span class="n">msg</span><span class="p">;</span>
+<span class="w">    </span><span class="n">msg</span><span class="p">.</span><span class="n">rawJson</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">text</span><span class="p">;</span>
+<span class="w">    </span><span class="n">msg</span><span class="p">.</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">JSON</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">msg</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">isObject</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;WebSocket: Invalid JSON message&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Extract type</span>
+<span class="w">    </span><span class="n">msg</span><span class="p">.</span><span class="n">typeString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">msg</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="n">toString</span><span class="p">();</span>
+<span class="w">    </span><span class="n">msg</span><span class="p">.</span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">parseMessageType</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">typeString</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Update pong time for heartbeat responses</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Heartbeat</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">lastPongReceivedTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">dispatchMessage</span><span class="p">(</span><span class="n">msg</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">dispatchMessage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Message</span><span class="o">&amp;</span><span class="w"> </span><span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onMessage</span><span class="p">)</span>
+<span class="w">            </span><span class="n">onMessage</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="n">WebSocketClient</span><span class="o">::</span><span class="n">MessageType</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">parseMessageType</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">typeStr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;new_post&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;post&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">NewPost</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;like&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;reaction&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Like</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;follow&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Follow</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;comment&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Comment</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;notification&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Notification</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;presence&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;presence_update&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">PresenceUpdate</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;play_count&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;play&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">PlayCount</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;like_count_update&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">LikeCountUpdate</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;follower_count_update&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">FollowerCountUpdate</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;heartbeat&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;pong&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Heartbeat</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">typeStr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;error&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Error</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">MessageType</span><span class="o">::</span><span class="n">Unknown</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">sendHeartbeat</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Send application-level heartbeat</span>
+<span class="w">    </span><span class="n">send</span><span class="p">(</span><span class="s">&quot;heartbeat&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">DynamicObject</span><span class="p">()));</span>
+
+<span class="w">    </span><span class="c1">// Send WebSocket ping</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">connectionActive</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">client</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">websocketpp</span><span class="o">::</span><span class="n">lib</span><span class="o">::</span><span class="n">error_code</span><span class="w"> </span><span class="n">ec</span><span class="p">;</span>
+<span class="w">            </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">ping</span><span class="p">(</span><span class="n">currentConnection</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ec</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">ec</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">lastPingSentTime</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">());</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Exception sending ping - &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">isHeartbeatTimedOut</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">lastPong</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lastPongReceivedTime</span><span class="p">.</span><span class="n">load</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lastPong</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Timeout if no pong for 2x heartbeat interval</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">now</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">lastPong</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">heartbeatIntervalMs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">queueMessage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">queueMutex</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">messageQueue</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">messageQueueMaxSize</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Remove oldest message</span>
+<span class="w">        </span><span class="n">messageQueue</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;WebSocket: Message queue full, dropped oldest message&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">messageQueue</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">flushMessageQueue</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">queueMutex</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket: Flushing &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">messageQueue</span><span class="p">.</span><span class="n">size</span><span class="p">()))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; queued messages&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">messageQueue</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">msg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">messageQueue</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
+<span class="w">        </span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">);</span><span class="w"> </span><span class="c1">// This will send via websocketpp</span>
+<span class="w">        </span><span class="n">messageQueue</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">clearMessageQueue</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">queueMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">messageQueue</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="w">        </span><span class="n">messageQueue</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">setState</span><span class="p">(</span><span class="n">ConnectionState</span><span class="w"> </span><span class="n">newState</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">previous</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">exchange</span><span class="p">(</span><span class="n">newState</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">previous</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">newState</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;WebSocket state: &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">newState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Disconnected</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Disconnected&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">                        </span><span class="n">newState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connecting</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Connecting&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">                        </span><span class="n">newState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ConnectionState</span><span class="o">::</span><span class="n">Connected</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;Connected&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;Reconnecting&quot;</span><span class="p">));</span>
+
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">MessageManager</span><span class="o">::</span><span class="n">callAsync</span><span class="p">([</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">newState</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onStateChanged</span><span class="p">)</span>
+<span class="w">                </span><span class="n">onStateChanged</span><span class="p">(</span><span class="n">newState</span><span class="p">);</span>
+<span class="w">        </span><span class="p">});</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">WebSocketClient</span><span class="o">::</span><span class="n">buildUri</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">useTLS</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;wss://&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;ws://&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">scheme</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">host</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">config</span><span class="p">.</span><span class="n">useTLS</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">port</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">443</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">config</span><span class="p">.</span><span class="n">useTLS</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">port</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">80</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">uri</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="s">&quot;:&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">port</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">uri</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">config</span><span class="p">.</span><span class="n">path</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Add auth token as query parameter</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">authToken</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">uri</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="p">(</span><span class="n">config</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;?&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;&amp;&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;?&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="s">&quot;token=&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">URL</span><span class="o">::</span><span class="n">addEscapeChars</span><span class="p">(</span><span class="n">authToken</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">uri</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1003 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classEditProfileComponent" kind="class" language="C++" prot="public">
+    <compoundname>EditProfileComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Button::Listener</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::TextEditor::Listener</basecompoundref>
+    <includes refid="EditProfileComponent_8h" local="no">EditProfileComponent.h</includes>
+    <innerclass refid="structEditProfileComponent_1_1Colors" prot="private">EditProfileComponent::Colors</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classEditProfileComponent_1a0e0d6bda7634a7dee88a2ba6fd678c06" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; EditProfileComponent::onCancel</definition>
+        <argsstring></argsstring>
+        <name>onCancel</name>
+        <qualifiedname>EditProfileComponent::onCancel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="43" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a1a8a057f2efe2bac820e81b741b57f62" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structUserProfile" kindref="compound">UserProfile</ref> &amp;updatedProfile)&gt;</type>
+        <definition>std::function&lt;void(const UserProfile&amp; updatedProfile)&gt; EditProfileComponent::onSave</definition>
+        <argsstring></argsstring>
+        <name>onSave</name>
+        <qualifiedname>EditProfileComponent::onSave</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="44" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a96111439f1a5e9d320acbec5d45109e0" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;localPath)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; localPath)&gt; EditProfileComponent::onProfilePicSelected</definition>
+        <argsstring></argsstring>
+        <name>onProfilePicSelected</name>
+        <qualifiedname>EditProfileComponent::onProfilePicSelected</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="45" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classEditProfileComponent_1aebde728388058b07fb5f8b9e1222d11d" prot="private" static="no" mutable="no">
+        <type><ref refid="structUserProfile" kindref="compound">UserProfile</ref></type>
+        <definition>UserProfile EditProfileComponent::profile</definition>
+        <argsstring></argsstring>
+        <name>profile</name>
+        <qualifiedname>EditProfileComponent::profile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="56" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1aaa8d9786bf6166a30135ba2a5ee1924b" prot="private" static="no" mutable="no">
+        <type><ref refid="structUserProfile" kindref="compound">UserProfile</ref></type>
+        <definition>UserProfile EditProfileComponent::originalProfile</definition>
+        <argsstring></argsstring>
+        <name>originalProfile</name>
+        <qualifiedname>EditProfileComponent::originalProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="57" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1ad430a3b930d44b8fa37888d2a0be144e" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* EditProfileComponent::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>EditProfileComponent::networkClient</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="58" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a13271cec8d5aa22fbe25344364dfd18d" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool EditProfileComponent::isSaving</definition>
+        <argsstring></argsstring>
+        <name>isSaving</name>
+        <qualifiedname>EditProfileComponent::isSaving</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="61" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1afc1c8f8182f928b26e07d7d481ddece4" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool EditProfileComponent::hasChanges</definition>
+        <argsstring></argsstring>
+        <name>hasChanges</name>
+        <qualifiedname>EditProfileComponent::hasChanges</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="62" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a78c63f726daf3fecc5b241e8b6e6d820" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String EditProfileComponent::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>EditProfileComponent::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="63" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a2a7902c6c79e8d329efb892097282519" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::usernameEditor</definition>
+        <argsstring></argsstring>
+        <name>usernameEditor</name>
+        <qualifiedname>EditProfileComponent::usernameEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="67" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a738a5c5361988526ea5fad8b097aa6bf" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::displayNameEditor</definition>
+        <argsstring></argsstring>
+        <name>displayNameEditor</name>
+        <qualifiedname>EditProfileComponent::displayNameEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="68" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a0614c4f1373884ade0a5bab88a319207" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::bioEditor</definition>
+        <argsstring></argsstring>
+        <name>bioEditor</name>
+        <qualifiedname>EditProfileComponent::bioEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="69" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a19469b1f9ea60680cedb6a958227debe" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::locationEditor</definition>
+        <argsstring></argsstring>
+        <name>locationEditor</name>
+        <qualifiedname>EditProfileComponent::locationEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="70" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a363ac51e66bc67e2ae0aa3bfe41b5073" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::genreEditor</definition>
+        <argsstring></argsstring>
+        <name>genreEditor</name>
+        <qualifiedname>EditProfileComponent::genreEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="71" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a93609c072119d15bae4fc858fb632de1" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::dawEditor</definition>
+        <argsstring></argsstring>
+        <name>dawEditor</name>
+        <qualifiedname>EditProfileComponent::dawEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="72" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a292455d440ba8bf49a44cd4917686209" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool EditProfileComponent::isUsernameValid</definition>
+        <argsstring></argsstring>
+        <name>isUsernameValid</name>
+        <qualifiedname>EditProfileComponent::isUsernameValid</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="75" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1ad3bfae6f902b1721222e9f60ffa77665" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool EditProfileComponent::isCheckingUsername</definition>
+        <argsstring></argsstring>
+        <name>isCheckingUsername</name>
+        <qualifiedname>EditProfileComponent::isCheckingUsername</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="76" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="76" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a6fde39400eb81fa20c7115926309bf4e" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String EditProfileComponent::usernameError</definition>
+        <argsstring></argsstring>
+        <name>usernameError</name>
+        <qualifiedname>EditProfileComponent::usernameError</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="77" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1aecf54841de99e74aa8011c04220f3b2f" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::instagramEditor</definition>
+        <argsstring></argsstring>
+        <name>instagramEditor</name>
+        <qualifiedname>EditProfileComponent::instagramEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="80" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1aa01f7e2c5438f80c2cf6fdaf79425cdd" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::soundcloudEditor</definition>
+        <argsstring></argsstring>
+        <name>soundcloudEditor</name>
+        <qualifiedname>EditProfileComponent::soundcloudEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="81" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a4a2d0a14017892af59fb4d61bb282eb4" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::spotifyEditor</definition>
+        <argsstring></argsstring>
+        <name>spotifyEditor</name>
+        <qualifiedname>EditProfileComponent::spotifyEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="82" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="82" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1aedb87ad9747e0651bd384d2428d8d24b" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; EditProfileComponent::twitterEditor</definition>
+        <argsstring></argsstring>
+        <name>twitterEditor</name>
+        <qualifiedname>EditProfileComponent::twitterEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="83" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a10aa63774963444e1cce0038a78ada4a" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; EditProfileComponent::cancelButton</definition>
+        <argsstring></argsstring>
+        <name>cancelButton</name>
+        <qualifiedname>EditProfileComponent::cancelButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="86" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a87d12ab82053a6a87d462f1c97c4c29f" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; EditProfileComponent::saveButton</definition>
+        <argsstring></argsstring>
+        <name>saveButton</name>
+        <qualifiedname>EditProfileComponent::saveButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="87" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a251aebbf5e877e74c2674caf37f8976d" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; EditProfileComponent::changePhotoButton</definition>
+        <argsstring></argsstring>
+        <name>changePhotoButton</name>
+        <qualifiedname>EditProfileComponent::changePhotoButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="88" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a451df327c3684ae3790edbcfd991d430" prot="private" static="no" mutable="no">
+        <type>juce::Image</type>
+        <definition>juce::Image EditProfileComponent::avatarImage</definition>
+        <argsstring></argsstring>
+        <name>avatarImage</name>
+        <qualifiedname>EditProfileComponent::avatarImage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="91" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a9a65a9220a822ce42aca0ba424b9239a" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String EditProfileComponent::pendingAvatarPath</definition>
+        <argsstring></argsstring>
+        <name>pendingAvatarPath</name>
+        <qualifiedname>EditProfileComponent::pendingAvatarPath</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="92" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classEditProfileComponent_1aaa0b6dc80f4667fc91ecf719efdb6e79" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EditProfileComponent::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>EditProfileComponent::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 60</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="118" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1ac6970718d798c5937293174b8e0ee94c" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EditProfileComponent::AVATAR_SIZE</definition>
+        <argsstring></argsstring>
+        <name>AVATAR_SIZE</name>
+        <qualifiedname>EditProfileComponent::AVATAR_SIZE</qualifiedname>
+        <initializer>= 80</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="119" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1abb98a9932567afa8c1debd586f3458db" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EditProfileComponent::FIELD_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>FIELD_HEIGHT</name>
+        <qualifiedname>EditProfileComponent::FIELD_HEIGHT</qualifiedname>
+        <initializer>= 40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="120" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1acf9b769281d2c5c0b9c678699cf0bee2" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EditProfileComponent::FIELD_SPACING</definition>
+        <argsstring></argsstring>
+        <name>FIELD_SPACING</name>
+        <qualifiedname>EditProfileComponent::FIELD_SPACING</qualifiedname>
+        <initializer>= 15</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="121" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a8726f34b6a4b9f2aac7619cc8375fd9c" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EditProfileComponent::SECTION_SPACING</definition>
+        <argsstring></argsstring>
+        <name>SECTION_SPACING</name>
+        <qualifiedname>EditProfileComponent::SECTION_SPACING</qualifiedname>
+        <initializer>= 25</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="122" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classEditProfileComponent_1a3c0decf20f91c2f6b3058fd5eb483909" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int EditProfileComponent::PADDING</definition>
+        <argsstring></argsstring>
+        <name>PADDING</name>
+        <qualifiedname>EditProfileComponent::PADDING</qualifiedname>
+        <initializer>= 25</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="123" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classEditProfileComponent_1a124b95d30f4de8143b8afbaac1ddeb26" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>EditProfileComponent::EditProfileComponent</definition>
+        <argsstring>()</argsstring>
+        <name>EditProfileComponent</name>
+        <qualifiedname>EditProfileComponent::EditProfileComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="26" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="9" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a06120c96539ec30e69212974d992255c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>EditProfileComponent::~EditProfileComponent</definition>
+        <argsstring>() override</argsstring>
+        <name>~EditProfileComponent</name>
+        <qualifiedname>EditProfileComponent::~EditProfileComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="27" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="16" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1ad74231f2e7f662a580b05ab452de8ec2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>EditProfileComponent::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="31" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="31" bodyend="31"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a493cdba04a59c287d37811ee337f6b49" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::setProfile</definition>
+        <argsstring>(const UserProfile &amp;profile)</argsstring>
+        <name>setProfile</name>
+        <qualifiedname>EditProfileComponent::setProfile</qualifiedname>
+        <param>
+          <type>const <ref refid="structUserProfile" kindref="compound">UserProfile</ref> &amp;</type>
+          <declname>profile</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="32" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="106" bodyend="132"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a930136b27b9c516f885f8e0228b1f53f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="structUserProfile" kindref="compound">UserProfile</ref> &amp;</type>
+        <definition>const UserProfile &amp; EditProfileComponent::getProfile</definition>
+        <argsstring>() const</argsstring>
+        <name>getProfile</name>
+        <qualifiedname>EditProfileComponent::getProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="33" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="33" bodyend="33"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a77592c1f132b0b12740ef3d383aead6f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::setUploadedProfilePictureUrl</definition>
+        <argsstring>(const juce::String &amp;s3Url)</argsstring>
+        <name>setUploadedProfilePictureUrl</name>
+        <qualifiedname>EditProfileComponent::setUploadedProfilePictureUrl</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>s3Url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="36" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="161" bodyend="169"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1afff651a47514bcbefb2f953207d14794" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const juce::String &amp;</type>
+        <definition>const juce::String &amp; EditProfileComponent::getPendingAvatarPath</definition>
+        <argsstring>() const</argsstring>
+        <name>getPendingAvatarPath</name>
+        <qualifiedname>EditProfileComponent::getPendingAvatarPath</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="39" column="24" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="39" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a6fd82e11ca82437f935fbf6ae37dafe9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>EditProfileComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="49" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="239" bodyend="287"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1abdd38447ffa3aff7e5e594428d779379" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>EditProfileComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="50" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="356" bodyend="400"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a481e063a24cd07dc10ad34396b78acfb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::buttonClicked</definition>
+        <argsstring>(juce::Button *button) override</argsstring>
+        <name>buttonClicked</name>
+        <qualifiedname>EditProfileComponent::buttonClicked</qualifiedname>
+        <param>
+          <type>juce::Button *</type>
+          <declname>button</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="51" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="413" bodyend="428"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a8c4109385475e877f7088e1cdb7bbc71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::textEditorTextChanged</definition>
+        <argsstring>(juce::TextEditor &amp;editor) override</argsstring>
+        <name>textEditorTextChanged</name>
+        <qualifiedname>EditProfileComponent::textEditorTextChanged</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="52" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="430" bodyend="439"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classEditProfileComponent_1ab914e7ac52b6c300ad5bcd6c845c24bf" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>EditProfileComponent::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="96" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="289" bodyend="303"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1ae6a3169e56959bcd78dae677d79145f0" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::drawAvatar</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawAvatar</name>
+        <qualifiedname>EditProfileComponent::drawAvatar</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="97" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="305" bodyend="346"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a103099533e1573c1012f4080403875ac" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::drawFormSection</definition>
+        <argsstring>(juce::Graphics &amp;g, const juce::String &amp;title, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawFormSection</name>
+        <qualifiedname>EditProfileComponent::drawFormSection</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>title</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="98" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="348" bodyend="353"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1acbddd13512de445f3760dbebbc792147" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::setupEditors</definition>
+        <argsstring>()</argsstring>
+        <name>setupEditors</name>
+        <qualifiedname>EditProfileComponent::setupEditors</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="102" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="22" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a9ce8f616efcc0d439f3042b58b72c786" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::populateFromProfile</definition>
+        <argsstring>()</argsstring>
+        <name>populateFromProfile</name>
+        <qualifiedname>EditProfileComponent::populateFromProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="103" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="134" bodyend="159"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a7b914cb31ed5ee4de80c208070cdccb5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::collectToProfile</definition>
+        <argsstring>()</argsstring>
+        <name>collectToProfile</name>
+        <qualifiedname>EditProfileComponent::collectToProfile</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="104" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="171" bodyend="201"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1acd66c2b52585fc8195814e63775e6500" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::updateHasChanges</definition>
+        <argsstring>()</argsstring>
+        <name>updateHasChanges</name>
+        <qualifiedname>EditProfileComponent::updateHasChanges</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="105" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="203" bodyend="236"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a11391ede71c22a85583554bc82eb066f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::handleSave</definition>
+        <argsstring>()</argsstring>
+        <name>handleSave</name>
+        <qualifiedname>EditProfileComponent::handleSave</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="106" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="442" bodyend="465"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1afcfd85729436babf43a8faf84687dc8d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::saveProfileData</definition>
+        <argsstring>()</argsstring>
+        <name>saveProfileData</name>
+        <qualifiedname>EditProfileComponent::saveProfileData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="107" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="467" bodyend="509"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a0f78582c7a1e5d764f4d02129da757d8" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::handlePhotoSelect</definition>
+        <argsstring>()</argsstring>
+        <name>handlePhotoSelect</name>
+        <qualifiedname>EditProfileComponent::handlePhotoSelect</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="108" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="568" bodyend="596"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a855b4eca3437ad2ccad1743320773303" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::validateUsername</definition>
+        <argsstring>(const juce::String &amp;username)</argsstring>
+        <name>validateUsername</name>
+        <qualifiedname>EditProfileComponent::validateUsername</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>username</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="109" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="539" bodyend="566"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1a4cceaca299a2070a7697776d5ca15943" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void EditProfileComponent::handleUsernameChange</definition>
+        <argsstring>()</argsstring>
+        <name>handleUsernameChange</name>
+        <qualifiedname>EditProfileComponent::handleUsernameChange</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="110" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="511" bodyend="537"/>
+      </memberdef>
+      <memberdef kind="function" id="classEditProfileComponent_1ad4801e36a7cb9ad0a45c726cc32397ef" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; EditProfileComponent::getAvatarBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getAvatarBounds</name>
+        <qualifiedname>EditProfileComponent::getAvatarBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="114" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.cpp" bodystart="402" bodyend="410"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classEditProfileComponent" kindref="compound">EditProfileComponent</ref> provides a modal for editing user profile. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Profile picture upload</para>
+</listitem><listitem><para>Display name editing</para>
+</listitem><listitem><para>Bio editing</para>
+</listitem><listitem><para>Location editing</para>
+</listitem><listitem><para>Genre selection</para>
+</listitem><listitem><para>DAW preference</para>
+</listitem><listitem><para>Social links editing </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>EditProfileComponent</label>
+        <link refid="classEditProfileComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>juce::Button::Listener</label>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::TextEditor::Listener</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>EditProfileComponent</label>
+        <link refid="classEditProfileComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>juce::Button::Listener</label>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::TextEditor::Listener</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" line="21" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/profile/EditProfileComponent.h" bodystart="24" bodyend="145"/>
+    <listofallmembers>
+      <member refid="classEditProfileComponent_1ac6970718d798c5937293174b8e0ee94c" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>AVATAR_SIZE</name></member>
+      <member refid="classEditProfileComponent_1a451df327c3684ae3790edbcfd991d430" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>avatarImage</name></member>
+      <member refid="classEditProfileComponent_1a0614c4f1373884ade0a5bab88a319207" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>bioEditor</name></member>
+      <member refid="classEditProfileComponent_1a481e063a24cd07dc10ad34396b78acfb" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>buttonClicked</name></member>
+      <member refid="classEditProfileComponent_1a10aa63774963444e1cce0038a78ada4a" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>cancelButton</name></member>
+      <member refid="classEditProfileComponent_1a251aebbf5e877e74c2674caf37f8976d" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>changePhotoButton</name></member>
+      <member refid="classEditProfileComponent_1a7b914cb31ed5ee4de80c208070cdccb5" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>collectToProfile</name></member>
+      <member refid="classEditProfileComponent_1a93609c072119d15bae4fc858fb632de1" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>dawEditor</name></member>
+      <member refid="classEditProfileComponent_1a738a5c5361988526ea5fad8b097aa6bf" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>displayNameEditor</name></member>
+      <member refid="classEditProfileComponent_1ae6a3169e56959bcd78dae677d79145f0" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>drawAvatar</name></member>
+      <member refid="classEditProfileComponent_1a103099533e1573c1012f4080403875ac" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>drawFormSection</name></member>
+      <member refid="classEditProfileComponent_1ab914e7ac52b6c300ad5bcd6c845c24bf" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>drawHeader</name></member>
+      <member refid="classEditProfileComponent_1a124b95d30f4de8143b8afbaac1ddeb26" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>EditProfileComponent</name></member>
+      <member refid="classEditProfileComponent_1a78c63f726daf3fecc5b241e8b6e6d820" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>errorMessage</name></member>
+      <member refid="classEditProfileComponent_1abb98a9932567afa8c1debd586f3458db" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>FIELD_HEIGHT</name></member>
+      <member refid="classEditProfileComponent_1acf9b769281d2c5c0b9c678699cf0bee2" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>FIELD_SPACING</name></member>
+      <member refid="classEditProfileComponent_1a363ac51e66bc67e2ae0aa3bfe41b5073" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>genreEditor</name></member>
+      <member refid="classEditProfileComponent_1ad4801e36a7cb9ad0a45c726cc32397ef" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>getAvatarBounds</name></member>
+      <member refid="classEditProfileComponent_1afff651a47514bcbefb2f953207d14794" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>getPendingAvatarPath</name></member>
+      <member refid="classEditProfileComponent_1a930136b27b9c516f885f8e0228b1f53f" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>getProfile</name></member>
+      <member refid="classEditProfileComponent_1a0f78582c7a1e5d764f4d02129da757d8" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>handlePhotoSelect</name></member>
+      <member refid="classEditProfileComponent_1a11391ede71c22a85583554bc82eb066f" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>handleSave</name></member>
+      <member refid="classEditProfileComponent_1a4cceaca299a2070a7697776d5ca15943" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>handleUsernameChange</name></member>
+      <member refid="classEditProfileComponent_1afc1c8f8182f928b26e07d7d481ddece4" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>hasChanges</name></member>
+      <member refid="classEditProfileComponent_1aaa0b6dc80f4667fc91ecf719efdb6e79" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classEditProfileComponent_1aecf54841de99e74aa8011c04220f3b2f" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>instagramEditor</name></member>
+      <member refid="classEditProfileComponent_1ad3bfae6f902b1721222e9f60ffa77665" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>isCheckingUsername</name></member>
+      <member refid="classEditProfileComponent_1a13271cec8d5aa22fbe25344364dfd18d" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>isSaving</name></member>
+      <member refid="classEditProfileComponent_1a292455d440ba8bf49a44cd4917686209" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>isUsernameValid</name></member>
+      <member refid="classEditProfileComponent_1a19469b1f9ea60680cedb6a958227debe" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>locationEditor</name></member>
+      <member refid="classEditProfileComponent_1ad430a3b930d44b8fa37888d2a0be144e" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>networkClient</name></member>
+      <member refid="classEditProfileComponent_1a0e0d6bda7634a7dee88a2ba6fd678c06" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>onCancel</name></member>
+      <member refid="classEditProfileComponent_1a96111439f1a5e9d320acbec5d45109e0" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>onProfilePicSelected</name></member>
+      <member refid="classEditProfileComponent_1a1a8a057f2efe2bac820e81b741b57f62" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>onSave</name></member>
+      <member refid="classEditProfileComponent_1aaa8d9786bf6166a30135ba2a5ee1924b" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>originalProfile</name></member>
+      <member refid="classEditProfileComponent_1a3c0decf20f91c2f6b3058fd5eb483909" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>PADDING</name></member>
+      <member refid="classEditProfileComponent_1a6fd82e11ca82437f935fbf6ae37dafe9" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>paint</name></member>
+      <member refid="classEditProfileComponent_1a9a65a9220a822ce42aca0ba424b9239a" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>pendingAvatarPath</name></member>
+      <member refid="classEditProfileComponent_1a9ce8f616efcc0d439f3042b58b72c786" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>populateFromProfile</name></member>
+      <member refid="classEditProfileComponent_1aebde728388058b07fb5f8b9e1222d11d" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>profile</name></member>
+      <member refid="classEditProfileComponent_1abdd38447ffa3aff7e5e594428d779379" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>resized</name></member>
+      <member refid="classEditProfileComponent_1a87d12ab82053a6a87d462f1c97c4c29f" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>saveButton</name></member>
+      <member refid="classEditProfileComponent_1afcfd85729436babf43a8faf84687dc8d" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>saveProfileData</name></member>
+      <member refid="classEditProfileComponent_1a8726f34b6a4b9f2aac7619cc8375fd9c" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>SECTION_SPACING</name></member>
+      <member refid="classEditProfileComponent_1ad74231f2e7f662a580b05ab452de8ec2" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>setNetworkClient</name></member>
+      <member refid="classEditProfileComponent_1a493cdba04a59c287d37811ee337f6b49" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>setProfile</name></member>
+      <member refid="classEditProfileComponent_1acbddd13512de445f3760dbebbc792147" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>setupEditors</name></member>
+      <member refid="classEditProfileComponent_1a77592c1f132b0b12740ef3d383aead6f" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>setUploadedProfilePictureUrl</name></member>
+      <member refid="classEditProfileComponent_1aa01f7e2c5438f80c2cf6fdaf79425cdd" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>soundcloudEditor</name></member>
+      <member refid="classEditProfileComponent_1a4a2d0a14017892af59fb4d61bb282eb4" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>spotifyEditor</name></member>
+      <member refid="classEditProfileComponent_1a8c4109385475e877f7088e1cdb7bbc71" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>textEditorTextChanged</name></member>
+      <member refid="classEditProfileComponent_1aedb87ad9747e0651bd384d2428d8d24b" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>twitterEditor</name></member>
+      <member refid="classEditProfileComponent_1acd66c2b52585fc8195814e63775e6500" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>updateHasChanges</name></member>
+      <member refid="classEditProfileComponent_1a2a7902c6c79e8d329efb892097282519" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>usernameEditor</name></member>
+      <member refid="classEditProfileComponent_1a6fde39400eb81fa20c7115926309bf4e" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>usernameError</name></member>
+      <member refid="classEditProfileComponent_1a855b4eca3437ad2ccad1743320773303" prot="private" virt="non-virtual"><scope>EditProfileComponent</scope><name>validateUsername</name></member>
+      <member refid="classEditProfileComponent_1a06120c96539ec30e69212974d992255c" prot="public" virt="non-virtual"><scope>EditProfileComponent</scope><name>~EditProfileComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,1004 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classAuthComponent" kind="class" language="C++" prot="public">
+    <compoundname>AuthComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Button::Listener</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::TextEditor::Listener</basecompoundref>
+    <includes refid="AuthComponent_8h" local="no">AuthComponent.h</includes>
+    <innerclass refid="structAuthComponent_1_1Colors" prot="private">AuthComponent::Colors</innerclass>
+    <sectiondef kind="private-type">
+      <memberdef kind="enum" id="classAuthComponent_1ab98d98c926bc7f00571a26e22695b645" prot="private" static="no" strong="yes">
+        <type></type>
+        <name>AuthMode</name>
+        <qualifiedname>AuthComponent::AuthMode</qualifiedname>
+        <enumvalue id="classAuthComponent_1ab98d98c926bc7f00571a26e22695b645a83218ac34c1834c26781fe4bde918ee4" prot="private">
+          <name>Welcome</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAuthComponent_1ab98d98c926bc7f00571a26e22695b645a99dea78007133396a7b8ed70578ac6ae" prot="private">
+          <name>Login</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classAuthComponent_1ab98d98c926bc7f00571a26e22695b645a80919be0413cba91ea1c240ca12ee13a" prot="private">
+          <name>Signup</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="53" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="54" bodyend="58"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classAuthComponent_1a678b4adcd99af105a236c9c14d4dba5b" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;username, const juce::String &amp;email, const juce::String &amp;token)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; username, const juce::String&amp; email, const juce::String&amp; token)&gt; AuthComponent::onLoginSuccess</definition>
+        <argsstring></argsstring>
+        <name>onLoginSuccess</name>
+        <qualifiedname>AuthComponent::onLoginSuccess</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="29" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1ae79cd60c816f6c5f7c7fa9cb9a0d5bf8" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;provider)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; provider)&gt; AuthComponent::onOAuthRequested</definition>
+        <argsstring></argsstring>
+        <name>onOAuthRequested</name>
+        <qualifiedname>AuthComponent::onOAuthRequested</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="30" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classAuthComponent_1a7d7165ac2f908deb926332cc060d82a3" prot="private" static="no" mutable="no">
+        <type>AuthMode</type>
+        <definition>AuthMode AuthComponent::currentMode</definition>
+        <argsstring></argsstring>
+        <name>currentMode</name>
+        <qualifiedname>AuthComponent::currentMode</qualifiedname>
+        <initializer>= AuthMode::Welcome</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="60" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1adaa366c955682968eca5d015502e526a" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool AuthComponent::isLoading</definition>
+        <argsstring></argsstring>
+        <name>isLoading</name>
+        <qualifiedname>AuthComponent::isLoading</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="61" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a5a0f9dbdc302ab741a3f46435be814a2" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String AuthComponent::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>AuthComponent::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="62" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="62" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a0d5eb4f1b9a80702819d981665414131" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* AuthComponent::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>AuthComponent::networkClient</qualifiedname>
+        <initializer>= <ref refid="MessageThreadComponent_8cpp_1ad4cc417d4ffd42507c09b03f30422adc" kindref="member">nullptr</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="66" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a2f800ef5081c6aab3ad2dd626cdeaf5c" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::loginButton</definition>
+        <argsstring></argsstring>
+        <name>loginButton</name>
+        <qualifiedname>AuthComponent::loginButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="70" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a0d0e3083ded7a858bcb3974c24bc419f" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::signupButton</definition>
+        <argsstring></argsstring>
+        <name>signupButton</name>
+        <qualifiedname>AuthComponent::signupButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="71" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a800bf8280fef393ca94a052119029dbe" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::googleButton</definition>
+        <argsstring></argsstring>
+        <name>googleButton</name>
+        <qualifiedname>AuthComponent::googleButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="72" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="72" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1ace89d29fca3580208d106a9ee5322f22" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::discordButton</definition>
+        <argsstring></argsstring>
+        <name>discordButton</name>
+        <qualifiedname>AuthComponent::discordButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="73" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="73" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1abd53baa341d35dc30667fc5a05ab3ce1" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::loginEmailEditor</definition>
+        <argsstring></argsstring>
+        <name>loginEmailEditor</name>
+        <qualifiedname>AuthComponent::loginEmailEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="77" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="77" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a3b0e5e0a47d373cb3991cc6d66788e80" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::loginPasswordEditor</definition>
+        <argsstring></argsstring>
+        <name>loginPasswordEditor</name>
+        <qualifiedname>AuthComponent::loginPasswordEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="78" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="78" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1afb3dbe2392279cb06d0b65a5236e2691" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::loginSubmitButton</definition>
+        <argsstring></argsstring>
+        <name>loginSubmitButton</name>
+        <qualifiedname>AuthComponent::loginSubmitButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="79" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="79" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1ad756fff67b7bc7486ed9fdace8225290" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::loginBackButton</definition>
+        <argsstring></argsstring>
+        <name>loginBackButton</name>
+        <qualifiedname>AuthComponent::loginBackButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="80" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a36a036ce82b0f893fee2b0d800842e6e" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::signupEmailEditor</definition>
+        <argsstring></argsstring>
+        <name>signupEmailEditor</name>
+        <qualifiedname>AuthComponent::signupEmailEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="84" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1abc05c24f99775544765a3af412613bd3" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::signupUsernameEditor</definition>
+        <argsstring></argsstring>
+        <name>signupUsernameEditor</name>
+        <qualifiedname>AuthComponent::signupUsernameEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="85" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="85" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1abe0d81a04d026778368585689498aa67" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::signupDisplayNameEditor</definition>
+        <argsstring></argsstring>
+        <name>signupDisplayNameEditor</name>
+        <qualifiedname>AuthComponent::signupDisplayNameEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="86" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a90a57ef01aaef1d952e5d8b917baee6d" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::signupPasswordEditor</definition>
+        <argsstring></argsstring>
+        <name>signupPasswordEditor</name>
+        <qualifiedname>AuthComponent::signupPasswordEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="87" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1ac948ee8cb55d808f8a0cd6ff50f44bfc" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; AuthComponent::signupConfirmPasswordEditor</definition>
+        <argsstring></argsstring>
+        <name>signupConfirmPasswordEditor</name>
+        <qualifiedname>AuthComponent::signupConfirmPasswordEditor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="88" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="88" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a4fb5c3b49a73126aa1d4d5253b50b065" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::signupSubmitButton</definition>
+        <argsstring></argsstring>
+        <name>signupSubmitButton</name>
+        <qualifiedname>AuthComponent::signupSubmitButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="89" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a9825adabacd70d670b267a3def2fccf8" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; AuthComponent::signupBackButton</definition>
+        <argsstring></argsstring>
+        <name>signupBackButton</name>
+        <qualifiedname>AuthComponent::signupBackButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="90" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classAuthComponent_1adcd18936c389191432deac2ab9f6a3dc" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AuthComponent::CARD_WIDTH</definition>
+        <argsstring></argsstring>
+        <name>CARD_WIDTH</name>
+        <qualifiedname>AuthComponent::CARD_WIDTH</qualifiedname>
+        <initializer>= 420</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="119" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1a756aa6503fb36f262b3542063b3b7295" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AuthComponent::CARD_PADDING</definition>
+        <argsstring></argsstring>
+        <name>CARD_PADDING</name>
+        <qualifiedname>AuthComponent::CARD_PADDING</qualifiedname>
+        <initializer>= 40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="120" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1acc0a9860c3e181bc0e9b798727e5fd71" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AuthComponent::FIELD_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>FIELD_HEIGHT</name>
+        <qualifiedname>AuthComponent::FIELD_HEIGHT</qualifiedname>
+        <initializer>= 48</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="121" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="121" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1aaa8126c13c5396936245b572ab428245" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AuthComponent::FIELD_SPACING</definition>
+        <argsstring></argsstring>
+        <name>FIELD_SPACING</name>
+        <qualifiedname>AuthComponent::FIELD_SPACING</qualifiedname>
+        <initializer>= 16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="122" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classAuthComponent_1adecdf3ff3fe8a8de9dee12ddc9b33d5d" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int AuthComponent::BUTTON_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>BUTTON_HEIGHT</name>
+        <qualifiedname>AuthComponent::BUTTON_HEIGHT</qualifiedname>
+        <initializer>= 48</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="123" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="123" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classAuthComponent_1a959e6dca16a876844fb6de11039754bb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>AuthComponent::AuthComponent</definition>
+        <argsstring>()</argsstring>
+        <name>AuthComponent</name>
+        <qualifiedname>AuthComponent::AuthComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="24" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="10" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a9687476351eb969411efed2e0fc0c83a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>AuthComponent::~AuthComponent</definition>
+        <argsstring>() override</argsstring>
+        <name>~AuthComponent</name>
+        <qualifiedname>AuthComponent::~AuthComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="25" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="32" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ad86f85d3792c4e9bba350101319abc0d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>AuthComponent::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="34" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="38" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ad20026e1bb1b7922f6c96e3a0ea8f3f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>AuthComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="38" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="181" bodyend="277"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1af2f8e05082b94952d6d4e80e960086b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>AuthComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="39" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="349" bodyend="411"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a689a48d94dcda78c4420467a11303eb1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::buttonClicked</definition>
+        <argsstring>(juce::Button *button) override</argsstring>
+        <name>buttonClicked</name>
+        <qualifiedname>AuthComponent::buttonClicked</qualifiedname>
+        <param>
+          <type>juce::Button *</type>
+          <declname>button</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="40" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="530" bodyend="573"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a0c552a30eefbae5ea56eb634b3ccbf32" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::textEditorReturnKeyPressed</definition>
+        <argsstring>(juce::TextEditor &amp;editor) override</argsstring>
+        <name>textEditorReturnKeyPressed</name>
+        <qualifiedname>AuthComponent::textEditorReturnKeyPressed</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="41" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="575" bodyend="618"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a254906412ccfeb247c4817cc5ec3b378" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::textEditorTextChanged</definition>
+        <argsstring>(juce::TextEditor &amp;editor) override</argsstring>
+        <name>textEditorTextChanged</name>
+        <qualifiedname>AuthComponent::textEditorTextChanged</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="42" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="620" bodyend="628"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1acd8b06e0c65225d39acff8c61951d824" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::reset</definition>
+        <argsstring>()</argsstring>
+        <name>reset</name>
+        <qualifiedname>AuthComponent::reset</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="46" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="503" bodyend="508"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a27ab709016211c2a76009056a350b824" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::showError</definition>
+        <argsstring>(const juce::String &amp;message)</argsstring>
+        <name>showError</name>
+        <qualifiedname>AuthComponent::showError</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>message</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="47" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="510" bodyend="517"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ad2dde63e8a6d29ed4f1c1bace1f322e5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::clearError</definition>
+        <argsstring>()</argsstring>
+        <name>clearError</name>
+        <qualifiedname>AuthComponent::clearError</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="48" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="519" bodyend="527"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classAuthComponent_1a85d70600c540bb67e87f58d6b6f4fd26" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::setupWelcomeComponents</definition>
+        <argsstring>()</argsstring>
+        <name>setupWelcomeComponents</name>
+        <qualifiedname>AuthComponent::setupWelcomeComponents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="94" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="45" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a9caad9cd07a6a3c0f09d5eec5282d83d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::setupLoginComponents</definition>
+        <argsstring>()</argsstring>
+        <name>setupLoginComponents</name>
+        <qualifiedname>AuthComponent::setupLoginComponents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="95" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="68" bodyend="89"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ab871fc22a662523922d44f9eae54217b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::setupSignupComponents</definition>
+        <argsstring>()</argsstring>
+        <name>setupSignupComponents</name>
+        <qualifiedname>AuthComponent::setupSignupComponents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="96" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="91" bodyend="127"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1afca3ac4286b4b104e160a5a74b9afc70" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::showWelcome</definition>
+        <argsstring>()</argsstring>
+        <name>showWelcome</name>
+        <qualifiedname>AuthComponent::showWelcome</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="98" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="438" bodyend="453"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a0bb3a7906f423eb4902e215f9b5a2c62" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::showLogin</definition>
+        <argsstring>()</argsstring>
+        <name>showLogin</name>
+        <qualifiedname>AuthComponent::showLogin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="99" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="455" bodyend="474"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a7e466fe43a5c896e3a077090902a6478" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::showSignup</definition>
+        <argsstring>()</argsstring>
+        <name>showSignup</name>
+        <qualifiedname>AuthComponent::showSignup</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="100" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="476" bodyend="501"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a24a633e16adc99ed564b8b123feb5530" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::hideAllComponents</definition>
+        <argsstring>()</argsstring>
+        <name>hideAllComponents</name>
+        <qualifiedname>AuthComponent::hideAllComponents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="102" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="414" bodyend="436"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ab36a92d6ace58b527ff6ff9ab0e17b01" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::handleLogin</definition>
+        <argsstring>()</argsstring>
+        <name>handleLogin</name>
+        <qualifiedname>AuthComponent::handleLogin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="104" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="631" bodyend="719"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ac84904248c01968326c56a095ce53769" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::handleSignup</definition>
+        <argsstring>()</argsstring>
+        <name>handleSignup</name>
+        <qualifiedname>AuthComponent::handleSignup</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="105" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="721" bodyend="841"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1aadccf29b3009f5e5f434252fb77bfd5a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::styleTextEditor</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder, bool isPassword=false)</argsstring>
+        <name>styleTextEditor</name>
+        <qualifiedname>AuthComponent::styleTextEditor</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isPassword</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="108" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="130" bodyend="150"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a894a4956689a4419fb2d822579b4d43d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::stylePrimaryButton</definition>
+        <argsstring>(juce::TextButton &amp;button)</argsstring>
+        <name>stylePrimaryButton</name>
+        <qualifiedname>AuthComponent::stylePrimaryButton</qualifiedname>
+        <param>
+          <type>juce::TextButton &amp;</type>
+          <declname>button</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="109" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="152" bodyend="159"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1adc4ec91cfc496cae28628f752c413b6b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::styleSecondaryButton</definition>
+        <argsstring>(juce::TextButton &amp;button)</argsstring>
+        <name>styleSecondaryButton</name>
+        <qualifiedname>AuthComponent::styleSecondaryButton</qualifiedname>
+        <param>
+          <type>juce::TextButton &amp;</type>
+          <declname>button</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="110" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="161" bodyend="168"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1ade8638b594bdc105579b010ed19b0f92" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::styleOAuthButton</definition>
+        <argsstring>(juce::TextButton &amp;button, const juce::String &amp;text, juce::Colour color)</argsstring>
+        <name>styleOAuthButton</name>
+        <qualifiedname>AuthComponent::styleOAuthButton</qualifiedname>
+        <param>
+          <type>juce::TextButton &amp;</type>
+          <declname>button</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>juce::Colour</type>
+          <declname>color</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="111" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="170" bodyend="178"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1adc550827050577e9f9f1bca50fcdaca3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::drawCard</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawCard</name>
+        <qualifiedname>AuthComponent::drawCard</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="114" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="279" bodyend="292"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a689ece3e6579adf9521038ef07e9b05b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::drawLogo</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawLogo</name>
+        <qualifiedname>AuthComponent::drawLogo</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="115" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="294" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="classAuthComponent_1a335abacd83090f131329888c562ad1d3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void AuthComponent::drawDivider</definition>
+        <argsstring>(juce::Graphics &amp;g, int y, const juce::String &amp;text)</argsstring>
+        <name>drawDivider</name>
+        <qualifiedname>AuthComponent::drawDivider</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>text</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="116" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.cpp" bodystart="326" bodyend="346"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classAuthComponent" kindref="compound">AuthComponent</ref> provides a professional login/signup interface. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Clean, card-based layout</para>
+</listitem><listitem><para>Proper TextEditor inputs with styling</para>
+</listitem><listitem><para>Form validation with inline error messages</para>
+</listitem><listitem><para>OAuth provider buttons</para>
+</listitem><listitem><para>Smooth state transitions</para>
+</listitem><listitem><para>Keyboard navigation support </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>AuthComponent</label>
+        <link refid="classAuthComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>juce::Button::Listener</label>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::TextEditor::Listener</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>AuthComponent</label>
+        <link refid="classAuthComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>juce::Button::Listener</label>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::TextEditor::Listener</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" line="19" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/auth/AuthComponent.h" bodystart="22" bodyend="148"/>
+    <listofallmembers>
+      <member refid="classAuthComponent_1a959e6dca16a876844fb6de11039754bb" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>AuthComponent</name></member>
+      <member refid="classAuthComponent_1ab98d98c926bc7f00571a26e22695b645" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>AuthMode</name></member>
+      <member refid="classAuthComponent_1adecdf3ff3fe8a8de9dee12ddc9b33d5d" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>BUTTON_HEIGHT</name></member>
+      <member refid="classAuthComponent_1a689a48d94dcda78c4420467a11303eb1" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>buttonClicked</name></member>
+      <member refid="classAuthComponent_1a756aa6503fb36f262b3542063b3b7295" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>CARD_PADDING</name></member>
+      <member refid="classAuthComponent_1adcd18936c389191432deac2ab9f6a3dc" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>CARD_WIDTH</name></member>
+      <member refid="classAuthComponent_1ad2dde63e8a6d29ed4f1c1bace1f322e5" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>clearError</name></member>
+      <member refid="classAuthComponent_1a7d7165ac2f908deb926332cc060d82a3" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>currentMode</name></member>
+      <member refid="classAuthComponent_1ace89d29fca3580208d106a9ee5322f22" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>discordButton</name></member>
+      <member refid="classAuthComponent_1adc550827050577e9f9f1bca50fcdaca3" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>drawCard</name></member>
+      <member refid="classAuthComponent_1a335abacd83090f131329888c562ad1d3" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>drawDivider</name></member>
+      <member refid="classAuthComponent_1a689ece3e6579adf9521038ef07e9b05b" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>drawLogo</name></member>
+      <member refid="classAuthComponent_1a5a0f9dbdc302ab741a3f46435be814a2" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>errorMessage</name></member>
+      <member refid="classAuthComponent_1acc0a9860c3e181bc0e9b798727e5fd71" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>FIELD_HEIGHT</name></member>
+      <member refid="classAuthComponent_1aaa8126c13c5396936245b572ab428245" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>FIELD_SPACING</name></member>
+      <member refid="classAuthComponent_1a800bf8280fef393ca94a052119029dbe" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>googleButton</name></member>
+      <member refid="classAuthComponent_1ab36a92d6ace58b527ff6ff9ab0e17b01" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>handleLogin</name></member>
+      <member refid="classAuthComponent_1ac84904248c01968326c56a095ce53769" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>handleSignup</name></member>
+      <member refid="classAuthComponent_1a24a633e16adc99ed564b8b123feb5530" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>hideAllComponents</name></member>
+      <member refid="classAuthComponent_1adaa366c955682968eca5d015502e526a" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>isLoading</name></member>
+      <member refid="classAuthComponent_1ad756fff67b7bc7486ed9fdace8225290" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>loginBackButton</name></member>
+      <member refid="classAuthComponent_1a2f800ef5081c6aab3ad2dd626cdeaf5c" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>loginButton</name></member>
+      <member refid="classAuthComponent_1abd53baa341d35dc30667fc5a05ab3ce1" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>loginEmailEditor</name></member>
+      <member refid="classAuthComponent_1a3b0e5e0a47d373cb3991cc6d66788e80" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>loginPasswordEditor</name></member>
+      <member refid="classAuthComponent_1afb3dbe2392279cb06d0b65a5236e2691" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>loginSubmitButton</name></member>
+      <member refid="classAuthComponent_1a0d5eb4f1b9a80702819d981665414131" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>networkClient</name></member>
+      <member refid="classAuthComponent_1a678b4adcd99af105a236c9c14d4dba5b" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>onLoginSuccess</name></member>
+      <member refid="classAuthComponent_1ae79cd60c816f6c5f7c7fa9cb9a0d5bf8" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>onOAuthRequested</name></member>
+      <member refid="classAuthComponent_1ad20026e1bb1b7922f6c96e3a0ea8f3f9" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>paint</name></member>
+      <member refid="classAuthComponent_1acd8b06e0c65225d39acff8c61951d824" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>reset</name></member>
+      <member refid="classAuthComponent_1af2f8e05082b94952d6d4e80e960086b7" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>resized</name></member>
+      <member refid="classAuthComponent_1ad86f85d3792c4e9bba350101319abc0d" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>setNetworkClient</name></member>
+      <member refid="classAuthComponent_1a9caad9cd07a6a3c0f09d5eec5282d83d" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>setupLoginComponents</name></member>
+      <member refid="classAuthComponent_1ab871fc22a662523922d44f9eae54217b" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>setupSignupComponents</name></member>
+      <member refid="classAuthComponent_1a85d70600c540bb67e87f58d6b6f4fd26" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>setupWelcomeComponents</name></member>
+      <member refid="classAuthComponent_1a27ab709016211c2a76009056a350b824" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>showError</name></member>
+      <member refid="classAuthComponent_1a0bb3a7906f423eb4902e215f9b5a2c62" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>showLogin</name></member>
+      <member refid="classAuthComponent_1a7e466fe43a5c896e3a077090902a6478" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>showSignup</name></member>
+      <member refid="classAuthComponent_1afca3ac4286b4b104e160a5a74b9afc70" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>showWelcome</name></member>
+      <member refid="classAuthComponent_1a9825adabacd70d670b267a3def2fccf8" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupBackButton</name></member>
+      <member refid="classAuthComponent_1a0d0e3083ded7a858bcb3974c24bc419f" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupButton</name></member>
+      <member refid="classAuthComponent_1ac948ee8cb55d808f8a0cd6ff50f44bfc" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupConfirmPasswordEditor</name></member>
+      <member refid="classAuthComponent_1abe0d81a04d026778368585689498aa67" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupDisplayNameEditor</name></member>
+      <member refid="classAuthComponent_1a36a036ce82b0f893fee2b0d800842e6e" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupEmailEditor</name></member>
+      <member refid="classAuthComponent_1a90a57ef01aaef1d952e5d8b917baee6d" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupPasswordEditor</name></member>
+      <member refid="classAuthComponent_1a4fb5c3b49a73126aa1d4d5253b50b065" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupSubmitButton</name></member>
+      <member refid="classAuthComponent_1abc05c24f99775544765a3af412613bd3" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>signupUsernameEditor</name></member>
+      <member refid="classAuthComponent_1ade8638b594bdc105579b010ed19b0f92" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>styleOAuthButton</name></member>
+      <member refid="classAuthComponent_1a894a4956689a4419fb2d822579b4d43d" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>stylePrimaryButton</name></member>
+      <member refid="classAuthComponent_1adc4ec91cfc496cae28628f752c413b6b" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>styleSecondaryButton</name></member>
+      <member refid="classAuthComponent_1aadccf29b3009f5e5f434252fb77bfd5a" prot="private" virt="non-virtual"><scope>AuthComponent</scope><name>styleTextEditor</name></member>
+      <member refid="classAuthComponent_1a0c552a30eefbae5ea56eb634b3ccbf32" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>textEditorReturnKeyPressed</name></member>
+      <member refid="classAuthComponent_1a254906412ccfeb247c4817cc5ec3b378" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>textEditorTextChanged</name></member>
+      <member refid="classAuthComponent_1a9687476351eb969411efed2e0fc0c83a" prot="public" virt="non-virtual"><scope>AuthComponent</scope><name>~AuthComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

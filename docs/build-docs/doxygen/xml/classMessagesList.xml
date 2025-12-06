@@ -1,0 +1,820 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classMessagesList" kind="class" language="C++" prot="public">
+    <compoundname>MessagesList</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::ScrollBar::Listener</basecompoundref>
+    <includes refid="MessagesList_8h" local="no">MessagesList.h</includes>
+    <sectiondef kind="private-type">
+      <memberdef kind="enum" id="classMessagesList_1a87881195e5e74f8da00208bb1ffd5bf0" prot="private" static="no" strong="yes">
+        <type></type>
+        <name>ListState</name>
+        <qualifiedname>MessagesList::ListState</qualifiedname>
+        <enumvalue id="classMessagesList_1a87881195e5e74f8da00208bb1ffd5bf0a16bfbf9c462762cf1cba4134ec53c504" prot="private">
+          <name>Loading</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classMessagesList_1a87881195e5e74f8da00208bb1ffd5bf0a7381d487d18845b379422325c0a768d6" prot="private">
+          <name>Loaded</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classMessagesList_1a87881195e5e74f8da00208bb1ffd5bf0ace2c8aed9c2fa0cfbed56cbda4d8bf07" prot="private">
+          <name>Empty</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classMessagesList_1a87881195e5e74f8da00208bb1ffd5bf0a902b0d55fddef6f8d651fe1035b7d4bd" prot="private">
+          <name>Error</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="51" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="52" bodyend="57"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classMessagesList_1ace3aad29fcaf688220ed7c7c49de969a" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;channelType, const juce::String &amp;channelId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; channelType, const juce::String&amp; channelId)&gt; MessagesList::onChannelSelected</definition>
+        <argsstring></argsstring>
+        <name>onChannelSelected</name>
+        <qualifiedname>MessagesList::onChannelSelected</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="33" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1a6f29f98329b4fcfd422c725d5869f1a9" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; MessagesList::onNewMessage</definition>
+        <argsstring></argsstring>
+        <name>onNewMessage</name>
+        <qualifiedname>MessagesList::onNewMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="34" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1a6fb65c23488266b13eccf0a434b907f6" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; MessagesList::onGoToDiscovery</definition>
+        <argsstring></argsstring>
+        <name>onGoToDiscovery</name>
+        <qualifiedname>MessagesList::onGoToDiscovery</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="35" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1a8664929f894b8a2b145576ae5b038225" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; MessagesList::onCreateGroup</definition>
+        <argsstring></argsstring>
+        <name>onCreateGroup</name>
+        <qualifiedname>MessagesList::onCreateGroup</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="36" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classMessagesList_1aa2cd550ad00ba45737f3eda25dd3127e" prot="private" static="no" mutable="no">
+        <type>ListState</type>
+        <definition>ListState MessagesList::listState</definition>
+        <argsstring></argsstring>
+        <name>listState</name>
+        <qualifiedname>MessagesList::listState</qualifiedname>
+        <initializer>= ListState::Loading</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="59" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1ab92b4fa6043940279d7e4e25f6f71169" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String MessagesList::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>MessagesList::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="60" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1acd46fa3c4b4f34b0b98b53740b84af7a" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &gt;</type>
+        <definition>std::vector&lt;StreamChatClient::Channel&gt; MessagesList::channels</definition>
+        <argsstring></argsstring>
+        <name>channels</name>
+        <qualifiedname>MessagesList::channels</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="61" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="61" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1aae078a78a367596e366046951a593237" prot="private" static="no" mutable="no">
+        <type><ref refid="classStreamChatClient" kindref="compound">StreamChatClient</ref> *</type>
+        <definition>StreamChatClient* MessagesList::streamChatClient</definition>
+        <argsstring></argsstring>
+        <name>streamChatClient</name>
+        <qualifiedname>MessagesList::streamChatClient</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="63" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="63" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1af862e45edc77a36fcfb275f5f59266ff" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* MessagesList::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>MessagesList::networkClient</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="64" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1a402104fafdadcb06403c3be6c2f6b25a" prot="private" static="no" mutable="no">
+        <type>juce::ScrollBar</type>
+        <definition>juce::ScrollBar MessagesList::scrollBar</definition>
+        <argsstring></argsstring>
+        <name>scrollBar</name>
+        <qualifiedname>MessagesList::scrollBar</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="67" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="67" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1ad976ead86b195845614963e4826ffb5d" prot="private" static="no" mutable="no">
+        <type>double</type>
+        <definition>double MessagesList::scrollPosition</definition>
+        <argsstring></argsstring>
+        <name>scrollPosition</name>
+        <qualifiedname>MessagesList::scrollPosition</qualifiedname>
+        <initializer>= 0.0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="68" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="68" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classMessagesList_1a5e107d849d30bd0125ec06deda2444ba" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int MessagesList::ITEM_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>ITEM_HEIGHT</name>
+        <qualifiedname>MessagesList::ITEM_HEIGHT</qualifiedname>
+        <initializer>= 80</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="69" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="69" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1a10797b904e25ad0cb9915e3bd8b61120" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int MessagesList::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>MessagesList::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 60</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="70" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="70" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classMessagesList_1aafb67fc4813c864ddb140a857d575197" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int MessagesList::BUTTON_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>BUTTON_HEIGHT</name>
+        <qualifiedname>MessagesList::BUTTON_HEIGHT</qualifiedname>
+        <initializer>= 40</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="71" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="71" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classMessagesList_1a0b13adb92ebc99214dc16a0a537e8f04" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MessagesList::MessagesList</definition>
+        <argsstring>()</argsstring>
+        <name>MessagesList</name>
+        <qualifiedname>MessagesList::MessagesList</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="24" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="8" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1ae70e41525b9aebdb9922cc7c176124e4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>MessagesList::~MessagesList</definition>
+        <argsstring>() override</argsstring>
+        <name>~MessagesList</name>
+        <qualifiedname>MessagesList::~MessagesList</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="25" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="19" bodyend="23"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a51310d4275df6efb0b515f40c8a00ecb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::paint</definition>
+        <argsstring>(juce::Graphics &amp;) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>MessagesList::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <defname>g</defname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="27" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="25" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a1d9c84e59b651565f7bcea8dbb996933" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>MessagesList::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="28" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="67" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1ac202ac7af13508a21255bfcce3f6e19c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>MessagesList::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="29" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="77" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1aba993bf41cc18f36c9599b424bb770a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::mouseWheelMove</definition>
+        <argsstring>(const juce::MouseEvent &amp;event, const juce::MouseWheelDetails &amp;wheel) override</argsstring>
+        <name>mouseWheelMove</name>
+        <qualifiedname>MessagesList::mouseWheelMove</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <param>
+          <type>const juce::MouseWheelDetails &amp;</type>
+          <declname>wheel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="30" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="104" bodyend="110"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a25512b39899fb4a4bfcc0b2c8efac3b4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::setStreamChatClient</definition>
+        <argsstring>(StreamChatClient *client)</argsstring>
+        <name>setStreamChatClient</name>
+        <qualifiedname>MessagesList::setStreamChatClient</qualifiedname>
+        <param>
+          <type><ref refid="classStreamChatClient" kindref="compound">StreamChatClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="39" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="113" bodyend="117"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a14fe3b6a6955964e5a6c3b84612cce7b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>MessagesList::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="40" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="119" bodyend="123"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a6d94b70e9614123919a5bc6f966483ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::loadChannels</definition>
+        <argsstring>()</argsstring>
+        <name>loadChannels</name>
+        <qualifiedname>MessagesList::loadChannels</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="43" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="125" bodyend="155"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a239ff3f1eef9d9841ee9c2066b4fcfef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::refreshChannels</definition>
+        <argsstring>()</argsstring>
+        <name>refreshChannels</name>
+        <qualifiedname>MessagesList::refreshChannels</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="44" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="157" bodyend="160"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a002ab96516df5c5e2f546b9c72b5c4eb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>MessagesList::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="47" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="162" bodyend="168"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classMessagesList_1a497ed443b9d5122a7a496c11567136fb" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>MessagesList::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="74" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="171" bodyend="198"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a5df8b8d5bae10782a7872a4cc23dac7d" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::drawChannelItem</definition>
+        <argsstring>(juce::Graphics &amp;g, const StreamChatClient::Channel &amp;channel, int y, int width)</argsstring>
+        <name>drawChannelItem</name>
+        <qualifiedname>MessagesList::drawChannelItem</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &amp;</type>
+          <declname>channel</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>width</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="75" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="200" bodyend="273"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1ac1163a59bbcf624a863321f7592f0758" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::drawEmptyState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawEmptyState</name>
+        <qualifiedname>MessagesList::drawEmptyState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="76" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="275" bodyend="284"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1ac2e121170256724eb2940c1f9398fac1" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::drawErrorState</definition>
+        <argsstring>(juce::Graphics &amp;g)</argsstring>
+        <name>drawErrorState</name>
+        <qualifiedname>MessagesList::drawErrorState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="77" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="286" bodyend="291"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a4ffddc0590f41cc846f91d7fde4585b8" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void MessagesList::scrollBarMoved</definition>
+        <argsstring>(juce::ScrollBar *scrollBar, double newRangeStart) override</argsstring>
+        <name>scrollBarMoved</name>
+        <qualifiedname>MessagesList::scrollBarMoved</qualifiedname>
+        <param>
+          <type>juce::ScrollBar *</type>
+          <declname>scrollBar</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>newRangeStart</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="80" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="377" bodyend="381"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a954c4451dcf5465030e13e5581028056" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String MessagesList::formatTimestamp</definition>
+        <argsstring>(const juce::String &amp;timestamp)</argsstring>
+        <name>formatTimestamp</name>
+        <qualifiedname>MessagesList::formatTimestamp</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>timestamp</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="83" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="294" bodyend="300"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a3aa0ffb594325f6cee33434124c678d2" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String MessagesList::getChannelName</definition>
+        <argsstring>(const StreamChatClient::Channel &amp;channel)</argsstring>
+        <name>getChannelName</name>
+        <qualifiedname>MessagesList::getChannelName</qualifiedname>
+        <param>
+          <type>const <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &amp;</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="84" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="302" bodyend="315"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1aee7cdf7aed9c012b9d77ee1662a0a6e5" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String MessagesList::getLastMessagePreview</definition>
+        <argsstring>(const StreamChatClient::Channel &amp;channel)</argsstring>
+        <name>getLastMessagePreview</name>
+        <qualifiedname>MessagesList::getLastMessagePreview</qualifiedname>
+        <param>
+          <type>const <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &amp;</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="85" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="317" bodyend="327"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a1a7317f9dc6aa91ae2c45900a2d75fdc" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int MessagesList::getUnreadCount</definition>
+        <argsstring>(const StreamChatClient::Channel &amp;channel)</argsstring>
+        <name>getUnreadCount</name>
+        <qualifiedname>MessagesList::getUnreadCount</qualifiedname>
+        <param>
+          <type>const <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &amp;</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="86" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="329" bodyend="332"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1aebf5f5c69012bd8942353dcc17c4503b" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int MessagesList::getMemberCount</definition>
+        <argsstring>(const StreamChatClient::Channel &amp;channel) const</argsstring>
+        <name>getMemberCount</name>
+        <qualifiedname>MessagesList::getMemberCount</qualifiedname>
+        <param>
+          <type>const <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &amp;</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="87" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="388" bodyend="395"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a922006f0be5ac921e6eb12eb92b79089" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool MessagesList::isGroupChannel</definition>
+        <argsstring>(const StreamChatClient::Channel &amp;channel) const</argsstring>
+        <name>isGroupChannel</name>
+        <qualifiedname>MessagesList::isGroupChannel</qualifiedname>
+        <param>
+          <type>const <ref refid="structStreamChatClient_1_1Channel" kindref="compound">StreamChatClient::Channel</ref> &amp;</type>
+          <declname>channel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="88" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="383" bodyend="386"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a9b1f5db211bd31f63cf5d9fc071e646b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int MessagesList::getChannelIndexAtY</definition>
+        <argsstring>(int y)</argsstring>
+        <name>getChannelIndexAtY</name>
+        <qualifiedname>MessagesList::getChannelIndexAtY</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>y</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="91" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="334" bodyend="346"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1ac0fcc61e5435acee8f2534a476b2b4b6" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; MessagesList::getNewMessageButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getNewMessageButtonBounds</name>
+        <qualifiedname>MessagesList::getNewMessageButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="92" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="348" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a1cccb69b0731646bf86308cb7f134559" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; MessagesList::getCreateGroupButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getCreateGroupButtonBounds</name>
+        <qualifiedname>MessagesList::getCreateGroupButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="93" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="356" bodyend="370"/>
+      </memberdef>
+      <memberdef kind="function" id="classMessagesList_1a5bcbbbf92ee583d0722f9c57ca9fb320" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; MessagesList::getChannelItemBounds</definition>
+        <argsstring>(int index) const</argsstring>
+        <name>getChannelItemBounds</name>
+        <qualifiedname>MessagesList::getChannelItemBounds</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="94" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.cpp" bodystart="372" bodyend="375"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classMessagesList" kindref="compound">MessagesList</ref> displays a list of chat conversations/channels. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Shows all user&apos;s channels sorted by last message time</para>
+</listitem><listitem><para>Displays avatar, name, last message preview, timestamp, unread badge</para>
+</listitem><listitem><para>Click to open conversation</para>
+</listitem><listitem><para>&quot;New Message&quot; button to start new conversation</para>
+</listitem><listitem><para>Auto-refreshes channel list </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>MessagesList</label>
+        <link refid="classMessagesList"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>MessagesList</label>
+        <link refid="classMessagesList"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+        <childnode refid="4" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="4">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" line="19" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/messages/MessagesList.h" bodystart="22" bodyend="95"/>
+    <listofallmembers>
+      <member refid="classMessagesList_1aafb67fc4813c864ddb140a857d575197" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>BUTTON_HEIGHT</name></member>
+      <member refid="classMessagesList_1acd46fa3c4b4f34b0b98b53740b84af7a" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>channels</name></member>
+      <member refid="classMessagesList_1a5df8b8d5bae10782a7872a4cc23dac7d" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>drawChannelItem</name></member>
+      <member refid="classMessagesList_1ac1163a59bbcf624a863321f7592f0758" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>drawEmptyState</name></member>
+      <member refid="classMessagesList_1ac2e121170256724eb2940c1f9398fac1" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>drawErrorState</name></member>
+      <member refid="classMessagesList_1a497ed443b9d5122a7a496c11567136fb" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>drawHeader</name></member>
+      <member refid="classMessagesList_1ab92b4fa6043940279d7e4e25f6f71169" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>errorMessage</name></member>
+      <member refid="classMessagesList_1a954c4451dcf5465030e13e5581028056" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>formatTimestamp</name></member>
+      <member refid="classMessagesList_1a9b1f5db211bd31f63cf5d9fc071e646b" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getChannelIndexAtY</name></member>
+      <member refid="classMessagesList_1a5bcbbbf92ee583d0722f9c57ca9fb320" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getChannelItemBounds</name></member>
+      <member refid="classMessagesList_1a3aa0ffb594325f6cee33434124c678d2" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getChannelName</name></member>
+      <member refid="classMessagesList_1a1cccb69b0731646bf86308cb7f134559" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getCreateGroupButtonBounds</name></member>
+      <member refid="classMessagesList_1aee7cdf7aed9c012b9d77ee1662a0a6e5" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getLastMessagePreview</name></member>
+      <member refid="classMessagesList_1aebf5f5c69012bd8942353dcc17c4503b" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getMemberCount</name></member>
+      <member refid="classMessagesList_1ac0fcc61e5435acee8f2534a476b2b4b6" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getNewMessageButtonBounds</name></member>
+      <member refid="classMessagesList_1a1a7317f9dc6aa91ae2c45900a2d75fdc" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>getUnreadCount</name></member>
+      <member refid="classMessagesList_1a10797b904e25ad0cb9915e3bd8b61120" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classMessagesList_1a922006f0be5ac921e6eb12eb92b79089" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>isGroupChannel</name></member>
+      <member refid="classMessagesList_1a5e107d849d30bd0125ec06deda2444ba" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>ITEM_HEIGHT</name></member>
+      <member refid="classMessagesList_1a87881195e5e74f8da00208bb1ffd5bf0" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>ListState</name></member>
+      <member refid="classMessagesList_1aa2cd550ad00ba45737f3eda25dd3127e" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>listState</name></member>
+      <member refid="classMessagesList_1a6d94b70e9614123919a5bc6f966483ae" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>loadChannels</name></member>
+      <member refid="classMessagesList_1a0b13adb92ebc99214dc16a0a537e8f04" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>MessagesList</name></member>
+      <member refid="classMessagesList_1ac202ac7af13508a21255bfcce3f6e19c" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>mouseUp</name></member>
+      <member refid="classMessagesList_1aba993bf41cc18f36c9599b424bb770a9" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>mouseWheelMove</name></member>
+      <member refid="classMessagesList_1af862e45edc77a36fcfb275f5f59266ff" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>networkClient</name></member>
+      <member refid="classMessagesList_1ace3aad29fcaf688220ed7c7c49de969a" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>onChannelSelected</name></member>
+      <member refid="classMessagesList_1a8664929f894b8a2b145576ae5b038225" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>onCreateGroup</name></member>
+      <member refid="classMessagesList_1a6fb65c23488266b13eccf0a434b907f6" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>onGoToDiscovery</name></member>
+      <member refid="classMessagesList_1a6f29f98329b4fcfd422c725d5869f1a9" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>onNewMessage</name></member>
+      <member refid="classMessagesList_1a51310d4275df6efb0b515f40c8a00ecb" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>paint</name></member>
+      <member refid="classMessagesList_1a239ff3f1eef9d9841ee9c2066b4fcfef" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>refreshChannels</name></member>
+      <member refid="classMessagesList_1a1d9c84e59b651565f7bcea8dbb996933" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>resized</name></member>
+      <member refid="classMessagesList_1a402104fafdadcb06403c3be6c2f6b25a" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>scrollBar</name></member>
+      <member refid="classMessagesList_1a4ffddc0590f41cc846f91d7fde4585b8" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>scrollBarMoved</name></member>
+      <member refid="classMessagesList_1ad976ead86b195845614963e4826ffb5d" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>scrollPosition</name></member>
+      <member refid="classMessagesList_1a14fe3b6a6955964e5a6c3b84612cce7b" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>setNetworkClient</name></member>
+      <member refid="classMessagesList_1a25512b39899fb4a4bfcc0b2c8efac3b4" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>setStreamChatClient</name></member>
+      <member refid="classMessagesList_1aae078a78a367596e366046951a593237" prot="private" virt="non-virtual"><scope>MessagesList</scope><name>streamChatClient</name></member>
+      <member refid="classMessagesList_1a002ab96516df5c5e2f546b9c72b5c4eb" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>timerCallback</name></member>
+      <member refid="classMessagesList_1ae70e41525b9aebdb9922cc7c176124e4" prot="public" virt="non-virtual"><scope>MessagesList</scope><name>~MessagesList</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

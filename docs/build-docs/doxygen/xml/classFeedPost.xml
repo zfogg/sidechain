@@ -1,0 +1,653 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classFeedPost" kind="class" language="C++" prot="public">
+    <compoundname>FeedPost</compoundname>
+    <includes refid="FeedPost_8h" local="no">FeedPost.h</includes>
+    <sectiondef kind="public-type">
+      <memberdef kind="enum" id="classFeedPost_1a9f2c5364b17e6f85ec1d408596f72ac3" prot="public" static="no" strong="yes">
+        <type></type>
+        <name>Status</name>
+        <qualifiedname>FeedPost::Status</qualifiedname>
+        <enumvalue id="classFeedPost_1a9f2c5364b17e6f85ec1d408596f72ac3ae7d31fc0602fb2ede144d18cdffd816b" prot="public">
+          <name>Ready</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classFeedPost_1a9f2c5364b17e6f85ec1d408596f72ac3a643562a9ae7099c8aabfdc93478db117" prot="public">
+          <name>Processing</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classFeedPost_1a9f2c5364b17e6f85ec1d408596f72ac3ad7c8c85bf79bbe1b7188497c32c3b0ca" prot="public">
+          <name>Failed</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classFeedPost_1a9f2c5364b17e6f85ec1d408596f72ac3a88183b946cc5f0e8c96b2e66e1c74a7e" prot="public">
+          <name>Unknown</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="80" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="81" bodyend="86"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classFeedPost_1adce61b13a4b058be4a8b7f2682a1607d" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>FeedPost::id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="22" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a941dd43464b7af63447d37008f84f580" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::foreignId</definition>
+        <argsstring></argsstring>
+        <name>foreignId</name>
+        <qualifiedname>FeedPost::foreignId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="23" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a4ea7257947b5ee9945f63a6200b51570" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::actor</definition>
+        <argsstring></argsstring>
+        <name>actor</name>
+        <qualifiedname>FeedPost::actor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="24" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1adfdefb26db8b0ee5e3434b694682300b" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::verb</definition>
+        <argsstring></argsstring>
+        <name>verb</name>
+        <qualifiedname>FeedPost::verb</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="25" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a3fdfd44e93bb20d893ea2d914ed86e69" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::object</definition>
+        <argsstring></argsstring>
+        <name>object</name>
+        <qualifiedname>FeedPost::object</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="26" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a0a4988249ac7f0ac766676875c81165e" prot="public" static="no" mutable="no">
+        <type>juce::Time</type>
+        <definition>juce::Time FeedPost::timestamp</definition>
+        <argsstring></argsstring>
+        <name>timestamp</name>
+        <qualifiedname>FeedPost::timestamp</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="30" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1acf89cd68e6c31b064f17491aff087eda" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::timeAgo</definition>
+        <argsstring></argsstring>
+        <name>timeAgo</name>
+        <qualifiedname>FeedPost::timeAgo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="31" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a497c68501d8f16310dce59d146132529" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>FeedPost::userId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="35" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a881bbe67198f1d55b081fa1c98d474d5" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>FeedPost::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="36" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1ad4baeb5001117acb7c615a554e9bb8ee" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::userAvatarUrl</definition>
+        <argsstring></argsstring>
+        <name>userAvatarUrl</name>
+        <qualifiedname>FeedPost::userAvatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="37" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a6263bf871b2d63419b796b93985b4be3" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::audioUrl</definition>
+        <argsstring></argsstring>
+        <name>audioUrl</name>
+        <qualifiedname>FeedPost::audioUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="41" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1aae2df6419bfd4a0b915349d0533c87ca" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::waveformSvg</definition>
+        <argsstring></argsstring>
+        <name>waveformSvg</name>
+        <qualifiedname>FeedPost::waveformSvg</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="42" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a78c5beb2e6285170d4d84a224e09fb54" prot="public" static="no" mutable="no">
+        <type>float</type>
+        <definition>float FeedPost::durationSeconds</definition>
+        <argsstring></argsstring>
+        <name>durationSeconds</name>
+        <qualifiedname>FeedPost::durationSeconds</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="43" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="43" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a09cb1b6995a4e631ecbcba4bba3d3b5d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FeedPost::durationBars</definition>
+        <argsstring></argsstring>
+        <name>durationBars</name>
+        <qualifiedname>FeedPost::durationBars</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="44" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1ac4d34aa891ab8540ab28a2556c48a777" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FeedPost::bpm</definition>
+        <argsstring></argsstring>
+        <name>bpm</name>
+        <qualifiedname>FeedPost::bpm</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="45" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1abda8a2fe7afe24abf2c32a8812d08b07" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <qualifiedname>FeedPost::key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="46" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a00212c0c15eabc76a22514bd725b23da" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::daw</definition>
+        <argsstring></argsstring>
+        <name>daw</name>
+        <qualifiedname>FeedPost::daw</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="47" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a70b391b66f8c2544a733dbe52c04b138" prot="public" static="no" mutable="no">
+        <type>juce::StringArray</type>
+        <definition>juce::StringArray FeedPost::genres</definition>
+        <argsstring></argsstring>
+        <name>genres</name>
+        <qualifiedname>FeedPost::genres</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="51" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a6f284b4b0310ef2aa0557b3be027b71d" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FeedPost::likeCount</definition>
+        <argsstring></argsstring>
+        <name>likeCount</name>
+        <qualifiedname>FeedPost::likeCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="55" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a6dba8168443e1727ff98ab54c7538a30" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FeedPost::playCount</definition>
+        <argsstring></argsstring>
+        <name>playCount</name>
+        <qualifiedname>FeedPost::playCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="56" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1aa4f7a93ab87ae847f8cb07c6abb738ca" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int FeedPost::commentCount</definition>
+        <argsstring></argsstring>
+        <name>commentCount</name>
+        <qualifiedname>FeedPost::commentCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="57" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="57" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a9ea3e29ca8d8c326d8aba751fa470986" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FeedPost::isLiked</definition>
+        <argsstring></argsstring>
+        <name>isLiked</name>
+        <qualifiedname>FeedPost::isLiked</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="58" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a5be39c1dbd89733b2f7ba806dfec7dca" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FeedPost::isFollowing</definition>
+        <argsstring></argsstring>
+        <name>isFollowing</name>
+        <qualifiedname>FeedPost::isFollowing</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="59" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1adef50838400024e79a414573a43e13b1" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool FeedPost::isOwnPost</definition>
+        <argsstring></argsstring>
+        <name>isOwnPost</name>
+        <qualifiedname>FeedPost::isOwnPost</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="60" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="60" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1ad72f3041c6cbd972ba60b6b1e06b8c22" prot="public" static="no" mutable="no">
+        <type>std::map&lt; juce::String, int &gt;</type>
+        <definition>std::map&lt;juce::String, int&gt; FeedPost::reactionCounts</definition>
+        <argsstring></argsstring>
+        <name>reactionCounts</name>
+        <qualifiedname>FeedPost::reactionCounts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="65" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="65" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1a4478ae7aa41b448a5285edb9b1c73391" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::userReaction</definition>
+        <argsstring></argsstring>
+        <name>userReaction</name>
+        <qualifiedname>FeedPost::userReaction</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="66" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="66" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classFeedPost_1aeb333c73682a03d65cffdc42ae597f96" prot="public" static="no" mutable="no">
+        <type>Status</type>
+        <definition>Status FeedPost::status</definition>
+        <argsstring></argsstring>
+        <name>status</name>
+        <qualifiedname>FeedPost::status</qualifiedname>
+        <initializer>= Status::Unknown</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="87" column="12" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classFeedPost_1a38f7e5401b9b4e18302fdb00bbd7d4a1" prot="public" static="yes" mutable="no">
+        <type>const juce::StringArray</type>
+        <definition>const juce::StringArray FeedPost::REACTION_EMOJIS</definition>
+        <argsstring></argsstring>
+        <name>REACTION_EMOJIS</name>
+        <qualifiedname>FeedPost::REACTION_EMOJIS</qualifiedname>
+        <initializer>= {
+        juce::String(juce::CharPointer_UTF8(&quot;\xE2\x9D\xA4\xEF\xB8\x8F&quot;)),    
+        juce::String(juce::CharPointer_UTF8(&quot;\xF0\x9F\x94\xA5&quot;)),            
+        juce::String(juce::CharPointer_UTF8(&quot;\xF0\x9F\x8E\xB5&quot;)),            
+        juce::String(juce::CharPointer_UTF8(&quot;\xF0\x9F\x92\xAF&quot;)),            
+        juce::String(juce::CharPointer_UTF8(&quot;\xF0\x9F\x98\x8D&quot;)),            
+        juce::String(juce::CharPointer_UTF8(&quot;\xF0\x9F\x9A\x80&quot;))             
+    }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="69" column="43" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="69" bodyend="76"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classFeedPost_1aae9b5d3a948680fc1c428bcafd84e745" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>FeedPost::FeedPost</definition>
+        <argsstring>()=default</argsstring>
+        <name>FeedPost</name>
+        <qualifiedname>FeedPost::FeedPost</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="17" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="classFeedPost_1a23a4b65da053776ce2eafa1db84592b7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>FeedPost::~FeedPost</definition>
+        <argsstring>()=default</argsstring>
+        <name>~FeedPost</name>
+        <qualifiedname>FeedPost::~FeedPost</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="18" column="5"/>
+      </memberdef>
+      <memberdef kind="function" id="classFeedPost_1adf95ced490bdf47d57d2e85a76228da1" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::var</type>
+        <definition>juce::var FeedPost::toJson</definition>
+        <argsstring>() const</argsstring>
+        <name>toJson</name>
+        <qualifiedname>FeedPost::toJson</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="97" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.cpp" bodystart="139" bodyend="215"/>
+      </memberdef>
+      <memberdef kind="function" id="classFeedPost_1a400a73c58fdacdcfe8daba9b0dd46d80" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool FeedPost::isValid</definition>
+        <argsstring>() const</argsstring>
+        <name>isValid</name>
+        <qualifiedname>FeedPost::isValid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="108" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.cpp" bodystart="275" bodyend="279"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classFeedPost_1a977324727f35eebad0bc3c69788cc630" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classFeedPost" kindref="compound">FeedPost</ref></type>
+        <definition>FeedPost FeedPost::fromJson</definition>
+        <argsstring>(const juce::var &amp;json)</argsstring>
+        <name>fromJson</name>
+        <qualifiedname>FeedPost::fromJson</qualifiedname>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>json</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="91" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.cpp" bodystart="6" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="classFeedPost_1a43dddcdc92bff17e3837ece11ebc939c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classOutcome" kindref="compound">Outcome</ref>&lt; <ref refid="classFeedPost" kindref="compound">FeedPost</ref> &gt;</type>
+        <definition>Outcome&lt; FeedPost &gt; FeedPost::tryFromJson</definition>
+        <argsstring>(const juce::var &amp;json)</argsstring>
+        <name>tryFromJson</name>
+        <qualifiedname>FeedPost::tryFromJson</qualifiedname>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>json</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="94" column="20" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.cpp" bodystart="249" bodyend="272"/>
+      </memberdef>
+      <memberdef kind="function" id="classFeedPost_1a30b9eb632edd17a9c7535d0184dba47f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::extractUserId</definition>
+        <argsstring>(const juce::String &amp;actor)</argsstring>
+        <name>extractUserId</name>
+        <qualifiedname>FeedPost::extractUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>actor</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="100" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.cpp" bodystart="218" bodyend="239"/>
+      </memberdef>
+      <memberdef kind="function" id="classFeedPost_1abb0de582804af7571eb6b64347db0c91" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String FeedPost::formatTimeAgo</definition>
+        <argsstring>(const juce::Time &amp;time)</argsstring>
+        <name>formatTimeAgo</name>
+        <qualifiedname>FeedPost::formatTimeAgo</qualifiedname>
+        <param>
+          <type>const juce::Time &amp;</type>
+          <declname>time</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="105" column="25" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.cpp" bodystart="242" bodyend="246"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classFeedPost" kindref="compound">FeedPost</ref> represents a single post/activity in the feed. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Maps to the getstream.io Activity structure from the backend </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>FeedPost</label>
+        <link refid="classFeedPost"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>reactionCounts</edgelabel>
+        </childnode>
+      </node>
+      <node id="2">
+        <label>std::map&lt; juce::String, int &gt;</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" line="14" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/FeedPost.h" bodystart="15" bodyend="112"/>
+    <listofallmembers>
+      <member refid="classFeedPost_1a4ea7257947b5ee9945f63a6200b51570" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>actor</name></member>
+      <member refid="classFeedPost_1a6263bf871b2d63419b796b93985b4be3" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>audioUrl</name></member>
+      <member refid="classFeedPost_1ac4d34aa891ab8540ab28a2556c48a777" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>bpm</name></member>
+      <member refid="classFeedPost_1aa4f7a93ab87ae847f8cb07c6abb738ca" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>commentCount</name></member>
+      <member refid="classFeedPost_1a00212c0c15eabc76a22514bd725b23da" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>daw</name></member>
+      <member refid="classFeedPost_1a09cb1b6995a4e631ecbcba4bba3d3b5d" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>durationBars</name></member>
+      <member refid="classFeedPost_1a78c5beb2e6285170d4d84a224e09fb54" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>durationSeconds</name></member>
+      <member refid="classFeedPost_1a30b9eb632edd17a9c7535d0184dba47f" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>extractUserId</name></member>
+      <member refid="classFeedPost_1aae9b5d3a948680fc1c428bcafd84e745" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>FeedPost</name></member>
+      <member refid="classFeedPost_1a941dd43464b7af63447d37008f84f580" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>foreignId</name></member>
+      <member refid="classFeedPost_1abb0de582804af7571eb6b64347db0c91" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>formatTimeAgo</name></member>
+      <member refid="classFeedPost_1a977324727f35eebad0bc3c69788cc630" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>fromJson</name></member>
+      <member refid="classFeedPost_1a70b391b66f8c2544a733dbe52c04b138" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>genres</name></member>
+      <member refid="classFeedPost_1adce61b13a4b058be4a8b7f2682a1607d" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>id</name></member>
+      <member refid="classFeedPost_1a5be39c1dbd89733b2f7ba806dfec7dca" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>isFollowing</name></member>
+      <member refid="classFeedPost_1a9ea3e29ca8d8c326d8aba751fa470986" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>isLiked</name></member>
+      <member refid="classFeedPost_1adef50838400024e79a414573a43e13b1" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>isOwnPost</name></member>
+      <member refid="classFeedPost_1a400a73c58fdacdcfe8daba9b0dd46d80" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>isValid</name></member>
+      <member refid="classFeedPost_1abda8a2fe7afe24abf2c32a8812d08b07" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>key</name></member>
+      <member refid="classFeedPost_1a6f284b4b0310ef2aa0557b3be027b71d" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>likeCount</name></member>
+      <member refid="classFeedPost_1a3fdfd44e93bb20d893ea2d914ed86e69" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>object</name></member>
+      <member refid="classFeedPost_1a6dba8168443e1727ff98ab54c7538a30" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>playCount</name></member>
+      <member refid="classFeedPost_1a38f7e5401b9b4e18302fdb00bbd7d4a1" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>REACTION_EMOJIS</name></member>
+      <member refid="classFeedPost_1ad72f3041c6cbd972ba60b6b1e06b8c22" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>reactionCounts</name></member>
+      <member refid="classFeedPost_1a9f2c5364b17e6f85ec1d408596f72ac3" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>Status</name></member>
+      <member refid="classFeedPost_1aeb333c73682a03d65cffdc42ae597f96" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>status</name></member>
+      <member refid="classFeedPost_1acf89cd68e6c31b064f17491aff087eda" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>timeAgo</name></member>
+      <member refid="classFeedPost_1a0a4988249ac7f0ac766676875c81165e" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>timestamp</name></member>
+      <member refid="classFeedPost_1adf95ced490bdf47d57d2e85a76228da1" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>toJson</name></member>
+      <member refid="classFeedPost_1a43dddcdc92bff17e3837ece11ebc939c" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>tryFromJson</name></member>
+      <member refid="classFeedPost_1ad4baeb5001117acb7c615a554e9bb8ee" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>userAvatarUrl</name></member>
+      <member refid="classFeedPost_1a497c68501d8f16310dce59d146132529" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>userId</name></member>
+      <member refid="classFeedPost_1a881bbe67198f1d55b081fa1c98d474d5" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>username</name></member>
+      <member refid="classFeedPost_1a4478ae7aa41b448a5285edb9b1c73391" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>userReaction</name></member>
+      <member refid="classFeedPost_1adfdefb26db8b0ee5e3434b694682300b" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>verb</name></member>
+      <member refid="classFeedPost_1aae2df6419bfd4a0b915349d0533c87ca" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>waveformSvg</name></member>
+      <member refid="classFeedPost_1a23a4b65da053776ce2eafa1db84592b7" prot="public" virt="non-virtual"><scope>FeedPost</scope><name>~FeedPost</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classNotificationPollTimer" kind="class" language="C++" prot="public">
+    <compoundname>NotificationPollTimer</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Timer</basecompoundref>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classNotificationPollTimer_1a721576c09a6b377ef53c435119cb95ba" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; NotificationPollTimer::onTick</definition>
+        <argsstring></argsstring>
+        <name>onTick</name>
+        <qualifiedname>NotificationPollTimer::onTick</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1198" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1198" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classNotificationPollTimer_1abd67705635d3ddba1f491af3bdea7412" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>NotificationPollTimer::NotificationPollTimer</definition>
+        <argsstring>(std::function&lt; void()&gt; callback)</argsstring>
+        <name>NotificationPollTimer</name>
+        <qualifiedname>NotificationPollTimer::NotificationPollTimer</qualifiedname>
+        <param>
+          <type>std::function&lt; void()&gt;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1196" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1196" bodyend="1196"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationPollTimer_1ab76f94f0c192450842f70f501324e822" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationPollTimer::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>NotificationPollTimer::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1197" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1197" bodyend="1197"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>NotificationPollTimer</label>
+        <link refid="classNotificationPollTimer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>NotificationPollTimer</label>
+        <link refid="classNotificationPollTimer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" line="1193" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/PluginEditor.cpp" bodystart="1194" bodyend="1199"/>
+    <listofallmembers>
+      <member refid="classNotificationPollTimer_1abd67705635d3ddba1f491af3bdea7412" prot="public" virt="non-virtual"><scope>NotificationPollTimer</scope><name>NotificationPollTimer</name></member>
+      <member refid="classNotificationPollTimer_1a721576c09a6b377ef53c435119cb95ba" prot="public" virt="non-virtual"><scope>NotificationPollTimer</scope><name>onTick</name></member>
+      <member refid="classNotificationPollTimer_1ab76f94f0c192450842f70f501324e822" prot="public" virt="non-virtual"><scope>NotificationPollTimer</scope><name>timerCallback</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

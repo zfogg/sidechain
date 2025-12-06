@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_7116afa154e528c510624c3a13707193" kind="dir">
+    <compoundname>search</compoundname>
+    <innerfile refid="Search_8cpp">Search.cpp</innerfile>
+    <innerfile refid="Search_8h">Search.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/search/"/>
+  </compounddef>
+</doxygen>

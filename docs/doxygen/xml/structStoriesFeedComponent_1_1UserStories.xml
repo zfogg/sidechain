@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structStoriesFeedComponent_1_1UserStories" kind="struct" language="C++" prot="private">
+    <compoundname>StoriesFeedComponent::UserStories</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structStoriesFeedComponent_1_1UserStories_1a0673b25b9e86918f4b7116e85885630b" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StoriesFeedComponent::UserStories::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>StoriesFeedComponent::UserStories::userId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" line="109" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStoriesFeedComponent_1_1UserStories_1af1722374cc35a99ce759254b364ceb37" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StoriesFeedComponent::UserStories::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>StoriesFeedComponent::UserStories::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" line="110" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStoriesFeedComponent_1_1UserStories_1a8e4a2a3fc0e5f4827717dbc136455b57" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String StoriesFeedComponent::UserStories::avatarUrl</definition>
+        <argsstring></argsstring>
+        <name>avatarUrl</name>
+        <qualifiedname>StoriesFeedComponent::UserStories::avatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" line="111" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" bodystart="111" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStoriesFeedComponent_1_1UserStories_1a1de28316be5fca7a09dd2938b0bbbdfd" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structStoryData" kindref="compound">StoryData</ref> &gt;</type>
+        <definition>std::vector&lt;StoryData&gt; StoriesFeedComponent::UserStories::stories</definition>
+        <argsstring></argsstring>
+        <name>stories</name>
+        <qualifiedname>StoriesFeedComponent::UserStories::stories</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" line="112" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStoriesFeedComponent_1_1UserStories_1a63746585c2f9a7740e8b798f156f78bd" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool StoriesFeedComponent::UserStories::hasUnviewed</definition>
+        <argsstring></argsstring>
+        <name>hasUnviewed</name>
+        <qualifiedname>StoriesFeedComponent::UserStories::hasUnviewed</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" line="113" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="1">
+        <label>StoriesFeedComponent::UserStories</label>
+        <childnode refid="2" relation="usage">
+          <edgelabel>stories</edgelabel>
+        </childnode>
+      </node>
+      <node id="3">
+        <label>StoryData</label>
+        <link refid="structStoryData"/>
+      </node>
+      <node id="2">
+        <label>std::vector&lt; StoryData &gt;</label>
+        <childnode refid="3" relation="usage">
+          <edgelabel>elements</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" line="107" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/stories/StoriesFeedComponent.h" bodystart="108" bodyend="114"/>
+    <listofallmembers>
+      <member refid="structStoriesFeedComponent_1_1UserStories_1a8e4a2a3fc0e5f4827717dbc136455b57" prot="public" virt="non-virtual"><scope>StoriesFeedComponent::UserStories</scope><name>avatarUrl</name></member>
+      <member refid="structStoriesFeedComponent_1_1UserStories_1a63746585c2f9a7740e8b798f156f78bd" prot="public" virt="non-virtual"><scope>StoriesFeedComponent::UserStories</scope><name>hasUnviewed</name></member>
+      <member refid="structStoriesFeedComponent_1_1UserStories_1a1de28316be5fca7a09dd2938b0bbbdfd" prot="public" virt="non-virtual"><scope>StoriesFeedComponent::UserStories</scope><name>stories</name></member>
+      <member refid="structStoriesFeedComponent_1_1UserStories_1a0673b25b9e86918f4b7116e85885630b" prot="public" virt="non-virtual"><scope>StoriesFeedComponent::UserStories</scope><name>userId</name></member>
+      <member refid="structStoriesFeedComponent_1_1UserStories_1af1722374cc35a99ce759254b364ceb37" prot="public" virt="non-virtual"><scope>StoriesFeedComponent::UserStories</scope><name>username</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

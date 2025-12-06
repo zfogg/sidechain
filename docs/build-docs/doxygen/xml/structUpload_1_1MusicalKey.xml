@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structUpload_1_1MusicalKey" kind="struct" language="C++" prot="public">
+    <compoundname>Upload::MusicalKey</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structUpload_1_1MusicalKey_1a540526de7a2202caf3d4be730b9c394d" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Upload::MusicalKey::name</definition>
+        <argsstring></argsstring>
+        <name>name</name>
+        <qualifiedname>Upload::MusicalKey::name</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Upload.h" line="35" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Upload.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structUpload_1_1MusicalKey_1a6ab004f74259df91793d225dea8531ef" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Upload::MusicalKey::shortName</definition>
+        <argsstring></argsstring>
+        <name>shortName</name>
+        <qualifiedname>Upload::MusicalKey::shortName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Upload.h" line="36" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Upload.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Upload.h" line="33" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/recording/Upload.h" bodystart="34" bodyend="37"/>
+    <listofallmembers>
+      <member refid="structUpload_1_1MusicalKey_1a540526de7a2202caf3d4be730b9c394d" prot="public" virt="non-virtual"><scope>Upload::MusicalKey</scope><name>name</name></member>
+      <member refid="structUpload_1_1MusicalKey_1a6ab004f74259df91793d225dea8531ef" prot="public" virt="non-virtual"><scope>Upload::MusicalKey</scope><name>shortName</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

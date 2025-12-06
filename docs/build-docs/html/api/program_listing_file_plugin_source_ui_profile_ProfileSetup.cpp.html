@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File ProfileSetup.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File ProfileSetup.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_profile_ProfileSetup.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-profilesetup-cpp">
+<span id="program-listing-file-plugin-source-ui-profile-profilesetup-cpp"></span><h1>Program Listing for File ProfileSetup.cpp<a class="headerlink" href="#program-listing-for-file-profilesetup-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_profile_ProfileSetup.cpp.html#file-plugin-source-ui-profile-profilesetup-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/profile/ProfileSetup.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;ProfileSetup.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Colors.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Log.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thread&gt;</span>
+
+<span class="n">ProfileSetup</span><span class="o">::</span><span class="n">ProfileSetup</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup: Initializing profile setup component&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">setSize</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">800</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup: Initialization complete&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">ProfileSetup</span><span class="o">::~</span><span class="n">ProfileSetup</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;ProfileSetup: Destroying profile setup component&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">setUserInfo</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userEmail</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">picUrl</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setUserInfo: Setting user info - username: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">+</span>
+<span class="w">              </span><span class="s">&quot;, email: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">userEmail</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, profilePicUrl: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">picUrl</span><span class="p">.</span><span class="n">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">picUrl</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;empty&quot;</span><span class="p">));</span>
+<span class="w">    </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+<span class="w">    </span><span class="n">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userEmail</span><span class="p">;</span>
+<span class="w">    </span><span class="n">profilePicUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">picUrl</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Note: We no longer download images directly here due to JUCE SSL issues on Linux.</span>
+<span class="w">    </span><span class="c1">// Instead, UserDataStore downloads via the HTTP proxy and passes the cached image</span>
+<span class="w">    </span><span class="c1">// via setProfileImage(). This method just stores the URL for reference.</span>
+
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">setProfileImage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Image</span><span class="o">&amp;</span><span class="w"> </span><span class="n">image</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">previewImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">image</span><span class="p">;</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setProfileImage: Received profile image from cache - &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">            </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">image</span><span class="p">.</span><span class="n">getHeight</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; pixels&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setProfileImage: Invalid image provided&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">setLocalPreviewPath</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">localPath</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setLocalPreviewPath: Setting local preview path: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">localPath</span><span class="p">);</span>
+<span class="w">    </span><span class="n">localPreviewPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">localPath</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Load the image immediately for preview</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">File</span><span class="w"> </span><span class="nf">imageFile</span><span class="p">(</span><span class="n">localPath</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">imageFile</span><span class="p">.</span><span class="n">existsAsFile</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">previewImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ImageFileFormat</span><span class="o">::</span><span class="n">loadFrom</span><span class="p">(</span><span class="n">imageFile</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">previewImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setLocalPreviewPath: Loaded local preview image - &quot;</span><span class="w"> </span><span class="o">+</span>
+<span class="w">                </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">previewImage</span><span class="p">.</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">previewImage</span><span class="p">.</span><span class="n">getHeight</span><span class="p">())</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; pixels&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setLocalPreviewPath: Failed to load image from: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">localPath</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setLocalPreviewPath: File does not exist: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">localPath</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">setProfilePictureUrl</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">s3Url</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setProfilePictureUrl: Setting S3 URL: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">s3Url</span><span class="p">);</span>
+<span class="w">    </span><span class="n">profilePicUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s3Url</span><span class="p">;</span>
+<span class="w">    </span><span class="n">localPreviewPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Clear local path since we now have the S3 URL</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;ProfileSetup::setProfilePictureUrl: Local preview path cleared&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// The previewImage should already be set from setLocalPreviewPath,</span>
+<span class="w">    </span><span class="c1">// so we don&#39;t need to re-download immediately</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillAll</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">background</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Logout button at top-right</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">logoutBtnBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">140</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">buttonDanger</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">logoutBtnBounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">6.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">16.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Logout&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">logoutBtnBounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Header</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">24.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Complete Your Profile&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">withY</span><span class="p">(</span><span class="mi">60</span><span class="p">).</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">40</span><span class="p">),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">16.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Welcome &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;! Let&#39;s set up your profile.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">withY</span><span class="p">(</span><span class="mi">110</span><span class="p">).</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Profile picture area (circular placeholder)</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">picBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="mi">140</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawCircularProfilePic</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">picBounds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Buttons positioned to the right of the profile picture</span>
+<span class="w">    </span><span class="c1">// Upload button</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">uploadBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">36</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">uploadBtn</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">6.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">14.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;📸 Upload Photo&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">uploadBtn</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Skip button</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">skipBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="mi">196</span><span class="p">,</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">buttonSecondary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">skipBtn</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">4.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textPrimary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Skip&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">skipBtn</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Continue button</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">continueBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">480</span><span class="p">,</span><span class="w"> </span><span class="mi">196</span><span class="p">,</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">success</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">continueBtn</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">4.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">background</span><span class="p">());</span><span class="w">  </span><span class="c1">// Dark text on mint green</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;Continue&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">continueBtn</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">drawCircularProfilePic</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Save graphics state before clipping</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">::</span><span class="n">ScopedSaveState</span><span class="w"> </span><span class="nf">saveState</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Create circular clipping path</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">circlePath</span><span class="p">;</span>
+<span class="w">    </span><span class="n">circlePath</span><span class="p">.</span><span class="n">addEllipse</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">reduceClipRegion</span><span class="p">(</span><span class="n">circlePath</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Use cached previewImage if available (from local upload or S3 download)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">previewImage</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Scale image to fit circle</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">scaledImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">previewImage</span><span class="p">.</span><span class="n">rescaled</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">(),</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getHeight</span><span class="p">(),</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">::</span><span class="n">highResamplingQuality</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawImageAt</span><span class="p">(</span><span class="n">scaledImage</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">(),</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getY</span><span class="p">());</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Default profile picture placeholder with initials</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">surface</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textMuted</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">36.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">initials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">username</span><span class="p">.</span><span class="n">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">).</span><span class="n">toUpperCase</span><span class="p">();</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">initials</span><span class="p">,</span><span class="w"> </span><span class="n">bounds</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Border</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">textSecondary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawEllipse</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Component layout will be handled in paint method</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">();</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Mouse clicked at (&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">pos</span><span class="p">.</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;, &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">pos</span><span class="p">.</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;)&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Use same coordinates as paint method</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">uploadBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">36</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">skipBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span><span class="w"> </span><span class="mi">196</span><span class="p">,</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">continueBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">480</span><span class="p">,</span><span class="w"> </span><span class="mi">196</span><span class="p">,</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">picBounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="mi">140</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">logoutBtn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">140</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">uploadBtn</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">())</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">picBounds</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">()))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Upload/Skip button or profile picture area clicked, opening file picker&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="c1">// Open file picker for profile picture</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">chooser</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">FileChooser</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Select Profile Picture&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">File</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;*.jpg;*.jpeg;*.png;*.gif&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">chooser</span><span class="o">-&gt;</span><span class="n">launchAsync</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">FileBrowserComponent</span><span class="o">::</span><span class="n">openMode</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">FileBrowserComponent</span><span class="o">::</span><span class="n">canSelectFiles</span><span class="p">,</span>
+<span class="w">                           </span><span class="p">[</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">chooser</span><span class="p">](</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">FileChooser</span><span class="o">&amp;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">selectedFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">chooser</span><span class="o">-&gt;</span><span class="n">getResult</span><span class="p">();</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">selectedFile</span><span class="p">.</span><span class="n">existsAsFile</span><span class="p">())</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// Update local profilePicUrl and notify parent</span>
+<span class="w">                </span><span class="n">profilePicUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">selectedFile</span><span class="p">.</span><span class="n">getFullPathName</span><span class="p">();</span><span class="w"> </span><span class="c1">// Temporary - will be S3 URL</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Profile picture selected: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">profilePicUrl</span><span class="p">);</span>
+
+<span class="w">                </span><span class="c1">// Notify parent component</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onProfilePicSelected</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Calling onProfilePicSelected callback&quot;</span><span class="p">);</span>
+<span class="w">                    </span><span class="n">onProfilePicSelected</span><span class="p">(</span><span class="n">profilePicUrl</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: onProfilePicSelected callback not set&quot;</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: File picker cancelled or no file selected&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">});</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">skipBtn</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">())</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">continueBtn</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">()))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Both skip and continue go to the feed</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">skipBtn</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">())</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">onSkipSetup</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Skip button clicked&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">onSkipSetup</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">continueBtn</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">())</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">onCompleteSetup</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Continue button clicked&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">onCompleteSetup</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Skip/Continue button clicked but callback not set&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">logoutBtn</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">()))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Logout button clicked&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onLogout</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: Calling onLogout callback&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">onLogout</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;ProfileSetup::mouseUp: onLogout callback not set&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ProfileSetup</span><span class="o">::</span><span class="n">getButtonArea</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">totalButtons</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">spacing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">totalWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">totalButtons</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">buttonWidth</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">totalButtons</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">spacing</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">startX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">totalWidth</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">startX</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">buttonWidth</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">spacing</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">buttonWidth</span><span class="p">,</span><span class="w"> </span><span class="n">buttonHeight</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,305 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="PostCardComponent_8h" kind="file" language="C++">
+    <compoundname>PostCardComponent.h</compoundname>
+    <includes local="no">JuceHeader.h</includes>
+    <includes refid="FeedPost_8h" local="yes">../../models/FeedPost.h</includes>
+    <includes refid="Animation_8h" local="yes">../../util/Animation.h</includes>
+    <includes refid="HoverState_8h" local="yes">../../util/HoverState.h</includes>
+    <includes refid="LongPressDetector_8h" local="yes">../../util/LongPressDetector.h</includes>
+    <includes refid="EmojiReactionsPanel_8h" local="yes">EmojiReactionsPanel.h</includes>
+    <includedby refid="PostCardComponent_8cpp" local="yes">PostCardComponent.cpp</includedby>
+    <includedby refid="PostsFeedComponent_8h" local="yes">PostsFeedComponent.h</includedby>
+    <includedby refid="ProfileComponent_8cpp" local="yes">ProfileComponent.cpp</includedby>
+    <includedby refid="SearchComponent_8h" local="yes">SearchComponent.h</includedby>
+    <incdepgraph>
+      <node id="3">
+        <label>../../models/FeedPost.h</label>
+        <link refid="FeedPost_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>EmojiReactionsPanel.h</label>
+        <link refid="EmojiReactionsPanel_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>PostCardComponent.h</label>
+        <link refid="PostCardComponent_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>../../util/Animation.h</label>
+        <link refid="Animation_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>../../util/HoverState.h</label>
+        <link refid="HoverState_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>Log.h</label>
+        <link refid="Log_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>../../util/LongPressDetector.h</label>
+        <link refid="LongPressDetector_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>../util/Result.h</label>
+        <link refid="Result_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>../util/Time.h</label>
+        <link refid="Time_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>JuceHeader.h</label>
+      </node>
+      <node id="7">
+        <label>functional</label>
+      </node>
+      <node id="4">
+        <label>map</label>
+      </node>
+      <node id="8">
+        <label>optional</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="5">
+        <label>PluginEditor.cpp</label>
+        <link refid="PluginEditor_8cpp"/>
+      </node>
+      <node id="4">
+        <label>PluginEditor.h</label>
+        <link refid="PluginEditor_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>PluginProcessor.cpp</label>
+        <link refid="PluginProcessor_8cpp"/>
+      </node>
+      <node id="2">
+        <label>PostCardComponent.cpp</label>
+        <link refid="PostCardComponent_8cpp"/>
+      </node>
+      <node id="1">
+        <label>PostCardComponent.h</label>
+        <link refid="PostCardComponent_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>PostsFeedComponent.cpp</label>
+        <link refid="PostsFeedComponent_8cpp"/>
+      </node>
+      <node id="3">
+        <label>PostsFeedComponent.h</label>
+        <link refid="PostsFeedComponent_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>ProfileComponent.cpp</label>
+        <link refid="ProfileComponent_8cpp"/>
+      </node>
+      <node id="10">
+        <label>SearchComponent.cpp</label>
+        <link refid="SearchComponent_8cpp"/>
+      </node>
+      <node id="9">
+        <label>SearchComponent.h</label>
+        <link refid="SearchComponent_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="classPostCardComponent" prot="public">PostCardComponent</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;JuceHeader.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="FeedPost_8h" kindref="compound">../../models/FeedPost.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="Animation_8h" kindref="compound">../../util/Animation.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="HoverState_8h" kindref="compound">../../util/HoverState.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="LongPressDetector_8h" kindref="compound">../../util/LongPressDetector.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="EmojiReactionsPanel_8h" kindref="compound">EmojiReactionsPanel.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="classPostCardComponent" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classPostCardComponent_1a39cb64a4b9c28b9347e177aea6528fd6" kindref="member">PostCardComponent</ref><sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::Component,</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>juce::Timer</highlight></codeline>
+<codeline lineno="29"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classPostCardComponent_1a39cb64a4b9c28b9347e177aea6528fd6" kindref="member">PostCardComponent</ref>();</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classPostCardComponent_1a7d62321bfe0656e452901a72d4ec359f" kindref="member">~PostCardComponent</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Data<sp/>binding</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a46a3f678f7d72ff8e52bb085b57fa2dd" kindref="member">setPost</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;<sp/>post);</highlight></codeline>
+<codeline lineno="37" refid="classPostCardComponent_1a5a527729ed98549ef2d3bfdad0c1daa6" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;<sp/><ref refid="classPostCardComponent_1a5a527729ed98549ef2d3bfdad0c1daa6" kindref="member">getPost</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>post;<sp/>}</highlight></codeline>
+<codeline lineno="38" refid="classPostCardComponent_1aebe911130bc967f2a800358059eb0b1d" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::String<sp/><ref refid="classPostCardComponent_1aebe911130bc967f2a800358059eb0b1d" kindref="member">getPostId</ref>()</highlight><highlight class="keyword"><sp/>const<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>post.id;<sp/>}</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Update<sp/>specific<sp/>fields<sp/>without<sp/>full<sp/>refresh</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a5e33c3674d603a6aa6b6e8393844f589" kindref="member">updateLikeCount</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count,<sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>isLiked);</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a20b075e87325da41255c06e9831284d9" kindref="member">updatePlayCount</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>count);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a685334b225b302abbb39d220f8c0ff81" kindref="member">updateFollowState</ref>(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>isFollowing);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a2333bc0c09aa2de0172ac7633c9c1f9b" kindref="member">updateReaction</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>emoji);<sp/><sp/></highlight><highlight class="comment">//<sp/>Update<sp/>the<sp/>user&apos;s<sp/>reaction</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1aab16c5614d8b8ef7123ba2c3b47439de" kindref="member">setPlaybackProgress</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>progress);<sp/></highlight><highlight class="comment">//<sp/>0.0<sp/>-<sp/>1.0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a0ff5ada360da733262274ddb98d6d6a3" kindref="member">setIsPlaying</ref>(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>playing);</highlight></codeline>
+<codeline lineno="47" refid="classPostCardComponent_1ab970cc7c12796199e2e3a0fa4700a3c5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1ab970cc7c12796199e2e3a0fa4700a3c5" kindref="member">setPlaying</ref>(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>playing)<sp/>{<sp/><ref refid="classPostCardComponent_1a0ff5ada360da733262274ddb98d6d6a3" kindref="member">setIsPlaying</ref>(playing);<sp/>}</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a56b5eb03fdeee34b2d84607aa30acf84" kindref="member">setLoading</ref>(</highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>loading);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Callbacks<sp/>for<sp/>user<sp/>actions</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52" refid="classPostCardComponent_1a1b9b76c852e1efc5c3fc2ab122af5308" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a1b9b76c852e1efc5c3fc2ab122af5308" kindref="member">onPlayClicked</ref>;</highlight></codeline>
+<codeline lineno="53" refid="classPostCardComponent_1a61496365e33bebf1909478b8ec343923" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a61496365e33bebf1909478b8ec343923" kindref="member">onPauseClicked</ref>;</highlight></codeline>
+<codeline lineno="54" refid="classPostCardComponent_1a2d04d9dbe0a110acfe64665ac2ff8f7a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;,<sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>liked)&gt;<sp/><ref refid="classPostCardComponent_1a2d04d9dbe0a110acfe64665ac2ff8f7a" kindref="member">onLikeToggled</ref>;</highlight></codeline>
+<codeline lineno="55" refid="classPostCardComponent_1a0b28f4decfec5672c05a10945d1decb3" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>emoji)&gt;<sp/><ref refid="classPostCardComponent_1a0b28f4decfec5672c05a10945d1decb3" kindref="member">onEmojiReaction</ref>;<sp/><sp/></highlight><highlight class="comment">//<sp/>Emoji<sp/>reaction</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="classPostCardComponent_1a9674c933b6030ec6fcf9ffa90aa09676" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a9674c933b6030ec6fcf9ffa90aa09676" kindref="member">onUserClicked</ref>;</highlight></codeline>
+<codeline lineno="57" refid="classPostCardComponent_1a31a612e280d6636c5a3cc52393b0e224" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a31a612e280d6636c5a3cc52393b0e224" kindref="member">onCommentClicked</ref>;</highlight></codeline>
+<codeline lineno="58" refid="classPostCardComponent_1a9260df8053d06b35bd4fba1a92bb51b5" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a9260df8053d06b35bd4fba1a92bb51b5" kindref="member">onShareClicked</ref>;</highlight></codeline>
+<codeline lineno="59" refid="classPostCardComponent_1a58fe0ec46adc554bb3c7e6d22b0c4856" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a58fe0ec46adc554bb3c7e6d22b0c4856" kindref="member">onMoreClicked</ref>;</highlight></codeline>
+<codeline lineno="60" refid="classPostCardComponent_1a33a68cdaddf4b70abd552cd27a018c91" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>position)&gt;<sp/><ref refid="classPostCardComponent_1a33a68cdaddf4b70abd552cd27a018c91" kindref="member">onWaveformClicked</ref>;<sp/></highlight><highlight class="comment">//<sp/>Seek<sp/>position</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61" refid="classPostCardComponent_1a4d23e1b81d2d193ab6e133337e33990b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;,<sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>willFollow)&gt;<sp/><ref refid="classPostCardComponent_1a4d23e1b81d2d193ab6e133337e33990b" kindref="member">onFollowToggled</ref>;<sp/></highlight><highlight class="comment">//<sp/>Follow/unfollow<sp/>user</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="62" refid="classPostCardComponent_1a2cd2107550193ee03d93a0aceb10a004" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>std::function&lt;void(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref>&amp;)&gt;<sp/><ref refid="classPostCardComponent_1a2cd2107550193ee03d93a0aceb10a004" kindref="member">onAddToDAWClicked</ref>;<sp/></highlight><highlight class="comment">//<sp/>Download<sp/>audio<sp/>to<sp/>DAW<sp/>project<sp/>folder</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Component<sp/>overrides</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a22a0cc53563c5575b46cdd113149ed5c" kindref="member">paint</ref>(juce::Graphics&amp;<sp/>g)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a01d2df03c951d976ed72f682efe18bb6" kindref="member">resized</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1afc2532c032b210c68e94c3505fde21ac" kindref="member">mouseDown</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a0f1cf3a9b6d611f8988f8e8996ab874a" kindref="member">mouseUp</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a485115925a15d18ff2633c11f3014503" kindref="member">mouseEnter</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1ab50c6c443a7b750bd788eaed3743cd4e" kindref="member">mouseExit</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::MouseEvent&amp;<sp/>event)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Timer<sp/>override<sp/>for<sp/>animations<sp/>and<sp/>long-press<sp/>detection</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a09e54be34ddeb477405df49ea12b5c44" kindref="member">timerCallback</ref>()<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Layout<sp/>constants</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78" refid="classPostCardComponent_1aea30f4a3eb35dffe0fe702bb81b0167b" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1aea30f4a3eb35dffe0fe702bb81b0167b" kindref="member">CARD_HEIGHT</ref><sp/>=<sp/>120;</highlight></codeline>
+<codeline lineno="79" refid="classPostCardComponent_1ad83e3bb73239b85c8fc1aa509b85cada" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1ad83e3bb73239b85c8fc1aa509b85cada" kindref="member">AVATAR_SIZE</ref><sp/>=<sp/>50;</highlight></codeline>
+<codeline lineno="80" refid="classPostCardComponent_1a383298ea962b2d31e07fb23ccccf501c" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1a383298ea962b2d31e07fb23ccccf501c" kindref="member">BADGE_HEIGHT</ref><sp/>=<sp/>22;</highlight></codeline>
+<codeline lineno="81" refid="classPostCardComponent_1aed424c82e8be98958144bc6ee9c03bbc" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="classPostCardComponent_1aed424c82e8be98958144bc6ee9c03bbc" kindref="member">BUTTON_SIZE</ref><sp/>=<sp/>32;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classFeedPost" kindref="compound">FeedPost</ref><sp/>post;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>UI<sp/>state</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classHoverState" kindref="compound">HoverState</ref><sp/>hoverState;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>isPlaying<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>isLoading<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>playbackProgress<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Like<sp/>animation</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classAnimation" kindref="compound">Animation</ref><sp/>likeAnimation{400,<sp/><ref refid="classAnimation_1a6b43367ec78ff6d86a90b6bee28aaeb7a46062163182303cb41decc9c7f56ef86" kindref="member">Animation::Easing::EaseOutCubic</ref>};</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Long-press<sp/>detector<sp/>for<sp/>emoji<sp/>reactions<sp/>panel</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="classLongPressDetector" kindref="compound">LongPressDetector</ref><sp/>longPressDetector{400};<sp/><sp/></highlight><highlight class="comment">//<sp/>400ms<sp/>threshold</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Cached<sp/>avatar<sp/>image<sp/>(loaded<sp/>via<sp/>ImageCache)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Image<sp/>avatarImage;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Drawing<sp/>methods</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawBackground(juce::Graphics&amp;<sp/>g);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawAvatar(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawUserInfo(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawFollowButton(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawWaveform(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawPlayButton(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawMetadataBadges(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawSocialButtons(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>bounds);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawReactionCounts(juce::Graphics&amp;<sp/>g,<sp/>juce::Rectangle&lt;int&gt;<sp/>likeBounds);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>drawLikeAnimation(juce::Graphics&amp;<sp/>g);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Animation<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>startLikeAnimation();</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Emoji<sp/>reactions<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>showEmojiReactionsPanel();</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>handleEmojiSelected(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>juce::String&amp;<sp/>emoji);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Hit<sp/>testing<sp/>helpers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getAvatarBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getUserInfoBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getWaveformBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getPlayButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getLikeButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getCommentButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getShareButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getMoreButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getFollowButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/>juce::Rectangle&lt;int&gt;<sp/>getAddToDAWButtonBounds()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//==============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(<ref refid="classPostCardComponent_1a39cb64a4b9c28b9347e177aea6528fd6" kindref="member">PostCardComponent</ref>)</highlight></codeline>
+<codeline lineno="137"><highlight class="normal">};</highlight></codeline>
+    </programlisting>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/PostCardComponent.h"/>
+  </compounddef>
+</doxygen>

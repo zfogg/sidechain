@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Documentation with Code Docs &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=936f4968"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Building Documentation with Code Docs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/BUILD_INSTRUCTIONS.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="building-documentation-with-code-docs">
+<h1>Building Documentation with Code Docs<a class="headerlink" href="#building-documentation-with-code-docs" title="Link to this heading"></a></h1>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<section id="option-1-using-cmake-recommended">
+<h3>Option 1: Using CMake (Recommended)<a class="headerlink" href="#option-1-using-cmake-recommended" title="Link to this heading"></a></h3>
+<p>The easiest way - CMake automates everything:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build-docs
+cmake<span class="w"> </span>--build<span class="w"> </span>build-docs<span class="w"> </span>--target<span class="w"> </span>docs
+</pre></div>
+</div>
+<p>This will:</p>
+<ol class="arabic simple">
+<li><p>Run Doxygen to extract code documentation → generates XML</p></li>
+<li><p>Run Exhale to create API hierarchy → generates .rst files in <code class="docutils literal notranslate"><span class="pre">api/</span></code></p></li>
+<li><p>Run Sphinx to build HTML → final website</p></li>
+</ol>
+<p>Output: <code class="docutils literal notranslate"><span class="pre">docs/build-docs/html/index.html</span></code></p>
+</section>
+<section id="open-documentation-in-browser">
+<h3>Open Documentation in Browser<a class="headerlink" href="#open-documentation-in-browser" title="Link to this heading"></a></h3>
+<p>After building, you can automatically open the documentation in your default browser:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>build-docs<span class="w"> </span>--target<span class="w"> </span>docs-open
+</pre></div>
+</div>
+<p>This works cross-platform:</p>
+<ul class="simple">
+<li><p><strong>macOS</strong>: Uses <code class="docutils literal notranslate"><span class="pre">open</span></code> command</p></li>
+<li><p><strong>Linux</strong>: Uses <code class="docutils literal notranslate"><span class="pre">xdg-open</span></code> command</p></li>
+<li><p><strong>Windows</strong>: Uses <code class="docutils literal notranslate"><span class="pre">start</span></code> command</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">docs-open</span></code> target will automatically build the docs first if needed (it depends on the <code class="docutils literal notranslate"><span class="pre">docs</span></code> target).</p>
+</section>
+<section id="option-2-manual-build-for-debugging">
+<h3>Option 2: Manual Build (For Debugging)<a class="headerlink" href="#option-2-manual-build-for-debugging" title="Link to this heading"></a></h3>
+<p>If you want to see each step:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+
+<span class="c1"># Step 1: Generate Doxygen XML</span>
+doxygen<span class="w"> </span>Doxyfile
+<span class="c1"># Creates: docs/doxygen/xml/ directory with all the XML files</span>
+
+<span class="c1"># Step 2: Build Sphinx (Breathe/Exhale run automatically)</span>
+sphinx-build<span class="w"> </span>-b<span class="w"> </span>html<span class="w"> </span>.<span class="w"> </span>_build/html
+
+<span class="c1"># Step 3: View it</span>
+open<span class="w"> </span>_build/html/index.html<span class="w">  </span><span class="c1"># macOS</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="after-building">
+<h2>After Building<a class="headerlink" href="#after-building" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">_build/html/index.html</span></code> (or <code class="docutils literal notranslate"><span class="pre">build-docs/html/index.html</span></code> if using CMake)</p></li>
+<li><p>Look for “API Reference” in the sidebar or table of contents</p></li>
+<li><p>Click through to see your documented classes, functions, namespaces!</p></li>
+</ol>
+</section>
+<section id="what-gets-generated">
+<h2>What Gets Generated<a class="headerlink" href="#what-gets-generated" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Doxygen XML</strong>: <code class="docutils literal notranslate"><span class="pre">doxygen/xml/</span></code> - Structured data about your API</p></li>
+<li><p><strong>Exhale API files</strong>: <code class="docutils literal notranslate"><span class="pre">api/</span></code> directory - Auto-generated .rst files organizing your API</p></li>
+<li><p><strong>Final HTML</strong>: <code class="docutils literal notranslate"><span class="pre">_build/html/</span></code> or <code class="docutils literal notranslate"><span class="pre">build-docs/html/</span></code> - Complete website</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p><strong>“Doxygen XML not found” error:</strong></p>
+<ul class="simple">
+<li><p>Make sure you ran <code class="docutils literal notranslate"><span class="pre">doxygen</span> <span class="pre">Doxyfile</span></code> first</p></li>
+<li><p>Check that <code class="docutils literal notranslate"><span class="pre">docs/doxygen/xml/index.xml</span></code> exists</p></li>
+</ul>
+<p><strong>API docs empty or not showing:</strong></p>
+<ul class="simple">
+<li><p>Check Sphinx build output for errors</p></li>
+<li><p>Verify your code has Doxygen comments (like <code class="docutils literal notranslate"><span class="pre">&#64;brief</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;param</span></code>)</p></li>
+<li><p>Make sure Exhale generated files in the <code class="docutils literal notranslate"><span class="pre">api/</span></code> directory</p></li>
+</ul>
+<p><strong>Need to rebuild after code changes:</strong></p>
+<ul class="simple">
+<li><p>Just rebuild! The pipeline automatically re-scans everything</p></li>
+</ul>
+</section>
+<section id="integration-with-main-plugin-build">
+<h2>Integration with Main Plugin Build<a class="headerlink" href="#integration-with-main-plugin-build" title="Link to this heading"></a></h2>
+<p>If you build the plugin with docs enabled:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>plugin
+cmake<span class="w"> </span>-S<span class="w"> </span>.<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DSIDECHAIN_BUILD_DOCS<span class="o">=</span>ON
+cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>docs
+</pre></div>
+</div>
+<p>The docs will be built alongside the plugin.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

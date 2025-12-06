@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structStory" kind="struct" language="C++" prot="public">
+    <compoundname>Story</compoundname>
+    <includes refid="Story_8h" local="no">Story.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structStory_1a9539ed03a46f31ed8e3794e67ce8ce07" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>Story::id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="14" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1ab145780b4c4ce120aaf4eb06582e6677" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>Story::userId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="15" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1abd1296d0adcf2958fb34ab06cb81ed89" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::audioUrl</definition>
+        <argsstring></argsstring>
+        <name>audioUrl</name>
+        <qualifiedname>Story::audioUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="16" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1ac90324e539f2f34afaf8d7f9c18d1d92" prot="public" static="no" mutable="no">
+        <type>float</type>
+        <definition>float Story::audioDuration</definition>
+        <argsstring></argsstring>
+        <name>audioDuration</name>
+        <qualifiedname>Story::audioDuration</qualifiedname>
+        <initializer>= 0.0f</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="17" column="11" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1adcf5d844dc9f9ae581f47624a7f54732" prot="public" static="no" mutable="no">
+        <type>juce::var</type>
+        <definition>juce::var Story::midiData</definition>
+        <argsstring></argsstring>
+        <name>midiData</name>
+        <qualifiedname>Story::midiData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="18" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1aab57742ede367548d6349962395e50f6" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::waveformData</definition>
+        <argsstring></argsstring>
+        <name>waveformData</name>
+        <qualifiedname>Story::waveformData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="19" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a0775458e6992f1cb6fcb226804301061" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Story::bpm</definition>
+        <argsstring></argsstring>
+        <name>bpm</name>
+        <qualifiedname>Story::bpm</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="20" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a640990539055e595d9ab8e5b1c3bf751" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::key</definition>
+        <argsstring></argsstring>
+        <name>key</name>
+        <qualifiedname>Story::key</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="21" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a5c7031d00fa44c2de44dccf69f5a0684" prot="public" static="no" mutable="no">
+        <type>juce::StringArray</type>
+        <definition>juce::StringArray Story::genres</definition>
+        <argsstring></argsstring>
+        <name>genres</name>
+        <qualifiedname>Story::genres</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="22" column="23" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a270bbefac9986a155002c84ea6b6d789" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Story::viewCount</definition>
+        <argsstring></argsstring>
+        <name>viewCount</name>
+        <qualifiedname>Story::viewCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="23" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a321093479bdecb18c6397c3809f273d6" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Story::viewed</definition>
+        <argsstring></argsstring>
+        <name>viewed</name>
+        <qualifiedname>Story::viewed</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="24" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a4dadbd19778b2832259d0cf6715dbdbc" prot="public" static="no" mutable="no">
+        <type>juce::Time</type>
+        <definition>juce::Time Story::createdAt</definition>
+        <argsstring></argsstring>
+        <name>createdAt</name>
+        <qualifiedname>Story::createdAt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="25" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1aeeba5245bb62d1fb042a9d962c754851" prot="public" static="no" mutable="no">
+        <type>juce::Time</type>
+        <definition>juce::Time Story::expiresAt</definition>
+        <argsstring></argsstring>
+        <name>expiresAt</name>
+        <qualifiedname>Story::expiresAt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="26" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a416e146f4b50e7eae1969f730267b792" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>Story::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="29" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1af09c49ea0756c8c223bf2c11ff825ab0" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::userDisplayName</definition>
+        <argsstring></argsstring>
+        <name>userDisplayName</name>
+        <qualifiedname>Story::userDisplayName</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="30" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structStory_1a2ed113c4847d61d6c73ff1e64cf019b5" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Story::userAvatarUrl</definition>
+        <argsstring></argsstring>
+        <name>userAvatarUrl</name>
+        <qualifiedname>Story::userAvatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="31" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structStory_1a3e54014165a5a3ec6ed7a6ab5e5fcf3a" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Story::isExpired</definition>
+        <argsstring>() const</argsstring>
+        <name>isExpired</name>
+        <qualifiedname>Story::isExpired</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="37" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.cpp" bodystart="4" bodyend="7"/>
+      </memberdef>
+      <memberdef kind="function" id="structStory_1a01dcd84d6b2c44d45f5eebd1cc2bd9ae" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String Story::getExpirationText</definition>
+        <argsstring>() const</argsstring>
+        <name>getExpirationText</name>
+        <qualifiedname>Story::getExpirationText</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="40" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.cpp" bodystart="9" bodyend="28"/>
+      </memberdef>
+      <memberdef kind="function" id="structStory_1a0df7522c54142745697341242b1bd90c" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Story::hasMIDI</definition>
+        <argsstring>() const</argsstring>
+        <name>hasMIDI</name>
+        <qualifiedname>Story::hasMIDI</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="43" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.cpp" bodystart="30" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="structStory_1a02c080a32f5ac4ca43f39a05880e6ab5" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::var</type>
+        <definition>juce::var Story::toJSON</definition>
+        <argsstring>() const</argsstring>
+        <name>toJSON</name>
+        <qualifiedname>Story::toJSON</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="49" column="15" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.cpp" bodystart="99" bodyend="133"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structStory_1a2c0e04029983a98489e2b3eb9c698662" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structStory" kindref="compound">Story</ref></type>
+        <definition>Story Story::fromJSON</definition>
+        <argsstring>(const juce::var &amp;json)</argsstring>
+        <name>fromJSON</name>
+        <qualifiedname>Story::fromJSON</qualifiedname>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>json</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="46" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.cpp" bodystart="45" bodyend="97"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="structStory" kindref="compound">Story</ref> represents a short music clip with MIDI visualization (Phase 7.5). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Stories are 5-60 second audio clips captured from the DAW, optionally including MIDI data for piano roll visualization. They expire after 24 hours. </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" line="12" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/models/Story.h" bodystart="13" bodyend="50"/>
+    <listofallmembers>
+      <member refid="structStory_1ac90324e539f2f34afaf8d7f9c18d1d92" prot="public" virt="non-virtual"><scope>Story</scope><name>audioDuration</name></member>
+      <member refid="structStory_1abd1296d0adcf2958fb34ab06cb81ed89" prot="public" virt="non-virtual"><scope>Story</scope><name>audioUrl</name></member>
+      <member refid="structStory_1a0775458e6992f1cb6fcb226804301061" prot="public" virt="non-virtual"><scope>Story</scope><name>bpm</name></member>
+      <member refid="structStory_1a4dadbd19778b2832259d0cf6715dbdbc" prot="public" virt="non-virtual"><scope>Story</scope><name>createdAt</name></member>
+      <member refid="structStory_1aeeba5245bb62d1fb042a9d962c754851" prot="public" virt="non-virtual"><scope>Story</scope><name>expiresAt</name></member>
+      <member refid="structStory_1a2c0e04029983a98489e2b3eb9c698662" prot="public" virt="non-virtual"><scope>Story</scope><name>fromJSON</name></member>
+      <member refid="structStory_1a5c7031d00fa44c2de44dccf69f5a0684" prot="public" virt="non-virtual"><scope>Story</scope><name>genres</name></member>
+      <member refid="structStory_1a01dcd84d6b2c44d45f5eebd1cc2bd9ae" prot="public" virt="non-virtual"><scope>Story</scope><name>getExpirationText</name></member>
+      <member refid="structStory_1a0df7522c54142745697341242b1bd90c" prot="public" virt="non-virtual"><scope>Story</scope><name>hasMIDI</name></member>
+      <member refid="structStory_1a9539ed03a46f31ed8e3794e67ce8ce07" prot="public" virt="non-virtual"><scope>Story</scope><name>id</name></member>
+      <member refid="structStory_1a3e54014165a5a3ec6ed7a6ab5e5fcf3a" prot="public" virt="non-virtual"><scope>Story</scope><name>isExpired</name></member>
+      <member refid="structStory_1a640990539055e595d9ab8e5b1c3bf751" prot="public" virt="non-virtual"><scope>Story</scope><name>key</name></member>
+      <member refid="structStory_1adcf5d844dc9f9ae581f47624a7f54732" prot="public" virt="non-virtual"><scope>Story</scope><name>midiData</name></member>
+      <member refid="structStory_1a02c080a32f5ac4ca43f39a05880e6ab5" prot="public" virt="non-virtual"><scope>Story</scope><name>toJSON</name></member>
+      <member refid="structStory_1a2ed113c4847d61d6c73ff1e64cf019b5" prot="public" virt="non-virtual"><scope>Story</scope><name>userAvatarUrl</name></member>
+      <member refid="structStory_1af09c49ea0756c8c223bf2c11ff825ab0" prot="public" virt="non-virtual"><scope>Story</scope><name>userDisplayName</name></member>
+      <member refid="structStory_1ab145780b4c4ce120aaf4eb06582e6677" prot="public" virt="non-virtual"><scope>Story</scope><name>userId</name></member>
+      <member refid="structStory_1a416e146f4b50e7eae1969f730267b792" prot="public" virt="non-virtual"><scope>Story</scope><name>username</name></member>
+      <member refid="structStory_1a270bbefac9986a155002c84ea6b6d789" prot="public" virt="non-virtual"><scope>Story</scope><name>viewCount</name></member>
+      <member refid="structStory_1a321093479bdecb18c6397c3809f273d6" prot="public" virt="non-virtual"><scope>Story</scope><name>viewed</name></member>
+      <member refid="structStory_1aab57742ede367548d6349962395e50f6" prot="public" virt="non-virtual"><scope>Story</scope><name>waveformData</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

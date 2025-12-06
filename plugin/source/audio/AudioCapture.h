@@ -65,14 +65,14 @@ public:
     //==============================================================================
     // Audio file export - call from MESSAGE THREAD
 
-    /** Export format options */
+    /** Export format options for audio files */
     enum class ExportFormat
     {
-        WAV_16bit,   // CD quality, smaller files
-        WAV_24bit,   // Professional quality, larger files
-        WAV_32bit,   // Maximum quality (float), largest files
-        FLAC_16bit,  // Lossless compression, ~50-60% of WAV size
-        FLAC_24bit   // High-quality lossless, for professional use
+        WAV_16bit,   ///< CD quality, smaller files
+        WAV_24bit,   ///< Professional quality, larger files
+        WAV_32bit,   ///< Maximum quality (float), largest files
+        FLAC_16bit,  ///< Lossless compression, ~50-60% of WAV size
+        FLAC_24bit   ///< High-quality lossless, for professional use
     };
 
     /** Save an audio buffer to a file (WAV or FLAC based on format)
@@ -204,9 +204,9 @@ public:
     /** Fade type for fade in/out operations */
     enum class FadeType
     {
-        Linear,      // Linear ramp (constant rate)
-        Exponential, // Exponential curve (more natural for audio)
-        SCurve       // S-curve (smooth start and end)
+        Linear,      ///< Linear ramp (constant rate)
+        Exponential, ///< Exponential curve (more natural for audio)
+        SCurve       ///< S-curve (smooth start and end)
     };
 
     /** Apply fade in to the beginning of a buffer

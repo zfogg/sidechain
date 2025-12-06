@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_aee7b328c868965b2fdab8db25ccc961" kind="dir">
+    <compoundname>ui</compoundname>
+    <innerdir refid="dir_1dee94e2e00b7c464b4a68ee940ffaac">auth</innerdir>
+    <innerdir refid="dir_72967a920d412fe194c2fe2e2a9086e9">common</innerdir>
+    <innerdir refid="dir_0773fed6e1330fe52cd55aaabda87a32">feed</innerdir>
+    <innerdir refid="dir_9ab0a4a840b2e35eef3d2a77c97100ad">messages</innerdir>
+    <innerdir refid="dir_a1fd4ae4ec8a59a843153562bb9482a7">notifications</innerdir>
+    <innerdir refid="dir_060c56a93d97ff6c0f0445d4db76d7bc">profile</innerdir>
+    <innerdir refid="dir_3c1ed3529dfc6407521c860adbaa85e9">recording</innerdir>
+    <innerdir refid="dir_7116afa154e528c510624c3a13707193">search</innerdir>
+    <innerdir refid="dir_b19c91e0de1fba1e6cc610f5a334342b">social</innerdir>
+    <innerdir refid="dir_2e654640eaaeebdaeb68653a8eef3db7">stories</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/"/>
+  </compounddef>
+</doxygen>

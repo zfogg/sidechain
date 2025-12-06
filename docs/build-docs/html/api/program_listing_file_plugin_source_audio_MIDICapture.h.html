@@ -1,0 +1,210 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File MIDICapture.h &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File MIDICapture.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_audio_MIDICapture.h.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-midicapture-h">
+<span id="program-listing-file-plugin-source-audio-midicapture-h"></span><h1>Program Listing for File MIDICapture.h<a class="headerlink" href="#program-listing-for-file-midicapture-h" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_audio_MIDICapture.h.html#file-plugin-source-audio-midicapture-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/MIDICapture.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;JuceHeader.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;atomic&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MIDICapture</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// MIDI Event structure (matches backend MIDIEvent)</span>
+
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">MIDIEvent</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">time</span><span class="p">;</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">type</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">note</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">velocity</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">channel</span><span class="p">;</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="n">MIDICapture</span><span class="p">();</span>
+<span class="w">    </span><span class="o">~</span><span class="n">MIDICapture</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Configuration - call from prepareToPlay() or message thread</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">prepare</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplesPerBlock</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">reset</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Recording control - call from MESSAGE THREAD only</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">startCapture</span><span class="p">();</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MIDIEvent</span><span class="o">&gt;</span><span class="w"> </span><span class="n">stopCapture</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isCapturing</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">capturing</span><span class="p">.</span><span class="n">load</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// MIDI capture - call from AUDIO THREAD (processBlock) only</span>
+<span class="w">    </span><span class="c1">// MUST be lock-free and allocation-free</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">captureMIDI</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MidiBuffer</span><span class="o">&amp;</span><span class="w"> </span><span class="n">midiMessages</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">numSamples</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// MIDI data export - thread-safe</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="w"> </span><span class="nf">getMIDIDataAsJSON</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="nf">getTotalTime</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">totalTimeSeconds</span><span class="p">.</span><span class="n">load</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// MIDI data processing (7.5.2.2)</span>
+<span class="w">    </span><span class="c1">// Call after stopCapture() to clean up the data before upload</span>
+
+<span class="w">    </span><span class="c1">// Normalize MIDI timing (7.5.2.2.1)</span>
+<span class="w">    </span><span class="c1">// - Converts timestamps to relative time (0.0 = start of recording)</span>
+<span class="w">    </span><span class="c1">// - Rounds to millisecond precision</span>
+<span class="w">    </span><span class="c1">// - Handles tempo changes if present</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MIDIEvent</span><span class="o">&gt;</span><span class="w"> </span><span class="n">normalizeTiming</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MIDIEvent</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">events</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Validate MIDI data (7.5.2.2.2)</span>
+<span class="w">    </span><span class="c1">// - Ensures note_on has matching note_off</span>
+<span class="w">    </span><span class="c1">// - Removes duplicate events</span>
+<span class="w">    </span><span class="c1">// - Filters out invalid notes (outside 0-127)</span>
+<span class="w">    </span><span class="c1">// Returns validated events</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MIDIEvent</span><span class="o">&gt;</span><span class="w"> </span><span class="n">validateEvents</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MIDIEvent</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">events</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Get normalized and validated MIDI data as JSON</span>
+<span class="w">    </span><span class="c1">// Convenience method that applies both normalization and validation</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="w"> </span><span class="nf">getNormalizedMIDIDataAsJSON</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Set tempo from DAW (for proper timing normalization)</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setTempo</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">bpm</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">currentTempo</span><span class="p">.</span><span class="n">store</span><span class="p">(</span><span class="n">bpm</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="nf">getTempo</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">currentTempo</span><span class="p">.</span><span class="n">load</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Set time signature from DAW</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setTimeSignature</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">numerator</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">denominator</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getTimeSignature</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Thread-safe state</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="w"> </span><span class="n">capturing</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">totalTimeSeconds</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">currentSamplePosition</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">// MIDI events (protected by mutex for message thread access)</span>
+<span class="w">    </span><span class="k">mutable</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">CriticalSection</span><span class="w"> </span><span class="n">eventsLock</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MIDIEvent</span><span class="o">&gt;</span><span class="w"> </span><span class="n">midiEvents</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Audio settings</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">currentSampleRate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">44100.0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">currentBlockSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">512</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Tempo and time signature (from DAW)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">currentTempo</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">120.0</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">timeSignatureNumerator</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">timeSignatureDenominator</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">// Helper methods</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">addEvent</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MIDIEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="nf">samplePositionToTime</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">samplePosition</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

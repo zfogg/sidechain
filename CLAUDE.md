@@ -87,7 +87,7 @@ go test ./tests/integration/... -v
 
 ### Environment Setup
 ```bash
-# Install all dependencies (JUCE 8.0.8 + Go packages)
+# Install all dependencies (JUCE 8.0.11 + Go packages)
 make install-deps
 
 # Setup environment variables
@@ -159,6 +159,6 @@ make package
 - Use CDN for global audio distribution
 
 ## Git
-Only commit what you're working on. Other Claudes may be working in parallel, 
+Only commit what you're working on. Other Claudes may be working in parallel,
 or the user may be. Be careful with git reset and git checkout and git stash.
 

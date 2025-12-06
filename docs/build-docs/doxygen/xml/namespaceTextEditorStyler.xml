@@ -1,0 +1,327 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceTextEditorStyler" kind="namespace" language="C++">
+    <compoundname>TextEditorStyler</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::style</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;&quot;)</argsstring>
+        <name>style</name>
+        <qualifiedname>TextEditorStyler::style</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+          <defval>&quot;&quot;</defval>
+        </param>
+        <briefdescription>
+<para>Apply standard single-line text editor styling. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Sets colors, font, placeholder, and common properties. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="52" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="52" bodyend="59" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="26" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1a8f9872b1bb2c0b2b7bc71e3a9024a529" compoundref="TextEditorStyler_8cpp" startline="115" endline="118">setPlaceholder</references>
+        <referencedby refid="namespaceTextEditorStyler_1af40effb74fede831b6aa42a906b367e6" compoundref="TextEditorStyler_8cpp" startline="79" endline="85">styleEmail</referencedby>
+        <referencedby refid="namespaceTextEditorStyler_1afa3b319add8c8cdff72927d16f6bec6e" compoundref="TextEditorStyler_8cpp" startline="94" endline="98">styleNumeric</referencedby>
+        <referencedby refid="namespaceTextEditorStyler_1a976510e34a4cec89270563f75a00a0db" compoundref="TextEditorStyler_8cpp" startline="61" endline="65">stylePassword</referencedby>
+        <referencedby refid="namespaceTextEditorStyler_1a1ab7bb3d1fe056cab3de81c758d1d52c" compoundref="TextEditorStyler_8cpp" startline="100" endline="105">styleUrl</referencedby>
+        <referencedby refid="namespaceTextEditorStyler_1a77dcff5b3aa4c536f7481d47554df1dc" compoundref="TextEditorStyler_8cpp" startline="87" endline="92">styleUsername</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a976510e34a4cec89270563f75a00a0db" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::stylePassword</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;Password&quot;)</argsstring>
+        <name>stylePassword</name>
+        <qualifiedname>TextEditorStyler::stylePassword</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <briefdescription>
+<para>Apply password field styling (masked input). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="61" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="61" bodyend="65" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="31" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" compoundref="TextEditorStyler_8cpp" startline="52" endline="59">style</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1ad7be60cc5fb43315425e6cc8d351802d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::styleMultiline</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;&quot;)</argsstring>
+        <name>styleMultiline</name>
+        <qualifiedname>TextEditorStyler::styleMultiline</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+          <defval>&quot;&quot;</defval>
+        </param>
+        <briefdescription>
+<para>Apply multiline text editor styling. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Enables word wrap, scrollbars, and newline on return. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="67" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="67" bodyend="74" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="37" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1a8f9872b1bb2c0b2b7bc71e3a9024a529" compoundref="TextEditorStyler_8cpp" startline="115" endline="118">setPlaceholder</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1af40effb74fede831b6aa42a906b367e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::styleEmail</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;Email&quot;)</argsstring>
+        <name>styleEmail</name>
+        <qualifiedname>TextEditorStyler::styleEmail</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <briefdescription>
+<para>Apply email field styling with appropriate keyboard hints. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="79" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="79" bodyend="85" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="45" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" compoundref="TextEditorStyler_8cpp" startline="52" endline="59">style</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a77dcff5b3aa4c536f7481d47554df1dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::styleUsername</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;Username&quot;)</argsstring>
+        <name>styleUsername</name>
+        <qualifiedname>TextEditorStyler::styleUsername</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <briefdescription>
+<para>Apply username field styling (lowercase, restricted characters). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="87" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="87" bodyend="92" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="50" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" compoundref="TextEditorStyler_8cpp" startline="52" endline="59">style</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1afa3b319add8c8cdff72927d16f6bec6e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::styleNumeric</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;&quot;)</argsstring>
+        <name>styleNumeric</name>
+        <qualifiedname>TextEditorStyler::styleNumeric</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <briefdescription>
+<para>Apply numeric-only field styling. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="94" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="94" bodyend="98" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="55" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" compoundref="TextEditorStyler_8cpp" startline="52" endline="59">style</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a1ab7bb3d1fe056cab3de81c758d1d52c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::styleUrl</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder=&quot;https://&quot;)</argsstring>
+        <name>styleUrl</name>
+        <qualifiedname>TextEditorStyler::styleUrl</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <briefdescription>
+<para>Apply URL field styling. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="100" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="100" bodyend="105" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="60" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" compoundref="TextEditorStyler_8cpp" startline="52" endline="59">style</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a43bf2a8fff1984b04071dbe440e7e763" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::setInputRestrictions</definition>
+        <argsstring>(juce::TextEditor &amp;editor, int maxLength, const juce::String &amp;allowedChars=&quot;&quot;)</argsstring>
+        <name>setInputRestrictions</name>
+        <qualifiedname>TextEditorStyler::setInputRestrictions</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>maxLength</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>allowedChars</declname>
+          <defval>&quot;&quot;</defval>
+        </param>
+        <briefdescription>
+<para>Set input character restrictions. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>maxLength</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum number of characters (0 = unlimited) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>allowedChars</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>String of allowed characters (empty = all allowed) </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="110" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="110" bodyend="113" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="70" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a8f9872b1bb2c0b2b7bc71e3a9024a529" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::setPlaceholder</definition>
+        <argsstring>(juce::TextEditor &amp;editor, const juce::String &amp;placeholder)</argsstring>
+        <name>setPlaceholder</name>
+        <qualifiedname>TextEditorStyler::setPlaceholder</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>placeholder</declname>
+        </param>
+        <briefdescription>
+<para>Set placeholder text with appropriate styling. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="115" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="115" bodyend="118" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="75" declcolumn="10"/>
+        <referencedby refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" compoundref="TextEditorStyler_8cpp" startline="52" endline="59">style</referencedby>
+        <referencedby refid="namespaceTextEditorStyler_1ad7be60cc5fb43315425e6cc8d351802d" compoundref="TextEditorStyler_8cpp" startline="67" endline="74">styleMultiline</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a40a5db7e2fe05428add7b00c1f436e4c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::styleReadOnly</definition>
+        <argsstring>(juce::TextEditor &amp;editor)</argsstring>
+        <name>styleReadOnly</name>
+        <qualifiedname>TextEditorStyler::styleReadOnly</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+<para>Apply read-only styling (non-editable display). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="120" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="120" bodyend="129" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="80" declcolumn="10"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1aca3ad310be3bc6d007508df7a207c31f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::setErrorState</definition>
+        <argsstring>(juce::TextEditor &amp;editor, bool hasError)</argsstring>
+        <name>setErrorState</name>
+        <qualifiedname>TextEditorStyler::setErrorState</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>hasError</declname>
+        </param>
+        <briefdescription>
+<para>Apply error state styling (red border). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="131" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="131" bodyend="142" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="85" declcolumn="10"/>
+        <references refid="namespaceTextEditorStyler_1a4063be4dd9bc17bf86ac9f7c7cd13af9" compoundref="TextEditorStyler_8cpp" startline="144" endline="148">clearErrorState</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceTextEditorStyler_1a4063be4dd9bc17bf86ac9f7c7cd13af9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void TextEditorStyler::clearErrorState</definition>
+        <argsstring>(juce::TextEditor &amp;editor)</argsstring>
+        <name>clearErrorState</name>
+        <qualifiedname>TextEditorStyler::clearErrorState</qualifiedname>
+        <param>
+          <type>juce::TextEditor &amp;</type>
+          <declname>editor</declname>
+        </param>
+        <briefdescription>
+<para>Reset to normal state (remove error styling). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="144" column="6" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" bodystart="144" bodyend="148" declfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.h" declline="90" declcolumn="10"/>
+        <referencedby refid="namespaceTextEditorStyler_1aca3ad310be3bc6d007508df7a207c31f" compoundref="TextEditorStyler_8cpp" startline="131" endline="142">setErrorState</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="namespaceTextEditorStyler" kindref="compound">TextEditorStyler</ref> - Consistent TextEditor configuration and styling. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Centralizes the repeated styling operations applied to TextEditors throughout the <ref refid="namespaceUI" kindref="compound">UI</ref> (colors, fonts, placeholders, input restrictions).</para>
+<para>Usage: <ref refid="namespaceTextEditorStyler_1ad8364dc7016bc5a7bf09f8a9223244dd" kindref="member">TextEditorStyler::style</ref>(emailEditor, &quot;Email address&quot;); <ref refid="namespaceTextEditorStyler_1a976510e34a4cec89270563f75a00a0db" kindref="member">TextEditorStyler::stylePassword</ref>(passwordEditor, &quot;Password&quot;); <ref refid="namespaceTextEditorStyler_1ad7be60cc5fb43315425e6cc8d351802d" kindref="member">TextEditorStyler::styleMultiline</ref>(bioEditor, &quot;Tell us about yourself...&quot;); </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/util/TextEditorStyler.cpp" line="4" column="1"/>
+  </compounddef>
+</doxygen>

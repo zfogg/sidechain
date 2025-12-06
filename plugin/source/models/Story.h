@@ -33,18 +33,29 @@ struct Story
     //==============================================================================
     // Helper methods
 
-    // Check if story is expired
+    /** Check if story is expired (past expiration time)
+     *  @return true if story has expired, false otherwise
+     */
     bool isExpired() const;
 
-    // Get remaining time until expiration
+    /** Get remaining time until expiration as human-readable string
+     *  @return Formatted string (e.g., "5h remaining" or "Expired")
+     */
     juce::String getExpirationText() const;
 
-    // Check if story has MIDI data
+    /** Check if story has MIDI data for visualization
+     *  @return true if MIDI data is present, false otherwise
+     */
     bool hasMIDI() const;
 
-    // Parse from JSON response
+    /** Parse from JSON response
+     *  @param json JSON var containing story data
+     *  @return Story instance parsed from JSON
+     */
     static Story fromJSON(const juce::var& json);
 
-    // Convert to JSON for upload
+    /** Convert to JSON for upload
+     *  @return JSON var representation of this story
+     */
     juce::var toJSON() const;
 };

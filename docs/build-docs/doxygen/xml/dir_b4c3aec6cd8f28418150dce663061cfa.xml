@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="dir_b4c3aec6cd8f28418150dce663061cfa" kind="dir">
+    <compoundname>plugin</compoundname>
+    <innerdir refid="dir_918da86ad3bfc406d6fdc3b4de27c556">source</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/"/>
+  </compounddef>
+</doxygen>

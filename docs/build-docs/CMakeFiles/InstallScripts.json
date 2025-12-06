@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/zfogg/src/github.com/zfogg/sidechain/docs/build-docs/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

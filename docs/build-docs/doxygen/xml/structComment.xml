@@ -1,0 +1,255 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structComment" kind="struct" language="C++" prot="public">
+    <compoundname>Comment</compoundname>
+    <includes refid="Comment_8h" local="no">Comment.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structComment_1a59da1064d0dcc71c5c127f9c2354d7c7" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>Comment::id</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="18" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a6e5ec7c6efe1306d70cb5b6aef30dec4" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::postId</definition>
+        <argsstring></argsstring>
+        <name>postId</name>
+        <qualifiedname>Comment::postId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="19" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a15f455fd37828ec168be8ed65243e003" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::userId</definition>
+        <argsstring></argsstring>
+        <name>userId</name>
+        <qualifiedname>Comment::userId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="20" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a2474c42001aa41b74cf13facc288b791" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::username</definition>
+        <argsstring></argsstring>
+        <name>username</name>
+        <qualifiedname>Comment::username</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="21" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a775a19118be9dfbd784914ea804503d4" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::userAvatarUrl</definition>
+        <argsstring></argsstring>
+        <name>userAvatarUrl</name>
+        <qualifiedname>Comment::userAvatarUrl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="22" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a49e5eaac9962a5100d7553db7135306c" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::content</definition>
+        <argsstring></argsstring>
+        <name>content</name>
+        <qualifiedname>Comment::content</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="23" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a72348b076151a2cef69c6422bf696e3a" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::parentId</definition>
+        <argsstring></argsstring>
+        <name>parentId</name>
+        <qualifiedname>Comment::parentId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="24" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="24" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a98a0b9f522b92c771a8eae07b585e88a" prot="public" static="no" mutable="no">
+        <type>juce::Time</type>
+        <definition>juce::Time Comment::createdAt</definition>
+        <argsstring></argsstring>
+        <name>createdAt</name>
+        <qualifiedname>Comment::createdAt</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="25" column="16" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1ac4cb828df0255177e507c16796a3ed91" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String Comment::timeAgo</definition>
+        <argsstring></argsstring>
+        <name>timeAgo</name>
+        <qualifiedname>Comment::timeAgo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="26" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a00ef3ba550d06248a8513216b3b898fd" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int Comment::likeCount</definition>
+        <argsstring></argsstring>
+        <name>likeCount</name>
+        <qualifiedname>Comment::likeCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="27" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a78a7bb8b0e8d33ca73be4e5cd525c84a" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Comment::isLiked</definition>
+        <argsstring></argsstring>
+        <name>isLiked</name>
+        <qualifiedname>Comment::isLiked</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="28" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="28" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1ad6f12fa28920b77fc790a7581e0d21fb" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Comment::isOwnComment</definition>
+        <argsstring></argsstring>
+        <name>isOwnComment</name>
+        <qualifiedname>Comment::isOwnComment</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="29" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="29" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structComment_1a0747a2a881e59d0e3ba58ae00ef61565" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool Comment::canEdit</definition>
+        <argsstring></argsstring>
+        <name>canEdit</name>
+        <qualifiedname>Comment::canEdit</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="30" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structComment_1ae09e4730ca5d6c66882d1dc60e201e7d" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structComment" kindref="compound">Comment</ref></type>
+        <definition>static Comment Comment::fromJson</definition>
+        <argsstring>(const juce::var &amp;json)</argsstring>
+        <name>fromJson</name>
+        <qualifiedname>Comment::fromJson</qualifiedname>
+        <param>
+          <type>const juce::var &amp;</type>
+          <declname>json</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="33" column="20" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="33" bodyend="61"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structComment_1a60f62a4edb5301d1719fa6bfa8a36cbf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool Comment::isValid</definition>
+        <argsstring>() const</argsstring>
+        <name>isValid</name>
+        <qualifiedname>Comment::isValid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="63" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="63" bodyend="66"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="structComment" kindref="compound">Comment</ref> represents a single comment on a post. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Maps to the <ref refid="structComment" kindref="compound">Comment</ref> model from the backend </para>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="16" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="17" bodyend="67"/>
+    <listofallmembers>
+      <member refid="structComment_1a0747a2a881e59d0e3ba58ae00ef61565" prot="public" virt="non-virtual"><scope>Comment</scope><name>canEdit</name></member>
+      <member refid="structComment_1a49e5eaac9962a5100d7553db7135306c" prot="public" virt="non-virtual"><scope>Comment</scope><name>content</name></member>
+      <member refid="structComment_1a98a0b9f522b92c771a8eae07b585e88a" prot="public" virt="non-virtual"><scope>Comment</scope><name>createdAt</name></member>
+      <member refid="structComment_1ae09e4730ca5d6c66882d1dc60e201e7d" prot="public" virt="non-virtual"><scope>Comment</scope><name>fromJson</name></member>
+      <member refid="structComment_1a59da1064d0dcc71c5c127f9c2354d7c7" prot="public" virt="non-virtual"><scope>Comment</scope><name>id</name></member>
+      <member refid="structComment_1a78a7bb8b0e8d33ca73be4e5cd525c84a" prot="public" virt="non-virtual"><scope>Comment</scope><name>isLiked</name></member>
+      <member refid="structComment_1ad6f12fa28920b77fc790a7581e0d21fb" prot="public" virt="non-virtual"><scope>Comment</scope><name>isOwnComment</name></member>
+      <member refid="structComment_1a60f62a4edb5301d1719fa6bfa8a36cbf" prot="public" virt="non-virtual"><scope>Comment</scope><name>isValid</name></member>
+      <member refid="structComment_1a00ef3ba550d06248a8513216b3b898fd" prot="public" virt="non-virtual"><scope>Comment</scope><name>likeCount</name></member>
+      <member refid="structComment_1a72348b076151a2cef69c6422bf696e3a" prot="public" virt="non-virtual"><scope>Comment</scope><name>parentId</name></member>
+      <member refid="structComment_1a6e5ec7c6efe1306d70cb5b6aef30dec4" prot="public" virt="non-virtual"><scope>Comment</scope><name>postId</name></member>
+      <member refid="structComment_1ac4cb828df0255177e507c16796a3ed91" prot="public" virt="non-virtual"><scope>Comment</scope><name>timeAgo</name></member>
+      <member refid="structComment_1a775a19118be9dfbd784914ea804503d4" prot="public" virt="non-virtual"><scope>Comment</scope><name>userAvatarUrl</name></member>
+      <member refid="structComment_1a15f455fd37828ec168be8ed65243e003" prot="public" virt="non-virtual"><scope>Comment</scope><name>userId</name></member>
+      <member refid="structComment_1a2474c42001aa41b74cf13facc288b791" prot="public" virt="non-virtual"><scope>Comment</scope><name>username</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

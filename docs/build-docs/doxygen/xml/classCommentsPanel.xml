@@ -1,0 +1,1017 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classCommentsPanel" kind="class" language="C++" prot="public">
+    <compoundname>CommentsPanel</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="private" virt="non-virtual">juce::Timer</basecompoundref>
+    <includes refid="Comment_8h" local="no">Comment.h</includes>
+    <innerclass refid="classCommentsPanel_1_1MentionListener" prot="private">CommentsPanel::MentionListener</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classCommentsPanel_1af4b1b003ae57ddb0a05cba466d9df9a6" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; CommentsPanel::onClose</definition>
+        <argsstring></argsstring>
+        <name>onClose</name>
+        <qualifiedname>CommentsPanel::onClose</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="188" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="188" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1af0689bf3387814d487a7d4d8b7b939eb" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const juce::String &amp;userId)&gt;</type>
+        <definition>std::function&lt;void(const juce::String&amp; userId)&gt; CommentsPanel::onUserClicked</definition>
+        <argsstring></argsstring>
+        <name>onUserClicked</name>
+        <qualifiedname>CommentsPanel::onUserClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="189" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="189" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classCommentsPanel_1a66c85f7f1015779cdb6f0986bce94170" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int CommentsPanel::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>CommentsPanel::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 50</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="200" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="200" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a31bb50b369a1cec147d53011231df052" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int CommentsPanel::INPUT_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>INPUT_HEIGHT</name>
+        <qualifiedname>CommentsPanel::INPUT_HEIGHT</qualifiedname>
+        <initializer>= 60</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="201" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="201" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classCommentsPanel_1a684810f4abf5d660d19cfc9394119669" prot="private" static="no" mutable="no">
+        <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+        <definition>NetworkClient* CommentsPanel::networkClient</definition>
+        <argsstring></argsstring>
+        <name>networkClient</name>
+        <qualifiedname>CommentsPanel::networkClient</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="210" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="210" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a9e53d16c37437f1fe4c6a6b2ceb5e9bc" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String CommentsPanel::currentPostId</definition>
+        <argsstring></argsstring>
+        <name>currentPostId</name>
+        <qualifiedname>CommentsPanel::currentPostId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="211" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="211" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a75731cac83ab228ec138c822385b2e16" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String CommentsPanel::currentUserId</definition>
+        <argsstring></argsstring>
+        <name>currentUserId</name>
+        <qualifiedname>CommentsPanel::currentUserId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="212" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="212" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a662362e08e1be409eb965453fda624b1" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structComment" kindref="compound">Comment</ref> &gt;</type>
+        <definition>juce::Array&lt;Comment&gt; CommentsPanel::comments</definition>
+        <argsstring></argsstring>
+        <name>comments</name>
+        <qualifiedname>CommentsPanel::comments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="213" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="213" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a92ceaafa634da37f67d550d2342e104b" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int CommentsPanel::totalCommentCount</definition>
+        <argsstring></argsstring>
+        <name>totalCommentCount</name>
+        <qualifiedname>CommentsPanel::totalCommentCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="214" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="214" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a7b56088326628a726d32b2f32017af84" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool CommentsPanel::isLoading</definition>
+        <argsstring></argsstring>
+        <name>isLoading</name>
+        <qualifiedname>CommentsPanel::isLoading</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="215" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="215" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a73ceff58b5c7fe421337d9d56586f1fd" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool CommentsPanel::hasMoreComments</definition>
+        <argsstring></argsstring>
+        <name>hasMoreComments</name>
+        <qualifiedname>CommentsPanel::hasMoreComments</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="216" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="216" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a709c58a655272bb79541e26b0c394270" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int CommentsPanel::currentOffset</definition>
+        <argsstring></argsstring>
+        <name>currentOffset</name>
+        <qualifiedname>CommentsPanel::currentOffset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="217" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="217" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a5c092a34bf36ebbc5560290ac64f4986" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String CommentsPanel::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>CommentsPanel::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="218" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="218" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a6bf52d9255539cce2b7ecc5154ef13ba" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String CommentsPanel::replyingToCommentId</definition>
+        <argsstring></argsstring>
+        <name>replyingToCommentId</name>
+        <qualifiedname>CommentsPanel::replyingToCommentId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="221" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="221" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1aa41a7f18d10f126e0580feec9e657886" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String CommentsPanel::replyingToUsername</definition>
+        <argsstring></argsstring>
+        <name>replyingToUsername</name>
+        <qualifiedname>CommentsPanel::replyingToUsername</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="222" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="222" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a8ed824b74e1f669f2e0fa13e6f3ae989" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::Viewport &gt;</type>
+        <definition>std::unique_ptr&lt;juce::Viewport&gt; CommentsPanel::viewport</definition>
+        <argsstring></argsstring>
+        <name>viewport</name>
+        <qualifiedname>CommentsPanel::viewport</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="226" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="226" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a75ff2802031337c2659ceee4eb962f0d" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::Component &gt;</type>
+        <definition>std::unique_ptr&lt;juce::Component&gt; CommentsPanel::contentContainer</definition>
+        <argsstring></argsstring>
+        <name>contentContainer</name>
+        <qualifiedname>CommentsPanel::contentContainer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="227" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="227" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a72215ee289e5ac3f83ea277c7992ed48" prot="private" static="no" mutable="no">
+        <type>juce::OwnedArray&lt; <ref refid="classCommentRow" kindref="compound">CommentRow</ref> &gt;</type>
+        <definition>juce::OwnedArray&lt;CommentRow&gt; CommentsPanel::commentRows</definition>
+        <argsstring></argsstring>
+        <name>commentRows</name>
+        <qualifiedname>CommentsPanel::commentRows</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="228" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="228" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1aa0fe36a8ba4e83d0cb7ad715e9191048" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextEditor &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextEditor&gt; CommentsPanel::inputField</definition>
+        <argsstring></argsstring>
+        <name>inputField</name>
+        <qualifiedname>CommentsPanel::inputField</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="229" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="229" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a41474ffacd86da064d7930a34cdc0b86" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; CommentsPanel::sendButton</definition>
+        <argsstring></argsstring>
+        <name>sendButton</name>
+        <qualifiedname>CommentsPanel::sendButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="230" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="230" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1aa28059bfa6eb7ab60bd3e0d86e074c70" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; CommentsPanel::emojiButton</definition>
+        <argsstring></argsstring>
+        <name>emojiButton</name>
+        <qualifiedname>CommentsPanel::emojiButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="231" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="231" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a99eb63ac6642d4b04db445235be2318e" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::TextButton &gt;</type>
+        <definition>std::unique_ptr&lt;juce::TextButton&gt; CommentsPanel::closeButton</definition>
+        <argsstring></argsstring>
+        <name>closeButton</name>
+        <qualifiedname>CommentsPanel::closeButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="232" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="232" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1ae565adc4e92440c0627a3c0e665d7433" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; juce::Component &gt;</type>
+        <definition>std::unique_ptr&lt;juce::Component&gt; CommentsPanel::mentionAutocompletePanel</definition>
+        <argsstring></argsstring>
+        <name>mentionAutocompletePanel</name>
+        <qualifiedname>CommentsPanel::mentionAutocompletePanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="235" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="235" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a00821bf056411f38a8f81652a1461b88" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; juce::String &gt;</type>
+        <definition>juce::Array&lt;juce::String&gt; CommentsPanel::mentionSuggestions</definition>
+        <argsstring></argsstring>
+        <name>mentionSuggestions</name>
+        <qualifiedname>CommentsPanel::mentionSuggestions</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="236" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="236" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1aacb15e2c34457d815f5fb38db6bc5cc4" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; juce::String &gt;</type>
+        <definition>juce::Array&lt;juce::String&gt; CommentsPanel::mentionUserIds</definition>
+        <argsstring></argsstring>
+        <name>mentionUserIds</name>
+        <qualifiedname>CommentsPanel::mentionUserIds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="237" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="237" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a1d7983092aa5acab25b6e65f6b1d81ed" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int CommentsPanel::selectedMentionIndex</definition>
+        <argsstring></argsstring>
+        <name>selectedMentionIndex</name>
+        <qualifiedname>CommentsPanel::selectedMentionIndex</qualifiedname>
+        <initializer>= -1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="238" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="238" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1af6a7a89a36066657b920568617904a31" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool CommentsPanel::isShowingMentions</definition>
+        <argsstring></argsstring>
+        <name>isShowingMentions</name>
+        <qualifiedname>CommentsPanel::isShowingMentions</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="239" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="239" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1ac6b2c157d72bd58bf141c9ace0bd6b05" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int CommentsPanel::mentionQueryStart</definition>
+        <argsstring></argsstring>
+        <name>mentionQueryStart</name>
+        <qualifiedname>CommentsPanel::mentionQueryStart</qualifiedname>
+        <initializer>= -1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="240" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="240" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classCommentsPanel_1a202d5b65c377aa4624a1c254f939e340" prot="private" static="no" mutable="no">
+        <type>std::unique_ptr&lt; MentionListener &gt;</type>
+        <definition>std::unique_ptr&lt;MentionListener&gt; CommentsPanel::mentionListener</definition>
+        <argsstring></argsstring>
+        <name>mentionListener</name>
+        <qualifiedname>CommentsPanel::mentionListener</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="280" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="280" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classCommentsPanel_1a921b085ce6642b5b88745502bfe2580e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>CommentsPanel::CommentsPanel</definition>
+        <argsstring>()</argsstring>
+        <name>CommentsPanel</name>
+        <qualifiedname>CommentsPanel::CommentsPanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="171" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="297" bodyend="300"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a1dc7ba3afd05a1b36bdefa6a8e2cbd0d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>CommentsPanel::~CommentsPanel</definition>
+        <argsstring>() override</argsstring>
+        <name>~CommentsPanel</name>
+        <qualifiedname>CommentsPanel::~CommentsPanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="172" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="302" bodyend="305"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a31b8614291acdca7cf2ace5df3ddf64b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::setNetworkClient</definition>
+        <argsstring>(NetworkClient *client)</argsstring>
+        <name>setNetworkClient</name>
+        <qualifiedname>CommentsPanel::setNetworkClient</qualifiedname>
+        <param>
+          <type><ref refid="classNetworkClient" kindref="compound">NetworkClient</ref> *</type>
+          <declname>client</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="176" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="176" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a3db593f34f0a169b98a5209407d15836" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::setCurrentUserId</definition>
+        <argsstring>(const juce::String &amp;userId)</argsstring>
+        <name>setCurrentUserId</name>
+        <qualifiedname>CommentsPanel::setCurrentUserId</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>userId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="177" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="177" bodyend="177"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1ac9ba16081eb343ad6cf2b6037836c260" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::loadCommentsForPost</definition>
+        <argsstring>(const juce::String &amp;postId)</argsstring>
+        <name>loadCommentsForPost</name>
+        <qualifiedname>CommentsPanel::loadCommentsForPost</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>postId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="180" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="363" bodyend="385"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1aa48dd3b625023da0a45cad9903440882" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::refreshComments</definition>
+        <argsstring>()</argsstring>
+        <name>refreshComments</name>
+        <qualifiedname>CommentsPanel::refreshComments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="181" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="387" bodyend="393"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a14cc98d5ecd26bda2c8cbd14985efa3b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String CommentsPanel::getCurrentPostId</definition>
+        <argsstring>() const</argsstring>
+        <name>getCurrentPostId</name>
+        <qualifiedname>CommentsPanel::getCurrentPostId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="184" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="184" bodyend="184"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1aa657b6fb2f150f842eb07a6398921d66" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>CommentsPanel::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="193" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="735" bodyend="826"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a17dd3b7fd180d3cc5464616ab56a6b03" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>CommentsPanel::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="194" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="828" bodyend="868"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1ab25e73be68a04564efecfa4e8d21a031" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::mouseUp</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseUp</name>
+        <qualifiedname>CommentsPanel::mouseUp</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="195" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="873" bodyend="897"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a2c563d9858cbdd288f3bdbe0414f1ddb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool CommentsPanel::keyPressed</definition>
+        <argsstring>(const juce::KeyPress &amp;key) override</argsstring>
+        <name>keyPressed</name>
+        <qualifiedname>CommentsPanel::keyPressed</qualifiedname>
+        <param>
+          <type>const juce::KeyPress &amp;</type>
+          <declname>key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="196" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="899" bodyend="932"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classCommentsPanel_1a9517179ab7f0686fd905b7ed98b86c03" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::timerCallback</definition>
+        <argsstring>() override</argsstring>
+        <name>timerCallback</name>
+        <qualifiedname>CommentsPanel::timerCallback</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="206" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="728" bodyend="733"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1ac18266c582132c78c150a6a29db54bcb" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::setupUI</definition>
+        <argsstring>()</argsstring>
+        <name>setupUI</name>
+        <qualifiedname>CommentsPanel::setupUI</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="244" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="307" bodyend="361"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1adb50d10e852a7c2b920f125963fa78b3" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::updateCommentsList</definition>
+        <argsstring>()</argsstring>
+        <name>updateCommentsList</name>
+        <qualifiedname>CommentsPanel::updateCommentsList</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="245" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="480" bodyend="502"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1aaa6b538ab5815a88233694abaa6c002f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::loadMoreComments</definition>
+        <argsstring>()</argsstring>
+        <name>loadMoreComments</name>
+        <qualifiedname>CommentsPanel::loadMoreComments</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="246" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="433" bodyend="478"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1abcf6866396a7cf332298e0da590b7a85" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::submitComment</definition>
+        <argsstring>()</argsstring>
+        <name>submitComment</name>
+        <qualifiedname>CommentsPanel::submitComment</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="247" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="694" bodyend="720"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1afd8186526dac3561603594e449e796fa" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::cancelReply</definition>
+        <argsstring>()</argsstring>
+        <name>cancelReply</name>
+        <qualifiedname>CommentsPanel::cancelReply</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="248" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="722" bodyend="726"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a74a7983deea028a99070fd4000d55f57" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::checkForMention</definition>
+        <argsstring>()</argsstring>
+        <name>checkForMention</name>
+        <qualifiedname>CommentsPanel::checkForMention</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="251" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="948" bodyend="1010"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a506a0c3f330fc4aac8fbe73a5c57122f" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::showMentionAutocomplete</definition>
+        <argsstring>(const juce::String &amp;query)</argsstring>
+        <name>showMentionAutocomplete</name>
+        <qualifiedname>CommentsPanel::showMentionAutocomplete</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>query</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="252" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="1012" bodyend="1075"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a1ee1f64dd44d38e41a768d53af94d726" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::hideMentionAutocomplete</definition>
+        <argsstring>()</argsstring>
+        <name>hideMentionAutocomplete</name>
+        <qualifiedname>CommentsPanel::hideMentionAutocomplete</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="253" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="1077" bodyend="1089"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a6fc71860ff6b6486309cfba978710cfe" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::selectMention</definition>
+        <argsstring>(int index)</argsstring>
+        <name>selectMention</name>
+        <qualifiedname>CommentsPanel::selectMention</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="254" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="1091" bodyend="1112"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a5ffa85220df32a04c2e1463c7d79c2cb" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::insertMention</definition>
+        <argsstring>(const juce::String &amp;username)</argsstring>
+        <name>insertMention</name>
+        <qualifiedname>CommentsPanel::insertMention</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>username</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="255" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="1114" bodyend="1125"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1abe9eda5568c31ab5efa4fdb421feac36" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::showEmojiPicker</definition>
+        <argsstring>()</argsstring>
+        <name>showEmojiPicker</name>
+        <qualifiedname>CommentsPanel::showEmojiPicker</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="258" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="1130" bodyend="1145"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a23a14ace871be0687c328603eb16af4b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::insertEmoji</definition>
+        <argsstring>(const juce::String &amp;emoji)</argsstring>
+        <name>insertEmoji</name>
+        <qualifiedname>CommentsPanel::insertEmoji</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>emoji</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="259" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="1147" bodyend="1159"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1addbed3076941924e2c3fc5a9d86b6f02" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::handleCommentsLoaded</definition>
+        <argsstring>(Outcome&lt; std::pair&lt; juce::var, int &gt; &gt; commentsResult)</argsstring>
+        <name>handleCommentsLoaded</name>
+        <qualifiedname>CommentsPanel::handleCommentsLoaded</qualifiedname>
+        <param>
+          <type><ref refid="classOutcome" kindref="compound">Outcome</ref>&lt; std::pair&lt; juce::var, int &gt; &gt;</type>
+          <declname>commentsResult</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="262" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="395" bodyend="431"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a2bb48f2a6eba8c2469d252d98056b870" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::handleCommentCreated</definition>
+        <argsstring>(Outcome&lt; juce::var &gt; commentResult)</argsstring>
+        <name>handleCommentCreated</name>
+        <qualifiedname>CommentsPanel::handleCommentCreated</qualifiedname>
+        <param>
+          <type><ref refid="classOutcome" kindref="compound">Outcome</ref>&lt; juce::var &gt;</type>
+          <declname>commentResult</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="263" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="632" bodyend="664"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a25d2d52f0eeeb8dff22ab7c0a400ee56" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::handleCommentDeleted</definition>
+        <argsstring>(bool success, const juce::String &amp;commentId)</argsstring>
+        <name>handleCommentDeleted</name>
+        <qualifiedname>CommentsPanel::handleCommentDeleted</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>success</declname>
+        </param>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>commentId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="264" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="666" bodyend="692"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a9e10ffccd3c48a162728fb676486d7ae" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::handleCommentLikeToggled</definition>
+        <argsstring>(const Comment &amp;comment, bool liked)</argsstring>
+        <name>handleCommentLikeToggled</name>
+        <qualifiedname>CommentsPanel::handleCommentLikeToggled</qualifiedname>
+        <param>
+          <type>const <ref refid="structComment" kindref="compound">Comment</ref> &amp;</type>
+          <declname>comment</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>liked</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="265" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="558" bodyend="630"/>
+      </memberdef>
+      <memberdef kind="function" id="classCommentsPanel_1a4e7016cb898997d2a7c6fad0f7be5ffa" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CommentsPanel::setupRowCallbacks</definition>
+        <argsstring>(CommentRow *row)</argsstring>
+        <name>setupRowCallbacks</name>
+        <qualifiedname>CommentsPanel::setupRowCallbacks</qualifiedname>
+        <param>
+          <type><ref refid="classCommentRow" kindref="compound">CommentRow</ref> *</type>
+          <declname>row</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="268" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.cpp" bodystart="504" bodyend="556"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classCommentsPanel" kindref="compound">CommentsPanel</ref> displays a full comments section for a post. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>List of comments with infinite scroll</para>
+</listitem><listitem><para>Text input field for new comments</para>
+</listitem><listitem><para>Reply threading (1 level deep)</para>
+</listitem><listitem><para>Like/unlike on comments</para>
+</listitem><listitem><para>Edit/delete own comments</para>
+</listitem><listitem><para>Real-time updates </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>CommentsPanel</label>
+        <link refid="classCommentsPanel"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>CommentsPanel</label>
+        <link refid="classCommentsPanel"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::Timer</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" line="167" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/feed/Comment.h" bodystart="169" bodyend="283"/>
+    <listofallmembers>
+      <member refid="classCommentsPanel_1afd8186526dac3561603594e449e796fa" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>cancelReply</name></member>
+      <member refid="classCommentsPanel_1a74a7983deea028a99070fd4000d55f57" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>checkForMention</name></member>
+      <member refid="classCommentsPanel_1a99eb63ac6642d4b04db445235be2318e" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>closeButton</name></member>
+      <member refid="classCommentsPanel_1a72215ee289e5ac3f83ea277c7992ed48" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>commentRows</name></member>
+      <member refid="classCommentsPanel_1a662362e08e1be409eb965453fda624b1" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>comments</name></member>
+      <member refid="classCommentsPanel_1a921b085ce6642b5b88745502bfe2580e" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>CommentsPanel</name></member>
+      <member refid="classCommentsPanel_1a75ff2802031337c2659ceee4eb962f0d" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>contentContainer</name></member>
+      <member refid="classCommentsPanel_1a709c58a655272bb79541e26b0c394270" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>currentOffset</name></member>
+      <member refid="classCommentsPanel_1a9e53d16c37437f1fe4c6a6b2ceb5e9bc" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>currentPostId</name></member>
+      <member refid="classCommentsPanel_1a75731cac83ab228ec138c822385b2e16" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>currentUserId</name></member>
+      <member refid="classCommentsPanel_1aa28059bfa6eb7ab60bd3e0d86e074c70" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>emojiButton</name></member>
+      <member refid="classCommentsPanel_1a5c092a34bf36ebbc5560290ac64f4986" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>errorMessage</name></member>
+      <member refid="classCommentsPanel_1a14cc98d5ecd26bda2c8cbd14985efa3b" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>getCurrentPostId</name></member>
+      <member refid="classCommentsPanel_1a2bb48f2a6eba8c2469d252d98056b870" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>handleCommentCreated</name></member>
+      <member refid="classCommentsPanel_1a25d2d52f0eeeb8dff22ab7c0a400ee56" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>handleCommentDeleted</name></member>
+      <member refid="classCommentsPanel_1a9e10ffccd3c48a162728fb676486d7ae" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>handleCommentLikeToggled</name></member>
+      <member refid="classCommentsPanel_1addbed3076941924e2c3fc5a9d86b6f02" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>handleCommentsLoaded</name></member>
+      <member refid="classCommentsPanel_1a73ceff58b5c7fe421337d9d56586f1fd" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>hasMoreComments</name></member>
+      <member refid="classCommentsPanel_1a66c85f7f1015779cdb6f0986bce94170" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classCommentsPanel_1a1ee1f64dd44d38e41a768d53af94d726" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>hideMentionAutocomplete</name></member>
+      <member refid="classCommentsPanel_1a31bb50b369a1cec147d53011231df052" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>INPUT_HEIGHT</name></member>
+      <member refid="classCommentsPanel_1aa0fe36a8ba4e83d0cb7ad715e9191048" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>inputField</name></member>
+      <member refid="classCommentsPanel_1a23a14ace871be0687c328603eb16af4b" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>insertEmoji</name></member>
+      <member refid="classCommentsPanel_1a5ffa85220df32a04c2e1463c7d79c2cb" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>insertMention</name></member>
+      <member refid="classCommentsPanel_1a7b56088326628a726d32b2f32017af84" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>isLoading</name></member>
+      <member refid="classCommentsPanel_1af6a7a89a36066657b920568617904a31" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>isShowingMentions</name></member>
+      <member refid="classCommentsPanel_1a2c563d9858cbdd288f3bdbe0414f1ddb" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>keyPressed</name></member>
+      <member refid="classCommentsPanel_1ac9ba16081eb343ad6cf2b6037836c260" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>loadCommentsForPost</name></member>
+      <member refid="classCommentsPanel_1aaa6b538ab5815a88233694abaa6c002f" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>loadMoreComments</name></member>
+      <member refid="classCommentsPanel_1ae565adc4e92440c0627a3c0e665d7433" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>mentionAutocompletePanel</name></member>
+      <member refid="classCommentsPanel_1a202d5b65c377aa4624a1c254f939e340" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>mentionListener</name></member>
+      <member refid="classCommentsPanel_1ac6b2c157d72bd58bf141c9ace0bd6b05" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>mentionQueryStart</name></member>
+      <member refid="classCommentsPanel_1a00821bf056411f38a8f81652a1461b88" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>mentionSuggestions</name></member>
+      <member refid="classCommentsPanel_1aacb15e2c34457d815f5fb38db6bc5cc4" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>mentionUserIds</name></member>
+      <member refid="classCommentsPanel_1ab25e73be68a04564efecfa4e8d21a031" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>mouseUp</name></member>
+      <member refid="classCommentsPanel_1a684810f4abf5d660d19cfc9394119669" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>networkClient</name></member>
+      <member refid="classCommentsPanel_1af4b1b003ae57ddb0a05cba466d9df9a6" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>onClose</name></member>
+      <member refid="classCommentsPanel_1af0689bf3387814d487a7d4d8b7b939eb" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>onUserClicked</name></member>
+      <member refid="classCommentsPanel_1aa657b6fb2f150f842eb07a6398921d66" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>paint</name></member>
+      <member refid="classCommentsPanel_1aa48dd3b625023da0a45cad9903440882" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>refreshComments</name></member>
+      <member refid="classCommentsPanel_1a6bf52d9255539cce2b7ecc5154ef13ba" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>replyingToCommentId</name></member>
+      <member refid="classCommentsPanel_1aa41a7f18d10f126e0580feec9e657886" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>replyingToUsername</name></member>
+      <member refid="classCommentsPanel_1a17dd3b7fd180d3cc5464616ab56a6b03" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>resized</name></member>
+      <member refid="classCommentsPanel_1a1d7983092aa5acab25b6e65f6b1d81ed" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>selectedMentionIndex</name></member>
+      <member refid="classCommentsPanel_1a6fc71860ff6b6486309cfba978710cfe" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>selectMention</name></member>
+      <member refid="classCommentsPanel_1a41474ffacd86da064d7930a34cdc0b86" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>sendButton</name></member>
+      <member refid="classCommentsPanel_1a3db593f34f0a169b98a5209407d15836" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>setCurrentUserId</name></member>
+      <member refid="classCommentsPanel_1a31b8614291acdca7cf2ace5df3ddf64b" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>setNetworkClient</name></member>
+      <member refid="classCommentsPanel_1a4e7016cb898997d2a7c6fad0f7be5ffa" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>setupRowCallbacks</name></member>
+      <member refid="classCommentsPanel_1ac18266c582132c78c150a6a29db54bcb" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>setupUI</name></member>
+      <member refid="classCommentsPanel_1abe9eda5568c31ab5efa4fdb421feac36" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>showEmojiPicker</name></member>
+      <member refid="classCommentsPanel_1a506a0c3f330fc4aac8fbe73a5c57122f" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>showMentionAutocomplete</name></member>
+      <member refid="classCommentsPanel_1abcf6866396a7cf332298e0da590b7a85" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>submitComment</name></member>
+      <member refid="classCommentsPanel_1a9517179ab7f0686fd905b7ed98b86c03" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>timerCallback</name></member>
+      <member refid="classCommentsPanel_1a92ceaafa634da37f67d550d2342e104b" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>totalCommentCount</name></member>
+      <member refid="classCommentsPanel_1adb50d10e852a7c2b920f125963fa78b3" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>updateCommentsList</name></member>
+      <member refid="classCommentsPanel_1a8ed824b74e1f669f2e0fa13e6f3ae989" prot="private" virt="non-virtual"><scope>CommentsPanel</scope><name>viewport</name></member>
+      <member refid="classCommentsPanel_1a1dc7ba3afd05a1b36bdefa6a8e2cbd0d" prot="public" virt="non-virtual"><scope>CommentsPanel</scope><name>~CommentsPanel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

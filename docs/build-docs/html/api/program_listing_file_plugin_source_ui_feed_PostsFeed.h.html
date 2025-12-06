@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File PostsFeed.h &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File PostsFeed.h</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_feed_PostsFeed.h.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-postsfeed-h">
+<span id="program-listing-file-plugin-source-ui-feed-postsfeed-h"></span><h1>Program Listing for File PostsFeed.h<a class="headerlink" href="#program-listing-for-file-postsfeed-h" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_feed_PostsFeed.h.html#file-plugin-source-ui-feed-postsfeed-h"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/feed/PostsFeed.h</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;JuceHeader.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../network/FeedDataManager.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../models/FeedResponse.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Animation.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;PostCard.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;Comment.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../audio/HttpAudioPlayer.h&quot;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">NetworkClient</span><span class="p">;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PostsFeed</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Component</span><span class="p">,</span>
+<span class="w">                           </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">ScrollBar</span><span class="o">::</span><span class="n">Listener</span><span class="p">,</span>
+<span class="w">                           </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">KeyListener</span><span class="p">,</span>
+<span class="w">                           </span><span class="k">public</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Timer</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">PostsFeed</span><span class="p">();</span>
+<span class="w">    </span><span class="o">~</span><span class="n">PostsFeed</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">resized</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">mouseWheelMove</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseWheelDetails</span><span class="o">&amp;</span><span class="w"> </span><span class="n">wheel</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Bring Component::keyPressed into scope to avoid hiding warning</span>
+<span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Component</span><span class="o">::</span><span class="n">keyPressed</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// KeyListener override for keyboard shortcuts</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">keyPressed</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">KeyPress</span><span class="o">&amp;</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Component</span><span class="o">*</span><span class="w"> </span><span class="n">originatingComponent</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Callback for when user wants to go to profile</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onGoToProfile</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Callback for navigating to a specific user&#39;s profile</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userId</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onNavigateToProfile</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Callback for logout</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onLogout</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Callback for starting recording</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onStartRecording</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Callback for opening discovery/search</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span><span class="w"> </span><span class="n">onGoToDiscovery</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Set user info</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setUserInfo</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">profilePicUrl</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Network client integration</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setNetworkClient</span><span class="p">(</span><span class="n">NetworkClient</span><span class="o">*</span><span class="w"> </span><span class="n">client</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Audio player integration</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setAudioPlayer</span><span class="p">(</span><span class="n">HttpAudioPlayer</span><span class="o">*</span><span class="w"> </span><span class="n">player</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Feed control</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">loadFeed</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">refreshFeed</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">switchFeedType</span><span class="p">(</span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">FeedType</span><span class="w"> </span><span class="n">type</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Real-time updates (5.5)</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">handleNewPostNotification</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">var</span><span class="o">&amp;</span><span class="w"> </span><span class="n">postData</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">handleLikeCountUpdate</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">postId</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">likeCount</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">handleFollowerCountUpdate</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">userId</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">followerCount</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">showNewPostsToast</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ScrollBar::Listener</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">scrollBarMoved</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">ScrollBar</span><span class="o">*</span><span class="w"> </span><span class="n">scrollBar</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">newRangeStart</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Timer override</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">timerCallback</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Feed state</span>
+<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">FeedState</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Loading</span><span class="p">,</span><span class="w">    </span><span class="c1">// Initial loading or refreshing</span>
+<span class="w">        </span><span class="n">Loaded</span><span class="p">,</span><span class="w">     </span><span class="c1">// Successfully loaded with posts</span>
+<span class="w">        </span><span class="n">Empty</span><span class="p">,</span><span class="w">      </span><span class="c1">// Loaded but no posts</span>
+<span class="w">        </span><span class="n">Error</span><span class="w">       </span><span class="c1">// Error occurred</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">FeedState</span><span class="w"> </span><span class="n">feedState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FeedState</span><span class="o">::</span><span class="n">Loading</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">errorMessage</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">FeedPost</span><span class="o">&gt;</span><span class="w"> </span><span class="n">posts</span><span class="p">;</span>
+<span class="w">    </span><span class="n">FeedDataManager</span><span class="w"> </span><span class="n">feedDataManager</span><span class="p">;</span>
+<span class="w">    </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">FeedType</span><span class="w"> </span><span class="n">currentFeedType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FeedDataManager</span><span class="o">::</span><span class="n">FeedType</span><span class="o">::</span><span class="n">Timeline</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Real-time update state (5.5)</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">pendingNewPostsCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">  </span><span class="c1">// Count of new posts received while user is viewing feed</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">lastNewPostTime</span><span class="p">;</span><span class="w">    </span><span class="c1">// Track when last new post notification arrived</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">showingNewPostsToast</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="n">AnimationValue</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">toastOpacity</span><span class="p">{</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="n">Animation</span><span class="o">::</span><span class="n">Easing</span><span class="o">::</span><span class="n">EaseOutCubic</span><span class="p">};</span><span class="w">  </span><span class="c1">// Fade in/out animation</span>
+
+<span class="w">    </span><span class="c1">// Scroll state</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">scrollPosition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">totalContentHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">POST_CARD_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span><span class="p">;</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">POST_CARD_SPACING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// User info (profile picture now displayed in central HeaderComponent)</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">username</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">email</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">profilePicUrl</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Audio playback</span>
+<span class="w">    </span><span class="n">HttpAudioPlayer</span><span class="o">*</span><span class="w"> </span><span class="n">audioPlayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Network client for play tracking</span>
+<span class="w">    </span><span class="n">NetworkClient</span><span class="o">*</span><span class="w"> </span><span class="n">networkClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// Listen duration tracking (postId -&gt; start time)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">&gt;</span><span class="w"> </span><span class="n">playbackStartTimes</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// UI Components</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">ScrollBar</span><span class="w"> </span><span class="n">scrollBar</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="p">};</span><span class="w"> </span><span class="c1">// vertical</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">OwnedArray</span><span class="o">&lt;</span><span class="n">PostCard</span><span class="o">&gt;</span><span class="w"> </span><span class="n">postCards</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Comments panel (slide-in overlay)</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">CommentsPanel</span><span class="o">&gt;</span><span class="w"> </span><span class="n">commentsPanel</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">commentsPanelVisible</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">    </span><span class="n">AnimationValue</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">commentsPanelSlide</span><span class="p">{</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="n">Animation</span><span class="o">::</span><span class="n">Easing</span><span class="o">::</span><span class="n">EaseOutCubic</span><span class="p">};</span><span class="w">  </span><span class="c1">// 0.0 = hidden, 1.0 = visible</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">currentUserId</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">showCommentsForPost</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FeedPost</span><span class="o">&amp;</span><span class="w"> </span><span class="n">post</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">hideCommentsPanel</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// UI layout constants (TOP_BAR removed - now handled by central HeaderComponent)</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">FEED_TABS_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//==============================================================================</span>
+<span class="w">    </span><span class="c1">// UI helper methods</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawFeedTabs</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawLoadingState</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawEmptyState</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawErrorState</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawFeedPosts</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">drawNewPostsToast</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">);</span><span class="w"> </span><span class="c1">// 5.5.2</span>
+
+<span class="w">    </span><span class="c1">// Post card management</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">rebuildPostCards</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">updatePostCardPositions</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setupPostCardCallbacks</span><span class="p">(</span><span class="n">PostCard</span><span class="o">*</span><span class="w"> </span><span class="n">card</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">updateAudioPlayerPlaylist</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Feed callback handlers</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFeedLoaded</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FeedResponse</span><span class="o">&amp;</span><span class="w"> </span><span class="n">response</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFeedError</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Infinite scroll</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">checkLoadMore</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">updateScrollBounds</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Hit testing</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getTimelineTabBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getTrendingTabBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getGlobalTabBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getRefreshButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getRetryButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getRecordButtonBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getFeedContentBounds</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR</span><span class="p">(</span><span class="n">PostsFeed</span><span class="p">)</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -7,27 +7,44 @@
 #include "../util/Validate.h"
 
 //==============================================================================
+/** Construct UserDataStore
+ * Initializes the user data store with empty values
+ */
 UserDataStore::UserDataStore()
 {
 }
 
+/** Destructor
+ */
 UserDataStore::~UserDataStore()
 {
 }
 
 //==============================================================================
+/** Set the authentication token
+ * Updates the stored auth token and notifies listeners
+ * @param token Authentication token string
+ */
 void UserDataStore::setAuthToken(const juce::String& token)
 {
     authToken = token;
     sendChangeMessage();
 }
 
+/** Clear the authentication token and user data
+ * Removes auth token and notifies listeners
+ */
 void UserDataStore::clearAuthToken()
 {
     authToken = "";
     sendChangeMessage();
 }
 
+/** Set basic user info (from login response)
+ * Sets username and email from authentication response
+ * @param user Username
+ * @param mail Email address
+ */
 void UserDataStore::setBasicUserInfo(const juce::String& user, const juce::String& mail)
 {
     username = user;
@@ -35,6 +52,10 @@ void UserDataStore::setBasicUserInfo(const juce::String& user, const juce::Strin
     sendChangeMessage();
 }
 
+/** Set profile picture URL and start async download
+ * Downloads the profile image from the URL in the background
+ * @param url Profile picture URL
+ */
 void UserDataStore::setProfilePictureUrl(const juce::String& url)
 {
     if (url == profilePictureUrl && cachedProfileImage.isValid())
@@ -60,6 +81,10 @@ void UserDataStore::setProfilePictureUrl(const juce::String& url)
     sendChangeMessage();
 }
 
+/** Get proxy URL for profile picture download
+ * Returns backend proxy endpoint URL to work around SSL issues on Linux
+ * @return Proxy URL if user ID is available, empty string otherwise
+ */
 juce::String UserDataStore::getProxyUrl() const
 {
     // If we have a user ID, use the backend proxy endpoint
@@ -71,6 +96,10 @@ juce::String UserDataStore::getProxyUrl() const
     return "";
 }
 
+/** Set a local image for immediate preview (while uploading)
+ * Loads an image file directly from disk for immediate display
+ * @param imageFile Local image file to use as preview
+ */
 void UserDataStore::setLocalPreviewImage(const juce::File& imageFile)
 {
     if (imageFile.existsAsFile())
@@ -85,6 +114,10 @@ void UserDataStore::setLocalPreviewImage(const juce::File& imageFile)
 }
 
 //==============================================================================
+/** Download profile image from URL in background
+ * Downloads the image asynchronously and updates cachedProfileImage when complete
+ * @param url URL to download image from
+ */
 void UserDataStore::downloadProfileImage(const juce::String& url)
 {
     if (isDownloadingImage)
@@ -190,6 +223,9 @@ void UserDataStore::downloadProfileImage(const juce::String& url)
     Async::run<juce::Image>(std::move(workFunc), std::move(completeFunc));
 }
 
+/** Refresh profile picture from URL
+ * Clears cached image and downloads again from the current URL
+ */
 void UserDataStore::refreshProfileImage()
 {
     if (profilePictureUrl.isNotEmpty())
@@ -200,6 +236,10 @@ void UserDataStore::refreshProfileImage()
 }
 
 //==============================================================================
+/** Fetch full profile from /api/v1/users/me
+ * Downloads complete user profile data from the backend API
+ * @param callback Optional callback called when fetch completes (true if successful)
+ */
 void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
 {
     if (!networkClient || authToken.isEmpty())
@@ -253,6 +293,9 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
 }
 
 //==============================================================================
+/** Get properties file options for persistence
+ * @return PropertiesFile options configured for Sidechain plugin
+ */
 juce::PropertiesFile::Options UserDataStore::getPropertiesOptions() const
 {
     juce::PropertiesFile::Options options;
@@ -262,6 +305,9 @@ juce::PropertiesFile::Options UserDataStore::getPropertiesOptions() const
     return options;
 }
 
+/** Save user data to persistent storage
+ * Writes user data to platform-specific settings file
+ */
 void UserDataStore::saveToSettings()
 {
     auto appProperties = std::make_unique<juce::PropertiesFile>(getPropertiesOptions());
@@ -285,6 +331,9 @@ void UserDataStore::saveToSettings()
     Log::debug("UserDataStore: Saved settings");
 }
 
+/** Load user data from persistent storage
+ * Reads user data from platform-specific settings file
+ */
 void UserDataStore::loadFromSettings()
 {
     auto appProperties = std::make_unique<juce::PropertiesFile>(getPropertiesOptions());
@@ -311,6 +360,9 @@ void UserDataStore::loadFromSettings()
     sendChangeMessage();
 }
 
+/** Clear all user data and cached images
+ * Removes all stored user information and cached profile image
+ */
 void UserDataStore::clearAll()
 {
     userId = "";

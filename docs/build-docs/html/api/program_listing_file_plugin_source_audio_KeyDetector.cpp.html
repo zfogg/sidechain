@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File KeyDetector.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File KeyDetector.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_audio_KeyDetector.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-keydetector-cpp">
+<span id="program-listing-file-plugin-source-audio-keydetector-cpp"></span><h1>Program Listing for File KeyDetector.cpp<a class="headerlink" href="#program-listing-for-file-keydetector-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_audio_KeyDetector.cpp.html#file-plugin-source-audio-keydetector-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/audio/KeyDetector.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;KeyDetector.h&quot;</span>
+
+<span class="cp">#if SIDECHAIN_HAS_KEYFINDER</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;keyfinder.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;audiodata.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;constants.h&gt;</span>
+<span class="cp">#endif</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// Key string lookup tables</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">KeyNames</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Standard key names (index matches libkeyfinder&#39;s key_t enum)</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">standardNames</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;A major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 0  - A_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;A minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 1  - A_MINOR</span>
+<span class="w">        </span><span class="s">&quot;Bb major&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 2  - B_FLAT_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;Bb minor&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 3  - B_FLAT_MINOR</span>
+<span class="w">        </span><span class="s">&quot;B major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 4  - B_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;B minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 5  - B_MINOR</span>
+<span class="w">        </span><span class="s">&quot;C major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 6  - C_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;C minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 7  - C_MINOR</span>
+<span class="w">        </span><span class="s">&quot;Db major&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 8  - D_FLAT_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;Db minor&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 9  - D_FLAT_MINOR</span>
+<span class="w">        </span><span class="s">&quot;D major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 10 - D_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;D minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 11 - D_MINOR</span>
+<span class="w">        </span><span class="s">&quot;Eb major&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 12 - E_FLAT_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;Eb minor&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 13 - E_FLAT_MINOR</span>
+<span class="w">        </span><span class="s">&quot;E major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 14 - E_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;E minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 15 - E_MINOR</span>
+<span class="w">        </span><span class="s">&quot;F major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 16 - F_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;F minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 17 - F_MINOR</span>
+<span class="w">        </span><span class="s">&quot;F# major&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 18 - G_FLAT_MAJOR (enharmonic)</span>
+<span class="w">        </span><span class="s">&quot;F# minor&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 19 - G_FLAT_MINOR (enharmonic)</span>
+<span class="w">        </span><span class="s">&quot;G major&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 20 - G_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;G minor&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// 21 - G_MINOR</span>
+<span class="w">        </span><span class="s">&quot;Ab major&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 22 - A_FLAT_MAJOR</span>
+<span class="w">        </span><span class="s">&quot;Ab minor&quot;</span><span class="p">,</span><span class="w">     </span><span class="c1">// 23 - A_FLAT_MINOR</span>
+<span class="w">        </span><span class="s">&quot;Silence&quot;</span><span class="w">       </span><span class="c1">// 24 - SILENCE</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">// Short names (Am, F#, etc.)</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">shortNames</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Am&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Bb&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Bbm&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Bm&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Cm&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Db&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Dbm&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;D&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Dm&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;Eb&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Ebm&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;E&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Em&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;F&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Fm&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;F#&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;F#m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;G&quot;</span><span class="p">,</span><span class="w">   </span><span class="s">&quot;Gm&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Ab&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;Abm&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;&quot;</span><span class="w">     </span><span class="c1">// Silence</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">// Camelot wheel notation</span>
+<span class="w">    </span><span class="c1">// Major keys: 1B-12B, Minor keys: 1A-12A</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">camelotNames</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;11B&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;8A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// A major, A minor</span>
+<span class="w">        </span><span class="s">&quot;6B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;3A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// Bb major, Bb minor</span>
+<span class="w">        </span><span class="s">&quot;1B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;10A&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// B major, B minor</span>
+<span class="w">        </span><span class="s">&quot;8B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;5A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// C major, C minor</span>
+<span class="w">        </span><span class="s">&quot;3B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;12A&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// Db major, Db minor</span>
+<span class="w">        </span><span class="s">&quot;10B&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;7A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// D major, D minor</span>
+<span class="w">        </span><span class="s">&quot;5B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;2A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// Eb major, Eb minor</span>
+<span class="w">        </span><span class="s">&quot;12B&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;9A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// E major, E minor</span>
+<span class="w">        </span><span class="s">&quot;7B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;4A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// F major, F minor</span>
+<span class="w">        </span><span class="s">&quot;2B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;11A&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// F# major, F# minor</span>
+<span class="w">        </span><span class="s">&quot;9B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;6A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// G major, G minor</span>
+<span class="w">        </span><span class="s">&quot;4B&quot;</span><span class="p">,</span><span class="w">  </span><span class="s">&quot;1A&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// Ab major, Ab minor</span>
+<span class="w">        </span><span class="s">&quot;&quot;</span><span class="w">             </span><span class="c1">// Silence</span>
+<span class="w">    </span><span class="p">};</span>
+
+<span class="w">    </span><span class="c1">// Root note values (0-11, C=0)</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">rootNotes</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="mi">9</span><span class="p">,</span><span class="w">  </span><span class="mi">9</span><span class="p">,</span><span class="w">   </span><span class="c1">// A</span>
+<span class="w">        </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">  </span><span class="c1">// Bb</span>
+<span class="w">        </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w">  </span><span class="c1">// B</span>
+<span class="w">        </span><span class="mi">0</span><span class="p">,</span><span class="w">  </span><span class="mi">0</span><span class="p">,</span><span class="w">   </span><span class="c1">// C</span>
+<span class="w">        </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">   </span><span class="c1">// Db</span>
+<span class="w">        </span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="mi">2</span><span class="p">,</span><span class="w">   </span><span class="c1">// D</span>
+<span class="w">        </span><span class="mi">3</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">,</span><span class="w">   </span><span class="c1">// Eb</span>
+<span class="w">        </span><span class="mi">4</span><span class="p">,</span><span class="w">  </span><span class="mi">4</span><span class="p">,</span><span class="w">   </span><span class="c1">// E</span>
+<span class="w">        </span><span class="mi">5</span><span class="p">,</span><span class="w">  </span><span class="mi">5</span><span class="p">,</span><span class="w">   </span><span class="c1">// F</span>
+<span class="w">        </span><span class="mi">6</span><span class="p">,</span><span class="w">  </span><span class="mi">6</span><span class="p">,</span><span class="w">   </span><span class="c1">// F#</span>
+<span class="w">        </span><span class="mi">7</span><span class="p">,</span><span class="w">  </span><span class="mi">7</span><span class="p">,</span><span class="w">   </span><span class="c1">// G</span>
+<span class="w">        </span><span class="mi">8</span><span class="p">,</span><span class="w">  </span><span class="mi">8</span><span class="p">,</span><span class="w">   </span><span class="c1">// Ab</span>
+<span class="w">        </span><span class="mi">-1</span><span class="w">       </span><span class="c1">// Silence</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// KeyDetector::Key implementation</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="w"> </span><span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="o">::</span><span class="n">fromString</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">&amp;</span><span class="w"> </span><span class="n">keyStr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Key</span><span class="w"> </span><span class="n">key</span><span class="p">;</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">trimmed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">keyStr</span><span class="p">.</span><span class="n">trim</span><span class="p">().</span><span class="n">toLowerCase</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Try to match against known key names</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">24</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">trimmed</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">KeyNames</span><span class="o">::</span><span class="n">standardNames</span><span class="p">[</span><span class="n">i</span><span class="p">]).</span><span class="n">toLowerCase</span><span class="p">()</span><span class="w"> </span><span class="o">||</span>
+<span class="w">            </span><span class="n">trimmed</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">KeyNames</span><span class="o">::</span><span class="n">shortNames</span><span class="p">[</span><span class="n">i</span><span class="p">]).</span><span class="n">toLowerCase</span><span class="p">()</span><span class="w"> </span><span class="o">||</span>
+<span class="w">            </span><span class="n">trimmed</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">KeyNames</span><span class="o">::</span><span class="n">camelotNames</span><span class="p">[</span><span class="n">i</span><span class="p">]).</span><span class="n">toLowerCase</span><span class="p">())</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">key</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">standardNames</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="n">key</span><span class="p">.</span><span class="n">shortName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">shortNames</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="n">key</span><span class="p">.</span><span class="n">camelot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">camelotNames</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="n">key</span><span class="p">.</span><span class="n">isMajor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w">  </span><span class="c1">// Even indices are major</span>
+<span class="w">            </span><span class="n">key</span><span class="p">.</span><span class="n">rootNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">rootNotes</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="n">key</span><span class="p">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">;</span><span class="w">  </span><span class="c1">// Manual selection = full confidence</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">key</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">key</span><span class="p">;</span><span class="w">  </span><span class="c1">// Invalid key</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">StringArray</span><span class="w"> </span><span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="o">::</span><span class="n">getAllKeys</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">StringArray</span><span class="w"> </span><span class="n">keys</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">24</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="n">keys</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">KeyNames</span><span class="o">::</span><span class="n">standardNames</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">keys</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">StringArray</span><span class="w"> </span><span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="o">::</span><span class="n">getAllCamelotKeys</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">StringArray</span><span class="w"> </span><span class="n">keys</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">24</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="n">keys</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">KeyNames</span><span class="o">::</span><span class="n">camelotNames</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">keys</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// KeyDetector Implementation (with libkeyfinder)</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="cp">#if SIDECHAIN_HAS_KEYFINDER</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">KeyDetector</span><span class="o">::</span><span class="n">Impl</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">Impl</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="w"> </span><span class="nf">detectKey</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span>
+<span class="w">                               </span><span class="kt">double</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">,</span>
+<span class="w">                               </span><span class="kt">int</span><span class="w"> </span><span class="n">numChannels</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Key</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">try</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Create KeyFinder AudioData</span>
+<span class="w">            </span><span class="n">KeyFinder</span><span class="o">::</span><span class="n">AudioData</span><span class="w"> </span><span class="n">audioData</span><span class="p">;</span>
+<span class="w">            </span><span class="n">audioData</span><span class="p">.</span><span class="n">setFrameRate</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">sampleRate</span><span class="p">));</span>
+<span class="w">            </span><span class="n">audioData</span><span class="p">.</span><span class="n">setChannels</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// Mix to mono</span>
+
+<span class="w">            </span><span class="c1">// Calculate number of samples</span>
+<span class="w">            </span><span class="kt">int</span><span class="w"> </span><span class="n">numSamples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">();</span>
+<span class="w">            </span><span class="n">audioData</span><span class="p">.</span><span class="n">addToSampleCount</span><span class="p">(</span><span class="n">numSamples</span><span class="p">);</span>
+
+<span class="w">            </span><span class="c1">// Mix to mono and copy to AudioData</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">numSamples</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="kt">float</span><span class="w"> </span><span class="n">sample</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+<span class="w">                </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">ch</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">numChannels</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">ch</span><span class="p">)</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">sample</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getSample</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">);</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="n">sample</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">numChannels</span><span class="p">);</span>
+
+<span class="w">                </span><span class="c1">// libkeyfinder expects samples in range [-1, 1]</span>
+<span class="w">                </span><span class="n">audioData</span><span class="p">.</span><span class="n">setSample</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">sample</span><span class="p">));</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// Run key detection</span>
+<span class="w">            </span><span class="n">KeyFinder</span><span class="o">::</span><span class="n">KeyFinder</span><span class="w"> </span><span class="n">keyFinder</span><span class="p">;</span>
+<span class="w">            </span><span class="n">KeyFinder</span><span class="o">::</span><span class="kt">key_t</span><span class="w"> </span><span class="n">detectedKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">keyFinder</span><span class="p">.</span><span class="n">keyOfAudio</span><span class="p">(</span><span class="n">audioData</span><span class="p">);</span>
+
+<span class="w">            </span><span class="c1">// Convert to our Key struct</span>
+<span class="w">            </span><span class="kt">int</span><span class="w"> </span><span class="n">keyIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">detectedKey</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">keyIndex</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keyIndex</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">24</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">result</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">standardNames</span><span class="p">[</span><span class="n">keyIndex</span><span class="p">];</span>
+<span class="w">                </span><span class="n">result</span><span class="p">.</span><span class="n">shortName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">shortNames</span><span class="p">[</span><span class="n">keyIndex</span><span class="p">];</span>
+<span class="w">                </span><span class="n">result</span><span class="p">.</span><span class="n">camelot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">camelotNames</span><span class="p">[</span><span class="n">keyIndex</span><span class="p">];</span>
+<span class="w">                </span><span class="n">result</span><span class="p">.</span><span class="n">isMajor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">keyIndex</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">                </span><span class="n">result</span><span class="p">.</span><span class="n">rootNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">rootNotes</span><span class="p">[</span><span class="n">keyIndex</span><span class="p">];</span>
+<span class="w">                </span><span class="n">result</span><span class="p">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8f</span><span class="p">;</span><span class="w">  </span><span class="c1">// libkeyfinder doesn&#39;t provide confidence</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="o">&amp;</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">DBG</span><span class="p">(</span><span class="s">&quot;Key detection failed: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">());</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="nf">KeyDetector::isAvailable</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#else</span>
+
+<span class="c1">// Stub implementation when libkeyfinder is not available</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">KeyDetector</span><span class="o">::</span><span class="n">Impl</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="w"> </span><span class="n">detectKey</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">Key</span><span class="p">();</span><span class="w">  </span><span class="c1">// Return invalid key</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="nf">KeyDetector::isAvailable</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#endif</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="c1">// KeyDetector public methods</span>
+<span class="c1">//==============================================================================</span>
+
+<span class="n">KeyDetector</span><span class="o">::</span><span class="n">KeyDetector</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">impl</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">Impl</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">KeyDetector</span><span class="o">::~</span><span class="n">KeyDetector</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="w"> </span><span class="nf">KeyDetector::detectKey</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span>
+<span class="w">                                         </span><span class="kt">double</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">,</span>
+<span class="w">                                         </span><span class="kt">int</span><span class="w"> </span><span class="n">numChannels</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">impl</span><span class="o">-&gt;</span><span class="n">detectKey</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="n">numChannels</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">KeyDetector</span><span class="o">::</span><span class="n">Key</span><span class="w"> </span><span class="nf">KeyDetector::detectKeyFromFile</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">File</span><span class="o">&amp;</span><span class="w"> </span><span class="n">audioFile</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Key</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioFormatManager</span><span class="w"> </span><span class="n">formatManager</span><span class="p">;</span>
+<span class="w">    </span><span class="n">formatManager</span><span class="p">.</span><span class="n">registerBasicFormats</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">juce</span><span class="o">::</span><span class="n">AudioFormatReader</span><span class="o">&gt;</span><span class="w"> </span><span class="n">reader</span><span class="p">(</span>
+<span class="w">        </span><span class="n">formatManager</span><span class="p">.</span><span class="n">createReaderFor</span><span class="p">(</span><span class="n">audioFile</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">reader</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">DBG</span><span class="p">(</span><span class="s">&quot;Failed to read audio file: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">audioFile</span><span class="p">.</span><span class="n">getFullPathName</span><span class="p">());</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Read entire file into buffer</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">buffer</span><span class="p">(</span>
+<span class="w">        </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">numChannels</span><span class="p">),</span>
+<span class="w">        </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">lengthInSamples</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">lengthInSamples</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">detectKey</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">sampleRate</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">numChannels</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="nf">KeyDetector::keyToString</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">keyValue</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">keyValue</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keyValue</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">25</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">standardNames</span><span class="p">[</span><span class="n">keyValue</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;Unknown&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="nf">KeyDetector::keyToCamelot</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">keyValue</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">keyValue</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keyValue</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">25</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">camelotNames</span><span class="p">[</span><span class="n">keyValue</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="nf">KeyDetector::getRootNoteName</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">keyValue</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">keyValue</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keyValue</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">24</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">noteNames</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;C&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Db&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;D&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Eb&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;E&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;F&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;F#&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;G&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Ab&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;A&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Bb&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span>
+<span class="w">        </span><span class="p">};</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">rootNote</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyNames</span><span class="o">::</span><span class="n">rootNotes</span><span class="p">[</span><span class="n">keyValue</span><span class="p">];</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rootNote</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">rootNote</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">12</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">noteNames</span><span class="p">[</span><span class="n">rootNote</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="nf">KeyDetector::isMajorKey</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">keyValue</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">keyValue</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">keyValue</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">24</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="p">(</span><span class="n">keyValue</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

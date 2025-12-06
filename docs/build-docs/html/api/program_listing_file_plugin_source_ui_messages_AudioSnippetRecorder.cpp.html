@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File AudioSnippetRecorder.cpp &mdash; Sidechain Plugin v0.0.1-79-ga8734f2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=936f4968"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sidechain Plugin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sidechain Plugin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File AudioSnippetRecorder.cpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_plugin_source_ui_messages_AudioSnippetRecorder.cpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-audiosnippetrecorder-cpp">
+<span id="program-listing-file-plugin-source-ui-messages-audiosnippetrecorder-cpp"></span><h1>Program Listing for File AudioSnippetRecorder.cpp<a class="headerlink" href="#program-listing-for-file-audiosnippetrecorder-cpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_plugin_source_ui_messages_AudioSnippetRecorder.cpp.html#file-plugin-source-ui-messages-audiosnippetrecorder-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">plugin/source/ui/messages/AudioSnippetRecorder.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;AudioSnippetRecorder.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../PluginProcessor.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Colors.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../../util/Log.h&quot;</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">AudioSnippetRecorder</span><span class="p">(</span><span class="n">SidechainAudioProcessor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">processor</span><span class="p">)</span>
+<span class="w">    </span><span class="o">:</span><span class="w"> </span><span class="n">audioProcessor</span><span class="p">(</span><span class="n">processor</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder: Initializing&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Start timer for UI updates (~30fps)</span>
+<span class="w">    </span><span class="n">startTimerHz</span><span class="p">(</span><span class="mi">30</span><span class="p">);</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder: Timer started at 30Hz for UI updates&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">AudioSnippetRecorder</span><span class="o">::~</span><span class="n">AudioSnippetRecorder</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder: Destroying&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stopTimer</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Stop recording if active</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">stopRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">timerCallback</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Check if recording stopped externally (e.g., max length reached)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">isRecording</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::timerCallback: Recording stopped externally (likely max length reached)&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">stopRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Auto-stop if max duration reached</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">hasReachedMaxDuration</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::timerCallback: Max duration reached, auto-stopping&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">stopRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Repaint for smooth animations and timer updates</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">repaint</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">paint</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Dark background</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillAll</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xff1a1a1a</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">State</span><span class="o">::</span><span class="no">Idle</span><span class="p">:</span>
+<span class="w">            </span><span class="n">drawIdleState</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">State</span><span class="o">::</span><span class="no">Recording</span><span class="p">:</span>
+<span class="w">            </span><span class="n">drawRecordingState</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">State</span><span class="o">::</span><span class="no">Preview</span><span class="p">:</span>
+<span class="w">            </span><span class="n">drawPreviewState</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">resized</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">bounds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getLocalBounds</span><span class="p">().</span><span class="n">reduced</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Compact layout for message input area</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">buttonSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">timerWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">waveformHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Record button on left</span>
+<span class="w">    </span><span class="n">recordButtonArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromLeft</span><span class="p">(</span><span class="n">buttonSize</span><span class="p">).</span><span class="n">reduced</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Timer next to button</span>
+<span class="w">    </span><span class="n">timerArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromLeft</span><span class="p">(</span><span class="n">timerWidth</span><span class="p">).</span><span class="n">reduced</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Waveform takes remaining space (if recording/preview)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">waveformArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromLeft</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">buttonSize</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">10</span><span class="p">).</span><span class="n">withHeight</span><span class="p">(</span><span class="n">waveformHeight</span><span class="p">).</span><span class="n">reduced</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Cancel and send buttons on right</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">cancelButtonArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromRight</span><span class="p">(</span><span class="n">buttonSize</span><span class="p">).</span><span class="n">reduced</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+<span class="w">            </span><span class="n">sendButtonArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">removeFromRight</span><span class="p">(</span><span class="n">buttonSize</span><span class="p">).</span><span class="n">reduced</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">mouseDown</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">recordButtonArea</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">()))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Idle</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">startRecording</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">stopRecording</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cancelButtonArea</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">())</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">cancelRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sendButtonArea</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">getPosition</span><span class="p">())</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">sendRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">mouseUp</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">MouseEvent</span><span class="o">&amp;</span><span class="w"> </span><span class="n">event</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// For hold-to-record, we could implement here, but for now using toggle</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawIdleState</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">drawRecordButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawRecordingState</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">drawRecordButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawTimer</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawWaveform</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawPreviewState</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">drawRecordButton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawTimer</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawWaveform</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawCancelButton</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="w">    </span><span class="n">drawSendButton</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawRecordButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">isRecording</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="w"> </span><span class="n">buttonColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">isRecording</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xffff0000</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">buttonColor</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">recordButtonArea</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// White circle in center</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">recordButtonArea</span><span class="p">.</span><span class="n">getCentre</span><span class="p">().</span><span class="n">toFloat</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">isRecording</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mf">8.0f</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">12.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">center</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">radius</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawTimer</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getRecordingDuration</span><span class="p">();</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">timeText</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">formatTime</span><span class="p">(</span><span class="n">duration</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">14.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="n">timeText</span><span class="p">,</span><span class="w"> </span><span class="n">timerArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Show max duration indicator</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">progress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">duration</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">MAX_DURATION_SECONDS</span><span class="p">);</span>
+<span class="w">        </span><span class="n">progress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jlimit</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="n">progress</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Progress bar below timer</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">progressBar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">timerArea</span><span class="p">.</span><span class="n">withY</span><span class="p">(</span><span class="n">timerArea</span><span class="p">.</span><span class="n">getBottom</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">3</span><span class="p">).</span><span class="n">withHeight</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xff3a3a3a</span><span class="p">));</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRect</span><span class="p">(</span><span class="n">progressBar</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">progress</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.9f</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xffff0000</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRect</span><span class="p">(</span><span class="n">progressBar</span><span class="p">.</span><span class="n">withWidth</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">progressBar</span><span class="p">.</span><span class="n">getWidth</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">progress</span><span class="p">)));</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawWaveform</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">waveformArea</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">())</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Show live waveform from processor</span>
+<span class="w">        </span><span class="c1">// For now, show a simple animated waveform placeholder</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">().</span><span class="n">withAlpha</span><span class="p">(</span><span class="mf">0.5f</span><span class="p">));</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">waveformArea</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span><span class="w"> </span><span class="mf">4.0f</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Draw animated bars (simplified - in real implementation, use actual audio levels)</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">numBars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">barWidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">waveformArea</span><span class="p">.</span><span class="n">getWidth</span><span class="p">())</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">numBars</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">maxHeight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">waveformArea</span><span class="p">.</span><span class="n">getHeight</span><span class="p">());</span>
+
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">numBars</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxHeight</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">0.3f</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.7f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">sin</span><span class="p">((</span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.5f</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.01f</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.1f</span><span class="p">));</span>
+<span class="w">            </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jlimit</span><span class="p">(</span><span class="mf">2.0f</span><span class="p">,</span><span class="w"> </span><span class="n">maxHeight</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">auto</span><span class="w"> </span><span class="n">bar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">                </span><span class="n">waveformArea</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">barWidth</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">                </span><span class="n">waveformArea</span><span class="p">.</span><span class="n">getY</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">maxHeight</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">height</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">,</span>
+<span class="w">                </span><span class="n">barWidth</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">                </span><span class="n">height</span>
+<span class="w">            </span><span class="p">);</span>
+
+<span class="w">            </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">());</span>
+<span class="w">            </span><span class="n">g</span><span class="p">.</span><span class="n">fillRoundedRectangle</span><span class="p">(</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Show recorded waveform</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">waveformPath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">generateWaveformPath</span><span class="p">(</span><span class="n">recordedAudio</span><span class="p">,</span><span class="w"> </span><span class="n">waveformArea</span><span class="p">);</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">());</span>
+<span class="w">        </span><span class="n">g</span><span class="p">.</span><span class="n">strokePath</span><span class="p">(</span><span class="n">waveformPath</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">PathStrokeType</span><span class="p">(</span><span class="mf">2.0f</span><span class="p">));</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawCancelButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colour</span><span class="p">(</span><span class="mh">0xff888888</span><span class="p">));</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">cancelButtonArea</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// X icon</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">20.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;×&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cancelButtonArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">drawSendButton</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Graphics</span><span class="o">&amp;</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">SidechainColors</span><span class="o">::</span><span class="n">primary</span><span class="p">());</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">fillEllipse</span><span class="p">(</span><span class="n">sendButtonArea</span><span class="p">.</span><span class="n">toFloat</span><span class="p">());</span>
+
+<span class="w">    </span><span class="c1">// Send icon (arrow)</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setColour</span><span class="p">(</span><span class="n">juce</span><span class="o">::</span><span class="n">Colours</span><span class="o">::</span><span class="n">white</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">setFont</span><span class="p">(</span><span class="mf">20.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g</span><span class="p">.</span><span class="n">drawText</span><span class="p">(</span><span class="s">&quot;→&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">sendButtonArea</span><span class="p">,</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Justification</span><span class="o">::</span><span class="n">centred</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">generateWaveformPath</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span>
+<span class="w">                                                      </span><span class="n">juce</span><span class="o">::</span><span class="n">Rectangle</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">bounds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">juce</span><span class="o">::</span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">path</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numSamples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numChannels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getNumChannels</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Use first channel (mono) for waveform visualization</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">numChannels</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">path</span><span class="p">;</span><span class="w">  </span><span class="c1">// Safety check: no channels available</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">channelToUse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getWidth</span><span class="p">());</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getHeight</span><span class="p">());</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">centerY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getY</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Sample the buffer (take every Nth sample for performance)</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">jmax</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">numSamples</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">width</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">path</span><span class="p">.</span><span class="n">startNewSubPath</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()),</span><span class="w"> </span><span class="n">centerY</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">numSamples</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">step</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">sample</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">getSample</span><span class="p">(</span><span class="n">channelToUse</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">);</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bounds</span><span class="p">.</span><span class="n">getX</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">numSamples</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">centerY</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sample</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.4f</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">            </span><span class="n">path</span><span class="p">.</span><span class="n">startNewSubPath</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">);</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="w">            </span><span class="n">path</span><span class="p">.</span><span class="n">lineTo</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">path</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">formatTime</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">seconds</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">minutes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">secs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="o">::</span><span class="n">formatted</span><span class="p">(</span><span class="s">&quot;%d:%02d&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">minutes</span><span class="p">,</span><span class="w"> </span><span class="n">secs</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//==============================================================================</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">startRecording</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::startRecording: Starting recording&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Check if processor is already recording (e.g., for a full post)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">isRecording</span><span class="p">())</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::startRecording: Processor already recording, cannot start snippet&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="c1">// TODO: Show error to user</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">startRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="n">recordingStartTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">getCurrentTime</span><span class="p">();</span>
+<span class="w">    </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::startRecording: State changed to Recording&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">stopRecording</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::stopRecording: Stopping recording&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Get sample rate before stopping (in case it changes)</span>
+<span class="w">    </span><span class="n">recordedSampleRate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">getCurrentSampleRate</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">stopRecording</span><span class="p">();</span>
+<span class="w">    </span><span class="n">recordedAudio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">audioProcessor</span><span class="p">.</span><span class="n">getRecordedAudio</span><span class="p">();</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numSamples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">numSamples</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">recordedSampleRate</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::stopRecording: Recording stopped - samples: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">String</span><span class="p">(</span><span class="n">numSamples</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">               </span><span class="s">&quot;, duration: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">formatTime</span><span class="p">(</span><span class="n">duration</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="p">;</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::stopRecording: Recording complete, showing preview&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Idle</span><span class="p">;</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::stopRecording: Recording stopped but no audio captured&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span><span class="w"> </span><span class="c1">// Update layout for preview state</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">cancelRecording</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::cancelRecording: Cancelling recording&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">setSize</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Idle</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onRecordingCancelled</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">onRecordingCancelled</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">resized</span><span class="p">();</span><span class="w"> </span><span class="c1">// Update layout for idle state</span>
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">sendRecording</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Log</span><span class="o">::</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::sendRecording: Sending recording&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">onRecordingComplete</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Make a copy of the audio data</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">AudioBuffer</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="w"> </span><span class="n">audioCopy</span><span class="p">(</span><span class="n">recordedAudio</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// Reset state</span>
+<span class="w">        </span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">setSize</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">        </span><span class="n">currentState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Idle</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// Call callback</span>
+<span class="w">        </span><span class="n">onRecordingComplete</span><span class="p">(</span><span class="n">audioCopy</span><span class="p">,</span><span class="w"> </span><span class="n">recordedSampleRate</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">resized</span><span class="p">();</span><span class="w"> </span><span class="c1">// Update layout for idle state</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Log</span><span class="o">::</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;AudioSnippetRecorder::sendRecording: No audio to send or callback not set&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">repaint</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">getRecordingDuration</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Recording</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">juce</span><span class="o">::</span><span class="n">int64</span><span class="w"> </span><span class="n">elapsed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">juce</span><span class="o">::</span><span class="n">Time</span><span class="o">::</span><span class="n">currentTimeMillis</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">recordingStartTime</span><span class="p">.</span><span class="n">toMilliseconds</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">elapsed</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1000.0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentState</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">State</span><span class="o">::</span><span class="n">Preview</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">recordedAudio</span><span class="p">.</span><span class="n">getNumSamples</span><span class="p">())</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">recordedSampleRate</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span><span class="w"> </span><span class="n">AudioSnippetRecorder</span><span class="o">::</span><span class="n">hasReachedMaxDuration</span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">getRecordingDuration</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">MAX_DURATION_SECONDS</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Joopal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

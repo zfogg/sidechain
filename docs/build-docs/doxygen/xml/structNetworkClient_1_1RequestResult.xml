@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="structNetworkClient_1_1RequestResult" kind="struct" language="C++" prot="public">
+    <compoundname>NetworkClient::RequestResult</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structNetworkClient_1_1RequestResult_1a33110458b35987c44e5c92bbcd56e74d" prot="public" static="no" mutable="no">
+        <type>juce::var</type>
+        <definition>juce::var NetworkClient::RequestResult::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>NetworkClient::RequestResult::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="439" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="439" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1RequestResult_1a47ac4969c70814ad7725b6ba855d222b" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NetworkClient::RequestResult::httpStatus</definition>
+        <argsstring></argsstring>
+        <name>httpStatus</name>
+        <qualifiedname>NetworkClient::RequestResult::httpStatus</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="440" column="13" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="440" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1RequestResult_1ada6a922ee9243777c50204a2cacf7f4e" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool NetworkClient::RequestResult::success</definition>
+        <argsstring></argsstring>
+        <name>success</name>
+        <qualifiedname>NetworkClient::RequestResult::success</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="441" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="441" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1RequestResult_1a5225f24312e3bc8608d7948e928d723d" prot="public" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String NetworkClient::RequestResult::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>NetworkClient::RequestResult::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="442" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="442" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structNetworkClient_1_1RequestResult_1ab91d291e9571da30c4d5eda414803f21" prot="public" static="no" mutable="no">
+        <type>juce::StringPairArray</type>
+        <definition>juce::StringPairArray NetworkClient::RequestResult::responseHeaders</definition>
+        <argsstring></argsstring>
+        <name>responseHeaders</name>
+        <qualifiedname>NetworkClient::RequestResult::responseHeaders</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="443" column="31" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="443" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structNetworkClient_1_1RequestResult_1ad1508c8353cb094f2f23efa7283bbc24" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool NetworkClient::RequestResult::isSuccess</definition>
+        <argsstring>() const</argsstring>
+        <name>isSuccess</name>
+        <qualifiedname>NetworkClient::RequestResult::isSuccess</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="446" column="14" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="446" bodyend="446"/>
+      </memberdef>
+      <memberdef kind="function" id="structNetworkClient_1_1RequestResult_1a7cc95216eda19654161f1c32e25efe32" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::String</type>
+        <definition>juce::String NetworkClient::RequestResult::getUserFriendlyError</definition>
+        <argsstring>() const</argsstring>
+        <name>getUserFriendlyError</name>
+        <qualifiedname>NetworkClient::RequestResult::getUserFriendlyError</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="449" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.cpp" bodystart="26" bodyend="69"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" line="437" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/network/NetworkClient.h" bodystart="438" bodyend="450"/>
+    <listofallmembers>
+      <member refid="structNetworkClient_1_1RequestResult_1a33110458b35987c44e5c92bbcd56e74d" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>data</name></member>
+      <member refid="structNetworkClient_1_1RequestResult_1a5225f24312e3bc8608d7948e928d723d" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>errorMessage</name></member>
+      <member refid="structNetworkClient_1_1RequestResult_1a7cc95216eda19654161f1c32e25efe32" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>getUserFriendlyError</name></member>
+      <member refid="structNetworkClient_1_1RequestResult_1a47ac4969c70814ad7725b6ba855d222b" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>httpStatus</name></member>
+      <member refid="structNetworkClient_1_1RequestResult_1ad1508c8353cb094f2f23efa7283bbc24" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>isSuccess</name></member>
+      <member refid="structNetworkClient_1_1RequestResult_1ab91d291e9571da30c4d5eda414803f21" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>responseHeaders</name></member>
+      <member refid="structNetworkClient_1_1RequestResult_1ada6a922ee9243777c50204a2cacf7f4e" prot="public" virt="non-virtual"><scope>NetworkClient::RequestResult</scope><name>success</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,683 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.15.0" xml:lang="en-US">
+  <compounddef id="classNotificationListComponent" kind="class" language="C++" prot="public">
+    <compoundname>NotificationListComponent</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">juce::Component</basecompoundref>
+    <basecompoundref prot="public" virt="non-virtual">juce::ScrollBar::Listener</basecompoundref>
+    <includes refid="NotificationListComponent_8h" local="no">NotificationListComponent.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classNotificationListComponent_1aa32b7924bf49785444b9825788f9b812" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void(const <ref refid="structNotificationItem" kindref="compound">NotificationItem</ref> &amp;)&gt;</type>
+        <definition>std::function&lt;void(const NotificationItem&amp;)&gt; NotificationListComponent::onNotificationClicked</definition>
+        <argsstring></argsstring>
+        <name>onNotificationClicked</name>
+        <qualifiedname>NotificationListComponent::onNotificationClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="117" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1aa8fe6d0d4f1d043bde0f553901cd2647" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; NotificationListComponent::onMarkAllReadClicked</definition>
+        <argsstring></argsstring>
+        <name>onMarkAllReadClicked</name>
+        <qualifiedname>NotificationListComponent::onMarkAllReadClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="118" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1ac23d4e6ae4e03a5c5e8bef3dd81c3ebd" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; NotificationListComponent::onCloseClicked</definition>
+        <argsstring></argsstring>
+        <name>onCloseClicked</name>
+        <qualifiedname>NotificationListComponent::onCloseClicked</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="119" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a246a4200e871318f3b3a6d2520e798ba" prot="public" static="no" mutable="no">
+        <type>std::function&lt; void()&gt;</type>
+        <definition>std::function&lt;void()&gt; NotificationListComponent::onRefreshRequested</definition>
+        <argsstring></argsstring>
+        <name>onRefreshRequested</name>
+        <qualifiedname>NotificationListComponent::onRefreshRequested</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="120" column="19" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="classNotificationListComponent_1ab6e726a2244809e6b9e49777aeaef51c" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int NotificationListComponent::HEADER_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>HEADER_HEIGHT</name>
+        <qualifiedname>NotificationListComponent::HEADER_HEIGHT</qualifiedname>
+        <initializer>= 50</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="130" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a43d7311f681de1f0d7e0ec49aa372dee" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int NotificationListComponent::PREFERRED_WIDTH</definition>
+        <argsstring></argsstring>
+        <name>PREFERRED_WIDTH</name>
+        <qualifiedname>NotificationListComponent::PREFERRED_WIDTH</qualifiedname>
+        <initializer>= 360</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="131" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="131" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1ae3e169bfd27be0defebe01e3c68dfc5d" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>int NotificationListComponent::MAX_HEIGHT</definition>
+        <argsstring></argsstring>
+        <name>MAX_HEIGHT</name>
+        <qualifiedname>NotificationListComponent::MAX_HEIGHT</qualifiedname>
+        <initializer>= 500</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="132" column="26" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classNotificationListComponent_1a111c0fa361e2ab7b744b1623bee7f9de" prot="private" static="no" mutable="no">
+        <type>juce::Array&lt; <ref refid="structNotificationItem" kindref="compound">NotificationItem</ref> &gt;</type>
+        <definition>juce::Array&lt;NotificationItem&gt; NotificationListComponent::notifications</definition>
+        <argsstring></argsstring>
+        <name>notifications</name>
+        <qualifiedname>NotificationListComponent::notifications</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="136" column="17" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a3fe36fb634cfa8a36937b4f9bdae9d16" prot="private" static="no" mutable="no">
+        <type>juce::OwnedArray&lt; <ref refid="classNotificationRowComponent" kindref="compound">NotificationRowComponent</ref> &gt;</type>
+        <definition>juce::OwnedArray&lt;NotificationRowComponent&gt; NotificationListComponent::rowComponents</definition>
+        <argsstring></argsstring>
+        <name>rowComponents</name>
+        <qualifiedname>NotificationListComponent::rowComponents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="137" column="22" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="137" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1aa2ed40bfd3d82cfbca2f7697c1ce72dd" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NotificationListComponent::unseenCount</definition>
+        <argsstring></argsstring>
+        <name>unseenCount</name>
+        <qualifiedname>NotificationListComponent::unseenCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="139" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="139" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a1bccf92ec4d7e8e70bbdc5c37c5331c2" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NotificationListComponent::unreadCount</definition>
+        <argsstring></argsstring>
+        <name>unreadCount</name>
+        <qualifiedname>NotificationListComponent::unreadCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="140" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a1a391f6251a24dd6dc40e926acd7e5f1" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool NotificationListComponent::isLoading</definition>
+        <argsstring></argsstring>
+        <name>isLoading</name>
+        <qualifiedname>NotificationListComponent::isLoading</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="141" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a457177245f60917448c4d91c702099b5" prot="private" static="no" mutable="no">
+        <type>juce::String</type>
+        <definition>juce::String NotificationListComponent::errorMessage</definition>
+        <argsstring></argsstring>
+        <name>errorMessage</name>
+        <qualifiedname>NotificationListComponent::errorMessage</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="142" column="18" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a57c12b1a1861d780db112241b8617e74" prot="private" static="no" mutable="no">
+        <type>juce::Viewport</type>
+        <definition>juce::Viewport NotificationListComponent::viewport</definition>
+        <argsstring></argsstring>
+        <name>viewport</name>
+        <qualifiedname>NotificationListComponent::viewport</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="145" column="20" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="145" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1a44209a2a524a504af99d90b757a87f18" prot="private" static="no" mutable="no">
+        <type>juce::Component</type>
+        <definition>juce::Component NotificationListComponent::contentComponent</definition>
+        <argsstring></argsstring>
+        <name>contentComponent</name>
+        <qualifiedname>NotificationListComponent::contentComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="146" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="146" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classNotificationListComponent_1acd56be8397b6e6b55fdd357dda1ee015" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int NotificationListComponent::scrollOffset</definition>
+        <argsstring></argsstring>
+        <name>scrollOffset</name>
+        <qualifiedname>NotificationListComponent::scrollOffset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="147" column="9" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="147" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classNotificationListComponent_1a9b06b6ee292ec41f267bdf3fd9c3a364" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>NotificationListComponent::NotificationListComponent</definition>
+        <argsstring>()</argsstring>
+        <name>NotificationListComponent</name>
+        <qualifiedname>NotificationListComponent::NotificationListComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="101" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="348" bodyend="357"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a7fa2c82ef6656e077fc2ca80823279da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>NotificationListComponent::~NotificationListComponent</definition>
+        <argsstring>() override</argsstring>
+        <name>~NotificationListComponent</name>
+        <qualifiedname>NotificationListComponent::~NotificationListComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="102" column="5" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="359" bodyend="363"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1afe947548a84e44f747da02465fb20079" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::setNotifications</definition>
+        <argsstring>(const juce::Array&lt; NotificationItem &gt; &amp;notifications)</argsstring>
+        <name>setNotifications</name>
+        <qualifiedname>NotificationListComponent::setNotifications</qualifiedname>
+        <param>
+          <type>const juce::Array&lt; <ref refid="structNotificationItem" kindref="compound">NotificationItem</ref> &gt; &amp;</type>
+          <declname>notifications</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="106" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="365" bodyend="373"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a2a8e078c53048fc5d2c2f93a03091289" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::clearNotifications</definition>
+        <argsstring>()</argsstring>
+        <name>clearNotifications</name>
+        <qualifiedname>NotificationListComponent::clearNotifications</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="107" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="375" bodyend="380"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a8047f7ce970bd838040c10d0d9a5b042" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::setLoading</definition>
+        <argsstring>(bool loading)</argsstring>
+        <name>setLoading</name>
+        <qualifiedname>NotificationListComponent::setLoading</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>loading</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="108" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="382" bodyend="388"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a707089d8ced7e27ce66abf2af241c9ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::setError</definition>
+        <argsstring>(const juce::String &amp;errorMessage)</argsstring>
+        <name>setError</name>
+        <qualifiedname>NotificationListComponent::setError</qualifiedname>
+        <param>
+          <type>const juce::String &amp;</type>
+          <declname>errorMessage</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="109" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="390" bodyend="396"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a53452ba21fb479fa656d3795157f75b0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::setUnseenCount</definition>
+        <argsstring>(int count)</argsstring>
+        <name>setUnseenCount</name>
+        <qualifiedname>NotificationListComponent::setUnseenCount</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="112" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="398" bodyend="402"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a9321204b5b8e232008402290b21cd264" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::setUnreadCount</definition>
+        <argsstring>(int count)</argsstring>
+        <name>setUnreadCount</name>
+        <qualifiedname>NotificationListComponent::setUnreadCount</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>count</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="113" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="404" bodyend="408"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a532f03dbb271968541356937f22d933f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::paint</definition>
+        <argsstring>(juce::Graphics &amp;g) override</argsstring>
+        <name>paint</name>
+        <qualifiedname>NotificationListComponent::paint</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="124" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="410" bodyend="438"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1ae02cf48b7199d168ebbd4a3713cef16c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::resized</definition>
+        <argsstring>() override</argsstring>
+        <name>resized</name>
+        <qualifiedname>NotificationListComponent::resized</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="125" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="493" bodyend="500"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a5851a5daa29b26008a64708d54dd29d9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::scrollBarMoved</definition>
+        <argsstring>(juce::ScrollBar *scrollBar, double newRangeStart) override</argsstring>
+        <name>scrollBarMoved</name>
+        <qualifiedname>NotificationListComponent::scrollBarMoved</qualifiedname>
+        <param>
+          <type>juce::ScrollBar *</type>
+          <declname>scrollBar</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>newRangeStart</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="126" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="533" bodyend="536"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classNotificationListComponent_1a606c90bda9b9f1f87631b968e50e70bb" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::drawHeader</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawHeader</name>
+        <qualifiedname>NotificationListComponent::drawHeader</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="151" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="440" bodyend="470"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1addf9cc95e2aea8679f4f7d3adaa69626" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::drawEmptyState</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawEmptyState</name>
+        <qualifiedname>NotificationListComponent::drawEmptyState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="152" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="472" bodyend="477"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1ad110646090b5a9e19d15709782277121" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::drawLoadingState</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawLoadingState</name>
+        <qualifiedname>NotificationListComponent::drawLoadingState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="153" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="479" bodyend="484"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1ac03629d89dbf075eeafb38a2aeffc54e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::drawErrorState</definition>
+        <argsstring>(juce::Graphics &amp;g, juce::Rectangle&lt; int &gt; bounds)</argsstring>
+        <name>drawErrorState</name>
+        <qualifiedname>NotificationListComponent::drawErrorState</qualifiedname>
+        <param>
+          <type>juce::Graphics &amp;</type>
+          <declname>g</declname>
+        </param>
+        <param>
+          <type>juce::Rectangle&lt; int &gt;</type>
+          <declname>bounds</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="154" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="486" bodyend="491"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1ad311d44c71d19d3d507878888db528a9" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::rebuildRowComponents</definition>
+        <argsstring>()</argsstring>
+        <name>rebuildRowComponents</name>
+        <qualifiedname>NotificationListComponent::rebuildRowComponents</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="157" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="502" bodyend="518"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1ac3e1930561184f522eb6f73ed62e1f62" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::layoutRows</definition>
+        <argsstring>()</argsstring>
+        <name>layoutRows</name>
+        <qualifiedname>NotificationListComponent::layoutRows</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="158" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="520" bodyend="531"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a46ce3ddaf3dc340e18253dd94de0bd0f" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; NotificationListComponent::getMarkAllReadButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getMarkAllReadButtonBounds</name>
+        <qualifiedname>NotificationListComponent::getMarkAllReadButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="161" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="538" bodyend="541"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1ac6e1a7a7b7b6e9ebb88cc6ad5eda0de6" prot="private" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>juce::Rectangle&lt; int &gt;</type>
+        <definition>juce::Rectangle&lt; int &gt; NotificationListComponent::getCloseButtonBounds</definition>
+        <argsstring>() const</argsstring>
+        <name>getCloseButtonBounds</name>
+        <qualifiedname>NotificationListComponent::getCloseButtonBounds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="162" column="21" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="543" bodyend="546"/>
+      </memberdef>
+      <memberdef kind="function" id="classNotificationListComponent_1a81a443a5c1880553ad23b8090fbccc2b" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void NotificationListComponent::mouseDown</definition>
+        <argsstring>(const juce::MouseEvent &amp;event) override</argsstring>
+        <name>mouseDown</name>
+        <qualifiedname>NotificationListComponent::mouseDown</qualifiedname>
+        <param>
+          <type>const juce::MouseEvent &amp;</type>
+          <declname>event</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="165" column="10" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.cpp" bodystart="548" bodyend="562"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classNotificationListComponent" kindref="compound">NotificationListComponent</ref> displays a scrollable list of notification groups. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Scrollable list of grouped notifications</para>
+</listitem><listitem><para>Read/unread visual distinction (bold text, blue dot)</para>
+</listitem><listitem><para>Click to navigate to the notification target</para>
+</listitem><listitem><para>&quot;Mark all as read&quot; button</para>
+</listitem><listitem><para>Empty state when no notifications</para>
+</listitem><listitem><para>Loading state while fetching </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>NotificationListComponent</label>
+        <link refid="classNotificationListComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>NotificationListComponent</label>
+        <link refid="classNotificationListComponent"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+        <childnode refid="3" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>juce::Component</label>
+      </node>
+      <node id="3">
+        <label>juce::ScrollBar::Listener</label>
+      </node>
+    </collaborationgraph>
+    <location file="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" line="97" column="1" bodyfile="/Users/zfogg/src/github.com/zfogg/sidechain/plugin/source/ui/notifications/NotificationListComponent.h" bodystart="99" bodyend="168"/>
+    <listofallmembers>
+      <member refid="classNotificationListComponent_1a2a8e078c53048fc5d2c2f93a03091289" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>clearNotifications</name></member>
+      <member refid="classNotificationListComponent_1a44209a2a524a504af99d90b757a87f18" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>contentComponent</name></member>
+      <member refid="classNotificationListComponent_1addf9cc95e2aea8679f4f7d3adaa69626" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>drawEmptyState</name></member>
+      <member refid="classNotificationListComponent_1ac03629d89dbf075eeafb38a2aeffc54e" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>drawErrorState</name></member>
+      <member refid="classNotificationListComponent_1a606c90bda9b9f1f87631b968e50e70bb" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>drawHeader</name></member>
+      <member refid="classNotificationListComponent_1ad110646090b5a9e19d15709782277121" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>drawLoadingState</name></member>
+      <member refid="classNotificationListComponent_1a457177245f60917448c4d91c702099b5" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>errorMessage</name></member>
+      <member refid="classNotificationListComponent_1ac6e1a7a7b7b6e9ebb88cc6ad5eda0de6" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>getCloseButtonBounds</name></member>
+      <member refid="classNotificationListComponent_1a46ce3ddaf3dc340e18253dd94de0bd0f" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>getMarkAllReadButtonBounds</name></member>
+      <member refid="classNotificationListComponent_1ab6e726a2244809e6b9e49777aeaef51c" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>HEADER_HEIGHT</name></member>
+      <member refid="classNotificationListComponent_1a1a391f6251a24dd6dc40e926acd7e5f1" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>isLoading</name></member>
+      <member refid="classNotificationListComponent_1ac3e1930561184f522eb6f73ed62e1f62" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>layoutRows</name></member>
+      <member refid="classNotificationListComponent_1ae3e169bfd27be0defebe01e3c68dfc5d" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>MAX_HEIGHT</name></member>
+      <member refid="classNotificationListComponent_1a81a443a5c1880553ad23b8090fbccc2b" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>mouseDown</name></member>
+      <member refid="classNotificationListComponent_1a9b06b6ee292ec41f267bdf3fd9c3a364" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>NotificationListComponent</name></member>
+      <member refid="classNotificationListComponent_1a111c0fa361e2ab7b744b1623bee7f9de" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>notifications</name></member>
+      <member refid="classNotificationListComponent_1ac23d4e6ae4e03a5c5e8bef3dd81c3ebd" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>onCloseClicked</name></member>
+      <member refid="classNotificationListComponent_1aa8fe6d0d4f1d043bde0f553901cd2647" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>onMarkAllReadClicked</name></member>
+      <member refid="classNotificationListComponent_1aa32b7924bf49785444b9825788f9b812" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>onNotificationClicked</name></member>
+      <member refid="classNotificationListComponent_1a246a4200e871318f3b3a6d2520e798ba" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>onRefreshRequested</name></member>
+      <member refid="classNotificationListComponent_1a532f03dbb271968541356937f22d933f" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>paint</name></member>
+      <member refid="classNotificationListComponent_1a43d7311f681de1f0d7e0ec49aa372dee" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>PREFERRED_WIDTH</name></member>
+      <member refid="classNotificationListComponent_1ad311d44c71d19d3d507878888db528a9" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>rebuildRowComponents</name></member>
+      <member refid="classNotificationListComponent_1ae02cf48b7199d168ebbd4a3713cef16c" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>resized</name></member>
+      <member refid="classNotificationListComponent_1a3fe36fb634cfa8a36937b4f9bdae9d16" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>rowComponents</name></member>
+      <member refid="classNotificationListComponent_1a5851a5daa29b26008a64708d54dd29d9" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>scrollBarMoved</name></member>
+      <member refid="classNotificationListComponent_1acd56be8397b6e6b55fdd357dda1ee015" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>scrollOffset</name></member>
+      <member refid="classNotificationListComponent_1a707089d8ced7e27ce66abf2af241c9ba" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>setError</name></member>
+      <member refid="classNotificationListComponent_1a8047f7ce970bd838040c10d0d9a5b042" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>setLoading</name></member>
+      <member refid="classNotificationListComponent_1afe947548a84e44f747da02465fb20079" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>setNotifications</name></member>
+      <member refid="classNotificationListComponent_1a9321204b5b8e232008402290b21cd264" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>setUnreadCount</name></member>
+      <member refid="classNotificationListComponent_1a53452ba21fb479fa656d3795157f75b0" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>setUnseenCount</name></member>
+      <member refid="classNotificationListComponent_1a1bccf92ec4d7e8e70bbdc5c37c5331c2" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>unreadCount</name></member>
+      <member refid="classNotificationListComponent_1aa2ed40bfd3d82cfbca2f7697c1ce72dd" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>unseenCount</name></member>
+      <member refid="classNotificationListComponent_1a57c12b1a1861d780db112241b8617e74" prot="private" virt="non-virtual"><scope>NotificationListComponent</scope><name>viewport</name></member>
+      <member refid="classNotificationListComponent_1a7fa2c82ef6656e077fc2ca80823279da" prot="public" virt="non-virtual"><scope>NotificationListComponent</scope><name>~NotificationListComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
