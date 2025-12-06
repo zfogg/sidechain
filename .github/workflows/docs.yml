@@ -84,35 +84,56 @@ jobs:
 
       - name: Generate Go package documentation
         run: |
-          # Install wget for downloading godoc pages
-          sudo apt-get install -y wget
+          # Install wget and curl for downloading godoc pages
+          sudo apt-get install -y wget curl
           
           # Generate godoc HTML documentation
           mkdir -p docs/_build/html/backend/godoc
           
-          # Start godoc server in background
+          # Change to backend directory so godoc can find the Go modules
+          cd backend
+          
+          # Start godoc server in background from backend directory
           ~/go/bin/godoc -http=:6060 &
           GODOC_PID=$!
           
-          # Wait for server to start
-          sleep 5
+          # Wait for server to start and verify it's running
+          echo "Waiting for godoc server to start..."
+          for i in {1..10}; do
+            if curl -s http://localhost:6060/ > /dev/null 2>&1; then
+              echo "✓ Godoc server is running"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "✗ Godoc server failed to start"
+              kill $GODOC_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+          
+          # Go back to workspace root
+          cd ${{ github.workspace }}
           
           # Download all package pages using wget with proper options
           # Create lib directory for assets
           mkdir -p docs/_build/html/backend/godoc/lib
           
-          # Download CSS and JS assets (with error handling)
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js || echo "Warning: Failed to download godoc.js"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js || echo "Warning: Failed to download jquery.js"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css || echo "Warning: Failed to download jquery.treeview.css"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js || echo "Warning: Failed to download jquery.treeview.js"
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js || echo "Warning: Failed to download playground.js"
+          # Download CSS and JS assets
+          echo "Downloading godoc assets..."
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js
           
           # Download main pages
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html || echo "Warning: Failed to download index.html"
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html || echo "Warning: Failed to download pkg.html"
+          echo "Downloading godoc pages..."
+          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html
+          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html
           
           # Download our backend packages recursively
+          echo "Downloading backend package documentation..."
           wget -q \
             --recursive \
             --level=10 \
@@ -123,9 +144,10 @@ jobs:
             --adjust-extension \
             --page-requisites \
             --directory-prefix=docs/_build/html/backend/godoc \
-            http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ || echo "Warning: Failed to download some package pages"
+            http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/
           
           # Fix paths in downloaded HTML files to use relative paths
+          echo "Fixing paths in downloaded HTML files..."
           find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
             sed -i \
               -e 's|href="/lib/|href="lib/|g' \
@@ -134,6 +156,14 @@ jobs:
               -e 's|action="/search|action="search|g' \
               "$f" || true
           done
+          
+          # Verify we got the files
+          if [ -f "docs/_build/html/backend/godoc/index.html" ]; then
+            echo "✓ Go documentation generated successfully"
+          else
+            echo "✗ Failed to generate Go documentation"
+            exit 1
+          fi
           
           # Stop godoc
           kill $GODOC_PID || true
