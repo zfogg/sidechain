@@ -203,11 +203,22 @@ jobs:
           # Fix paths in downloaded HTML files to use relative paths
           echo "Fixing paths in downloaded HTML files..."
           find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
+            # Calculate relative depth (how many directories deep this file is from godoc root)
+            REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
+            REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
+            # Build relative path prefix (../../ for each level)
+            if [ $REL_DEPTH -gt 0 ]; then
+              REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+            else
+              REL_PREFIX=""
+            fi
+            
             sed -i \
-              -e 's|href="/lib/|href="lib/|g' \
-              -e 's|src="/lib/|src="lib/|g' \
-              -e 's|href="/pkg/|href="pkg/|g' \
-              -e 's|action="/search|action="search|g' \
+              -e 's|href="/lib/godoc/|href="'${REL_PREFIX}'lib/godoc/|g' \
+              -e 's|src="/lib/godoc/|src="'${REL_PREFIX}'lib/godoc/|g' \
+              -e 's|href="/pkg/|href="'${REL_PREFIX}pkg'/|g' \
+              -e 's|action="/search|action="'${REL_PREFIX}'search|g' \
+              -e 's|href="/src/|href="'${REL_PREFIX}'src/|g' \
               "$f" || true
           done
           
