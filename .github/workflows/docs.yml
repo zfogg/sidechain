@@ -41,9 +41,9 @@ jobs:
           pip install -r docs/requirements.txt
 
       - name: Set up Go
-        uses: actions/setup-golang@v5
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.23'
 
       - name: Install Go documentation tool
         run: |
@@ -71,9 +71,19 @@ jobs:
 
           cmake --build build-docs --target docs
 
-          # Ensure Doxygen XML output exists
-          if [ ! -d "${{ github.workspace }}/docs/doxygen/xml" ]; then
-            echo "Doxygen XML not found, creating placeholder"
+          # Copy Doxygen XML to expected location for Sphinx
+          # CMake outputs to plugin/build-docs/docs/doxygen/xml
+          # Sphinx expects it at docs/doxygen/xml
+          if [ -d "build-docs/docs/doxygen/xml" ]; then
+            echo "Copying Doxygen XML to expected location"
+            mkdir -p "${{ github.workspace }}/docs/doxygen"
+            cp -r build-docs/docs/doxygen/xml "${{ github.workspace }}/docs/doxygen/"
+          elif [ -d "build-docs/doxygen/xml" ]; then
+            echo "Copying Doxygen XML to expected location (alternate path)"
+            mkdir -p "${{ github.workspace }}/docs/doxygen"
+            cp -r build-docs/doxygen/xml "${{ github.workspace }}/docs/doxygen/"
+          else
+            echo "Warning: Doxygen XML not found, creating placeholder"
             mkdir -p "${{ github.workspace }}/docs/doxygen/xml"
           fi
 
