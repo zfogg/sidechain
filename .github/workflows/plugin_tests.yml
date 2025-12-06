@@ -1,4 +1,4 @@
-name: Build and Test Plugin and Backend
+name: Build and Test Plugin
 
 on:
   push:
@@ -122,91 +122,6 @@ jobs:
           name: Sidechain-Standalone-${{ matrix.name }}
           path: ${{ matrix.artifact_path }}/Standalone/
           if-no-files-found: warn
-
-  build-backend:
-    runs-on: ubuntu-latest
-    name: Build Backend
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: sidechain_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-          cache-dependency-path: backend/go.mod
-
-      - name: Build Backend
-        run: |
-          cd backend
-          go mod tidy
-          go build -o bin/sidechain-server cmd/server/main.go
-
-      - name: Run Tests with Coverage and JUnit
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: sidechain_test
-        run: |
-          cd backend
-          go install github.com/jstemmer/go-junit-report/v2@latest
-          go test ./... -v -race -coverprofile=coverage.out -covermode=atomic 2>&1 | go-junit-report -set-exit-code > test-results.xml
-
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v5
-        if: always()
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: backend/coverage.out
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-          verbose: true
-
-      - name: Publish Test Results
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: Backend Unit Tests
-          path: backend/test-results.xml
-          reporter: java-junit
-          fail-on-error: true
-
-      - name: Upload JUnit to Codecov
-        uses: codecov/test-results-action@v1
-        if: always()
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: backend/test-results.xml
-          flags: backend
-          name: backend-tests
-          fail_ci_if_error: false
-
-      - name: Upload Backend Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sidechain-backend-linux
-          path: backend/bin/sidechain-server
 
   test-plugin:
     runs-on: ubuntu-latest
