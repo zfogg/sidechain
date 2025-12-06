@@ -73,6 +73,9 @@ private:
     juce::String messageChannelType;   // Channel type for MessageThread view
     juce::String messageChannelId;     // Channel ID for MessageThread view
 
+    // Component animator for smooth view transitions
+    juce::ComponentAnimator viewAnimator;
+
     /** Show a specific view in the editor
      * @param view The view to display
      */
