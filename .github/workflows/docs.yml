@@ -147,24 +147,29 @@ jobs:
           
           # Download our backend packages recursively
           echo "Downloading backend package documentation..."
-          # First verify the package exists
-          if curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ > /dev/null 2>&1; then
+          # First verify the package exists and test a direct download
+          TEST_DOWNLOAD=$(curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ | head -20)
+          if [ -n "$TEST_DOWNLOAD" ]; then
             echo "Package path verified, downloading..."
-            # Use wget to download package pages
-            # Note: wget may show errors for missing toolchain files, but should still download HTML
+            # Download the main package page first
+            mkdir -p docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend
+            curl -s http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ > docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend/index.html || echo "Warning: Failed to download package index"
+            
+            # Use wget to download package pages recursively
+            # Accept only HTML files, reject images and other assets
             wget \
               --recursive \
-              --level=10 \
+              --level=5 \
               --no-parent \
               --no-host-directories \
-              --cut-dirs=1 \
+              --cut-dirs=2 \
               --convert-links \
               --adjust-extension \
               --directory-prefix=docs/_build/html/backend/godoc \
-              --reject="robots.txt,*.png,*.ico" \
               --accept="*.html" \
+              --reject="robots.txt,*.png,*.ico,*.jpg,*.gif,*.css,*.js" \
               --no-verbose \
-              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ 2>&1 | grep -v "lstat.*no such file" | grep -v "File.*robots.txt" | grep -v "File.*\.png" || true
+              http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ 2>&1 | grep -E "(saved|Downloaded|ERROR)" | head -20 || true
             echo "Package download completed"
             # List what we got
             echo "Downloaded files:"
