@@ -10,6 +10,22 @@ ProfileSetup::ProfileSetup()
     Log::info("ProfileSetup: Initialization complete");
 }
 
+// Layout constants for responsive design
+namespace ProfileSetupLayout
+{
+    constexpr int HEADER_HEIGHT = 60;
+    constexpr int TITLE_AREA_HEIGHT = 100;
+    constexpr int PROFILE_PIC_SIZE = 150;
+    constexpr int BUTTON_HEIGHT = 36;
+    constexpr int SMALL_BUTTON_HEIGHT = 32;
+    constexpr int BUTTON_SPACING = 10;
+    constexpr int CONTENT_WIDTH = 500;  // Maximum content width
+    constexpr int LOGOUT_BUTTON_WIDTH = 140;
+    constexpr int UPLOAD_BUTTON_WIDTH = 150;
+    constexpr int SKIP_BUTTON_WIDTH = 70;
+    constexpr int CONTINUE_BUTTON_WIDTH = 90;
+}
+
 ProfileSetup::~ProfileSetup()
 {
     Log::debug("ProfileSetup: Destroying profile setup component");
@@ -85,54 +101,149 @@ void ProfileSetup::setProfilePictureUrl(const juce::String& s3Url)
     repaint();
 }
 
+void ProfileSetup::setUploadProgress(float progress)
+{
+    isUploading = true;
+    uploadProgress = juce::jlimit(0.0f, 1.0f, progress);
+    uploadSuccess = false;
+    Log::debug("ProfileSetup::setUploadProgress: Progress = " + juce::String(static_cast<int>(progress * 100)) + "%");
+    repaint();
+}
+
+void ProfileSetup::setUploadComplete(bool success)
+{
+    isUploading = false;
+    uploadProgress = success ? 1.0f : 0.0f;
+    uploadSuccess = success;
+    Log::info("ProfileSetup::setUploadComplete: Upload " + juce::String(success ? "succeeded" : "failed"));
+    repaint();
+
+    // If success, auto-hide the success message after 3 seconds
+    if (success)
+    {
+        juce::Timer::callAfterDelay(3000, [this]() {
+            if (uploadSuccess)
+            {
+                // Keep showing success, but could reset here if desired
+            }
+        });
+    }
+}
+
+void ProfileSetup::resetUploadState()
+{
+    isUploading = false;
+    uploadProgress = 0.0f;
+    uploadSuccess = false;
+    Log::debug("ProfileSetup::resetUploadState: Upload state reset");
+    repaint();
+}
+
 void ProfileSetup::paint(juce::Graphics& g)
 {
+    using namespace ProfileSetupLayout;
+
     // Background
     g.fillAll(SidechainColors::background());
 
-    // Logout button at top-right
-    auto logoutBtnBounds = juce::Rectangle<int>(getWidth() - 150, 10, 140, 40);
+    // Calculate responsive positions
+    const int centerX = getWidth() / 2;
+    const int contentWidth = juce::jmin(CONTENT_WIDTH, getWidth() - 40);  // Cap at max width with padding
+    const int contentStartX = (getWidth() - contentWidth) / 2;
+
+    // Logout button at top-right (responsive)
+    auto logoutBtnBounds = juce::Rectangle<int>(getWidth() - LOGOUT_BUTTON_WIDTH - 10, 10, LOGOUT_BUTTON_WIDTH, 40);
     g.setColour(SidechainColors::buttonDanger());
     g.fillRoundedRectangle(logoutBtnBounds.toFloat(), 6.0f);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(16.0f);
     g.drawText("Logout", logoutBtnBounds, juce::Justification::centred);
 
-    // Header
+    // Header - centered with responsive width
+    auto headerArea = getLocalBounds().withY(HEADER_HEIGHT).withHeight(40);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(24.0f);
-    g.drawText("Complete Your Profile", getLocalBounds().withY(60).withHeight(40), juce::Justification::centred);
+    g.drawText("Complete Your Profile", headerArea, juce::Justification::centred);
 
     g.setColour(SidechainColors::textSecondary());
     g.setFont(16.0f);
-    g.drawText("Welcome " + username + "! Let's set up your profile.", getLocalBounds().withY(110).withHeight(30), juce::Justification::centred);
+    auto subtitleArea = getLocalBounds().withY(HEADER_HEIGHT + 50).withHeight(30);
+    g.drawText("Welcome " + username + "! Let's set up your profile.", subtitleArea, juce::Justification::centred);
 
-    // Profile picture area (circular placeholder)
-    auto picBounds = juce::Rectangle<int>(200, 140, 150, 150);
+    // Calculate content area - profile pic on left, buttons on right
+    int contentY = HEADER_HEIGHT + TITLE_AREA_HEIGHT;
+    int totalContentWidth = PROFILE_PIC_SIZE + 30 + UPLOAD_BUTTON_WIDTH;  // pic + gap + buttons
+    int contentAreaStartX = (getWidth() - totalContentWidth) / 2;
+
+    // Profile picture area (circular placeholder) - responsive centering
+    auto picBounds = juce::Rectangle<int>(contentAreaStartX, contentY, PROFILE_PIC_SIZE, PROFILE_PIC_SIZE);
     drawCircularProfilePic(g, picBounds);
 
     // Buttons positioned to the right of the profile picture
+    int buttonX = picBounds.getRight() + 30;
+    int buttonY = contentY + 10;  // Align with top of profile pic + small offset
+
     // Upload button
-    auto uploadBtn = juce::Rectangle<int>(400, 150, 150, 36);
+    auto uploadBtn = juce::Rectangle<int>(buttonX, buttonY, UPLOAD_BUTTON_WIDTH, BUTTON_HEIGHT);
     g.setColour(SidechainColors::primary());
     g.fillRoundedRectangle(uploadBtn.toFloat(), 6.0f);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(14.0f);
-    g.drawText("📸 Upload Photo", uploadBtn, juce::Justification::centred);
+
+    // Show upload progress or button text
+    if (isUploading)
+    {
+        // Draw progress bar background
+        g.setColour(SidechainColors::primary().darker(0.3f));
+        g.fillRoundedRectangle(uploadBtn.toFloat(), 6.0f);
+
+        // Draw progress bar fill
+        auto progressWidth = static_cast<int>(uploadBtn.getWidth() * uploadProgress);
+        auto progressBounds = uploadBtn.withWidth(progressWidth);
+        g.setColour(SidechainColors::primary());
+        g.fillRoundedRectangle(progressBounds.toFloat(), 6.0f);
+
+        // Draw progress text
+        g.setColour(SidechainColors::textPrimary());
+        juce::String progressText = "Uploading " + juce::String(static_cast<int>(uploadProgress * 100)) + "%";
+        g.drawText(progressText, uploadBtn, juce::Justification::centred);
+    }
+    else if (uploadSuccess)
+    {
+        // Show success state
+        g.setColour(SidechainColors::success());
+        g.fillRoundedRectangle(uploadBtn.toFloat(), 6.0f);
+        g.setColour(SidechainColors::background());
+        g.drawText("✓ Uploaded!", uploadBtn, juce::Justification::centred);
+    }
+    else
+    {
+        g.drawText("📸 Upload Photo", uploadBtn, juce::Justification::centred);
+    }
+
+    // Skip and Continue buttons below upload button
+    int actionButtonY = buttonY + BUTTON_HEIGHT + BUTTON_SPACING;
 
     // Skip button
-    auto skipBtn = juce::Rectangle<int>(400, 196, 70, 32);
+    auto skipBtn = juce::Rectangle<int>(buttonX, actionButtonY, SKIP_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
     g.setColour(SidechainColors::buttonSecondary());
     g.fillRoundedRectangle(skipBtn.toFloat(), 4.0f);
     g.setColour(SidechainColors::textPrimary());
     g.drawText("Skip", skipBtn, juce::Justification::centred);
 
     // Continue button
-    auto continueBtn = juce::Rectangle<int>(480, 196, 70, 32);
+    auto continueBtn = juce::Rectangle<int>(buttonX + SKIP_BUTTON_WIDTH + BUTTON_SPACING, actionButtonY, CONTINUE_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT);
     g.setColour(SidechainColors::success());
     g.fillRoundedRectangle(continueBtn.toFloat(), 4.0f);
     g.setColour(SidechainColors::background());  // Dark text on mint green
     g.drawText("Continue", continueBtn, juce::Justification::centred);
+
+    // Store button bounds for hit testing
+    cachedUploadBtn = uploadBtn;
+    cachedSkipBtn = skipBtn;
+    cachedContinueBtn = continueBtn;
+    cachedPicBounds = picBounds;
+    cachedLogoutBtn = logoutBtnBounds;
 }
 
 void ProfileSetup::drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -179,16 +290,17 @@ void ProfileSetup::mouseUp(const juce::MouseEvent& event)
     auto pos = event.getPosition();
     Log::debug("ProfileSetup::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) + ")");
 
-    // Use same coordinates as paint method
-    auto uploadBtn = juce::Rectangle<int>(400, 150, 150, 36);
-    auto skipBtn = juce::Rectangle<int>(400, 196, 70, 32);
-    auto continueBtn = juce::Rectangle<int>(480, 196, 70, 32);
-    auto picBounds = juce::Rectangle<int>(200, 140, 150, 150);
-    auto logoutBtn = juce::Rectangle<int>(getWidth() - 150, 10, 140, 40);
-
-    if (uploadBtn.contains(event.getPosition()) || picBounds.contains(event.getPosition()))
+    // Use cached bounds from last paint() call for responsive hit testing
+    if (cachedUploadBtn.contains(pos) || cachedPicBounds.contains(pos))
     {
-        Log::info("ProfileSetup::mouseUp: Upload/Skip button or profile picture area clicked, opening file picker");
+        // Don't allow clicking during upload
+        if (isUploading)
+        {
+            Log::debug("ProfileSetup::mouseUp: Upload in progress, ignoring click");
+            return;
+        }
+
+        Log::info("ProfileSetup::mouseUp: Upload button or profile picture area clicked, opening file picker");
         // Open file picker for profile picture
         auto chooser = std::make_shared<juce::FileChooser>("Select Profile Picture", juce::File(), "*.jpg;*.jpeg;*.png;*.gif");
         chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
@@ -201,7 +313,10 @@ void ProfileSetup::mouseUp(const juce::MouseEvent& event)
                 profilePicUrl = selectedFile.getFullPathName(); // Temporary - will be S3 URL
                 Log::info("ProfileSetup::mouseUp: Profile picture selected: " + profilePicUrl);
 
-                // Notify parent component
+                // Reset upload states
+                uploadSuccess = false;
+
+                // Notify parent component (which will call setUploadProgress during upload)
                 if (onProfilePicSelected)
                 {
                     Log::debug("ProfileSetup::mouseUp: Calling onProfilePicSelected callback");
@@ -220,25 +335,31 @@ void ProfileSetup::mouseUp(const juce::MouseEvent& event)
             }
         });
     }
-    else if (skipBtn.contains(event.getPosition()) || continueBtn.contains(event.getPosition()))
+    else if (cachedSkipBtn.contains(pos))
     {
-        // Both skip and continue go to the feed
-        if (skipBtn.contains(event.getPosition()) && onSkipSetup)
+        Log::info("ProfileSetup::mouseUp: Skip button clicked");
+        if (onSkipSetup)
         {
-            Log::info("ProfileSetup::mouseUp: Skip button clicked");
             onSkipSetup();
         }
-        else if (continueBtn.contains(event.getPosition()) && onCompleteSetup)
+        else
         {
-            Log::info("ProfileSetup::mouseUp: Continue button clicked");
+            Log::warn("ProfileSetup::mouseUp: onSkipSetup callback not set");
+        }
+    }
+    else if (cachedContinueBtn.contains(pos))
+    {
+        Log::info("ProfileSetup::mouseUp: Continue button clicked");
+        if (onCompleteSetup)
+        {
             onCompleteSetup();
         }
         else
         {
-            Log::warn("ProfileSetup::mouseUp: Skip/Continue button clicked but callback not set");
+            Log::warn("ProfileSetup::mouseUp: onCompleteSetup callback not set");
         }
     }
-    else if (logoutBtn.contains(event.getPosition()))
+    else if (cachedLogoutBtn.contains(pos))
     {
         Log::info("ProfileSetup::mouseUp: Logout button clicked");
         if (onLogout)

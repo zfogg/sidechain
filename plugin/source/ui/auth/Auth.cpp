@@ -21,6 +21,9 @@ Auth::Auth()
     Log::debug("Auth: Setting up signup components");
     setupSignupComponents();
 
+    Log::debug("Auth: Setting up OAuth waiting components");
+    setupOAuthWaitingComponents();
+
     Log::debug("Auth: Showing welcome screen");
     showWelcome();
 
@@ -144,6 +147,15 @@ void Auth::setupSignupComponents()
     addChildComponent(signupBackButton.get());
 }
 
+void Auth::setupOAuthWaitingComponents()
+{
+    // Cancel button for OAuth waiting screen (8.3.11.11)
+    oauthCancelButton = std::make_unique<juce::TextButton>("Cancel");
+    styleSecondaryButton(*oauthCancelButton);
+    oauthCancelButton->addListener(this);
+    addChildComponent(oauthCancelButton.get());
+}
+
 //==============================================================================
 void Auth::styleTextEditor(juce::TextEditor& editor, const juce::String& placeholder, bool isPassword)
 {
@@ -223,6 +235,9 @@ void Auth::paint(juce::Graphics& g)
         case AuthMode::Signup:
             cardBounds = cardBounds.withHeight(580);
             break;
+        case AuthMode::OAuthWaiting:
+            cardBounds = cardBounds.withHeight(350);
+            break;
     }
 
     cardBounds = cardBounds.withCentre(getLocalBounds().getCentre());
@@ -254,6 +269,10 @@ void Auth::paint(juce::Graphics& g)
         case AuthMode::Signup:
             title = "Create Account";
             subtitle = "Join the community of music producers";
+            break;
+        case AuthMode::OAuthWaiting:
+            title = "Waiting for " + oauthWaitingProvider;
+            subtitle = "Complete the sign-in in your browser";
             break;
     }
 
@@ -299,6 +318,59 @@ void Auth::paint(juce::Graphics& g)
     {
         int dividerY = cardBounds.getY() + 160;
         drawDivider(g, dividerY, "or continue with");
+    }
+
+    // Draw OAuth waiting UI (8.3.11.9-12)
+    if (currentMode == AuthMode::OAuthWaiting)
+    {
+        auto contentArea = cardBounds.reduced(CARD_PADDING);
+        contentArea.removeFromTop(100);  // Skip logo/title area
+
+        // Draw animated spinner (8.3.11.9)
+        auto spinnerArea = contentArea.removeFromTop(80).withSizeKeepingCentre(60, 60);
+        g.setColour(Colors::primaryButton);
+
+        // Draw rotating dots animation
+        const int numDots = 8;
+        const float dotRadius = 4.0f;
+        const float spinnerRadius = 25.0f;
+        const float angleOffset = static_cast<float>(oauthAnimationFrame) * 0.15f;
+
+        for (int i = 0; i < numDots; ++i)
+        {
+            float angle = angleOffset + (i * juce::MathConstants<float>::twoPi / numDots);
+            float x = spinnerArea.getCentreX() + std::cos(angle) * spinnerRadius;
+            float y = spinnerArea.getCentreY() + std::sin(angle) * spinnerRadius;
+
+            // Fade dots based on position in rotation
+            float alpha = 0.3f + 0.7f * (static_cast<float>(i) / numDots);
+            g.setColour(Colors::primaryButton.withAlpha(alpha));
+            g.fillEllipse(x - dotRadius, y - dotRadius, dotRadius * 2, dotRadius * 2);
+        }
+
+        contentArea.removeFromTop(10);
+
+        // Draw "A browser window has been opened" message (8.3.11.12)
+        g.setColour(Colors::textSecondary);
+        g.setFont(14.0f);
+        auto browserMsgArea = contentArea.removeFromTop(25);
+        g.drawText("A browser window has been opened for " + oauthWaitingProvider + " sign-in.",
+                   browserMsgArea, juce::Justification::centred);
+
+        contentArea.removeFromTop(15);
+
+        // Draw countdown timer (8.3.11.10)
+        if (oauthSecondsRemaining > 0)
+        {
+            int minutes = oauthSecondsRemaining / 60;
+            int seconds = oauthSecondsRemaining % 60;
+            juce::String timeStr = juce::String::formatted("%d:%02d", minutes, seconds);
+
+            g.setColour(Colors::textSecondary);
+            g.setFont(13.0f);
+            auto countdownArea = contentArea.removeFromTop(20);
+            g.drawText("Time remaining: " + timeStr, countdownArea, juce::Justification::centred);
+        }
     }
 }
 
@@ -518,6 +590,16 @@ void Auth::resized()
             signupBackButton->setBounds(contentBounds.removeFromTop(BUTTON_HEIGHT));
             break;
         }
+
+        case AuthMode::OAuthWaiting:
+        {
+            // Skip spinner and message area (drawn in paint)
+            contentBounds.removeFromTop(150);
+
+            // Cancel button at bottom (8.3.11.11)
+            oauthCancelButton->setBounds(contentBounds.removeFromTop(BUTTON_HEIGHT));
+            break;
+        }
     }
 }
 
@@ -546,6 +628,9 @@ void Auth::hideAllComponents()
     signupConfirmPasswordEditor->setVisible(false);
     signupSubmitButton->setVisible(false);
     signupBackButton->setVisible(false);
+
+    // OAuth waiting components
+    oauthCancelButton->setVisible(false);
 }
 
 void Auth::showWelcome()
@@ -615,10 +700,55 @@ void Auth::showSignup()
     Log::debug("Auth: Signup form displayed");
 }
 
+//==============================================================================
+// OAuth Waiting Mode (8.3.11.9-12)
+//==============================================================================
+
+void Auth::showOAuthWaiting(const juce::String& provider, int timeoutSeconds)
+{
+    Log::info("Auth: Switching to OAuth waiting mode for " + provider);
+    currentMode = AuthMode::OAuthWaiting;
+    hideAllComponents();
+    clearError();
+
+    // Store OAuth state
+    oauthWaitingProvider = provider.substring(0, 1).toUpperCase() + provider.substring(1);  // Capitalize
+    oauthSecondsRemaining = timeoutSeconds;
+    oauthAnimationFrame = 0;
+
+    // Show cancel button
+    oauthCancelButton->setVisible(true);
+
+    resized();
+    repaint();
+    Log::debug("Auth: OAuth waiting screen displayed");
+}
+
+void Auth::updateOAuthCountdown(int secondsRemaining)
+{
+    oauthSecondsRemaining = secondsRemaining;
+    oauthAnimationFrame++;  // Advance animation on each update
+
+    // Trigger repaint to update countdown and spinner
+    repaint();
+}
+
+void Auth::hideOAuthWaiting()
+{
+    Log::info("Auth: Hiding OAuth waiting screen");
+    oauthWaitingProvider = "";
+    oauthSecondsRemaining = 0;
+    oauthAnimationFrame = 0;
+    showWelcome();
+}
+
 void Auth::reset()
 {
     Log::info("Auth: Resetting to initial state");
     isLoading = false;
+    oauthWaitingProvider = "";
+    oauthSecondsRemaining = 0;
+    oauthAnimationFrame = 0;
     showWelcome();
 }
 
@@ -689,6 +819,13 @@ void Auth::buttonClicked(juce::Button* button)
     {
         Log::info("Auth: Signup submit button clicked");
         handleSignup();
+    }
+    else if (button == oauthCancelButton.get())
+    {
+        Log::info("Auth: OAuth cancel button clicked");
+        hideOAuthWaiting();
+        if (onOAuthCancelled)
+            onOAuthCancelled();
     }
 }
 

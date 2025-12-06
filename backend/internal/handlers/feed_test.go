@@ -55,17 +55,23 @@ func (suite *FeedTestSuite) SetupSuite() {
 
 	database.DB = db
 
-	// Create all test tables
-	err = db.AutoMigrate(
-		&models.User{},
-		&models.OAuthProvider{},
-		&models.AudioPost{},
-		&models.Comment{},
-		&models.CommentMention{},
-		&models.Story{},
-		&models.StoryView{},
-	)
-	require.NoError(suite.T(), err)
+	// Check if tables already exist (migrations already run)
+	// Only run AutoMigrate if users table doesn't exist
+	var count int64
+	db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users'").Scan(&count)
+	if count == 0 {
+		// Create all test tables - order matters for foreign keys
+		err = db.AutoMigrate(
+			&models.User{},
+			&models.OAuthProvider{},
+			&models.AudioPost{},
+			&models.Comment{},
+			&models.CommentMention{},
+			&models.Story{},
+			&models.StoryView{},
+		)
+		require.NoError(suite.T(), err)
+	}
 
 	suite.db = db
 
@@ -213,10 +219,11 @@ func (suite *FeedTestSuite) TestGetTimeline() {
 	assert.Len(t, activities, 2)
 
 	// Verify mock was called with correct parameters
+	// Note: Handler receives user_id from context (database ID), not StreamUserID
 	assert.True(t, suite.mockStream.AssertCalled("GetUserTimeline"))
 	calls := suite.mockStream.GetCallsForMethod("GetUserTimeline")
 	assert.Len(t, calls, 1)
-	assert.Equal(t, suite.testUser.StreamUserID, calls[0].Args[0])
+	assert.Equal(t, suite.testUser.ID, calls[0].Args[0])
 }
 
 func (suite *FeedTestSuite) TestGetTimelineEmpty() {
@@ -342,8 +349,9 @@ func (suite *FeedTestSuite) TestCreatePost() {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 
-	assert.Equal(t, "post_created", response["message"])
-	assert.NotEmpty(t, response["post"])
+	assert.NotEmpty(t, response["post_id"])
+	assert.NotNil(t, response["activity"])
+	assert.NotNil(t, response["timestamp"])
 
 	// Verify mock was called
 	assert.True(t, suite.mockStream.AssertCalled("CreateLoopActivity"))
@@ -370,7 +378,8 @@ func (suite *FeedTestSuite) TestCreatePostMissingAudioURL() {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Contains(t, response["error"], "audio_url")
+	// Gin validation returns "AudioURL" (struct field name), not "audio_url"
+	assert.Contains(t, response["error"], "AudioURL")
 }
 
 // =============================================================================
@@ -409,7 +418,7 @@ func (suite *FeedTestSuite) TestFollowUser() {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, "followed", response["message"])
+	assert.Equal(t, "following", response["status"])
 
 	assert.True(t, suite.mockStream.AssertCalled("FollowUser"))
 }
@@ -446,7 +455,7 @@ func (suite *FeedTestSuite) TestUnfollowUser() {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, "unfollowed", response["message"])
+	assert.Equal(t, "unfollowed", response["status"])
 
 	assert.True(t, suite.mockStream.AssertCalled("UnfollowUser"))
 }
@@ -454,14 +463,13 @@ func (suite *FeedTestSuite) TestUnfollowUser() {
 func (suite *FeedTestSuite) TestLikePost() {
 	t := suite.T()
 
-	suite.mockStream.AddReactionWithNotificationFunc = func(kind, actorUserID, activityID, targetUserID, loopID, emoji string) error {
+	// Handler uses AddReaction for simple likes (no emoji)
+	suite.mockStream.AddReactionFunc = func(kind, userID, activityID string) error {
 		return nil
 	}
 
 	body := map[string]interface{}{
-		"activity_id":    "activity_to_like",
-		"target_user_id": "user123",
-		"loop_id":        "loop456",
+		"activity_id": "activity_to_like",
 	}
 	jsonBody, _ := json.Marshal(body)
 
@@ -476,9 +484,9 @@ func (suite *FeedTestSuite) TestLikePost() {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, "liked", response["message"])
+	assert.Equal(t, "liked", response["status"])
 
-	assert.True(t, suite.mockStream.AssertCalled("AddReactionWithNotification"))
+	assert.True(t, suite.mockStream.AssertCalled("AddReaction"))
 }
 
 func (suite *FeedTestSuite) TestUnlikePost() {
@@ -504,7 +512,7 @@ func (suite *FeedTestSuite) TestUnlikePost() {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, "unliked", response["message"])
+	assert.Equal(t, "unliked", response["status"])
 
 	assert.True(t, suite.mockStream.AssertCalled("RemoveReactionByActivityAndUser"))
 }
@@ -544,7 +552,8 @@ func (suite *FeedTestSuite) TestGetNotifications() {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 
-	assert.NotNil(t, response["notifications"])
+	// Handler returns "groups" not "notifications"
+	assert.NotNil(t, response["groups"])
 	assert.Equal(t, float64(1), response["unseen"])
 	assert.Equal(t, float64(1), response["unread"])
 
@@ -618,10 +627,26 @@ func (suite *FeedTestSuite) TestMarkNotificationsSeen() {
 func (suite *FeedTestSuite) TestGetUserFollowers() {
 	t := suite.T()
 
+	// Create follower users in database so they can be enriched
+	follower1 := &models.User{
+		Email:        "follower1@test.com",
+		Username:     "follower1",
+		DisplayName:  "Follower One",
+		StreamUserID: "stream_follower_1",
+	}
+	follower2 := &models.User{
+		Email:        "follower2@test.com",
+		Username:     "follower2",
+		DisplayName:  "Follower Two",
+		StreamUserID: "stream_follower_2",
+	}
+	require.NoError(t, suite.db.Create(follower1).Error)
+	require.NoError(t, suite.db.Create(follower2).Error)
+
 	suite.mockStream.GetFollowersFunc = func(userID string, limit, offset int) ([]*stream.FollowRelation, error) {
 		return []*stream.FollowRelation{
-			{UserID: "follower_1", FeedID: "user:follower_1", TargetID: "user:" + userID},
-			{UserID: "follower_2", FeedID: "user:follower_2", TargetID: "user:" + userID},
+			{UserID: follower1.ID, FeedID: "user:" + follower1.ID, TargetID: "user:" + userID},
+			{UserID: follower2.ID, FeedID: "user:" + follower2.ID, TargetID: "user:" + userID},
 		}, nil
 	}
 
@@ -645,9 +670,18 @@ func (suite *FeedTestSuite) TestGetUserFollowers() {
 func (suite *FeedTestSuite) TestGetUserFollowing() {
 	t := suite.T()
 
+	// Create user being followed in database so they can be enriched
+	following1 := &models.User{
+		Email:        "following1@test.com",
+		Username:     "following1",
+		DisplayName:  "Following One",
+		StreamUserID: "stream_following_1",
+	}
+	require.NoError(t, suite.db.Create(following1).Error)
+
 	suite.mockStream.GetFollowingFunc = func(userID string, limit, offset int) ([]*stream.FollowRelation, error) {
 		return []*stream.FollowRelation{
-			{UserID: "following_1", FeedID: "timeline:" + userID, TargetID: "user:following_1"},
+			{UserID: following1.ID, FeedID: "timeline:" + userID, TargetID: "user:" + following1.ID},
 		}, nil
 	}
 
