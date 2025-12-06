@@ -51,8 +51,8 @@ void CommentRow::updateLikeCount(int count, bool liked)
 //==============================================================================
 void CommentRow::paint(juce::Graphics& g)
 {
-    // Background - use UI::drawCardWithHover for consistent styling
-    UI::drawCardWithHover(g, getLocalBounds(),
+    // Background - use UIHelpers::drawCardWithHover for consistent styling
+    UIHelpers::drawCardWithHover(g, getLocalBounds(),
         SidechainColors::backgroundLight(),
         SidechainColors::backgroundLighter(),
         juce::Colours::transparentBlack,
@@ -584,7 +584,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow* row)
                     {
                         juce::MessageManager::callAsync([]() {
                             juce::AlertWindow::showMessageBoxAsync(
-                                juce::AlertWindow::InfoIcon,
+                                juce::MessageBoxIconType::InfoIcon,
                                 "Report Submitted",
                                 "Thank you for reporting this comment. We will review it shortly.");
                         });
@@ -594,7 +594,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow* row)
                         Log::error("CommentsPanel: Failed to report comment - " + result.getError());
                         juce::MessageManager::callAsync([result]() {
                             juce::AlertWindow::showMessageBoxAsync(
-                                juce::AlertWindow::WarningIcon,
+                                juce::MessageBoxIconType::WarningIcon,
                                 "Error",
                                 "Failed to report comment: " + result.getError());
                         });
@@ -711,7 +711,7 @@ void CommentsPanel::handleCommentCreated(Outcome<juce::var> commentResult)
         // Show error to user
         juce::MessageManager::callAsync([commentResult]() {
             juce::AlertWindow::showMessageBoxAsync(
-                juce::AlertWindow::WarningIcon,
+                juce::MessageBoxIconType::WarningIcon,
                 "Error",
                 "Failed to post comment: " + commentResult.getError());
         });
@@ -798,7 +798,7 @@ void CommentsPanel::submitComment()
                     Log::error("CommentsPanel::submitComment: Failed to update comment - " + commentResult.getError());
                     juce::MessageManager::callAsync([commentResult]() {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::WarningIcon,
+                            juce::MessageBoxIconType::WarningIcon,
                             "Error",
                             "Failed to update comment: " + commentResult.getError());
                     });

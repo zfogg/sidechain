@@ -1,5 +1,6 @@
 #include "Search.h"
 #include "../../network/NetworkClient.h"
+#include "../../network/StreamChatClient.h"
 #include "../../util/Colors.h"
 #include "../../util/Constants.h"
 #include "../../util/Time.h"
@@ -54,6 +55,70 @@ void Search::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
     Log::debug("Search: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void Search::setStreamChatClient(StreamChatClient* client)
+{
+    streamChatClient = client;
+    Log::info("Search::setStreamChatClient: StreamChatClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+void Search::updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status)
+{
+    if (userId.isEmpty())
+        return;
+
+    bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
+
+    // Update presence in user results
+    for (auto& user : userResults)
+    {
+        if (user.id == userId)
+        {
+            user.isOnline = isOnline;
+            user.isInStudio = isInStudio;
+
+            // Update corresponding UserCard
+            for (auto* card : userCards)
+            {
+                if (card->getUser().id == userId)
+                {
+                    auto updatedUser = card->getUser();
+                    updatedUser.isOnline = isOnline;
+                    updatedUser.isInStudio = isInStudio;
+                    card->setUser(updatedUser);
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    // Update presence in post results (for post authors)
+    for (auto& post : postResults)
+    {
+        if (post.userId == userId)
+        {
+            post.isOnline = isOnline;
+            post.isInStudio = isInStudio;
+
+            // Update corresponding PostCard
+            for (auto* card : postCards)
+            {
+                if (card->getPost().userId == userId)
+                {
+                    auto updatedPost = card->getPost();
+                    updatedPost.isOnline = isOnline;
+                    updatedPost.isInStudio = isInStudio;
+                    card->setPost(updatedPost);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Repaint to show updated online indicators
+    repaint();
 }
 
 //==============================================================================
@@ -1142,7 +1207,7 @@ void Search::showBPMPicker()
 
 void Search::showCustomBPMDialog()
 {
-    juce::AlertWindow alert("Custom BPM Range", "Enter minimum and maximum BPM values:", juce::AlertWindow::QuestionIcon);
+    juce::AlertWindow alert("Custom BPM Range", "Enter minimum and maximum BPM values:", juce::MessageBoxIconType::QuestionIcon);
 
     alert.addTextEditor("bpmMin", juce::String(bpmMin), "Minimum BPM:", false);
     alert.addTextEditor("bpmMax", juce::String(bpmMax), "Maximum BPM:", false);
@@ -1178,7 +1243,7 @@ void Search::showCustomBPMDialog()
             else
             {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Invalid Range",
                     "Please enter a valid BPM range:\n- Minimum: 0-299\n- Maximum: 1-300\n- Maximum must be greater than minimum");
             }

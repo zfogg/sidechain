@@ -1,6 +1,6 @@
 #include "UIHelpers.h"
 
-namespace UI
+namespace UIHelpers
 {
 
 //==============================================================================
@@ -333,4 +333,4 @@ void drawTooltip(juce::Graphics& g,
     g.drawText(text, bounds.reduced(6, 2), juce::Justification::centred);
 }
 
-}  // namespace UI
+}  // namespace UIHelpers

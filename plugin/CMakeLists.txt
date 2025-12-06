@@ -205,8 +205,8 @@ else()
     include(FetchContent)
     FetchContent_Declare(
         JUCE
-        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG 8.0.11
+        GIT_REPOSITORY https://github.com/zfogg/JUCE.git
+        GIT_TAG fix/audio-plugin-instance-constructor
         GIT_SHALLOW TRUE
         EXCLUDE_FROM_ALL
     )
@@ -466,6 +466,8 @@ set(SIDECHAIN_UI_MESSAGES_SOURCES
     source/ui/messages/MessageThread.h
     source/ui/messages/AudioSnippetRecorder.cpp
     source/ui/messages/AudioSnippetRecorder.h
+    source/ui/messages/UserPickerDialog.cpp
+    source/ui/messages/UserPickerDialog.h
 )
 
 # UI - Profile
@@ -528,6 +530,10 @@ set(SIDECHAIN_UI_STORIES_SOURCES
     source/ui/stories/StoryViewer.h
     source/ui/stories/PianoRoll.cpp
     source/ui/stories/PianoRoll.h
+    source/ui/stories/NoteWaterfall.cpp
+    source/ui/stories/NoteWaterfall.h
+    source/ui/stories/CircularVisualization.cpp
+    source/ui/stories/CircularVisualization.h
 )
 
 # UI - Common

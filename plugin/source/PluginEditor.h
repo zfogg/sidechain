@@ -104,6 +104,10 @@ private:
      */
     void logout();
 
+    /** Show confirmation dialog before logging out
+     */
+    void confirmAndLogout();
+
     //==============================================================================
     // Centralized user data store
     std::unique_ptr<UserDataStore> userDataStore;

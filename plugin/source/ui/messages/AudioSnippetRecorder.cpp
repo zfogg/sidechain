@@ -317,7 +317,7 @@ void AudioSnippetRecorder::startRecording()
         Log::warn("AudioSnippetRecorder::startRecording: Processor already recording, cannot start snippet");
         juce::MessageManager::callAsync([]() {
             juce::AlertWindow::showMessageBoxAsync(
-                juce::AlertWindow::WarningIcon,
+                juce::MessageBoxIconType::WarningIcon,
                 "Recording Busy",
                 "Cannot start audio snippet recording. The audio processor is already recording.");
         });

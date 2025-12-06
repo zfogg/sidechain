@@ -104,6 +104,7 @@ private:
     void drawHeader(juce::Graphics& g);
     void drawMessages(juce::Graphics& g);
     void drawMessageBubble(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int width);
+    void drawAudioSnippet(juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& messageId, const juce::String& audioUrl, double duration);
     void drawEmptyState(juce::Graphics& g);
     void drawErrorState(juce::Graphics& g);
     void drawInputArea(juce::Graphics& g);
@@ -162,6 +163,14 @@ private:
 
     // Audio snippet sending
     void sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate);
+
+    // Audio snippet playback
+    juce::String playingAudioMessageId;  // ID of message whose audio is currently playing
+    float audioPlaybackProgress = 0.0f;   // Progress 0.0-1.0 for currently playing audio
+    void playAudioSnippet(const juce::String& messageId, const juce::String& audioUrl);
+    void stopAudioSnippet();
+    juce::Rectangle<int> getAudioSnippetPlayButtonBounds(juce::Rectangle<int> audioBounds) const;
+    juce::Rectangle<int> getAudioSnippetWaveformBounds(juce::Rectangle<int> audioBounds) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MessageThreadComponent)
 };

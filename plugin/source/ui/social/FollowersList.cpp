@@ -99,12 +99,12 @@ void FollowUserRow::paint(juce::Graphics& g)
 
     if (user.isFollowing)
     {
-        UI::drawOutlineButton(g, followBounds, "Following",
+        UIHelpers::drawOutlineButton(g, followBounds, "Following",
             SidechainColors::border(), SidechainColors::textPrimary(), false, 4.0f);
     }
     else
     {
-        UI::drawButton(g, followBounds, "Follow",
+        UIHelpers::drawButton(g, followBounds, "Follow",
             SidechainColors::accent(), SidechainColors::background(), false, 4.0f);
     }
 }
@@ -400,7 +400,7 @@ void FollowersList::paint(juce::Graphics& g)
 
     // Header
     auto headerBounds = getLocalBounds().removeFromTop(HEADER_HEIGHT);
-    UI::drawCard(g, headerBounds, SidechainColors::backgroundLight());
+    UIHelpers::drawCard(g, headerBounds, SidechainColors::backgroundLight());
 
     // Header title
     g.setColour(SidechainColors::textPrimary());

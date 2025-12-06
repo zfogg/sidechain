@@ -123,7 +123,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             });
         }
     };
-    profileSetupComponent->onLogout = [this]() { logout(); };
+    profileSetupComponent->onLogout = [this]() { confirmAndLogout(); };
     addChildComponent(profileSetupComponent.get());
 
     //==========================================================================
@@ -131,11 +131,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     postsFeedComponent = std::make_unique<PostsFeed>();
     postsFeedComponent->setNetworkClient(networkClient.get());
     postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
+    // Note: StreamChatClient will be set after it's created (below)
     postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
     postsFeedComponent->onNavigateToProfile = [this](const juce::String& userId) {
         showProfile(userId);
     };
-    postsFeedComponent->onLogout = [this]() { logout(); };
+    postsFeedComponent->onLogout = [this]() { confirmAndLogout(); };
     postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };
     postsFeedComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
     addChildComponent(postsFeedComponent.get());
@@ -170,6 +171,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create UserDiscoveryComponent
     userDiscoveryComponent = std::make_unique<UserDiscovery>();
     userDiscoveryComponent->setNetworkClient(networkClient.get());
+    // Note: StreamChatClient will be set after it's created (below)
     userDiscoveryComponent->onBackPressed = [this]() {
         navigateBack();
     };
@@ -221,7 +223,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
                             Log::error("Story upload failed: " + result.getError());
                             juce::MessageManager::callAsync([result]() {
                                 juce::AlertWindow::showMessageBoxAsync(
-                                    juce::AlertWindow::WarningIcon,
+                                    juce::MessageBoxIconType::WarningIcon,
                                     "Upload Error",
                                     "Failed to upload story: " + result.getError());
                             });
@@ -247,6 +249,29 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         if (headerComponent)
             headerComponent->setUnreadMessageCount(totalUnread);
     });
+
+    // Wire up presence changed callback to update UI components in real-time
+    streamChatClient->setPresenceChangedCallback([this](const StreamChatClient::UserPresence& presence) {
+        // Update presence in all components that display user status
+        if (postsFeedComponent)
+            postsFeedComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+        if (profileComponent)
+            profileComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+        if (userDiscoveryComponent)
+            userDiscoveryComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+        if (searchComponent)
+            searchComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+    });
+
+    // Wire StreamChatClient to components that need presence queries
+    if (postsFeedComponent)
+        postsFeedComponent->setStreamChatClient(streamChatClient.get());
+    if (profileComponent)
+        profileComponent->setStreamChatClient(streamChatClient.get());
+    if (userDiscoveryComponent)
+        userDiscoveryComponent->setStreamChatClient(streamChatClient.get());
+    if (searchComponent)
+        searchComponent->setStreamChatClient(streamChatClient.get());
 
     //==========================================================================
     // Create MessagesList
@@ -292,6 +317,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create Profile
     profileComponent = std::make_unique<Profile>();
     profileComponent->setNetworkClient(networkClient.get());
+    // Note: StreamChatClient will be set after it's created (below)
     profileComponent->onBackPressed = [this]() {
         navigateBack();
     };
@@ -839,6 +865,24 @@ void SidechainAudioProcessorEditor::logout()
     showView(AppView::Authentication);
 }
 
+void SidechainAudioProcessorEditor::confirmAndLogout()
+{
+    juce::AlertWindow::showOkCancelBox(
+        juce::MessageBoxIconType::QuestionIcon,
+        "Logout",
+        "Are you sure you want to logout?",
+        "Logout",
+        "Cancel",
+        nullptr,
+        juce::ModalCallbackFunction::create([this](int result) {
+            if (result == 1) // OK button
+            {
+                logout();
+            }
+        })
+    );
+}
+
 //==============================================================================
 void SidechainAudioProcessorEditor::saveLoginState()
 {
@@ -981,7 +1025,7 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash()
             // Show notification after a short delay to ensure UI is ready
             juce::MessageManager::callAsync([]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Previous Session Ended Unexpectedly",
                     "The plugin did not shut down cleanly during the last session. "
                     "This may indicate a crash or unexpected termination.\n\n"
@@ -1240,13 +1284,36 @@ void SidechainAudioProcessorEditor::setupNotifications()
         hideNotificationPanel();
 
         // Navigate based on notification type
-        if (item.verb == "follow")
+        if (item.verb == "follow" && item.actorId.isNotEmpty())
         {
-            // Could navigate to the follower's profile
+            // Navigate to the follower's profile
+            showProfile(item.actorId);
         }
-        else if (item.verb == "like" || item.verb == "comment")
+        else if ((item.verb == "like" || item.verb == "comment" || item.verb == "mention") && item.targetId.isNotEmpty())
         {
-            // Could navigate to the post
+            // Navigate to posts feed and show the post (via comments panel)
+            if (item.targetType == "loop" || item.targetType == "comment")
+            {
+                // Navigate to posts feed first
+                showView(AppView::PostsFeed);
+
+                // After a brief delay, load the specific post and show comments
+                juce::Timer::callAfterDelay(200, [this, postId = item.targetId]() {
+                    if (postsFeedComponent)
+                    {
+                        // Find the post in the feed and show its comments
+                        postsFeedComponent->refreshFeed();
+                        // Note: Full post navigation would require loading the post by ID
+                        // For now, refreshing the feed will show recent posts including this one
+                        Log::debug("PluginEditor: Notification clicked - refreshing feed to show post: " + postId);
+                    }
+                });
+            }
+        }
+        else if (item.targetType == "user" && item.targetId.isNotEmpty())
+        {
+            // Navigate to user profile
+            showProfile(item.targetId);
         }
     };
     notificationList->onMarkAllReadClicked = [this]() {

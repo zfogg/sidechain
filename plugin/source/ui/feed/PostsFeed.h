@@ -87,6 +87,9 @@ public:
     void handleFollowerCountUpdate(const juce::String& userId, int followerCount);
     void showNewPostsToast(int count);
 
+    // Presence updates (6.5.2.7)
+    void updateUserPresence(const juce::String& userId, bool isOnline, const juce::String& status);
+
     // ScrollBar::Listener
     void scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart) override;
 

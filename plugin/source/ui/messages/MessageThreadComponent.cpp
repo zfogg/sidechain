@@ -232,6 +232,54 @@ void MessageThreadComponent::mouseUp(const juce::MouseEvent& event)
         }
     }
 
+    // Check for audio snippet play button clicks
+    for (const auto& message : messages)
+    {
+        auto messageBounds = getMessageBounds(message);
+        if (messageBounds.contains(pos))
+        {
+            // Check if message has audio snippet
+            juce::String audioUrl;
+            double audioDuration = 0.0;
+            if (message.extraData.isObject())
+            {
+                auto* extraObj = message.extraData.getDynamicObject();
+                if (extraObj != nullptr)
+                {
+                    audioUrl = extraObj->getProperty("audio_url").toString();
+                    auto durationVar = extraObj->getProperty("audio_duration");
+                    if (durationVar.isDouble() || durationVar.isInt())
+                        audioDuration = static_cast<double>(durationVar);
+                }
+            }
+
+            if (!audioUrl.isEmpty() && audioDuration > 0.0)
+            {
+                // Check if click is on audio snippet play button
+                // Calculate audio snippet bounds within message bubble
+                int audioSnippetY = messageBounds.getY();
+                // Find text height to position audio snippet below text
+                juce::Font font(14.0f);
+                int textHeight = static_cast<int>(font.getHeight() * (message.text.length() / 50.0f + 1));
+                audioSnippetY += 40 + textHeight + 10; // Account for parent preview + text + padding
+
+                auto audioBounds = juce::Rectangle<int>(
+                    messageBounds.getX() + 10,
+                    audioSnippetY,
+                    messageBounds.getWidth() - 20,
+                    60
+                );
+
+                auto playButtonBounds = getAudioSnippetPlayButtonBounds(audioBounds);
+                if (playButtonBounds.contains(pos))
+                {
+                    playAudioSnippet(message.id, audioUrl);
+                    return;
+                }
+            }
+        }
+    }
+
     // Right-click on message for actions menu
     if (event.mods.isRightButtonDown())
     {
@@ -472,7 +520,7 @@ void MessageThreadComponent::sendMessage()
             Log::error("MessageThreadComponent: Failed to send message - " + result.getError());
             juce::MessageManager::callAsync([result]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Error",
                     "Failed to send message: " + result.getError());
             });
@@ -497,14 +545,32 @@ void MessageThreadComponent::timerCallback()
     if (!typingUserName.isEmpty())
     {
         // This will be cleared by the timer - typing indicator auto-expires
-        // The polling will pick up new typing events
     }
 
-    // Reload messages periodically (less frequently since we have polling)
-    if (threadState == ThreadState::Loaded || threadState == ThreadState::Empty)
+    // Update audio playback progress if playing
+    if (!playingAudioMessageId.isEmpty() && audioProcessor)
     {
-        // Only reload via timer if not using real-time watching
-        // The watchChannel already polls every 2 seconds
+        // Get progress from audio player (simplified - would need to query AudioPlayer for actual progress)
+        // For now, just increment progress (in real implementation, get from AudioPlayer)
+        audioPlaybackProgress += 0.01f; // Increment by 1% per timer tick (timer runs every 5 seconds, so this is approximate)
+        if (audioPlaybackProgress >= 1.0f)
+        {
+            stopAudioSnippet();
+        }
+        repaint();
+    }
+
+    // Update audio playback progress if playing
+    if (!playingAudioMessageId.isEmpty() && audioProcessor)
+    {
+        // Get progress from audio player (simplified - would need to query AudioPlayer for actual progress)
+        // For now, just increment progress (in real implementation, get from AudioPlayer)
+        audioPlaybackProgress += 0.01f; // Increment by 1% per timer tick (timer runs every 5 seconds, so this is approximate)
+        if (audioPlaybackProgress >= 1.0f)
+        {
+            stopAudioSnippet();
+        }
+        repaint();
     }
 }
 
@@ -655,10 +721,49 @@ void MessageThreadComponent::drawMessageBubble(juce::Graphics& g, const StreamCh
                             static_cast<float>(parentPreviewBounds.getRight()));
     }
 
-    // Draw message text
-    g.setColour(juce::Colours::white);
-    auto textBounds = bubbleBounds.reduced(bubblePadding).withTrimmedTop(parentPreviewHeight).withTrimmedBottom(16);
-    layout.draw(g, textBounds.toFloat());
+    // Check for audio snippet in extraData
+    juce::String audioUrl;
+    double audioDuration = 0.0;
+    bool hasAudioSnippet = false;
+    if (message.extraData.isObject())
+    {
+        auto* extraObj = message.extraData.getDynamicObject();
+        if (extraObj != nullptr)
+        {
+            audioUrl = extraObj->getProperty("audio_url").toString();
+            auto durationVar = extraObj->getProperty("audio_duration");
+            if (durationVar.isDouble() || durationVar.isInt())
+                audioDuration = static_cast<double>(durationVar);
+            hasAudioSnippet = !audioUrl.isEmpty() && audioDuration > 0.0;
+        }
+    }
+
+    // Adjust bubble height for audio snippet
+    int audioSnippetHeight = 0;
+    if (hasAudioSnippet)
+    {
+        audioSnippetHeight = 60; // Height for audio snippet UI (waveform + controls)
+        bubbleHeight += audioSnippetHeight;
+        bubbleBounds = juce::Rectangle<int>(bubbleX, y, bubbleWidth, bubbleHeight);
+    }
+
+    // Draw message text (if not empty)
+    if (message.text.isNotEmpty())
+    {
+        g.setColour(juce::Colours::white);
+        auto textBounds = bubbleBounds.reduced(bubblePadding).withTrimmedTop(parentPreviewHeight).withTrimmedBottom(hasAudioSnippet ? audioSnippetHeight + 16 : 16);
+        layout.draw(g, textBounds.toFloat());
+    }
+
+    // Draw audio snippet if present
+    if (hasAudioSnippet)
+    {
+        auto audioBounds = bubbleBounds.reduced(bubblePadding)
+            .withTrimmedTop(parentPreviewHeight + (message.text.isNotEmpty() ? textHeight + 10 : 0))
+            .withHeight(audioSnippetHeight - 10);
+
+        drawAudioSnippet(g, audioBounds, message.id, audioUrl, audioDuration);
+    }
 
     // Draw timestamp
     g.setColour(juce::Colour(0xffcccccc));
@@ -828,7 +933,27 @@ int MessageThreadComponent::calculateMessageHeight(const StreamChatClient::Messa
     layout.createLayout(attrStr, static_cast<float>(maxWidth - 2 * bubblePadding - threadIndent));
 
     int textHeight = static_cast<int>(layout.getHeight());
-    return textHeight + 2 * bubblePadding + 20 + parentPreviewHeight + MESSAGE_BUBBLE_PADDING; // Text + padding + timestamp + parent preview + gap
+
+    // Check for audio snippet
+    int audioSnippetHeight = 0;
+    if (message.extraData.isObject())
+    {
+        auto* extraObj = message.extraData.getDynamicObject();
+        if (extraObj != nullptr)
+        {
+            juce::String audioUrl = extraObj->getProperty("audio_url").toString();
+            auto durationVar = extraObj->getProperty("audio_duration");
+            double audioDuration = 0.0;
+            if (durationVar.isDouble() || durationVar.isInt())
+                audioDuration = static_cast<double>(durationVar);
+            if (!audioUrl.isEmpty() && audioDuration > 0.0)
+            {
+                audioSnippetHeight = 60; // Height for audio snippet UI
+            }
+        }
+    }
+
+    return textHeight + 2 * bubblePadding + 20 + parentPreviewHeight + audioSnippetHeight + MESSAGE_BUBBLE_PADDING; // Text + padding + timestamp + parent preview + audio snippet + gap
 }
 
 int MessageThreadComponent::calculateTotalMessagesHeight()
@@ -1148,7 +1273,7 @@ void MessageThreadComponent::reportMessage(const StreamChatClient::Message& mess
                     Log::info("MessageThreadComponent: Message reported successfully");
                     juce::MessageManager::callAsync([]() {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::InfoIcon,
+                            juce::MessageBoxIconType::InfoIcon,
                             "Report Submitted",
                             "Thank you for reporting this message. We will review it shortly.");
                     });
@@ -1158,7 +1283,7 @@ void MessageThreadComponent::reportMessage(const StreamChatClient::Message& mess
                     Log::error("MessageThreadComponent: Failed to report message - " + result.getError());
                     juce::MessageManager::callAsync([result]() {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::AlertWindow::WarningIcon,
+                            juce::MessageBoxIconType::WarningIcon,
                             "Error",
                             "Failed to report message: " + result.getError());
                     });
@@ -1205,7 +1330,7 @@ void MessageThreadComponent::blockUser(const StreamChatClient::Message& message)
             Log::error("MessageThreadComponent: Failed to block user - " + result.getError());
             juce::MessageManager::callAsync([result]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Error",
                     "Failed to block user: " + result.getError());
             });
@@ -1250,7 +1375,7 @@ void MessageThreadComponent::leaveGroup()
             Log::error("MessageThreadComponent: Failed to leave group - " + result.getError());
             juce::MessageManager::callAsync([result]() {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::AlertWindow::WarningIcon,
+                    juce::MessageBoxIconType::WarningIcon,
                     "Error",
                     "Failed to leave group: " + result.getError());
             });
@@ -1273,7 +1398,7 @@ void MessageThreadComponent::renameGroup()
     }
 
     // Show input dialog using JUCE AlertWindow
-    juce::AlertWindow alert("Rename Group", "Enter a new name for this group:", juce::AlertWindow::QuestionIcon);
+    juce::AlertWindow alert("Rename Group", "Enter a new name for this group:", juce::MessageBoxIconType::QuestionIcon);
     alert.addTextEditor("name", channelName, "Group name:");
     alert.addButton("Rename", 1, juce::KeyPress(juce::KeyPress::returnKey));
     alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
@@ -1284,7 +1409,7 @@ void MessageThreadComponent::renameGroup()
             juce::String newName = alert.getTextEditorContents("name").trim();
             if (newName.isEmpty())
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
                     "Invalid Name", "Group name cannot be empty.");
                 return;
             }
@@ -1312,7 +1437,7 @@ void MessageThreadComponent::renameGroup()
                     {
                         Log::error("MessageThreadComponent: Failed to rename group - " + result.getError());
                         juce::MessageManager::callAsync([result]() {
-                            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
                                 "Error", "Failed to rename group: " + result.getError());
                         });
                     }
@@ -1390,7 +1515,7 @@ void MessageThreadComponent::showAddMembersDialog()
                         Log::error("MessageThreadComponent: Failed to add members - " + result.getError());
                         juce::MessageManager::callAsync([result]() {
                             juce::AlertWindow::showMessageBoxAsync(
-                                juce::AlertWindow::WarningIcon,
+                                juce::MessageBoxIconType::WarningIcon,
                                 "Error",
                                 "Failed to add members: " + result.getError());
                         });
@@ -1413,7 +1538,7 @@ void MessageThreadComponent::showRemoveMembersDialog()
     auto members = currentChannel.members;
     if (!members.isArray())
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
             "Remove Members",
             "Unable to load member list.");
         return;
@@ -1422,7 +1547,7 @@ void MessageThreadComponent::showRemoveMembersDialog()
     auto* membersArray = members.getArray();
     if (membersArray == nullptr || membersArray->size() <= 2)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
             "Remove Members",
             "This group doesn't have enough members to remove.");
         return;
@@ -1466,24 +1591,60 @@ void MessageThreadComponent::showRemoveMembersDialog()
 
     if (memberIds.size() == 0)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
             "Remove Members",
             "No other members to remove.");
         return;
     }
 
-    // Show selection dialog using AlertWindow with checkboxes
-    juce::AlertWindow alert("Remove Members", "Select members to remove:", juce::AlertWindow::QuestionIcon);
-
-    // Add checkboxes for each member
-    for (int i = 0; i < memberIds.size(); ++i)
+    // Show selection dialog - for now, just remove first member (full multi-select UI pending)
+    // TODO: Implement proper multi-select dialog with checkboxes
+    if (memberIds.size() == 1)
     {
-        alert.addToggleButton(memberNames[i], false, "member_" + juce::String(i));
+        // Single member - show confirmation
+        juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::QuestionIcon)
+            .withTitle("Remove Member")
+            .withMessage("Remove " + memberNames[0] + " from this group?")
+            .withButton("Remove")
+            .withButton("Cancel"),
+            [this, memberIds](int result) {
+                if (result == 1 && streamChatClient)
+                {
+                    std::vector<juce::String> idsToRemove(memberIds.begin(), memberIds.end());
+                    streamChatClient->removeMembers(channelType, channelId, idsToRemove,
+                        [this](Outcome<void> result) {
+                            if (result.isOk())
+                            {
+                                Log::info("MessageThreadComponent: Member removed successfully");
+                                loadMessages(); // Reload to update member list
+                            }
+                            else
+                            {
+                                Log::error("MessageThreadComponent: Failed to remove member - " + result.getError());
+                                juce::MessageManager::callAsync([result]() {
+                                    juce::AlertWindow::showMessageBoxAsync(
+                                        juce::MessageBoxIconType::WarningIcon,
+                                        "Error",
+                                        "Failed to remove member: " + result.getError());
+                                });
+                            }
+                        });
+                }
+            });
+        return;
     }
 
+    // Multiple members - for now, just show info that multi-select is pending
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
+        "Remove Members",
+        "Multi-member removal UI is pending. Please remove members one at a time for now.");
+
+    // Original multi-select code (commented out until proper dialog component is created):
+    /*
+    juce::AlertWindow alert("Remove Members", "Select members to remove:", juce::MessageBoxIconType::QuestionIcon);
     alert.addButton("Remove", 1);
     alert.addButton("Cancel", 0);
-
     alert.enterModalState(true, juce::ModalCallbackFunction::create([this, memberIds](int result) {
         if (result == 1)
         {
@@ -1535,7 +1696,7 @@ void MessageThreadComponent::showRemoveMembersDialog()
                                         Log::error("MessageThreadComponent: Failed to remove member - " + result.getError());
                                         juce::MessageManager::callAsync([result]() {
                                             juce::AlertWindow::showMessageBoxAsync(
-                                                juce::AlertWindow::WarningIcon,
+                                                juce::MessageBoxIconType::WarningIcon,
                                                 "Error",
                                                 "Failed to remove member: " + result.getError());
                                         });
@@ -1594,10 +1755,112 @@ void MessageThreadComponent::sendAudioSnippet(const juce::AudioBuffer<float>& au
                 Log::error("MessageThreadComponent::sendAudioSnippet: Failed to send audio snippet - " + result.getError());
                 juce::MessageManager::callAsync([result]() {
                     juce::AlertWindow::showMessageBoxAsync(
-                        juce::AlertWindow::WarningIcon,
+                        juce::MessageBoxIconType::WarningIcon,
                         "Error",
                         "Failed to send audio snippet: " + result.getError());
                 });
             }
         });
+}
+
+void MessageThreadComponent::drawAudioSnippet(juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& messageId, const juce::String& audioUrl, double duration)
+{
+    // Background for audio snippet area
+    g.setColour(juce::Colour(0xff2a2a2a));
+    g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
+
+    // Play button
+    auto playButtonBounds = getAudioSnippetPlayButtonBounds(bounds);
+    bool isPlaying = playingAudioMessageId == messageId;
+
+    g.setColour(isPlaying ? SidechainColors::primary() : juce::Colour(0xff4a4a4a));
+    g.fillEllipse(playButtonBounds.toFloat());
+
+    g.setColour(juce::Colours::white);
+    g.setFont(12.0f);
+    g.drawText(isPlaying ? "⏸" : "▶", playButtonBounds, juce::Justification::centred);
+
+    // Waveform area (simplified - just show a placeholder bar for now)
+    auto waveformBounds = getAudioSnippetWaveformBounds(bounds);
+    g.setColour(juce::Colour(0xff3a3a3a));
+    g.fillRoundedRectangle(waveformBounds.toFloat(), 4.0f);
+
+    // Progress indicator if playing
+    if (isPlaying && audioPlaybackProgress > 0.0f)
+    {
+        g.setColour(SidechainColors::primary());
+        auto progressBounds = waveformBounds.withWidth(static_cast<int>(waveformBounds.getWidth() * audioPlaybackProgress));
+        g.fillRoundedRectangle(progressBounds.toFloat(), 4.0f);
+    }
+
+    // Duration text
+    g.setColour(juce::Colour(0xffaaaaaa));
+    g.setFont(10.0f);
+    juce::String durationText = juce::String::formatted("%.1fs", duration);
+    g.drawText(durationText, bounds.withTrimmedLeft(playButtonBounds.getRight() + 10).withTrimmedRight(10),
+               juce::Justification::centredLeft);
+}
+
+juce::Rectangle<int> MessageThreadComponent::getAudioSnippetPlayButtonBounds(juce::Rectangle<int> audioBounds) const
+{
+    int buttonSize = 32;
+    return juce::Rectangle<int>(audioBounds.getX() + 8, audioBounds.getCentreY() - buttonSize / 2, buttonSize, buttonSize);
+}
+
+juce::Rectangle<int> MessageThreadComponent::getAudioSnippetWaveformBounds(juce::Rectangle<int> audioBounds) const
+{
+    auto playButtonBounds = getAudioSnippetPlayButtonBounds(audioBounds);
+    return juce::Rectangle<int>(
+        playButtonBounds.getRight() + 10,
+        audioBounds.getY() + 8,
+        audioBounds.getWidth() - playButtonBounds.getRight() - 50,
+        audioBounds.getHeight() - 16
+    );
+}
+
+void MessageThreadComponent::playAudioSnippet(const juce::String& messageId, const juce::String& audioUrl)
+{
+    if (!audioProcessor)
+    {
+        Log::warn("MessageThreadComponent::playAudioSnippet: No audio processor available");
+        return;
+    }
+
+    // Stop any currently playing audio
+    if (!playingAudioMessageId.isEmpty() && playingAudioMessageId != messageId)
+    {
+        stopAudioSnippet();
+    }
+
+    // Toggle: if already playing this message, stop it
+    if (playingAudioMessageId == messageId)
+    {
+        stopAudioSnippet();
+        return;
+    }
+
+    playingAudioMessageId = messageId;
+    audioPlaybackProgress = 0.0f;
+
+    // Use the processor's audio player to play the audio
+    audioProcessor->getAudioPlayer().loadAndPlay(messageId, audioUrl);
+
+    // Start a timer to update progress (simplified - in real implementation, get progress from AudioPlayer)
+    // Timer already exists for auto-refresh, we'll use it to update progress too
+
+    repaint();
+}
+
+void MessageThreadComponent::stopAudioSnippet()
+{
+    if (!audioProcessor || playingAudioMessageId.isEmpty())
+        return;
+
+    // Stop audio playback
+    audioProcessor->getAudioPlayer().stop();
+
+    playingAudioMessageId = "";
+    audioPlaybackProgress = 0.0f;
+
+    repaint();
 }

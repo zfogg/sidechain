@@ -662,3 +662,26 @@ void Recording::confirmRecording()
 
     repaint();
 }
+
+//==============================================================================
+void Recording::updateKeyDetection()
+{
+    // Update key detection display from progressive detector
+    if (progressiveKeyDetector.isActive())
+    {
+        auto result = progressiveKeyDetector.getCurrentKey();
+        if (result.isValid())
+        {
+            detectedKey = result;
+        }
+    }
+}
+
+void Recording::processKeyDetectionChunk(const juce::AudioBuffer<float>& buffer)
+{
+    // Process a chunk of audio for key detection
+    if (progressiveKeyDetector.isActive() && buffer.getNumSamples() > 0)
+    {
+        progressiveKeyDetector.addAudioChunk(buffer, buffer.getNumChannels());
+    }
+}

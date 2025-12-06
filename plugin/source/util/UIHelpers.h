@@ -11,15 +11,15 @@
  *
  * Usage:
  *   // Draw a card with background and border
- *   UI::drawCard(g, bounds, Colors::backgroundLight, Colors::border);
+ *   UIHelpers::drawCard(g, bounds, Colors::backgroundLight, Colors::border);
  *
  *   // Draw a badge with text
- *   UI::drawBadge(g, bounds, "120 BPM", Colors::badge, Colors::textPrimary);
+ *   UIHelpers::drawBadge(g, bounds, "120 BPM", Colors::badge, Colors::textPrimary);
  *
  *   // Truncate text with ellipsis
- *   auto truncated = UI::truncateWithEllipsis("Very long text...", font, 100);
+ *   auto truncated = UIHelpers::truncateWithEllipsis("Very long text...", font, 100);
  */
-namespace UI
+namespace UIHelpers
 {
     //==========================================================================
     // Card/Panel Drawing
@@ -243,4 +243,4 @@ namespace UI
                      juce::Colour bgColor,
                      juce::Colour textColor);
 
-}  // namespace UI
+}  // namespace UIHelpers

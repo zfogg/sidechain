@@ -134,9 +134,27 @@ func (h *Handlers) LikePost(c *gin.Context) {
 
 // UnlikePost removes a like from a post
 func (h *Handlers) UnlikePost(c *gin.Context) {
-	// In production, you'd need to find the reaction ID first
+	userID := c.GetString("user_id")
+
+	var req struct {
+		ActivityID string `json:"activity_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Remove the like reaction using activity ID and user ID
+	if err := h.stream.RemoveReactionByActivityAndUser(req.ActivityID, userID, "like"); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to unlike post", "message": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status": "unliked",
+		"status":      "unliked",
+		"activity_id": req.ActivityID,
+		"user_id":     userID,
 	})
 }
 
