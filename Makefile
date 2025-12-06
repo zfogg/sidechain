@@ -99,7 +99,14 @@ plugin: plugin-configure
 
 plugin-configure:
 	@echo "🔄 Configuring CMake build for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
-	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,)
+	@# Use Ninja if available, otherwise fall back to platform default
+	@if command -v ninja >/dev/null 2>&1; then \
+		echo "✅ Using Ninja generator (faster parallel builds)"; \
+		cmake -S plugin -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
+	else \
+		echo "⚠️  Ninja not found, using $(CMAKE_GENERATOR). Install ninja for faster builds."; \
+		cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(if $(SIDECHAIN_BUILD_STANDALONE),-DSIDECHAIN_BUILD_STANDALONE=ON,); \
+	fi
 	@echo "✅ CMake configuration complete"
 	@if [ -f "$(BUILD_DIR)/compile_commands.json" ]; then \
 		ln -sf "$(BUILD_DIR)/compile_commands.json" compile_commands.json 2>/dev/null || true; \
