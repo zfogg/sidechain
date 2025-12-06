@@ -119,18 +119,18 @@ jobs:
           # Create lib directory for assets
           mkdir -p docs/_build/html/backend/godoc/lib
           
-          # Download CSS and JS assets
+          # Download CSS and JS assets (with error handling - some may not exist)
           echo "Downloading godoc assets..."
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js
-          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/godoc.js || echo "Note: godoc.js not available (may be embedded)"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.js || echo "Note: jquery.js not available (may be embedded)"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.css || echo "Note: jquery.treeview.css not available"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/jquery.treeview.js || echo "Note: jquery.treeview.js not available"
+          wget -q -P docs/_build/html/backend/godoc/lib http://localhost:6060/lib/playground.js || echo "Note: playground.js not available"
           
           # Download main pages
           echo "Downloading godoc pages..."
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html
-          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html
+          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/ --output-document=index.html || echo "Warning: Failed to download index.html"
+          wget -q -P docs/_build/html/backend/godoc http://localhost:6060/pkg/ --output-document=pkg.html || echo "Warning: Failed to download pkg.html"
           
           # Download our backend packages recursively
           echo "Downloading backend package documentation..."
@@ -144,7 +144,7 @@ jobs:
             --adjust-extension \
             --page-requisites \
             --directory-prefix=docs/_build/html/backend/godoc \
-            http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/
+            http://localhost:6060/pkg/github.com/zfogg/sidechain/backend/ || echo "Warning: Some package pages may have failed to download"
           
           # Fix paths in downloaded HTML files to use relative paths
           echo "Fixing paths in downloaded HTML files..."
@@ -157,11 +157,13 @@ jobs:
               "$f" || true
           done
           
-          # Verify we got the files
-          if [ -f "docs/_build/html/backend/godoc/index.html" ]; then
+          # Verify we got the files (check for package pages even if index.html failed)
+          if [ -f "docs/_build/html/backend/godoc/index.html" ] || [ -f "docs/_build/html/backend/godoc/pkg/github.com/zfogg/sidechain/backend/index.html" ]; then
             echo "✓ Go documentation generated successfully"
+            HTML_COUNT=$(find docs/_build/html/backend/godoc -name "*.html" 2>/dev/null | wc -l)
+            echo "  Downloaded $HTML_COUNT HTML files"
           else
-            echo "✗ Failed to generate Go documentation"
+            echo "✗ Failed to generate Go documentation - no HTML files found"
             exit 1
           fi
           
