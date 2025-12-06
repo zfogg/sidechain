@@ -23,6 +23,14 @@ PostCard::PostCard()
     longPressDetector.onLongPress = [this]() {
         showEmojiReactionsPanel();
     };
+
+    // Set up fade-in animation
+    fadeInOpacity.onValueChanged = [this](float opacity) {
+        repaint();
+    };
+    fadeInOpacity.onAnimationComplete = [this]() {
+        // Animation complete, opacity is now 1.0
+    };
 }
 
 PostCard::~PostCard()
@@ -35,6 +43,10 @@ void PostCard::setPost(const FeedPost& newPost)
     post = newPost;
     avatarImage = juce::Image();
     Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username);
+
+    // Start fade-in animation
+    fadeInOpacity.setImmediate(0.0f);
+    fadeInOpacity.animateTo(1.0f);
 
     // Load avatar via ImageCache
     if (post.userAvatarUrl.isNotEmpty())
@@ -101,6 +113,9 @@ void PostCard::setLoading(bool loading)
 //==============================================================================
 void PostCard::paint(juce::Graphics& g)
 {
+    // Apply fade-in opacity
+    g.setOpacity(fadeInOpacity.getValue());
+
     drawBackground(g);
     drawAvatar(g, getAvatarBounds());
     drawUserInfo(g, getUserInfoBounds());
@@ -110,6 +125,8 @@ void PostCard::paint(juce::Graphics& g)
     drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 120, 15, 110, CARD_HEIGHT - 30));
     drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 120, CARD_HEIGHT - 40, 110, 30));
 
+    // Reset opacity for like animation (should be fully visible)
+    g.setOpacity(1.0f);
     // Draw like animation on top of everything
     drawLikeAnimation(g);
 }

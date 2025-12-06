@@ -217,6 +217,9 @@ private:
     // Like animation
     Animation likeAnimation{400, Animation::Easing::EaseOutCubic};
 
+    // Fade-in animation for new posts
+    AnimationValue<float> fadeInOpacity{0.0f, 300, Animation::Easing::EaseOutCubic};
+
     // Long-press detector for emoji reactions panel
     LongPressDetector longPressDetector{400};  // 400ms threshold
 
