@@ -39,6 +39,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -r docs/requirements.txt
+          # Verify Sphinx is installed
+          python3 -m sphinx --version
 
       - name: Set up Go
         uses: actions/setup-go@v5
