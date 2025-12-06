@@ -16,17 +16,22 @@ import (
 
 // Handlers contains all HTTP handlers for the API
 type Handlers struct {
-	stream         *stream.Client
+	stream         stream.StreamClientInterface
 	audioProcessor *audio.Processor
 	wsHandler      *websocket.Handler
 }
 
 // NewHandlers creates a new handlers instance
-func NewHandlers(streamClient *stream.Client, audioProcessor *audio.Processor) *Handlers {
+func NewHandlers(streamClient stream.StreamClientInterface, audioProcessor *audio.Processor) *Handlers {
 	return &Handlers{
 		stream:         streamClient,
 		audioProcessor: audioProcessor,
 	}
+}
+
+// NewHandlersWithClient creates a new handlers instance (alias for NewHandlers for compatibility)
+func NewHandlersWithClient(streamClient stream.StreamClientInterface, audioProcessor *audio.Processor) *Handlers {
+	return NewHandlers(streamClient, audioProcessor)
 }
 
 // SetWebSocketHandler sets the WebSocket handler for real-time notifications
