@@ -47,6 +47,17 @@ public:
     juce::String daw;          // DAW used (e.g., "Ableton Live")
 
     //==============================================================================
+    // MIDI metadata (R.3.3 Cross-DAW MIDI Collaboration)
+    bool hasMidi = false;      // Whether this post has associated MIDI data
+    juce::String midiId;       // UUID of the MIDI pattern (for download)
+
+    //==============================================================================
+    // Project file metadata (R.3.4 Project File Exchange)
+    bool hasProjectFile = false;     // Whether this post has an associated project file
+    juce::String projectFileId;      // UUID of the project file (for download)
+    juce::String projectFileDaw;     // DAW type (e.g., "ableton", "fl_studio")
+
+    //==============================================================================
     // Genres/tags
     juce::StringArray genres;
 
@@ -79,6 +90,10 @@ public:
         juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8D")),            // heart eyes - heart eyes
         juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x80"))             // rocket - rocket/hype
     };
+
+    //==============================================================================
+    // Recommendation metadata (for "For You" feed)
+    juce::String recommendationReason;  // Why this post was recommended (e.g., "matches your genre preferences")
 
     //==============================================================================
     // Processing status

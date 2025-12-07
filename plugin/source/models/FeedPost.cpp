@@ -55,6 +55,24 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.key = Json::getString(json, "key");
     post.daw = Json::getString(json, "daw");
 
+    // MIDI metadata (R.3.3 Cross-DAW MIDI Collaboration)
+    post.hasMidi = Json::getBool(json, "has_midi");
+    post.midiId = Json::getString(json, "midi_pattern_id");
+    // Also check for midi_id as alternative field name
+    if (post.midiId.isEmpty())
+        post.midiId = Json::getString(json, "midi_id");
+    // If we have a midi_id, we have MIDI
+    if (post.midiId.isNotEmpty())
+        post.hasMidi = true;
+
+    // Project file metadata (R.3.4 Project File Exchange)
+    post.hasProjectFile = Json::getBool(json, "has_project_file");
+    post.projectFileId = Json::getString(json, "project_file_id");
+    post.projectFileDaw = Json::getString(json, "project_file_daw");
+    // If we have a project_file_id, we have a project file
+    if (post.projectFileId.isNotEmpty())
+        post.hasProjectFile = true;
+
     // Parse genres array
     auto genreVar = Json::getArray(json, "genre");
     if (Json::isArray(genreVar))
@@ -127,6 +145,9 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.isFollowing = Json::getBool(json, "is_following");
     post.isOwnPost = Json::getBool(json, "is_own_post");
 
+    // Recommendation reason (for "For You" feed)
+    post.recommendationReason = Json::getString(json, "recommendation_reason");
+
     // Processing status
     juce::String statusStr = Json::getString(json, "status").toLowerCase();
     if (statusStr == "ready")
@@ -176,6 +197,18 @@ juce::var FeedPost::toJson() const
     obj->setProperty("bpm", bpm);
     obj->setProperty("key", key);
     obj->setProperty("daw", daw);
+
+    // MIDI metadata
+    obj->setProperty("has_midi", hasMidi);
+    if (midiId.isNotEmpty())
+        obj->setProperty("midi_pattern_id", midiId);
+
+    // Project file metadata (R.3.4)
+    obj->setProperty("has_project_file", hasProjectFile);
+    if (projectFileId.isNotEmpty())
+        obj->setProperty("project_file_id", projectFileId);
+    if (projectFileDaw.isNotEmpty())
+        obj->setProperty("project_file_daw", projectFileDaw);
 
     // Genres
     juce::Array<juce::var> genreArray;
