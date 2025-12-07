@@ -136,10 +136,10 @@ elseif(APPLE)
         USES_TERMINAL
     )
 else()
-    # Linux and other Unix-like systems - use xdg-open
+    # Linux and other Unix-like systems - use xdg-open with file:// URL
     add_custom_target(docs-open
         COMMAND ${CMAKE_COMMAND} -E echo "Opening documentation in default browser..."
-        COMMAND xdg-open "${SPHINX_BUILD_DIR}/index.html"
+        COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}" bash -c "xdg-open \"file://$$(realpath ${SPHINX_BUILD_DIR}/index.html)\""
         DEPENDS docs
         COMMENT "Opening documentation: ${SPHINX_BUILD_DIR}/index.html"
         USES_TERMINAL
