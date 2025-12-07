@@ -49,24 +49,20 @@ func (suite *HandlersTestSuite) SetupSuite() {
 
 	database.DB = db
 
-	// Check if tables already exist (migrations already run)
-	// Only run AutoMigrate if users table doesn't exist
-	var count int64
-	db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users'").Scan(&count)
-	if count == 0 {
-		// Create all test tables - order matters for foreign keys
-		err = db.AutoMigrate(
-			&models.User{},
-			&models.OAuthProvider{},
-			&models.MIDIPattern{}, // Must come before AudioPost and Story
-			&models.AudioPost{},
-			&models.Comment{},
-			&models.CommentMention{},
-			&models.Story{},
-			&models.StoryView{},
-		)
-		require.NoError(suite.T(), err)
-	}
+	// Always run AutoMigrate to ensure all tables exist
+	// GORM's AutoMigrate is idempotent - it only creates tables that don't exist
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.OAuthProvider{},
+		&models.MIDIPattern{}, // Must come before AudioPost and Story
+		&models.AudioPost{},
+		&models.Comment{},
+		&models.CommentMention{},
+		&models.Story{},
+		&models.StoryView{},
+		&models.ProjectFile{}, // R.3.4 Project File Exchange
+	)
+	require.NoError(suite.T(), err)
 
 	suite.db = db
 	suite.handlers = NewHandlers(nil, nil)
@@ -166,6 +162,14 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	api.PATCH("/midi/:id", suite.handlers.UpdateMIDIPattern)
 	api.DELETE("/midi/:id", suite.handlers.DeleteMIDIPattern)
 
+	// Project file routes (R.3.4)
+	api.POST("/v1/project-files", suite.handlers.CreateProjectFile)
+	api.GET("/v1/project-files", suite.handlers.ListProjectFiles)
+	api.GET("/v1/project-files/:id", suite.handlers.GetProjectFile)
+	api.GET("/v1/project-files/:id/download", suite.handlers.DownloadProjectFile)
+	api.DELETE("/v1/project-files/:id", suite.handlers.DeleteProjectFile)
+	api.GET("/v1/posts/:id/project-file", suite.handlers.GetPostProjectFile)
+
 	// Notification routes (require getstream.io)
 	api.GET("/notifications", suite.handlers.GetNotifications)
 	api.GET("/notifications/counts", suite.handlers.GetNotificationCounts)
@@ -182,6 +186,7 @@ func (suite *HandlersTestSuite) TearDownSuite() {
 // SetupTest creates fresh test data before each test
 func (suite *HandlersTestSuite) SetupTest() {
 	// Only truncate tables that exist from AutoMigrate
+	suite.db.Exec("TRUNCATE TABLE project_files RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE story_views, stories RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE comment_mentions, comments, audio_posts RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE midi_patterns RESTART IDENTITY CASCADE")

@@ -16,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/auth"
+	"github.com/zfogg/sidechain/backend/internal/challenges"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
@@ -168,6 +169,11 @@ func main() {
 	storyCleanup := stories.NewCleanupService(s3Uploader, 1*time.Hour)
 	storyCleanup.Start()
 	defer storyCleanup.Stop()
+
+	// Initialize MIDI challenge notification service (runs every 15 minutes) (R.2.2.4.4)
+	challengeNotifications := challenges.NewNotificationService(streamClient, 15*time.Minute)
+	challengeNotifications.Start()
+	defer challengeNotifications.Stop()
 
 	// Start WebSocket hub in background
 	go wsHub.Run()
@@ -409,6 +415,34 @@ func main() {
 
 		// Post project file route (R.3.4)
 		posts.GET("/:id/project-file", h.GetPostProjectFile)
+
+		// Playlist routes (R.3.1 Collaborative Playlists)
+		playlists := api.Group("/playlists")
+		{
+			playlists.Use(authHandlers.AuthMiddleware())
+			playlists.POST("", h.CreatePlaylist)
+			playlists.GET("", h.GetPlaylists)
+			playlists.GET("/:id", h.GetPlaylist)
+			playlists.POST("/:id/entries", h.AddPlaylistEntry)
+			playlists.DELETE("/:id/entries/:entry_id", h.DeletePlaylistEntry)
+			playlists.POST("/:id/collaborators", h.AddPlaylistCollaborator)
+			playlists.DELETE("/:id/collaborators/:user_id", h.DeletePlaylistCollaborator)
+		}
+
+		// MIDI Challenge routes (R.2.2 MIDI Battle Royale)
+		midiChallenges := api.Group("/midi-challenges")
+		{
+			// Public routes (no auth required for viewing)
+			midiChallenges.GET("", h.GetMIDIChallenges)
+			midiChallenges.GET("/:id", h.GetMIDIChallenge)
+			midiChallenges.GET("/:id/entries", h.GetMIDIChallengeEntries)
+
+			// Protected routes (auth required)
+			midiChallenges.Use(authHandlers.AuthMiddleware())
+			midiChallenges.POST("", h.CreateMIDIChallenge)
+			midiChallenges.POST("/:id/entries", h.CreateMIDIChallengeEntry)
+			midiChallenges.POST("/:id/entries/:entry_id/vote", h.VoteMIDIChallengeEntry)
+		}
 
 		// WebSocket routes
 		ws := api.Group("/ws")

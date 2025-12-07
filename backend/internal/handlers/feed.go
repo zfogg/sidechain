@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +11,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
 )
 
@@ -23,13 +23,16 @@ import (
 
 // GetTimeline gets the user's timeline feed
 func (h *Handlers) GetTimeline(c *gin.Context) {
-	userID := c.GetString("user_id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	activities, err := h.stream.GetUserTimeline(userID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get timeline"})
+		util.RespondInternalError(c, "failed_to_get_timeline", "Failed to get timeline")
 		return
 	}
 
@@ -45,12 +48,12 @@ func (h *Handlers) GetTimeline(c *gin.Context) {
 
 // GetGlobalFeed gets the global feed
 func (h *Handlers) GetGlobalFeed(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	activities, err := h.stream.GetGlobalFeed(limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get global feed"})
+		util.RespondInternalError(c, "failed_to_get_global_feed", "Failed to get global feed")
 		return
 	}
 
@@ -66,7 +69,10 @@ func (h *Handlers) GetGlobalFeed(c *gin.Context) {
 
 // CreatePost creates a new post (alternative to upload)
 func (h *Handlers) CreatePost(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var req struct {
 		AudioURL     string   `json:"audio_url" binding:"required"`
@@ -81,7 +87,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
@@ -93,12 +99,15 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		// Verify the MIDI pattern exists and user has access
 		var pattern models.MIDIPattern
 		if err := database.DB.First(&pattern, "id = ?", req.MIDIID).Error; err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_midi_id"})
+			if util.HandleDBError(c, err, "midi_pattern") {
+				return
+			}
+			util.RespondBadRequest(c, "invalid_midi_id")
 			return
 		}
 		// Check access - must be public or owned by user
 		if !pattern.IsPublic && pattern.UserID != userID {
-			c.JSON(http.StatusForbidden, gin.H{"error": "midi_access_denied"})
+			util.RespondForbidden(c, "midi_access_denied")
 			return
 		}
 		midiPatternID = &req.MIDIID
@@ -113,7 +122,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 			IsPublic:      true, // Public by default when attached to post
 		}
 		if err := database.DB.Create(pattern).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_create_midi"})
+			util.RespondInternalError(c, "failed_to_create_midi")
 			return
 		}
 		midiPatternID = &pattern.ID
@@ -141,7 +150,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	if err := h.stream.CreateLoopActivity(userID, activity); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create post"})
+		util.RespondInternalError(c, "failed_to_create_post", "Failed to create post")
 		return
 	}
 
@@ -161,19 +170,17 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 // GetEnrichedTimeline gets the user's timeline with reaction counts
 // GET /api/feed/timeline/enriched
 func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	activities, err := h.stream.GetEnrichedTimeline(currentUser.StreamUserID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_timeline", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_timeline", err.Error())
 		return
 	}
 
@@ -190,12 +197,12 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 // GetEnrichedGlobalFeed gets the global feed with reaction counts
 // GET /api/feed/global/enriched
 func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	activities, err := h.stream.GetEnrichedGlobalFeed(limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_global_feed", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_global_feed", err.Error())
 		return
 	}
 
@@ -212,19 +219,17 @@ func (h *Handlers) GetEnrichedGlobalFeed(c *gin.Context) {
 // GetAggregatedTimeline gets the user's aggregated timeline (grouped by user+day)
 // GET /api/feed/timeline/aggregated
 func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	resp, err := h.stream.GetAggregatedTimeline(currentUser.StreamUserID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_aggregated_timeline", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_aggregated_timeline", err.Error())
 		return
 	}
 
@@ -242,12 +247,12 @@ func (h *Handlers) GetAggregatedTimeline(c *gin.Context) {
 // Activities are extracted from aggregated groups and sorted by engagement score
 // GET /api/feed/trending
 func (h *Handlers) GetTrendingFeed(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	resp, err := h.stream.GetTrendingFeed(limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_trending_feed", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_trending_feed", err.Error())
 		return
 	}
 
@@ -277,12 +282,12 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 // Returns aggregated groups for advanced display ("5 new electronic loops this week")
 // GET /api/feed/trending/grouped
 func (h *Handlers) GetTrendingFeedGrouped(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	resp, err := h.stream.GetTrendingFeed(limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_trending_feed", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_trending_feed", err.Error())
 		return
 	}
 
@@ -300,18 +305,19 @@ func (h *Handlers) GetTrendingFeedGrouped(c *gin.Context) {
 // GET /api/users/:id/activity
 func (h *Handlers) GetUserActivitySummary(c *gin.Context) {
 	targetUserID := c.Param("id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "10"), 10)
 
 	// Validate user exists
 	var user models.User
 	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	resp, err := h.stream.GetUserActivitySummary(user.StreamUserID, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_activity_summary", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_activity_summary", err.Error())
 		return
 	}
 
@@ -329,28 +335,28 @@ func (h *Handlers) GetUserActivitySummary(c *gin.Context) {
 // DELETE /api/v1/posts/:id
 func (h *Handlers) DeletePost(c *gin.Context) {
 	postID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
 	// Find the post
 	var post models.AudioPost
 	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
-		return
+		if util.HandleDBError(c, err, "post") {
+			return
+		}
 	}
 
 	// Check ownership
-	if post.UserID != userID.(string) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "not_post_owner"})
+	if post.UserID != userID {
+		util.RespondForbidden(c, "not_post_owner")
 		return
 	}
 
 	// Soft delete the post
 	if err := database.DB.Delete(&post).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_delete_post", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_delete_post", err.Error())
 		return
 	}
 
@@ -372,9 +378,8 @@ func (h *Handlers) DeletePost(c *gin.Context) {
 // POST /api/v1/posts/:id/report
 func (h *Handlers) ReportPost(c *gin.Context) {
 	postID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -383,7 +388,7 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 		Description string `json:"description,omitempty"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
@@ -397,20 +402,21 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 		}
 	}
 	if !valid {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_reason", "message": "Reason must be one of: spam, harassment, inappropriate, copyright, violence, other"})
+		util.RespondBadRequest(c, "invalid_reason", "Reason must be one of: spam, harassment, inappropriate, copyright, violence, other")
 		return
 	}
 
 	// Find the post
 	var post models.AudioPost
 	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
-		return
+		if util.HandleDBError(c, err, "post") {
+			return
+		}
 	}
 
 	// Create report
 	report := models.Report{
-		ReporterID:   userID.(string),
+		ReporterID:   userID,
 		TargetType:   models.ReportTargetPost,
 		TargetID:     postID,
 		TargetUserID: &post.UserID,
@@ -420,7 +426,7 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&report).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_create_report", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_create_report", err.Error())
 		return
 	}
 
@@ -434,22 +440,22 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 // POST /api/v1/posts/:id/download
 func (h *Handlers) DownloadPost(c *gin.Context) {
 	postID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
 	// Find the post
 	var post models.AudioPost
 	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
-		return
+		if util.HandleDBError(c, err, "post") {
+			return
+		}
 	}
 
 	// Check if post is public or user owns it
-	if !post.IsPublic && post.UserID != userID.(string) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "post_not_accessible"})
+	if !post.IsPublic && post.UserID != userID {
+		util.RespondForbidden(c, "post_not_accessible")
 		return
 	}
 

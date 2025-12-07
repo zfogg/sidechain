@@ -8,6 +8,7 @@
 #include "../../util/Async.h"
 #include "../../util/Animation.h"
 #include "../../util/Result.h"
+#include "../../util/DAWProjectFolder.h"
 #include <set>
 #include <vector>
 
@@ -1057,7 +1058,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                             juce::String reason = reasons[reportResult - 1];
                             juce::String description = "Reported post: " + post.id;
 
-                            networkClient->reportPost(post.id, reason, description, [this, postId = post.id, reason](Outcome<juce::var> result) {
+                            networkClient->reportPost(post.id, reason, description, [postId = post.id, reason](Outcome<juce::var> result) {
                                 if (result.isOk())
                                 {
                                     Log::info("PostsFeedComponent: Post reported successfully - " + postId + ", reason: " + reason);
@@ -1258,14 +1259,20 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
             return;
         }
 
-        // Determine target location for MIDI files
-        juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-            .getChildFile("Sidechain")
-            .getChildFile("MIDI");
-
+        // Determine target location for MIDI files (R.3.3.7.2)
+        // Try DAW project folder first, fallback to default location
+        juce::File targetDir = DAWProjectFolder::getMIDIFileLocation();
+        
+        // Ensure target directory exists
         if (!targetDir.exists())
         {
-            targetDir.createDirectory();
+            auto result = targetDir.createDirectory();
+            if (result.failed())
+            {
+                Log::warn("Failed to create MIDI directory: " + result.getErrorMessage());
+                // Fallback to default location
+                targetDir = DAWProjectFolder::getDefaultMIDIFolder();
+            }
         }
 
         // Create filename from post username and ID
@@ -1274,18 +1281,26 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         juce::String filename = safeName + "_" + post.midiId.substring(0, 8) + ".mid";
         juce::File targetFile = targetDir.getChildFile(filename);
 
+        // Detect DAW for notification message
+        auto dawInfo = DAWProjectFolder::detectDAWProjectFolder();
+        juce::String notificationMessage = "MIDI saved to:\n" + targetFile.getFullPathName();
+        if (dawInfo.isAccessible && dawInfo.dawName != "Unknown")
+        {
+            notificationMessage += "\n\nFile is in your " + dawInfo.dawName + " project folder and ready to import.";
+        }
+
         // Download the MIDI file
         networkClient->downloadMIDI(
             post.midiId,
             targetFile,
-            [targetFile](Outcome<juce::var> result) {
+            [targetFile, notificationMessage](Outcome<juce::var> result) {
                 if (result.isOk())
                 {
                     Log::info("MIDI downloaded: " + targetFile.getFullPathName());
                     juce::AlertWindow::showMessageBoxAsync(
                         juce::MessageBoxIconType::InfoIcon,
                         "MIDI Downloaded",
-                        "MIDI saved to:\n" + targetFile.getFullPathName());
+                        notificationMessage);
                 }
                 else
                 {
@@ -1297,6 +1312,226 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                 }
             }
         );
+    };
+
+    card->onAddToPlaylistClicked = [this](const FeedPost& post) {
+        Log::debug("Add to Playlist clicked for post: " + post.id);
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeed: Cannot add to playlist - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to add to playlist. Please try again later.");
+            return;
+        }
+
+        // Fetch user's playlists
+        networkClient->getPlaylists("all", [this, post](Outcome<juce::var> result) {
+            juce::MessageManager::callAsync([this, post, result]() {
+                if (!result.isOk())
+                {
+                    Log::warn("PostsFeed: Failed to load playlists: " + result.getError());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Error",
+                        "Failed to load playlists. Please try again later.");
+                    return;
+                }
+
+                juce::Array<Playlist> playlists;
+                auto response = result.getValue();
+                if (response.hasProperty("playlists"))
+                {
+                    auto playlistsArray = response["playlists"];
+                    if (playlistsArray.isArray())
+                    {
+                        for (int i = 0; i < playlistsArray.size(); ++i)
+                        {
+                            playlists.add(Playlist::fromJSON(playlistsArray[i]));
+                        }
+                    }
+                }
+
+                // Show playlist picker menu
+                juce::PopupMenu menu;
+                menu.addItem(1, "Create New Playlist...", true, false);
+
+                if (playlists.isEmpty())
+                {
+                    menu.addSeparator();
+                    menu.addItem(2, "No playlists available", false);
+                }
+                else
+                {
+                    menu.addSeparator();
+                    for (int i = 0; i < playlists.size(); ++i)
+                    {
+                        juce::String name = playlists[i].name;
+                        if (playlists[i].isCollaborative)
+                            name += " (Collaborative)";
+                        menu.addItem(i + 3, name, true, false);
+                    }
+                }
+
+                menu.showMenuAsync(juce::PopupMenu::Options(), [this, post, playlists](int result) {
+                    if (result == 1)
+                    {
+                        // Create new playlist - show message directing user to PlaylistsComponent
+                        // (Full playlist creation UI is in PlaylistsComponent)
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::InfoIcon,
+                            "Create Playlist",
+                            "Please go to Playlists to create a new playlist, then add this track.");
+                    }
+                    else if (result >= 3 && result - 3 < playlists.size())
+                    {
+                        // Add to selected playlist
+                        int index = result - 3;
+                        
+                        // Extract post ID from foreignId (format: "loop:uuid")
+                        juce::String postId = post.foreignId;
+                        if (postId.startsWith("loop:"))
+                            postId = postId.substring(5);
+                        
+                        if (networkClient)
+                        {
+                            networkClient->addPlaylistEntry(playlists[index].id, postId, -1, [](Outcome<juce::var> addResult) {
+                                juce::MessageManager::callAsync([addResult]() {
+                                    if (addResult.isOk())
+                                    {
+                                        Log::info("PostsFeed: Post added to playlist successfully");
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::MessageBoxIconType::InfoIcon,
+                                            "Added to Playlist",
+                                            "Track added to playlist successfully!");
+                                    }
+                                    else
+                                    {
+                                        Log::warn("PostsFeed: Failed to add post to playlist: " + addResult.getError());
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::MessageBoxIconType::WarningIcon,
+                                            "Error",
+                                            "Failed to add track to playlist. Please try again.");
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+        }        );
+    };
+
+    card->onAddToPlaylistClicked = [this](const FeedPost& post) {
+        Log::debug("Add to Playlist clicked for post: " + post.id);
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeed: Cannot add to playlist - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to add to playlist. Please try again later.");
+            return;
+        }
+
+        // Fetch user's playlists
+        networkClient->getPlaylists("all", [this, post](Outcome<juce::var> result) {
+            juce::MessageManager::callAsync([this, post, result]() {
+                if (!result.isOk())
+                {
+                    Log::warn("PostsFeed: Failed to load playlists: " + result.getError());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Error",
+                        "Failed to load playlists. Please try again later.");
+                    return;
+                }
+
+                juce::Array<Playlist> playlists;
+                auto response = result.getValue();
+                if (response.hasProperty("playlists"))
+                {
+                    auto playlistsArray = response["playlists"];
+                    if (playlistsArray.isArray())
+                    {
+                        for (int i = 0; i < playlistsArray.size(); ++i)
+                        {
+                            playlists.add(Playlist::fromJSON(playlistsArray[i]));
+                        }
+                    }
+                }
+
+                // Show playlist picker menu
+                juce::PopupMenu menu;
+                menu.addItem(1, "Create New Playlist...", true, false);
+
+                if (playlists.isEmpty())
+                {
+                    menu.addSeparator();
+                    menu.addItem(2, "No playlists available", false);
+                }
+                else
+                {
+                    menu.addSeparator();
+                    for (int i = 0; i < playlists.size(); ++i)
+                    {
+                        juce::String name = playlists[i].name;
+                        if (playlists[i].isCollaborative)
+                            name += " (Collaborative)";
+                        menu.addItem(i + 3, name, true, false);
+                    }
+                }
+
+                menu.showMenuAsync(juce::PopupMenu::Options(), [this, post, playlists](int result) {
+                    if (result == 1)
+                    {
+                        // Create new playlist - navigate to playlists view (user can create there)
+                        // For now, just show a message
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::InfoIcon,
+                            "Create Playlist",
+                            "Please go to Playlists to create a new playlist, then add this track.");
+                    }
+                    else if (result >= 3 && result - 3 < playlists.size())
+                    {
+                        // Add to selected playlist
+                        int index = result - 3;
+                        
+                        // Extract post ID from foreignId (format: "loop:uuid")
+                        juce::String postId = post.foreignId;
+                        if (postId.startsWith("loop:"))
+                            postId = postId.substring(5);
+
+                        if (networkClient)
+                        {
+                            networkClient->addPlaylistEntry(playlists[index].id, postId, -1, [](Outcome<juce::var> addResult) {
+                                juce::MessageManager::callAsync([addResult]() {
+                                    if (addResult.isOk())
+                                    {
+                                        Log::info("PostsFeed: Post added to playlist successfully");
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::MessageBoxIconType::InfoIcon,
+                                            "Added to Playlist",
+                                            "Track added to playlist successfully!");
+                                    }
+                                    else
+                                    {
+                                        Log::warn("PostsFeed: Failed to add post to playlist: " + addResult.getError());
+                                        juce::AlertWindow::showMessageBoxAsync(
+                                            juce::MessageBoxIconType::WarningIcon,
+                                            "Error",
+                                            "Failed to add track to playlist. Please try again.");
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+        });
     };
 
     card->onDownloadProjectClicked = [this](const FeedPost& post) {

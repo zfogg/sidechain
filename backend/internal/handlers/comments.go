@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
 )
 
@@ -16,9 +17,8 @@ import (
 // POST /api/v1/posts/:id/comments
 func (h *Handlers) CreateComment(c *gin.Context) {
 	postID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	// Create the comment
 	comment := models.Comment{
 		PostID:   postID,
-		UserID:   userID.(string),
+		UserID:   userID,
 		Content:  req.Content,
 		ParentID: req.ParentID,
 	}
@@ -71,11 +71,11 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 	database.DB.Preload("User").First(&comment, "id = ?", comment.ID)
 
 	// Extract mentions and create notifications
-	mentions := extractMentions(req.Content)
-	go h.processMentions(comment.ID, mentions, userID.(string), postID)
+	mentions := util.ExtractMentions(req.Content)
+	go h.processMentions(comment.ID, mentions, userID, postID)
 
 	// Notify post owner (if not commenting on own post)
-	if post.UserID != userID.(string) {
+	if post.UserID != userID {
 		go h.notifyCommentOnPost(comment, post)
 	}
 
@@ -204,9 +204,8 @@ func (h *Handlers) GetCommentReplies(c *gin.Context) {
 // PUT /api/v1/comments/:id
 func (h *Handlers) UpdateComment(c *gin.Context) {
 	commentID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -225,7 +224,7 @@ func (h *Handlers) UpdateComment(c *gin.Context) {
 	}
 
 	// Check ownership
-	if comment.UserID != userID.(string) {
+	if comment.UserID != userID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "not_comment_owner"})
 		return
 	}
@@ -269,9 +268,8 @@ func (h *Handlers) UpdateComment(c *gin.Context) {
 // DELETE /api/v1/comments/:id
 func (h *Handlers) DeleteComment(c *gin.Context) {
 	commentID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -282,7 +280,7 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 	}
 
 	// Check ownership
-	if comment.UserID != userID.(string) {
+	if comment.UserID != userID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "not_comment_owner"})
 		return
 	}
@@ -308,9 +306,8 @@ func (h *Handlers) DeleteComment(c *gin.Context) {
 // POST /api/v1/comments/:id/like
 func (h *Handlers) LikeComment(c *gin.Context) {
 	commentID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -327,7 +324,7 @@ func (h *Handlers) LikeComment(c *gin.Context) {
 
 	// Add reaction via Stream.io if comment has a stream activity ID
 	if h.stream != nil && comment.StreamActivityID != "" {
-		err := h.stream.AddReactionWithEmoji("like", userID.(string), comment.StreamActivityID, "")
+		err := h.stream.AddReactionWithEmoji("like", userID, comment.StreamActivityID, "")
 		if err != nil {
 			// Log but don't fail - update local count anyway
 			fmt.Printf("Failed to add Stream.io reaction: %v\n", err)
@@ -427,9 +424,8 @@ func (h *Handlers) notifyCommentOnPost(comment models.Comment, post models.Audio
 // POST /api/v1/comments/:id/report
 func (h *Handlers) ReportComment(c *gin.Context) {
 	commentID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -465,7 +461,7 @@ func (h *Handlers) ReportComment(c *gin.Context) {
 
 	// Create report
 	report := models.Report{
-		ReporterID:   userID.(string),
+		ReporterID:   userID,
 		TargetType:   models.ReportTargetComment,
 		TargetID:     commentID,
 		TargetUserID: &comment.UserID,

@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../util/DAWProjectFolder.h"
 #include <JuceHeader.h>
 
 namespace StoryViewerColors
@@ -620,14 +621,20 @@ void StoryViewer::handleDownloadMIDI(const StoryData& story)
         return;
     }
 
-    // Determine target location for MIDI files
-    juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-        .getChildFile("Sidechain")
-        .getChildFile("MIDI");
-
+    // Determine target location for MIDI files (R.3.3.7.2)
+    // Try DAW project folder first, fallback to default location
+    juce::File targetDir = DAWProjectFolder::getMIDIFileLocation();
+    
+    // Ensure target directory exists
     if (!targetDir.exists())
     {
-        targetDir.createDirectory();
+        auto result = targetDir.createDirectory();
+        if (result.failed())
+        {
+            Log::warn("Failed to create MIDI directory: " + result.getErrorMessage());
+            // Fallback to default location
+            targetDir = DAWProjectFolder::getDefaultMIDIFolder();
+        }
     }
 
     // Create filename from story username and ID
@@ -636,18 +643,26 @@ void StoryViewer::handleDownloadMIDI(const StoryData& story)
     juce::String filename = safeName + "_" + story.midiPatternId.substring(0, 8) + ".mid";
     juce::File targetFile = targetDir.getChildFile(filename);
 
+    // Detect DAW for notification message
+    auto dawInfo = DAWProjectFolder::detectDAWProjectFolder();
+    juce::String notificationMessage = "MIDI saved to:\n" + targetFile.getFullPathName();
+    if (dawInfo.isAccessible && dawInfo.dawName != "Unknown")
+    {
+        notificationMessage += "\n\nFile is in your " + dawInfo.dawName + " project folder and ready to import.";
+    }
+
     // Download the MIDI file
     networkClient->downloadMIDI(
         story.midiPatternId,
         targetFile,
-        [targetFile](Outcome<juce::var> result) {
+        [targetFile, notificationMessage](Outcome<juce::var> result) {
             if (result.isOk())
             {
                 Log::info("Story MIDI downloaded: " + targetFile.getFullPathName());
                 juce::AlertWindow::showMessageBoxAsync(
                     juce::MessageBoxIconType::InfoIcon,
                     "MIDI Downloaded",
-                    "MIDI saved to:\n" + targetFile.getFullPathName());
+                    notificationMessage);
             }
             else
             {

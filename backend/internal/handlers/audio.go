@@ -10,17 +10,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // UploadAudio handles audio file uploads with async processing
 func (h *Handlers) UploadAudio(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-
-	currentUser := user.(*models.User)
 
 	// Get uploaded file
 	file, err := c.FormFile("audio")
@@ -43,26 +41,23 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	}
 
 	// Validate file type
-	if !isValidAudioFile(file.Filename) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_file_type",
-			"message": "Only .mp3, .wav, .aiff, .m4a files are supported",
-		})
+	if !util.IsValidAudioFile(file.Filename) {
+		util.RespondBadRequest(c, "invalid_file_type", "Only .mp3, .wav, .aiff, .m4a files are supported")
 		return
 	}
 
 	// Parse metadata from form
 	metadata := map[string]interface{}{
-		"bpm":           parseInt(c.PostForm("bpm"), 120),
+		"bpm":           util.ParseInt(c.PostForm("bpm"), 120),
 		"key":           c.DefaultPostForm("key", "C major"),
-		"duration_bars": parseInt(c.PostForm("duration_bars"), 8),
+		"duration_bars": util.ParseInt(c.PostForm("duration_bars"), 8),
 		"daw":           c.DefaultPostForm("daw", "Unknown"),
 		"genre":         c.DefaultPostForm("genre", "Electronic"),
-		"sample_rate":   parseFloat(c.PostForm("sample_rate"), 44100.0),
+		"sample_rate":   util.ParseFloat(c.PostForm("sample_rate"), 44100.0),
 	}
 
 	// Save uploaded file temporarily
-	tempFilePath, err := saveUploadedFile(file)
+	tempFilePath, err := util.SaveUploadedFile(file)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "upload_failed",
@@ -99,11 +94,11 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		UserID:           currentUser.ID,
 		OriginalFilename: file.Filename,
 		FileSize:         file.Size,
-		BPM:              parseInt(c.PostForm("bpm"), 120),
+		BPM:              util.ParseInt(c.PostForm("bpm"), 120),
 		Key:              c.DefaultPostForm("key", "C major"),
-		DurationBars:     parseInt(c.PostForm("duration_bars"), 8),
+		DurationBars:     util.ParseInt(c.PostForm("duration_bars"), 8),
 		DAW:              c.DefaultPostForm("daw", "Unknown"),
-		Genre:            parseGenreArray(c.PostForm("genre")),
+		Genre:            util.ParseGenreArray(c.PostForm("genre")),
 		ProcessingStatus: "pending",
 		IsPublic:         true,
 		MIDIPatternID:    midiPatternID, // Link to MIDI pattern if created

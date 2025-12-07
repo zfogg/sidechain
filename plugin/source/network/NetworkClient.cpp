@@ -3030,3 +3030,245 @@ void NetworkClient::reportComment(const juce::String& commentId, const juce::Str
         }
     });
 }
+
+//==============================================================================
+// MIDI Challenge operations (R.2.2 MIDI Battle Royale)
+
+void NetworkClient::getMIDIChallenges(const juce::String& status, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, status, callback]() {
+        juce::String endpoint = buildApiPath("/midi-challenges");
+        if (status.isNotEmpty())
+            endpoint += "?status=" + status;
+
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getMIDIChallenge(const juce::String& challengeId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, challengeId, callback]() {
+        juce::String endpoint = buildApiPath("/midi-challenges") + "/" + challengeId;
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::submitMIDIChallengeEntry(const juce::String& challengeId,
+                                            const juce::String& audioUrl,
+                                            const juce::String& postId,
+                                            const juce::var& midiData,
+                                            const juce::String& midiPatternId,
+                                            ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, challengeId, audioUrl, postId, midiData, midiPatternId, callback]() {
+        auto* requestObj = new juce::DynamicObject();
+        requestObj->setProperty("audio_url", audioUrl);
+
+        if (postId.isNotEmpty())
+            requestObj->setProperty("post_id", postId);
+
+        if (midiPatternId.isNotEmpty())
+            requestObj->setProperty("midi_pattern_id", midiPatternId);
+        else if (!midiData.isVoid() && midiData.hasProperty("events"))
+        {
+            // Include MIDI data if provided
+            requestObj->setProperty("midi_data", midiData);
+        }
+
+        juce::var data(requestObj);
+        juce::String endpoint = buildApiPath("/midi-challenges") + "/" + challengeId + "/entries";
+        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getMIDIChallengeEntries(const juce::String& challengeId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, challengeId, callback]() {
+        juce::String endpoint = buildApiPath("/midi-challenges") + "/" + challengeId + "/entries";
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::voteMIDIChallengeEntry(const juce::String& challengeId,
+                                         const juce::String& entryId,
+                                         ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, challengeId, entryId, callback]() {
+        juce::String endpoint = buildApiPath("/midi-challenges") + "/" + challengeId
+                              + "/entries/" + entryId + "/vote";
+        auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+//==============================================================================
+// Playlist operations (R.3.1 Collaborative Playlists)
+//==============================================================================
+
+void NetworkClient::createPlaylist(const juce::String& name,
+                                   const juce::String& description,
+                                   bool isCollaborative,
+                                   bool isPublic,
+                                   ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    auto* obj = new juce::DynamicObject();
+    obj->setProperty("name", name);
+    if (description.isNotEmpty())
+        obj->setProperty("description", description);
+    obj->setProperty("is_collaborative", isCollaborative);
+    obj->setProperty("is_public", isPublic);
+
+    post("/api/v1/playlists", juce::var(obj), callback);
+}
+
+void NetworkClient::getPlaylists(const juce::String& filter,
+                                 ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/playlists";
+    if (filter.isNotEmpty() && filter != "all")
+    {
+        endpoint += "?filter=" + filter;
+    }
+
+    get(endpoint, callback);
+}
+
+void NetworkClient::getPlaylist(const juce::String& playlistId,
+                                ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    get("/api/v1/playlists/" + playlistId, callback);
+}
+
+void NetworkClient::addPlaylistEntry(const juce::String& playlistId,
+                                    const juce::String& postId,
+                                    int position,
+                                    ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    auto* obj = new juce::DynamicObject();
+    obj->setProperty("post_id", postId);
+    if (position >= 0)
+        obj->setProperty("position", position);
+
+    post("/api/v1/playlists/" + playlistId + "/entries", juce::var(obj), callback);
+}
+
+void NetworkClient::removePlaylistEntry(const juce::String& playlistId,
+                                       const juce::String& entryId,
+                                       ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    del("/api/v1/playlists/" + playlistId + "/entries/" + entryId, callback);
+}
+
+void NetworkClient::addPlaylistCollaborator(const juce::String& playlistId,
+                                           const juce::String& userId,
+                                           const juce::String& role,
+                                           ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    auto* obj = new juce::DynamicObject();
+    obj->setProperty("user_id", userId);
+    obj->setProperty("role", role);
+
+    post("/api/v1/playlists/" + playlistId + "/collaborators", juce::var(obj), callback);
+}
+
+void NetworkClient::removePlaylistCollaborator(const juce::String& playlistId,
+                                              const juce::String& userId,
+                                              ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    del("/api/v1/playlists/" + playlistId + "/collaborators/" + userId, callback);
+}

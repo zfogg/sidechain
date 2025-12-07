@@ -30,6 +30,11 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Animation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/HoverState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/LongPressDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Emoji.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/DAWProjectFolder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/DAWProjectFolder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/OSNotification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/OSNotification.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"
@@ -71,5 +76,44 @@ else()
         VISIBILITY_INLINES_HIDDEN ON
         POSITION_INDEPENDENT_CODE ${PIC_ENABLED}
     )
+endif()
+
+# Platform-specific dependencies for OSNotification
+if(APPLE)
+    # macOS: UserNotifications framework (automatically available)
+    # No additional linking needed
+elseif(UNIX AND NOT APPLE)
+    # Linux: Prefer libnotify over raw D-Bus for notifications
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        # Try libnotify first (simpler API, wraps D-Bus)
+        pkg_check_modules(LIBNOTIFY QUIET libnotify)
+        if(LIBNOTIFY_FOUND)
+            target_include_directories(SidechainUtil PRIVATE ${LIBNOTIFY_INCLUDE_DIRS})
+            target_link_libraries(SidechainUtil PRIVATE ${LIBNOTIFY_LIBRARIES})
+            target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_LIBNOTIFY=1)
+            message(STATUS "Found libnotify - using for desktop notifications")
+        else()
+            target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_LIBNOTIFY=0)
+            # Fall back to raw D-Bus
+            pkg_check_modules(DBUS QUIET dbus-1)
+            if(DBUS_FOUND)
+                target_include_directories(SidechainUtil PRIVATE ${DBUS_INCLUDE_DIRS})
+                target_link_libraries(SidechainUtil PRIVATE ${DBUS_LIBRARIES})
+                target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_DBUS=1)
+                message(STATUS "Found D-Bus - using for desktop notifications")
+            else()
+                target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_DBUS=0)
+                message(WARNING "Neither libnotify nor D-Bus found. OSNotification will not work on Linux.")
+            endif()
+        endif()
+    else()
+        target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_LIBNOTIFY=0)
+        target_compile_definitions(SidechainUtil PRIVATE SIDECHAIN_HAS_DBUS=0)
+    endif()
+elseif(WIN32)
+    # Windows: Windows Runtime (WinRT) for toast notifications
+    # WinRT headers should be available by default on Windows 10+
+    # No additional linking needed
 endif()
 

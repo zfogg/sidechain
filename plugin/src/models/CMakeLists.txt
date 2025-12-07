@@ -11,6 +11,10 @@ add_library(SidechainModels STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/AggregatedFeedResponse.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Story.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Story.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Playlist.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Playlist.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/MidiChallenge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/MidiChallenge.h
 )
 
 # Include directories
