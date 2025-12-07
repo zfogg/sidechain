@@ -180,31 +180,51 @@ jobs:
             find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
               # Calculate relative depth from godoc root
               REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
-              if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
-                REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
-                if [[ "$REL_PATH" == *"/"* ]]; then
-                  REL_DEPTH=$((REL_DEPTH + 1))
-                fi
-                if [ $REL_DEPTH -gt 0 ]; then
-                  REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+              
+              # For JS files in static/, paths like /static/ should be relative to static/ root
+              # For HTML files, calculate depth normally
+              if [[ "$f" == *.js ]] && [[ "$REL_PATH" == static/* ]]; then
+                # JS file in static/ - /static/ paths should be ../ from the JS file's directory
+                JS_DIR_DEPTH=$(echo "$REL_PATH" | sed 's|[^/]*$||' | tr -cd '/' | wc -c)
+                if [ $JS_DIR_DEPTH -gt 0 ]; then
+                  REL_PREFIX=$(printf '../%.0s' $(seq 1 $JS_DIR_DEPTH))
                 else
                   REL_PREFIX=""
                 fi
+                # For /static/ references in JS files, replace with relative path to static root
+                sed -i \
+                  -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
+                  -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
+                  -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
+                  "$f" || true
               else
-                REL_PREFIX=""
+                # HTML file or JS file not in static/ - calculate depth normally
+                if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
+                  REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
+                  if [[ "$REL_PATH" == *"/"* ]]; then
+                    REL_DEPTH=$((REL_DEPTH + 1))
+                  fi
+                  if [ $REL_DEPTH -gt 0 ]; then
+                    REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+                  else
+                    REL_PREFIX=""
+                  fi
+                else
+                  REL_PREFIX=""
+                fi
+                
+                # Replace localhost URLs with relative paths
+                # Also fix absolute paths starting with /static/ or /github.com/ in HTML and JS
+                sed -i \
+                  -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
+                  -e 's|http://localhost:8080/github.com/|'${REL_PREFIX}'github.com/|g' \
+                  -e 's|http://localhost:8080/|'${REL_PREFIX}'|g' \
+                  -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
+                  -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
+                  -e 's|"/github.com/|"'${REL_PREFIX}'github.com/|g' \
+                  -e "s|'/github.com/|'"${REL_PREFIX}"'github.com/|g" \
+                  "$f" || true
               fi
-              
-              # Replace localhost URLs with relative paths
-              # Also fix absolute paths starting with /static/ or /github.com/ in HTML and JS
-              sed -i \
-                -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
-                -e 's|http://localhost:8080/github.com/|'${REL_PREFIX}'github.com/|g' \
-                -e 's|http://localhost:8080/|'${REL_PREFIX}'|g' \
-                -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
-                -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
-                -e 's|"/github.com/|"'${REL_PREFIX}'github.com/|g' \
-                -e "s|'/github.com/|'"${REL_PREFIX}"'github.com/|g" \
-                "$f" || true
             done
             
             echo "Package download completed"
