@@ -138,13 +138,15 @@ find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read 
         REL_PREFIX=""
     fi
     
-    # Replace absolute paths with relative paths and remove query strings
+    # Replace absolute paths with relative paths, remove query strings, and strip version tags
     sed -i \
         -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
         -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
         -e 's|href="/github\.com/|href="'${REL_PREFIX}'github.com/|g' \
         -e 's|src="/github\.com/|src="'${REL_PREFIX}'github.com/|g' \
         -e 's|?version=||g' \
+        -e 's|@v[0-9][^/"]*/|/|g' \
+        -e 's|@v[0-9][^"]*"|"|g' \
         "$f" || true
 done
 
