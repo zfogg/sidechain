@@ -66,6 +66,7 @@ Story Story::fromJSON(const juce::var& json)
     story.audioUrl = json["audio_url"].toString();
     story.audioDuration = static_cast<float>(json["audio_duration"]);
     story.midiData = json["midi_data"];
+    story.midiPatternId = json["midi_pattern_id"].toString();
     story.waveformData = json["waveform_data"].toString();
     story.bpm = static_cast<int>(json["bpm"]);
     story.key = json["key"].toString();
