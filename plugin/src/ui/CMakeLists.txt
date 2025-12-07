@@ -80,6 +80,10 @@ add_library(SidechainUI STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/ui/common/Header.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/ui/common/Header.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/ui/common/ConnectionIndicator.h
+
+    # UI - Synth (Hidden Easter Egg R.2.1)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/ui/synth/HiddenSynth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/ui/synth/HiddenSynth.h
 )
 
 # Include directories
