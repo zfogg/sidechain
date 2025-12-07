@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "audio/BufferAudioPlayer.h"
+#include "network/NetworkClient.h"
 #include "util/Log.h"
 
 //==============================================================================
@@ -14,7 +15,34 @@ SidechainAudioProcessor::SidechainAudioProcessor()
                      #endif
                        )
 {
-    // Simple initialization for now
+    // Setup chord sequence detector unlock callbacks (R.2.1)
+    chordDetector.addUnlockSequence(
+        ChordSequenceDetector::createBasicSynthSequence([this]() {
+            Log::info("SidechainAudioProcessor: Basic synth unlocked!");
+            synthUnlocked.store(true);
+            if (onSynthUnlocked)
+                onSynthUnlocked();
+        })
+    );
+
+    chordDetector.addUnlockSequence(
+        ChordSequenceDetector::createAdvancedSynthSequence([this]() {
+            Log::info("SidechainAudioProcessor: Advanced synth unlocked!");
+            synthUnlocked.store(true);
+            if (onSynthUnlocked)
+                onSynthUnlocked();
+        })
+    );
+
+    chordDetector.addUnlockSequence(
+        ChordSequenceDetector::createSecretSequence([this]() {
+            Log::info("SidechainAudioProcessor: Secret synth unlocked!");
+            synthUnlocked.store(true);
+            if (onSynthUnlocked)
+                onSynthUnlocked();
+        })
+    );
+
     Log::info("SidechainAudioProcessor: Plugin initialized");
 }
 
@@ -138,6 +166,9 @@ void SidechainAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     // Prepare audio player for feed playback
     audioPlayer.prepareToPlay(sampleRate, samplesPerBlock);
 
+    // Prepare synth engine (R.2.1)
+    synthEngine.prepare(sampleRate, samplesPerBlock);
+
     Log::info("SidechainAudioProcessor: Prepared - " + juce::String(sampleRate) + "Hz, " +
         juce::String(samplesPerBlock) + " samples, " +
         juce::String(numChannels) + " channels");
@@ -240,6 +271,16 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     // Capture MIDI events for stories (lock-free, called on audio thread)
     midiCapture.captureMIDI(midiMessages, buffer.getNumSamples(), currentSampleRate);
+
+    // Process chord detection for hidden synth easter egg (R.2.1)
+    // This runs on every audio block to detect unlock sequences
+    chordDetector.processMIDI(midiMessages, currentSampleRate);
+
+    // Process hidden synth if enabled (R.2.1)
+    if (synthEnabled.load())
+    {
+        synthEngine.process(buffer, midiMessages);
+    }
 
     // Mix in feed audio playback (adds to the output buffer)
     // This allows users to hear posts while working in their DAW
@@ -358,6 +399,17 @@ void SidechainAudioProcessor::stopRecording()
 juce::AudioBuffer<float> SidechainAudioProcessor::getRecordedAudio()
 {
     return lastRecordedAudio;
+}
+
+//==============================================================================
+/** Get the name of the DAW hosting this plugin
+ * Uses NetworkClient's detection method
+ * @return DAW name (e.g., "Ableton Live", "FL Studio", "Logic Pro")
+ */
+juce::String SidechainAudioProcessor::getHostDAWName() const
+{
+    // Use NetworkClient's detection method which handles platform-specific detection
+    return NetworkClient::detectDAWName();
 }
 
 //==============================================================================

@@ -4,6 +4,8 @@
 #include "audio/AudioCapture.h"
 #include "audio/HttpAudioPlayer.h"
 #include "audio/MIDICapture.h"
+#include "audio/ChordSequenceDetector.h"
+#include "audio/SynthEngine.h"
 
 class BufferAudioPlayer;
 
@@ -229,6 +231,11 @@ public:
      */
     bool isBPMAvailable() const { return bpmAvailable.load(); }
 
+    /** Get the name of the DAW hosting this plugin
+     * @return DAW name (e.g., "Ableton Live", "FL Studio", "Logic Pro")
+     */
+    juce::String getHostDAWName() const;
+
     //==============================================================================
     // Audio Playback (for feed audio)
 
@@ -247,6 +254,42 @@ public:
      * @param player Pointer to the buffer audio player
      */
     void setBufferAudioPlayer(BufferAudioPlayer* player) { bufferAudioPlayer = player; }
+
+    //==============================================================================
+    // Hidden Synth Easter Egg (R.2.1)
+
+    /** Get the chord sequence detector for unlock sequences
+     * @return Reference to the chord detector
+     */
+    ChordSequenceDetector& getChordDetector() { return chordDetector; }
+
+    /** Get the hidden synth engine
+     * @return Reference to the synth engine
+     */
+    SynthEngine& getSynthEngine() { return synthEngine; }
+
+    /** Check if the hidden synth has been unlocked
+     * @return true if any synth unlock sequence has been triggered
+     */
+    bool isSynthUnlocked() const { return synthUnlocked.load(); }
+
+    /** Set synth unlocked state (called by chord detector callback)
+     * @param unlocked true to unlock synth
+     */
+    void setSynthUnlocked(bool unlocked) { synthUnlocked.store(unlocked); }
+
+    /** Enable or disable the synth audio output
+     * @param enabled true to enable synth audio
+     */
+    void setSynthEnabled(bool enabled) { synthEnabled.store(enabled); }
+
+    /** Check if synth audio is enabled
+     * @return true if synth is producing audio
+     */
+    bool isSynthEnabled() const { return synthEnabled.load(); }
+
+    /** Callback when synth is unlocked - set by editor */
+    std::function<void()> onSynthUnlocked;
 
 private:
     //==============================================================================
@@ -274,6 +317,12 @@ private:
     std::atomic<double> currentBPM { 0.0 };
     std::atomic<bool> bpmAvailable { false };
     std::atomic<bool> dawTransportPlaying { false };
+
+    // Hidden synth easter egg (R.2.1)
+    ChordSequenceDetector chordDetector;
+    SynthEngine synthEngine;
+    std::atomic<bool> synthUnlocked { false };
+    std::atomic<bool> synthEnabled { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SidechainAudioProcessor)
 };
