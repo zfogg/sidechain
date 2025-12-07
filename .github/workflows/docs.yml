@@ -91,48 +91,20 @@ jobs:
           # Install wget and curl for downloading pkgsite pages
           sudo apt-get install -y wget curl
           
-          # Generate pkgsite HTML documentation (pkg.go.dev style)
-          mkdir -p docs/_build/html/backend/godoc
-          
-          # Change to backend directory so pkgsite can find the Go modules
-          cd backend
-          
-          # Start pkgsite server in background from backend directory
-          # Use -cache flag to serve from module cache (works for local packages)
-          # Redirect output to see any errors
-          ~/go/bin/pkgsite -cache -http=:8080 . > /tmp/pkgsite.log 2>&1 &
-          PKGSITE_PID=$!
-          
-          # Wait for server to start and verify it's running
-          echo "Waiting for pkgsite server to start..."
-          for i in {1..20}; do
-            sleep 1
-            if curl -s http://localhost:8080/ > /dev/null 2>&1; then
-              echo "✓ Pkgsite server is running"
-              break
-            fi
-            if [ $i -eq 20 ]; then
-              echo "✗ Pkgsite server failed to start after 20 seconds"
-              echo "Pkgsite log:"
-              cat /tmp/pkgsite.log 2>/dev/null || echo "(no log available)"
-              # Check if process is still running
-              if ps -p $PKGSITE_PID > /dev/null 2>&1; then
-                echo "Pkgsite process is running but not responding"
-              else
-                echo "Pkgsite process exited"
-              fi
-              kill $PKGSITE_PID 2>/dev/null || true
-              exit 1
-            fi
-          done
-          
-          # Go back to workspace root
-          cd ${{ github.workspace }}
-          
           # Use the generate-pkgsite.sh script to ensure consistency
-          cd ${{ github.workspace }}
+          # The script handles starting pkgsite server and downloading all pages
           chmod +x docs/generate-pkgsite.sh
           ./docs/generate-pkgsite.sh
+          
+          # Verify we got the files
+          if [ -f "docs/_build/html/backend/godoc/github.com/zfogg/sidechain/backend/index.html" ]; then
+            echo "✓ Go documentation generated successfully"
+            HTML_COUNT=$(find docs/_build/html/backend/godoc -name "*.html" 2>/dev/null | wc -l)
+            echo "  Downloaded $HTML_COUNT HTML files"
+          else
+            echo "✗ Failed to generate Go documentation - no HTML files found"
+            exit 1
+          fi
 
       - name: Build Sphinx documentation
         working-directory: docs
