@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,13 @@ import (
 // Configure SES_FROM_EMAIL, SES_FROM_NAME, and BASE_URL in .env to enable
 // Note: "Forgot Password" is now fully wired up in plugin (Auth.cpp) - calls backend API
 
+// OAuthSession stores OAuth authentication data for polling
+type OAuthSession struct {
+	AuthResponse *auth.AuthResponse
+	CreatedAt    time.Time
+	ExpiresAt    time.Time
+}
+
 // AuthHandlers wraps the auth service and provides HTTP handlers
 type AuthHandlers struct {
 	authService  *auth.Service
@@ -30,6 +38,9 @@ type AuthHandlers struct {
 	stream       *stream.Client
 	emailService *email.EmailService
 	jwtSecret    []byte
+	// OAuth session storage for polling (in-memory, thread-safe)
+	oauthSessions map[string]*OAuthSession
+	oauthMutex    sync.RWMutex
 }
 
 // NewAuthHandlers creates a new auth handlers instance
@@ -40,11 +51,34 @@ func NewAuthHandlers(authService *auth.Service, uploader storage.ProfilePictureU
 		// For now, we'll need to pass it separately or extract from env
 		jwtSecret = []byte("default-secret") // This should come from config
 	}
-	return &AuthHandlers{
-		authService: authService,
-		uploader:    uploader,
-		stream:      streamClient,
-		jwtSecret:   jwtSecret,
+	ah := &AuthHandlers{
+		authService:   authService,
+		uploader:      uploader,
+		stream:        streamClient,
+		jwtSecret:     jwtSecret,
+		oauthSessions: make(map[string]*OAuthSession),
+	}
+
+	// Start cleanup goroutine to remove expired sessions
+	go ah.cleanupExpiredSessions()
+
+	return ah
+}
+
+// cleanupExpiredSessions periodically removes expired OAuth sessions
+func (h *AuthHandlers) cleanupExpiredSessions() {
+	ticker := time.NewTicker(1 * time.Minute) // Run every minute
+	defer ticker.Stop()
+
+	for range ticker.C {
+		now := time.Now()
+		h.oauthMutex.Lock()
+		for sessionID, session := range h.oauthSessions {
+			if now.After(session.ExpiresAt) {
+				delete(h.oauthSessions, sessionID)
+			}
+		}
+		h.oauthMutex.Unlock()
 	}
 }
 
@@ -129,16 +163,20 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 }
 
 // GoogleOAuth initiates Google OAuth flow
-// GET /api/v1/auth/google
+// GET /api/v1/auth/google?session_id=...&state=...
 func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
 
-	state := c.Query("state")
+	// Use session_id as state if provided, otherwise generate new state
+	state := c.Query("session_id")
 	if state == "" {
-		state = uuid.New().String()
+		state = c.Query("state")
+		if state == "" {
+			state = uuid.New().String()
+		}
 	}
 
 	url := h.authService.GetGoogleOAuthURL(state)
@@ -146,7 +184,7 @@ func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 }
 
 // GoogleCallback handles Google OAuth callback
-// GET /api/v1/auth/google/callback
+// GET /api/v1/auth/google/callback?code=...&state=...
 func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
@@ -165,22 +203,45 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Redirect to plugin callback URL with token
+	// Extract session_id from state parameter (OAuth providers return state in callback)
+	sessionID := c.Query("state")
+	if sessionID != "" {
+		// Store session for polling (expires in 5 minutes)
+		h.oauthMutex.Lock()
+		h.oauthSessions[sessionID] = &OAuthSession{
+			AuthResponse: authResp,
+			CreatedAt:    time.Now(),
+			ExpiresAt:    time.Now().Add(5 * time.Minute),
+		}
+		h.oauthMutex.Unlock()
+
+		// Also try to redirect to sidechain:// for backwards compatibility
+		// But if that fails, polling will work
+		redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		return
+	}
+
+	// Legacy flow: redirect to plugin callback URL with token
 	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
 // DiscordOAuth initiates Discord OAuth flow
-// GET /api/v1/auth/discord
+// GET /api/v1/auth/discord?session_id=...&state=...
 func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
 		return
 	}
 
-	state := c.Query("state")
+	// Use session_id as state if provided, otherwise generate new state
+	state := c.Query("session_id")
 	if state == "" {
-		state = uuid.New().String()
+		state = c.Query("state")
+		if state == "" {
+			state = uuid.New().String()
+		}
 	}
 
 	url := h.authService.GetDiscordOAuthURL(state)
@@ -188,7 +249,7 @@ func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 }
 
 // DiscordCallback handles Discord OAuth callback
-// GET /api/v1/auth/discord/callback
+// GET /api/v1/auth/discord/callback?code=...&state=...
 func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
@@ -207,16 +268,77 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		return
 	}
 
-	// Redirect to plugin callback URL with token
+	// Extract session_id from state parameter (OAuth providers return state in callback)
+	sessionID := c.Query("state")
+	if sessionID != "" {
+		// Store session for polling (expires in 5 minutes)
+		h.oauthMutex.Lock()
+		h.oauthSessions[sessionID] = &OAuthSession{
+			AuthResponse: authResp,
+			CreatedAt:    time.Now(),
+			ExpiresAt:    time.Now().Add(5 * time.Minute),
+		}
+		h.oauthMutex.Unlock()
+
+		// Also try to redirect to sidechain:// for backwards compatibility
+		// But if that fails, polling will work
+		redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		return
+	}
+
+	// Legacy flow: redirect to plugin callback URL with token
 	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
 // OAuthPoll polls for OAuth completion (for plugin flow)
-// GET /api/v1/auth/oauth/poll
+// GET /api/v1/auth/oauth/poll?session_id=...
 func (h *AuthHandlers) OAuthPoll(c *gin.Context) {
-	// For now, return not implemented - OAuth polling needs session storage
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "oauth_polling_not_implemented"})
+	sessionID := c.Query("session_id")
+	if sessionID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing_session_id"})
+		return
+	}
+
+	h.oauthMutex.RLock()
+	session, exists := h.oauthSessions[sessionID]
+	h.oauthMutex.RUnlock()
+
+	if !exists {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "pending",
+		})
+		return
+	}
+
+	// Check if session expired
+	if time.Now().After(session.ExpiresAt) {
+		// Clean up expired session
+		h.oauthMutex.Lock()
+		delete(h.oauthSessions, sessionID)
+		h.oauthMutex.Unlock()
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "expired",
+		})
+		return
+	}
+
+	// Session found and valid - return auth data
+	// Remove session after retrieval (one-time use)
+	h.oauthMutex.Lock()
+	delete(h.oauthSessions, sessionID)
+	h.oauthMutex.Unlock()
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "complete",
+		"auth": gin.H{
+			"token":      session.AuthResponse.Token,
+			"user":       session.AuthResponse.User,
+			"expires_at": session.AuthResponse.ExpiresAt,
+		},
+	})
 }
 
 // Me returns current user info
