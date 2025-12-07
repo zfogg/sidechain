@@ -55,11 +55,10 @@ PACKAGE_PATH="github.com/zfogg/sidechain/backend"
 echo "Downloading pkgsite documentation..."
 # Use wget --mirror to recursively download all pages and assets
 # Remove --no-parent so it can follow absolute paths like /github.com/... and /static/...
-# Add timeout and limit to prevent hanging
+# Don't use --adjust-extension as it breaks CSS files with query strings
 wget \
     --mirror \
     --convert-links \
-    --adjust-extension \
     --page-requisites \
     --no-host-directories \
     --cut-dirs=0 \
@@ -94,22 +93,12 @@ find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read 
     fi
     
     # Replace absolute paths with relative paths
-    # Also fix query strings in file references (wget adds .css extension to files with ?version=)
     sed -i \
         -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
         -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
         -e 's|href="/github\.com/|href="'${REL_PREFIX}'github.com/|g' \
         -e 's|src="/github\.com/|src="'${REL_PREFIX}'github.com/|g' \
-        -e 's|\.css\?version=|?version=|g' \
-        -e 's|\.css\?version=|?version=|g' \
         "$f" || true
-done
-
-# Fix file names that wget renamed with .css extension
-echo "Fixing file names with query strings..."
-find docs/_build/html/backend/godoc/static -name "*.css?version=.css" -type f | while read f; do
-    NEW_NAME=$(echo "$f" | sed 's|\.css\?version=\.css$|?version=|')
-    mv "$f" "$NEW_NAME" 2>/dev/null || true
 done
 
 # Create symlink for Sphinx compatibility
