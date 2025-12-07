@@ -77,9 +77,12 @@ func Migrate() error {
 	}
 
 	// Auto-migrate all models
+	// Note: MIDIPattern must come before AudioPost and Story due to foreign key references
 	err = DB.AutoMigrate(
 		&models.User{},
+		&models.MIDIPattern{}, // Must come before AudioPost and Story (foreign key dependency)
 		&models.AudioPost{},
+		&models.ProjectFile{}, // R.3.4 Project File Exchange
 		&models.Device{},
 		&models.OAuthProvider{},
 		&models.PasswordReset{},
@@ -191,6 +194,19 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_highlighted_stories_highlight ON highlighted_stories (highlight_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_highlighted_stories_story ON highlighted_stories (story_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_highlighted_stories_unique ON highlighted_stories (highlight_id, story_id)")
+
+	// MIDI pattern indexes (R.3.3)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_user ON midi_patterns (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_public ON midi_patterns (is_public) WHERE is_public = true")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_user_created ON midi_patterns (user_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_patterns_downloads ON midi_patterns (download_count DESC) WHERE is_public = true")
+
+	// Project file indexes (R.3.4)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_user ON project_files (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_user_created ON project_files (user_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_daw_type ON project_files (daw_type)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_post ON project_files (audio_post_id) WHERE audio_post_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_public ON project_files (is_public) WHERE is_public = true")
 
 	return nil
 }

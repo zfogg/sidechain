@@ -323,6 +323,15 @@ func main() {
 			discover.GET("/genre/:genre", h.GetUsersByGenre)
 		}
 
+		// Recommendation routes
+		recommendations := api.Group("/recommendations")
+		{
+			recommendations.Use(authHandlers.AuthMiddleware())
+			recommendations.GET("/for-you", h.GetForYouFeed)
+			recommendations.GET("/similar-posts/:post_id", h.GetSimilarPosts)
+			recommendations.GET("/similar-users/:user_id", h.GetRecommendedUsers)
+		}
+
 		// Post routes (for comments, deletion, reporting)
 		posts := api.Group("/posts")
 		{
@@ -331,6 +340,7 @@ func main() {
 			posts.GET("/:id/comments", h.GetComments)
 			posts.DELETE("/:id", h.DeletePost)
 			posts.POST("/:id/report", h.ReportPost)
+			posts.POST("/:id/download", h.DownloadPost)
 		}
 
 		// Comment routes
@@ -373,6 +383,32 @@ func main() {
 
 		// User highlights route (7.5.6.2)
 		users.GET("/:id/highlights", h.GetHighlights)
+
+		// MIDI pattern routes (R.3.3)
+		midi := api.Group("/midi")
+		{
+			midi.Use(authHandlers.AuthMiddleware())
+			midi.POST("", h.CreateMIDIPattern)
+			midi.GET("", h.ListMIDIPatterns)
+			midi.GET("/:id", h.GetMIDIPattern)
+			midi.GET("/:id/file", h.GetMIDIPatternFile)
+			midi.PATCH("/:id", h.UpdateMIDIPattern)
+			midi.DELETE("/:id", h.DeleteMIDIPattern)
+		}
+
+		// Project file routes (R.3.4)
+		projectFiles := api.Group("/project-files")
+		{
+			projectFiles.Use(authHandlers.AuthMiddleware())
+			projectFiles.POST("", h.CreateProjectFile)
+			projectFiles.GET("", h.ListProjectFiles)
+			projectFiles.GET("/:id", h.GetProjectFile)
+			projectFiles.GET("/:id/download", h.DownloadProjectFile)
+			projectFiles.DELETE("/:id", h.DeleteProjectFile)
+		}
+
+		// Post project file route (R.3.4)
+		posts.GET("/:id/project-file", h.GetPostProjectFile)
 
 		// WebSocket routes
 		ws := api.Group("/ws")
