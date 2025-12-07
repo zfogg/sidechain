@@ -75,6 +75,33 @@ wget \
 kill $PKGSITE_PID 2>/dev/null || true
 wait $PKGSITE_PID 2>/dev/null || true
 
+# Fix absolute paths that wget didn't convert properly
+echo "Fixing absolute paths in downloaded files..."
+find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
+    # Calculate relative depth from godoc root
+    REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
+    
+    if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
+        # Count directory separators (depth from godoc root)
+        REL_DEPTH=$(echo "$REL_PATH" | sed 's|[^/]*$||' | tr -cd '/' | wc -c)
+        if [ $REL_DEPTH -gt 0 ]; then
+            REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+        else
+            REL_PREFIX=""
+        fi
+    else
+        REL_PREFIX=""
+    fi
+    
+    # Replace absolute paths with relative paths
+    sed -i \
+        -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
+        -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
+        -e 's|href="/github\.com/|href="'${REL_PREFIX}'github.com/|g' \
+        -e 's|src="/github\.com/|src="'${REL_PREFIX}'github.com/|g' \
+        "$f" || true
+done
+
 # Create symlink for Sphinx compatibility
 echo "Creating symlink for Sphinx compatibility..."
 if [ -d "docs/_build/html/backend/godoc/github.com/zfogg/sidechain" ] && [ ! -d "docs/_build/html/backend/godoc/zfogg" ]; then
