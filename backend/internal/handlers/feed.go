@@ -75,6 +75,9 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		DAW          string   `json:"daw"`
 		DurationBars int      `json:"duration_bars"`
 		Genre        []string `json:"genre"`
+		// MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
+		MIDIData *models.MIDIData `json:"midi_data,omitempty"` // Optional inline MIDI data
+		MIDIID   string           `json:"midi_id,omitempty"`   // Optional existing MIDI pattern ID
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -83,6 +86,38 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 	}
 
 	postID := uuid.New().String()
+
+	// Handle MIDI data - either use existing pattern or create new one
+	var midiPatternID *string
+	if req.MIDIID != "" {
+		// Verify the MIDI pattern exists and user has access
+		var pattern models.MIDIPattern
+		if err := database.DB.First(&pattern, "id = ?", req.MIDIID).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_midi_id"})
+			return
+		}
+		// Check access - must be public or owned by user
+		if !pattern.IsPublic && pattern.UserID != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "midi_access_denied"})
+			return
+		}
+		midiPatternID = &req.MIDIID
+	} else if req.MIDIData != nil && len(req.MIDIData.Events) > 0 {
+		// Create new MIDI pattern from inline data
+		pattern := &models.MIDIPattern{
+			UserID:        userID,
+			Name:          "MIDI from post",
+			Events:        req.MIDIData.Events,
+			Tempo:         req.MIDIData.Tempo,
+			TimeSignature: req.MIDIData.TimeSignature,
+			IsPublic:      true, // Public by default when attached to post
+		}
+		if err := database.DB.Create(pattern).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_create_midi"})
+			return
+		}
+		midiPatternID = &pattern.ID
+	}
 
 	activity := &stream.Activity{
 		Actor:        "user:" + userID,
@@ -97,16 +132,30 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		Genre:        req.Genre,
 	}
 
+	// Add MIDI info to activity extra data
+	if midiPatternID != nil {
+		activity.Extra = map[string]interface{}{
+			"has_midi":        true,
+			"midi_pattern_id": *midiPatternID,
+		}
+	}
+
 	if err := h.stream.CreateLoopActivity(userID, activity); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create post"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
+	response := gin.H{
 		"post_id":   postID,
 		"activity":  activity,
 		"timestamp": time.Now().UTC(),
-	})
+	}
+	if midiPatternID != nil {
+		response["midi_pattern_id"] = *midiPatternID
+		response["has_midi"] = true
+	}
+
+	c.JSON(http.StatusCreated, response)
 }
 
 // GetEnrichedTimeline gets the user's timeline with reaction counts

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -70,6 +71,27 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		return
 	}
 
+	// Parse MIDI data if provided (R.3.3 Cross-DAW MIDI Collaboration)
+	var midiPatternID *string
+	midiDataStr := c.PostForm("midi_data")
+	if midiDataStr != "" {
+		var midiData models.MIDIData
+		if err := json.Unmarshal([]byte(midiDataStr), &midiData); err == nil && len(midiData.Events) > 0 {
+			// Create standalone MIDI pattern
+			pattern := &models.MIDIPattern{
+				UserID:        currentUser.ID,
+				Name:          "MIDI from upload",
+				Events:        midiData.Events,
+				Tempo:         midiData.Tempo,
+				TimeSignature: midiData.TimeSignature,
+				IsPublic:      true,
+			}
+			if err := database.DB.Create(pattern).Error; err == nil {
+				midiPatternID = &pattern.ID
+			}
+		}
+	}
+
 	// Create pending audio post in database FIRST to get the postID
 	// This allows the background job to update this record when complete
 	audioPost := &models.AudioPost{
@@ -84,6 +106,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		Genre:            parseGenreArray(c.PostForm("genre")),
 		ProcessingStatus: "pending",
 		IsPublic:         true,
+		MIDIPatternID:    midiPatternID, // Link to MIDI pattern if created
 	}
 
 	err = database.DB.Create(audioPost).Error
@@ -110,14 +133,19 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	}
 
 	// Return immediate response - processing happens in background
-	c.JSON(http.StatusAccepted, gin.H{
+	response := gin.H{
 		"message":     "Audio upload received - processing in background",
 		"post_id":     audioPost.ID,
 		"job_id":      job.ID,
 		"status":      "processing",
 		"eta_seconds": 10, // Estimate 10 seconds for processing
 		"poll_url":    fmt.Sprintf("/api/v1/audio/status/%s", job.ID),
-	})
+	}
+	if midiPatternID != nil {
+		response["midi_pattern_id"] = *midiPatternID
+		response["has_midi"] = true
+	}
+	c.JSON(http.StatusAccepted, response)
 }
 
 // GetAudioProcessingStatus returns the status of an audio processing job

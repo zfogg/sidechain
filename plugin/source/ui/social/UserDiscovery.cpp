@@ -703,6 +703,46 @@ void UserDiscovery::fetchSuggestedUsers()
     });
 }
 
+void UserDiscovery::fetchSimilarProducers()
+{
+    if (networkClient == nullptr || currentUserId.isEmpty())
+        return;
+
+    isSimilarLoading = true;
+
+    networkClient->getSimilarUsers(currentUserId, 10, [this](Outcome<juce::var> responseOutcome) {
+        isSimilarLoading = false;
+
+        if (responseOutcome.isOk())
+        {
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
+            {
+                auto users = Json::getArray(response, "users");
+                if (Json::isArray(users))
+                {
+                    similarProducers.clear();
+                    for (int i = 0; i < users.size(); ++i)
+                    {
+                        similarProducers.add(DiscoveredUser::fromJson(users[i]));
+                    }
+                }
+            }
+            else
+            {
+                Log::error("UserDiscovery: Invalid similar producers response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscovery: Failed to load similar producers - " + responseOutcome.getError());
+        }
+
+        rebuildUserCards();
+        repaint();
+    });
+}
+
 void UserDiscovery::fetchAvailableGenres()
 {
     if (networkClient == nullptr)

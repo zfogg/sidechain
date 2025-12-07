@@ -50,12 +50,32 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
+	// Create standalone MIDI pattern if MIDI data is provided (R.3.3)
+	var midiPatternID *string
+	if req.MIDIData != nil && len(req.MIDIData.Events) > 0 {
+		pattern := &models.MIDIPattern{
+			UserID:        currentUser.ID,
+			Name:          "MIDI from story",
+			Events:        req.MIDIData.Events,
+			Tempo:         req.MIDIData.Tempo,
+			TimeSignature: req.MIDIData.TimeSignature,
+			IsPublic:      true, // Public by default when attached to story
+		}
+		if err := database.DB.Create(pattern).Error; err != nil {
+			// Log error but don't fail story creation
+			// MIDI pattern is optional enhancement
+		} else {
+			midiPatternID = &pattern.ID
+		}
+	}
+
 	// Create story with 24-hour expiration
 	story := &models.Story{
 		UserID:        currentUser.ID,
 		AudioURL:      req.AudioURL,
 		AudioDuration: req.AudioDuration,
 		MIDIData:      req.MIDIData,
+		MIDIPatternID: midiPatternID, // Link to standalone MIDI pattern
 		WaveformData:  req.WaveformData,
 		BPM:           req.BPM,
 		Key:           req.Key,
@@ -72,11 +92,16 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
+	response := gin.H{
 		"story_id":   story.ID,
 		"expires_at": story.ExpiresAt.Format(time.RFC3339),
 		"message":    "Story created successfully",
-	})
+	}
+	if midiPatternID != nil {
+		response["midi_pattern_id"] = *midiPatternID
+	}
+
+	c.JSON(http.StatusCreated, response)
 }
 
 // GetStories returns active stories from followed users + own stories (7.5.1.3.1)

@@ -89,6 +89,9 @@ namespace Log
     // Flush any buffered log entries to file
     void flush();
 
+    // Shutdown logging - call before application exit to prevent leak warnings
+    void shutdown();
+
     //==========================================================================
     // Utility
 

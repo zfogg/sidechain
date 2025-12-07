@@ -40,7 +40,8 @@ public:
 
     //==============================================================================
     // Callback when recording is complete and ready for upload
-    std::function<void(const juce::AudioBuffer<float>&)> onRecordingComplete;
+    // Includes MIDI data (captured during recording or imported from file)
+    std::function<void(const juce::AudioBuffer<float>&, const juce::var& midiData)> onRecordingComplete;
 
     // Callback when user wants to discard recording
     std::function<void()> onRecordingDiscarded;
@@ -80,6 +81,11 @@ private:
     juce::Rectangle<int> progressBarArea;
     juce::Rectangle<int> waveformArea;
     juce::Rectangle<int> actionButtonsArea;
+    juce::Rectangle<int> importMidiButtonArea;  // R.3.3.6.3 MIDI import button
+
+    // Imported MIDI data (R.3.3.6.3)
+    juce::var importedMidiData;
+    bool hasImportedMidi = false;
 
     //==============================================================================
     // Drawing helpers
@@ -109,6 +115,11 @@ private:
     void stopRecording();
     void discardRecording();
     void confirmRecording();
+
+    // MIDI import (R.3.3.6.3)
+    void showMidiImportDialog();
+    void importMidiFile(const juce::File& file);
+    void drawImportMidiButton(juce::Graphics& g);
 
     //==============================================================================
     // Progressive key detection

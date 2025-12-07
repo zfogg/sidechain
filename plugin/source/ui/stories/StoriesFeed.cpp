@@ -167,6 +167,7 @@ void StoriesFeed::loadStories()
                         story.audioUrl = storyVar["audio_url"].toString();
                         story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
                         story.midiData = storyVar["midi_data"];
+                        story.midiPatternId = storyVar["midi_pattern_id"].toString();  // R.3.3.5.5 - MIDI download support
                         story.viewCount = static_cast<int>(storyVar["view_count"]);
                         story.viewed = static_cast<bool>(storyVar["viewed"]);
 

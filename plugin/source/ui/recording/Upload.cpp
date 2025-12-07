@@ -81,8 +81,15 @@ Upload::~Upload()
 //==============================================================================
 void Upload::setAudioToUpload(const juce::AudioBuffer<float>& audio, double sampleRate)
 {
+    // Call overloaded version with empty MIDI data
+    setAudioToUpload(audio, sampleRate, juce::var());
+}
+
+void Upload::setAudioToUpload(const juce::AudioBuffer<float>& audio, double sampleRate, const juce::var& midi)
+{
     audioBuffer = audio;
     audioSampleRate = sampleRate;
+    midiData = midi;  // Store MIDI data for upload (R.3.3)
 
     // Get BPM from DAW
     if (audioProcessor.isBPMAvailable())
@@ -104,6 +111,17 @@ void Upload::setAudioToUpload(const juce::AudioBuffer<float>& audio, double samp
     uploadProgress = 0.0f;
     errorMessage = "";
     activeField = 0; // Focus title field
+    includeMidi = true;  // Default to including MIDI if available
+
+    // Log MIDI info
+    if (!midiData.isVoid() && midiData.hasProperty("events"))
+    {
+        auto events = midiData["events"];
+        if (events.isArray())
+        {
+            Log::info("Upload::setAudioToUpload: Received " + juce::String(events.size()) + " MIDI events");
+        }
+    }
 
     repaint();
 }
@@ -138,6 +156,8 @@ void Upload::reset()
     errorMessage = "";
     activeField = -1;
     tapTimes.clear();
+    midiData = juce::var();  // Clear MIDI data (R.3.3)
+    includeMidi = true;
     Log::debug("Upload::reset: All state cleared");
 
     repaint();
@@ -939,10 +959,15 @@ void Upload::startUpload()
     metadata.sampleRate = static_cast<int>(audioSampleRate);
     metadata.numChannels = audioBuffer.getNumChannels();
 
+    // Include MIDI data if available (R.3.3 Cross-DAW MIDI Collaboration)
+    metadata.midiData = midiData;
+    metadata.includeMidi = includeMidi && !midiData.isVoid();
+
     Log::info("Upload::startUpload: Upload metadata - title: \"" + title + "\", BPM: " + juce::String(bpm, 1) +
               ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " +
               juce::String(metadata.durationSeconds, 2) + "s, sampleRate: " + juce::String(metadata.sampleRate) +
-              "Hz, channels: " + juce::String(metadata.numChannels));
+              "Hz, channels: " + juce::String(metadata.numChannels) +
+              ", includeMidi: " + (metadata.includeMidi ? "yes" : "no"));
 
     // Simulate progress updates while waiting for upload
     // (JUCE's URL class doesn't provide progress callbacks)
