@@ -120,10 +120,15 @@ find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while r
     fi
     
     # Replace localhost URLs with relative paths
+    # Also fix absolute paths starting with /static/ or /github.com/ in HTML and JS
     sed -i \
         -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
         -e 's|http://localhost:8080/github.com/|'${REL_PREFIX}'github.com/|g' \
         -e 's|http://localhost:8080/|'${REL_PREFIX}'|g' \
+        -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
+        -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
+        -e 's|"/github.com/|"'${REL_PREFIX}'github.com/|g' \
+        -e "s|'/github.com/|'"${REL_PREFIX}"'github.com/|g" \
         "$f" || true
 done
 
