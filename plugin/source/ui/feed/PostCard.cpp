@@ -110,6 +110,13 @@ void PostCard::setLoading(bool loading)
     repaint();
 }
 
+void PostCard::setDownloadProgress(float progress)
+{
+    downloadProgress = juce::jlimit(0.0f, 1.0f, progress);
+    isDownloading = (progress > 0.0f && progress < 1.0f);
+    repaint();
+}
+
 //==============================================================================
 void PostCard::paint(juce::Graphics& g)
 {
@@ -358,6 +365,15 @@ void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds
             SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 10.0f, 3.0f);
         badgeY += BADGE_HEIGHT;
     }
+
+    // Recommendation reason badge (for "For You" feed)
+    if (post.recommendationReason.isNotEmpty())
+    {
+        auto reasonBounds = juce::Rectangle<int>(bounds.getX(), badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
+        // Use a subtle accent color to indicate it's a recommendation
+        UIHelpers::drawBadge(g, reasonBounds, post.recommendationReason,
+            SidechainColors::primary().withAlpha(0.2f), SidechainColors::primary(), 9.0f, 3.0f);
+    }
 }
 
 void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -433,6 +449,76 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     g.setColour(SidechainColors::textSecondary());
     g.setFont(10.0f);
     g.drawText("Add to DAW", addToDAWBounds, juce::Justification::centred);
+
+    // Drop to Track button (shown on hover or when downloading)
+    if (hoverState.isHovered() || isDownloading)
+    {
+        auto dropToTrackBounds = getDropToTrackButtonBounds();
+
+        if (isDownloading)
+        {
+            // Show progress bar
+            g.setColour(SidechainColors::backgroundLighter());
+            g.fillRoundedRectangle(dropToTrackBounds.toFloat(), 4.0f);
+
+            auto progressBounds = dropToTrackBounds.withWidth(static_cast<int>(dropToTrackBounds.getWidth() * downloadProgress));
+            g.setColour(SidechainColors::follow());
+            g.fillRoundedRectangle(progressBounds.toFloat(), 4.0f);
+
+            g.setColour(SidechainColors::textPrimary());
+            g.setFont(9.0f);
+            juce::String progressText = juce::String(static_cast<int>(downloadProgress * 100)) + "%";
+            g.drawText(progressText, dropToTrackBounds, juce::Justification::centred);
+        }
+        else
+        {
+            // Normal button state
+            if (dropToTrackBounds.contains(getMouseXYRelative()))
+            {
+                g.setColour(SidechainColors::surfaceHover());
+                g.fillRoundedRectangle(dropToTrackBounds.toFloat(), 4.0f);
+            }
+
+            g.setColour(SidechainColors::textPrimary());
+            g.setFont(10.0f);
+            g.drawText("Drop to Track", dropToTrackBounds, juce::Justification::centred);
+        }
+    }
+
+    // Download MIDI button (only shown when post has MIDI and on hover)
+    if (post.hasMidi && hoverState.isHovered())
+    {
+        auto midiBounds = getDownloadMIDIButtonBounds();
+
+        if (midiBounds.contains(getMouseXYRelative()))
+        {
+            g.setColour(SidechainColors::surfaceHover());
+            g.fillRoundedRectangle(midiBounds.toFloat(), 4.0f);
+        }
+
+        // Use a music note icon + text to indicate MIDI
+        g.setColour(SidechainColors::primary());
+        g.setFont(9.0f);
+        g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9")) + " MIDI", midiBounds, juce::Justification::centred);
+    }
+
+    // Download Project File button (only shown when post has project file and on hover)
+    if (post.hasProjectFile && hoverState.isHovered())
+    {
+        auto projectBounds = getDownloadProjectButtonBounds();
+
+        if (projectBounds.contains(getMouseXYRelative()))
+        {
+            g.setColour(SidechainColors::surfaceHover());
+            g.fillRoundedRectangle(projectBounds.toFloat(), 4.0f);
+        }
+
+        // Use folder icon + DAW type to indicate project file
+        juce::String dawLabel = post.projectFileDaw.isNotEmpty() ? post.projectFileDaw.toUpperCase().substring(0, 3) : "PRJ";
+        g.setColour(SidechainColors::primary());
+        g.setFont(9.0f);
+        g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x81")) + " " + dawLabel, projectBounds, juce::Justification::centred);
+    }
 }
 
 void PostCard::drawReactionCounts(juce::Graphics& g, juce::Rectangle<int> likeBounds)
@@ -577,6 +663,38 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Check Add to DAW button
+    if (getAddToDAWButtonBounds().contains(pos))
+    {
+        if (onAddToDAWClicked)
+            onAddToDAWClicked(post);
+        return;
+    }
+
+    // Check Drop to Track button
+    if (hoverState.isHovered() && getDropToTrackButtonBounds().contains(pos))
+    {
+        if (onDropToTrackClicked)
+            onDropToTrackClicked(post);
+        return;
+    }
+
+    // Check Download MIDI button (only when post has MIDI)
+    if (post.hasMidi && hoverState.isHovered() && getDownloadMIDIButtonBounds().contains(pos))
+    {
+        if (onDownloadMIDIClicked)
+            onDownloadMIDIClicked(post);
+        return;
+    }
+
+    // Check Download Project File button (only when post has project file)
+    if (post.hasProjectFile && hoverState.isHovered() && getDownloadProjectButtonBounds().contains(pos))
+    {
+        if (onDownloadProjectClicked)
+            onDownloadProjectClicked(post);
+        return;
+    }
+
     // Check avatar (navigate to profile)
     if (getAvatarBounds().contains(pos))
     {
@@ -677,6 +795,25 @@ juce::Rectangle<int> PostCard::getAddToDAWButtonBounds() const
 {
     // Position below the play count, on the left side
     return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 20, 70, 18);
+}
+
+juce::Rectangle<int> PostCard::getDropToTrackButtonBounds() const
+{
+    // Position next to Add to DAW button, slightly above
+    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 40, 70, 18);
+}
+
+juce::Rectangle<int> PostCard::getDownloadMIDIButtonBounds() const
+{
+    // Position above Drop to Track button (only shown when post has MIDI)
+    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 58, 70, 16);
+}
+
+juce::Rectangle<int> PostCard::getDownloadProjectButtonBounds() const
+{
+    // Position above MIDI button (or above Drop to Track if no MIDI)
+    int yOffset = post.hasMidi ? CARD_HEIGHT - 76 : CARD_HEIGHT - 58;
+    return juce::Rectangle<int>(getWidth() - 115, yOffset, 70, 16);
 }
 
 //==============================================================================
