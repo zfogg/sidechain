@@ -194,6 +194,7 @@ private:
     juce::Rectangle<int> getTimelineTabBounds() const;
     juce::Rectangle<int> getTrendingTabBounds() const;
     juce::Rectangle<int> getGlobalTabBounds() const;
+    juce::Rectangle<int> getForYouTabBounds() const;
     juce::Rectangle<int> getRefreshButtonBounds() const;
     juce::Rectangle<int> getRetryButtonBounds() const;
     juce::Rectangle<int> getRecordButtonBounds() const;

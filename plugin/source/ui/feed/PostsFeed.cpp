@@ -306,7 +306,8 @@ void PostsFeed::refreshFeed()
 void PostsFeed::switchFeedType(FeedDataManager::FeedType type)
 {
     juce::String typeStr = type == FeedDataManager::FeedType::Timeline ? "Timeline" :
-                           type == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
+                           type == FeedDataManager::FeedType::Trending ? "Trending" :
+                           type == FeedDataManager::FeedType::ForYou ? "ForYou" : "Global";
 
     if (currentFeedType == type)
     {
@@ -315,7 +316,8 @@ void PostsFeed::switchFeedType(FeedDataManager::FeedType type)
     }
 
     juce::String oldTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
-                              currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
+                              currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" :
+                              currentFeedType == FeedDataManager::FeedType::ForYou ? "ForYou" : "Global";
     Log::info("PostsFeed::switchFeedType: Switching from " + oldTypeStr + " to " + typeStr);
 
     currentFeedType = type;
@@ -569,6 +571,23 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
         g.setColour(SidechainColors::textMuted());
         g.setFont(13.0f);
         g.drawText("Discover", globalTab, juce::Justification::centred);
+    }
+
+    // For You tab
+    auto forYouTab = getForYouTabBounds();
+    bool isForYouActive = (currentFeedType == FeedDataManager::FeedType::ForYou);
+
+    // Use UIHelpers::drawButton for consistent tab styling
+    if (isForYouActive)
+    {
+        UIHelpers::drawButton(g, forYouTab.reduced(5), "For You",
+            SidechainColors::primary(), SidechainColors::textPrimary(), false, 4.0f);
+    }
+    else
+    {
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(13.0f);
+        g.drawText("For You", forYouTab, juce::Justification::centred);
     }
 
     // Refresh button
@@ -894,32 +913,84 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
 
         juce::PopupMenu menu;
 
-        // Copy link option (always available)
-        menu.addItem(1, "Copy Link");
+        // More like this option (always available)
+        menu.addItem(1, "More like this");
+
+        // Copy link option
+        menu.addItem(2, "Copy Link");
 
         if (post.isOwnPost)
         {
             // Delete option for own posts
             menu.addSeparator();
-            menu.addItem(2, "Delete Post");
+            menu.addItem(3, "Delete Post");
         }
         else
         {
             // Report option for other users' posts
             menu.addSeparator();
-            menu.addItem(3, "Report Post");
+            menu.addItem(4, "Report Post");
         }
 
         menu.showMenuAsync(juce::PopupMenu::Options(),
             [this, post](int result) {
                 if (result == 1)
                 {
+                    // More like this - switch to similar posts view
+                    Log::info("PostsFeedComponent: More like this clicked for post: " + post.id);
+                    if (networkClient != nullptr)
+                    {
+                        // Fetch similar posts and show in feed
+                        networkClient->getSimilarPosts(post.id, 20, [this, post](Outcome<juce::var> result) {
+                            if (result.isOk())
+                            {
+                                // Parse similar posts and show in feed
+                                auto data = result.getValue();
+                                if (data.isObject())
+                                {
+                                    auto activities = data.getProperty("activities", juce::var());
+                                    if (activities.isArray())
+                                    {
+                                        // Convert to FeedResponse format
+                                        FeedResponse response;
+                                        for (int i = 0; i < activities.size(); ++i)
+                                        {
+                                            auto feedPost = FeedPost::fromJson(activities[i]);
+                                            if (feedPost.isValid())
+                                                response.posts.add(feedPost);
+                                        }
+                                        response.hasMore = false; // Similar posts don't paginate
+                                        onFeedLoaded(response);
+                                        Log::info("PostsFeedComponent: Loaded " + juce::String(response.posts.size()) + " similar posts");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Log::error("PostsFeedComponent: Failed to get similar posts: " + result.getError());
+                                juce::AlertWindow::showMessageBoxAsync(
+                                    juce::MessageBoxIconType::WarningIcon,
+                                    "Error",
+                                    "Failed to load similar posts. Please try again.");
+                            }
+                        });
+                    }
+                }
+                else if (result == 2)
+                {
                     // Copy link
                     juce::String shareUrl = "https://sidechain.live/post/" + post.id;
                     juce::SystemClipboard::copyTextToClipboard(shareUrl);
                     Log::info("PostsFeedComponent: Copied post link to clipboard");
                 }
-                else if (result == 2 && post.isOwnPost)
+                else if (result == 2)
+                {
+                    // Copy link
+                    juce::String shareUrl = "https://sidechain.live/post/" + post.id;
+                    juce::SystemClipboard::copyTextToClipboard(shareUrl);
+                    Log::info("PostsFeedComponent: Copied post link to clipboard");
+                }
+                else if (result == 3 && post.isOwnPost)
                 {
                     // Delete post
                     auto options = juce::MessageBoxOptions()
@@ -1081,6 +1152,232 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                 }
             });
         });
+    };
+
+    card->onDropToTrackClicked = [this, card](const FeedPost& post) {
+        Log::debug("Drop to Track clicked for post: " + post.id);
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeedComponent: Cannot download - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to download. Please try again later.");
+            return;
+        }
+
+        // Get download info from backend
+        networkClient->getPostDownloadInfo(post.id, [this, post, card](Outcome<NetworkClient::DownloadInfo> downloadInfoOutcome) {
+            if (!downloadInfoOutcome.isOk())
+            {
+                Log::error("Failed to get download info: " + downloadInfoOutcome.getError());
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::MessageBoxIconType::WarningIcon,
+                    "Error",
+                    "Failed to get download information. Please try again.");
+                return;
+            }
+
+            auto info = downloadInfoOutcome.getValue();
+            
+            // Determine target location based on DAW
+            // For now, use a generic location - we'll enhance this with DAW-specific paths later
+            juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                .getChildFile("Sidechain")
+                .getChildFile("Downloads");
+            
+            if (!targetDir.exists())
+            {
+                targetDir.createDirectory();
+            }
+
+            juce::File targetFile = targetDir.getChildFile(info.filename);
+
+            // Download the file with progress
+            networkClient->downloadFile(
+                info.downloadUrl,
+                targetFile,
+                [card](float progress) {
+                    // Update card with download progress
+                    if (card != nullptr)
+                        card->setDownloadProgress(progress);
+                },
+                [card, targetFile, info](Outcome<juce::var> result) {
+                    if (result.isOk())
+                    {
+                        // Reset download progress
+                        if (card != nullptr)
+                            card->setDownloadProgress(1.0f);
+                        
+                        Log::info("Loop added to project folder: " + targetFile.getFullPathName());
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::InfoIcon,
+                            "Success",
+                            "Loop added to project folder!\n\n" + targetFile.getFullPathName());
+                        
+                        // Clear progress after a moment
+                        juce::MessageManager::callAsync([card]() {
+                            if (card != nullptr)
+                                card->setDownloadProgress(0.0f);
+                        });
+                    }
+                    else
+                    {
+                        // Reset download progress on error
+                        if (card != nullptr)
+                            card->setDownloadProgress(0.0f);
+                        
+                        Log::error("Failed to download file: " + result.getError());
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::WarningIcon,
+                            "Error",
+                            "Failed to download file. Please try again.");
+                    }
+                }
+            );
+        });
+    };
+
+    card->onDownloadMIDIClicked = [this](const FeedPost& post) {
+        Log::debug("Download MIDI clicked for post: " + post.id + ", midiId: " + post.midiId);
+
+        if (!post.hasMidi || post.midiId.isEmpty())
+        {
+            Log::warn("PostsFeedComponent: Cannot download MIDI - no MIDI data available");
+            return;
+        }
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeedComponent: Cannot download MIDI - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to download MIDI. Please try again later.");
+            return;
+        }
+
+        // Determine target location for MIDI files
+        juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+            .getChildFile("Sidechain")
+            .getChildFile("MIDI");
+
+        if (!targetDir.exists())
+        {
+            targetDir.createDirectory();
+        }
+
+        // Create filename from post username and ID
+        juce::String safeName = post.username.isNotEmpty() ? post.username : "unknown";
+        safeName = safeName.replaceCharacters(" /\\:*?\"<>|", "__________");
+        juce::String filename = safeName + "_" + post.midiId.substring(0, 8) + ".mid";
+        juce::File targetFile = targetDir.getChildFile(filename);
+
+        // Download the MIDI file
+        networkClient->downloadMIDI(
+            post.midiId,
+            targetFile,
+            [targetFile](Outcome<juce::var> result) {
+                if (result.isOk())
+                {
+                    Log::info("MIDI downloaded: " + targetFile.getFullPathName());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::InfoIcon,
+                        "MIDI Downloaded",
+                        "MIDI saved to:\n" + targetFile.getFullPathName());
+                }
+                else
+                {
+                    Log::error("Failed to download MIDI: " + result.getError());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Error",
+                        "Failed to download MIDI. Please try again.");
+                }
+            }
+        );
+    };
+
+    card->onDownloadProjectClicked = [this](const FeedPost& post) {
+        Log::debug("Download Project clicked for post: " + post.id + ", projectFileId: " + post.projectFileId);
+
+        if (!post.hasProjectFile || post.projectFileId.isEmpty())
+        {
+            Log::warn("PostsFeedComponent: Cannot download project file - no project file available");
+            return;
+        }
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeedComponent: Cannot download project file - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to download project file. Please try again later.");
+            return;
+        }
+
+        // Determine target location for project files
+        juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+            .getChildFile("Sidechain")
+            .getChildFile("Projects");
+
+        if (!targetDir.exists())
+        {
+            targetDir.createDirectory();
+        }
+
+        // Create filename from post username, DAW type and ID
+        juce::String safeName = post.username.isNotEmpty() ? post.username : "unknown";
+        safeName = safeName.replaceCharacters(" /\\:*?\"<>|", "__________");
+
+        // Determine file extension based on DAW type
+        juce::String extension = ".zip"; // Default to zip
+        if (post.projectFileDaw == "ableton")
+            extension = ".als";
+        else if (post.projectFileDaw == "fl_studio")
+            extension = ".flp";
+        else if (post.projectFileDaw == "logic")
+            extension = ".logicx";
+        else if (post.projectFileDaw == "reaper")
+            extension = ".rpp";
+        else if (post.projectFileDaw == "cubase")
+            extension = ".cpr";
+        else if (post.projectFileDaw == "studio_one")
+            extension = ".song";
+        else if (post.projectFileDaw == "bitwig")
+            extension = ".bwproject";
+        else if (post.projectFileDaw == "pro_tools")
+            extension = ".ptx";
+
+        juce::String filename = safeName + "_" + post.projectFileId.substring(0, 8) + extension;
+        juce::File targetFile = targetDir.getChildFile(filename);
+
+        // Download the project file
+        networkClient->downloadProjectFile(
+            post.projectFileId,
+            targetFile,
+            nullptr, // No progress callback for now
+            [targetFile](Outcome<juce::var> result) {
+                if (result.isOk())
+                {
+                    Log::info("Project file downloaded: " + targetFile.getFullPathName());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::InfoIcon,
+                        "Project Downloaded",
+                        "Project saved to:\n" + targetFile.getFullPathName());
+                }
+                else
+                {
+                    Log::error("Failed to download project file: " + result.getError());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Error",
+                        "Failed to download project file. Please try again.");
+                }
+            }
+        );
     };
 
     card->onFollowToggled = [this, card](const FeedPost& post, bool willFollow) {
@@ -1338,6 +1635,13 @@ void PostsFeed::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    if (getForYouTabBounds().contains(pos))
+    {
+        Log::info("PostsFeed::mouseUp: For You tab clicked");
+        switchFeedType(FeedDataManager::FeedType::ForYou);
+        return;
+    }
+
     // Check refresh button
     if (getRefreshButtonBounds().contains(pos) && !feedDataManager.isFetching())
     {
@@ -1384,6 +1688,11 @@ juce::Rectangle<int> PostsFeed::getTrendingTabBounds() const
 juce::Rectangle<int> PostsFeed::getGlobalTabBounds() const
 {
     return juce::Rectangle<int>(195, 10, 80, 30);
+}
+
+juce::Rectangle<int> PostsFeed::getForYouTabBounds() const
+{
+    return juce::Rectangle<int>(285, 10, 80, 30);
 }
 
 juce::Rectangle<int> PostsFeed::getRefreshButtonBounds() const
