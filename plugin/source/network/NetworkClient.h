@@ -97,6 +97,10 @@ public:
         double durationSeconds = 0.0; ///< Audio duration in seconds
         int sampleRate = 44100;       ///< Audio sample rate in Hz
         int numChannels = 2;          ///< Number of audio channels
+
+        // MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
+        juce::var midiData;           ///< MIDI events captured during recording (optional)
+        bool includeMidi = true;      ///< Whether to upload MIDI with the post
     };
 
     //==========================================================================
@@ -203,6 +207,20 @@ public:
      */
     void getTrendingFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
+    /** Get "For You" personalized recommendations feed
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with feed data or error
+     */
+    void getForYouFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    /** Get similar posts to a given post
+     * @param postId The post ID to find similar posts for
+     * @param limit Maximum number of posts to return
+     * @param callback Called with feed data or error
+     */
+    void getSimilarPosts(const juce::String& postId, int limit = 10, FeedCallback callback = nullptr);
+
     /** Like a post with optional emoji reaction
      * @param activityId The post activity ID
      * @param emoji Optional emoji reaction (empty for default like)
@@ -229,6 +247,74 @@ public:
      * @param callback Called with result or error
      */
     void reportPost(const juce::String& postId, const juce::String& reason, const juce::String& description = "", ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // Download operations
+
+    /** Download info structure for post downloads */
+    struct DownloadInfo
+    {
+        juce::String downloadUrl;
+        juce::String filename;
+        juce::var metadata;  // Contains BPM, key, duration, genre, daw
+        int downloadCount = 0;
+    };
+
+    using DownloadInfoCallback = std::function<void(Outcome<DownloadInfo>)>;
+    using DownloadProgressCallback = std::function<void(float progress)>;  // 0.0 to 1.0
+
+    /** Get download info for a post (generates download URL and metadata)
+     * @param postId The post ID
+     * @param callback Called with download info or error
+     */
+    void getPostDownloadInfo(const juce::String& postId, DownloadInfoCallback callback = nullptr);
+
+    /** Download a file from a URL and save it to a location
+     * @param url The URL to download from
+     * @param targetFile The file to save to
+     * @param progressCallback Optional callback for download progress (0.0 to 1.0)
+     * @param callback Called with success/error
+     */
+    void downloadFile(const juce::String& url, const juce::File& targetFile,
+                      DownloadProgressCallback progressCallback = nullptr,
+                      ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // MIDI operations (R.3.3 Cross-DAW MIDI Collaboration)
+
+    /** Download MIDI file for a pattern
+     * @param midiId The MIDI pattern ID
+     * @param targetFile The file to save the .mid file to
+     * @param callback Called with success/error
+     */
+    void downloadMIDI(const juce::String& midiId, const juce::File& targetFile,
+                      ResponseCallback callback = nullptr);
+
+    /** Upload MIDI pattern to create a standalone MIDI resource
+     * @param midiData MIDI data as JSON (events, tempo, time_signature)
+     * @param name Optional name for the pattern
+     * @param description Optional description
+     * @param isPublic Whether the pattern is publicly visible (default true)
+     * @param callback Called with created pattern ID or error
+     */
+    void uploadMIDI(const juce::var& midiData,
+                    const juce::String& name = "",
+                    const juce::String& description = "",
+                    bool isPublic = true,
+                    ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // Project file operations (R.3.4 Project File Exchange)
+
+    /** Download a project file (DAW project: .als, .flp, .logic, etc.)
+     * @param projectFileId The project file ID
+     * @param targetFile The file to save the project file to
+     * @param progressCallback Optional callback for download progress (0.0 to 1.0)
+     * @param callback Called with success/error
+     */
+    void downloadProjectFile(const juce::String& projectFileId, const juce::File& targetFile,
+                             DownloadProgressCallback progressCallback = nullptr,
+                             ResponseCallback callback = nullptr);
 
     /** Follow a user
      * @param userId The user ID to follow
@@ -609,6 +695,17 @@ public:
                                           const juce::StringPairArray& customHeaders = juce::StringPairArray(),
                                           juce::MemoryBlock* binaryData = nullptr);
 
+    //==========================================================================
+    // DAW Detection
+
+    /**
+     * Detect DAW name from host application.
+     * Attempts to identify the DAW hosting the plugin.
+     *
+     * @return DAW name (e.g., "Ableton Live", "Logic Pro", "FL Studio") or "Unknown"
+     */
+    static juce::String detectDAWName();
+
 private:
     Config config;
     juce::String authToken;
@@ -698,14 +795,6 @@ private:
      *       to ensure thread safety when called from background threads.
      */
     juce::MemoryBlock encodeAudioToWAV(const juce::AudioBuffer<float>& buffer, double sampleRate);
-
-    /**
-     * Detect DAW name from host application.
-     * Attempts to identify the DAW hosting the plugin.
-     *
-     * @return DAW name (e.g., "Ableton Live", "Logic Pro", "FL Studio") or "Unknown"
-     */
-    static juce::String detectDAWName();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NetworkClient)
 };
