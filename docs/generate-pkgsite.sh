@@ -132,6 +132,16 @@ echo "Stopping pkgsite server..."
 kill $PKGSITE_PID || true
 wait $PKGSITE_PID 2>/dev/null || true
 
+# Create symlink for zfogg/sidechain path (without github.com prefix)
+# This matches the links in docs/backend/index.rst
+echo "Creating symlink for zfogg/sidechain path..."
+if [ -d "docs/_build/html/backend/godoc/github.com/zfogg/sidechain" ] && [ ! -d "docs/_build/html/backend/godoc/zfogg" ]; then
+    mkdir -p docs/_build/html/backend/godoc/zfogg
+    ln -sf ../github.com/zfogg/sidechain docs/_build/html/backend/godoc/zfogg/sidechain || \
+    cp -r docs/_build/html/backend/godoc/github.com/zfogg/sidechain docs/_build/html/backend/godoc/zfogg/sidechain
+    echo "✓ Created zfogg/sidechain path"
+fi
+
 # Verify we got the files (check for any HTML files in the godoc directory)
 HTML_COUNT=$(find docs/_build/html/backend/godoc -name "*.html" 2>/dev/null | wc -l)
 if [ "$HTML_COUNT" -gt 0 ]; then
