@@ -75,8 +75,8 @@ wget \
 kill $PKGSITE_PID 2>/dev/null || true
 wait $PKGSITE_PID 2>/dev/null || true
 
-# Fix absolute paths that wget didn't convert properly
-echo "Fixing absolute paths in downloaded files..."
+# Fix absolute paths and query string issues
+echo "Fixing absolute paths and file references in downloaded files..."
 find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
     # Calculate relative depth from godoc root
     REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
@@ -94,12 +94,22 @@ find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read 
     fi
     
     # Replace absolute paths with relative paths
+    # Also fix query strings in file references (wget adds .css extension to files with ?version=)
     sed -i \
         -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
         -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
         -e 's|href="/github\.com/|href="'${REL_PREFIX}'github.com/|g' \
         -e 's|src="/github\.com/|src="'${REL_PREFIX}'github.com/|g' \
+        -e 's|\.css\?version=|?version=|g' \
+        -e 's|\.css\?version=|?version=|g' \
         "$f" || true
+done
+
+# Fix file names that wget renamed with .css extension
+echo "Fixing file names with query strings..."
+find docs/_build/html/backend/godoc/static -name "*.css?version=.css" -type f | while read f; do
+    NEW_NAME=$(echo "$f" | sed 's|\.css\?version=\.css$|?version=|')
+    mv "$f" "$NEW_NAME" 2>/dev/null || true
 done
 
 # Create symlink for Sphinx compatibility
