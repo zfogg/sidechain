@@ -101,8 +101,9 @@ wget \
     http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Failed to download some files"
 
 # Fix any remaining localhost URLs to use relative paths
-echo "Fixing any remaining absolute URLs..."
-find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
+# Also fix absolute paths in JavaScript files
+echo "Fixing any remaining absolute URLs in HTML and JS files..."
+find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
     # Calculate relative depth from godoc root
     REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
     if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
