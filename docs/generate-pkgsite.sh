@@ -33,14 +33,17 @@ PKGSITE_PID=$!
 
 # Wait for server to start
 echo "Waiting for pkgsite server to start..."
-for i in {1..15}; do
+for i in {1..30}; do
     if curl -s http://localhost:8080/ > /dev/null 2>&1; then
         echo "✓ Pkgsite server is running"
         break
     fi
-    if [ $i -eq 15 ]; then
-        echo "✗ Pkgsite server failed to start"
+    if [ $i -eq 30 ]; then
+        echo "✗ Pkgsite server failed to start after 30 seconds"
+        echo "Pkgsite log:"
         cat /tmp/pkgsite.log 2>/dev/null || echo "(no log available)"
+        echo "Checking if process is running:"
+        ps aux | grep pkgsite | grep -v grep || echo "No pkgsite process found"
         kill $PKGSITE_PID 2>/dev/null || true
         exit 1
     fi
