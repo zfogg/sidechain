@@ -70,12 +70,58 @@ wget \
     --no-verbose \
     http://localhost:8080/${PACKAGE_PATH}/ 2>&1 | head -50 || echo "Warning: Some files may not have downloaded"
 
+# Explicitly download all subpackages that wget might have missed
+echo "Downloading subpackages explicitly..."
+for pkg in \
+    "cmd/migrate" \
+    "cmd/seed" \
+    "cmd/server" \
+    "internal/audio" \
+    "internal/auth" \
+    "internal/database" \
+    "internal/email" \
+    "internal/handlers" \
+    "internal/middleware" \
+    "internal/models" \
+    "internal/queue" \
+    "internal/recommendations" \
+    "internal/search" \
+    "internal/seed" \
+    "internal/storage" \
+    "internal/stories" \
+    "internal/stream" \
+    "internal/websocket"; do
+    echo "  Downloading ${PACKAGE_PATH}/${pkg}..."
+    wget \
+        --mirror \
+        --convert-links \
+        --page-requisites \
+        --no-host-directories \
+        --cut-dirs=0 \
+        --directory-prefix=docs/_build/html/backend/godoc \
+        --timeout=10 \
+        --tries=2 \
+        --level=5 \
+        --wait=0 \
+        --no-verbose \
+        "http://localhost:8080/${PACKAGE_PATH}/${pkg}/" 2>&1 | head -10 || echo "    Warning: Failed to download ${pkg}"
+done
+
 # Stop pkgsite
 kill $PKGSITE_PID 2>/dev/null || true
 wait $PKGSITE_PID 2>/dev/null || true
 
-# Fix absolute paths and query string issues
-echo "Fixing absolute paths and file references in downloaded files..."
+# Fix query strings in filenames (wget saves ?version= as part of filename, but HTTP treats ? as query separator)
+echo "Fixing query strings in filenames..."
+find docs/_build/html/backend/godoc/static -name "*?version=*" -type f | while read f; do
+    NEW_NAME=$(echo "$f" | sed 's|?version=$||')
+    if [ "$f" != "$NEW_NAME" ]; then
+        mv "$f" "$NEW_NAME" 2>/dev/null || true
+    fi
+done
+
+# Fix absolute paths and remove query strings from HTML references
+echo "Fixing absolute paths and query strings in HTML/JS files..."
 find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
     # Calculate relative depth from godoc root
     REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
@@ -92,12 +138,13 @@ find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read 
         REL_PREFIX=""
     fi
     
-    # Replace absolute paths with relative paths
+    # Replace absolute paths with relative paths and remove query strings
     sed -i \
         -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
         -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
         -e 's|href="/github\.com/|href="'${REL_PREFIX}'github.com/|g' \
         -e 's|src="/github\.com/|src="'${REL_PREFIX}'github.com/|g' \
+        -e 's|?version=||g' \
         "$f" || true
 done
 
