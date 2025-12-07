@@ -58,6 +58,7 @@ func (suite *HandlersTestSuite) SetupSuite() {
 		err = db.AutoMigrate(
 			&models.User{},
 			&models.OAuthProvider{},
+			&models.MIDIPattern{}, // Must come before AudioPost and Story
 			&models.AudioPost{},
 			&models.Comment{},
 			&models.CommentMention{},
@@ -157,6 +158,14 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	api.GET("/stories/:id/views", suite.handlers.GetStoryViews)
 	api.GET("/users/:id/stories", suite.handlers.GetUserStories)
 
+	// MIDI routes (R.3.3)
+	api.POST("/midi", suite.handlers.CreateMIDIPattern)
+	api.GET("/midi", suite.handlers.ListMIDIPatterns)
+	api.GET("/midi/:id", suite.handlers.GetMIDIPattern)
+	api.GET("/midi/:id/file", suite.handlers.GetMIDIPatternFile)
+	api.PATCH("/midi/:id", suite.handlers.UpdateMIDIPattern)
+	api.DELETE("/midi/:id", suite.handlers.DeleteMIDIPattern)
+
 	// Notification routes (require getstream.io)
 	api.GET("/notifications", suite.handlers.GetNotifications)
 	api.GET("/notifications/counts", suite.handlers.GetNotificationCounts)
@@ -175,6 +184,7 @@ func (suite *HandlersTestSuite) SetupTest() {
 	// Only truncate tables that exist from AutoMigrate
 	suite.db.Exec("TRUNCATE TABLE story_views, stories RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE comment_mentions, comments, audio_posts RESTART IDENTITY CASCADE")
+	suite.db.Exec("TRUNCATE TABLE midi_patterns RESTART IDENTITY CASCADE")
 	suite.db.Exec("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
 
 	testID := fmt.Sprintf("%d", time.Now().UnixNano())
