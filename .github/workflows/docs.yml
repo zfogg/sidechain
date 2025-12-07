@@ -130,138 +130,31 @@ jobs:
           cd ${{ github.workspace }}
           
           # Download all package pages and assets using wget mirror
-          # This automatically converts links to be relative
-          echo "Downloading pkgsite documentation and assets..."
-          # pkgsite uses /github.com/username/repo/... path structure
+          # wget --mirror automatically handles link conversion and downloads all assets
+          echo "Downloading pkgsite documentation..."
           PACKAGE_PATH="github.com/zfogg/sidechain/backend"
           
-          # First verify the package exists
-          TEST_DOWNLOAD=$(curl -s http://localhost:8080/${PACKAGE_PATH}/ | head -20)
-          if [ -n "$TEST_DOWNLOAD" ]; then
-            echo "Package path verified, downloading with automatic link conversion..."
-            
-            # First download the static assets directory
-            echo "Downloading static assets..."
-            wget \
-              --mirror \
-              --convert-links \
-              --adjust-extension \
-              --page-requisites \
-              --no-parent \
-              --no-host-directories \
-              --cut-dirs=0 \
-              --directory-prefix=docs/_build/html/backend/godoc \
-              --accept="*.css,*.js,*.woff,*.woff2,*.ttf,*.svg,*.png,*.ico" \
-              --reject="*.html,robots.txt" \
-              --quiet \
-              --level=5 \
-              http://localhost:8080/static/ || echo "Note: Some static assets may not be available"
-            
-            # Then download the package pages (including all subpackages)
-            echo "Downloading package pages..."
-            wget \
-              --mirror \
-              --convert-links \
-              --adjust-extension \
-              --page-requisites \
-              --no-parent \
-              --no-host-directories \
-              --cut-dirs=0 \
-              --directory-prefix=docs/_build/html/backend/godoc \
-              --accept="*.html" \
-              --reject="robots.txt" \
-              --quiet \
-              --level=15 \
-              http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Failed to download some files"
-            
-            # Also explicitly download internal packages
-            echo "Downloading internal packages explicitly..."
-            for pkg in internal/handlers internal/models internal/database internal/auth internal/stream internal/storage internal/websocket internal/audio internal/email internal/middleware internal/queue internal/search internal/seed internal/recommendations; do
-              echo "  Downloading ${PACKAGE_PATH}/$pkg..."
-              wget -q \
-                --convert-links \
-                --adjust-extension \
-                --page-requisites \
-                --no-parent \
-                --no-host-directories \
-                --cut-dirs=0 \
-                --directory-prefix=docs/_build/html/backend/godoc \
-                --accept="*.html" \
-                http://localhost:8080/${PACKAGE_PATH}/$pkg/ || echo "    Note: $pkg may not exist"
-            done
-            
-            # Fix versioned paths (@v0.0.0) - pkgsite generates links with versions but files are downloaded without
-            # Also fix any remaining localhost URLs to use relative paths
-            # Also fix absolute paths in JavaScript files
-            echo "Fixing versioned paths and absolute URLs in HTML and JS files..."
-            find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
-              # First, strip @v0.0.0 (or any @version) from paths in links
-              # This is needed because pkgsite generates links with versions but wget downloads without
-              sed -i \
-                -e 's|@v[0-9][^/"]*||g' \
-                -e 's|href="/github\.com/|href="github.com/|g' \
-                -e 's|src="/github\.com/|src="github.com/|g' \
-                "$f" || true
-              # Calculate relative depth from godoc root
-              REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
-              
-              # For JS files in static/, paths like /static/ should be relative to godoc root
-              # Calculate depth from godoc root, not from JS file location
-              if [[ "$f" == *.js ]] && [[ "$REL_PATH" == static/* ]]; then
-                # JS file in static/ - need to go up to godoc root, then into static/
-                # File: static/frontend/frontend.js -> needs ../../ to get to godoc root
-                # Then /static/ paths should become ../../static/
-                JS_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
-                if [ $JS_DEPTH -gt 0 ]; then
-                  REL_PREFIX=$(printf '../%.0s' $(seq 1 $JS_DEPTH))
-                else
-                  REL_PREFIX="../"
-                fi
-                # For /static/ references in JS files, replace with relative path from godoc root
-                sed -i \
-                  -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
-                  -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
-                  -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
-                  "$f" || true
-              else
-                # HTML file or JS file not in static/ - calculate depth normally
-                if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
-                  # Count directory separators (depth from godoc root)
-                  # github.com/zfogg/sidechain/backend/index.html has 4 slashes = 4 levels deep
-                  REL_DEPTH=$(echo "$REL_PATH" | sed 's|[^/]*$||' | tr -cd '/' | wc -c)
-                  if [ $REL_DEPTH -gt 0 ]; then
-                    REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
-                  else
-                    REL_PREFIX=""
-                  fi
-                else
-                  REL_PREFIX=""
-                fi
-                
-                # Replace localhost URLs with relative paths
-                # Also fix absolute paths starting with /static/ or /github.com/ in HTML and JS
-                sed -i \
-                  -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
-                  -e 's|http://localhost:8080/github.com/|'${REL_PREFIX}'github.com/|g' \
-                  -e 's|http://localhost:8080/|'${REL_PREFIX}'|g' \
-                  -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
-                  -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
-                  -e 's|"/github.com/|"'${REL_PREFIX}'github.com/|g' \
-                  -e "s|'/github.com/|'"${REL_PREFIX}"'github.com/|g" \
-                  "$f" || true
-              fi
-            done
-            
-            echo "Package download completed"
-            # List what we got
-            echo "Downloaded files:"
-            find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | head -15 || echo "No HTML files found"
-          else
-            echo "Warning: Package path not accessible at http://localhost:8080/${PACKAGE_PATH}/"
-          fi
+          wget \
+            --mirror \
+            --convert-links \
+            --adjust-extension \
+            --page-requisites \
+            --no-parent \
+            --no-host-directories \
+            --cut-dirs=0 \
+            --directory-prefix=docs/_build/html/backend/godoc \
+            --quiet \
+            --level=20 \
+            --wait=0 \
+            --recursive \
+            http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Some files may not have downloaded"
           
-          # Verify we got the files (check for package pages even if index.html failed)
-          if [ -f "docs/_build/html/backend/godoc/index.html" ] || [ -f "docs/_build/html/backend/godoc/${PACKAGE_PATH}/index.html" ]; then
+          # Stop pkgsite
+          kill $PKGSITE_PID || true
+          wait $PKGSITE_PID 2>/dev/null || true
+          
+          # Verify we got the files
+          if [ -f "docs/_build/html/backend/godoc/${PACKAGE_PATH}/index.html" ]; then
             echo "✓ Go documentation generated successfully"
             HTML_COUNT=$(find docs/_build/html/backend/godoc -name "*.html" 2>/dev/null | wc -l)
             echo "  Downloaded $HTML_COUNT HTML files"
@@ -269,10 +162,6 @@ jobs:
             echo "✗ Failed to generate Go documentation - no HTML files found"
             exit 1
           fi
-          
-          # Stop pkgsite
-          kill $PKGSITE_PID || true
-          wait $PKGSITE_PID 2>/dev/null || true
           
           # Create symlink for zfogg/sidechain path (without github.com prefix)
           # This matches the links in docs/backend/index.rst
