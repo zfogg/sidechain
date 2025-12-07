@@ -697,6 +697,58 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
     });
 }
 
+void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // For You feed uses personalized recommendations
+        juce::String endpoint = buildApiPath("/recommendations/for-you") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid feed response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::getSimilarPosts(const juce::String& postId, int limit, FeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, limit, callback]() {
+        juce::String path = "/recommendations/similar-posts/" + postId;
+        juce::String endpoint = buildApiPath(path.toRawUTF8()) + "?limit=" + juce::String(limit);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid feed response"));
+            });
+        }
+    });
+}
+
 void NetworkClient::likePost(const juce::String& activityId, const juce::String& emoji, ResponseCallback callback)
 {
     if (!isAuthenticated())
@@ -819,6 +871,347 @@ void NetworkClient::reportPost(const juce::String& postId, const juce::String& r
     });
 }
 
+//==============================================================================
+void NetworkClient::getPostDownloadInfo(const juce::String& postId, DownloadInfoCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<DownloadInfo>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/posts/" + postId + "/download";
+        auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", juce::var(), true);
+        Log::debug("Get download info response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                if (result.success && result.data.isObject())
+                {
+                    DownloadInfo info;
+                    auto* obj = result.data.getDynamicObject();
+                    if (obj != nullptr)
+                    {
+                        info.downloadUrl = obj->getProperty("download_url").toString();
+                        info.filename = obj->getProperty("filename").toString();
+                        info.metadata = obj->getProperty("metadata");
+                        info.downloadCount = static_cast<int>(obj->getProperty("download_count"));
+                    }
+                    callback(Outcome<DownloadInfo>::ok(info));
+                }
+                else
+                {
+                    auto outcome = requestResultToOutcome(result);
+                    callback(Outcome<DownloadInfo>::error(outcome.getError()));
+                }
+            });
+        }
+    });
+}
+
+void NetworkClient::downloadFile(const juce::String& url, const juce::File& targetFile,
+                                  DownloadProgressCallback progressCallback,
+                                  ResponseCallback callback)
+{
+    Async::runVoid([ url, targetFile, progressCallback, callback]() {
+        juce::URL downloadUrl(url);
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+            .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)
+            .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS);
+
+        juce::MemoryBlock fileData;
+        bool success = false;
+
+        if (auto stream = downloadUrl.createInputStream(options))
+        {
+            // Get total size if available (for progress)
+            int64 totalBytes = stream->getTotalLength();
+            int64 bytesRead = 0;
+            const int bufferSize = 8192;
+            juce::HeapBlock<char> buffer(bufferSize);
+
+            // Create output file
+            juce::FileOutputStream output(targetFile);
+            if (output.openedOk())
+            {
+                // Read and write in chunks
+                int bytesReadThisChunk;
+                while ((bytesReadThisChunk = stream->read(buffer.getData(), bufferSize)) > 0)
+                {
+                    output.write(buffer.getData(), bytesReadThisChunk);
+                    bytesRead += bytesReadThisChunk;
+
+                    // Report progress if callback provided
+                    if (progressCallback && totalBytes > 0)
+                    {
+                        float progress = static_cast<float>(bytesRead) / static_cast<float>(totalBytes);
+                        juce::MessageManager::callAsync([progressCallback, progress]() {
+                            progressCallback(progress);
+                        });
+                    }
+                }
+
+                output.flush();
+                success = (bytesRead > 0);
+            }
+        }
+
+        if (callback)
+        {
+            juce::String urlCopy = url;  // Capture URL for error message
+            juce::MessageManager::callAsync([callback, success, targetFile, urlCopy]() {
+                if (success)
+                {
+                    Log::info("File downloaded successfully to: " + targetFile.getFullPathName());
+                    callback(Outcome<juce::var>::ok(juce::var()));
+                }
+                else
+                {
+                    Log::error("Failed to download file from: " + urlCopy);
+                    callback(Outcome<juce::var>::error("Download failed"));
+                }
+            });
+        }
+    });
+}
+
+//==============================================================================
+void NetworkClient::downloadMIDI(const juce::String& midiId, const juce::File& targetFile,
+                                  ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    // Build the MIDI file download URL
+    juce::String midiUrl = config.baseUrl + "/api/v1/midi/" + midiId + "/file";
+
+    Async::runVoid([this, midiUrl, targetFile, callback]() {
+        juce::URL downloadUrl(midiUrl);
+
+        // Add auth header
+        juce::StringPairArray headers;
+        headers.set("Authorization", getAuthHeader());
+
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+            .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)
+            .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS)
+            .withExtraHeaders(headers.getDescription());
+
+        bool success = false;
+
+        if (auto stream = downloadUrl.createInputStream(options))
+        {
+            // Create output file
+            juce::FileOutputStream output(targetFile);
+            if (output.openedOk())
+            {
+                // Read all data
+                juce::MemoryBlock data;
+                stream->readIntoMemoryBlock(data);
+
+                if (data.getSize() > 0)
+                {
+                    output.write(data.getData(), data.getSize());
+                    output.flush();
+                    success = true;
+                }
+            }
+        }
+
+        if (callback)
+        {
+            juce::String midiUrlCopy = midiUrl;
+            juce::MessageManager::callAsync([callback, success, targetFile, midiUrlCopy]() {
+                if (success)
+                {
+                    Log::info("MIDI downloaded successfully to: " + targetFile.getFullPathName());
+                    callback(Outcome<juce::var>::ok(juce::var()));
+                }
+                else
+                {
+                    Log::error("Failed to download MIDI from: " + midiUrlCopy);
+                    callback(Outcome<juce::var>::error("MIDI download failed"));
+                }
+            });
+        }
+    });
+}
+
+//==============================================================================
+void NetworkClient::uploadMIDI(const juce::var& midiData,
+                                const juce::String& name,
+                                const juce::String& description,
+                                bool isPublic,
+                                ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, midiData, name, description, isPublic, callback]() {
+        // Build request body
+        auto* requestObj = new juce::DynamicObject();
+
+        // Extract events from midiData
+        if (midiData.hasProperty("events"))
+            requestObj->setProperty("events", midiData["events"]);
+        else
+            requestObj->setProperty("events", midiData);  // Assume midiData is the events array
+
+        // Extract or set tempo
+        if (midiData.hasProperty("tempo"))
+            requestObj->setProperty("tempo", midiData["tempo"]);
+        else
+            requestObj->setProperty("tempo", 120);
+
+        // Extract or set time signature
+        if (midiData.hasProperty("time_signature"))
+            requestObj->setProperty("time_signature", midiData["time_signature"]);
+        else
+        {
+            juce::Array<juce::var> defaultTimeSig;
+            defaultTimeSig.add(4);
+            defaultTimeSig.add(4);
+            requestObj->setProperty("time_signature", defaultTimeSig);
+        }
+
+        // Extract or calculate total_time
+        if (midiData.hasProperty("total_time"))
+            requestObj->setProperty("total_time", midiData["total_time"]);
+
+        // Optional fields
+        if (name.isNotEmpty())
+            requestObj->setProperty("name", name);
+        if (description.isNotEmpty())
+            requestObj->setProperty("description", description);
+        requestObj->setProperty("is_public", isPublic);
+
+        juce::var requestBody(requestObj);
+
+        auto result = makeRequestWithRetry(buildApiPath("/midi"), "POST", requestBody, true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                if (result.success)
+                {
+                    callback(Outcome<juce::var>::ok(result.data));
+                }
+                else
+                {
+                    callback(Outcome<juce::var>::error(result.errorMessage));
+                }
+            });
+        }
+    });
+}
+
+//==============================================================================
+// Project file operations (R.3.4)
+
+void NetworkClient::downloadProjectFile(const juce::String& projectFileId, const juce::File& targetFile,
+                                         DownloadProgressCallback progressCallback,
+                                         ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    // Use the download endpoint which redirects to the CDN
+    juce::String downloadUrl = config.baseUrl + "/api/v1/project-files/" + projectFileId + "/download";
+
+    Async::runVoid([this, downloadUrl, targetFile, progressCallback, callback]() {
+        juce::URL url(downloadUrl);
+
+        // Create parent directory if needed
+        targetFile.getParentDirectory().createDirectory();
+
+        // Set up connection with auth
+        juce::StringPairArray headers;
+        headers.set("Authorization", getAuthHeader());
+
+        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+            .withConnectionTimeoutMs(config.timeoutMs)
+            .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS)
+            .withExtraHeaders(headers.getDescription());
+
+        // Download file
+        std::unique_ptr<juce::InputStream> stream(url.createInputStream(options));
+
+        if (stream == nullptr)
+        {
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(Outcome<juce::var>::error("Failed to connect to server"));
+                });
+            }
+            return;
+        }
+
+        // Write to file
+        juce::FileOutputStream output(targetFile);
+        if (!output.openedOk())
+        {
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(Outcome<juce::var>::error("Failed to create output file"));
+                });
+            }
+            return;
+        }
+
+        // Stream data to file (with progress if available)
+        const int bufferSize = 8192;
+        juce::HeapBlock<char> buffer(bufferSize);
+        int64 totalBytes = stream->getTotalLength();
+        int64 bytesRead = 0;
+
+        while (!stream->isExhausted())
+        {
+            int numRead = stream->read(buffer, bufferSize);
+            if (numRead > 0)
+            {
+                output.write(buffer, static_cast<size_t>(numRead));
+                bytesRead += numRead;
+
+                // Report progress
+                if (progressCallback && totalBytes > 0)
+                {
+                    float progress = static_cast<float>(bytesRead) / static_cast<float>(totalBytes);
+                    juce::MessageManager::callAsync([progressCallback, progress]() {
+                        progressCallback(progress);
+                    });
+                }
+            }
+        }
+
+        output.flush();
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(Outcome<juce::var>::ok(juce::var()));
+            });
+        }
+    });
+}
+
+//==============================================================================
 void NetworkClient::followUser(const juce::String& userId, ResponseCallback callback)
 {
     if (!isAuthenticated())
