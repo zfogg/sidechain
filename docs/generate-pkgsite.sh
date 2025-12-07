@@ -39,21 +39,33 @@ echo "Starting pkgsite server..."
 pkgsite -cache -http=:8080 . > /tmp/pkgsite.log 2>&1 &
 PKGSITE_PID=$!
 
-# Wait for server to start
+# Wait for server to start (pkgsite can take time to load all packages)
 echo "Waiting for pkgsite server to start..."
-for i in {1..30}; do
-    if curl -s http://localhost:8080/ > /dev/null 2>&1; then
-        echo "✓ Pkgsite server is running"
-        break
-    fi
-    if [ $i -eq 30 ]; then
-        echo "✗ Pkgsite server failed to start after 30 seconds"
+for i in {1..60}; do
+    # Check if process is still running
+    if ! ps -p $PKGSITE_PID > /dev/null 2>&1; then
+        echo "✗ Pkgsite process died"
         echo "Pkgsite log:"
         cat /tmp/pkgsite.log 2>/dev/null || echo "(no log available)"
+        exit 1
+    fi
+    # Check if server is responding
+    if curl -s http://localhost:8080/ > /dev/null 2>&1; then
+        echo "✓ Pkgsite server is running (took ${i}s)"
+        break
+    fi
+    if [ $i -eq 60 ]; then
+        echo "✗ Pkgsite server failed to start after 60 seconds"
+        echo "Pkgsite log (last 50 lines):"
+        tail -50 /tmp/pkgsite.log 2>/dev/null || echo "(no log available)"
         echo "Checking if process is running:"
         ps aux | grep pkgsite | grep -v grep || echo "No pkgsite process found"
         kill $PKGSITE_PID 2>/dev/null || true
         exit 1
+    fi
+    # Show progress every 10 seconds
+    if [ $((i % 10)) -eq 0 ]; then
+        echo "  Still waiting... (${i}s, process running: $(ps -p $PKGSITE_PID > /dev/null 2>&1 && echo 'yes' || echo 'no'))"
     fi
     sleep 1
 done
