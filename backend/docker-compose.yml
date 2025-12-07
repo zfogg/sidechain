@@ -46,8 +46,54 @@ services:
       retries: 5
       start_period: 40s
 
+  gorse:
+    image: zhenghaoz/gorse-in-one:latest
+    container_name: sidechain-gorse
+    restart: unless-stopped
+    ports:
+      - "8087:8087"  # API server
+      - "8088:8088"  # Dashboard
+    environment:
+      - GORSE_MASTER_PORT=8086
+      - GORSE_MASTER_HOST=0.0.0.0
+      - GORSE_SERVER_PORT=8087
+      - GORSE_SERVER_HOST=0.0.0.0
+      - GORSE_DASHBOARD_PORT=8088
+      - GORSE_DASHBOARD_HOST=0.0.0.0
+      - GORSE_API_KEY=sidechain_gorse_api_key
+      # Use PostgreSQL for data storage (shared with main app)
+      - GORSE_DATABASE_STORE=postgres://sidechain:sidechain_dev_password@postgres:5432/gorse?sslmode=disable
+      - GORSE_DATABASE_CACHE=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8087/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Note: Gorse will create its own database schema in the postgres database
+
+  redis:
+    image: redis:7-alpine
+    container_name: sidechain-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
     driver: local
   elasticsearch_data:
+    driver: local
+  redis_data:
     driver: local
