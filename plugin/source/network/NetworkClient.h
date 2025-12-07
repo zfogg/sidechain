@@ -304,6 +304,124 @@ public:
                     ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Playlist operations (R.3.1 Collaborative Playlists)
+
+    /** Create a new playlist
+     * @param name Playlist name
+     * @param description Optional description
+     * @param isCollaborative Whether others can add tracks
+     * @param isPublic Whether playlist is publicly visible
+     * @param callback Called with created playlist or error
+     */
+    void createPlaylist(const juce::String& name,
+                       const juce::String& description = "",
+                       bool isCollaborative = false,
+                       bool isPublic = true,
+                       ResponseCallback callback = nullptr);
+
+    /** Get user's playlists
+     * @param filter Filter type: "all", "owned", "collaborated", "public"
+     * @param callback Called with playlists array or error
+     */
+    void getPlaylists(const juce::String& filter = "all",
+                     ResponseCallback callback = nullptr);
+
+    /** Get a single playlist with entries
+     * @param playlistId The playlist ID
+     * @param callback Called with playlist data or error
+     */
+    void getPlaylist(const juce::String& playlistId,
+                    ResponseCallback callback = nullptr);
+
+    /** Add a post to a playlist
+     * @param playlistId The playlist ID
+     * @param postId The post ID to add
+     * @param position Optional position to insert at (default: append to end)
+     * @param callback Called with entry data or error
+     */
+    void addPlaylistEntry(const juce::String& playlistId,
+                         const juce::String& postId,
+                         int position = -1,
+                         ResponseCallback callback = nullptr);
+
+    /** Remove a post from a playlist
+     * @param playlistId The playlist ID
+     * @param entryId The entry ID to remove
+     * @param callback Called with success/error
+     */
+    void removePlaylistEntry(const juce::String& playlistId,
+                            const juce::String& entryId,
+                            ResponseCallback callback = nullptr);
+
+    /** Add a collaborator to a playlist
+     * @param playlistId The playlist ID
+     * @param userId The user ID to add as collaborator
+     * @param role Role: "editor" or "viewer"
+     * @param callback Called with collaborator data or error
+     */
+    void addPlaylistCollaborator(const juce::String& playlistId,
+                                const juce::String& userId,
+                                const juce::String& role,
+                                ResponseCallback callback = nullptr);
+
+    /** Remove a collaborator from a playlist
+     * @param playlistId The playlist ID
+     * @param userId The user ID to remove
+     * @param callback Called with success/error
+     */
+    void removePlaylistCollaborator(const juce::String& playlistId,
+                                   const juce::String& userId,
+                                   ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // MIDI Challenge operations (R.2.2 MIDI Battle Royale)
+
+    /** Get list of MIDI challenges
+     * @param status Filter by status: "active", "voting", "past", "upcoming", or empty for all
+     * @param callback Called with challenges array or error
+     */
+    void getMIDIChallenges(const juce::String& status = "",
+                          ResponseCallback callback = nullptr);
+
+    /** Get a single MIDI challenge with entries
+     * @param challengeId The challenge ID
+     * @param callback Called with challenge data or error
+     */
+    void getMIDIChallenge(const juce::String& challengeId,
+                        ResponseCallback callback = nullptr);
+
+    /** Submit an entry to a MIDI challenge
+     * @param challengeId The challenge ID
+     * @param audioUrl The audio file URL (from post upload)
+     * @param postId Optional post ID if entry is linked to a post
+     * @param midiData Optional MIDI data JSON
+     * @param midiPatternId Optional MIDI pattern ID
+     * @param callback Called with entry data or error
+     */
+    void submitMIDIChallengeEntry(const juce::String& challengeId,
+                                 const juce::String& audioUrl,
+                                 const juce::String& postId = "",
+                                 const juce::var& midiData = juce::var(),
+                                 const juce::String& midiPatternId = "",
+                                 ResponseCallback callback = nullptr);
+
+    /** Get entries for a MIDI challenge
+     * @param challengeId The challenge ID
+     * @param callback Called with entries array or error
+     */
+    void getMIDIChallengeEntries(const juce::String& challengeId,
+                               ResponseCallback callback = nullptr);
+
+    /** Vote for a MIDI challenge entry
+     * @param challengeId The challenge ID
+     * @param entryId The entry ID to vote for
+     * @param callback Called with result or error
+     */
+    void voteMIDIChallengeEntry(const juce::String& challengeId,
+                              const juce::String& entryId,
+                              ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Project file operations (R.3.4 Project File Exchange)
 
     /** Download a project file (DAW project: .als, .flp, .logic, etc.)

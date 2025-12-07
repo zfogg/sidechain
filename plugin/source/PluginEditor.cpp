@@ -7,6 +7,7 @@
 #include "stores/ImageCache.h"
 #include "util/Log.h"
 #include "util/Result.h"
+#include "util/OSNotification.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -267,6 +268,147 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         showView(AppView::PostsFeed);
     };
     addChildComponent(hiddenSynthComponent.get());
+
+    //==========================================================================
+    // Create Playlists
+    playlistsComponent = std::make_unique<Playlists>();
+    playlistsComponent->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        playlistsComponent->setCurrentUserId(userDataStore->getUserId());
+    playlistsComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    playlistsComponent->onPlaylistSelected = [this](const juce::String& playlistId) {
+        playlistIdToView = playlistId;
+        showView(AppView::PlaylistDetail);
+    };
+    playlistsComponent->onCreatePlaylist = [this]() {
+        // Show create playlist dialog with text input
+        auto* dialog = new juce::AlertWindow("Create Playlist", "Enter playlist name:", juce::MessageBoxIconType::QuestionIcon);
+        dialog->addTextEditor("name", "", "Playlist Name");
+        dialog->addButton("Create", 1);
+        dialog->addButton("Cancel", 0);
+        dialog->enterModalState(true, juce::ModalCallbackFunction::create([this, dialog](int result) {
+            if (result == 1)
+            {
+                juce::String playlistName = dialog->getTextEditorContents("name").trim();
+                if (playlistName.isEmpty())
+                {
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Error",
+                        "Playlist name cannot be empty.");
+                    delete dialog;
+                    return;
+                }
+
+                if (networkClient)
+                {
+                    networkClient->createPlaylist(playlistName, "", false, true, [this](Outcome<juce::var> createResult) {
+                        juce::MessageManager::callAsync([this, createResult]() {
+                            if (createResult.isOk())
+                            {
+                                playlistsComponent->refresh();
+                            }
+                            else
+                            {
+                                juce::AlertWindow::showMessageBoxAsync(
+                                    juce::MessageBoxIconType::WarningIcon,
+                                    "Error",
+                                    "Failed to create playlist: " + createResult.getError());
+                            }
+                        });
+                    });
+                }
+            }
+            delete dialog;
+        }));
+    };
+    addChildComponent(playlistsComponent.get());
+
+    //==========================================================================
+    // Create PlaylistDetail
+    playlistDetailComponent = std::make_unique<PlaylistDetail>();
+    playlistDetailComponent->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        playlistDetailComponent->setCurrentUserId(userDataStore->getUserId());
+    playlistDetailComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    playlistDetailComponent->onPostSelected = [](const juce::String& postId) {
+        // Navigate to post (or play post)
+        // For now, just play the post
+        // TODO: Navigate to post detail view when implemented
+        (void)postId;  // Suppress unused parameter warning
+    };
+    playlistDetailComponent->onAddTrack = [this]() {
+        // Show add track dialog - navigate to feed or show post picker
+        // For now, navigate to feed
+        showView(AppView::PostsFeed);
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::InfoIcon,
+            "Add Track",
+            "Click 'Add to Playlist' on any post to add it to this playlist.");
+    };
+    playlistDetailComponent->onPlayPlaylist = []() {
+        // Play all tracks in playlist sequentially
+        // TODO: Implement playlist playback
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::InfoIcon,
+            "Play Playlist",
+            "Playlist playback coming soon!");
+    };
+    playlistDetailComponent->onSharePlaylist = [](const juce::String& playlistId) {
+        // Generate shareable playlist link
+        // For now, use a simple format: sidechain://playlist/{id}
+        // In production, this would be a web URL like https://sidechain.app/playlist/{id}
+        juce::String shareLink = "sidechain://playlist/" + playlistId;
+        
+        // Copy to clipboard
+        juce::SystemClipboard::copyTextToClipboard(shareLink);
+        
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::InfoIcon,
+            "Playlist Link Copied",
+            "Playlist link copied to clipboard:\n" + shareLink);
+    };
+    addChildComponent(playlistDetailComponent.get());
+
+    //==========================================================================
+    // Create MidiChallenges component (R.2.2.4.1)
+    midiChallengesComponent = std::make_unique<MidiChallenges>();
+    midiChallengesComponent->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        midiChallengesComponent->setCurrentUserId(userDataStore->getUserId());
+    midiChallengesComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    midiChallengesComponent->onChallengeSelected = [this](const juce::String& challengeId) {
+        challengeIdToView = challengeId;
+        showView(AppView::MidiChallengeDetail);
+    };
+    addChildComponent(midiChallengesComponent.get());
+
+    //==========================================================================
+    // Create MidiChallengeDetail component (R.2.2.4.2)
+    midiChallengeDetailComponent = std::make_unique<MidiChallengeDetail>();
+    midiChallengeDetailComponent->setNetworkClient(networkClient.get());
+    midiChallengeDetailComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
+    if (userDataStore)
+        midiChallengeDetailComponent->setCurrentUserId(userDataStore->getUserId());
+    midiChallengeDetailComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    midiChallengeDetailComponent->onSubmitEntry = [this]() {
+        // Navigate to recording view with challenge context
+        // TODO: Pass challenge ID to recording component for constraint validation
+        showView(AppView::Recording);
+    };
+    midiChallengeDetailComponent->onEntrySelected = [](const juce::String& entryId) {
+        // TODO: Navigate to entry/post detail
+        Log::info("Entry selected: " + entryId);
+    };
+    addChildComponent(midiChallengeDetailComponent.get());
 
     // Setup synth unlock callback
     audioProcessor.onSynthUnlocked = [this]() {
@@ -531,6 +673,18 @@ void SidechainAudioProcessorEditor::resized()
 
     if (hiddenSynthComponent)
         hiddenSynthComponent->setBounds(contentBounds);
+
+    if (playlistsComponent)
+        playlistsComponent->setBounds(contentBounds);
+
+    if (playlistDetailComponent)
+        playlistDetailComponent->setBounds(contentBounds);
+
+    if (midiChallengesComponent)
+        midiChallengesComponent->setBounds(contentBounds);
+
+    if (midiChallengeDetailComponent)
+        midiChallengeDetailComponent->setBounds(contentBounds);
 }
 
 //==============================================================================
@@ -563,6 +717,18 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::HiddenSynth:
             componentToShow = hiddenSynthComponent.get();
+            break;
+        case AppView::Playlists:
+            componentToShow = playlistsComponent.get();
+            break;
+        case AppView::PlaylistDetail:
+            componentToShow = playlistDetailComponent.get();
+            break;
+        case AppView::MidiChallenges:
+            componentToShow = midiChallengesComponent.get();
+            break;
+        case AppView::MidiChallengeDetail:
+            componentToShow = midiChallengeDetailComponent.get();
             break;
         case AppView::Discovery:
             componentToShow = userDiscoveryComponent.get();
@@ -604,6 +770,18 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::HiddenSynth:
             componentToHide = hiddenSynthComponent.get();
+            break;
+        case AppView::Playlists:
+            componentToHide = playlistsComponent.get();
+            break;
+        case AppView::PlaylistDetail:
+            componentToHide = playlistDetailComponent.get();
+            break;
+        case AppView::MidiChallenges:
+            componentToHide = midiChallengesComponent.get();
+            break;
+        case AppView::MidiChallengeDetail:
+            componentToHide = midiChallengeDetailComponent.get();
             break;
         case AppView::Discovery:
             componentToHide = userDiscoveryComponent.get();
@@ -651,6 +829,14 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             messageThreadComponent->setVisible(false);
         if (storyRecordingComponent && storyRecordingComponent.get() != componentToShow && storyRecordingComponent.get() != componentToHide)
             storyRecordingComponent->setVisible(false);
+        if (playlistsComponent && playlistsComponent.get() != componentToShow && playlistsComponent.get() != componentToHide)
+            playlistsComponent->setVisible(false);
+        if (playlistDetailComponent && playlistDetailComponent.get() != componentToShow && playlistDetailComponent.get() != componentToHide)
+            playlistDetailComponent->setVisible(false);
+        if (midiChallengesComponent && midiChallengesComponent.get() != componentToShow && midiChallengesComponent.get() != componentToHide)
+            midiChallengesComponent->setVisible(false);
+        if (midiChallengeDetailComponent && midiChallengeDetailComponent.get() != componentToShow && midiChallengeDetailComponent.get() != componentToHide)
+            midiChallengeDetailComponent->setVisible(false);
 
         // Position new component off-screen to the right
         componentToShow->setBounds(bounds.withX(bounds.getRight()));
@@ -686,6 +872,14 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             messageThreadComponent->setVisible(view == AppView::MessageThread);
         if (storyRecordingComponent)
             storyRecordingComponent->setVisible(view == AppView::StoryRecording);
+        if (playlistsComponent)
+            playlistsComponent->setVisible(view == AppView::Playlists);
+        if (playlistDetailComponent)
+            playlistDetailComponent->setVisible(view == AppView::PlaylistDetail);
+        if (midiChallengesComponent)
+            midiChallengesComponent->setVisible(view == AppView::MidiChallenges);
+        if (midiChallengeDetailComponent)
+            midiChallengeDetailComponent->setVisible(view == AppView::MidiChallengeDetail);
     }
 
     // Push current view to navigation stack (except when going back)
@@ -769,6 +963,33 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             // Synth is self-contained, no additional setup needed
             break;
 
+        case AppView::Playlists:
+            if (playlistsComponent)
+            {
+                playlistsComponent->loadPlaylists();
+            }
+            break;
+
+        case AppView::PlaylistDetail:
+            if (playlistDetailComponent && playlistIdToView.isNotEmpty())
+            {
+                playlistDetailComponent->loadPlaylist(playlistIdToView);
+            }
+            break;
+
+        case AppView::MidiChallenges:
+            if (midiChallengesComponent)
+            {
+                midiChallengesComponent->loadChallenges();
+            }
+            break;
+        case AppView::MidiChallengeDetail:
+            if (midiChallengeDetailComponent && challengeIdToView.isNotEmpty())
+            {
+                midiChallengeDetailComponent->loadChallenge(challengeIdToView);
+            }
+            break;
+
         case AppView::Discovery:
             if (userDiscoveryComponent)
             {
@@ -831,6 +1052,17 @@ void SidechainAudioProcessorEditor::showMessageThread(const juce::String& channe
     messageChannelType = channelType;
     messageChannelId = channelId;
     showView(AppView::MessageThread);
+}
+
+void SidechainAudioProcessorEditor::showPlaylists()
+{
+    showView(AppView::Playlists);
+}
+
+void SidechainAudioProcessorEditor::showPlaylistDetail(const juce::String& playlistId)
+{
+    playlistIdToView = playlistId;
+    showView(AppView::PlaylistDetail);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()
@@ -1191,16 +1423,19 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash()
         {
             // App didn't shut down cleanly - it likely crashed
             // Show notification after a short delay to ensure UI is ready
+            // Only show popup in release builds, not in debug mode
+#if !JUCE_DEBUG
             juce::MessageManager::callAsync([]() {
                 juce::AlertWindow::showMessageBoxAsync(
                     juce::MessageBoxIconType::WarningIcon,
-                    "Previous Session Ended Unexpectedly",
+                    "Previous Sidechain Session Ended Unexpectedly",
                     "The plugin did not shut down cleanly during the last session. "
                     "This may indicate a crash or unexpected termination.\n\n"
                     "If this happens frequently, please report it with details about what you were doing.",
                     "OK"
                 );
             });
+#endif
 
             Log::warn("Detected previous crash - clean shutdown flag was not set");
         }
@@ -1602,6 +1837,19 @@ void SidechainAudioProcessorEditor::fetchNotifications()
             }
         }
 
+        // Show OS notification for new notifications (most recent first)
+        if (newNotifications && items.size() > 0)
+        {
+            // Get the first (most recent) notification to show
+            const auto& latestNotification = items.getFirst();
+            juce::String notificationTitle = "Sidechain";
+            juce::String notificationMessage = latestNotification.getDisplayText();
+            
+            // Show desktop notification (checks isSupported internally)
+            OSNotification::show(notificationTitle, notificationMessage, "", 
+                               userDataStore && userDataStore->isNotificationSoundEnabled());
+        }
+
         if (notificationList)
             notificationList->setNotifications(items);
     });
@@ -1628,6 +1876,28 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts()
         if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled())
         {
             NotificationSound::playBeep();
+        }
+        
+        // Fetch and show OS notification for new notifications
+        if (newNotifications)
+        {
+            // Fetch the most recent notification to show in OS notification
+            networkClient->getNotifications(1, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
+                if (result.isOk())
+                {
+                    auto notifResult = result.getValue();
+                    if (notifResult.notifications.isArray() && notifResult.notifications.size() > 0)
+                    {
+                        auto latestNotification = NotificationItem::fromJson(notifResult.notifications[0]);
+                        juce::String notificationTitle = "Sidechain";
+                        juce::String notificationMessage = latestNotification.getDisplayText();
+                        
+                        // Show desktop notification (checks isSupported internally)
+                        OSNotification::show(notificationTitle, notificationMessage, "",
+                                           userDataStore && userDataStore->isNotificationSoundEnabled());
+                    }
+                }
+            });
         }
     });
 }

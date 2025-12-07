@@ -6,6 +6,8 @@
 #include "network/NetworkClient.h"
 #include "network/WebSocketClient.h"
 #include "ui/auth/Auth.h"
+#include "ui/challenges/MidiChallengeDetail.h"
+#include "ui/challenges/MidiChallenges.h"
 #include "ui/profile/ProfileSetup.h"
 #include "ui/profile/Profile.h"
 #include "ui/feed/PostsFeed.h"
@@ -21,6 +23,8 @@
 #include "ui/messages/MessageThread.h"
 #include "ui/stories/StoryRecording.h"
 #include "ui/synth/HiddenSynth.h"
+#include "ui/playlists/Playlists.h"
+#include "ui/playlists/PlaylistDetail.h"
 #include "network/StreamChatClient.h"
 
 //==============================================================================
@@ -65,7 +69,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, HiddenSynth };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
@@ -73,6 +77,8 @@ private:
     juce::String profileUserIdToView;  // User ID for Profile view
     juce::String messageChannelType;   // Channel type for MessageThread view
     juce::String messageChannelId;     // Channel ID for MessageThread view
+    juce::String playlistIdToView;    // Playlist ID for PlaylistDetail view
+    juce::String challengeIdToView;   // Challenge ID for MidiChallengeDetail view
 
     // Component animator for smooth view transitions
     juce::ComponentAnimator viewAnimator;
@@ -92,6 +98,15 @@ private:
      * @param userId The user ID to display
      */
     void showProfile(const juce::String& userId);
+
+    /** Navigate to playlists view
+     */
+    void showPlaylists();
+
+    /** Navigate to playlist detail view
+     * @param playlistId The playlist ID to display
+     */
+    void showPlaylistDetail(const juce::String& playlistId);
 
     /** Navigate back to the previous view in the navigation stack
      */
@@ -136,6 +151,10 @@ private:
     std::unique_ptr<MessageThread> messageThreadComponent;
     std::unique_ptr<StoryRecording> storyRecordingComponent;
     std::unique_ptr<HiddenSynth> hiddenSynthComponent;
+    std::unique_ptr<Playlists> playlistsComponent;
+    std::unique_ptr<PlaylistDetail> playlistDetailComponent;
+    std::unique_ptr<MidiChallenges> midiChallengesComponent;
+    std::unique_ptr<MidiChallengeDetail> midiChallengeDetailComponent;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;

@@ -7,18 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
 )
 
 // CreateMIDIPattern creates a new MIDI pattern
 // POST /api/v1/midi
 func (h *Handlers) CreateMIDIPattern(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	var req struct {
 		Name          string             `json:"name"`
@@ -32,19 +31,13 @@ func (h *Handlers) CreateMIDIPattern(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_request",
-			"message": err.Error(),
-		})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
 	// Validate time signature
 	if len(req.TimeSignature) != 2 || req.TimeSignature[0] <= 0 || req.TimeSignature[1] <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_time_signature",
-			"message": "time_signature must be [numerator, denominator] with positive values",
-		})
+		util.RespondBadRequest(c, "invalid_time_signature", "time_signature must be [numerator, denominator] with positive values")
 		return
 	}
 
@@ -68,18 +61,12 @@ func (h *Handlers) CreateMIDIPattern(c *gin.Context) {
 
 	// Validate the pattern
 	if err := pattern.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "validation_failed",
-			"message": err.Error(),
-		})
+		util.RespondBadRequest(c, "validation_failed", err.Error())
 		return
 	}
 
 	if err := database.DB.Create(pattern).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "creation_failed",
-			"message": "Failed to create MIDI pattern",
-		})
+		util.RespondInternalError(c, "creation_failed", "Failed to create MIDI pattern")
 		return
 	}
 
@@ -95,21 +82,22 @@ func (h *Handlers) CreateMIDIPattern(c *gin.Context) {
 // GET /api/v1/midi/:id
 func (h *Handlers) GetMIDIPattern(c *gin.Context) {
 	patternID := c.Param("id")
-	userID := c.GetString("user_id")
+	userID, _ := c.Get("user_id") // Optional - may be empty for public patterns
 
 	var pattern models.MIDIPattern
 	if err := database.DB.Preload("User").First(&pattern, "id = ?", patternID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "midi_pattern_not_found"})
+		if util.HandleDBError(c, err, "midi_pattern") {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_pattern"})
-		return
 	}
 
 	// Check permissions: must be public or owned by requesting user
-	if !pattern.IsPublic && pattern.UserID != userID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "access_denied"})
+	var userIDStr string
+	if userID != nil {
+		userIDStr = userID.(string)
+	}
+	if !pattern.IsPublic && pattern.UserID != userIDStr {
+		util.RespondForbidden(c, "access_denied")
 		return
 	}
 
@@ -134,21 +122,22 @@ func (h *Handlers) GetMIDIPattern(c *gin.Context) {
 // GET /api/v1/midi/:id/file
 func (h *Handlers) GetMIDIPatternFile(c *gin.Context) {
 	patternID := c.Param("id")
-	userID := c.GetString("user_id")
+	userID, _ := c.Get("user_id") // Optional - may be empty for public patterns
 
 	var pattern models.MIDIPattern
 	if err := database.DB.First(&pattern, "id = ?", patternID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "midi_pattern_not_found"})
+		if util.HandleDBError(c, err, "midi_pattern") {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_pattern"})
-		return
 	}
 
 	// Check permissions
-	if !pattern.IsPublic && pattern.UserID != userID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "access_denied"})
+	var userIDStr string
+	if userID != nil {
+		userIDStr = userID.(string)
+	}
+	if !pattern.IsPublic && pattern.UserID != userIDStr {
+		util.RespondForbidden(c, "access_denied")
 		return
 	}
 
@@ -159,10 +148,7 @@ func (h *Handlers) GetMIDIPatternFile(c *gin.Context) {
 	midiData := pattern.ToMIDIData()
 	midiBytes, err := GenerateMIDIFile(midiData, pattern.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "midi_generation_failed",
-			"message": err.Error(),
-		})
+		util.RespondInternalError(c, "midi_generation_failed", err.Error())
 		return
 	}
 
@@ -182,15 +168,13 @@ func (h *Handlers) GetMIDIPatternFile(c *gin.Context) {
 // ListMIDIPatterns lists MIDI patterns for the current user
 // GET /api/v1/midi
 func (h *Handlers) ListMIDIPatterns(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 	publicOnly := c.Query("public") == "true"
 	sortBy := c.DefaultQuery("sort", "created_at")
 
@@ -230,21 +214,21 @@ func (h *Handlers) ListMIDIPatterns(c *gin.Context) {
 // DELETE /api/v1/midi/:id
 func (h *Handlers) DeleteMIDIPattern(c *gin.Context) {
 	patternID := c.Param("id")
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var pattern models.MIDIPattern
 	if err := database.DB.First(&pattern, "id = ?", patternID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "midi_pattern_not_found"})
+		if util.HandleDBError(c, err, "midi_pattern") {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_pattern"})
-		return
 	}
 
 	// Check ownership
 	if pattern.UserID != userID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "not_pattern_owner"})
+		util.RespondForbidden(c, "not_pattern_owner")
 		return
 	}
 
@@ -254,20 +238,13 @@ func (h *Handlers) DeleteMIDIPattern(c *gin.Context) {
 	database.DB.Model(&models.Story{}).Where("midi_pattern_id = ?", patternID).Count(&storyCount)
 
 	if postCount > 0 || storyCount > 0 {
-		c.JSON(http.StatusConflict, gin.H{
-			"error":   "pattern_in_use",
-			"message": "MIDI pattern is referenced by posts or stories",
-			"references": gin.H{
-				"posts":   postCount,
-				"stories": storyCount,
-			},
-		})
+		util.RespondError(c, http.StatusConflict, "pattern_in_use", "MIDI pattern is referenced by posts or stories")
 		return
 	}
 
 	// Soft delete
 	if err := database.DB.Delete(&pattern).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_delete_pattern"})
+		util.RespondInternalError(c, "failed_to_delete_pattern")
 		return
 	}
 
@@ -278,21 +255,21 @@ func (h *Handlers) DeleteMIDIPattern(c *gin.Context) {
 // PATCH /api/v1/midi/:id
 func (h *Handlers) UpdateMIDIPattern(c *gin.Context) {
 	patternID := c.Param("id")
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var pattern models.MIDIPattern
 	if err := database.DB.First(&pattern, "id = ?", patternID).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "midi_pattern_not_found"})
+		if util.HandleDBError(c, err, "midi_pattern") {
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_pattern"})
-		return
 	}
 
 	// Check ownership
 	if pattern.UserID != userID {
-		c.JSON(http.StatusForbidden, gin.H{"error": "not_pattern_owner"})
+		util.RespondForbidden(c, "not_pattern_owner")
 		return
 	}
 
@@ -304,7 +281,7 @@ func (h *Handlers) UpdateMIDIPattern(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_request", "message": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
@@ -323,12 +300,12 @@ func (h *Handlers) UpdateMIDIPattern(c *gin.Context) {
 	}
 
 	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no_updates_provided"})
+		util.RespondBadRequest(c, "no_updates_provided")
 		return
 	}
 
 	if err := database.DB.Model(&pattern).Updates(updates).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_update_pattern"})
+		util.RespondInternalError(c, "failed_to_update_pattern")
 		return
 	}
 

@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // SearchUsers searches for users by username or display name
@@ -15,12 +15,12 @@ import (
 func (h *Handlers) SearchUsers(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "search_query_required"})
+		util.RespondBadRequest(c, "search_query_required")
 		return
 	}
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Sanitize and prepare search pattern
 	searchPattern := "%" + query + "%"
@@ -32,7 +32,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 	).Order("follower_count DESC").Limit(limit).Offset(offset).Find(&users)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "search_failed", "message": result.Error.Error()})
+		util.RespondInternalError(c, "search_failed", result.Error.Error())
 		return
 	}
 
@@ -64,7 +64,7 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 // GetTrendingUsers returns users trending based on recent activity
 // GET /api/discover/trending?limit=20&period=week
 func (h *Handlers) GetTrendingUsers(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	period := c.DefaultQuery("period", "week")
 
 	// Determine time window based on period
@@ -93,7 +93,7 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 		Find(&users)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_trending_users", "message": result.Error.Error()})
+		util.RespondInternalError(c, "failed_to_get_trending_users", result.Error.Error())
 		return
 	}
 
@@ -125,7 +125,7 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 // GetFeaturedProducers returns curated/featured producers
 // GET /api/discover/featured?limit=10
 func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "10"), 10)
 
 	// Featured producers: high follower count + active recently + has posts
 	var users []models.User
@@ -138,7 +138,7 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 		Find(&users)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_featured", "message": result.Error.Error()})
+		util.RespondInternalError(c, "failed_to_get_featured", result.Error.Error())
 		return
 	}
 
@@ -181,12 +181,12 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 	genre := c.Param("genre")
 	if genre == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "genre_required"})
+		util.RespondBadRequest(c, "genre_required")
 		return
 	}
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Find users with this genre in their genre array
 	var users []models.User
@@ -198,7 +198,7 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 		Find(&users)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_users_by_genre", "message": result.Error.Error()})
+		util.RespondInternalError(c, "failed_to_get_users_by_genre", result.Error.Error())
 		return
 	}
 
@@ -230,19 +230,17 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 // GetSuggestedUsers returns personalized user suggestions based on who you follow
 // GET /api/discover/suggested?limit=10
 func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "10"), 10)
 
 	// Get who the current user follows
 	following, err := h.stream.GetFollowing(currentUser.StreamUserID, 100, 0)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_following", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_following", err.Error())
 		return
 	}
 
@@ -325,13 +323,14 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 // GET /api/users/:id/similar?limit=10
 func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 	targetUserID := c.Param("id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "10"), 10)
 
 	// Get target user
 	var targetUser models.User
 	if err := database.DB.First(&targetUser, "id = ?", targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	// Get target user's posts to analyze their BPM/key preferences
@@ -449,7 +448,7 @@ func (h *Handlers) GetAvailableGenres(c *gin.Context) {
 	`).Scan(&genreCounts)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_genres", "message": result.Error.Error()})
+		util.RespondInternalError(c, "failed_to_get_genres", result.Error.Error())
 		return
 	}
 

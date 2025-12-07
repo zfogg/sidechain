@@ -7,6 +7,7 @@
 #include "PostCard.h"
 #include "Comment.h"
 #include "../../audio/HttpAudioPlayer.h"
+#include "../../models/Playlist.h"
 
 class NetworkClient;
 class StreamChatClient;

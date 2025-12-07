@@ -2,28 +2,25 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // GetNotifications gets the user's notifications with unseen/unread counts
 // GET /api/notifications
 func (h *Handlers) GetNotifications(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	notifs, err := h.stream.GetNotifications(currentUser.StreamUserID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_notifications", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_notifications", err.Error())
 		return
 	}
 
@@ -42,16 +39,14 @@ func (h *Handlers) GetNotifications(c *gin.Context) {
 // GetNotificationCounts gets just the unseen/unread counts for badge display
 // GET /api/notifications/counts
 func (h *Handlers) GetNotificationCounts(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	unseen, unread, err := h.stream.GetNotificationCounts(currentUser.StreamUserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_notification_counts", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_notification_counts", err.Error())
 		return
 	}
 
@@ -64,15 +59,13 @@ func (h *Handlers) GetNotificationCounts(c *gin.Context) {
 // MarkNotificationsRead marks all notifications as read
 // POST /api/notifications/read
 func (h *Handlers) MarkNotificationsRead(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	if err := h.stream.MarkNotificationsRead(currentUser.StreamUserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_mark_read", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_mark_read", err.Error())
 		return
 	}
 
@@ -85,15 +78,13 @@ func (h *Handlers) MarkNotificationsRead(c *gin.Context) {
 // MarkNotificationsSeen marks all notifications as seen (clears badge)
 // POST /api/notifications/seen
 func (h *Handlers) MarkNotificationsSeen(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	if err := h.stream.MarkNotificationsSeen(currentUser.StreamUserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_mark_seen", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_mark_seen", err.Error())
 		return
 	}
 

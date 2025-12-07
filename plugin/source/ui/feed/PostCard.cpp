@@ -511,6 +511,22 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9")) + " MIDI", midiBounds, juce::Justification::centred);
     }
 
+    // Add to Playlist button (shown on hover) - R.3.1.3.3
+    if (hoverState.isHovered())
+    {
+        auto playlistBounds = getAddToPlaylistButtonBounds();
+
+        if (playlistBounds.contains(getMouseXYRelative()))
+        {
+            g.setColour(SidechainColors::surfaceHover());
+            g.fillRoundedRectangle(playlistBounds.toFloat(), 4.0f);
+        }
+
+        g.setColour(SidechainColors::textSecondary());
+        g.setFont(9.0f);
+        g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBA")) + " Playlist", playlistBounds, juce::Justification::centred);
+    }
+
     // Download Project File button (only shown when post has project file and on hover)
     if (post.hasProjectFile && hoverState.isHovered())
     {
@@ -704,6 +720,14 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Check Add to Playlist button (R.3.1.3.3)
+    if (hoverState.isHovered() && getAddToPlaylistButtonBounds().contains(pos))
+    {
+        if (onAddToPlaylistClicked)
+            onAddToPlaylistClicked(post);
+        return;
+    }
+
     // Check avatar (navigate to profile)
     if (getAvatarBounds().contains(pos))
     {
@@ -823,6 +847,12 @@ juce::Rectangle<int> PostCard::getDownloadProjectButtonBounds() const
     // Position above MIDI button (or above Drop to Track if no MIDI)
     int yOffset = post.hasMidi ? CARD_HEIGHT - 76 : CARD_HEIGHT - 58;
     return juce::Rectangle<int>(getWidth() - 115, yOffset, 70, 16);
+}
+
+juce::Rectangle<int> PostCard::getAddToPlaylistButtonBounds() const
+{
+    // Position to the left of Drop to Track button
+    return juce::Rectangle<int>(getWidth() - 190, CARD_HEIGHT - 40, 70, 18);
 }
 
 //==============================================================================

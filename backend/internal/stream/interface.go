@@ -58,6 +58,12 @@ type StreamClientInterface interface {
 	NotifyComment(actorUserID, targetUserID, loopID, commentText string) error
 	NotifyMention(actorUserID, targetUserID, loopID, commentID string) error
 
+	// MIDI Challenge notifications (R.2.2.4.4)
+	NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error
+	NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error
+	NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error
+	NotifyChallengeEnded(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error
+
 	// Aggregated feed management
 	FollowAggregatedFeed(userID, targetUserID string) error
 	UnfollowAggregatedFeed(userID, targetUserID string) error

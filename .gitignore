@@ -89,8 +89,8 @@ node_modules/
 
 /.claude/settings.local.json
 
-/.clangd/
-/.cache/
+.clangd/
+.cache/
 
 build
 build-release

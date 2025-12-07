@@ -99,6 +99,12 @@ func Migrate() error {
 		&models.StoryView{},
 		&models.StoryHighlight{},
 		&models.HighlightedStory{},
+		&models.Playlist{},             // R.3.1 Collaborative Playlists
+		&models.PlaylistEntry{},        // R.3.1 Collaborative Playlists
+		&models.PlaylistCollaborator{}, // R.3.1 Collaborative Playlists
+		&models.MIDIChallenge{},        // R.2.2 MIDI Battle Royale
+		&models.MIDIChallengeEntry{},   // R.2.2 MIDI Battle Royale (references AudioPost and MIDIPattern)
+		&models.MIDIChallengeVote{},    // R.2.2 MIDI Battle Royale
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -207,6 +213,33 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_daw_type ON project_files (daw_type)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_post ON project_files (audio_post_id) WHERE audio_post_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_project_files_public ON project_files (is_public) WHERE is_public = true")
+
+	// Playlist indexes (R.3.1)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlists_owner ON playlists (owner_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlists_public ON playlists (is_public) WHERE is_public = true")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlists_owner_created ON playlists (owner_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlist_entries_playlist ON playlist_entries (playlist_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlist_entries_post ON playlist_entries (post_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlist_entries_playlist_position ON playlist_entries (playlist_id, position)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlist_collaborators_playlist ON playlist_collaborators (playlist_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_playlist_collaborators_user ON playlist_collaborators (user_id)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_playlist_collaborators_unique ON playlist_collaborators (playlist_id, user_id) WHERE deleted_at IS NULL")
+
+	// MIDI challenge indexes (R.2.2)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_start_date ON midi_challenges (start_date)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_end_date ON midi_challenges (end_date)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_voting_end_date ON midi_challenges (voting_end_date)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenges_created ON midi_challenges (created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_entries_challenge ON midi_challenge_entries (challenge_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_entries_user ON midi_challenge_entries (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_entries_vote_count ON midi_challenge_entries (challenge_id, vote_count DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_entries_post ON midi_challenge_entries (post_id) WHERE post_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_entries_midi ON midi_challenge_entries (midi_pattern_id) WHERE midi_pattern_id IS NOT NULL")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_midi_challenge_entries_user_challenge ON midi_challenge_entries (user_id, challenge_id) WHERE deleted_at IS NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_votes_challenge ON midi_challenge_votes (challenge_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_votes_entry ON midi_challenge_votes (entry_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_votes_voter ON midi_challenge_votes (voter_id)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_midi_challenge_votes_unique ON midi_challenge_votes (challenge_id, voter_id) WHERE deleted_at IS NULL")
 
 	return nil
 }

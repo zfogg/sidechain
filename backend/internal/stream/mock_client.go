@@ -54,6 +54,10 @@ type MockStreamClient struct {
 	NotifyFollowFunc                    func(actorUserID, targetUserID string) error
 	NotifyCommentFunc                   func(actorUserID, targetUserID, loopID, commentText string) error
 	NotifyMentionFunc                   func(actorUserID, targetUserID, loopID, commentID string) error
+	NotifyChallengeCreatedFunc          func(targetUserID, challengeID, challengeTitle string) error
+	NotifyChallengeDeadlineFunc         func(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error
+	NotifyChallengeVotingOpenFunc       func(targetUserID, challengeID, challengeTitle string) error
+	NotifyChallengeEndedFunc            func(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error
 	FollowAggregatedFeedFunc            func(userID, targetUserID string) error
 	UnfollowAggregatedFeedFunc          func(userID, targetUserID string) error
 	AddToAggregatedFeedFunc             func(feedGroup, feedID string, activity *Activity) error
@@ -457,6 +461,38 @@ func (m *MockStreamClient) NotifyMention(actorUserID, targetUserID, loopID, comm
 	m.recordCall("NotifyMention", actorUserID, targetUserID, loopID, commentID)
 	if m.NotifyMentionFunc != nil {
 		return m.NotifyMentionFunc(actorUserID, targetUserID, loopID, commentID)
+	}
+	return m.DefaultError
+}
+
+func (m *MockStreamClient) NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error {
+	m.recordCall("NotifyChallengeCreated", targetUserID, challengeID, challengeTitle)
+	if m.NotifyChallengeCreatedFunc != nil {
+		return m.NotifyChallengeCreatedFunc(targetUserID, challengeID, challengeTitle)
+	}
+	return m.DefaultError
+}
+
+func (m *MockStreamClient) NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error {
+	m.recordCall("NotifyChallengeDeadline", targetUserID, challengeID, challengeTitle, hoursRemaining)
+	if m.NotifyChallengeDeadlineFunc != nil {
+		return m.NotifyChallengeDeadlineFunc(targetUserID, challengeID, challengeTitle, hoursRemaining)
+	}
+	return m.DefaultError
+}
+
+func (m *MockStreamClient) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error {
+	m.recordCall("NotifyChallengeVotingOpen", targetUserID, challengeID, challengeTitle)
+	if m.NotifyChallengeVotingOpenFunc != nil {
+		return m.NotifyChallengeVotingOpenFunc(targetUserID, challengeID, challengeTitle)
+	}
+	return m.DefaultError
+}
+
+func (m *MockStreamClient) NotifyChallengeEnded(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error {
+	m.recordCall("NotifyChallengeEnded", targetUserID, challengeID, challengeTitle, winnerUserID, winnerUsername, userEntryRank)
+	if m.NotifyChallengeEndedFunc != nil {
+		return m.NotifyChallengeEndedFunc(targetUserID, challengeID, challengeTitle, winnerUserID, winnerUsername, userEntryRank)
 	}
 	return m.DefaultError
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util/Log.h"
 #include <JuceHeader.h>
 #include <functional>
 #include <mutex>
@@ -62,9 +63,9 @@ public:
         }
 
         // Log to debug output
-        DBG("HTTP ERROR: " + error.getSummary());
+        Log::error("HTTP ERROR: " + error.getSummary());
         if (responseBody.isNotEmpty())
-            DBG("  Response: " + responseBody.substring(0, 500));
+            Log::error("  Response: " + responseBody.substring(0, 500));
 
 #if JUCE_DEBUG || DEBUG || _DEBUG
         // In debug mode, show popup on message thread

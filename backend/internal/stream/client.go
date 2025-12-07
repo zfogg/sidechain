@@ -29,11 +29,15 @@ const (
 
 // Notification verbs - these become the "verb" field in notification activities
 const (
-	NotifVerbLike    = "like"    // Someone liked your loop
-	NotifVerbFollow  = "follow"  // Someone followed you
-	NotifVerbComment = "comment" // Someone commented on your loop
-	NotifVerbMention = "mention" // Someone mentioned you in a comment
-	NotifVerbRepost  = "repost"  // Someone reposted your loop
+	NotifVerbLike                = "like"               // Someone liked your loop
+	NotifVerbFollow              = "follow"             // Someone followed you
+	NotifVerbComment             = "comment"            // Someone commented on your loop
+	NotifVerbMention             = "mention"            // Someone mentioned you in a comment
+	NotifVerbRepost              = "repost"             // Someone reposted your loop
+	NotifVerbChallengeCreated    = "challenge_created"  // New MIDI challenge created
+	NotifVerbChallengeDeadline   = "challenge_deadline" // Challenge deadline approaching
+	NotifVerbChallengeVotingOpen = "challenge_voting"   // Challenge voting period started
+	NotifVerbChallengeEnded      = "challenge_ended"    // Challenge ended (winner announced)
 )
 
 // Client wraps the getstream.io clients with Sidechain-specific functionality
@@ -1084,6 +1088,67 @@ func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID stri
 			"actor_id":   actorUserID,
 			"loop_id":    loopID,
 			"comment_id": commentID,
+		},
+	}
+	return c.AddToNotificationFeed(targetUserID, activity)
+}
+
+// NotifyChallengeCreated sends a notification when a new MIDI challenge is created (R.2.2.4.4)
+// Note: For "notify all users", call this for each user or use a broadcast mechanism
+func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error {
+	activity := &Activity{
+		Actor:  "system", // System-generated notification
+		Verb:   NotifVerbChallengeCreated,
+		Object: fmt.Sprintf("challenge:%s", challengeID),
+		Extra: map[string]interface{}{
+			"challenge_id":    challengeID,
+			"challenge_title": challengeTitle,
+		},
+	}
+	return c.AddToNotificationFeed(targetUserID, activity)
+}
+
+// NotifyChallengeDeadline sends a notification when challenge deadline is approaching (R.2.2.4.4)
+func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error {
+	activity := &Activity{
+		Actor:  "system",
+		Verb:   NotifVerbChallengeDeadline,
+		Object: fmt.Sprintf("challenge:%s", challengeID),
+		Extra: map[string]interface{}{
+			"challenge_id":    challengeID,
+			"challenge_title": challengeTitle,
+			"hours_remaining": hoursRemaining,
+		},
+	}
+	return c.AddToNotificationFeed(targetUserID, activity)
+}
+
+// NotifyChallengeVotingOpen sends a notification when voting period starts (R.2.2.4.4)
+func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error {
+	activity := &Activity{
+		Actor:  "system",
+		Verb:   NotifVerbChallengeVotingOpen,
+		Object: fmt.Sprintf("challenge:%s", challengeID),
+		Extra: map[string]interface{}{
+			"challenge_id":    challengeID,
+			"challenge_title": challengeTitle,
+		},
+	}
+	return c.AddToNotificationFeed(targetUserID, activity)
+}
+
+// NotifyChallengeEnded sends a notification when challenge ends with winner info (R.2.2.4.4)
+func (c *Client) NotifyChallengeEnded(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error {
+	activity := &Activity{
+		Actor:  "system",
+		Verb:   NotifVerbChallengeEnded,
+		Object: fmt.Sprintf("challenge:%s", challengeID),
+		Extra: map[string]interface{}{
+			"challenge_id":    challengeID,
+			"challenge_title": challengeTitle,
+			"winner_user_id":  winnerUserID,
+			"winner_username": winnerUsername,
+			"user_entry_rank": userEntryRank, // -1 if user didn't submit
 		},
 	}
 	return c.AddToNotificationFeed(targetUserID, activity)

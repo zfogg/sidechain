@@ -2,13 +2,11 @@ package handlers
 
 import (
 	"net/http"
-	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // CreateProjectFileRequest represents the request body for creating a project file
@@ -16,18 +14,17 @@ type CreateProjectFileRequest struct {
 	Filename    string `json:"filename" binding:"required"`
 	FileURL     string `json:"file_url" binding:"required"`
 	FileSize    int64  `json:"file_size" binding:"required,gt=0"`
-	DAWType     string `json:"daw_type"`           // Optional - auto-detected from filename if not provided
-	Description string `json:"description"`        // Optional
-	IsPublic    bool   `json:"is_public"`          // Defaults to true
-	AudioPostID string `json:"audio_post_id"`      // Optional - link to a post
+	DAWType     string `json:"daw_type"`      // Optional - auto-detected from filename if not provided
+	Description string `json:"description"`   // Optional
+	IsPublic    bool   `json:"is_public"`     // Defaults to true
+	AudioPostID string `json:"audio_post_id"` // Optional - link to a post
 }
 
 // CreateProjectFile handles POST /api/v1/project-files
 // Creates a new project file record (after file is uploaded to CDN)
 func (h *Handlers) CreateProjectFile(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -51,7 +48,7 @@ func (h *Handlers) CreateProjectFile(c *gin.Context) {
 
 	// Create the project file record
 	projectFile := &models.ProjectFile{
-		UserID:      userID.(string),
+		UserID:      userID,
 		Filename:    req.Filename,
 		FileURL:     req.FileURL,
 		DAWType:     dawType,
@@ -95,7 +92,7 @@ func (h *Handlers) CreateProjectFile(c *gin.Context) {
 // Returns project file metadata with download URL
 func (h *Handlers) GetProjectFile(c *gin.Context) {
 	projectFileID := c.Param("id")
-	userID, _ := c.Get("user_id")
+	userID, _ := c.Get("user_id") // Optional for public files
 
 	var projectFile models.ProjectFile
 	if err := database.DB.Preload("User").First(&projectFile, "id = ?", projectFileID).Error; err != nil {
@@ -104,7 +101,11 @@ func (h *Handlers) GetProjectFile(c *gin.Context) {
 	}
 
 	// Check access - public files are accessible to all, private only to owner
-	if !projectFile.IsPublic && (userID == nil || projectFile.UserID != userID.(string)) {
+	var userIDStr string
+	if userID != nil {
+		userIDStr = userID.(string)
+	}
+	if !projectFile.IsPublic && (userID == nil || projectFile.UserID != userIDStr) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access_denied"})
 		return
 	}
@@ -116,7 +117,7 @@ func (h *Handlers) GetProjectFile(c *gin.Context) {
 // Returns a redirect to the file URL or the file content
 func (h *Handlers) DownloadProjectFile(c *gin.Context) {
 	projectFileID := c.Param("id")
-	userID, _ := c.Get("user_id")
+	userID, _ := c.Get("user_id") // Optional for public files
 
 	var projectFile models.ProjectFile
 	if err := database.DB.First(&projectFile, "id = ?", projectFileID).Error; err != nil {
@@ -143,9 +144,8 @@ func (h *Handlers) DownloadProjectFile(c *gin.Context) {
 // ListProjectFiles handles GET /api/v1/project-files
 // Lists the current user's project files
 func (h *Handlers) ListProjectFiles(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -153,12 +153,12 @@ func (h *Handlers) ListProjectFiles(c *gin.Context) {
 	limit := 20
 	offset := 0
 	if l := c.Query("limit"); l != "" {
-		if parsed, err := parseIntParam(l); err == nil && parsed > 0 && parsed <= 100 {
+		if parsed, err := util.ParseIntParam(l); err == nil && parsed > 0 && parsed <= 100 {
 			limit = parsed
 		}
 	}
 	if o := c.Query("offset"); o != "" {
-		if parsed, err := parseIntParam(o); err == nil && parsed >= 0 {
+		if parsed, err := util.ParseIntParam(o); err == nil && parsed >= 0 {
 			offset = parsed
 		}
 	}
@@ -189,9 +189,8 @@ func (h *Handlers) ListProjectFiles(c *gin.Context) {
 // Soft deletes a project file (owner only)
 func (h *Handlers) DeleteProjectFile(c *gin.Context) {
 	projectFileID := c.Param("id")
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
 		return
 	}
 
@@ -202,7 +201,7 @@ func (h *Handlers) DeleteProjectFile(c *gin.Context) {
 	}
 
 	// Check ownership
-	if projectFile.UserID != userID.(string) {
+	if projectFile.UserID != userID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "not_owner"})
 		return
 	}
@@ -230,14 +229,8 @@ func (h *Handlers) GetPostProjectFile(c *gin.Context) {
 	c.JSON(http.StatusOK, projectFile)
 }
 
-// parseIntParam is a helper to parse int from query string
-func parseIntParam(s string) (int, error) {
-	return strconv.Atoi(s)
-}
-
 // ValidateProjectFileExtension checks if a file extension is allowed
+// This is kept for backward compatibility but delegates to util.ValidateProjectFileExtension
 func ValidateProjectFileExtension(filename string) bool {
-	ext := strings.ToLower(filepath.Ext(filename))
-	_, exists := models.ProjectFileExtensions[ext]
-	return exists
+	return util.ValidateProjectFileExtension(filename)
 }

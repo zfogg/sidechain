@@ -5,6 +5,7 @@
 #include "../../util/HoverState.h"
 #include "../../util/Result.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/Emoji.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
@@ -345,7 +346,7 @@ void CommentsPanel::setupUI()
     addAndMakeVisible(inputField.get());
 
     // Emoji button
-    emojiButton = std::make_unique<juce::TextButton>("😊");
+    emojiButton = std::make_unique<juce::TextButton>(Emoji::SMILING_FACE_WITH_SMILING_EYES);
     emojiButton->onClick = [this]() { showEmojiPicker(); };
     addAndMakeVisible(emojiButton.get());
 

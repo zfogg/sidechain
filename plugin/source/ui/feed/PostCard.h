@@ -179,6 +179,12 @@ public:
      */
     std::function<void(const FeedPost&)> onDownloadProjectClicked;
 
+    /** Called when "Add to Playlist" button is clicked
+     * @param post The post to add to playlist
+     * @note Shows playlist selection dialog. Part of R.3.1 Collaborative Playlists feature.
+     */
+    std::function<void(const FeedPost&)> onAddToPlaylistClicked;
+
     /** Called when card is tapped (for expanding details)
      * @param post The post that was tapped
      */
@@ -289,6 +295,7 @@ private:
     juce::Rectangle<int> getDropToTrackButtonBounds() const;
     juce::Rectangle<int> getDownloadMIDIButtonBounds() const;
     juce::Rectangle<int> getDownloadProjectButtonBounds() const;
+    juce::Rectangle<int> getAddToPlaylistButtonBounds() const;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)

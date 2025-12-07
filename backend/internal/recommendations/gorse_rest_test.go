@@ -617,7 +617,7 @@ func TestBatchSyncItems_OnlyPublic(t *testing.T) {
 	defer server.Close()
 
 	client := NewGorseRESTClient(server.URL, "test-api-key", db)
-	err := client.BatchSyncItems()
+	err = client.BatchSyncItems()
 	assert.NoError(t, err)
 }
 

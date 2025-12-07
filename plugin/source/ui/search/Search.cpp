@@ -11,7 +11,6 @@
 //==============================================================================
 Search::Search()
 {
-    setSize(1000, 700);
     Log::info("Search: Initializing");
 
     // Create search input
@@ -39,6 +38,9 @@ Search::Search()
 
     // Start timer for debouncing search
     startTimer(300); // 300ms debounce
+
+    // Set size after all components are initialized to avoid calling layoutComponents() before scrollBar exists
+    setSize(1000, 700);
 
     // TODO: Phase 7 - Advanced Search - Search by BPM, key, genre
     // TODO: Phase 7 - Filter posts by metadata (BPM, key, genre, DAW)
@@ -1024,8 +1026,11 @@ void Search::layoutComponents()
 {
     auto bounds = getLocalBounds();
 
-    // Scrollbar
-    scrollBar->setBounds(bounds.removeFromRight(12));
+    // Scrollbar (with null check for safety)
+    if (scrollBar != nullptr)
+    {
+        scrollBar->setBounds(bounds.removeFromRight(12));
+    }
 
     // Header, filters, tabs, and results are drawn in paint()
 }
@@ -1048,7 +1053,8 @@ juce::Rectangle<int> Search::getTabBounds() const
 juce::Rectangle<int> Search::getResultsBounds() const
 {
     int top = HEADER_HEIGHT + FILTER_HEIGHT + 40;
-    return juce::Rectangle<int>(0, top, getWidth() - (scrollBar->isVisible() ? 12 : 0), getHeight() - top);
+    int scrollBarWidth = (scrollBar != nullptr && scrollBar->isVisible()) ? 12 : 0;
+    return juce::Rectangle<int>(0, top, getWidth() - scrollBarWidth, getHeight() - top);
 }
 
 //==============================================================================

@@ -12,25 +12,29 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/util"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 	"gorm.io/gorm"
 )
 
 // FollowUser follows another user
 func (h *Handlers) FollowUser(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var req struct {
 		TargetUserID string `json:"target_user_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
 	if err := h.stream.FollowUser(userID, req.TargetUserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to follow user"})
+		util.RespondInternalError(c, "follow_failed", "Failed to follow user")
 		return
 	}
 
@@ -75,19 +79,22 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 
 // UnfollowUser unfollows a user
 func (h *Handlers) UnfollowUser(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var req struct {
 		TargetUserID string `json:"target_user_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
 	if err := h.stream.UnfollowUser(userID, req.TargetUserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to unfollow user"})
+		util.RespondInternalError(c, "unfollow_failed", "Failed to unfollow user")
 		return
 	}
 
@@ -99,7 +106,10 @@ func (h *Handlers) UnfollowUser(c *gin.Context) {
 
 // LikePost likes a post with optional emoji
 func (h *Handlers) LikePost(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var req struct {
 		ActivityID string `json:"activity_id" binding:"required"`
@@ -107,19 +117,19 @@ func (h *Handlers) LikePost(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
 	// Use emoji reaction if provided, otherwise default like
 	if req.Emoji != "" {
 		if err := h.stream.AddReactionWithEmoji("like", userID, req.ActivityID, req.Emoji); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add emoji reaction"})
+			util.RespondInternalError(c, "reaction_failed", "Failed to add emoji reaction")
 			return
 		}
 	} else {
 		if err := h.stream.AddReaction("like", userID, req.ActivityID); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to like post"})
+			util.RespondInternalError(c, "like_failed", "Failed to like post")
 			return
 		}
 	}
@@ -134,20 +144,23 @@ func (h *Handlers) LikePost(c *gin.Context) {
 
 // UnlikePost removes a like from a post
 func (h *Handlers) UnlikePost(c *gin.Context) {
-	userID := c.GetString("user_id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
 
 	var req struct {
 		ActivityID string `json:"activity_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
 	// Remove the like reaction using activity ID and user ID
 	if err := h.stream.RemoveReactionByActivityAndUser(req.ActivityID, userID, "like"); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to unlike post", "message": err.Error()})
+		util.RespondInternalError(c, "unlike_failed", "Failed to unlike post: "+err.Error())
 		return
 	}
 
@@ -167,8 +180,9 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	// Fetch user from database
 	var user models.User
 	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found", "message": "User not found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	// Fetch follow stats from Stream.io (source of truth)
@@ -237,12 +251,10 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 // GetMyProfile gets the authenticated user's own profile
 // GET /api/profile
 func (h *Handlers) GetMyProfile(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	// Fetch follow stats from Stream.io
 	var followStats *stream.FollowStats
@@ -289,12 +301,10 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 // UpdateMyProfile updates the authenticated user's profile
 // PUT /api/profile
 func (h *Handlers) UpdateMyProfile(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	var req struct {
 		DisplayName       *string             `json:"display_name"`
@@ -307,7 +317,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.RespondBadRequest(c, "invalid_request", err.Error())
 		return
 	}
 
@@ -336,13 +346,13 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	}
 
 	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no_fields_to_update"})
+		util.RespondBadRequest(c, "no_fields_to_update")
 		return
 	}
 
 	// Update in database
 	if err := database.DB.Model(currentUser).Updates(updates).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "update_failed", "message": err.Error()})
+		util.RespondInternalError(c, "update_failed", err.Error())
 		return
 	}
 
@@ -368,19 +378,17 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 // ChangeUsername allows users to change their username with uniqueness validation
 // PUT /api/v1/users/username
 func (h *Handlers) ChangeUsername(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 
 	var req struct {
 		Username string `json:"username" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "username_required"})
+		util.RespondBadRequest(c, "username_required")
 		return
 	}
 
@@ -388,28 +396,19 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 
 	// Validate username format
 	if len(newUsername) < 3 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "username_too_short",
-			"message": "Username must be at least 3 characters",
-		})
+		util.RespondBadRequest(c, "username_too_short", "Username must be at least 3 characters")
 		return
 	}
 
 	if len(newUsername) > 30 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "username_too_long",
-			"message": "Username must be at most 30 characters",
-		})
+		util.RespondBadRequest(c, "username_too_long", "Username must be at most 30 characters")
 		return
 	}
 
 	// Only allow alphanumeric, underscores, and hyphens
 	validUsername := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 	if !validUsername.MatchString(newUsername) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "username_invalid_chars",
-			"message": "Username can only contain letters, numbers, underscores, and hyphens",
-		})
+		util.RespondBadRequest(c, "username_invalid_chars", "Username can only contain letters, numbers, underscores, and hyphens")
 		return
 	}
 
@@ -427,25 +426,19 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 	err := database.DB.Where("LOWER(username) = LOWER(?) AND id != ?", newUsername, currentUser.ID).First(&existingUser).Error
 	if err == nil {
 		// User found with this username
-		c.JSON(http.StatusConflict, gin.H{
-			"error":   "username_taken",
-			"message": "This username is already taken",
-		})
+		util.RespondError(c, http.StatusConflict, "username_taken", "This username is already taken")
 		return
 	}
 	if err != gorm.ErrRecordNotFound {
 		// Database error
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "database_error"})
+		util.RespondInternalError(c, "database_error")
 		return
 	}
 
 	// Update username
 	oldUsername := currentUser.Username
 	if err := database.DB.Model(currentUser).Update("username", newUsername).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "update_failed",
-			"message": err.Error(),
-		})
+		util.RespondInternalError(c, "update_failed", err.Error())
 		return
 	}
 
@@ -478,7 +471,7 @@ func (h *Handlers) GetUserFollowers(c *gin.Context) {
 	// Get followers from Stream.io
 	followers, err := h.stream.GetFollowers(user.StreamUserID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_followers", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_followers", err.Error())
 		return
 	}
 
@@ -511,20 +504,21 @@ func (h *Handlers) GetUserFollowers(c *gin.Context) {
 // GET /api/users/:id/following
 func (h *Handlers) GetUserFollowing(c *gin.Context) {
 	targetUserID := c.Param("id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Validate user exists
 	var user models.User
 	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	// Get following from Stream.io
 	following, err := h.stream.GetFollowing(user.StreamUserID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_following", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_following", err.Error())
 		return
 	}
 
@@ -557,20 +551,21 @@ func (h *Handlers) GetUserFollowing(c *gin.Context) {
 // GET /api/users/:id/posts
 func (h *Handlers) GetUserPosts(c *gin.Context) {
 	targetUserID := c.Param("id")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
 	// Validate user exists
 	var user models.User
 	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	// Get enriched activities from Stream.io
 	activities, err := h.stream.GetEnrichedUserFeed(user.StreamUserID, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_get_posts", "message": err.Error()})
+		util.RespondInternalError(c, "failed_to_get_posts", err.Error())
 		return
 	}
 
@@ -593,30 +588,29 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 // FollowUserByID follows a user by ID (path param version)
 // POST /api/users/:id/follow
 func (h *Handlers) FollowUserByID(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 	targetUserID := c.Param("id")
 
 	// Validate target user exists
 	var targetUser models.User
 	if err := database.DB.First(&targetUser, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	// Can't follow yourself
 	if currentUser.ID == targetUser.ID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot_follow_self"})
+		util.RespondBadRequest(c, "cannot_follow_self")
 		return
 	}
 
 	// Follow via Stream.io
 	if err := h.stream.FollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "follow_failed", "message": err.Error()})
+		util.RespondInternalError(c, "follow_failed", err.Error())
 		return
 	}
 
@@ -630,24 +624,23 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 // UnfollowUserByID unfollows a user by ID (path param version)
 // DELETE /api/users/:id/follow
 func (h *Handlers) UnfollowUserByID(c *gin.Context) {
-	user, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "not_authenticated"})
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
 		return
 	}
-	currentUser := user.(*models.User)
 	targetUserID := c.Param("id")
 
 	// Validate target user exists
 	var targetUser models.User
 	if err := database.DB.First(&targetUser, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-		return
+		if util.HandleDBError(c, err, "user") {
+			return
+		}
 	}
 
 	// Unfollow via Stream.io
 	if err := h.stream.UnfollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "unfollow_failed", "message": err.Error()})
+		util.RespondInternalError(c, "unfollow_failed", err.Error())
 		return
 	}
 
