@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/timeline"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
 )
@@ -418,6 +420,105 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	}
 
 	return activities
+}
+
+// GetUnifiedTimeline gets the user's unified timeline with Gorse recommendations
+// This is the main timeline endpoint that combines:
+// 1. Posts from followed users
+// 2. Personalized Gorse recommendations
+// 3. Trending posts
+// 4. Recent posts as fallback
+// GET /api/feed/unified
+func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
+	currentUser, ok := util.GetUserFromContext(c)
+	if !ok {
+		return
+	}
+
+	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
+	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
+
+	// Limit max request size
+	if limit > 100 {
+		limit = 100
+	}
+
+	// Get the stream client as concrete type for timeline service
+	streamClient, ok := h.stream.(*stream.Client)
+	if !ok {
+		util.RespondInternalError(c, "stream_client_error", "Failed to get stream client")
+		return
+	}
+
+	// Create timeline service and get unified timeline
+	timelineSvc := timeline.NewService(streamClient)
+	resp, err := timelineSvc.GetTimeline(context.Background(), currentUser.ID, limit, offset)
+	if err != nil {
+		util.RespondInternalError(c, "failed_to_get_timeline", err.Error())
+		return
+	}
+
+	// Convert timeline items to activity format for plugin compatibility
+	activities := make([]map[string]interface{}, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		if item.Post == nil {
+			continue
+		}
+
+		activity := map[string]interface{}{
+			"id":         item.Post.ID,
+			"actor":      "user:" + item.Post.UserID,
+			"verb":       "posted",
+			"object":     "loop:" + item.Post.ID,
+			"audio_url":  item.Post.AudioURL,
+			"bpm":        item.Post.BPM,
+			"key":        item.Post.Key,
+			"daw":        item.Post.DAW,
+			"duration":   item.Post.Duration,
+			"genre":      item.Post.Genre,
+			"time":       item.CreatedAt,
+			"like_count": item.Post.LikeCount,
+			"play_count": item.Post.PlayCount,
+			"score":      item.Score,
+			"source":     item.Source,
+		}
+
+		// Add recommendation reason if present
+		if item.Reason != "" {
+			activity["recommendation_reason"] = item.Reason
+		}
+
+		// Mark if this is from recommendations
+		if item.Source == "gorse" || item.Source == "trending" {
+			activity["is_recommended"] = true
+		}
+
+		// Add user info if available
+		if item.User != nil {
+			activity["user"] = map[string]interface{}{
+				"id":           item.User.ID,
+				"username":     item.User.Username,
+				"display_name": item.User.DisplayName,
+				"avatar_url":   item.User.GetAvatarURL(),
+			}
+		}
+
+		activities = append(activities, activity)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":           resp.Meta.Limit,
+			"offset":          resp.Meta.Offset,
+			"count":           resp.Meta.Count,
+			"has_more":        resp.Meta.HasMore,
+			"following_count": resp.Meta.FollowingCount,
+			"gorse_count":     resp.Meta.GorseCount,
+			"trending_count":  resp.Meta.TrendingCount,
+			"recent_count":    resp.Meta.RecentCount,
+		},
+	})
 }
 
 // GetEnrichedGlobalFeed gets the global feed with reaction counts

@@ -775,8 +775,9 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
         return;
 
     Async::runVoid([this, limit, offset, callback]() {
-        // Use enriched endpoint to get reaction counts and own reactions from getstream.io
-        juce::String endpoint = buildApiPath("/feed/timeline/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+        // Use unified endpoint which combines followed users, Gorse recommendations, trending, and recent posts
+        // This ensures users always see content even when not following anyone
+        juce::String endpoint = buildApiPath("/feed/unified") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
         if (callback)

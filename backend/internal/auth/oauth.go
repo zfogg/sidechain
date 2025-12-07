@@ -24,13 +24,13 @@ var _ oauth2.Config
 
 // OAuthUserInfo represents user info from OAuth providers
 type OAuthUserInfo struct {
-	ID           string     `json:"id"`
-	Email        string     `json:"email"`
-	Name         string     `json:"name"`
-	AvatarURL    string     `json:"avatar_url"`
-	AccessToken  string     `json:"-"` // OAuth access token for API calls
-	RefreshToken string     `json:"-"` // OAuth refresh token for token renewal
-	TokenExpiry  *time.Time `json:"-"` // When the access token expires
+	ID                     string     `json:"id"`
+	Email                  string     `json:"email"`
+	Name                   string     `json:"name"`
+	OAuthProfilePictureURL string     `json:"oauth_profile_picture_url"`
+	AccessToken            string     `json:"-"` // OAuth access token for API calls
+	RefreshToken           string     `json:"-"` // OAuth refresh token for token renewal
+	TokenExpiry            *time.Time `json:"-"` // When the access token expires
 }
 
 // GoogleUserInfo represents Google OAuth user response
@@ -128,8 +128,8 @@ func (s *Service) updateOAuthTokens(oauthProvider *models.OAuthProvider, userInf
 	}
 
 	// Update avatar if changed
-	if userInfo.AvatarURL != "" && userInfo.AvatarURL != oauthProvider.AvatarURL {
-		oauthProvider.AvatarURL = userInfo.AvatarURL
+	if userInfo.OAuthProfilePictureURL != "" && userInfo.OAuthProfilePictureURL != oauthProvider.OAuthProfilePictureURL {
+		oauthProvider.OAuthProfilePictureURL = userInfo.OAuthProfilePictureURL
 	}
 
 	// Save updates (fire and forget - don't fail login if token update fails)
@@ -148,16 +148,16 @@ func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, us
 	}
 
 	oauthProvider := models.OAuthProvider{
-		ID:             uuid.New().String(),
-		UserID:         user.ID,
-		Provider:       provider,
-		ProviderUserID: userInfo.ID,
-		Email:          userInfo.Email,
-		Name:           userInfo.Name,
-		AvatarURL:      userInfo.AvatarURL,
-		AccessToken:    accessToken,
-		RefreshToken:   refreshToken,
-		TokenExpiry:    userInfo.TokenExpiry,
+		ID:                     uuid.New().String(),
+		UserID:                 user.ID,
+		Provider:               provider,
+		ProviderUserID:         userInfo.ID,
+		Email:                  userInfo.Email,
+		Name:                   userInfo.Name,
+		OAuthProfilePictureURL: userInfo.OAuthProfilePictureURL,
+		AccessToken:            accessToken,
+		RefreshToken:           refreshToken,
+		TokenExpiry:            userInfo.TokenExpiry,
 	}
 
 	err := database.DB.Create(&oauthProvider).Error
@@ -165,9 +165,9 @@ func (s *Service) linkOAuthToExistingUser(user *models.User, provider string, us
 		return nil, fmt.Errorf("failed to link OAuth provider: %w", err)
 	}
 
-	// Update user avatar if they don't have one
-	if user.AvatarURL == "" && userInfo.AvatarURL != "" {
-		user.AvatarURL = userInfo.AvatarURL
+	// Update user OAuth avatar if they don't have one
+	if user.OAuthProfilePictureURL == "" && userInfo.OAuthProfilePictureURL != "" {
+		user.OAuthProfilePictureURL = userInfo.OAuthProfilePictureURL
 		database.DB.Save(user)
 	}
 
@@ -187,13 +187,13 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 
 	// Create user
 	user := models.User{
-		ID:            uuid.New().String(),
-		Email:         userInfo.Email,
-		Username:      username,
-		DisplayName:   userInfo.Name,
-		AvatarURL:     userInfo.AvatarURL,
-		EmailVerified: true, // OAuth emails are pre-verified
-		StreamUserID:  uuid.New().String(),
+		ID:                     uuid.New().String(),
+		Email:                  userInfo.Email,
+		Username:               username,
+		DisplayName:            userInfo.Name,
+		OAuthProfilePictureURL: userInfo.OAuthProfilePictureURL,
+		EmailVerified:          true, // OAuth emails are pre-verified
+		StreamUserID:           uuid.New().String(),
 	}
 
 	// Set OAuth provider ID
@@ -221,16 +221,16 @@ func (s *Service) createUserWithOAuth(provider string, userInfo *OAuthUserInfo) 
 
 		// Create OAuth provider link with tokens
 		oauthProvider := models.OAuthProvider{
-			ID:             uuid.New().String(),
-			UserID:         user.ID,
-			Provider:       provider,
-			ProviderUserID: userInfo.ID,
-			Email:          userInfo.Email,
-			Name:           userInfo.Name,
-			AvatarURL:      userInfo.AvatarURL,
-			AccessToken:    accessToken,
-			RefreshToken:   refreshToken,
-			TokenExpiry:    userInfo.TokenExpiry,
+			ID:                     uuid.New().String(),
+			UserID:                 user.ID,
+			Provider:               provider,
+			ProviderUserID:         userInfo.ID,
+			Email:                  userInfo.Email,
+			Name:                   userInfo.Name,
+			OAuthProfilePictureURL: userInfo.OAuthProfilePictureURL,
+			AccessToken:            accessToken,
+			RefreshToken:           refreshToken,
+			TokenExpiry:            userInfo.TokenExpiry,
 		}
 
 		return tx.Create(&oauthProvider).Error
@@ -293,13 +293,13 @@ func (s *Service) getGoogleUserInfo(code string) (*OAuthUserInfo, error) {
 	}
 
 	return &OAuthUserInfo{
-		ID:           googleUser.Sub,
-		Email:        googleUser.Email,
-		Name:         googleUser.Name,
-		AvatarURL:    googleUser.Picture,
-		AccessToken:  token.AccessToken,
-		RefreshToken: token.RefreshToken,
-		TokenExpiry:  tokenExpiry,
+		ID:                     googleUser.Sub,
+		Email:                  googleUser.Email,
+		Name:                   googleUser.Name,
+		OAuthProfilePictureURL: googleUser.Picture,
+		AccessToken:            token.AccessToken,
+		RefreshToken:           token.RefreshToken,
+		TokenExpiry:            tokenExpiry,
 	}, nil
 }
 
@@ -340,13 +340,13 @@ func (s *Service) getDiscordUserInfo(code string) (*OAuthUserInfo, error) {
 	}
 
 	return &OAuthUserInfo{
-		ID:           discordUser.ID,
-		Email:        discordUser.Email,
-		Name:         discordUser.Username,
-		AvatarURL:    avatarURL,
-		AccessToken:  token.AccessToken,
-		RefreshToken: token.RefreshToken,
-		TokenExpiry:  tokenExpiry,
+		ID:                     discordUser.ID,
+		Email:                  discordUser.Email,
+		Name:                   discordUser.Username,
+		OAuthProfilePictureURL: avatarURL,
+		AccessToken:            token.AccessToken,
+		RefreshToken:           token.RefreshToken,
+		TokenExpiry:            tokenExpiry,
 	}, nil
 }
 

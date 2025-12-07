@@ -109,6 +109,28 @@ namespace ImageLoader
     void setNetworkClient(NetworkClient* client);
 
     //==========================================================================
+    // Avatar loading through backend proxy
+
+    /**
+     * Load an avatar image for a user through the backend proxy.
+     *
+     * This works around JUCE SSL/redirect issues on Linux by fetching avatar images
+     * through the backend at /api/v1/users/{userId}/profile-picture, which handles
+     * the S3/OAuth redirect chains and returns raw image bytes.
+     *
+     * Use this instead of load() for avatar images to ensure cross-platform compatibility.
+     *
+     * @param userId   The user ID whose avatar to load
+     * @param callback Called with the image (or null image on failure)
+     * @param width    Optional: resize to this width (0 = original size)
+     * @param height   Optional: resize to this height (0 = original size)
+     */
+    void loadAvatarForUser(const juce::String& userId,
+                           ImageCallback callback,
+                           int width = 0,
+                           int height = 0);
+
+    //==========================================================================
     // Statistics (for debugging)
 
     struct Stats

@@ -48,10 +48,10 @@ void PostCard::setPost(const FeedPost& newPost)
     fadeInOpacity.setImmediate(0.0f);
     fadeInOpacity.animateTo(1.0f);
 
-    // Load avatar via ImageCache
-    if (post.userAvatarUrl.isNotEmpty())
+    // Load avatar via backend proxy to work around JUCE SSL/redirect issues on Linux
+    if (post.userId.isNotEmpty())
     {
-        ImageLoader::load(post.userAvatarUrl, [this](const juce::Image& img) {
+        ImageLoader::loadAvatarForUser(post.userId, [this](const juce::Image& img) {
             avatarImage = img;
             repaint();
         });
@@ -129,8 +129,8 @@ void PostCard::paint(juce::Graphics& g)
     drawFollowButton(g, getFollowButtonBounds());
     drawWaveform(g, getWaveformBounds());
     drawPlayButton(g, getPlayButtonBounds());
-    drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 120, 15, 110, CARD_HEIGHT - 30));
-    drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 120, CARD_HEIGHT - 40, 110, 30));
+    drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 125, 10, 115, CARD_HEIGHT - 30));
+    drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 125, CARD_HEIGHT - 40, 115, 30));
 
     // Reset opacity for like animation (should be fully visible)
     g.setOpacity(1.0f);
@@ -338,31 +338,67 @@ void PostCard::drawPlayButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     int badgeY = bounds.getY();
+    int badgeX = bounds.getX();
 
-    // BPM badge
-    if (post.bpm > 0)
+    // BPM and Key badges side-by-side on the same row
+    bool hasBpm = post.bpm > 0;
+    bool hasKey = post.key.isNotEmpty();
+
+    if (hasBpm || hasKey)
     {
-        auto bpmBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
-            SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
+        int smallBadgeWidth = 52;
+        int spacing = 4;
+
+        if (hasBpm && hasKey)
+        {
+            // Both badges side-by-side
+            auto bpmBounds = juce::Rectangle<int>(badgeX, badgeY, smallBadgeWidth, BADGE_HEIGHT);
+            UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
+                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
+
+            auto keyBounds = juce::Rectangle<int>(badgeX + smallBadgeWidth + spacing, badgeY, smallBadgeWidth, BADGE_HEIGHT);
+            UIHelpers::drawBadge(g, keyBounds, post.key,
+                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
+        }
+        else if (hasBpm)
+        {
+            // Only BPM
+            auto bpmBounds = juce::Rectangle<int>(badgeX, badgeY, smallBadgeWidth, BADGE_HEIGHT);
+            UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
+                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
+        }
+        else
+        {
+            // Only Key
+            auto keyBounds = juce::Rectangle<int>(badgeX, badgeY, smallBadgeWidth, BADGE_HEIGHT);
+            UIHelpers::drawBadge(g, keyBounds, post.key,
+                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
+        }
         badgeY += BADGE_HEIGHT + 5;
     }
 
-    // Key badge
-    if (post.key.isNotEmpty())
+    // Play count below BPM/Key
+    if (post.playCount > 0)
     {
-        auto keyBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
-        UIHelpers::drawBadge(g, keyBounds, post.key,
-            SidechainColors::surface(), SidechainColors::textPrimary(), 11.0f, 4.0f);
-        badgeY += BADGE_HEIGHT + 5;
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(10.0f);
+        g.drawText(StringFormatter::formatPlays(post.playCount),
+                   badgeX, badgeY, bounds.getWidth(), 14,
+                   juce::Justification::centredLeft);
+        badgeY += 16;
     }
 
-    // Genre badges (first two)
+    // Genre badges (first two) - truncate text if needed
     for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i)
     {
-        auto genreBounds = juce::Rectangle<int>(bounds.getX(), badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
-        UIHelpers::drawBadge(g, genreBounds, post.genres[i],
-            SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 10.0f, 3.0f);
+        juce::String genre = post.genres[i];
+        // Truncate long genre names
+        if (genre.length() > 12)
+            genre = genre.substring(0, 10) + "..";
+
+        auto genreBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
+        UIHelpers::drawBadge(g, genreBounds, genre,
+            SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 9.0f, 3.0f);
         badgeY += BADGE_HEIGHT;
     }
 
@@ -446,13 +482,6 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     g.setFont(11.0f);
     g.drawText(StringFormatter::formatCount(post.commentCount),
                commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
-               juce::Justification::centredLeft);
-
-    // Play count (views)
-    g.setColour(SidechainColors::textMuted());
-    g.setFont(10.0f);
-    g.drawText(StringFormatter::formatPlays(post.playCount),
-               bounds.getX(), bounds.getY() - 15, 60, 12,
                juce::Justification::centredLeft);
 
     // Add to DAW button
@@ -828,6 +857,14 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
 
     // Check avatar (navigate to profile)
     if (getAvatarBounds().contains(pos))
+    {
+        if (onUserClicked)
+            onUserClicked(post);
+        return;
+    }
+
+    // Check username area (navigate to profile)
+    if (getUserInfoBounds().contains(pos))
     {
         if (onUserClicked)
             onUserClicked(post);

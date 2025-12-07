@@ -178,7 +178,7 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 			"id":             user.ID,
 			"username":       user.Username,
 			"display_name":   user.DisplayName,
-			"avatar_url":     user.AvatarURL,
+			"avatar_url":     user.GetAvatarURL(),
 			"bio":            user.Bio,
 			"genre":          user.Genre,
 			"daw_preference": user.DAWPreference,

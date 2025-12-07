@@ -133,15 +133,19 @@ func (s *Seeder) Clean() error {
 func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 	var users []models.User
 
-	// Check if users already exist (idempotent)
-	var existingCount int64
-	s.db.Model(&models.User{}).Count(&existingCount)
-	if existingCount > 0 {
-		// Fetch existing users
+	// Fetch any existing users first - we'll include them but also create new ones
+	var existingUsers []models.User
+	s.db.Find(&existingUsers)
+
+	// Check if we already have seed users (users with @example.com email)
+	var seedUserCount int64
+	s.db.Model(&models.User{}).Where("email LIKE '%@example.com'").Count(&seedUserCount)
+	if seedUserCount >= int64(count) {
+		// Already have enough seed users, just fetch all
 		if err := s.db.Find(&users).Error; err != nil {
 			return nil, err
 		}
-		fmt.Printf("    Found %d existing users, skipping creation\n", existingCount)
+		fmt.Printf("    Found %d existing users (including %d seed users), skipping creation\n", len(users), seedUserCount)
 		return users, nil
 	}
 
@@ -189,7 +193,7 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 			Location:       fmt.Sprintf("%s, %s", gofakeit.City(), gofakeit.Country()),
 			PasswordHash:   &hashedPasswordStr,
 			EmailVerified:  true,
-			AvatarURL:      fmt.Sprintf("https://api.dicebear.com/7.x/avataaars/svg?seed=%s", gofakeit.Username()),
+			ProfilePictureURL: fmt.Sprintf("https://api.dicebear.com/7.x/avataaars/svg?seed=%s", gofakeit.Username()),
 			DAWPreference:  daws[rand.Intn(len(daws))],
 			Genre:          userGenres,
 			FollowerCount:  rand.Intn(1000),
@@ -209,11 +213,15 @@ func (s *Seeder) seedUsers(count int) ([]models.User, error) {
 		users = append(users, user)
 	}
 
-	fmt.Printf("    Created %d users\n", len(users))
+	// Include existing (non-seed) users in the return list for post assignment
+	users = append(users, existingUsers...)
+
+	fmt.Printf("    Created %d new seed users, total %d users available\n", count, len(users))
 	return users, nil
 }
 
 // seedAudioPosts creates audio posts with realistic metadata
+// Ensures each user gets at least minPostsPerUser posts, then distributes remaining randomly
 func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioPost, error) {
 	var posts []models.AudioPost
 
@@ -226,9 +234,8 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 	keys = append(keys, "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm")
 	daws := []string{"Ableton Live", "FL Studio", "Logic Pro", "Pro Tools", "Cubase"}
 
-	for i := 0; i < count; i++ {
-		user := users[rand.Intn(len(users))]
-
+	// Helper to create a post for a user
+	createPost := func(user models.User) error {
 		// Random duration between 4-32 seconds (typical loop length)
 		duration := 4.0 + rand.Float64()*28.0
 		durationBars := int(duration / 4.0) // Assuming 4/4 time
@@ -262,7 +269,7 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 			WaveformSVG:      generateWaveformSVG(),
 			LikeCount:        rand.Intn(100),
 			PlayCount:        rand.Intn(500),
-			CommentCount:     0, // Will be updated when comments are created
+			CommentCount:     0,
 			StreamActivityID: gofakeit.UUID(),
 			ProcessingStatus: "complete",
 			IsPublic:         true,
@@ -274,16 +281,42 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 		post.UpdatedAt = createdAt
 
 		if err := s.db.Create(&post).Error; err != nil {
-			return nil, fmt.Errorf("failed to create audio post: %w", err)
+			return fmt.Errorf("failed to create audio post: %w", err)
 		}
 
 		posts = append(posts, post)
 
 		// Update user's post count
 		s.db.Model(&user).Update("post_count", gorm.Expr("post_count + 1"))
+		return nil
 	}
 
-	fmt.Printf("    Created %d audio posts\n", len(posts))
+	// First, ensure each user gets at least 3 posts
+	minPostsPerUser := 3
+	for _, user := range users {
+		// Check how many posts this user already has
+		var existingCount int64
+		s.db.Model(&models.AudioPost{}).Where("user_id = ? AND deleted_at IS NULL", user.ID).Count(&existingCount)
+
+		// Create posts until they have at least minPostsPerUser
+		postsNeeded := minPostsPerUser - int(existingCount)
+		for j := 0; j < postsNeeded; j++ {
+			if err := createPost(user); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Then create remaining posts randomly distributed
+	remainingPosts := count - len(posts)
+	for i := 0; i < remainingPosts; i++ {
+		user := users[rand.Intn(len(users))]
+		if err := createPost(user); err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("    Created %d audio posts across %d users\n", len(posts), len(users))
 	return posts, nil
 }
 

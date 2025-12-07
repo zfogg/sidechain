@@ -234,10 +234,10 @@ func (suite *AuthServiceTestSuite) TestAccountUnification() {
 
 	// Simulate OAuth user info with same email
 	oauthInfo := &OAuthUserInfo{
-		ID:        "google_123456",
-		Email:     email, // Same email!
-		Name:      "Unify Test Google",
-		AvatarURL: "https://example.com/avatar.jpg",
+		ID:                     "google_123456",
+		Email:                  email, // Same email!
+		Name:                   "Unify Test Google",
+		OAuthProfilePictureURL: "https://example.com/avatar.jpg",
 	}
 
 	// This should link OAuth to existing account, not create new user
@@ -271,10 +271,10 @@ func (suite *AuthServiceTestSuite) TestReverseAccountUnification() {
 
 	// Create OAuth account first
 	oauthInfo := &OAuthUserInfo{
-		ID:        "discord_789012",
-		Email:     email,
-		Name:      "Reverse Test",
-		AvatarURL: "https://discord.com/avatar.jpg",
+		ID:                     "discord_789012",
+		Email:                  email,
+		Name:                   "Reverse Test",
+		OAuthProfilePictureURL: "https://discord.com/avatar.jpg",
 	}
 
 	authResp1, err := suite.authService.findOrCreateUserFromOAuth("discord", oauthInfo)

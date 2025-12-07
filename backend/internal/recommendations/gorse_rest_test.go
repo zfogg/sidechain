@@ -37,7 +37,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			email_verify_token TEXT,
 			google_id TEXT,
 			discord_id TEXT,
-			avatar_url TEXT,
+			oauth_profile_picture_url TEXT,
 			profile_picture_url TEXT,
 			daw_preference TEXT,
 			genre TEXT,

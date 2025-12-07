@@ -235,20 +235,32 @@ FeedResponse FeedDataManager::parseJsonResponse(const juce::var& json)
             response.posts.add(post);
     }
 
-    // Parse pagination info
-    response.total = static_cast<int>(json.getProperty("total", 0));
-    response.limit = static_cast<int>(json.getProperty("limit", 20));
-    response.offset = static_cast<int>(json.getProperty("offset", 0));
-
-    // Determine if there are more posts
-    if (json.hasProperty("has_more"))
+    // Parse pagination info - check meta object first (new unified endpoint format)
+    auto meta = json.getProperty("meta", juce::var());
+    if (meta.isObject())
     {
-        response.hasMore = static_cast<bool>(json.getProperty("has_more", false));
+        response.total = static_cast<int>(meta.getProperty("count", 0));
+        response.limit = static_cast<int>(meta.getProperty("limit", 20));
+        response.offset = static_cast<int>(meta.getProperty("offset", 0));
+        response.hasMore = static_cast<bool>(meta.getProperty("has_more", false));
     }
     else
     {
-        // Infer from total and current position
-        response.hasMore = (response.offset + response.posts.size()) < response.total;
+        // Fallback to legacy format
+        response.total = static_cast<int>(json.getProperty("total", 0));
+        response.limit = static_cast<int>(json.getProperty("limit", 20));
+        response.offset = static_cast<int>(json.getProperty("offset", 0));
+
+        // Determine if there are more posts
+        if (json.hasProperty("has_more"))
+        {
+            response.hasMore = static_cast<bool>(json.getProperty("has_more", false));
+        }
+        else
+        {
+            // Infer from total and current position
+            response.hasMore = (response.offset + response.posts.size()) < response.total;
+        }
     }
 
     return response;
