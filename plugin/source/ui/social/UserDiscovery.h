@@ -85,6 +85,7 @@ private:
     juce::Array<DiscoveredUser> trendingUsers;
     juce::Array<DiscoveredUser> featuredProducers;
     juce::Array<DiscoveredUser> suggestedUsers;
+    juce::Array<DiscoveredUser> similarProducers;
 
     // Recent searches (persisted)
     juce::StringArray recentSearches;
@@ -99,6 +100,7 @@ private:
     bool isTrendingLoading = true;
     bool isFeaturedLoading = true;
     bool isSuggestedLoading = true;
+    bool isSimilarLoading = true;
     bool isGenresLoading = true;
 
     // Error state
@@ -131,6 +133,7 @@ private:
     void drawTrendingSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawFeaturedSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawSuggestedSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
+    void drawSimilarSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawGenreChips(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawSearchResults(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawLoadingState(juce::Graphics& g, juce::Rectangle<int> bounds);
@@ -151,6 +154,7 @@ private:
     void fetchTrendingUsers();
     void fetchFeaturedProducers();
     void fetchSuggestedUsers();
+    void fetchSimilarProducers();
     void fetchAvailableGenres();
     void fetchUsersByGenre(const juce::String& genre);
     void handleFollowToggle(const DiscoveredUser& user, bool willFollow);
