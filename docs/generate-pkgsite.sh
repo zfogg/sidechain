@@ -27,6 +27,14 @@ mkdir -p docs/_build/html/backend/godoc
 # Change to backend directory so pkgsite can find the Go modules
 cd backend
 
+# Kill any existing pkgsite processes and free up port 8080
+echo "Cleaning up any existing pkgsite processes..."
+pkill -f "pkgsite.*8080" 2>/dev/null || true
+sleep 2
+# Also try to free the port
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+sleep 1
+
 echo "Starting pkgsite server..."
 pkgsite -cache -http=:8080 . > /tmp/pkgsite.log 2>&1 &
 PKGSITE_PID=$!
