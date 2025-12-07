@@ -106,14 +106,22 @@ void UserDiscovery::paint(juce::Graphics& g)
             {
                 drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Suggested For You");
                 drawSuggestedSection(g, contentBounds);
+                contentBounds.removeFromTop(16);
+            }
+
+            // Similar producers section
+            if (!similarProducers.isEmpty())
+            {
+                drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Producers You Might Like");
+                drawSimilarSection(g, contentBounds);
             }
 
             // Loading state
-            if (isTrendingLoading && isFeaturedLoading && isSuggestedLoading)
+            if (isTrendingLoading && isFeaturedLoading && isSuggestedLoading && isSimilarLoading)
             {
                 drawLoadingState(g, getContentBounds());
             }
-            else if (trendingUsers.isEmpty() && featuredProducers.isEmpty() && suggestedUsers.isEmpty())
+            else if (trendingUsers.isEmpty() && featuredProducers.isEmpty() && suggestedUsers.isEmpty() && similarProducers.isEmpty())
             {
                 drawEmptyState(g, getContentBounds(), "No users to discover yet.\nBe the first to share your music!");
             }
@@ -271,6 +279,14 @@ void UserDiscovery::drawFeaturedSection(juce::Graphics& g, juce::Rectangle<int>&
 void UserDiscovery::drawSuggestedSection(juce::Graphics& g, juce::Rectangle<int>& bounds)
 {
     for (int i = 0; i < juce::jmin(5, suggestedUsers.size()); ++i)
+    {
+        bounds.removeFromTop(USER_CARD_HEIGHT);
+    }
+}
+
+void UserDiscovery::drawSimilarSection(juce::Graphics& g, juce::Rectangle<int>& bounds)
+{
+    for (int i = 0; i < juce::jmin(5, similarProducers.size()); ++i)
     {
         bounds.removeFromTop(USER_CARD_HEIGHT);
     }
@@ -496,6 +512,7 @@ void UserDiscovery::loadDiscoveryData()
     fetchTrendingUsers();
     fetchFeaturedProducers();
     fetchSuggestedUsers();
+    fetchSimilarProducers();
     fetchAvailableGenres();
 }
 
@@ -885,6 +902,15 @@ void UserDiscovery::rebuildUserCards()
                 addAndMakeVisible(card);
             }
 
+            // Similar producers
+            for (auto& user : similarProducers)
+            {
+                auto* card = userCards.add(new UserCard());
+                card->setUser(user);
+                setupUserCardCallbacks(card);
+                addAndMakeVisible(card);
+            }
+
             updateUserCardPositions();
             updateScrollBounds();
             return;
@@ -978,6 +1004,18 @@ void UserDiscovery::updateUserCardPositions()
                     userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
                     y += USER_CARD_HEIGHT;
                 }
+                y += 16;
+            }
+
+            // Similar producers section
+            if (!similarProducers.isEmpty())
+            {
+                y += SECTION_HEADER_HEIGHT;
+                for (int i = 0; i < similarProducers.size() && cardIndex < userCards.size(); ++i, ++cardIndex)
+                {
+                    userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+                    y += USER_CARD_HEIGHT;
+                }
             }
             break;
         }
@@ -1031,6 +1069,8 @@ int UserDiscovery::calculateContentHeight() const
                 height += SECTION_HEADER_HEIGHT + (featuredProducers.size() * USER_CARD_HEIGHT) + 16;
             if (!suggestedUsers.isEmpty())
                 height += SECTION_HEADER_HEIGHT + (suggestedUsers.size() * USER_CARD_HEIGHT);
+            if (!similarProducers.isEmpty())
+                height += SECTION_HEADER_HEIGHT + (similarProducers.size() * USER_CARD_HEIGHT);
             break;
 
         case ViewMode::SearchResults:
@@ -1157,6 +1197,7 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
         updateUserPresenceInArray(trendingUsers);
         updateUserPresenceInArray(featuredProducers);
         updateUserPresenceInArray(suggestedUsers);
+        updateUserPresenceInArray(similarProducers);
         updateUserPresenceInArray(genreUsers);
 
         // Update corresponding UserCards
@@ -1204,6 +1245,7 @@ void UserDiscovery::updateUserPresence(const juce::String& userId, bool isOnline
     updatePresenceInArray(trendingUsers);
     updatePresenceInArray(featuredProducers);
     updatePresenceInArray(suggestedUsers);
+    updatePresenceInArray(similarProducers);
     updatePresenceInArray(genreUsers);
 
     // Update corresponding UserCards
