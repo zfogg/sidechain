@@ -93,6 +93,11 @@ public:
      */
     void setLoading(bool loading);
 
+    /** Set the download progress (0.0 to 1.0)
+     * @param progress Download progress from 0.0 to 1.0
+     */
+    void setDownloadProgress(float progress);
+
     //==============================================================================
     // Callbacks for user actions
 
@@ -152,6 +157,27 @@ public:
      *       Success/error notifications are shown to the user (already implemented).
      */
     std::function<void(const FeedPost&)> onAddToDAWClicked;
+
+    /** Called when "Drop to Track" button is clicked
+     * @param post The post to download and add to DAW project
+     * @note Downloads audio file and places it in DAW project folder automatically.
+     *       This is the one-click "Drop to Track" feature from README.
+     */
+    std::function<void(const FeedPost&)> onDropToTrackClicked;
+
+    /** Called when "Download MIDI" button is clicked
+     * @param post The post with MIDI to download
+     * @note Only shown when post.hasMidi is true. Downloads .mid file.
+     *       Part of R.3.3 Cross-DAW MIDI Collaboration feature.
+     */
+    std::function<void(const FeedPost&)> onDownloadMIDIClicked;
+
+    /** Called when "Download Project" button is clicked
+     * @param post The post with project file to download
+     * @note Only shown when post.hasProjectFile is true. Downloads DAW project file.
+     *       Part of R.3.4 Project File Exchange feature.
+     */
+    std::function<void(const FeedPost&)> onDownloadProjectClicked;
 
     /** Called when card is tapped (for expanding details)
      * @param post The post that was tapped
@@ -213,6 +239,8 @@ private:
     bool isPlaying = false;
     bool isLoading = false;
     float playbackProgress = 0.0f;
+    bool isDownloading = false;
+    float downloadProgress = 0.0f;
 
     // Like animation
     Animation likeAnimation{400, Animation::Easing::EaseOutCubic};
@@ -258,6 +286,9 @@ private:
     juce::Rectangle<int> getMoreButtonBounds() const;
     juce::Rectangle<int> getFollowButtonBounds() const;
     juce::Rectangle<int> getAddToDAWButtonBounds() const;
+    juce::Rectangle<int> getDropToTrackButtonBounds() const;
+    juce::Rectangle<int> getDownloadMIDIButtonBounds() const;
+    juce::Rectangle<int> getDownloadProjectButtonBounds() const;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)
