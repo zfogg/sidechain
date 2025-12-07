@@ -18,6 +18,10 @@ add_library(SidechainAudio STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/NotificationSound.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ProgressiveKeyDetector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ProgressiveKeyDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ChordSequenceDetector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ChordSequenceDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/SynthEngine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/SynthEngine.h
 )
 
 # Include directories
