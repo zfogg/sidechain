@@ -83,7 +83,7 @@ wget \
     --level=5 \
     http://localhost:8080/static/ || echo "Note: Some static assets may not be available"
 
-# Then download the package pages
+# Then download the package pages (including all subpackages)
 echo "Downloading package pages..."
 wget \
     --mirror \
@@ -97,8 +97,24 @@ wget \
     --accept="*.html" \
     --reject="robots.txt" \
     --quiet \
-    --level=10 \
+    --level=15 \
     http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Failed to download some files"
+
+# Also explicitly download internal packages
+echo "Downloading internal packages explicitly..."
+for pkg in internal/handlers internal/models internal/database internal/auth internal/stream internal/storage internal/websocket internal/audio internal/email internal/middleware internal/queue internal/search internal/seed internal/recommendations; do
+    echo "  Downloading ${PACKAGE_PATH}/$pkg..."
+    wget -q \
+        --convert-links \
+        --adjust-extension \
+        --page-requisites \
+        --no-parent \
+        --no-host-directories \
+        --cut-dirs=0 \
+        --directory-prefix=docs/_build/html/backend/godoc \
+        --accept="*.html" \
+        http://localhost:8080/${PACKAGE_PATH}/$pkg/ || echo "    Note: $pkg may not exist"
+done
 
 # Fix any remaining localhost URLs to use relative paths
 # Also fix absolute paths in JavaScript files
@@ -107,17 +123,19 @@ find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read 
     # Calculate relative depth from godoc root
     REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
     
-    # For JS files in static/, paths like /static/ should be relative to static/ root
-    # For HTML files, calculate depth normally
+    # For JS files in static/, paths like /static/ should be relative to godoc root
+    # Calculate depth from godoc root, not from JS file location
     if [[ "$f" == *.js ]] && [[ "$REL_PATH" == static/* ]]; then
-        # JS file in static/ - /static/ paths should be ../ from the JS file's directory
-        JS_DIR_DEPTH=$(echo "$REL_PATH" | sed 's|[^/]*$||' | tr -cd '/' | wc -c)
-        if [ $JS_DIR_DEPTH -gt 0 ]; then
-            REL_PREFIX=$(printf '../%.0s' $(seq 1 $JS_DIR_DEPTH))
+        # JS file in static/ - need to go up to godoc root, then into static/
+        # File: static/frontend/frontend.js -> needs ../../ to get to godoc root
+        # Then /static/ paths should become ../../static/
+        JS_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
+        if [ $JS_DEPTH -gt 0 ]; then
+            REL_PREFIX=$(printf '../%.0s' $(seq 1 $JS_DEPTH))
         else
-            REL_PREFIX=""
+            REL_PREFIX="../"
         fi
-        # For /static/ references in JS files, replace with relative path to static root
+        # For /static/ references in JS files, replace with relative path from godoc root
         sed -i \
             -e 's|"/static/|"'${REL_PREFIX}'static/|g' \
             -e "s|'/static/|'"${REL_PREFIX}"'static/|g" \
@@ -126,10 +144,9 @@ find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read 
     else
         # HTML file or JS file not in static/ - calculate depth normally
         if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
-            REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
-            if [[ "$REL_PATH" == *"/"* ]]; then
-                REL_DEPTH=$((REL_DEPTH + 1))
-            fi
+            # Count directory separators (depth from godoc root)
+            # github.com/zfogg/sidechain/backend/index.html has 4 slashes = 4 levels deep
+            REL_DEPTH=$(echo "$REL_PATH" | sed 's|[^/]*$||' | tr -cd '/' | wc -c)
             if [ $REL_DEPTH -gt 0 ]; then
                 REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
             else
