@@ -139,6 +139,11 @@ func (suite *FeedTestSuite) setupRoutes() {
 	api.GET("/notifications/counts", suite.handlers.GetNotificationCounts)
 	api.POST("/notifications/read", suite.handlers.MarkNotificationsRead)
 	api.POST("/notifications/seen", suite.handlers.MarkNotificationsSeen)
+
+	// Post routes
+	api.POST("/posts/:id/download", suite.handlers.DownloadPost)
+	api.DELETE("/posts/:id", suite.handlers.DeletePost)
+	api.POST("/posts/:id/report", suite.handlers.ReportPost)
 }
 
 // TearDownSuite cleans up
@@ -700,6 +705,148 @@ func (suite *FeedTestSuite) TestGetUserFollowing() {
 	assert.Len(t, following, 1)
 
 	assert.True(t, suite.mockStream.AssertCalled("GetFollowing"))
+}
+
+// =============================================================================
+// DOWNLOAD POST TESTS
+// =============================================================================
+
+func (suite *FeedTestSuite) TestDownloadPost() {
+	t := suite.T()
+
+	// Create a test post
+	post := &models.AudioPost{
+		UserID:           suite.testUser.ID,
+		AudioURL:         "https://cdn.example.com/audio/test.mp3",
+		OriginalFilename: "test_loop.mp3",
+		BPM:              128,
+		Key:              "C major",
+		Duration:         8.5,
+		Genre:            []string{"house", "techno"},
+		DAW:              "Ableton Live",
+		IsPublic:         true,
+		DownloadCount:    0,
+	}
+	require.NoError(t, suite.db.Create(post).Error)
+
+	req, _ := http.NewRequest("POST", "/api/posts/"+post.ID+"/download", nil)
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+
+	assert.Equal(t, post.AudioURL, response["download_url"])
+	assert.NotEmpty(t, response["filename"])
+	assert.Equal(t, float64(1), response["download_count"]) // Should be incremented
+
+	// Verify download count was incremented in database
+	var updatedPost models.AudioPost
+	suite.db.First(&updatedPost, "id = ?", post.ID)
+	assert.Equal(t, 1, updatedPost.DownloadCount)
+}
+
+func (suite *FeedTestSuite) TestDownloadPostNotFound() {
+	t := suite.T()
+
+	req, _ := http.NewRequest("POST", "/api/posts/00000000-0000-0000-0000-000000000000/download", nil)
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "post_not_found", response["error"])
+}
+
+func (suite *FeedTestSuite) TestDownloadPostUnauthorized() {
+	t := suite.T()
+
+	// Create a test post
+	post := &models.AudioPost{
+		UserID:           suite.testUser.ID,
+		AudioURL:         "https://cdn.example.com/audio/test.mp3",
+		OriginalFilename: "test_loop.mp3",
+		IsPublic:         true,
+	}
+	require.NoError(t, suite.db.Create(post).Error)
+
+	req, _ := http.NewRequest("POST", "/api/posts/"+post.ID+"/download", nil)
+	// No X-User-ID header
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func (suite *FeedTestSuite) TestDownloadPostPrivate() {
+	t := suite.T()
+
+	// Create another user
+	otherUser := &models.User{
+		Email:        "other@test.com",
+		Username:     "otheruser",
+		DisplayName:  "Other User",
+		StreamUserID: "stream_other",
+	}
+	require.NoError(t, suite.db.Create(otherUser).Error)
+
+	// Create a private post by other user
+	post := &models.AudioPost{
+		UserID:           otherUser.ID,
+		AudioURL:         "https://cdn.example.com/audio/private.mp3",
+		OriginalFilename: "private_loop.mp3",
+		IsPublic:         false, // Private post
+	}
+	require.NoError(t, suite.db.Create(post).Error)
+
+	// Try to download as test user (not owner)
+	req, _ := http.NewRequest("POST", "/api/posts/"+post.ID+"/download", nil)
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, "post_not_accessible", response["error"])
+}
+
+func (suite *FeedTestSuite) TestDownloadPostOwnerCanDownloadPrivate() {
+	t := suite.T()
+
+	// Create a private post by test user
+	post := &models.AudioPost{
+		UserID:           suite.testUser.ID,
+		AudioURL:         "https://cdn.example.com/audio/private.mp3",
+		OriginalFilename: "private_loop.mp3",
+		IsPublic:         false, // Private post
+		DownloadCount:    0,
+	}
+	require.NoError(t, suite.db.Create(post).Error)
+
+	// Owner should be able to download
+	req, _ := http.NewRequest("POST", "/api/posts/"+post.ID+"/download", nil)
+	req.Header.Set("X-User-ID", suite.testUser.ID)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, post.AudioURL, response["download_url"])
 }
 
 // =============================================================================
