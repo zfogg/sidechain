@@ -86,6 +86,7 @@ public:
     std::function<void(const juce::String& userId)> onFollowToggled;
     std::function<void(const juce::String& userId)> onMessageClicked;  // Opens DM with user
     std::function<void(const juce::String& userId)> onViewStoryClicked;  // Opens story viewer for user's story
+    std::function<void(const juce::String& userId)> onNavigateToProfile;  // Navigates to another user's profile
 
     //==============================================================================
     // Component overrides

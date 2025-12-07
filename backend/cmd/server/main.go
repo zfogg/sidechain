@@ -258,6 +258,7 @@ func main() {
 			feed.GET("/timeline", h.GetTimeline)
 			feed.GET("/timeline/enriched", h.GetEnrichedTimeline)
 			feed.GET("/timeline/aggregated", h.GetAggregatedTimeline)
+			feed.GET("/unified", h.GetUnifiedTimeline) // Main feed with Gorse recommendations
 			feed.GET("/global", h.GetGlobalFeed)
 			feed.GET("/global/enriched", h.GetEnrichedGlobalFeed)
 			feed.GET("/trending", h.GetTrendingFeed)

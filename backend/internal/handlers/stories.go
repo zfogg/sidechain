@@ -485,7 +485,7 @@ func (h *Handlers) GetStory(c *gin.Context) {
 						"id":           v.Viewer.ID,
 						"username":     v.Viewer.Username,
 						"display_name": v.Viewer.DisplayName,
-						"avatar_url":   v.Viewer.AvatarURL,
+						"avatar_url":   v.Viewer.GetAvatarURL(),
 					},
 					"viewed_at": v.ViewedAt.Format(time.RFC3339),
 				}
@@ -654,7 +654,7 @@ func (h *Handlers) GetStoryViews(c *gin.Context) {
 				"id":           v.Viewer.ID,
 				"username":     v.Viewer.Username,
 				"display_name": v.Viewer.DisplayName,
-				"avatar_url":   v.Viewer.AvatarURL,
+				"avatar_url":   v.Viewer.GetAvatarURL(),
 			},
 			"viewed_at": v.ViewedAt.Format(time.RFC3339),
 		}

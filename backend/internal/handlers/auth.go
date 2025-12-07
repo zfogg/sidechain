@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -438,8 +440,8 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 		return
 	}
 
-	// Update user's avatar URL in database
-	database.DB.Model(&models.User{}).Where("id = ?", userID).Update("avatar_url", result.URL)
+	// Update user's profile picture URL in database (user-uploaded picture)
+	database.DB.Model(&models.User{}).Where("id = ?", userID).Update("profile_picture_url", result.URL)
 
 	c.JSON(http.StatusOK, gin.H{
 		"url": result.URL,
@@ -457,17 +459,42 @@ func (h *AuthHandlers) ProxyProfilePicture(c *gin.Context) {
 		return
 	}
 
-	avatarURL := user.AvatarURL
+	// Prefer user-uploaded picture, fallback to OAuth picture
+	avatarURL := user.ProfilePictureURL
 	if avatarURL == "" {
-		avatarURL = user.ProfilePictureURL
+		avatarURL = user.OAuthProfilePictureURL
 	}
 	if avatarURL == "" {
 		c.JSON(http.StatusNotFound, gin.H{"error": "no_profile_picture"})
 		return
 	}
 
-	// Redirect to the actual CDN URL
-	c.Redirect(http.StatusTemporaryRedirect, avatarURL)
+	// Actually proxy the image data (JUCE on Linux can't follow HTTPS redirects)
+	resp, err := http.Get(avatarURL)
+	if err != nil {
+		log.Printf("ProxyProfilePicture: Failed to fetch image from %s: %v", avatarURL, err)
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed_to_fetch_image"})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("ProxyProfilePicture: Upstream returned %d for %s", resp.StatusCode, avatarURL)
+		c.JSON(resp.StatusCode, gin.H{"error": "upstream_error"})
+		return
+	}
+
+	// Copy headers
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "image/jpeg" // Default
+	}
+	c.Header("Content-Type", contentType)
+	c.Header("Cache-Control", "public, max-age=86400") // Cache for 1 day
+
+	// Stream the image data
+	c.Status(http.StatusOK)
+	io.Copy(c.Writer, resp.Body)
 }
 
 // RegisterDevice creates a new device ID for VST authentication

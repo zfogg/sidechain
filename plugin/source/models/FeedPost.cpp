@@ -174,8 +174,11 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.isFollowing = Json::getBool(json, "is_following");
     post.isOwnPost = Json::getBool(json, "is_own_post");
 
-    // Recommendation reason (for "For You" feed)
+    // Recommendation reason (for unified timeline feed)
     post.recommendationReason = Json::getString(json, "recommendation_reason");
+    post.source = Json::getString(json, "source");
+    post.score = Json::getFloat(json, "score");
+    post.isRecommended = Json::getBool(json, "is_recommended");
 
     // Processing status
     juce::String statusStr = Json::getString(json, "status").toLowerCase();
@@ -285,6 +288,16 @@ juce::var FeedPost::toJson() const
         ownReactionsObj->setProperty(userReaction, reactionIds);
         obj->setProperty("own_reactions", juce::var(ownReactionsObj));
     }
+
+    // Recommendation metadata
+    if (recommendationReason.isNotEmpty())
+        obj->setProperty("recommendation_reason", recommendationReason);
+    if (source.isNotEmpty())
+        obj->setProperty("source", source);
+    if (score > 0.0f)
+        obj->setProperty("score", score);
+    if (isRecommended)
+        obj->setProperty("is_recommended", isRecommended);
 
     // Status
     juce::String statusStr;

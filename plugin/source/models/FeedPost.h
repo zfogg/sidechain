@@ -101,8 +101,11 @@ public:
     };
 
     //==============================================================================
-    // Recommendation metadata (for "For You" feed)
+    // Recommendation metadata (for unified timeline feed)
     juce::String recommendationReason;  // Why this post was recommended (e.g., "matches your genre preferences")
+    juce::String source;                // Where this post came from: "following", "gorse", "trending", "recent"
+    float score = 0.0f;                 // Ranking score from timeline service
+    bool isRecommended = false;         // Whether this is a recommendation (vs from followed users)
 
     //==============================================================================
     // Processing status

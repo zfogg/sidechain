@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -42,7 +43,7 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 	if h.wsHandler != nil {
 		// Fetch follower and followee info for the notification
 		var follower, followee models.User
-		database.DB.Select("id, username, display_name, profile_picture_url").First(&follower, "id = ?", userID)
+		database.DB.Select("id, username, display_name, profile_picture_url, oauth_profile_picture_url").First(&follower, "id = ?", userID)
 		database.DB.Select("id, username, display_name").First(&followee, "id = ?", req.TargetUserID)
 
 		// Get updated follower count for the target user
@@ -60,10 +61,16 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 			followeeName = followee.Username
 		}
 
+		// Get effective avatar URL
+		followerAvatar := follower.ProfilePictureURL
+		if followerAvatar == "" {
+			followerAvatar = follower.OAuthProfilePictureURL
+		}
+
 		h.wsHandler.NotifyFollow(req.TargetUserID, &websocket.FollowPayload{
 			FollowerID:     userID,
 			FollowerName:   followerName,
-			FollowerAvatar: follower.ProfilePictureURL,
+			FollowerAvatar: followerAvatar,
 			FolloweeID:     req.TargetUserID,
 			FolloweeName:   followeeName,
 			FollowerCount:  followerCount,
@@ -227,24 +234,31 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	var highlights []models.StoryHighlight
 	database.DB.Where("user_id = ?", user.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
 
+	// avatar_url returns the effective avatar (prefer uploaded, fallback to OAuth)
+	avatarURL := user.ProfilePictureURL
+	if avatarURL == "" {
+		avatarURL = user.OAuthProfilePictureURL
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"id":                  user.ID,
-		"username":            user.Username,
-		"display_name":        user.DisplayName,
-		"bio":                 user.Bio,
-		"location":            user.Location,
-		"avatar_url":          user.AvatarURL,
-		"profile_picture_url": user.ProfilePictureURL,
-		"daw_preference":      user.DAWPreference,
-		"genre":               user.Genre,
-		"social_links":        user.SocialLinks,
-		"follower_count":      followerCount,
-		"following_count":     followingCount,
-		"post_count":          postCount,
-		"is_following":        isFollowing,
-		"is_followed_by":      isFollowedBy,
-		"highlights":          highlights,
-		"created_at":          user.CreatedAt,
+		"id":                         user.ID,
+		"username":                   user.Username,
+		"display_name":               user.DisplayName,
+		"bio":                        user.Bio,
+		"location":                   user.Location,
+		"avatar_url":                 avatarURL, // Effective avatar for display
+		"profile_picture_url":        user.ProfilePictureURL,
+		"oauth_profile_picture_url":  user.OAuthProfilePictureURL,
+		"daw_preference":             user.DAWPreference,
+		"genre":                      user.Genre,
+		"social_links":               user.SocialLinks,
+		"follower_count":             followerCount,
+		"following_count":            followingCount,
+		"post_count":                 postCount,
+		"is_following":               isFollowing,
+		"is_followed_by":             isFollowedBy,
+		"highlights":                 highlights,
+		"created_at":                 user.CreatedAt,
 	})
 }
 
@@ -277,24 +291,31 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 	var highlights []models.StoryHighlight
 	database.DB.Where("user_id = ?", currentUser.ID).Order("sort_order ASC, created_at DESC").Find(&highlights)
 
+	// avatar_url returns the effective avatar (prefer uploaded, fallback to OAuth)
+	avatarURL := currentUser.ProfilePictureURL
+	if avatarURL == "" {
+		avatarURL = currentUser.OAuthProfilePictureURL
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"id":                  currentUser.ID,
-		"email":               currentUser.Email,
-		"username":            currentUser.Username,
-		"display_name":        currentUser.DisplayName,
-		"bio":                 currentUser.Bio,
-		"location":            currentUser.Location,
-		"avatar_url":          currentUser.AvatarURL,
-		"profile_picture_url": currentUser.ProfilePictureURL,
-		"daw_preference":      currentUser.DAWPreference,
-		"genre":               currentUser.Genre,
-		"social_links":        currentUser.SocialLinks,
-		"follower_count":      followerCount,
-		"following_count":     followingCount,
-		"post_count":          postCount,
-		"email_verified":      currentUser.EmailVerified,
-		"highlights":          highlights,
-		"created_at":          currentUser.CreatedAt,
+		"id":                         currentUser.ID,
+		"email":                      currentUser.Email,
+		"username":                   currentUser.Username,
+		"display_name":               currentUser.DisplayName,
+		"bio":                        currentUser.Bio,
+		"location":                   currentUser.Location,
+		"avatar_url":                 avatarURL, // Effective avatar for display
+		"profile_picture_url":        currentUser.ProfilePictureURL,
+		"oauth_profile_picture_url":  currentUser.OAuthProfilePictureURL,
+		"daw_preference":             currentUser.DAWPreference,
+		"genre":                      currentUser.Genre,
+		"social_links":               currentUser.SocialLinks,
+		"follower_count":             followerCount,
+		"following_count":            followingCount,
+		"post_count":                 postCount,
+		"email_verified":             currentUser.EmailVerified,
+		"highlights":                 highlights,
+		"created_at":                 currentUser.CreatedAt,
 	})
 }
 
@@ -480,11 +501,15 @@ func (h *Handlers) GetUserFollowers(c *gin.Context) {
 	for _, f := range followers {
 		var followerUser models.User
 		if err := database.DB.First(&followerUser, "id = ? OR stream_user_id = ?", f.UserID, f.UserID).Error; err == nil {
+			avatarURL := followerUser.ProfilePictureURL
+			if avatarURL == "" {
+				avatarURL = followerUser.OAuthProfilePictureURL
+			}
 			followerUsers = append(followerUsers, gin.H{
 				"id":           followerUser.ID,
 				"username":     followerUser.Username,
 				"display_name": followerUser.DisplayName,
-				"avatar_url":   followerUser.AvatarURL,
+				"avatar_url":   avatarURL,
 				"bio":          followerUser.Bio,
 			})
 		}
@@ -527,11 +552,15 @@ func (h *Handlers) GetUserFollowing(c *gin.Context) {
 	for _, f := range following {
 		var followedUser models.User
 		if err := database.DB.First(&followedUser, "id = ? OR stream_user_id = ?", f.UserID, f.UserID).Error; err == nil {
+			avatarURL := followedUser.ProfilePictureURL
+			if avatarURL == "" {
+				avatarURL = followedUser.OAuthProfilePictureURL
+			}
 			followingUsers = append(followingUsers, gin.H{
 				"id":           followedUser.ID,
 				"username":     followedUser.Username,
 				"display_name": followedUser.DisplayName,
-				"avatar_url":   followedUser.AvatarURL,
+				"avatar_url":   avatarURL,
 				"bio":          followedUser.Bio,
 			})
 		}
@@ -563,10 +592,91 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	}
 
 	// Get enriched activities from Stream.io
-	activities, err := h.stream.GetEnrichedUserFeed(user.StreamUserID, limit, offset)
+	// Note: Posts are created using user.ID, so we must query with user.ID (not StreamUserID)
+	activities, err := h.stream.GetEnrichedUserFeed(user.ID, limit, offset)
 	if err != nil {
-		util.RespondInternalError(c, "failed_to_get_posts", err.Error())
+		// Log the error but try database fallback
+		log.Printf("Stream.io GetEnrichedUserFeed error (will try DB fallback): %v", err)
+	}
+
+	// If Stream.io returns empty or errored, fall back to database
+	if len(activities) == 0 {
+		var audioPosts []models.AudioPost
+		if err := database.DB.
+			Where("user_id = ? AND is_public = ?", user.ID, true).
+			Order("created_at DESC").
+			Limit(limit).
+			Offset(offset).
+			Find(&audioPosts).Error; err != nil {
+			util.RespondInternalError(c, "failed_to_get_posts", err.Error())
+			return
+		}
+
+		// Get effective avatar URL
+		userAvatarURL := user.ProfilePictureURL
+		if userAvatarURL == "" {
+			userAvatarURL = user.OAuthProfilePictureURL
+		}
+
+		// Convert AudioPost to activity-like format for the client
+		dbPosts := make([]gin.H, len(audioPosts))
+		for i, post := range audioPosts {
+			dbPosts[i] = gin.H{
+				"id":               post.ID,
+				"actor":            "user:" + post.UserID,
+				"verb":             "post",
+				"object":           "audio:" + post.ID,
+				"time":             post.CreatedAt.Format(time.RFC3339),
+				"audio_url":        post.AudioURL,
+				"waveform":         post.WaveformSVG,
+				"duration_seconds": post.Duration,
+				"duration_bars":    post.DurationBars,
+				"bpm":              post.BPM,
+				"key":              post.Key,
+				"daw":              post.DAW,
+				"genre":            post.Genre,
+				"like_count":       post.LikeCount,
+				"play_count":       post.PlayCount,
+				"comment_count":    post.CommentCount,
+				"has_midi":         post.MIDIPatternID != nil,
+				"midi_pattern_id":  post.MIDIPatternID,
+				"is_remix":         post.RemixOfPostID != nil || post.RemixOfStoryID != nil,
+				"remix_of_post_id": post.RemixOfPostID,
+				"remix_of_story_id": post.RemixOfStoryID,
+				"remix_type":       post.RemixType,
+				"remix_chain_depth": post.RemixChainDepth,
+				"remix_count":      post.RemixCount,
+				"status":           post.ProcessingStatus,
+				"actor_data": gin.H{
+					"id":         user.ID,
+					"username":   user.Username,
+					"avatar_url": userAvatarURL,
+				},
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"posts": dbPosts,
+			"user": gin.H{
+				"id":           user.ID,
+				"username":     user.Username,
+				"display_name": user.DisplayName,
+				"avatar_url":   userAvatarURL,
+			},
+			"meta": gin.H{
+				"limit":  limit,
+				"offset": offset,
+				"count":  len(dbPosts),
+				"source": "database",
+			},
+		})
 		return
+	}
+
+	// Get effective avatar URL for stream response
+	streamAvatarURL := user.ProfilePictureURL
+	if streamAvatarURL == "" {
+		streamAvatarURL = user.OAuthProfilePictureURL
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -575,12 +685,13 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 			"id":           user.ID,
 			"username":     user.Username,
 			"display_name": user.DisplayName,
-			"avatar_url":   user.AvatarURL,
+			"avatar_url":   streamAvatarURL,
 		},
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
 			"count":  len(activities),
+			"source": "stream",
 		},
 	})
 }

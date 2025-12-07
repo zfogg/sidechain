@@ -85,8 +85,8 @@ type User struct {
 	DiscordID *string `gorm:"uniqueIndex" json:"-"`
 
 	// Profile data
-	AvatarURL         string       `json:"avatar_url"`
-	ProfilePictureURL string       `json:"profile_picture_url"` // S3 URL for uploaded profile picture
+	OAuthProfilePictureURL string       `json:"oauth_profile_picture_url"` // From OAuth provider (Google/Discord)
+	ProfilePictureURL      string       `json:"profile_picture_url"`       // S3 URL for user-uploaded profile picture
 	DAWPreference     string       `json:"daw_preference"`
 	Genre             StringArray  `gorm:"type:text[]" json:"genre"`
 	SocialLinks       *SocialLinks `gorm:"type:jsonb;serializer:json" json:"social_links"`
@@ -220,7 +220,7 @@ type OAuthProvider struct {
 	ProviderUserID string `gorm:"not null" json:"provider_user_id"`
 	Email          string `gorm:"not null" json:"email"`
 	Name           string `json:"name"`
-	AvatarURL      string `json:"avatar_url"`
+	OAuthProfilePictureURL string `json:"oauth_profile_picture_url"`
 
 	// OAuth tokens (for API access if needed)
 	AccessToken  *string    `gorm:"type:text" json:"-"`
@@ -673,4 +673,13 @@ func (sv *StoryView) BeforeCreate(tx *gorm.DB) error {
 // Helper function for UUID generation
 func generateUUID() string {
 	return uuid.New().String()
+}
+
+// GetAvatarURL returns the effective avatar URL for display
+// Prefers user-uploaded profile picture, falls back to OAuth provider picture
+func (u *User) GetAvatarURL() string {
+	if u.ProfilePictureURL != "" {
+		return u.ProfilePictureURL
+	}
+	return u.OAuthProfilePictureURL
 }

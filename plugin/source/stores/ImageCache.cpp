@@ -495,4 +495,30 @@ void setNetworkClient(NetworkClient* client)
     networkClient = client;
 }
 
+//==============================================================================
+// Avatar loading through backend proxy
+// This works around JUCE SSL/redirect issues on Linux by fetching avatar images
+// through the backend, which handles the S3/OAuth redirect chains and returns raw bytes
+
+void loadAvatarForUser(const juce::String& userId, ImageCallback callback, int width, int height)
+{
+    if (userId.isEmpty())
+    {
+        if (callback)
+            callback(juce::Image());
+        return;
+    }
+
+    // Construct proxy URL: /api/v1/users/{userId}/profile-picture
+    // This endpoint fetches the image from S3/OAuth and relays the bytes
+    juce::String proxyUrl = juce::String(Constants::Endpoints::DEV_BASE_URL)
+        + Constants::Endpoints::API_VERSION
+        + "/users/" + userId + "/profile-picture";
+
+    Log::debug("ImageLoader: Loading avatar via proxy for user " + userId + ": " + proxyUrl);
+
+    // Use the standard load function which handles caching and NetworkClient
+    load(proxyUrl, callback, width, height);
+}
+
 }  // namespace ImageLoader

@@ -559,6 +559,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     profileComponent->onViewStoryClicked = [this](const juce::String& userId) {
         showUserStory(userId);
     };
+    profileComponent->onNavigateToProfile = [this](const juce::String& userId) {
+        showProfile(userId);
+    };
     addChildComponent(profileComponent.get());
 
     //==========================================================================

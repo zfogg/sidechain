@@ -28,10 +28,10 @@ void CommentRow::setComment(const Comment& newComment)
     comment = newComment;
     avatarImage = juce::Image();
 
-    // Load avatar via ImageCache
-    if (comment.userAvatarUrl.isNotEmpty())
+    // Load avatar via backend proxy to work around JUCE SSL/redirect issues on Linux
+    if (comment.userId.isNotEmpty())
     {
-        ImageLoader::load(comment.userAvatarUrl, [this](const juce::Image& img) {
+        ImageLoader::loadAvatarForUser(comment.userId, [this](const juce::Image& img) {
             avatarImage = img;
             repaint();
         });
@@ -307,8 +307,12 @@ CommentsPanel::~CommentsPanel()
 
 void CommentsPanel::setupUI()
 {
-    // Close button
+    // Close button - styled as a prominent X button
     closeButton = std::make_unique<juce::TextButton>("X");
+    closeButton->setColour(juce::TextButton::buttonColourId, SidechainColors::backgroundLighter());
+    closeButton->setColour(juce::TextButton::buttonOnColourId, SidechainColors::surface());
+    closeButton->setColour(juce::TextButton::textColourOffId, SidechainColors::textPrimary());
+    closeButton->setColour(juce::TextButton::textColourOnId, SidechainColors::textPrimary());
     closeButton->onClick = [this]() {
         if (onClose)
             onClose();

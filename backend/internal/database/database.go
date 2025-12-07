@@ -76,6 +76,9 @@ func Migrate() error {
 		log.Printf("Warning: Could not create uuid-ossp extension: %v", err)
 	}
 
+	// Run manual migrations before AutoMigrate
+	runManualMigrations()
+
 	// Auto-migrate all models
 	// Note: MIDIPattern must come before AudioPost and Story due to foreign key references
 	err = DB.AutoMigrate(
@@ -278,4 +281,45 @@ func getEnvOrDefault(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// runManualMigrations runs SQL migrations that can't be done with AutoMigrate
+func runManualMigrations() {
+	// Migration: Rename avatar_url to oauth_profile_picture_url in users table
+	// This is a one-time migration - check if old column exists before renaming
+	var columnExists bool
+	DB.Raw(`
+		SELECT EXISTS (
+			SELECT FROM information_schema.columns
+			WHERE table_name = 'users' AND column_name = 'avatar_url'
+		)
+	`).Scan(&columnExists)
+
+	if columnExists {
+		log.Println("📦 Running migration: Rename avatar_url to oauth_profile_picture_url")
+		err := DB.Exec("ALTER TABLE users RENAME COLUMN avatar_url TO oauth_profile_picture_url").Error
+		if err != nil {
+			log.Printf("Warning: Could not rename avatar_url column: %v", err)
+		} else {
+			log.Println("✅ Renamed avatar_url to oauth_profile_picture_url")
+		}
+	}
+
+	// Migration: Rename avatar_url to oauth_profile_picture_url in oauth_providers table
+	DB.Raw(`
+		SELECT EXISTS (
+			SELECT FROM information_schema.columns
+			WHERE table_name = 'oauth_providers' AND column_name = 'avatar_url'
+		)
+	`).Scan(&columnExists)
+
+	if columnExists {
+		log.Println("📦 Running migration: Rename avatar_url to oauth_profile_picture_url in oauth_providers")
+		err := DB.Exec("ALTER TABLE oauth_providers RENAME COLUMN avatar_url TO oauth_profile_picture_url").Error
+		if err != nil {
+			log.Printf("Warning: Could not rename avatar_url column in oauth_providers: %v", err)
+		} else {
+			log.Println("✅ Renamed avatar_url to oauth_profile_picture_url in oauth_providers")
+		}
+	}
 }

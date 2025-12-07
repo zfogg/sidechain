@@ -55,7 +55,8 @@ UserProfile UserProfile::fromJson(const juce::var& json)
 
 juce::String UserProfile::getAvatarUrl() const
 {
-    // Prefer profile_picture_url, fall back to avatar_url
+    // Backend returns avatar_url as the effective URL (prefers profile_picture_url over oauth)
+    // Keep this logic for backwards compatibility
     if (profilePictureUrl.isNotEmpty())
         return profilePictureUrl;
     return avatarUrl;
@@ -176,27 +177,27 @@ void Profile::setProfile(const UserProfile& newProfile)
     hasError = false;
     avatarImage = juce::Image();
 
-    // Load avatar via ImageCache
-    juce::String avatarUrl = profile.getAvatarUrl();
-    if (avatarUrl.isNotEmpty())
+    // Load avatar via backend proxy to work around JUCE SSL/redirect issues on Linux
+    // The backend downloads the image from S3/OAuth and relays the raw bytes
+    if (profile.id.isNotEmpty())
     {
-        Log::debug("Profile::setProfile: Loading avatar from: " + avatarUrl);
-        ImageLoader::load(avatarUrl, [this](const juce::Image& img) {
+        Log::debug("Profile::setProfile: Loading avatar via proxy for user: " + profile.id);
+        ImageLoader::loadAvatarForUser(profile.id, [this](const juce::Image& img) {
             if (img.isValid())
             {
-                Log::debug("Profile::setProfile: Avatar loaded successfully");
+                Log::debug("Profile::setProfile: Avatar loaded successfully via proxy");
                 avatarImage = img;
             }
             else
             {
-                Log::warn("Profile::setProfile: Failed to load avatar image");
+                Log::warn("Profile::setProfile: Failed to load avatar image via proxy");
             }
             repaint();
         });
     }
     else
     {
-        Log::debug("Profile::setProfile: No avatar URL available");
+        Log::debug("Profile::setProfile: No profile ID available for avatar");
     }
 
     repaint();
@@ -1099,9 +1100,18 @@ void Profile::updatePostCards()
             else
                 Log::warn("Profile::updatePostCards: Pause clicked but callback not set");
         };
-        card->onUserClicked = [](const FeedPost& /*post*/) {
-            // Already on profile, do nothing or scroll to top
-            Log::debug("Profile::updatePostCards: User clicked on post card (already on profile)");
+        card->onUserClicked = [this](const FeedPost& post) {
+            // If clicking on the same user whose profile we're viewing, do nothing
+            // Otherwise, navigate to that user's profile
+            if (post.userId == profile.id)
+            {
+                Log::debug("Profile::updatePostCards: User clicked on own profile - no action needed");
+                return;
+            }
+
+            Log::debug("Profile::updatePostCards: User clicked on post card - navigating to user: " + post.userId);
+            if (onNavigateToProfile && post.userId.isNotEmpty())
+                onNavigateToProfile(post.userId);
         };
         postCards.add(card);
         addAndMakeVisible(card);
