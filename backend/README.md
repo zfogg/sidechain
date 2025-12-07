@@ -25,7 +25,7 @@ Traditional social platforms don't understand the music production process:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   VST Plugin    │    │  Sidechain API  │    │   getstream.io     │
+│   VST Plugin    │    │  Sidechain API  │    │   getstream.io  │
 │                 │────│    (Go)         │────│   (Social)      │
 │ Audio Capture   │    │ Authentication  │    │ Feeds & Chat    │
 │ Social Feed UI  │    │ Upload Pipeline │    │ Real-time       │
@@ -174,8 +174,7 @@ type Reaction struct {
 - [x] getstream.io client integration
 - [x] Basic API endpoints
 - [x] JWT token handling
-- [ ] OAuth web flow (Google/Discord)
-- [ ] Device claiming interface
+- [x] OAuth web flow (Google/Discord)
 
 ### Phase 2: Audio Pipeline 🔄
 - [ ] Multipart file upload handling
