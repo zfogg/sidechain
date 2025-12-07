@@ -18,6 +18,7 @@ struct StoryData
     juce::String audioUrl;
     float audioDuration = 0.0f;
     juce::var midiData;
+    juce::String midiPatternId;      // ID of standalone MIDI pattern (for download)
     int viewCount = 0;
     bool viewed = false;
     juce::Time expiresAt;
@@ -27,6 +28,12 @@ struct StoryData
     bool isExpired() const
     {
         return juce::Time::getCurrentTime() > expiresAt;
+    }
+
+    // Check if story has downloadable MIDI
+    bool hasDownloadableMIDI() const
+    {
+        return midiPatternId.isNotEmpty();
     }
 
     // Get time until expiration

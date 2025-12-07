@@ -69,6 +69,9 @@ public:
     // Called when user wants to share story
     std::function<void(const juce::String& storyId)> onShareClicked;
 
+    // Called when user wants to download MIDI from story
+    std::function<void(const StoryData& story)> onDownloadMIDIClicked;
+
 private:
     //==============================================================================
     NetworkClient* networkClient = nullptr;
@@ -109,6 +112,7 @@ private:
     juce::Rectangle<int> rightTapArea;
     juce::Rectangle<int> viewersButtonArea;
     juce::Rectangle<int> shareButtonArea;
+    juce::Rectangle<int> midiButtonArea;
 
     //==============================================================================
     // Drawing helpers
@@ -122,6 +126,7 @@ private:
     void drawExpiredMessage(juce::Graphics& g);
     void drawViewersButton(juce::Graphics& g);
     void drawShareButton(juce::Graphics& g);
+    void drawMIDIButton(juce::Graphics& g);
 
     // Story management
     void loadCurrentStory();
