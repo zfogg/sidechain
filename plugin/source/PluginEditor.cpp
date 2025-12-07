@@ -261,6 +261,26 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(storyRecordingComponent.get());
 
     //==========================================================================
+    // Create StoryViewer
+    storyViewerComponent = std::make_unique<StoryViewer>();
+    storyViewerComponent->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        storyViewerComponent->setCurrentUserId(userDataStore->getUserId());
+    storyViewerComponent->onClose = [this]() {
+        navigateBack();
+    };
+    storyViewerComponent->onDeleteClicked = [this](const juce::String& storyId) {
+        // Story was deleted, refresh story indicators
+        checkForActiveStories();
+        // If we're viewing the profile, refresh it too
+        if (currentView == AppView::Profile && profileComponent)
+        {
+            profileComponent->refresh();
+        }
+    };
+    addChildComponent(storyViewerComponent.get());
+
+    //==========================================================================
     // Create HiddenSynth easter egg (R.2.1)
     hiddenSynthComponent = std::make_unique<HiddenSynth>(audioProcessor.getSynthEngine());
     hiddenSynthComponent->onBackPressed = [this]() {
@@ -536,6 +556,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             showView(AppView::Messages);
         }
     };
+    profileComponent->onViewStoryClicked = [this](const juce::String& userId) {
+        showUserStory(userId);
+    };
     addChildComponent(profileComponent.get());
 
     //==========================================================================
@@ -555,9 +578,24 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     headerComponent->onProfileClicked = [this]() {
         // Show current user's profile
         if (userDataStore && !userDataStore->getUserId().isEmpty())
-            showProfile(userDataStore->getUserId());
+        {
+            juce::String userId = userDataStore->getUserId();
+            if (userId.isNotEmpty())
+            {
+                Log::info("Header::onProfileClicked: Showing profile for user: " + userId);
+                showProfile(userId);
+            }
+            else
+            {
+                Log::warn("Header::onProfileClicked: User ID is empty, showing ProfileSetup");
+                showView(AppView::ProfileSetup);
+            }
+        }
         else
+        {
+            Log::warn("Header::onProfileClicked: userDataStore is null or user not logged in, showing ProfileSetup");
             showView(AppView::ProfileSetup);  // Fallback to setup if no user ID
+        }
     };
     headerComponent->onRecordClicked = [this]() {
         showView(AppView::Recording);
@@ -567,6 +605,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     headerComponent->onMessagesClicked = [this]() {
         showView(AppView::Messages);
+    };
+    headerComponent->onProfileStoryClicked = [this]() {
+        // Show current user's story
+        if (userDataStore && !userDataStore->getUserId().isEmpty())
+            showUserStory(userDataStore->getUserId());
     };
     addChildComponent(headerComponent.get()); // Initially hidden until logged in
 
@@ -714,6 +757,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::StoryRecording:
             componentToShow = storyRecordingComponent.get();
+            break;
+        case AppView::StoryViewer:
+            componentToShow = storyViewerComponent.get();
             break;
         case AppView::HiddenSynth:
             componentToShow = hiddenSynthComponent.get();
@@ -872,6 +918,8 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             messageThreadComponent->setVisible(view == AppView::MessageThread);
         if (storyRecordingComponent)
             storyRecordingComponent->setVisible(view == AppView::StoryRecording);
+        if (storyViewerComponent)
+            storyViewerComponent->setVisible(view == AppView::StoryViewer);
         if (playlistsComponent)
             playlistsComponent->setVisible(view == AppView::Playlists);
         if (playlistDetailComponent)
@@ -1005,6 +1053,25 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 if (userDataStore)
                     profileComponent->setCurrentUserId(userDataStore->getUserId());
 
+                // Ensure we have a valid user ID to load
+                if (profileUserIdToView.isEmpty())
+                {
+                    Log::error("PluginEditor::showView: profileUserIdToView is empty, cannot load profile");
+                    // Fallback to current user's profile if available
+                    if (userDataStore && !userDataStore->getUserId().isEmpty())
+                    {
+                        profileUserIdToView = userDataStore->getUserId();
+                        Log::info("PluginEditor::showView: Using current user ID as fallback: " + profileUserIdToView);
+                    }
+                    else
+                    {
+                        Log::error("PluginEditor::showView: No user ID available, cannot show profile");
+                        // Navigate back or show error
+                        navigateBack();
+                        break;
+                    }
+                }
+
                 // Load the profile for the specified user
                 profileComponent->loadProfile(profileUserIdToView);
                 
@@ -1043,7 +1110,32 @@ void SidechainAudioProcessorEditor::showView(AppView view)
 
 void SidechainAudioProcessorEditor::showProfile(const juce::String& userId)
 {
-    profileUserIdToView = userId;
+    if (userId.isEmpty())
+    {
+        Log::error("PluginEditor::showProfile: userId is empty");
+        // Fallback to current user's profile if available
+        if (userDataStore && !userDataStore->getUserId().isEmpty())
+        {
+            profileUserIdToView = userDataStore->getUserId();
+            Log::info("PluginEditor::showProfile: Using current user ID as fallback: " + profileUserIdToView);
+        }
+        else
+        {
+            Log::error("PluginEditor::showProfile: No user ID available, cannot show profile");
+            return;
+        }
+    }
+    else
+    {
+        profileUserIdToView = userId.trim();
+        if (profileUserIdToView.isEmpty())
+        {
+            Log::error("PluginEditor::showProfile: userId is empty after trimming");
+            return;
+        }
+    }
+    
+    Log::info("PluginEditor::showProfile: Showing profile for user: " + profileUserIdToView);
     showView(AppView::Profile);
 }
 
@@ -1063,6 +1155,144 @@ void SidechainAudioProcessorEditor::showPlaylistDetail(const juce::String& playl
 {
     playlistIdToView = playlistId;
     showView(AppView::PlaylistDetail);
+}
+
+void SidechainAudioProcessorEditor::checkForActiveStories()
+{
+    if (!networkClient || !userDataStore || userDataStore->getUserId().isEmpty())
+        return;
+
+    juce::String currentUserId = userDataStore->getUserId();
+
+    // Fetch stories feed and check if current user has any active stories
+    networkClient->getStoriesFeed([this, currentUserId](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, currentUserId]() {
+            bool hasStory = false;
+
+            if (result.isOk() && result.getValue().isObject())
+            {
+                auto response = result.getValue();
+                if (response.hasProperty("stories"))
+                {
+                    auto* storiesArray = response["stories"].getArray();
+                    if (storiesArray)
+                    {
+                        // Check if any story belongs to current user and is not expired
+                        for (const auto& storyVar : *storiesArray)
+                        {
+                            juce::String storyUserId = storyVar["user_id"].toString();
+                            if (storyUserId == currentUserId)
+                            {
+                                // Check expiration
+                                juce::String expiresAtStr = storyVar["expires_at"].toString();
+                                if (expiresAtStr.isNotEmpty())
+                                {
+                                    juce::Time expiresAt = juce::Time::fromISO8601(expiresAtStr);
+                                    if (expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < expiresAt)
+                                    {
+                                        hasStory = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Update header
+            if (headerComponent)
+            {
+                headerComponent->setHasStories(hasStory);
+            }
+        });
+    });
+}
+
+void SidechainAudioProcessorEditor::showUserStory(const juce::String& userId)
+{
+    if (!networkClient || userId.isEmpty())
+        return;
+
+    // Fetch stories for this user
+    networkClient->getStoriesFeed([this, userId](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, userId]() {
+            if (!result.isOk() || !result.getValue().isObject())
+            {
+                Log::error("PluginEditor: Failed to fetch stories: " + result.getError());
+                return;
+            }
+
+            auto response = result.getValue();
+            if (!response.hasProperty("stories"))
+            {
+                Log::warn("PluginEditor: No stories in response");
+                return;
+            }
+
+            auto* storiesArray = response["stories"].getArray();
+            if (!storiesArray)
+            {
+                Log::warn("PluginEditor: Stories array is null");
+                return;
+            }
+
+            // Filter stories for this user
+            std::vector<StoryData> userStories;
+            int startIndex = 0;
+            for (int i = 0; i < storiesArray->size(); ++i)
+            {
+                const auto& storyVar = (*storiesArray)[i];
+                juce::String storyUserId = storyVar["user_id"].toString();
+                
+                if (storyUserId == userId)
+                {
+                    StoryData story;
+                    story.id = storyVar["id"].toString();
+                    story.userId = storyUserId;
+                    story.username = storyVar.hasProperty("user") ? storyVar["user"]["username"].toString() : "";
+                    story.userAvatarUrl = storyVar.hasProperty("user") ? storyVar["user"]["avatar_url"].toString() : "";
+                    story.audioUrl = storyVar["audio_url"].toString();
+                    story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
+                    story.midiData = storyVar["midi_data"];
+                    story.midiPatternId = storyVar["midi_pattern_id"].toString();
+                    story.viewCount = static_cast<int>(storyVar["view_count"]);
+                    story.viewed = static_cast<bool>(storyVar["viewed"]);
+
+                    // Parse timestamps
+                    juce::String expiresAtStr = storyVar["expires_at"].toString();
+                    if (expiresAtStr.isNotEmpty())
+                        story.expiresAt = juce::Time::fromISO8601(expiresAtStr);
+                    else
+                        story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::hours(24);
+
+                    juce::String createdAtStr = storyVar["created_at"].toString();
+                    if (createdAtStr.isNotEmpty())
+                        story.createdAt = juce::Time::fromISO8601(createdAtStr);
+                    else
+                        story.createdAt = juce::Time::getCurrentTime();
+
+                    if (startIndex == 0)
+                        startIndex = static_cast<int>(userStories.size());
+                    
+                    userStories.push_back(story);
+                }
+            }
+
+            if (userStories.empty())
+            {
+                Log::info("PluginEditor: No active stories for user: " + userId);
+                return;
+            }
+
+            // Set stories and show viewer
+            if (storyViewerComponent)
+            {
+                storyViewerComponent->setStories(userStories, startIndex);
+                showView(AppView::StoryViewer);
+            }
+        });
+    });
 }
 
 void SidechainAudioProcessorEditor::navigateBack()
@@ -1379,6 +1609,9 @@ void SidechainAudioProcessorEditor::loadLoginState()
                             ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
                     }
 
+                    // Check if user has active stories and update header
+                    checkForActiveStories();
+
                     // If user has a profile picture, skip setup and go straight to feed
                     if (userDataStore && !userDataStore->getProfilePictureUrl().isEmpty())
                     {
@@ -1627,6 +1860,9 @@ void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcast
                 Log::debug("changeListenerCallback: Setting profile image on header");
                 headerComponent->setProfileImage(userDataStore->getProfileImage());
             }
+
+            // Check for active stories
+            checkForActiveStories();
         }
 
         // Update ProfileSetup with cached image

@@ -15,7 +15,7 @@ MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor& proces
 
     // Create wrapped Upload component
     uploadComponent = std::make_unique<Upload>(processor, network);
-    uploadComponent->onUploadComplete = [this]() {
+    uploadComponent->onUploadComplete = []() {
         // After upload completes, submit to challenge
         // The upload component will have created a post, we need to get the post ID
         // For now, we'll need to track the post ID from upload response
@@ -310,8 +310,8 @@ void MidiChallengeSubmission::drawConstraintItem(juce::Graphics& g, juce::Rectan
     // Checkmark or X
     auto iconBounds = bounds.removeFromLeft(24);
     g.setColour(check.passed ? juce::Colour(0xFF4CAF50) : juce::Colour(0xFFF44336));
-    g.setFont(16.0f);
-    g.drawText(check.passed ? "✓" : "✗", iconBounds, juce::Justification::centred);
+    g.setFont(14.0f);
+    g.drawText(check.passed ? "[OK]" : "[X]", iconBounds, juce::Justification::centred);
 
     // Text
     g.setColour(SidechainColors::textPrimary());
@@ -355,7 +355,7 @@ void MidiChallengeSubmission::drawSuccessState(juce::Graphics& g, juce::Rectangl
 {
     g.setColour(SidechainColors::textPrimary());
     g.setFont(18.0f);
-    g.drawText("✓ Entry submitted successfully!", bounds, juce::Justification::centred);
+    g.drawText("Entry submitted successfully!", bounds, juce::Justification::centred);
 }
 
 void MidiChallengeSubmission::drawErrorState(juce::Graphics& g, juce::Rectangle<int>& bounds)

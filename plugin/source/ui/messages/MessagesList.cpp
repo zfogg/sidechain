@@ -177,28 +177,28 @@ void MessagesList::drawHeader(juce::Graphics& g)
     g.setColour(juce::Colour(0xff2a2a2a));
     g.fillRect(0, 0, getWidth(), HEADER_HEIGHT);
 
+    // Draw "Messages" title centered
     g.setColour(juce::Colours::white);
-    g.setFont(20.0f);
-    g.drawText("Messages", 10, 0, 200, HEADER_HEIGHT, juce::Justification::centredLeft);
+    g.setFont(juce::FontOptions(20.0f).withStyle("Bold"));
+    g.drawText("Messages", 0, 0, getWidth(), HEADER_HEIGHT, juce::Justification::centred);
 
-    // Draw "New Message" button
+    // Draw circular "New Message" button (plus icon in circle) on the right
     auto newMessageBounds = getNewMessageButtonBounds();
-    g.setColour(juce::Colour(0xff4a9eff));
-    g.fillRoundedRectangle(newMessageBounds.toFloat(), 6.0f);
-    g.setColour(juce::Colours::white);
-    g.setFont(14.0f);
-    g.drawText("New Message", newMessageBounds, juce::Justification::centred);
 
-    // Draw "Create Group" button (if space allows)
-    auto createGroupBounds = getCreateGroupButtonBounds();
-    if (createGroupBounds.getWidth() > 0)
-    {
-        g.setColour(juce::Colour(0xff3a3a3a));
-        g.fillRoundedRectangle(createGroupBounds.toFloat(), 6.0f);
-        g.setColour(juce::Colours::white);
-        g.setFont(14.0f);
-        g.drawText("Create Group", createGroupBounds, juce::Justification::centred);
-    }
+    // Blue filled circle
+    g.setColour(juce::Colour(0xff4a9eff));
+    g.fillEllipse(newMessageBounds.toFloat());
+
+    // White plus sign
+    g.setColour(juce::Colours::white);
+    auto center = newMessageBounds.getCentre();
+    int plusSize = 12;
+    g.drawLine(center.x - plusSize/2, center.y, center.x + plusSize/2, center.y, 2.5f);
+    g.drawLine(center.x, center.y - plusSize/2, center.x, center.y + plusSize/2, 2.5f);
+
+    // Draw bottom border
+    g.setColour(juce::Colour(0xff3a3a3a));
+    g.drawHorizontalLine(HEADER_HEIGHT - 1, 0.0f, static_cast<float>(getWidth()));
 }
 
 void MessagesList::drawChannelItem(juce::Graphics& g, const StreamChatClient::Channel& channel, int y, int width)
@@ -392,26 +392,17 @@ int MessagesList::getChannelIndexAtY(int y)
 
 juce::Rectangle<int> MessagesList::getNewMessageButtonBounds() const
 {
-    // Position to the right, leaving space for Create Group button if there's room
-    int buttonWidth = 120;
-    int rightMargin = 10;
-    return juce::Rectangle<int>(getWidth() - buttonWidth - rightMargin, 10, buttonWidth, BUTTON_HEIGHT);
+    // Circular button on the right side of the header
+    int buttonSize = 40;
+    int rightMargin = 15;
+    int y = (HEADER_HEIGHT - buttonSize) / 2;
+    return juce::Rectangle<int>(getWidth() - buttonSize - rightMargin - scrollBar.getWidth(), y, buttonSize, buttonSize);
 }
 
 juce::Rectangle<int> MessagesList::getCreateGroupButtonBounds() const
 {
-    // Show Create Group button if there's enough space (next to New Message)
-    int newMessageWidth = 120;
-    int buttonWidth = 120;
-    int spacing = 10;
-    int rightMargin = 10;
-    int totalWidth = newMessageWidth + spacing + buttonWidth + rightMargin;
-
-    if (getWidth() < totalWidth)
-        return juce::Rectangle<int>();  // Not enough space, hide button
-
-    return juce::Rectangle<int>(getWidth() - newMessageWidth - spacing - buttonWidth - rightMargin,
-                               10, buttonWidth, BUTTON_HEIGHT);
+    // Create Group button removed - now using circular plus button for new message only
+    return juce::Rectangle<int>();
 }
 
 juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const

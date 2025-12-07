@@ -3,6 +3,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/DAWProjectFolder.h"
+#include "../../util/WaveformGenerator.h"
 #include <JuceHeader.h>
 
 namespace StoryViewerColors
@@ -65,7 +66,9 @@ void StoryViewer::paint(juce::Graphics& g)
     drawProgressBar(g);
     drawHeader(g);
     drawStoryContent(g);
+    drawDeleteButton(g);  // Delete button for own stories
     drawMIDIButton(g);
+    drawRemixButton(g);  // R.3.2 Remix Chains
 
     // Play/pause overlay if paused
     if (!playing)
@@ -99,7 +102,9 @@ void StoryViewer::resized()
     auto bottomArea = contentArea.removeFromBottom(50);
     viewersButtonArea = bottomArea.removeFromRight(120).reduced(10, 5);
     shareButtonArea = bottomArea.removeFromRight(100).reduced(10, 5);
+    deleteButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // Delete button for own stories
     midiButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);
+    remixButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // R.3.2 Remix Chains
 
     // Piano roll positioning
     if (pianoRoll)
@@ -175,6 +180,13 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
                 onShareClicked(story->id);
             return;
         }
+
+        // Delete button
+        if (deleteButtonArea.contains(pos))
+        {
+            handleDeleteStory(story->id);
+            return;
+        }
     }
 
     // MIDI download button (available to all viewers when story has MIDI)
@@ -183,6 +195,42 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
         handleDownloadMIDI(*story);
         if (onDownloadMIDIClicked)
             onDownloadMIDIClicked(*story);
+        return;
+    }
+
+    // Remix button (R.3.2 Remix Chains) - available for non-expired stories
+    if (story && !story->isExpired() && remixButtonArea.contains(pos))
+    {
+        if (onRemixClicked)
+        {
+            // Determine remix type based on what's available
+            juce::String remixType = "audio";
+            if (story->hasDownloadableMIDI() && story->audioUrl.isNotEmpty())
+                remixType = "both";
+            else if (story->hasDownloadableMIDI())
+                remixType = "midi";
+
+            // If both are available, show a menu
+            if (remixType == "both")
+            {
+                juce::PopupMenu menu;
+                menu.addItem(1, "Remix Audio Only");
+                menu.addItem(2, "Remix MIDI Only");
+                menu.addItem(3, "Remix Both Audio & MIDI");
+
+                menu.showMenuAsync(juce::PopupMenu::Options(), [this, story](int result) {
+                    if (result == 0) return;  // Cancelled
+
+                    juce::String selectedType = (result == 1) ? "audio" : (result == 2) ? "midi" : "both";
+                    if (onRemixClicked)
+                        onRemixClicked(story->id, selectedType);
+                });
+            }
+            else
+            {
+                onRemixClicked(story->id, remixType);
+            }
+        }
         return;
     }
 
@@ -433,23 +481,33 @@ void StoryViewer::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds)
     g.setColour(StoryViewerColors::surface);
     g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
 
-    // Placeholder waveform visualization
-    float centerY = bounds.getCentreY();
-    float amplitude = bounds.getHeight() * 0.4f;
-
-    juce::Path wavePath;
-    wavePath.startNewSubPath(bounds.getX(), centerY);
-
-    for (int x = bounds.getX(); x < bounds.getRight(); x += 2)
+    // Draw waveform if loaded, otherwise show placeholder
+    if (waveformLoaded && !currentWaveformPath.isEmpty())
     {
-        float progress = static_cast<float>(x - bounds.getX()) / bounds.getWidth();
-        float wave = std::sin(progress * 30.0f) * amplitude * (0.3f + progress * 0.7f);
-
-        wavePath.lineTo(x, centerY + wave);
+        // Draw actual waveform
+        g.setColour(StoryViewerColors::waveformColor);
+        g.strokePath(currentWaveformPath, juce::PathStrokeType(1.5f));
     }
+    else
+    {
+        // Placeholder waveform visualization while loading
+        float centerY = bounds.getCentreY();
+        float amplitude = bounds.getHeight() * 0.4f;
 
-    g.setColour(StoryViewerColors::waveformColor.withAlpha(0.5f));
-    g.strokePath(wavePath, juce::PathStrokeType(2.0f));
+        juce::Path wavePath;
+        wavePath.startNewSubPath(bounds.getX(), centerY);
+
+        for (int x = bounds.getX(); x < bounds.getRight(); x += 2)
+        {
+            float progress = static_cast<float>(x - bounds.getX()) / bounds.getWidth();
+            float wave = std::sin(progress * 30.0f) * amplitude * (0.3f + progress * 0.7f);
+
+            wavePath.lineTo(x, centerY + wave);
+        }
+
+        g.setColour(StoryViewerColors::waveformColor.withAlpha(0.3f));
+        g.strokePath(wavePath, juce::PathStrokeType(2.0f));
+    }
 
     // Playback position indicator
     if (storyDuration > 0)
@@ -578,11 +636,65 @@ void StoryViewer::drawMIDIButton(juce::Graphics& g)
     g.setColour(StoryViewerColors::waveformColor.withAlpha(0.7f));
     g.drawRoundedRectangle(midiButtonArea.toFloat(), 8.0f, 1.0f);
 
-    // MIDI icon and text
+    // MIDI text (avoid emoji for Linux font compatibility)
     g.setColour(StoryViewerColors::textPrimary);
     g.setFont(11.0f);
-    g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9")) + " MIDI",
-               midiButtonArea, juce::Justification::centred);
+    g.drawText("[MIDI]", midiButtonArea, juce::Justification::centred);
+}
+
+void StoryViewer::drawDeleteButton(juce::Graphics& g)
+{
+    const auto* story = getCurrentStory();
+    if (!story || story->userId != currentUserId)
+        return;
+
+    if (deleteButtonArea.isEmpty())
+        return;
+
+    // Button background - red tint for delete action
+    g.setColour(juce::Colour(0xFFFF4757).withAlpha(0.3f));  // Red tint for delete
+    g.fillRoundedRectangle(deleteButtonArea.toFloat(), 8.0f);
+
+    // Button border
+    g.setColour(juce::Colour(0xFFFF4757).withAlpha(0.7f));
+    g.drawRoundedRectangle(deleteButtonArea.toFloat(), 8.0f, 1.0f);
+
+    // Button text
+    g.setColour(StoryViewerColors::textPrimary);
+    g.setFont(11.0f);
+    g.drawText("Delete", deleteButtonArea, juce::Justification::centred);
+}
+
+void StoryViewer::drawRemixButton(juce::Graphics& g)
+{
+    const auto* story = getCurrentStory();
+    if (!story || story->isExpired())
+        return;
+
+    if (remixButtonArea.isEmpty())
+        return;
+
+    // Button background - accent color for remix action
+    g.setColour(juce::Colour(0xff4CAF50).withAlpha(0.3f));  // Green tint for remix
+    g.fillRoundedRectangle(remixButtonArea.toFloat(), 8.0f);
+
+    // Button border
+    g.setColour(juce::Colour(0xff4CAF50).withAlpha(0.7f));
+    g.drawRoundedRectangle(remixButtonArea.toFloat(), 8.0f, 1.0f);
+
+    // Button text - show what can be remixed
+    g.setColour(StoryViewerColors::textPrimary);
+    g.setFont(11.0f);
+
+    juce::String buttonText = "Remix";
+    if (story->hasDownloadableMIDI() && story->audioUrl.isNotEmpty())
+        buttonText = "Remix";  // Both available
+    else if (story->hasDownloadableMIDI())
+        buttonText = "Remix MIDI";
+    else
+        buttonText = "Remix Audio";
+
+    g.drawText(buttonText, remixButtonArea, juce::Justification::centred);
 }
 
 //==============================================================================
@@ -597,6 +709,79 @@ void StoryViewer::handleShareStory(const juce::String& storyId)
 
 //==============================================================================
 // MIDI download functionality (R.3.3.5.5)
+void StoryViewer::handleDeleteStory(const juce::String& storyId)
+{
+    Log::debug("StoryViewer: Delete story clicked for story: " + storyId);
+
+    if (networkClient == nullptr)
+    {
+        Log::warn("StoryViewer: Cannot delete story - networkClient is null");
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "Error",
+            "Unable to delete story. Please try again later.");
+        return;
+    }
+
+    // Show confirmation dialog
+    auto options = juce::MessageBoxOptions()
+        .withIconType(juce::MessageBoxIconType::QuestionIcon)
+        .withTitle("Delete Story")
+        .withMessage("Are you sure you want to delete this story? This action cannot be undone.")
+        .withButton("Delete")
+        .withButton("Cancel");
+
+    juce::AlertWindow::showAsync(options, [this, storyId](int result) {
+        if (result == 1)  // Delete clicked
+        {
+            networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> deleteResult) {
+                juce::MessageManager::callAsync([this, deleteResult, storyId]() {
+                    if (deleteResult.isOk())
+                    {
+                        Log::info("StoryViewer: Story deleted successfully: " + storyId);
+                        
+                        // Remove story from local list
+                        stories.erase(
+                            std::remove_if(stories.begin(), stories.end(),
+                                [storyId](const StoryData& s) { return s.id == storyId; }),
+                            stories.end());
+
+                        // Adjust current index if needed
+                        if (currentStoryIndex >= static_cast<int>(stories.size()))
+                        {
+                            currentStoryIndex = static_cast<int>(stories.size()) - 1;
+                        }
+
+                        // If no stories left, close viewer
+                        if (stories.empty())
+                        {
+                            closeViewer();
+                        }
+                        else
+                        {
+                            // Load the current story (or previous if we deleted the current one)
+                            loadCurrentStory();
+                            repaint();
+                        }
+
+                        // Notify callback
+                        if (onDeleteClicked)
+                            onDeleteClicked(storyId);
+                    }
+                    else
+                    {
+                        Log::error("StoryViewer: Failed to delete story: " + deleteResult.getError());
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::WarningIcon,
+                            "Delete Failed",
+                            "Failed to delete story:\n" + deleteResult.getError());
+                    }
+                });
+            });
+        }
+    });
+}
+
 void StoryViewer::handleDownloadMIDI(const StoryData& story)
 {
     Log::debug("StoryViewer: Download MIDI clicked for story: " + story.id + ", midiId: " + story.midiPatternId);
@@ -692,6 +877,8 @@ void StoryViewer::loadCurrentStory()
         if (audioPlayer)
             audioPlayer->stop();
         playing = false;
+        waveformLoaded = false;
+        currentWaveformPath.clear();
         repaint();
         return;
     }
@@ -699,6 +886,10 @@ void StoryViewer::loadCurrentStory()
     // Stop current playback
     if (audioPlayer)
         audioPlayer->stop();
+
+    // Reset waveform
+    waveformLoaded = false;
+    currentWaveformPath.clear();
 
     // Set up audio player
     storyDuration = story->audioDuration;
@@ -708,6 +899,17 @@ void StoryViewer::loadCurrentStory()
     {
         audioPlayer->loadAndPlay(story->id, story->audioUrl);
         playing = true;
+
+        // Load waveform from audio URL
+        auto waveformBounds = contentArea.reduced(20).removeFromTop(100);
+        WaveformGenerator::generateWaveformPathFromUrl(
+            story->audioUrl,
+            waveformBounds.reduced(10),
+            [this](juce::Path path) {
+                currentWaveformPath = path;
+                waveformLoaded = !path.isEmpty();
+                repaint();
+            });
     }
 
     // Set up MIDI visualization

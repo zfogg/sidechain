@@ -581,11 +581,17 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
     int threadIndent = isReply ? 20 : 0;  // Indent replies
 
     // Calculate text bounds
-    juce::Font font(14.0f);
+    juce::Font font(juce::FontOptions().withHeight(14.0f));
     g.setFont(font);
 
+    // Calculate width using AttributedString
+    juce::AttributedString widthAttrStr;
+    widthAttrStr.setText(message.text);
+    widthAttrStr.setFont(font);
+    juce::TextLayout widthLayout;
+    widthLayout.createLayout(widthAttrStr, 10000.0f);  // Large width for width calculation
     int textWidth = juce::jmin(bubbleMaxWidth - 2 * bubblePadding - threadIndent,
-                               static_cast<int>(font.getStringWidthFloat(message.text)) + 2 * bubblePadding);
+                               static_cast<int>(widthLayout.getWidth()) + 2 * bubblePadding);
     textWidth = juce::jmax(textWidth, 100);
 
     // Calculate height based on wrapped text
@@ -783,7 +789,7 @@ void MessageThread::drawInputArea(juce::Graphics& g)
     g.fillRoundedRectangle(audioBounds.toFloat(), 6.0f);
     g.setColour(juce::Colours::white);
     g.setFont(16.0f);
-    g.drawText("🎤", audioBounds, juce::Justification::centred);
+    g.drawText("MIC", audioBounds, juce::Justification::centred);
 
     // Send button
     auto sendBounds = getSendButtonBounds();
@@ -811,7 +817,7 @@ juce::String MessageThread::formatTimestamp(const juce::String& timestamp)
 
 int MessageThread::calculateMessageHeight(const StreamChatClient::Message& message, int maxWidth) const
 {
-    juce::Font font(14.0f);
+    juce::Font font(juce::FontOptions().withHeight(14.0f));
     int bubblePadding = 10;
 
     // Check if this is a reply (add parent preview height)
@@ -888,9 +894,14 @@ juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Mes
         if (msg.id == message.id)
         {
             // Calculate the same way as drawMessageBubble
-            juce::Font font(14.0f);
+            juce::Font font(juce::FontOptions().withHeight(14.0f));
+            juce::AttributedString widthAttrStr;
+            widthAttrStr.setText(msg.text);
+            widthAttrStr.setFont(font);
+            juce::TextLayout widthLayout;
+            widthLayout.createLayout(widthAttrStr, 10000.0f);  // Large width for width calculation
             int textWidth = juce::jmin(bubbleMaxWidth - 2 * bubblePadding,
-                                       static_cast<int>(font.getStringWidthFloat(msg.text)) + 2 * bubblePadding);
+                                       static_cast<int>(widthLayout.getWidth()) + 2 * bubblePadding);
             textWidth = juce::jmax(textWidth, 100);
 
             juce::AttributedString attrStr;

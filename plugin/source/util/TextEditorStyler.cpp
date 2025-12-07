@@ -21,7 +21,7 @@ namespace
         editor.setColour(juce::CaretComponent::caretColourId, SidechainColors::primary());
 
         // Font
-        editor.setFont(juce::Font(14.0f));
+        editor.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
 
         // Common properties
         editor.setCaretVisible(true);

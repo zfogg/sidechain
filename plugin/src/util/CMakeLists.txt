@@ -35,6 +35,8 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/DAWProjectFolder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/OSNotification.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/OSNotification.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/WaveformGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/WaveformGenerator.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"
@@ -52,6 +54,7 @@ target_link_libraries(SidechainUtil PUBLIC
     juce::juce_data_structures
     juce::juce_graphics
     juce::juce_gui_basics
+    juce::juce_audio_formats  # For WaveformGenerator audio decoding
 )
 
 # Set visibility to hidden by default (faster linking, smaller binaries)

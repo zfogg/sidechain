@@ -239,7 +239,7 @@ void NotificationRow::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
     }
 
     g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(14.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
     g.drawText(initials, avatarCircle.toNearestInt(), juce::Justification::centred, false);
 
     // Draw verb icon overlay (bottom right of avatar)
@@ -310,7 +310,7 @@ void NotificationRow::drawText(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Main text
     g.setColour(notification.isRead ? SidechainColors::textSecondary() : SidechainColors::textPrimary());
-    g.setFont(juce::Font(13.0f, notification.isRead ? juce::Font::plain : juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f).withStyle(notification.isRead ? "Regular" : "Bold")));
 
     auto textBounds = bounds.removeFromTop(bounds.getHeight() - 16);
     g.drawFittedText(notification.getDisplayText(), textBounds,
@@ -318,7 +318,7 @@ void NotificationRow::drawText(juce::Graphics& g, juce::Rectangle<int> bounds)
 
     // Timestamp (bottom)
     g.setColour(SidechainColors::textMuted());
-    g.setFont(juce::Font(11.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
     g.drawText(notification.getRelativeTime(), bounds,
                juce::Justification::centredLeft, false);
 }
@@ -450,7 +450,7 @@ void NotificationList::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds
 
     // Title
     g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(16.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
     g.drawText("Notifications", bounds, juce::Justification::centredLeft, false);
 
     // "Mark all as read" button (right side)
@@ -460,7 +460,7 @@ void NotificationList::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds
         bool markAllHovered = markAllBounds.contains(getMouseXYRelative());
 
         g.setColour(markAllHovered ? SidechainColors::link() : SidechainColors::link().withAlpha(0.7f));
-        g.setFont(juce::Font(12.0f));
+        g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
         g.drawText("Mark all read", markAllBounds, juce::Justification::centredRight, false);
     }
 
@@ -469,28 +469,28 @@ void NotificationList::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds
     bool closeHovered = closeBounds.contains(getMouseXYRelative());
 
     g.setColour(closeHovered ? SidechainColors::textPrimary() : SidechainColors::textSecondary());
-    g.setFont(juce::Font(18.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
     g.drawText(juce::CharPointer_UTF8("\xc3\x97"), closeBounds, juce::Justification::centred, false); // ×
 }
 
 void NotificationList::drawEmptyState(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(SidechainColors::textMuted());
-    g.setFont(juce::Font(14.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
     g.drawText("No notifications yet", bounds, juce::Justification::centred, false);
 }
 
 void NotificationList::drawLoadingState(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(SidechainColors::textMuted());
-    g.setFont(juce::Font(14.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
     g.drawText("Loading notifications...", bounds, juce::Justification::centred, false);
 }
 
 void NotificationList::drawErrorState(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(SidechainColors::error());
-    g.setFont(juce::Font(14.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
     g.drawText(errorMessage, bounds, juce::Justification::centred, true);
 }
 

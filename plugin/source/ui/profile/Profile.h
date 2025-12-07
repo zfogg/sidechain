@@ -85,6 +85,7 @@ public:
     std::function<void(const FeedPost&)> onPauseClicked;
     std::function<void(const juce::String& userId)> onFollowToggled;
     std::function<void(const juce::String& userId)> onMessageClicked;  // Opens DM with user
+    std::function<void(const juce::String& userId)> onViewStoryClicked;  // Opens story viewer for user's story
 
     //==============================================================================
     // Component overrides
@@ -127,6 +128,9 @@ private:
 
     // Cached avatar image
     juce::Image avatarImage;
+
+    // Story state
+    bool hasActiveStory = false;
 
     // Post cards
     juce::OwnedArray<PostCard> postCards;
@@ -172,6 +176,9 @@ private:
 
     // Presence querying
     void queryPresenceForProfile();
+
+    // Check if user has active stories
+    void checkForActiveStories(const juce::String& userId);
 
     //==============================================================================
     // Helpers

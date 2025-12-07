@@ -107,6 +107,10 @@ private:
     juce::var midiData;            // Captured MIDI events from recording
     bool includeMidi = true;       // Whether to include MIDI in upload
 
+    // Project file data (R.3.4 Project File Exchange)
+    juce::File projectFile;        // Selected project file (optional)
+    bool includeProjectFile = false; // Whether to include project file in upload
+
     // UI state
     int activeField = -1;  // -1 = none, 0 = title, 1 = bpm
     int hoveredButton = -1;
@@ -130,6 +134,7 @@ private:
     juce::Rectangle<int> keyDropdownArea;
     juce::Rectangle<int> detectKeyButtonArea;
     juce::Rectangle<int> genreDropdownArea;
+    juce::Rectangle<int> projectFileArea;  // R.3.4 Project File Exchange
     juce::Rectangle<int> progressBarArea;
     juce::Rectangle<int> cancelButtonArea;
     juce::Rectangle<int> shareButtonArea;
@@ -145,6 +150,7 @@ private:
     void drawKeyDropdown(juce::Graphics& g);
     void drawDetectKeyButton(juce::Graphics& g);
     void drawGenreDropdown(juce::Graphics& g);
+    void drawProjectFileButton(juce::Graphics& g);  // R.3.4 Project File Exchange
     void drawProgressBar(juce::Graphics& g);
     void drawButtons(juce::Graphics& g);
     void drawStatus(juce::Graphics& g);
@@ -168,6 +174,7 @@ private:
     void detectKey();
     void showKeyPicker();
     void showGenrePicker();
+    void selectProjectFile();  // R.3.4 Project File Exchange
     void cancelUpload();
     void startUpload();
 

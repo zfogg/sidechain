@@ -22,6 +22,7 @@
 #include "ui/messages/MessagesList.h"
 #include "ui/messages/MessageThread.h"
 #include "ui/stories/StoryRecording.h"
+#include "ui/stories/StoryViewer.h"
 #include "ui/synth/HiddenSynth.h"
 #include "ui/playlists/Playlists.h"
 #include "ui/playlists/PlaylistDetail.h"
@@ -69,7 +70,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
@@ -107,6 +108,11 @@ private:
      * @param playlistId The playlist ID to display
      */
     void showPlaylistDetail(const juce::String& playlistId);
+
+    /** Show story viewer for a user's stories
+     * @param userId The user ID whose stories to display
+     */
+    void showUserStory(const juce::String& userId);
 
     /** Navigate back to the previous view in the navigation stack
      */
@@ -150,6 +156,7 @@ private:
     std::unique_ptr<MessagesList> messagesListComponent;
     std::unique_ptr<MessageThread> messageThreadComponent;
     std::unique_ptr<StoryRecording> storyRecordingComponent;
+    std::unique_ptr<StoryViewer> storyViewerComponent;
     std::unique_ptr<HiddenSynth> hiddenSynthComponent;
     std::unique_ptr<Playlists> playlistsComponent;
     std::unique_ptr<PlaylistDetail> playlistDetailComponent;
@@ -278,6 +285,10 @@ private:
      * @param state The new connection state
      */
     void handleWebSocketStateChange(WebSocketClient::ConnectionState state);
+
+    /** Check if current user has active stories and update header indicator
+     */
+    void checkForActiveStories();
 
     //==============================================================================
     static constexpr int PLUGIN_WIDTH = 1000;

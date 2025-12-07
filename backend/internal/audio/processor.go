@@ -54,6 +54,59 @@ func (p *Processor) Stop() {
 	p.audioQueue.Stop()
 }
 
+// UploadStoryAudio uploads a story audio file to S3 and returns the URL
+// This is a simpler upload path for stories that skips full processing
+func (p *Processor) UploadStoryAudio(ctx context.Context, audioData []byte, userID, filename string) (string, error) {
+	if p.s3Uploader == nil {
+		return "", fmt.Errorf("S3 uploader not configured")
+	}
+
+	// Use a story-specific path
+	storyFilename := fmt.Sprintf("story_%s_%s", uuid.New().String(), filename)
+	result, err := p.s3Uploader.UploadAudio(ctx, audioData, userID, storyFilename)
+	if err != nil {
+		return "", fmt.Errorf("failed to upload story audio: %w", err)
+	}
+
+	return result.URL, nil
+}
+
+// DeleteStoryAudio deletes a story audio file from S3
+func (p *Processor) DeleteStoryAudio(ctx context.Context, audioURL string) error {
+	if p.s3Uploader == nil {
+		return fmt.Errorf("S3 uploader not configured")
+	}
+
+	// Extract S3 key from URL (same logic as cleanup service)
+	key := extractS3KeyFromURL(audioURL)
+	if key == "" {
+		return fmt.Errorf("could not extract S3 key from URL: %s", audioURL)
+	}
+
+	return p.s3Uploader.DeleteFile(ctx, key)
+}
+
+// extractS3KeyFromURL extracts the S3 key from a CDN URL
+// Example: https://cdn.example.com/audio/2024/12/user123/file.mp3 -> audio/2024/12/user123/file.mp3
+func extractS3KeyFromURL(url string) string {
+	// Find the path after the domain
+	parts := strings.Split(url, "/")
+	if len(parts) < 4 {
+		return ""
+	}
+
+	// Find where the path starts (after https://cdn.example.com)
+	// Look for common patterns like "audio/" or "stories/"
+	for i, part := range parts {
+		if part == "audio" || part == "stories" {
+			// Reconstruct the key from this point
+			return strings.Join(parts[i:], "/")
+		}
+	}
+
+	return ""
+}
+
 // ProcessUpload handles complete audio upload pipeline
 func (p *Processor) ProcessUpload(ctx context.Context, file *multipart.FileHeader, userID string, metadata AudioMetadata) (*models.AudioPost, error) {
 	// 1. Save uploaded file temporarily

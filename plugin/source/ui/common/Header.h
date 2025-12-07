@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include <functional>
+#include "../../util/Constants.h"
 
 class NetworkClient;
 
@@ -18,7 +19,7 @@ class Header : public juce::Component
 {
 public:
     /** Height of the header component in pixels */
-    static constexpr int HEADER_HEIGHT = 60;
+    static constexpr int HEADER_HEIGHT = Constants::Ui::HEADER_HEIGHT;
 
     /** Constructor */
     Header();
@@ -62,6 +63,11 @@ public:
      */
     void setUnreadMessageCount(int count);
 
+    /** Set whether the current user has active stories
+     *  @param hasStories True if user has active stories (will show highlighted circle)
+     */
+    void setHasStories(bool hasStories);
+
     // Callbacks for header interactions
     std::function<void()> onSearchClicked;
     std::function<void()> onProfileClicked;
@@ -69,6 +75,7 @@ public:
     std::function<void()> onRecordClicked;
     std::function<void()> onStoryClicked;
     std::function<void()> onMessagesClicked;
+    std::function<void()> onProfileStoryClicked;  // Called when profile picture is clicked to view own story
 
 private:
     juce::String username;
@@ -76,6 +83,7 @@ private:
     juce::Image cachedProfileImage;
     NetworkClient* networkClient = nullptr;
     int unreadMessageCount = 0;
+    bool hasStories = false;
 
     // Load profile image from URL
     void loadProfileImage(const juce::String& url);

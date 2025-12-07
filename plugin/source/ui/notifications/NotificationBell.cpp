@@ -140,7 +140,12 @@ void NotificationBell::drawBadge(juce::Graphics& g, juce::Rectangle<float> bound
     g.setColour(badgeColor);
 
     juce::String badgeText = getBadgeText();
-    float textWidth = g.getCurrentFont().getStringWidthFloat(badgeText);
+    juce::AttributedString attrStr;
+    attrStr.setText(badgeText);
+    attrStr.setFont(g.getCurrentFont());
+    juce::TextLayout layout;
+    layout.createLayout(attrStr, 10000.0f);
+    float textWidth = layout.getWidth();
 
     // Use pill shape if text is wider than circle
     float minBadgeWidth = juce::jmax(badgeSize, textWidth + 8.0f);
@@ -155,7 +160,7 @@ void NotificationBell::drawBadge(juce::Graphics& g, juce::Rectangle<float> bound
 
     // Draw badge text
     g.setColour(juce::Colours::white);
-    g.setFont(juce::Font(11.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f).withStyle("Bold")));
     g.drawText(badgeText, badgeBounds, juce::Justification::centred, false);
 }
 

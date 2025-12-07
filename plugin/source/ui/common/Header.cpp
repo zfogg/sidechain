@@ -235,11 +235,34 @@ void Header::mouseUp(const juce::MouseEvent& event)
     }
     else if (getProfileBounds().contains(pos))
     {
-        Log::info("Header::mouseUp: Profile section clicked - username: " + username);
-        if (onProfileClicked)
-            onProfileClicked();
+        // Safely log username (avoid assertion failures with invalid strings)
+        juce::String safeUsername = username.isNotEmpty() ? username : "(unknown)";
+        Log::info("Header::mouseUp: Profile section clicked - username: " + safeUsername);
+        
+        // Check if profile picture area was clicked (for story viewing)
+        auto picBounds = juce::Rectangle<int>(
+            getProfileBounds().getX(),
+            getProfileBounds().getCentreY() - 18,
+            36, 36
+        );
+        
+        if (picBounds.contains(pos) && hasStories)
+        {
+            // Profile picture clicked and user has stories - view story
+            Log::info("Header::mouseUp: Profile picture clicked with stories - opening story viewer");
+            if (onProfileStoryClicked)
+                onProfileStoryClicked();
+            else
+                Log::warn("Header::mouseUp: Profile story clicked but callback not set");
+        }
         else
-            Log::warn("Header::mouseUp: Profile clicked but callback not set");
+        {
+            // Regular profile click
+            if (onProfileClicked)
+                onProfileClicked();
+            else
+                Log::warn("Header::mouseUp: Profile clicked but callback not set");
+        }
     }
 }
 
@@ -247,15 +270,14 @@ void Header::mouseUp(const juce::MouseEvent& event)
 void Header::drawLogo(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(20.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
     g.drawText("Sidechain", bounds, juce::Justification::centredLeft);
 }
 
 void Header::drawSearchButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Use UIHelpers::drawOutlineButton for consistent button styling
-    juce::String searchText = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8D")) + " Search users...";
-    UIHelpers::drawOutlineButton(g, bounds, searchText,
+    UIHelpers::drawOutlineButton(g, bounds, "Search users...",
         SidechainColors::border(), SidechainColors::textMuted(), false, 8.0f);
 }
 
@@ -275,13 +297,19 @@ void Header::drawRecordButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void Header::drawMessagesButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Draw messages icon as a chat bubble icon
-    juce::String messageIcon = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAC")); // Speech balloon emoji
-
-    // Draw the icon button
+    // Draw messages icon as a chat bubble (avoid emoji for Linux font compatibility)
     g.setColour(SidechainColors::textMuted());
-    g.setFont(20.0f);
-    g.drawText(messageIcon, bounds.withWidth(30), juce::Justification::centred);
+
+    // Draw envelope-style icon
+    auto iconBounds = bounds.withWidth(22).withHeight(16).withCentre(bounds.getCentre());
+    g.drawRoundedRectangle(iconBounds.toFloat(), 2.0f, 1.5f);
+
+    // Draw flap lines on envelope
+    juce::Path flap;
+    flap.startNewSubPath(iconBounds.getX(), iconBounds.getY());
+    flap.lineTo(iconBounds.getCentreX(), iconBounds.getCentreY() - 2);
+    flap.lineTo(iconBounds.getRight(), iconBounds.getY());
+    g.strokePath(flap, juce::PathStrokeType(1.5f));
 
     // Draw unread badge if there are unread messages
     if (unreadMessageCount > 0)
@@ -308,13 +336,16 @@ void Header::drawMessagesButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void Header::drawStoryButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Draw story icon (camera/story icon)
-    juce::String storyIcon = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB7")); // Camera emoji
-
-    // Draw the icon button
+    // Draw story icon as a circle with plus (avoid emoji for Linux font compatibility)
     g.setColour(SidechainColors::textMuted());
-    g.setFont(20.0f);
-    g.drawText(storyIcon, bounds.withWidth(30), juce::Justification::centred);
+
+    auto iconBounds = bounds.withWidth(24).withHeight(24).withCentre(bounds.getCentre());
+    g.drawEllipse(iconBounds.toFloat().reduced(2), 1.5f);
+
+    // Draw plus sign inside
+    auto center = iconBounds.getCentre();
+    g.drawLine(center.x - 5, center.y, center.x + 5, center.y, 1.5f);
+    g.drawLine(center.x, center.y - 5, center.x, center.y + 5, 1.5f);
 }
 
 void Header::drawProfileSection(juce::Graphics& g, juce::Rectangle<int> bounds)
@@ -332,15 +363,35 @@ void Header::drawProfileSection(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void Header::drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
+    // Draw highlighted circle if user has stories (Instagram-style)
+    if (hasStories)
+    {
+        // Outer gradient circle (highlighted)
+        juce::ColourGradient gradient(
+            juce::Colour(0xFFFF6B6B),  // Red
+            0.0f, 0.0f,
+            juce::Colour(0xFFFFD93D),  // Yellow
+            1.0f, 1.0f,
+            true
+        );
+        gradient.addColour(0.5f, juce::Colour(0xFFFF8E53));  // Orange
+
+        g.setGradientFill(gradient);
+        g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
+    }
+
     ImageLoader::drawCircularAvatar(g, bounds, cachedProfileImage,
         ImageLoader::getInitials(username),
         SidechainColors::primary(),
         SidechainColors::textPrimary(),
         14.0f);
 
-    // Border
-    g.setColour(SidechainColors::border());
-    g.drawEllipse(bounds.toFloat().reduced(0.5f), 1.0f);
+    // Border (only if no story highlight)
+    if (!hasStories)
+    {
+        g.setColour(SidechainColors::border());
+        g.drawEllipse(bounds.toFloat().reduced(0.5f), 1.0f);
+    }
 }
 
 //==============================================================================
@@ -401,6 +452,15 @@ void Header::setUnreadMessageCount(int count)
     if (unreadMessageCount != count)
     {
         unreadMessageCount = count;
+        repaint();
+    }
+}
+
+void Header::setHasStories(bool hasStoriesValue)
+{
+    if (hasStories != hasStoriesValue)
+    {
+        hasStories = hasStoriesValue;
         repaint();
     }
 }

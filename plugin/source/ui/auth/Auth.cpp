@@ -174,7 +174,7 @@ void Auth::styleTextEditor(juce::TextEditor& editor, const juce::String& placeho
     editor.setColour(juce::TextEditor::focusedOutlineColourId, Colors::inputBorderFocused);
     editor.setColour(juce::TextEditor::textColourId, Colors::inputText);
     editor.setColour(juce::CaretComponent::caretColourId, Colors::primaryButton);
-    editor.setFont(juce::Font(15.0f));
+    editor.setFont(juce::Font(juce::FontOptions().withHeight(15.0f)));
     editor.setJustification(juce::Justification::centredLeft);
     editor.setIndents(16, 0);
 }
@@ -251,7 +251,7 @@ void Auth::paint(juce::Graphics& g)
 
     // Draw title based on mode
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(22.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(22.0f).withStyle("Bold")));
 
     juce::String title;
     juce::String subtitle;
@@ -417,7 +417,7 @@ void Auth::drawLogo(juce::Graphics& g, juce::Rectangle<int> bounds)
 
     // Brand name
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(28.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(28.0f).withStyle("Bold")));
     g.drawText("Sidechain", bounds.withY(bounds.getBottom() - 30).withHeight(30), juce::Justification::centred);
 }
 

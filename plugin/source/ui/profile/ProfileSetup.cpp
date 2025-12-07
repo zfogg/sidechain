@@ -214,11 +214,11 @@ void ProfileSetup::paint(juce::Graphics& g)
         g.setColour(SidechainColors::success());
         g.fillRoundedRectangle(uploadBtn.toFloat(), 6.0f);
         g.setColour(SidechainColors::background());
-        g.drawText("✓ Uploaded!", uploadBtn, juce::Justification::centred);
+        g.drawText("[OK] Uploaded!", uploadBtn, juce::Justification::centred);
     }
     else
     {
-        g.drawText("📸 Upload Photo", uploadBtn, juce::Justification::centred);
+        g.drawText("Upload Photo", uploadBtn, juce::Justification::centred);
     }
 
     // Skip and Continue buttons below upload button

@@ -158,6 +158,8 @@ void Upload::reset()
     tapTimes.clear();
     midiData = juce::var();  // Clear MIDI data (R.3.3)
     includeMidi = true;
+    projectFile = juce::File();  // Clear project file (R.3.4)
+    includeProjectFile = false;
     Log::debug("Upload::reset: All state cleared");
 
     repaint();
@@ -205,6 +207,7 @@ void Upload::paint(juce::Graphics& g)
     drawKeyDropdown(g);
     drawDetectKeyButton(g);
     drawGenreDropdown(g);
+    drawProjectFileButton(g);
 
     if (uploadState == UploadState::Uploading)
     {
@@ -249,6 +252,10 @@ void Upload::resized()
     detectKeyButtonArea = leftHalf;  // Remaining space for detect button
     dropdownRow.removeFromLeft(16);
     genreDropdownArea = dropdownRow;
+    bounds.removeFromTop(fieldSpacing);
+
+    // Project file button (R.3.4 Project File Exchange)
+    projectFileArea = bounds.removeFromTop(rowHeight);
     bounds.removeFromTop(fieldSpacing);
 
     // Progress bar (only shown during upload)
@@ -329,6 +336,14 @@ void Upload::mouseUp(const juce::MouseEvent& event)
         {
             Log::info("Upload::mouseUp: Genre dropdown clicked");
             showGenrePicker();
+            return;
+        }
+
+        // Project file button (R.3.4)
+        if (projectFileArea.contains(pos))
+        {
+            Log::info("Upload::mouseUp: Project file button clicked");
+            selectProjectFile();
             return;
         }
 
@@ -468,6 +483,64 @@ void Upload::drawGenreDropdown(juce::Graphics& g)
     juce::String value = selectedGenreIndex < (int)genres.size() ? genres[selectedGenreIndex] : "Electronic";
     bool isHovered = genreDropdownArea.contains(getMouseXYRelative());
     drawDropdown(g, genreDropdownArea, "Genre", value, isHovered);
+}
+
+void Upload::drawProjectFileButton(juce::Graphics& g)
+{
+    bool isHovered = projectFileArea.contains(getMouseXYRelative());
+    auto bgColor = isHovered ? SidechainColors::surfaceHover() : SidechainColors::surface();
+
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(projectFileArea.toFloat(), 8.0f);
+
+    // Border - use accent color if file is selected
+    auto borderColor = includeProjectFile ? SidechainColors::primary() : SidechainColors::border();
+    g.setColour(borderColor);
+    g.drawRoundedRectangle(projectFileArea.toFloat(), 8.0f, includeProjectFile ? 2.0f : 1.0f);
+
+    auto innerBounds = projectFileArea.reduced(16, 0);
+
+    // Label
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(11.0f);
+    auto labelBounds = innerBounds.removeFromTop(20).withTrimmedTop(6);
+    g.drawText("Project File (Optional)", labelBounds, juce::Justification::centredLeft);
+
+    // Value or placeholder
+    g.setFont(14.0f);
+    auto valueBounds = innerBounds.withTrimmedBottom(8);
+
+    if (includeProjectFile && projectFile.existsAsFile())
+    {
+        // Show filename and file size
+        juce::String filename = projectFile.getFileName();
+        if (filename.length() > 35)
+            filename = filename.substring(0, 32) + "...";
+
+        int64 sizeKB = projectFile.getSize() / 1024;
+        juce::String sizeStr = sizeKB > 1024 ? juce::String(sizeKB / 1024.0, 1) + " MB" : juce::String(sizeKB) + " KB";
+
+        g.setColour(SidechainColors::textPrimary());
+        g.drawText(filename, valueBounds.removeFromLeft(valueBounds.getWidth() - 80), juce::Justification::centredLeft);
+
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(11.0f);
+        g.drawText(sizeStr, valueBounds, juce::Justification::centredRight);
+    }
+    else
+    {
+        g.setColour(SidechainColors::textMuted());
+        g.drawText("Click to attach DAW project (.als, .flp, .logicx, ...)", valueBounds, juce::Justification::centredLeft);
+    }
+
+    // Show clear button if file is selected
+    if (includeProjectFile)
+    {
+        auto clearBounds = projectFileArea.removeFromRight(40);
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(14.0f);
+        g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9C\x95")), clearBounds, juce::Justification::centred);  // X symbol
+    }
 }
 
 void Upload::drawProgressBar(juce::Graphics& g)
@@ -873,6 +946,57 @@ void Upload::showGenrePicker()
         });
 }
 
+void Upload::selectProjectFile()
+{
+    Log::debug("Upload::selectProjectFile: Opening file chooser");
+
+    // If file is already selected, clicking clears it
+    if (includeProjectFile)
+    {
+        Log::info("Upload::selectProjectFile: Clearing selected project file");
+        projectFile = juce::File();
+        includeProjectFile = false;
+        repaint();
+        return;
+    }
+
+    // Open file chooser - use shared_ptr to allow copy in lambda
+    auto chooser = std::make_shared<juce::FileChooser>(
+        "Select Project File",
+        juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+        "*.als;*.alp;*.flp;*.logic;*.logicx;*.ptx;*.ptf;*.cpr;*.song;*.rpp;*.bwproject"
+    );
+
+    chooser->launchAsync(
+        juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [this, chooser](const juce::FileChooser& fc) {
+            auto result = fc.getResult();
+
+            if (result.existsAsFile())
+            {
+                // Check file size (50MB max)
+                const int64 maxSize = 50 * 1024 * 1024;
+                if (result.getSize() > maxSize)
+                {
+                    Log::warn("Upload::selectProjectFile: File too large (max 50MB)");
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "File Too Large",
+                        "Project file must be under 50MB.\n\nYour file: " + juce::String(result.getSize() / (1024.0 * 1024.0), 1) + " MB"
+                    );
+                    return;
+                }
+
+                projectFile = result;
+                includeProjectFile = true;
+                Log::info("Upload::selectProjectFile: Selected file: " + projectFile.getFileName() +
+                         " (" + juce::String(projectFile.getSize() / 1024) + " KB)");
+                repaint();
+            }
+        }
+    );
+}
+
 void Upload::cancelUpload()
 {
     Log::info("Upload::cancelUpload: Upload cancelled by user");
@@ -963,11 +1087,16 @@ void Upload::startUpload()
     metadata.midiData = midiData;
     metadata.includeMidi = includeMidi && !midiData.isVoid();
 
+    // Include project file if selected (R.3.4 Project File Exchange)
+    metadata.projectFile = projectFile;
+    metadata.includeProjectFile = includeProjectFile && projectFile.existsAsFile();
+
     Log::info("Upload::startUpload: Upload metadata - title: \"" + title + "\", BPM: " + juce::String(bpm, 1) +
               ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " +
               juce::String(metadata.durationSeconds, 2) + "s, sampleRate: " + juce::String(metadata.sampleRate) +
               "Hz, channels: " + juce::String(metadata.numChannels) +
-              ", includeMidi: " + (metadata.includeMidi ? "yes" : "no"));
+              ", includeMidi: " + (metadata.includeMidi ? "yes" : "no") +
+              ", includeProjectFile: " + (metadata.includeProjectFile ? "yes" : "no"));
 
     // Simulate progress updates while waiting for upload
     // (JUCE's URL class doesn't provide progress callbacks)

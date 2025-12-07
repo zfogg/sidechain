@@ -617,12 +617,116 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
 
         bool success = result.success;
         juce::String audioUrl;
+        juce::String audioPostId;
 
+        // Check for error messages in response body (even if HTTP status is 200)
         if (result.data.isObject())
         {
+            // Check if response contains an error
+            if (result.data.hasProperty("error"))
+            {
+                juce::String errorMsg = result.data.getProperty("error", "").toString();
+                juce::String message = result.data.getProperty("message", "").toString();
+                if (errorMsg.isNotEmpty() || message.isNotEmpty())
+                {
+                    success = false;
+                    Log::warn("Upload response contains error: " + (errorMsg.isNotEmpty() ? errorMsg : message));
+                }
+            }
+
             audioUrl = result.data.getProperty("audio_url", "").toString();
             if (audioUrl.isEmpty())
                 audioUrl = result.data.getProperty("url", "").toString();
+            audioPostId = result.data.getProperty("id", "").toString();
+            if (audioPostId.isEmpty())
+                audioPostId = result.data.getProperty("post_id", "").toString();
+        }
+
+        // If success is true but audioUrl is empty, treat as failure
+        if (success && audioUrl.isEmpty())
+        {
+            Log::warn("Upload reported success but audioUrl is empty, treating as failure");
+            success = false;
+        }
+
+        // If audio upload succeeded and project file should be included, upload it
+        if (success && metadataCopy.includeProjectFile && metadataCopy.projectFile.existsAsFile())
+        {
+            Log::info("Audio upload succeeded, now uploading project file: " + metadataCopy.projectFile.getFileName());
+
+            // Read project file data
+            juce::MemoryBlock projectData;
+            if (metadataCopy.projectFile.loadFileAsData(projectData))
+            {
+                // Detect DAW type from extension
+                juce::String extension = metadataCopy.projectFile.getFileExtension().toLowerCase();
+                juce::String dawType = "other";
+                if (extension == ".als" || extension == ".alp")
+                    dawType = "ableton";
+                else if (extension == ".flp")
+                    dawType = "fl_studio";
+                else if (extension == ".logic" || extension == ".logicx")
+                    dawType = "logic";
+                else if (extension == ".ptx" || extension == ".ptf")
+                    dawType = "pro_tools";
+                else if (extension == ".cpr")
+                    dawType = "cubase";
+                else if (extension == ".song")
+                    dawType = "studio_one";
+                else if (extension == ".rpp")
+                    dawType = "reaper";
+                else if (extension == ".bwproject")
+                    dawType = "bitwig";
+
+                // Upload project file to CDN
+                std::map<juce::String, juce::String> projectFields;
+                auto projectUploadResult = uploadMultipartData(
+                    "/api/v1/upload/project",
+                    "project_file",
+                    projectData,
+                    metadataCopy.projectFile.getFileName(),
+                    "application/octet-stream",
+                    projectFields
+                );
+
+                if (projectUploadResult.success)
+                {
+                    juce::String fileUrl;
+                    if (projectUploadResult.data.isObject())
+                    {
+                        fileUrl = projectUploadResult.data.getProperty("url", "").toString();
+                        if (fileUrl.isEmpty())
+                            fileUrl = projectUploadResult.data.getProperty("file_url", "").toString();
+                    }
+
+                    if (fileUrl.isNotEmpty())
+                    {
+                        // Create project file record linked to audio post
+                        juce::var recordData = juce::var(new juce::DynamicObject());
+                        recordData.getDynamicObject()->setProperty("filename", metadataCopy.projectFile.getFileName());
+                        recordData.getDynamicObject()->setProperty("file_url", fileUrl);
+                        recordData.getDynamicObject()->setProperty("file_size", static_cast<int64>(metadataCopy.projectFile.getSize()));
+                        recordData.getDynamicObject()->setProperty("daw_type", dawType);
+                        recordData.getDynamicObject()->setProperty("is_public", true);
+                        if (audioPostId.isNotEmpty())
+                            recordData.getDynamicObject()->setProperty("audio_post_id", audioPostId);
+
+                        auto recordResult = makeRequestWithRetry(buildApiPath("/project-files"), "POST", recordData, true);
+                        if (recordResult.success)
+                            Log::info("Project file record created successfully");
+                        else
+                            Log::warn("Project file record creation failed: " + recordResult.getUserFriendlyError());
+                    }
+                }
+                else
+                {
+                    Log::warn("Project file upload failed: " + projectUploadResult.getUserFriendlyError());
+                }
+            }
+            else
+            {
+                Log::warn("Failed to read project file data");
+            }
         }
 
         if (callback)
@@ -672,7 +776,7 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
 
     Async::runVoid([this, limit, offset, callback]() {
         // Use enriched endpoint to get reaction counts and own reactions from getstream.io
-        juce::String endpoint = "/api/feed/timeline/enriched?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+        juce::String endpoint = buildApiPath("/feed/timeline/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
         auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
         if (callback)
@@ -872,6 +976,113 @@ void NetworkClient::reportPost(const juce::String& postId, const juce::String& r
 
         auto result = makeRequestWithRetry(endpoint, "POST", data, true);
         Log::debug("Report post response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+//==============================================================================
+// R.3.2 Remix Chains
+
+void NetworkClient::getRemixChain(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = buildApiPath(("/posts/" + postId + "/remix-chain").toRawUTF8());
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        Log::debug("Get remix chain response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getPostRemixes(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = buildApiPath(("/posts/" + postId + "/remixes").toRawUTF8());
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        Log::debug("Get post remixes response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getRemixSource(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = buildApiPath(("/posts/" + postId + "/remix-source").toRawUTF8());
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        Log::debug("Get remix source response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::createRemixPost(const juce::String& sourcePostId, const juce::String& remixType, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, sourcePostId, remixType, callback]() {
+        juce::String endpoint = buildApiPath(("/posts/" + sourcePostId + "/remix").toRawUTF8());
+
+        juce::var data = juce::var(new juce::DynamicObject());
+        auto* obj = data.getDynamicObject();
+        if (obj != nullptr)
+        {
+            obj->setProperty("remix_type", remixType);
+        }
+
+        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+        Log::debug("Create remix post response: " + juce::JSON::toString(result.data));
 
         if (callback)
         {
@@ -1220,6 +1431,169 @@ void NetworkClient::downloadProjectFile(const juce::String& projectFileId, const
                 callback(Outcome<juce::var>::ok(juce::var()));
             });
         }
+    });
+}
+
+void NetworkClient::uploadProjectFile(const juce::File& projectFile,
+                                      const juce::String& audioPostId,
+                                      const juce::String& description,
+                                      bool isPublic,
+                                      DownloadProgressCallback progressCallback,
+                                      UploadCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(Outcome<juce::String>::error(Constants::Errors::NOT_AUTHENTICATED));
+            });
+        }
+        return;
+    }
+
+    if (!projectFile.existsAsFile())
+    {
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(Outcome<juce::String>::error("Project file does not exist"));
+            });
+        }
+        return;
+    }
+
+    // Check file size (50MB max)
+    const int64 maxSize = 50 * 1024 * 1024;
+    if (projectFile.getSize() > maxSize)
+    {
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback]() {
+                callback(Outcome<juce::String>::error("Project file too large (max 50MB)"));
+            });
+        }
+        return;
+    }
+
+    // Detect DAW type from file extension
+    juce::String extension = projectFile.getFileExtension().toLowerCase();
+    juce::String dawType = "other";
+    if (extension == ".als" || extension == ".alp")
+        dawType = "ableton";
+    else if (extension == ".flp")
+        dawType = "fl_studio";
+    else if (extension == ".logic" || extension == ".logicx")
+        dawType = "logic";
+    else if (extension == ".ptx" || extension == ".ptf")
+        dawType = "pro_tools";
+    else if (extension == ".cpr")
+        dawType = "cubase";
+    else if (extension == ".song")
+        dawType = "studio_one";
+    else if (extension == ".rpp")
+        dawType = "reaper";
+    else if (extension == ".bwproject")
+        dawType = "bitwig";
+
+    juce::String filename = projectFile.getFileName();
+    int64 fileSize = projectFile.getSize();
+
+    Async::runVoid([this, projectFile, audioPostId, description, isPublic, dawType, filename, fileSize, progressCallback, callback]() {
+        // Read file data
+        juce::MemoryBlock fileData;
+        if (!projectFile.loadFileAsData(fileData))
+        {
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(Outcome<juce::String>::error("Failed to read project file"));
+                });
+            }
+            return;
+        }
+
+        // Upload file to CDN first
+        std::map<juce::String, juce::String> fields;
+        // No additional fields needed for CDN upload
+
+        auto uploadResult = uploadMultipartData(
+            "/api/v1/upload/project",  // CDN upload endpoint
+            "project_file",
+            fileData,
+            filename,
+            "application/octet-stream",
+            fields
+        );
+
+        if (!uploadResult.success)
+        {
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback, uploadResult]() {
+                    callback(Outcome<juce::String>::error(uploadResult.getUserFriendlyError()));
+                });
+            }
+            return;
+        }
+
+        // Get CDN URL from response
+        juce::String fileUrl;
+        if (uploadResult.data.isObject())
+        {
+            fileUrl = uploadResult.data.getProperty("url", "").toString();
+            if (fileUrl.isEmpty())
+                fileUrl = uploadResult.data.getProperty("file_url", "").toString();
+        }
+
+        if (fileUrl.isEmpty())
+        {
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback]() {
+                    callback(Outcome<juce::String>::error("Upload succeeded but no URL returned"));
+                });
+            }
+            return;
+        }
+
+        // Now create the project file record
+        juce::var recordData = juce::var(new juce::DynamicObject());
+        recordData.getDynamicObject()->setProperty("filename", filename);
+        recordData.getDynamicObject()->setProperty("file_url", fileUrl);
+        recordData.getDynamicObject()->setProperty("file_size", static_cast<int64>(fileSize));
+        recordData.getDynamicObject()->setProperty("daw_type", dawType);
+        recordData.getDynamicObject()->setProperty("is_public", isPublic);
+
+        if (description.isNotEmpty())
+            recordData.getDynamicObject()->setProperty("description", description);
+
+        if (audioPostId.isNotEmpty())
+            recordData.getDynamicObject()->setProperty("audio_post_id", audioPostId);
+
+        auto recordResult = makeRequestWithRetry(buildApiPath("/project-files"), "POST", recordData, true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, recordResult]() {
+                if (recordResult.success)
+                {
+                    juce::String projectFileId;
+                    if (recordResult.data.isObject())
+                        projectFileId = recordResult.data.getProperty("id", "").toString();
+                    callback(Outcome<juce::String>::ok(projectFileId));
+                }
+                else
+                {
+                    callback(Outcome<juce::String>::error(recordResult.getUserFriendlyError()));
+                }
+            });
+        }
+
+        if (recordResult.success)
+            Log::info("Project file uploaded successfully");
+        else
+            Log::error("Project file record creation failed: " + recordResult.getUserFriendlyError());
     });
 }
 
@@ -1869,42 +2243,72 @@ juce::MemoryBlock NetworkClient::encodeAudioToMP3(const juce::AudioBuffer<float>
 juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>& buffer, double sampleRate)
 {
     // Encode audio buffer to WAV format using 16-bit PCM.
-    // IMPORTANT GOTCHAS:
-    // - Uses 16-bit PCM encoding (not configurable)
-    // - Buffer must be valid and non-empty
-    // - Sample rate must be positive
-    // - Returns empty MemoryBlock on failure (check getSize() == 0)
-    // - Writer is reset before returning to ensure data is flushed
-    juce::MemoryOutputStream outputStream;
+    Log::debug("encodeAudioToWAV: Starting - samples: " + juce::String(buffer.getNumSamples()) +
+               ", channels: " + juce::String(buffer.getNumChannels()) +
+               ", sampleRate: " + juce::String(sampleRate));
 
-    // Create WAV format writer
+    if (buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0)
+    {
+        Log::error("encodeAudioToWAV: Invalid buffer - empty or no channels");
+        return juce::MemoryBlock();
+    }
+
+    if (sampleRate <= 0)
+    {
+        Log::error("encodeAudioToWAV: Invalid sample rate: " + juce::String(sampleRate));
+        return juce::MemoryBlock();
+    }
+
+    // IMPORTANT: AudioFormatWriter takes ownership of the output stream and deletes it!
+    // We must allocate the stream on the heap and let the writer own it.
+    juce::MemoryBlock resultBlock;
+    auto* outputStream = new juce::MemoryOutputStream(resultBlock, false);
+
     juce::WavAudioFormat wavFormat;
+    juce::StringPairArray metadata; // Explicit empty metadata
+
+    // Writer takes ownership of outputStream and will delete it
     std::unique_ptr<juce::AudioFormatWriter> writer(
-        wavFormat.createWriterFor(&outputStream, sampleRate,
+        wavFormat.createWriterFor(outputStream, sampleRate,
                                   static_cast<unsigned int>(buffer.getNumChannels()),
                                   16, // bits per sample
-                                  {}, 0));
+                                  metadata, 0));
 
     if (writer == nullptr)
     {
-        Log::error("Failed to create WAV writer");
+        // If writer creation failed, we still own the stream
+        delete outputStream;
+        Log::error("encodeAudioToWAV: Failed to create WAV writer");
         return juce::MemoryBlock();
     }
+
+    Log::debug("encodeAudioToWAV: WAV writer created, writing samples...");
 
     // Write audio data
     if (!writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples()))
     {
-        Log::error("Failed to write audio data to WAV");
+        Log::error("encodeAudioToWAV: Failed to write audio data to WAV");
         return juce::MemoryBlock();
     }
 
-    writer.reset(); // Flush and close
+    Log::debug("encodeAudioToWAV: Audio data written, flushing...");
 
-    Log::debug("Encoded " + juce::String(buffer.getNumSamples()) + " samples at "
-        + juce::String(sampleRate) + "Hz to WAV ("
-        + juce::String(outputStream.getDataSize()) + " bytes)");
+    // Explicitly flush before writer destructor
+    writer->flush();
 
-    return outputStream.getMemoryBlock();
+    // Writer destructor will delete the outputStream, but resultBlock still has the data
+    writer.reset();
+
+    Log::debug("encodeAudioToWAV: Encoded " + juce::String(buffer.getNumSamples()) + " samples to WAV ("
+        + juce::String(resultBlock.getSize()) + " bytes)");
+
+    if (resultBlock.getSize() == 0)
+    {
+        Log::error("encodeAudioToWAV: Result block is empty after encoding");
+        return juce::MemoryBlock();
+    }
+
+    return resultBlock;
 }
 
 //==============================================================================
@@ -1978,6 +2382,7 @@ juce::String NetworkClient::detectDAWName()
 
 //==============================================================================
 // Multipart form data upload helper
+// Uses JUCE's built-in withFileToUpload for proper cross-platform multipart encoding
 NetworkClient::RequestResult NetworkClient::uploadMultipartData(
     const juce::String& endpoint,
     const juce::String& fieldName,
@@ -1995,49 +2400,58 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
         return result;
     }
 
-    // Generate unique boundary
-    juce::String boundary = "----SidechainBoundary" + juce::String(juce::Random::getSystemRandom().nextInt64());
+    juce::String fullUrl = config.baseUrl + endpoint;
 
-    // Build multipart body
-    juce::MemoryOutputStream formData;
+    Log::debug("uploadMultipartData: URL = " + fullUrl);
+    Log::debug("uploadMultipartData: File size = " + juce::String(fileData.getSize()) + " bytes");
 
-    // Add extra text fields first
-    for (const auto& field : extraFields)
+    // Write file data to a temporary file (required for JUCE's withFileToUpload)
+    // Use abs() to avoid negative numbers which can cause JUCE String assertion failures
+    juce::File tempFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                              .getChildFile("sidechain_upload_" + juce::String(std::abs(juce::Random::getSystemRandom().nextInt64())) + "_" + fileName);
+
+    if (!tempFile.replaceWithData(fileData.getData(), fileData.getSize()))
     {
-        formData.writeString("--" + boundary + "\r\n");
-        formData.writeString("Content-Disposition: form-data; name=\"" + field.first + "\"\r\n\r\n");
-        formData.writeString(field.second + "\r\n");
+        result.errorMessage = "Failed to create temporary file for upload";
+        Log::error("uploadMultipartData: " + result.errorMessage);
+        return result;
     }
 
-    // Add file field
-    formData.writeString("--" + boundary + "\r\n");
-    formData.writeString("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n");
-    formData.writeString("Content-Type: " + mimeType + "\r\n\r\n");
-    formData.write(fileData.getData(), fileData.getSize());
-    formData.writeString("\r\n");
-    formData.writeString("--" + boundary + "--\r\n");
+    Log::debug("uploadMultipartData: Created temp file: " + tempFile.getFullPathName());
 
-    // Create URL
-    juce::URL url(config.baseUrl + endpoint);
+    // Build URL with file upload using JUCE's proper multipart encoding
+    juce::URL url(fullUrl);
+
+    // Add extra form fields as parameters
+    for (const auto& field : extraFields)
+    {
+        url = url.withParameter(field.first, field.second);
+    }
+
+    // Add file upload - JUCE handles multipart encoding automatically
+    url = url.withFileToUpload(fieldName, tempFile, mimeType);
 
     // Build headers
-    juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
-    headers += "Authorization: Bearer " + authToken + "\r\n";
+    juce::String headers = "Authorization: Bearer " + authToken + "\r\n";
 
-    // Create request options with response headers capture
+    // Create request options - use inPostData so parameters go in the multipart body
     juce::StringPairArray responseHeaders;
-    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inPostData)
                        .withExtraHeaders(headers)
-                       .withConnectionTimeoutMs(config.timeoutMs)
+                       .withConnectionTimeoutMs(config.timeoutMs * 2)
                        .withResponseHeaders(&responseHeaders);
 
-    // Add form data to URL
-    url = url.withPOSTData(formData.getMemoryBlock());
+    Log::debug("uploadMultipartData: Making request with JUCE multipart encoding...");
 
     // Make request
     activeRequestCount++;
     auto stream = url.createInputStream(options);
     activeRequestCount--;
+
+    // Clean up temp file
+    tempFile.deleteFile();
+
+    Log::debug("uploadMultipartData: Stream created = " + juce::String(stream != nullptr ? "yes" : "no"));
 
     if (stream == nullptr)
     {
@@ -2089,35 +2503,37 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
 {
     RequestResult result;
 
-    // Generate unique boundary
-    juce::String boundary = "----SidechainBoundary" + juce::String(juce::Random::getSystemRandom().nextInt64());
+    Log::debug("uploadMultipartDataAbsolute: URL = " + absoluteUrl);
+    Log::debug("uploadMultipartDataAbsolute: File size = " + juce::String(fileData.getSize()) + " bytes");
 
-    // Build multipart body
-    juce::MemoryOutputStream formData;
+    // Write file data to a temporary file (required for JUCE's withFileToUpload)
+    // Use abs() to avoid negative numbers which can cause JUCE String assertion failures
+    juce::File tempFile = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                              .getChildFile("sidechain_upload_" + juce::String(std::abs(juce::Random::getSystemRandom().nextInt64())) + "_" + fileName);
 
-    // Add extra text fields first
-    for (const auto& field : extraFields)
+    if (!tempFile.replaceWithData(fileData.getData(), fileData.getSize()))
     {
-        formData.writeString("--" + boundary + "\r\n");
-        formData.writeString("Content-Disposition: form-data; name=\"" + field.first + "\"\r\n\r\n");
-        formData.writeString(field.second + "\r\n");
+        result.errorMessage = "Failed to create temporary file for upload";
+        Log::error("uploadMultipartDataAbsolute: " + result.errorMessage);
+        return result;
     }
 
-    // Add file field
-    formData.writeString("--" + boundary + "\r\n");
-    formData.writeString("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n");
-    formData.writeString("Content-Type: " + mimeType + "\r\n\r\n");
-    formData.write(fileData.getData(), fileData.getSize());
-    formData.writeString("\r\n");
-    formData.writeString("--" + boundary + "--\r\n");
+    Log::debug("uploadMultipartDataAbsolute: Created temp file: " + tempFile.getFullPathName());
 
-    // Create URL
+    // Build URL with file upload using JUCE's proper multipart encoding
     juce::URL url(absoluteUrl);
 
-    // Build headers
-    juce::String headers = "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+    // Add extra form fields as parameters
+    for (const auto& field : extraFields)
+    {
+        url = url.withParameter(field.first, field.second);
+    }
 
-    // Add custom headers
+    // Add file upload - JUCE handles multipart encoding automatically
+    url = url.withFileToUpload(fieldName, tempFile, mimeType);
+
+    // Build headers from custom headers
+    juce::String headers;
     for (int i = 0; i < customHeaders.size(); i++)
     {
         auto key = customHeaders.getAllKeys()[i];
@@ -2125,24 +2541,27 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
         headers += key + ": " + value + "\r\n";
     }
 
-    // Create request options with response headers capture
+    // Create request options - use inPostData so parameters go in the multipart body
     juce::StringPairArray responseHeaders;
-    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+    auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inPostData)
                        .withExtraHeaders(headers)
                        .withConnectionTimeoutMs(config.timeoutMs)
                        .withResponseHeaders(&responseHeaders);
 
-    // Add form data to URL
-    url = url.withPOSTData(formData.getMemoryBlock());
+    Log::debug("uploadMultipartDataAbsolute: Making request with JUCE multipart encoding...");
 
     // Make request
     activeRequestCount++;
     auto stream = url.createInputStream(options);
     activeRequestCount--;
 
+    // Clean up temp file
+    tempFile.deleteFile();
+
     if (stream == nullptr)
     {
         result.errorMessage = "Failed to connect to server";
+        Log::error("uploadMultipartDataAbsolute: " + result.errorMessage);
         updateConnectionStatus(ConnectionStatus::Disconnected);
         return result;
     }
@@ -2158,7 +2577,7 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
     result.data = juce::JSON::parse(response);
     result.success = result.isSuccess();
 
-    Log::debug("Multipart upload to " + absoluteUrl + " (HTTP " + juce::String(result.httpStatus) + ")");
+    Log::debug("Multipart upload to " + absoluteUrl + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
 
     updateConnectionStatus(result.success ? ConnectionStatus::Connected : ConnectionStatus::Disconnected);
 
@@ -2641,6 +3060,29 @@ void NetworkClient::viewStory(const juce::String& storyId, ResponseCallback call
     Async::runVoid([this, storyId, callback]() {
         juce::String endpoint = buildApiPath("/stories/") + storyId + "/view";
         auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::deleteStory(const juce::String& storyId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, storyId, callback]() {
+        juce::String endpoint = buildApiPath("/stories/") + storyId;
+        auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
 
         if (callback)
         {

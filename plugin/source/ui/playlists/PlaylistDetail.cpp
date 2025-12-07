@@ -359,7 +359,7 @@ void PlaylistDetail::drawActionButtons(juce::Graphics& g, juce::Rectangle<int>& 
     g.drawRoundedRectangle(shareBounds.toFloat(), 8.0f, 1.0f);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(14.0f);
-    g.drawText("🔗 Share", shareBounds, juce::Justification::centred);
+    g.drawText("Share", shareBounds, juce::Justification::centred);
 }
 
 void PlaylistDetail::drawEntryCard(juce::Graphics& g, juce::Rectangle<int> bounds, const PlaylistEntry& entry, int index)
