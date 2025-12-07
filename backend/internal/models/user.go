@@ -130,13 +130,18 @@ type AudioPost struct {
 	DAW          string      `json:"daw"`
 	Genre        StringArray `gorm:"type:text[]" json:"genre"`
 
+	// MIDI data (optional - posts can have associated MIDI patterns)
+	MIDIPatternID *string      `gorm:"index" json:"midi_pattern_id,omitempty"`
+	MIDIPattern   *MIDIPattern `gorm:"foreignKey:MIDIPatternID" json:"midi_pattern,omitempty"`
+
 	// Visual data
 	WaveformSVG string `gorm:"type:text" json:"waveform_svg"`
 
 	// Engagement metrics (cached from getstream.io)
-	LikeCount    int `gorm:"default:0" json:"like_count"`
-	PlayCount    int `gorm:"default:0" json:"play_count"`
-	CommentCount int `gorm:"default:0" json:"comment_count"`
+	LikeCount     int `gorm:"default:0" json:"like_count"`
+	PlayCount     int `gorm:"default:0" json:"play_count"`
+	CommentCount  int `gorm:"default:0" json:"comment_count"`
+	DownloadCount int `gorm:"default:0" json:"download_count"` // Track downloads for analytics
 
 	// getstream.io integration
 	StreamActivityID string `gorm:"uniqueIndex" json:"stream_activity_id"`
@@ -149,6 +154,11 @@ type AudioPost struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// HasMIDI returns true if the post has an associated MIDI pattern
+func (p *AudioPost) HasMIDI() bool {
+	return p.MIDIPatternID != nil
 }
 
 // Device represents a VST instance that can be authenticated
@@ -409,22 +419,7 @@ type PostHashtag struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// MIDIEvent represents a single MIDI note event (7.5.1.2.2)
-type MIDIEvent struct {
-	Time     float64 `json:"time"`     // Relative time in seconds from start
-	Type     string  `json:"type"`     // "note_on" or "note_off"
-	Note     int     `json:"note"`     // MIDI note number (0-127)
-	Velocity int     `json:"velocity"` // Note velocity (0-127)
-	Channel  int     `json:"channel"`  // MIDI channel (0-15)
-}
-
-// MIDIData represents the complete MIDI data for a story (7.5.1.2.2)
-type MIDIData struct {
-	Events        []MIDIEvent `json:"events"`
-	TotalTime     float64     `json:"total_time"`     // Total duration in seconds
-	Tempo         int         `json:"tempo"`          // BPM
-	TimeSignature []int       `json:"time_signature"` // [numerator, denominator], e.g., [4, 4]
-}
+// NOTE: MIDIEvent and MIDIData have been moved to midi.go
 
 // Story represents a short music clip (15-60 seconds) with MIDI visualization (7.5.1.1.1)
 type Story struct {
@@ -437,6 +432,12 @@ type Story struct {
 	AudioDuration float64 `gorm:"not null" json:"audio_duration"` // seconds
 
 	// MIDI data (optional - stories can be audio-only)
+	// References standalone MIDIPattern for sharing/downloading
+	MIDIPatternID *string      `gorm:"index" json:"midi_pattern_id,omitempty"`
+	MIDIPattern   *MIDIPattern `gorm:"foreignKey:MIDIPatternID" json:"midi_pattern,omitempty"`
+
+	// Legacy: Embedded MIDI data for backwards compatibility
+	// TODO: Migrate existing data to midi_patterns table and remove this field
 	MIDIData *MIDIData `gorm:"type:jsonb;serializer:json" json:"midi_data,omitempty"`
 
 	// Visual data
@@ -457,6 +458,19 @@ type Story struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// GetMIDIData returns the MIDI data, preferring the referenced MIDIPattern over legacy embedded data
+func (s *Story) GetMIDIData() *MIDIData {
+	if s.MIDIPattern != nil {
+		return s.MIDIPattern.ToMIDIData()
+	}
+	return s.MIDIData
+}
+
+// HasMIDI returns true if the story has MIDI data (either referenced or embedded)
+func (s *Story) HasMIDI() bool {
+	return s.MIDIPatternID != nil || s.MIDIData != nil
 }
 
 // StoryView tracks who viewed a story (7.5.1.1.2)
@@ -480,11 +494,11 @@ type StoryHighlight struct {
 	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID      string `gorm:"not null;index" json:"user_id"`
 	User        User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	Name        string `gorm:"not null" json:"name"`                               // e.g., "Jams", "Experiments"
-	CoverImage  string `json:"cover_image,omitempty"`                              // Optional cover image URL
-	Description string `gorm:"type:text" json:"description,omitempty"`             // Optional description
-	SortOrder   int    `gorm:"default:0" json:"sort_order"`                        // Order on profile
-	StoryCount  int    `gorm:"default:0" json:"story_count"`                       // Cached count
+	Name        string `gorm:"not null" json:"name"`                   // e.g., "Jams", "Experiments"
+	CoverImage  string `json:"cover_image,omitempty"`                  // Optional cover image URL
+	Description string `gorm:"type:text" json:"description,omitempty"` // Optional description
+	SortOrder   int    `gorm:"default:0" json:"sort_order"`            // Order on profile
+	StoryCount  int    `gorm:"default:0" json:"story_count"`           // Cached count
 
 	// GORM fields
 	CreatedAt time.Time      `json:"created_at"`
