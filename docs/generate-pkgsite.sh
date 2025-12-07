@@ -53,20 +53,19 @@ cd "$PROJECT_ROOT"
 PACKAGE_PATH="github.com/zfogg/sidechain/backend"
 
 echo "Downloading pkgsite documentation..."
-# Use wget --mirror with proper options to download everything and convert links automatically
+# Use wget --mirror to recursively download all pages and assets
+# Remove --no-parent so it can follow absolute paths like /github.com/... and /static/...
 wget \
     --mirror \
     --convert-links \
     --adjust-extension \
     --page-requisites \
-    --no-parent \
     --no-host-directories \
     --cut-dirs=0 \
     --directory-prefix=docs/_build/html/backend/godoc \
     --quiet \
     --level=20 \
     --wait=0 \
-    --recursive \
     http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Some files may not have downloaded"
 
 # Stop pkgsite
