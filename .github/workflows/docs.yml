@@ -129,50 +129,59 @@ jobs:
           # Go back to workspace root
           cd ${{ github.workspace }}
           
-          # Download static assets (pkgsite uses /static/ path)
-          echo "Downloading pkgsite assets..."
-          # Download static assets recursively
-          wget -q \
-            --recursive \
-            --level=2 \
-            --no-parent \
-            --no-host-directories \
-            --cut-dirs=1 \
-            --convert-links \
-            --directory-prefix=docs/_build/html/backend/godoc \
-            --accept="*.css,*.js,*.woff,*.woff2,*.ttf,*.svg,*.png,*.ico" \
-            --reject="*.html" \
-            http://localhost:8080/static/ || echo "Note: Some static assets may not be available"
-          
-          # Download main pages
-          echo "Downloading pkgsite pages..."
-          wget -q -P docs/_build/html/backend/godoc http://localhost:8080/ --output-document=index.html || echo "Warning: Failed to download index.html"
-          
-          # Download our backend packages recursively
-          echo "Downloading backend package documentation..."
+          # Download all package pages and assets using wget mirror
+          # This automatically converts links to be relative
+          echo "Downloading pkgsite documentation and assets..."
           # pkgsite uses /github.com/username/repo/... path structure
           PACKAGE_PATH="github.com/zfogg/sidechain/backend"
           
-          # First verify the package exists and test a direct download
+          # First verify the package exists
           TEST_DOWNLOAD=$(curl -s http://localhost:8080/${PACKAGE_PATH}/ | head -20)
           if [ -n "$TEST_DOWNLOAD" ]; then
-            echo "Package path verified, downloading..."
+            echo "Package path verified, downloading with automatic link conversion..."
             
-            # Use wget to download ALL package pages recursively (including internal packages)
+            # Use wget mirror to download everything with automatic link conversion
             wget \
-              --recursive \
-              --level=10 \
-              --no-parent \
-              --no-host-directories \
-              --cut-dirs=0 \
+              --mirror \
               --convert-links \
               --adjust-extension \
               --page-requisites \
+              --no-parent \
+              --no-host-directories \
+              --cut-dirs=0 \
               --directory-prefix=docs/_build/html/backend/godoc \
-              --accept="*.html" \
+              --accept="*.html,*.css,*.js,*.woff,*.woff2,*.ttf,*.svg,*.png,*.ico" \
               --reject="robots.txt" \
-              --no-verbose \
-              http://localhost:8080/${PACKAGE_PATH}/ 2>&1 | grep -E "(saved|Downloaded|ERROR|Rejecting)" | head -30 || true
+              --quiet \
+              --level=10 \
+              http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Failed to download some files"
+            
+            # Fix any remaining localhost URLs to use relative paths
+            echo "Fixing any remaining absolute URLs..."
+            find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
+              # Calculate relative depth from godoc root
+              REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
+              if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
+                REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
+                if [[ "$REL_PATH" == *"/"* ]]; then
+                  REL_DEPTH=$((REL_DEPTH + 1))
+                fi
+                if [ $REL_DEPTH -gt 0 ]; then
+                  REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
+                else
+                  REL_PREFIX=""
+                fi
+              else
+                REL_PREFIX=""
+              fi
+              
+              # Replace localhost URLs with relative paths
+              sed -i \
+                -e 's|http://localhost:8080/static/|'${REL_PREFIX}'static/|g' \
+                -e 's|http://localhost:8080/github.com/|'${REL_PREFIX}'github.com/|g' \
+                -e 's|http://localhost:8080/|'${REL_PREFIX}'|g' \
+                "$f" || true
+            done
             
             echo "Package download completed"
             # List what we got
@@ -181,34 +190,6 @@ jobs:
           else
             echo "Warning: Package path not accessible at http://localhost:8080/${PACKAGE_PATH}/"
           fi
-          
-          # Fix paths in downloaded HTML files to use relative paths
-          echo "Fixing paths in downloaded HTML files..."
-          find docs/_build/html/backend/godoc -name "*.html" -type f 2>/dev/null | while read f; do
-            # Calculate relative depth
-            REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
-            if [ -n "$REL_PATH" ] && [ "$REL_PATH" != "index.html" ]; then
-              REL_DEPTH=$(echo "$REL_PATH" | tr -cd '/' | wc -c)
-              if [[ "$REL_PATH" == *"/"* ]]; then
-                REL_DEPTH=$((REL_DEPTH + 1))
-              fi
-              if [ $REL_DEPTH -gt 0 ]; then
-                REL_PREFIX=$(printf '../%.0s' $(seq 1 $REL_DEPTH))
-              else
-                REL_PREFIX=""
-              fi
-            else
-              REL_PREFIX=""
-            fi
-            
-            sed -i \
-              -e 's|href="/static/|href="'${REL_PREFIX}'static/|g' \
-              -e 's|src="/static/|src="'${REL_PREFIX}'static/|g' \
-              -e 's|href="/github.com/|href="'${REL_PREFIX}'github.com/|g' \
-              -e 's|href="/|href="'${REL_PREFIX}'|g' \
-              -e 's|src="/|src="'${REL_PREFIX}'|g' \
-              "$f" || true
-          done
           
           # Verify we got the files (check for package pages even if index.html failed)
           if [ -f "docs/_build/html/backend/godoc/index.html" ] || [ -f "docs/_build/html/backend/godoc/${PACKAGE_PATH}/index.html" ]; then
