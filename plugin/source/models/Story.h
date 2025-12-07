@@ -15,7 +15,8 @@ struct Story
     juce::String userId;
     juce::String audioUrl;
     float audioDuration = 0.0f;      // Duration in seconds (5-60)
-    juce::var midiData;              // MIDI events for visualization
+    juce::var midiData;              // MIDI events for visualization (embedded)
+    juce::String midiPatternId;      // ID of standalone MIDI pattern (for download)
     juce::String waveformData;       // SVG waveform
     int bpm = 0;
     juce::String key;
@@ -47,6 +48,11 @@ struct Story
      *  @return true if MIDI data is present, false otherwise
      */
     bool hasMIDI() const;
+
+    /** Check if story has downloadable MIDI pattern
+     *  @return true if MIDI pattern ID is present, false otherwise
+     */
+    bool hasDownloadableMIDI() const { return midiPatternId.isNotEmpty(); }
 
     /** Parse from JSON response
      *  @param json JSON var containing story data
