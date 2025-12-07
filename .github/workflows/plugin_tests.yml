@@ -3,8 +3,26 @@ name: Build and Test Plugin
 on:
   push:
     branches: [main]
+    paths:
+      - 'plugin/**/*.cpp'
+      - 'plugin/**/*.h'
+      - 'plugin/**/*.cmake'
+      - 'plugin/CMakeLists.txt'
+      - 'plugin/**/CMakeLists.txt'
+      - 'plugin/Sidechain.jucer'
+      - 'plugin/cmake/**'
+      - '.github/workflows/plugin_tests.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'plugin/**/*.cpp'
+      - 'plugin/**/*.h'
+      - 'plugin/**/*.cmake'
+      - 'plugin/CMakeLists.txt'
+      - 'plugin/**/CMakeLists.txt'
+      - 'plugin/Sidechain.jucer'
+      - 'plugin/cmake/**'
+      - '.github/workflows/plugin_tests.yml'
 
 # Permissions needed for dorny/test-reporter to create check runs
 permissions:
