@@ -18,7 +18,7 @@ UserPickerDialog::UserPickerDialog()
     searchInput->setCaretVisible(true);
     searchInput->setPopupMenuEnabled(true);
     searchInput->setTextToShowWhenEmpty("Search users...", SidechainColors::textMuted());
-    searchInput->setFont(juce::Font(16.0f));
+    searchInput->setFont(juce::Font(juce::FontOptions().withHeight(16.0f)));
     searchInput->addListener(this);
     addAndMakeVisible(searchInput.get());
 
@@ -166,8 +166,8 @@ void UserPickerDialog::drawUserItem(juce::Graphics& g, const DiscoveredUser& use
     {
         auto checkBounds = bounds.removeFromRight(40);
         g.setColour(SidechainColors::accent());
-        g.setFont(20.0f);
-        g.drawText("✓", checkBounds, juce::Justification::centred);
+        g.setFont(16.0f);
+        g.drawText("[x]", checkBounds, juce::Justification::centred);
     }
 }
 

@@ -58,6 +58,15 @@ public:
     juce::String projectFileDaw;     // DAW type (e.g., "ableton", "fl_studio")
 
     //==============================================================================
+    // Remix metadata (R.3.2 Remix Chains)
+    bool isRemix = false;            // Whether this post is a remix of another post/story
+    juce::String remixOfPostId;      // ID of the original post (if remix of post)
+    juce::String remixOfStoryId;     // ID of the original story (if remix of story)
+    juce::String remixType;          // "audio", "midi", or "both"
+    int remixChainDepth = 0;         // 0=original, 1=remix, 2=remix of remix, etc.
+    int remixCount = 0;              // Number of remixes this post has
+
+    //==============================================================================
     // Genres/tags
     juce::StringArray genres;
 

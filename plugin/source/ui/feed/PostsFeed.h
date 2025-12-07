@@ -62,6 +62,10 @@ public:
     // Callback for starting recording
     std::function<void()> onStartRecording;
 
+    // Callback for starting remix recording (R.3.2 Remix Chains)
+    // Parameters: sourcePostId, sourceStoryId, remixType ("audio", "midi", or "both")
+    std::function<void(const juce::String& sourcePostId, const juce::String& sourceStoryId, const juce::String& remixType)> onStartRemix;
+
     // Callback for opening discovery/search
     std::function<void()> onGoToDiscovery;
 
@@ -186,6 +190,9 @@ private:
 
     // Presence querying
     void queryPresenceForPosts();
+
+    // Remix flow (R.3.2)
+    void startRemixFlow(const FeedPost& post, const juce::String& remixType);
 
     // Infinite scroll
     void checkLoadMore();

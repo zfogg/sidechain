@@ -134,6 +134,17 @@ type AudioPost struct {
 	MIDIPatternID *string      `gorm:"index" json:"midi_pattern_id,omitempty"`
 	MIDIPattern   *MIDIPattern `gorm:"foreignKey:MIDIPatternID" json:"midi_pattern,omitempty"`
 
+	// Remix relationship (R.3.2 Remix Chains)
+	// A post can be a remix of another post OR a story
+	RemixOfPostID  *string    `gorm:"index" json:"remix_of_post_id,omitempty"`
+	RemixOfPost    *AudioPost `gorm:"foreignKey:RemixOfPostID" json:"remix_of_post,omitempty"`
+	RemixOfStoryID *string    `gorm:"index" json:"remix_of_story_id,omitempty"`
+	RemixOfStory   *Story     `gorm:"foreignKey:RemixOfStoryID" json:"remix_of_story,omitempty"`
+	RemixChainDepth int       `gorm:"default:0" json:"remix_chain_depth"` // 0=original, 1=remix, 2=remix of remix
+	RemixCount     int        `gorm:"default:0" json:"remix_count"`       // How many posts remix this one
+	// What was remixed: "audio", "midi", "both"
+	RemixType      string     `json:"remix_type,omitempty"`
+
 	// Visual data
 	WaveformSVG string `gorm:"type:text" json:"waveform_svg"`
 
@@ -159,6 +170,22 @@ type AudioPost struct {
 // HasMIDI returns true if the post has an associated MIDI pattern
 func (p *AudioPost) HasMIDI() bool {
 	return p.MIDIPatternID != nil
+}
+
+// IsRemix returns true if this post is a remix of another post or story
+func (p *AudioPost) IsRemix() bool {
+	return p.RemixOfPostID != nil || p.RemixOfStoryID != nil
+}
+
+// GetRemixSourceType returns "post", "story", or "" if not a remix
+func (p *AudioPost) GetRemixSourceType() string {
+	if p.RemixOfPostID != nil {
+		return "post"
+	}
+	if p.RemixOfStoryID != nil {
+		return "story"
+	}
+	return ""
 }
 
 // Device represents a VST instance that can be authenticated

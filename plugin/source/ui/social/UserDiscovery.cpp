@@ -206,11 +206,11 @@ void UserDiscovery::drawHeader(juce::Graphics& g)
     g.setColour(Colors::searchBg);
     g.fillRoundedRectangle(searchBounds.reduced(4).toFloat(), 8.0f);
 
-    // Search icon
+    // Search icon (avoid emoji for Linux font compatibility)
     g.setColour(Colors::textPlaceholder);
     g.setFont(juce::Font(14.0f));
     auto iconBounds = searchBounds.removeFromLeft(40);
-    g.drawText(juce::CharPointer_UTF8("\xF0\x9F\x94\x8D"), iconBounds, juce::Justification::centred);  // magnifying glass emoji
+    g.drawText("[?]", iconBounds, juce::Justification::centred);
 
     // Clear button (X) when there's text
     if (currentSearchQuery.isNotEmpty())
@@ -239,9 +239,9 @@ void UserDiscovery::drawRecentSearches(juce::Graphics& g, juce::Rectangle<int>& 
         auto itemBounds = bounds.removeFromTop(36);
         itemBounds.removeFromLeft(PADDING);
 
-        // Clock icon
+        // Recent search indicator (avoid emoji for Linux font compatibility)
         g.setColour(Colors::textSecondary);
-        g.drawText(juce::CharPointer_UTF8("\xE2\x8F\xB1"), itemBounds.removeFromLeft(24), juce::Justification::centredLeft);  // clock icon
+        g.drawText(">", itemBounds.removeFromLeft(24), juce::Justification::centredLeft);
 
         g.setColour(Colors::textPrimary);
         g.drawText(recentSearches[i], itemBounds, juce::Justification::centredLeft);

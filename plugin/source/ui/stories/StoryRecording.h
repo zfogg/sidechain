@@ -4,6 +4,7 @@
 #include "../../util/Animation.h"
 #include "../../audio/MIDICapture.h"
 #include "../../audio/BufferAudioPlayer.h"
+#include "../../audio/Microphone.h"
 #include "PianoRoll.h"
 
 class SidechainAudioProcessor;
@@ -58,9 +59,24 @@ public:
     static constexpr double MIN_DURATION_SECONDS = 5.0;
     static constexpr double MAX_DURATION_SECONDS = 60.0;
 
+    //==============================================================================
+    // Recording source selection
+    enum class RecordingSource
+    {
+        DAW,        // Record from DAW (default)
+        Microphone  // Record from system microphone
+    };
+
+    void setRecordingSource(RecordingSource source);
+    RecordingSource getRecordingSource() const { return currentRecordingSource; }
+
 private:
     //==============================================================================
     SidechainAudioProcessor& audioProcessor;
+    
+    // Recording source
+    RecordingSource currentRecordingSource = RecordingSource::DAW;
+    Microphone microphone;
 
     // Recording state
     enum class State
@@ -111,6 +127,7 @@ private:
     juce::Rectangle<int> metadataArea;
     juce::Rectangle<int> actionButtonsArea;
     juce::Rectangle<int> cancelButtonArea;
+    juce::Rectangle<int> sourceToggleArea;
 
     //==============================================================================
     // Drawing helpers
@@ -123,16 +140,13 @@ private:
     void drawPlaybackControls(juce::Graphics& g);
     void drawMetadataInput(juce::Graphics& g);
     void drawActionButtons(juce::Graphics& g);
+    void drawSourceToggle(juce::Graphics& g);
     void drawIdleState(juce::Graphics& g);
     void drawRecordingState(juce::Graphics& g);
     void drawPreviewState(juce::Graphics& g);
 
     // Helper to format time as MM:SS
     juce::String formatTime(double seconds);
-
-    // Generate waveform path from audio buffer
-    juce::Path generateWaveformPath(const juce::AudioBuffer<float>& buffer,
-                                    juce::Rectangle<int> bounds);
 
     //==============================================================================
     // Button actions

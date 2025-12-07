@@ -22,6 +22,8 @@ add_library(SidechainAudio STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ChordSequenceDetector.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/SynthEngine.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/SynthEngine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/Microphone.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/Microphone.h
 )
 
 # Include directories
@@ -41,6 +43,7 @@ target_link_libraries(SidechainAudio PUBLIC
     SidechainUtil
     SidechainNetwork
     juce::juce_audio_basics
+    juce::juce_audio_devices
     juce::juce_audio_formats
     juce::juce_audio_utils
     juce::juce_core

@@ -185,6 +185,20 @@ public:
      */
     std::function<void(const FeedPost&)> onAddToPlaylistClicked;
 
+    /** Called when "Remix" button is clicked
+     * @param post The post to remix
+     * @param remixType What to remix: "audio", "midi", or "both"
+     * @note Initiates remix flow - downloads source content and prepares for recording.
+     *       Part of R.3.2 Remix Chains feature.
+     */
+    std::function<void(const FeedPost&, const juce::String& remixType)> onRemixClicked;
+
+    /** Called when remix chain info is clicked (view remix lineage)
+     * @param post The post whose remix chain to view
+     * @note Shows the remix chain visualization. Part of R.3.2 Remix Chains feature.
+     */
+    std::function<void(const FeedPost&)> onRemixChainClicked;
+
     /** Called when card is tapped (for expanding details)
      * @param post The post that was tapped
      */
@@ -296,6 +310,8 @@ private:
     juce::Rectangle<int> getDownloadMIDIButtonBounds() const;
     juce::Rectangle<int> getDownloadProjectButtonBounds() const;
     juce::Rectangle<int> getAddToPlaylistButtonBounds() const;
+    juce::Rectangle<int> getRemixButtonBounds() const;
+    juce::Rectangle<int> getRemixChainBadgeBounds() const;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)

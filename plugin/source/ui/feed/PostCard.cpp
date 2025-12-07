@@ -28,7 +28,7 @@ PostCard::PostCard()
     fadeInOpacity.onValueChanged = [this](float opacity) {
         repaint();
     };
-    fadeInOpacity.onAnimationComplete = [this]() {
+    fadeInOpacity.onAnimationComplete = []() {
         // Animation complete, opacity is now 1.0
     };
 }
@@ -433,7 +433,15 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     auto commentBounds = getCommentButtonBounds();
     g.setColour(SidechainColors::textMuted());
     g.setFont(14.0f);
-    g.drawText("💬", commentBounds.withWidth(20), juce::Justification::centred);
+    // Draw comment bubble icon (avoid emoji for Linux font compatibility)
+    auto iconBounds = commentBounds.withWidth(16).withHeight(14).withY(commentBounds.getCentreY() - 7);
+    g.drawRoundedRectangle(iconBounds.toFloat(), 3.0f, 1.5f);
+    // Small tail for speech bubble
+    juce::Path tail;
+    tail.addTriangle(iconBounds.getX() + 3, iconBounds.getBottom(),
+                     iconBounds.getX() + 8, iconBounds.getBottom(),
+                     iconBounds.getX() + 2, iconBounds.getBottom() + 4);
+    g.fillPath(tail);
 
     g.setFont(11.0f);
     g.drawText(StringFormatter::formatCount(post.commentCount),
@@ -505,10 +513,10 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
             g.fillRoundedRectangle(midiBounds.toFloat(), 4.0f);
         }
 
-        // Use a music note icon + text to indicate MIDI
+        // Use text to indicate MIDI (avoid emoji for Linux font compatibility)
         g.setColour(SidechainColors::primary());
         g.setFont(9.0f);
-        g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9")) + " MIDI", midiBounds, juce::Justification::centred);
+        g.drawText("[MIDI]", midiBounds, juce::Justification::centred);
     }
 
     // Add to Playlist button (shown on hover) - R.3.1.3.3
@@ -524,7 +532,7 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
 
         g.setColour(SidechainColors::textSecondary());
         g.setFont(9.0f);
-        g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBA")) + " Playlist", playlistBounds, juce::Justification::centred);
+        g.drawText("[+Playlist]", playlistBounds, juce::Justification::centred);
     }
 
     // Download Project File button (only shown when post has project file and on hover)
@@ -538,11 +546,76 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
             g.fillRoundedRectangle(projectBounds.toFloat(), 4.0f);
         }
 
-        // Use folder icon + DAW type to indicate project file
+        // Use DAW type to indicate project file (avoid emoji for Linux font compatibility)
         juce::String dawLabel = post.projectFileDaw.isNotEmpty() ? post.projectFileDaw.toUpperCase().substring(0, 3) : "PRJ";
         g.setColour(SidechainColors::primary());
         g.setFont(9.0f);
-        g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x81")) + " " + dawLabel, projectBounds, juce::Justification::centred);
+        g.drawText("[" + dawLabel + "]", projectBounds, juce::Justification::centred);
+    }
+
+    // Remix button (R.3.2 Remix Chains) - always shown on hover
+    if (hoverState.isHovered())
+    {
+        auto remixBounds = getRemixButtonBounds();
+
+        if (remixBounds.contains(getMouseXYRelative()))
+        {
+            g.setColour(SidechainColors::surfaceHover());
+            g.fillRoundedRectangle(remixBounds.toFloat(), 4.0f);
+        }
+
+        // Show different label based on what's remixable
+        juce::String remixLabel;
+        if (post.hasMidi && post.audioUrl.isNotEmpty())
+            remixLabel = "Remix";  // Can remix both
+        else if (post.hasMidi)
+            remixLabel = "Remix MIDI";
+        else
+            remixLabel = "Remix Audio";
+
+        g.setColour(SidechainColors::primary());
+        g.setFont(9.0f);
+        g.drawText(remixLabel, remixBounds, juce::Justification::centred);
+    }
+
+    // Remix chain badge (shows remix count or "Remix of..." indicator)
+    if (post.isRemix || post.remixCount > 0)
+    {
+        auto chainBounds = getRemixChainBadgeBounds();
+
+        // Background
+        g.setColour(SidechainColors::primary().withAlpha(0.15f));
+        g.fillRoundedRectangle(chainBounds.toFloat(), 3.0f);
+
+        // Border
+        g.setColour(SidechainColors::primary().withAlpha(0.4f));
+        g.drawRoundedRectangle(chainBounds.toFloat(), 3.0f, 1.0f);
+
+        // Text
+        g.setColour(SidechainColors::primary());
+        g.setFont(9.0f);
+
+        juce::String badgeText;
+        if (post.isRemix && post.remixCount > 0)
+        {
+            // Both a remix and has remixes
+            badgeText = "Remix +" + juce::String(post.remixCount);
+        }
+        else if (post.isRemix)
+        {
+            // Just a remix (depth indicator)
+            if (post.remixChainDepth > 1)
+                badgeText = "Remix (x" + juce::String(post.remixChainDepth) + ")";
+            else
+                badgeText = "Remix";
+        }
+        else
+        {
+            // Original with remixes
+            badgeText = juce::String(post.remixCount) + " Remixes";
+        }
+
+        g.drawText(badgeText, chainBounds, juce::Justification::centred);
     }
 }
 
@@ -728,6 +801,31 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Check Remix button (R.3.2 Remix Chains)
+    if (hoverState.isHovered() && getRemixButtonBounds().contains(pos))
+    {
+        if (onRemixClicked)
+        {
+            // Determine default remix type based on what's available
+            juce::String defaultRemixType = "audio";
+            if (post.hasMidi && post.audioUrl.isNotEmpty())
+                defaultRemixType = "both";  // Default to remixing both when available
+            else if (post.hasMidi)
+                defaultRemixType = "midi";
+
+            onRemixClicked(post, defaultRemixType);
+        }
+        return;
+    }
+
+    // Check Remix chain badge (view remix lineage)
+    if ((post.isRemix || post.remixCount > 0) && getRemixChainBadgeBounds().contains(pos))
+    {
+        if (onRemixChainClicked)
+            onRemixChainClicked(post);
+        return;
+    }
+
     // Check avatar (navigate to profile)
     if (getAvatarBounds().contains(pos))
     {
@@ -853,6 +951,19 @@ juce::Rectangle<int> PostCard::getAddToPlaylistButtonBounds() const
 {
     // Position to the left of Drop to Track button
     return juce::Rectangle<int>(getWidth() - 190, CARD_HEIGHT - 40, 70, 18);
+}
+
+juce::Rectangle<int> PostCard::getRemixButtonBounds() const
+{
+    // Position to the left of Add to Playlist button
+    return juce::Rectangle<int>(getWidth() - 265, CARD_HEIGHT - 40, 70, 18);
+}
+
+juce::Rectangle<int> PostCard::getRemixChainBadgeBounds() const
+{
+    // Position at top-right of waveform area to show remix lineage
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getRight() - 80, waveform.getY() - 2, 78, 16);
 }
 
 //==============================================================================

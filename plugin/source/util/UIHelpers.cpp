@@ -76,10 +76,17 @@ juce::Rectangle<int> drawPillBadge(juce::Graphics& g,
                                     int hPadding,
                                     int vPadding)
 {
-    g.setFont(fontSize);
-    int textWidth = static_cast<int>(g.getCurrentFont().getStringWidthFloat(text));
+    juce::Font font(juce::FontOptions().withHeight(fontSize));
+    juce::AttributedString attrStr;
+    attrStr.setText(text);
+    attrStr.setFont(font);
+    juce::TextLayout layout;
+    layout.createLayout(attrStr, 10000.0f);  // Large width for single-line text
+    int textWidth = static_cast<int>(layout.getWidth());
     int height = static_cast<int>(fontSize) + vPadding * 2;
     int width = textWidth + hPadding * 2;
+    
+    g.setFont(font);
 
     auto bounds = juce::Rectangle<int>(x, y, width, height);
 
@@ -242,13 +249,23 @@ juce::String truncateWithEllipsis(const juce::String& text,
     if (text.isEmpty() || maxWidth <= 0)
         return text;
 
-    float textWidth = font.getStringWidthFloat(text);
+    juce::AttributedString attrStr;
+    attrStr.setText(text);
+    attrStr.setFont(font);
+    juce::TextLayout layout;
+    layout.createLayout(attrStr, 10000.0f);  // Large width for single-line text
+    float textWidth = layout.getWidth();
     if (textWidth <= maxWidth)
         return text;
 
     // Binary search for the right length
     juce::String ellipsis = "...";
-    float ellipsisWidth = font.getStringWidthFloat(ellipsis);
+    juce::AttributedString ellipsisAttrStr;
+    ellipsisAttrStr.setText(ellipsis);
+    ellipsisAttrStr.setFont(font);
+    juce::TextLayout ellipsisLayout;
+    ellipsisLayout.createLayout(ellipsisAttrStr, 10000.0f);
+    float ellipsisWidth = ellipsisLayout.getWidth();
 
     if (ellipsisWidth >= maxWidth)
         return ellipsis;
@@ -259,7 +276,12 @@ juce::String truncateWithEllipsis(const juce::String& text,
     for (int len = text.length() - 1; len > 0; --len)
     {
         auto truncated = text.substring(0, len);
-        if (font.getStringWidthFloat(truncated) <= availableWidth)
+        juce::AttributedString truncatedAttrStr;
+        truncatedAttrStr.setText(truncated);
+        truncatedAttrStr.setFont(font);
+        juce::TextLayout truncatedLayout;
+        truncatedLayout.createLayout(truncatedAttrStr, 10000.0f);
+        if (truncatedLayout.getWidth() <= availableWidth)
             return truncated.trimEnd() + ellipsis;
     }
 
@@ -279,12 +301,22 @@ void drawTruncatedText(juce::Graphics& g,
 
 int getTextWidth(const juce::Graphics& g, const juce::String& text)
 {
-    return static_cast<int>(g.getCurrentFont().getStringWidthFloat(text));
+    juce::AttributedString attrStr;
+    attrStr.setText(text);
+    attrStr.setFont(g.getCurrentFont());
+    juce::TextLayout layout;
+    layout.createLayout(attrStr, 10000.0f);  // Large width for single-line text
+    return static_cast<int>(layout.getWidth());
 }
 
 int getTextWidth(const juce::Font& font, const juce::String& text)
 {
-    return static_cast<int>(font.getStringWidthFloat(text));
+    juce::AttributedString attrStr;
+    attrStr.setText(text);
+    attrStr.setFont(font);
+    juce::TextLayout layout;
+    layout.createLayout(attrStr, 10000.0f);  // Large width for single-line text
+    return static_cast<int>(layout.getWidth());
 }
 
 //==============================================================================

@@ -1,6 +1,10 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -14,7 +18,142 @@ import (
 // TODO: Phase 7.5.8.1 - Optimize MIDI data storage
 // TODO: Phase 7.5.8.2 - Optimize story feed loading
 
-// CreateStory handles story creation (7.5.1.2.1)
+// ============================================================================
+// STORIES - PROFESSIONAL ENHANCEMENTS
+// ============================================================================
+//
+// NOTE: Common enhancements (caching, analytics, rate limiting, moderation,
+// search, webhooks, export, performance, anti-abuse) are documented in
+// common_todos.go. See that file for shared TODO items.
+//
+
+// TODO: PROFESSIONAL-2.1 - Implement story-specific analytics
+// - Track unique viewers (not just view count)
+// - Track average watch time (how long users watch before skipping)
+// - Track completion rate (% of users who watch full story)
+// - Track skip rate (% of users who skip before end)
+// - Track interactions (swipes up, reactions, replies)
+// - Return analytics to story owner in GetStory endpoint (when owner requests)
+
+// TODO: PROFESSIONAL-2.2 - Add story reactions and replies
+// - Allow viewers to react to stories (emoji reactions)
+// - Allow viewers to reply to stories (private message to creator)
+// - Notification system for story interactions
+// - Creator can see all reactions/replies in story viewer list
+// - Integration with getstream.io reactions API
+
+// TODO: PROFESSIONAL-2.3 - Implement story scheduling
+// - Allow users to schedule stories for future publication
+// - Auto-publish stories at scheduled time
+// - Queue management for scheduled stories
+// - Edit scheduled stories before publication
+
+// TODO: PROFESSIONAL-2.4 - Add story customization features
+// - Support text overlays on stories
+// - Support image overlays/stickers
+// - Support background colors/gradients
+// - Support custom fonts for text
+// - Support filters/effects (reverb visualization, etc.)
+
+// TODO: PROFESSIONAL-2.5 - Implement story-specific privacy controls
+// - Private stories (only followers can view)
+// - Close friends stories (subset of followers)
+// - Public stories (anyone can view)
+// - See common_todos.go for general privacy infrastructure
+
+// TODO: PROFESSIONAL-2.6 - Add story expiration customization
+// - Allow users to extend story expiration (beyond 24 hours)
+// - Allow users to set custom expiration times (1 hour, 6 hours, 12 hours, 24 hours, 48 hours)
+// - Save stories to highlights before expiration
+// - Auto-save to highlights if story gets high engagement
+
+// TODO: PROFESSIONAL-2.7 - Enhance story feed algorithm
+// - Prioritize stories from users user interacts with most
+// - Prioritize unviewed stories over viewed ones
+// - Group stories by user (show all stories from one user together)
+// - Show "New" badge on unviewed stories
+// - Sort by relevance, not just chronological
+
+// TODO: PROFESSIONAL-2.8 - Implement story collections/highlights improvements
+// - Multiple highlights collections per user
+// - Custom cover images for highlights
+// - Reorder stories within highlights
+// - Highlights analytics (views, engagement)
+// - Public/private highlights settings
+
+// TODO: PROFESSIONAL-2.9 - Add story sharing features
+// - Share story link (works even after expiration if saved)
+// - Embed story in external websites (if enabled)
+// - Share story to other platforms (future: Twitter, Instagram, etc.)
+// - Generate QR codes for story links
+
+// TODO: PROFESSIONAL-2.10 - Implement story-specific moderation
+// - Content moderation for story audio (explicit content detection)
+// - See common_todos.go for general moderation infrastructure
+
+// TODO: PROFESSIONAL-2.11 - Add story playback optimizations
+// - Adaptive streaming (adjust quality based on connection)
+// - Preload next story in background
+// - Cache stories locally (CDN caching)
+// - Progressive loading (start playback before full download)
+
+// TODO: PROFESSIONAL-2.12 - Implement story engagement tracking
+// - Track which stories drive profile visits
+// - Track which stories drive follows
+// - Track which stories drive post plays
+// - Attribution tracking (did user discover you via story?)
+
+// TODO: PROFESSIONAL-2.13 - Add story templates
+// - Pre-made story templates (e.g., "Behind the scenes", "New release")
+// - Customizable templates per user
+// - Template library for community
+// - Easy story creation from templates
+
+// TODO: PROFESSIONAL-2.14 - Implement story collaboration
+// - Tag collaborators in stories
+// - Shared stories (multiple users contribute)
+// - Story takeovers (one user creates story for another)
+// - Cross-promotion features
+
+// TODO: PROFESSIONAL-2.15 - Add story discovery features
+// - Story search (by user, by genre, by BPM)
+// - Story recommendations ("Stories you might like")
+// - Trending stories (based on engagement)
+// - Featured stories (curated by admins)
+// - See common_todos.go for general search infrastructure
+
+// TODO: PROFESSIONAL-2.16 - Enhance story expiration handling
+// - Graceful expiration (notify user 1 hour before expiration)
+// - Option to extend expiration before it expires
+// - Auto-archive expired stories (optional, user preference)
+// - Batch expiration processing (efficient cleanup)
+
+// TODO: PROFESSIONAL-2.17 - Implement story performance metrics
+// - Story completion rate (% watched to end)
+// - Average watch time per story
+// - Skip rate (how many skip this story)
+// - Interaction rate (reactions/replies per view)
+// - Follower growth attributed to stories
+
+// TODO: PROFESSIONAL-2.18 - Add story content warnings
+// - Optional content warnings (explicit language, etc.)
+// - Age restrictions (18+ stories)
+// - Sensitivity labels
+// - User preference to hide certain content
+
+// TODO: PROFESSIONAL-2.19 - Implement story-specific localization
+// - Support multiple languages in story metadata
+// - Auto-translate story text overlays
+// - Region-specific story feeds (if location data available)
+// - See common_todos.go for general localization infrastructure
+
+// TODO: PROFESSIONAL-2.20 - Add story-specific backup and export
+// - Export story as audio file
+// - Export story with MIDI data
+// - Backup all stories before expiration
+// - See common_todos.go for general export/backup infrastructure
+
+// CreateStory handles story creation with multipart file upload (7.5.1.2.1)
 func (h *Handlers) CreateStory(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
@@ -23,26 +162,37 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 	}
 	currentUser := user.(*models.User)
 
-	var req struct {
-		AudioURL      string             `json:"audio_url" binding:"required"`
-		AudioDuration float64            `json:"audio_duration" binding:"required"`
-		MIDIData      *models.MIDIData   `json:"midi_data,omitempty"`
-		WaveformData  string             `json:"waveform_data,omitempty"`
-		BPM           *int               `json:"bpm,omitempty"`
-		Key           *string            `json:"key,omitempty"`
-		Genre         models.StringArray `json:"genre,omitempty"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// Get audio file from multipart form
+	file, err := c.FormFile("audio")
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "invalid_request",
-			"message": err.Error(),
+			"error":   "no_audio_file",
+			"message": "No audio file provided in 'audio' field",
 		})
 		return
 	}
 
-	// Validate duration (5-60 seconds)
-	if req.AudioDuration < 5 || req.AudioDuration > 60 {
+	// Validate file size (max 10MB for stories)
+	const maxStorySize = 10 * 1024 * 1024
+	if file.Size > maxStorySize {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "file_too_large",
+			"message": "Story audio must be under 10MB",
+		})
+		return
+	}
+
+	// Parse duration from form
+	durationStr := c.PostForm("duration")
+	var audioDuration float64
+	if durationStr != "" {
+		if _, err := fmt.Sscanf(durationStr, "%f", &audioDuration); err != nil {
+			audioDuration = 0
+		}
+	}
+
+	// Validate duration (5-60 seconds) - but allow 0 if not provided
+	if audioDuration > 0 && (audioDuration < 5 || audioDuration > 60) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "invalid_duration",
 			"message": "Story duration must be between 5 and 60 seconds",
@@ -50,36 +200,87 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
-	// Create standalone MIDI pattern if MIDI data is provided (R.3.3)
-	var midiPatternID *string
-	if req.MIDIData != nil && len(req.MIDIData.Events) > 0 {
-		pattern := &models.MIDIPattern{
-			UserID:        currentUser.ID,
-			Name:          "MIDI from story",
-			Events:        req.MIDIData.Events,
-			Tempo:         req.MIDIData.Tempo,
-			TimeSignature: req.MIDIData.TimeSignature,
-			IsPublic:      true, // Public by default when attached to story
+	// Read audio file content
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "file_open_failed",
+			"message": "Failed to open audio file",
+		})
+		return
+	}
+	defer src.Close()
+
+	audioData, err := io.ReadAll(src)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "file_read_failed",
+			"message": "Failed to read audio file",
+		})
+		return
+	}
+
+	// Upload audio file to S3 using the audio processor
+	audioURL, err := h.audioProcessor.UploadStoryAudio(context.Background(), audioData, currentUser.ID, file.Filename)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "upload_failed",
+			"message": "Failed to upload audio: " + err.Error(),
+		})
+		return
+	}
+
+	// Parse optional fields from form
+	var bpm *int
+	if bpmStr := c.PostForm("bpm"); bpmStr != "" {
+		var bpmVal int
+		if _, err := fmt.Sscanf(bpmStr, "%d", &bpmVal); err == nil && bpmVal > 0 {
+			bpm = &bpmVal
 		}
-		if err := database.DB.Create(pattern).Error; err != nil {
-			// Log error but don't fail story creation
-			// MIDI pattern is optional enhancement
-		} else {
-			midiPatternID = &pattern.ID
+	}
+
+	var key *string
+	if keyStr := c.PostForm("key"); keyStr != "" {
+		key = &keyStr
+	}
+
+	var genre models.StringArray
+	if genreStr := c.PostForm("genre"); genreStr != "" {
+		genre = models.StringArray{genreStr}
+	}
+
+	// Parse MIDI data if provided
+	var midiData *models.MIDIData
+	var midiPatternID *string
+	if midiDataStr := c.PostForm("midi_data"); midiDataStr != "" {
+		var md models.MIDIData
+		if err := json.Unmarshal([]byte(midiDataStr), &md); err == nil && len(md.Events) > 0 {
+			midiData = &md
+			// Create standalone MIDI pattern (R.3.3)
+			pattern := &models.MIDIPattern{
+				UserID:        currentUser.ID,
+				Name:          "MIDI from story",
+				Events:        md.Events,
+				Tempo:         md.Tempo,
+				TimeSignature: md.TimeSignature,
+				IsPublic:      true,
+			}
+			if err := database.DB.Create(pattern).Error; err == nil {
+				midiPatternID = &pattern.ID
+			}
 		}
 	}
 
 	// Create story with 24-hour expiration
 	story := &models.Story{
 		UserID:        currentUser.ID,
-		AudioURL:      req.AudioURL,
-		AudioDuration: req.AudioDuration,
-		MIDIData:      req.MIDIData,
-		MIDIPatternID: midiPatternID, // Link to standalone MIDI pattern
-		WaveformData:  req.WaveformData,
-		BPM:           req.BPM,
-		Key:           req.Key,
-		Genre:         req.Genre,
+		AudioURL:      audioURL,
+		AudioDuration: audioDuration,
+		MIDIData:      midiData,
+		MIDIPatternID: midiPatternID,
+		BPM:           bpm,
+		Key:           key,
+		Genre:         genre,
 		ExpiresAt:     time.Now().UTC().Add(24 * time.Hour),
 		ViewCount:     0,
 	}
@@ -94,6 +295,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 
 	response := gin.H{
 		"story_id":   story.ID,
+		"audio_url":  audioURL,
 		"expires_at": story.ExpiresAt.Format(time.RFC3339),
 		"message":    "Story created successfully",
 	}
@@ -170,6 +372,69 @@ func (h *Handlers) GetStories(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"stories": response,
 		"count":   len(response),
+	})
+}
+
+// DeleteStory deletes a story (7.5.1.6.1)
+// DELETE /api/v1/stories/:id
+func (h *Handlers) DeleteStory(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	storyID := c.Param("id")
+
+	// Find the story
+	var story models.Story
+	if err := database.DB.First(&story, "id = ?", storyID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "not_found",
+				"message": "Story not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "query_failed",
+			"message": "Failed to fetch story",
+		})
+		return
+	}
+
+	// Check ownership
+	if story.UserID != currentUser.ID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   "forbidden",
+			"message": "You can only delete your own stories",
+		})
+		return
+	}
+
+	// Delete associated view records first (foreign key constraint)
+	database.DB.Where("story_id = ?", storyID).Delete(&models.StoryView{})
+
+	// Delete audio file from S3 if URL is present
+	if story.AudioURL != "" && h.audioProcessor != nil {
+		if err := h.audioProcessor.DeleteStoryAudio(context.Background(), story.AudioURL); err != nil {
+			// Log but don't fail - database cleanup is more important
+			fmt.Printf("Warning: Failed to delete audio from S3 for story %s: %v\n", story.ID, err)
+		}
+	}
+
+	// Delete the story record
+	if err := database.DB.Delete(&story).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "deletion_failed",
+			"message": "Failed to delete story",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Story deleted successfully",
 	})
 }
 
@@ -487,13 +752,13 @@ func (h *Handlers) GetHighlights(c *gin.Context) {
 	result := make([]map[string]interface{}, len(highlights))
 	for i, h := range highlights {
 		result[i] = map[string]interface{}{
-			"id":           h.ID,
-			"name":         h.Name,
-			"description":  h.Description,
-			"cover_image":  h.CoverImage,
-			"story_count":  h.StoryCount,
-			"sort_order":   h.SortOrder,
-			"created_at":   h.CreatedAt.Format(time.RFC3339),
+			"id":          h.ID,
+			"name":        h.Name,
+			"description": h.Description,
+			"cover_image": h.CoverImage,
+			"story_count": h.StoryCount,
+			"sort_order":  h.SortOrder,
+			"created_at":  h.CreatedAt.Format(time.RFC3339),
 		}
 	}
 

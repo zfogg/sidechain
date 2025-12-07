@@ -738,7 +738,7 @@ void PostsFeed::drawNewPostsToast(juce::Graphics& g)
 
     // Text (faded)
     g.setColour(SidechainColors::textPrimary().withAlpha(opacity));
-    g.setFont(juce::Font(14.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)).boldened());
 
     juce::String toastText;
     if (pendingNewPostsCount == 1)
@@ -750,7 +750,7 @@ void PostsFeed::drawNewPostsToast(juce::Graphics& g)
     g.drawText(toastText, toastBounds.reduced(15, 0), juce::Justification::centredLeft);
 
     // Clickable indicator (faded)
-    g.setFont(juce::Font(12.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
     g.drawText("↻", toastBounds.removeFromRight(30), juce::Justification::centred);
 }
 
@@ -1615,6 +1615,107 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         );
     };
 
+    // R.3.2 Remix Chains - Remix button clicked
+    card->onRemixClicked = [this](const FeedPost& post, const juce::String& remixType) {
+        Log::info("PostsFeed: Remix clicked for post: " + post.id + " type: " + remixType);
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeed: Cannot start remix - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to start remix. Please try again later.");
+            return;
+        }
+
+        // If post has both audio and MIDI, show a menu to choose what to remix
+        if (post.hasMidi && post.audioUrl.isNotEmpty() && remixType == "both")
+        {
+            juce::PopupMenu menu;
+            menu.addItem(1, "Remix Audio Only");
+            menu.addItem(2, "Remix MIDI Only");
+            menu.addItem(3, "Remix Both Audio & MIDI");
+
+            menu.showMenuAsync(juce::PopupMenu::Options(), [this, post](int result) {
+                if (result == 0) return; // Cancelled
+
+                juce::String selectedType = (result == 1) ? "audio" : (result == 2) ? "midi" : "both";
+                startRemixFlow(post, selectedType);
+            });
+        }
+        else
+        {
+            // Only one option available, start remix directly
+            startRemixFlow(post, remixType);
+        }
+    };
+
+    // R.3.2 Remix Chains - Remix chain badge clicked (view lineage)
+    card->onRemixChainClicked = [this](const FeedPost& post) {
+        Log::info("PostsFeed: Remix chain clicked for post: " + post.id);
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeed: Cannot view remix chain - networkClient is null");
+            return;
+        }
+
+        // Fetch and display the remix chain
+        networkClient->getRemixChain(post.id, [postId = post.id](Outcome<juce::var> result) {
+            juce::MessageManager::callAsync([result, postId]() {
+                if (!result.isOk())
+                {
+                    Log::warn("PostsFeed: Failed to fetch remix chain: " + result.getError());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Error",
+                        "Failed to load remix chain. Please try again.");
+                    return;
+                }
+
+                auto data = result.getValue();
+                auto chain = data["chain"];
+                int totalDepth = Json::getInt(data, "total_depth", 0);
+
+                if (!chain.isArray() || chain.size() == 0)
+                {
+                    Log::debug("PostsFeed: Remix chain is empty for post: " + postId);
+                    return;
+                }
+
+                // Build a visual representation of the remix chain
+                juce::String chainText = "Remix Chain (depth " + juce::String(totalDepth) + "):\n\n";
+
+                for (int i = 0; i < chain.size(); ++i)
+                {
+                    auto item = chain[i];
+                    juce::String type = Json::getString(item, "type");
+                    juce::String username = Json::getString(item, "username");
+                    bool isCurrent = Json::getBool(item, "is_current");
+                    int depth = Json::getInt(item, "depth", 0);
+
+                    // Indent based on depth
+                    juce::String indent = "";
+                    for (int d = 0; d < depth; ++d)
+                        indent += "  ";
+
+                    juce::String arrow = (i > 0) ? "└→ " : "";
+                    juce::String marker = isCurrent ? " [YOU ARE HERE]" : "";
+                    juce::String typeLabel = (type == "story") ? "(story)" : "";
+
+                    chainText += indent + arrow + "@" + username + " " + typeLabel + marker + "\n";
+                }
+
+                // Show the chain in a dialog
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::MessageBoxIconType::InfoIcon,
+                    "Remix Chain",
+                    chainText);
+            });
+        });
+    };
+
     card->onFollowToggled = [this, card](const FeedPost& post, bool willFollow) {
         Log::info("PostsFeedComponent: Follow toggled for user: " + post.userId + " -> " + (willFollow ? "follow" : "unfollow"));
 
@@ -2188,4 +2289,52 @@ void PostsFeed::timerCallback()
 {
     // Toast fade-out is now handled by AnimationValue callback
     // This timer is only used for other timing needs if any
+}
+
+//==============================================================================
+// R.3.2 Remix Chains - Start remix flow
+
+void PostsFeed::startRemixFlow(const FeedPost& post, const juce::String& remixType)
+{
+    Log::info("PostsFeed::startRemixFlow: Starting remix - post: " + post.id + ", type: " + remixType);
+
+    // Confirm the remix action
+    juce::String confirmMessage = "You're about to remix ";
+    if (remixType == "audio")
+        confirmMessage += "the audio";
+    else if (remixType == "midi")
+        confirmMessage += "the MIDI";
+    else
+        confirmMessage += "both audio and MIDI";
+    confirmMessage += " from @" + post.username + "'s post.\n\nYou'll be taken to the recording view to create your remix.";
+
+    auto options = juce::MessageBoxOptions()
+        .withTitle("Start Remix")
+        .withMessage(confirmMessage)
+        .withButton("Start Remix")
+        .withButton("Cancel");
+
+    juce::AlertWindow::showAsync(options, [this, post, remixType](int result) {
+        if (result != 1)
+        {
+            Log::debug("PostsFeed::startRemixFlow: User cancelled remix");
+            return;
+        }
+
+        // Call the remix callback to navigate to recording view with context
+        if (onStartRemix)
+        {
+            // For posts, we pass the post ID (story ID would be empty)
+            onStartRemix(post.id, "", remixType);
+            Log::info("PostsFeed::startRemixFlow: Navigating to remix recording - postId: " + post.id);
+        }
+        else
+        {
+            Log::warn("PostsFeed::startRemixFlow: onStartRemix callback not set");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Remix recording is not available. Please update the plugin.");
+        }
+    });
 }

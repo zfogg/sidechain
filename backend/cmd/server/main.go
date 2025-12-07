@@ -370,6 +370,11 @@ func main() {
 			stories.GET("/:id", h.GetStory)
 			stories.POST("/:id/view", h.ViewStory)
 			stories.GET("/:id/views", h.GetStoryViews)
+			stories.DELETE("/:id", h.DeleteStory)
+			// Remix routes for stories (R.3.2)
+			stories.POST("/:id/remix", h.CreateRemixPost)
+			stories.GET("/:id/remixes", h.GetStoryRemixes)
+			stories.GET("/:id/remix-source", h.GetRemixSource)
 		}
 
 		// User stories route (7.5.1.3.3)
@@ -415,6 +420,12 @@ func main() {
 
 		// Post project file route (R.3.4)
 		posts.GET("/:id/project-file", h.GetPostProjectFile)
+
+		// Remix routes (R.3.2 Remix Chains)
+		posts.POST("/:id/remix", h.CreateRemixPost)
+		posts.GET("/:id/remix-chain", h.GetRemixChain)
+		posts.GET("/:id/remixes", h.GetPostRemixes)
+		posts.GET("/:id/remix-source", h.GetRemixSource)
 
 		// Playlist routes (R.3.1 Collaborative Playlists)
 		playlists := api.Group("/playlists")

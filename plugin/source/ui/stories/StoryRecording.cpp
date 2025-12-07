@@ -2,6 +2,8 @@
 #include "../../PluginProcessor.h"
 #include "../../util/Log.h"
 #include "../../util/UIHelpers.h"
+#include "../../util/WaveformGenerator.h"
+#include "../../util/Constants.h"
 
 // Colors for Stories UI (matching app theme)
 namespace StoryColors
@@ -27,6 +29,9 @@ StoryRecording::StoryRecording(SidechainAudioProcessor& processor)
 {
     // Prepare MIDI capture
     midiCapture.prepare(44100.0, 512);
+
+    // Prepare microphone (default to 44.1kHz, mono)
+    microphone.prepare(44100.0, 1);
 
     // Create piano roll for preview
     pianoRollPreview = std::make_unique<PianoRoll>();
@@ -108,6 +113,10 @@ void StoryRecording::resized()
 
     // Header (back button, title)
     headerArea = bounds.removeFromTop(60);
+
+    // Source toggle area (DAW/Microphone) - at top of content
+    sourceToggleArea = bounds.removeFromTop(40).reduced(20, 5);
+    bounds.removeFromTop(10);
 
     // Main content area
     auto contentArea = bounds.reduced(20);
@@ -192,6 +201,19 @@ void StoryRecording::mouseUp(const juce::MouseEvent& event)
     }
     else if (currentState == State::Idle)
     {
+        // Check source toggle
+        if (sourceToggleArea.contains(pos))
+        {
+            // Toggle between DAW and Microphone
+            currentRecordingSource = (currentRecordingSource == RecordingSource::DAW) 
+                ? RecordingSource::Microphone 
+                : RecordingSource::DAW;
+            Log::info("StoryRecording: Switched to " + 
+                     juce::String(currentRecordingSource == RecordingSource::DAW ? "DAW" : "Microphone"));
+            repaint();
+            return;
+        }
+
         // Start recording on record button click
         if (recordButtonArea.contains(pos))
         {
@@ -226,8 +248,19 @@ void StoryRecording::timerCallback()
 
     if (currentState == State::Recording)
     {
-        // Update recording duration
-        currentRecordingDuration = audioProcessor.getRecordingLengthSeconds();
+        // Update recording duration based on source
+        if (currentRecordingSource == RecordingSource::DAW)
+        {
+            currentRecordingDuration = audioProcessor.getRecordingLengthSeconds();
+            
+            // Check for MIDI activity (only for DAW)
+            hasMIDIActivity = midiCapture.isCapturing() && midiCapture.getTotalTime() > 0;
+        }
+        else
+        {
+            currentRecordingDuration = microphone.getRecordingLengthSeconds();
+            hasMIDIActivity = false; // No MIDI for microphone
+        }
 
         // Check for auto-stop at max duration
         if (currentRecordingDuration >= MAX_DURATION_SECONDS)
@@ -236,11 +269,6 @@ void StoryRecording::timerCallback()
             stopRecording();
             return;
         }
-
-        // Check for MIDI activity
-        // In a real implementation, we'd check midiCapture.getEventCount() or similar
-        // For now, we simulate MIDI activity detection
-        hasMIDIActivity = midiCapture.isCapturing() && midiCapture.getTotalTime() > 0;
 
         repaint();
     }
@@ -264,6 +292,7 @@ void StoryRecording::drawIdleState(juce::Graphics& g)
 void StoryRecording::drawRecordingState(juce::Graphics& g)
 {
     drawHeader(g);
+    drawSourceToggle(g);
     drawCountdownRing(g);
     drawRecordButton(g);
     drawTimeDisplay(g);
@@ -325,7 +354,7 @@ void StoryRecording::drawHeader(juce::Graphics& g)
 {
     // Title
     g.setColour(StoryColors::textPrimary);
-    g.setFont(juce::Font(18.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
 
     juce::String title;
     switch (currentState)
@@ -398,7 +427,7 @@ void StoryRecording::drawRecordButton(juce::Graphics& g)
 void StoryRecording::drawTimeDisplay(juce::Graphics& g)
 {
     g.setColour(StoryColors::textPrimary);
-    g.setFont(juce::Font(32.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(32.0f).withStyle("Bold")));
 
     juce::String timeStr;
     if (currentState == State::Recording)
@@ -507,8 +536,8 @@ void StoryRecording::drawWaveformPreview(juce::Graphics& g)
     }
     else if (currentState == State::Preview && recordedAudio.getNumSamples() > 0)
     {
-        // Draw actual waveform
-        auto path = generateWaveformPath(recordedAudio, waveformArea.reduced(10));
+        // Draw actual waveform using WaveformGenerator
+        auto path = WaveformGenerator::generateWaveformPath(recordedAudio, waveformArea.reduced(10));
         g.setColour(StoryColors::waveformColor);
         g.strokePath(path, juce::PathStrokeType(1.5f));
     }
@@ -650,8 +679,43 @@ void StoryRecording::drawActionButtons(juce::Graphics& g)
     g.setColour(StoryColors::buttonGreen);
     g.fillRoundedRectangle(postBounds.toFloat(), 8.0f);
     g.setColour(StoryColors::textPrimary);
-    g.setFont(juce::Font(14.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
     g.drawText("Post Story", postBounds, juce::Justification::centred);
+}
+
+void StoryRecording::drawSourceToggle(juce::Graphics& g)
+{
+    if (sourceToggleArea.isEmpty())
+        return;
+
+    // Background
+    g.setColour(StoryColors::surface);
+    g.fillRoundedRectangle(sourceToggleArea.toFloat(), 8.0f);
+
+    // Border
+    g.setColour(StoryColors::textSecondary.withAlpha(0.3f));
+    g.drawRoundedRectangle(sourceToggleArea.toFloat(), 8.0f, 1.0f);
+
+    // Two toggle buttons side by side
+    int buttonWidth = sourceToggleArea.getWidth() / 2 - 2;
+    auto dawButton = sourceToggleArea.withWidth(buttonWidth);
+    auto micButton = sourceToggleArea.withX(sourceToggleArea.getX() + buttonWidth + 2).withWidth(buttonWidth);
+
+    // DAW button
+    bool dawSelected = currentRecordingSource == RecordingSource::DAW;
+    g.setColour(dawSelected ? StoryColors::progressFg : StoryColors::surface);
+    g.fillRoundedRectangle(dawButton.toFloat(), 6.0f);
+    g.setColour(dawSelected ? StoryColors::textPrimary : StoryColors::textSecondary);
+    g.setFont(12.0f);
+    g.drawText("DAW", dawButton, juce::Justification::centred);
+
+    // Microphone button
+    bool micSelected = currentRecordingSource == RecordingSource::Microphone;
+    g.setColour(micSelected ? StoryColors::progressFg : StoryColors::surface);
+    g.fillRoundedRectangle(micButton.toFloat(), 6.0f);
+    g.setColour(micSelected ? StoryColors::textPrimary : StoryColors::textSecondary);
+    g.setFont(12.0f);
+    g.drawText("Mic", micButton, juce::Justification::centred);
 }
 
 //==============================================================================
@@ -662,52 +726,26 @@ juce::String StoryRecording::formatTime(double seconds)
     return juce::String::formatted("%02d:%02d", mins, secs);
 }
 
-juce::Path StoryRecording::generateWaveformPath(const juce::AudioBuffer<float>& buffer,
-                                                          juce::Rectangle<int> bounds)
-{
-    juce::Path path;
-
-    if (buffer.getNumSamples() == 0)
-        return path;
-
-    int numSamples = buffer.getNumSamples();
-    int width = bounds.getWidth();
-    float height = bounds.getHeight();
-    float centerY = bounds.getCentreY();
-
-    path.startNewSubPath(bounds.getX(), centerY);
-
-    for (int x = 0; x < width; ++x)
-    {
-        int startSample = x * numSamples / width;
-        int endSample = juce::jmin((x + 1) * numSamples / width, numSamples);
-
-        float peak = 0.0f;
-        for (int i = startSample; i < endSample; ++i)
-        {
-            for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
-            {
-                peak = juce::jmax(peak, std::abs(buffer.getSample(ch, i)));
-            }
-        }
-
-        float y = centerY - (peak * height * 0.5f);
-        path.lineTo(bounds.getX() + x, y);
-    }
-
-    return path;
-}
 
 //==============================================================================
 void StoryRecording::startRecording()
 {
-    Log::info("StoryRecording: Starting recording");
+    Log::info("StoryRecording: Starting recording from " + 
+             juce::String(currentRecordingSource == RecordingSource::DAW ? "DAW" : "Microphone"));
 
-    // Start audio recording
-    audioProcessor.startRecording();
+    if (currentRecordingSource == RecordingSource::DAW)
+    {
+        // Start audio recording from DAW
+        audioProcessor.startRecording();
 
-    // Start MIDI capture
-    midiCapture.startCapture();
+        // Start MIDI capture (only for DAW)
+        midiCapture.startCapture();
+    }
+    else
+    {
+        // Start microphone recording
+        microphone.startRecording("story_mic");
+    }
 
     // Update state
     currentState = State::Recording;
@@ -729,15 +767,24 @@ void StoryRecording::stopRecording()
 
     Log::info("StoryRecording: Stopping recording");
 
-    // Stop audio recording
-    audioProcessor.stopRecording();
+    if (currentRecordingSource == RecordingSource::DAW)
+    {
+        // Stop audio recording from DAW
+        audioProcessor.stopRecording();
 
-    // Stop MIDI capture
-    auto midiEvents = midiCapture.stopCapture();
+        // Stop MIDI capture
+        auto midiEvents = midiCapture.stopCapture();
 
-    // Get recorded audio
-    recordedAudio = audioProcessor.getRecordedAudio();
-    recordedSampleRate = audioProcessor.getCurrentSampleRate();
+        // Get recorded audio
+        recordedAudio = audioProcessor.getRecordedAudio();
+        recordedSampleRate = audioProcessor.getCurrentSampleRate();
+    }
+    else
+    {
+        // Stop microphone recording
+        recordedAudio = microphone.stopRecording();
+        recordedSampleRate = microphone.getSampleRate();
+    }
 
     // Auto-detect BPM from DAW if available
     if (audioProcessor.isBPMAvailable())
@@ -748,12 +795,18 @@ void StoryRecording::stopRecording()
     // Update state
     currentState = State::Preview;
 
-    // Set up MIDI visualization for preview
-    if (pianoRollPreview)
+    // Set up MIDI visualization for preview (only for DAW recordings)
+    if (pianoRollPreview && currentRecordingSource == RecordingSource::DAW)
     {
         auto midiData = midiCapture.getNormalizedMIDIDataAsJSON();
         pianoRollPreview->setMIDIData(midiData);
         pianoRollPreview->setVisible(true);
+    }
+    else if (pianoRollPreview)
+    {
+        // Hide piano roll for microphone recordings
+        pianoRollPreview->clearMIDIData();
+        pianoRollPreview->setVisible(false);
     }
 
     // Load recorded audio into BufferAudioPlayer for preview playback
@@ -784,9 +837,16 @@ void StoryRecording::discardRecording()
     // Stop preview playback
     stopPreviewPlayback();
 
-    // Clear recorded data
-    recordedAudio.clear();
-    midiCapture.reset();
+        // Clear recorded data
+        recordedAudio.clear();
+        if (currentRecordingSource == RecordingSource::DAW)
+        {
+            midiCapture.reset();
+        }
+        else
+        {
+            microphone.reset();
+        }
 
     // Clear buffer audio player and unregister from processor
     if (bufferAudioPlayer)
@@ -819,31 +879,83 @@ void StoryRecording::confirmRecording()
 {
     Log::info("StoryRecording: Confirming recording");
 
-    if (onRecordingComplete)
+    if (onRecordingComplete && recordedAudio.getNumSamples() > 0)
     {
-        // Get normalized and validated MIDI data
-        auto midiData = midiCapture.getNormalizedMIDIDataAsJSON();
+        // Make a copy of the audio data before any state changes
+        // This prevents potential race conditions with async uploads
+        juce::AudioBuffer<float> audioCopy(recordedAudio);
+        Log::debug("StoryRecording::confirmRecording: Created audio copy for callback");
 
-        onRecordingComplete(recordedAudio, midiData, storyBPM, storyKey, storyGenres);
+        // Save metadata values before resetting state
+        int savedBPM = storyBPM;
+        juce::String savedKey = storyKey;
+        juce::StringArray savedGenres = storyGenres;
+
+        // Get normalized and validated MIDI data (only for DAW)
+        juce::var midiData = juce::var();
+        if (currentRecordingSource == RecordingSource::DAW)
+        {
+            midiData = midiCapture.getNormalizedMIDIDataAsJSON();
+        }
+
+        // Reset state BEFORE calling callback to prevent any repaint
+        // from accessing the original buffer while it's being modified
+        stopPreviewPlayback();
+        recordedAudio.clear();
+        if (currentRecordingSource == RecordingSource::DAW)
+        {
+            midiCapture.reset();
+        }
+        else
+        {
+            microphone.reset();
+        }
+        currentState = State::Idle;
+        currentRecordingDuration = 0.0;
+        storyBPM = 0;
+        storyKey = "";
+        storyGenres.clear();
+        Log::debug("StoryRecording::confirmRecording: State reset before callback");
+
+        // Clear buffer audio player
+        if (bufferAudioPlayer)
+        {
+            bufferAudioPlayer->clear();
+            audioProcessor.setBufferAudioPlayer(nullptr);
+        }
+
+        // Now call the callback with the copy - safe even if callback
+        // triggers async operations that access the buffer
+        Log::info("StoryRecording::confirmRecording: Calling onRecordingComplete callback");
+        onRecordingComplete(audioCopy, midiData, savedBPM, savedKey, savedGenres);
     }
-
-    // Reset for next recording
-    stopPreviewPlayback();
-    recordedAudio.clear();
-    midiCapture.reset();
-
-    // Clear buffer audio player
-    if (bufferAudioPlayer)
+    else
     {
-        bufferAudioPlayer->clear();
-        audioProcessor.setBufferAudioPlayer(nullptr);
-    }
+        // No audio to share, just reset state
+        stopPreviewPlayback();
+        recordedAudio.clear();
+        if (currentRecordingSource == RecordingSource::DAW)
+        {
+            midiCapture.reset();
+        }
+        else
+        {
+            microphone.reset();
+        }
 
-    currentState = State::Idle;
-    currentRecordingDuration = 0.0;
-    storyBPM = 0;
-    storyKey = "";
-    storyGenres.clear();
+        // Clear buffer audio player
+        if (bufferAudioPlayer)
+        {
+            bufferAudioPlayer->clear();
+            audioProcessor.setBufferAudioPlayer(nullptr);
+        }
+
+        currentState = State::Idle;
+        currentRecordingDuration = 0.0;
+        storyBPM = 0;
+        storyKey = "";
+        storyGenres.clear();
+    }
 
     resized();
     repaint();
@@ -891,5 +1003,17 @@ void StoryRecording::stopPreviewPlayback()
     if (pianoRollPreview)
         pianoRollPreview->setPlaybackPosition(0.0);
 
+    repaint();
+}
+
+void StoryRecording::setRecordingSource(RecordingSource source)
+{
+    if (currentState != State::Idle)
+    {
+        Log::warn("StoryRecording: Cannot change recording source while recording");
+        return;
+    }
+    
+    currentRecordingSource = source;
     repaint();
 }

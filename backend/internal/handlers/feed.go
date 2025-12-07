@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
@@ -20,6 +22,133 @@ import (
 // TODO: Phase 4.5.1.3 - Test CreatePost - valid post, missing fields, audio URL validation
 // TODO: Phase 4.5.1.28 - Test GetAggregatedTimeline - grouping
 // TODO: Phase 4.5.1.29 - Test GetTrendingFeed - trending algorithm
+
+// ============================================================================
+// POSTS & FEEDS - PROFESSIONAL ENHANCEMENTS
+// ============================================================================
+//
+// NOTE: Common enhancements (caching, analytics, rate limiting, moderation,
+// search, webhooks, export, performance, anti-abuse) are documented in
+// common_todos.go. See that file for shared TODO items.
+//
+
+// TODO: PROFESSIONAL-1.1 - Implement post-specific analytics tracking
+// - Track view counts (increment on feed load)
+// - Track play counts (increment on audio playback start)
+// - Track play duration (total time listened)
+// - Track share counts (when post URL is copied/shared)
+// - Store in audio_posts table or separate analytics table
+// - Return analytics in enriched feed responses
+
+// TODO: PROFESSIONAL-1.3 - Add post quality scoring algorithm
+// - Score based on engagement (likes, comments, plays, shares)
+// - Score based on recency (newer posts weighted higher)
+// - Score based on user reputation (verified/featured users)
+// - Use for trending feed ranking and discovery
+// - Cache scores and recalculate periodically (every hour)
+
+// TODO: PROFESSIONAL-1.4 - Implement post deduplication
+// - Detect duplicate audio uploads using audio fingerprinting
+// - Warn users before posting duplicate content
+// - Option to link to original post instead of creating duplicate
+// - Prevent spam and improve feed quality
+
+// TODO: PROFESSIONAL-1.5 - Add post-specific content moderation
+// - Validate audio content (check for explicit content markers)
+// - Validate metadata (prevent spam in titles/descriptions)
+// - Audio fingerprinting for duplicate detection
+
+// TODO: PROFESSIONAL-1.6 - Enhance feed filtering and search
+// - Filter by BPM range (e.g., 120-130 BPM)
+// - Filter by key (e.g., all posts in C major)
+// - Filter by genre (multiple genres supported)
+// - Filter by DAW (e.g., only Ableton Live posts)
+// - Filter by date range (e.g., last 7 days)
+// - Combine multiple filters (BPM + genre + key)
+
+// TODO: PROFESSIONAL-1.7 - Implement feed personalization
+// - Learn user preferences from listening history
+// - Boost posts from genres user interacts with most
+// - Boost posts from users user follows or interacts with
+// - Downrank posts user has already seen
+// - A/B testing framework for feed algorithms
+
+// TODO: PROFESSIONAL-1.8 - Add feed pagination improvements
+// - Cursor-based pagination (more efficient than offset)
+// - Prevent duplicate posts when new posts are created during scrolling
+// - Support "refresh" to get new posts since last view
+// - Track last viewed timestamp per user per feed
+
+// TODO: PROFESSIONAL-1.9 - Implement post drafts and scheduling
+// - Allow users to save posts as drafts
+// - Schedule posts for future publication
+// - Edit drafts before posting
+// - Auto-publish scheduled posts at specified time
+
+// TODO: PROFESSIONAL-1.10 - Add post collaboration features
+// - Tag other users in posts (collaborators)
+// - Show "featuring" badge on posts with collaborators
+// - Notify collaborators when post is published
+// - Shared ownership for collaborative posts
+
+// TODO: PROFESSIONAL-1.11 - Enhance post metadata
+// - Support custom tags (beyond genre)
+// - Support post descriptions/notes
+// - Support BPM detection accuracy confidence
+// - Support key detection confidence
+// - Support audio analysis (energy, danceability, valence)
+
+// TODO: PROFESSIONAL-1.12 - Implement post collections
+// - Allow users to organize posts into collections/albums
+// - Collections can be public or private
+// - Support multiple collections per user
+// - Collection covers and descriptions
+// - Share collections with other users
+
+// TODO: PROFESSIONAL-1.13 - Add post-specific export functionality
+// - Export post metadata as JSON
+// - Export post audio and MIDI together as ZIP
+// - Export collection as playlist
+
+// TODO: PROFESSIONAL-1.14 - Implement post-specific rate limiting
+// - Limit posts per day (e.g., 10 posts/day for free users, unlimited for pro)
+// - Limit feed requests per minute (prevent scraping)
+
+// TODO: PROFESSIONAL-1.15 - Add post versioning
+// - Track post edits/revisions
+// - Show edit history (if enabled)
+// - Allow reverting to previous versions
+// - Timestamp when post was last modified
+
+// TODO: PROFESSIONAL-1.16 - Enhance trending algorithm
+// - Weight by engagement velocity (likes in first hour)
+// - Weight by user engagement (active users vs bots)
+// - Time decay (older engagement counts less)
+// - Genre-specific trending (trending in electronic music)
+// - Location-based trending (if location data available)
+
+// TODO: PROFESSIONAL-1.17 - Implement feed aggregation improvements
+// - Group posts by user (show "User posted 3 loops today")
+// - Group posts by genre (show "5 new hip-hop loops")
+// - Group posts by time period (show "Trending this week")
+// - Customizable aggregation preferences
+
+// TODO: PROFESSIONAL-1.18 - Add post embedding support
+// - Generate embed code for posts (for sharing on websites)
+// - OEmbed endpoint for rich previews
+// - Support for social media preview cards (Open Graph, Twitter Cards)
+// - Thumbnail generation for embeds
+
+// TODO: PROFESSIONAL-1.19 - Implement feed-specific webhooks
+// - Webhook for engagement milestones (100 likes, etc.)
+// - Webhook for post updates (edits, deletions)
+// - See common_todos.go for general webhook infrastructure
+
+// TODO: PROFESSIONAL-1.20 - Add post-specific archival
+// - Auto-archive old posts (older than 1 year, low engagement)
+// - Manual archive option for users
+// - Archived posts still accessible but not in main feed
+// - See common_todos.go for general export/backup infrastructure
 
 // GetTimeline gets the user's timeline feed
 func (h *Handlers) GetTimeline(c *gin.Context) {
@@ -84,6 +213,10 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 		// MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
 		MIDIData *models.MIDIData `json:"midi_data,omitempty"` // Optional inline MIDI data
 		MIDIID   string           `json:"midi_id,omitempty"`   // Optional existing MIDI pattern ID
+		// Remix support (R.3.2 Remix Chains) - alternative to /posts/:id/remix endpoint
+		RemixOfPostID  string `json:"remix_of_post_id,omitempty"`  // Post being remixed
+		RemixOfStoryID string `json:"remix_of_story_id,omitempty"` // Story being remixed
+		RemixType      string `json:"remix_type,omitempty"`        // "audio", "midi", or "both"
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -169,6 +302,7 @@ func (h *Handlers) CreatePost(c *gin.Context) {
 
 // GetEnrichedTimeline gets the user's timeline with reaction counts
 // GET /api/feed/timeline/enriched
+// Falls back to Gorse recommendations or recent posts if timeline is empty
 func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 	currentUser, ok := util.GetUserFromContext(c)
 	if !ok {
@@ -184,6 +318,23 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		return
 	}
 
+	// If timeline is empty and we're on the first page, fall back to recommendations
+	if len(activities) == 0 && offset == 0 {
+		fallbackActivities := h.getFallbackFeed(currentUser.ID, limit)
+		if len(fallbackActivities) > 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"activities": fallbackActivities,
+				"meta": gin.H{
+					"limit":    limit,
+					"offset":   offset,
+					"count":    len(fallbackActivities),
+					"fallback": true,
+				},
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
 		"meta": gin.H{
@@ -192,6 +343,81 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 			"count":  len(activities),
 		},
 	})
+}
+
+// getFallbackFeed returns recommended posts when the user's timeline is empty
+// First tries Gorse recommendations, then falls back to recent posts from database
+func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interface{} {
+	// Try Gorse recommendations first
+	gorseURL := os.Getenv("GORSE_URL")
+	if gorseURL == "" {
+		gorseURL = "http://localhost:8087"
+	}
+	gorseAPIKey := os.Getenv("GORSE_API_KEY")
+	if gorseAPIKey == "" {
+		gorseAPIKey = "sidechain_gorse_api_key"
+	}
+
+	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	scores, err := recService.GetForYouFeed(userID, limit, 0)
+	if err == nil && len(scores) > 0 {
+		activities := make([]map[string]interface{}, 0, len(scores))
+		for _, score := range scores {
+			activity := map[string]interface{}{
+				"id":                    score.Post.ID,
+				"actor":                 "user:" + score.Post.UserID,
+				"verb":                  "posted",
+				"object":                "loop:" + score.Post.ID,
+				"audio_url":             score.Post.AudioURL,
+				"bpm":                   score.Post.BPM,
+				"key":                   score.Post.Key,
+				"daw":                   score.Post.DAW,
+				"duration":              score.Post.Duration,
+				"genre":                 score.Post.Genre,
+				"time":                  score.Post.CreatedAt,
+				"like_count":            score.Post.LikeCount,
+				"play_count":            score.Post.PlayCount,
+				"recommendation_reason": score.Reason,
+				"is_recommended":        true,
+			}
+			activities = append(activities, activity)
+		}
+		return activities
+	}
+
+	// Fall back to recent posts from database
+	// Include all public posts (including user's own) since this is a discovery feed
+	var posts []models.AudioPost
+	if err := database.DB.
+		Where("is_public = ? AND deleted_at IS NULL", true).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&posts).Error; err != nil {
+		return nil
+	}
+
+	activities := make([]map[string]interface{}, 0, len(posts))
+	for _, post := range posts {
+		activity := map[string]interface{}{
+			"id":             post.ID,
+			"actor":          "user:" + post.UserID,
+			"verb":           "posted",
+			"object":         "loop:" + post.ID,
+			"audio_url":      post.AudioURL,
+			"bpm":            post.BPM,
+			"key":            post.Key,
+			"daw":            post.DAW,
+			"duration":       post.Duration,
+			"genre":          post.Genre,
+			"time":           post.CreatedAt,
+			"like_count":     post.LikeCount,
+			"play_count":     post.PlayCount,
+			"is_recommended": true,
+		}
+		activities = append(activities, activity)
+	}
+
+	return activities
 }
 
 // GetEnrichedGlobalFeed gets the global feed with reaction counts

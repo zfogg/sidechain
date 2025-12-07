@@ -2,6 +2,7 @@
 #include "../../network/NetworkClient.h"
 #include "../../network/StreamChatClient.h"
 #include "../../util/Json.h"
+#include "../../util/Result.h"
 #include "../../stores/ImageCache.h"
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
@@ -206,6 +207,9 @@ void Profile::setProfile(const UserProfile& newProfile)
         Log::debug("Profile::setProfile: Fetching user posts for: " + profile.id);
         fetchUserPosts(profile.id);
 
+        // Check if user has active stories
+        checkForActiveStories(profile.id);
+
         // Query presence for this user (if not own profile)
         if (!profile.isOwnProfile(currentUserId))
         {
@@ -336,15 +340,35 @@ void Profile::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Use the display name for initials, falling back to username
     juce::String name = profile.displayName.isEmpty() ? profile.username : profile.displayName;
 
+    // Draw highlighted circle if user has active story (Instagram-style)
+    if (hasActiveStory)
+    {
+        // Outer gradient circle (highlighted)
+        juce::ColourGradient gradient(
+            juce::Colour(0xFFFF6B6B),  // Red
+            0.0f, 0.0f,
+            juce::Colour(0xFFFFD93D),  // Yellow
+            1.0f, 1.0f,
+            true
+        );
+        gradient.addColour(0.5f, juce::Colour(0xFFFF8E53));  // Orange
+
+        g.setGradientFill(gradient);
+        g.drawEllipse(bounds.toFloat().expanded(2.0f), 3.0f);
+    }
+
     ImageLoader::drawCircularAvatar(g, bounds, avatarImage,
         ImageLoader::getInitials(name),
         Colors::accent.darker(0.5f),
         Colors::textPrimary,
         36.0f);
 
-    // Avatar border
-    g.setColour(Colors::accent.withAlpha(0.5f));
-    g.drawEllipse(bounds.toFloat(), 3.0f);
+    // Avatar border (only if no story highlight)
+    if (!hasActiveStory)
+    {
+        g.setColour(Colors::accent.withAlpha(0.5f));
+        g.drawEllipse(bounds.toFloat(), 3.0f);
+    }
 
     // Draw online indicator (green/cyan dot in bottom-right corner)
     if (profile.isOnline || profile.isInStudio)
@@ -705,6 +729,17 @@ void Profile::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Avatar click - if user has story, open story viewer
+    if (getAvatarBounds().contains(pos) && hasActiveStory)
+    {
+        Log::info("Profile::mouseUp: Avatar clicked with active story - userId: " + profile.id);
+        if (onViewStoryClicked)
+            onViewStoryClicked(profile.id);
+        else
+            Log::warn("Profile::mouseUp: View story clicked but callback not set");
+        return;
+    }
+
     // Share button
     if (getShareButtonBounds().contains(pos))
     {
@@ -850,6 +885,16 @@ juce::Rectangle<int> Profile::getPostsAreaBounds() const
 //==============================================================================
 void Profile::fetchProfile(const juce::String& userId)
 {
+    if (userId.isEmpty())
+    {
+        Log::error("Profile::fetchProfile: userId is empty");
+        hasError = true;
+        errorMessage = "Invalid user ID";
+        isLoading = false;
+        repaint();
+        return;
+    }
+
     if (networkClient == nullptr)
     {
         Log::error("Profile::fetchProfile: NetworkClient is null");
@@ -860,7 +905,19 @@ void Profile::fetchProfile(const juce::String& userId)
         return;
     }
 
-    juce::String endpoint = "/api/v1/users/" + userId + "/profile";
+    // Safely construct endpoint (avoid assertion failures with invalid strings)
+    juce::String safeUserId = userId.trim();
+    if (safeUserId.isEmpty())
+    {
+        Log::error("Profile::fetchProfile: userId is empty after trimming");
+        hasError = true;
+        errorMessage = "Invalid user ID";
+        isLoading = false;
+        repaint();
+        return;
+    }
+
+    juce::String endpoint = "/api/v1/users/" + safeUserId + "/profile";
     Log::info("Profile::fetchProfile: Fetching profile from: " + endpoint);
 
     networkClient->get(endpoint, [this, userId](Outcome<juce::var> result) {
@@ -1244,4 +1301,58 @@ void Profile::updateUserPresence(const juce::String& userId, bool isOnline, cons
 
     // Repaint to show updated online status
     repaint();
+}
+
+void Profile::checkForActiveStories(const juce::String& userId)
+{
+    if (networkClient == nullptr || userId.isEmpty())
+    {
+        hasActiveStory = false;
+        repaint();
+        return;
+    }
+
+    // Fetch stories feed and check if this user has any active stories
+    networkClient->getStoriesFeed([this, userId](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, userId]() {
+            bool hasStory = false;
+
+            if (result.isOk() && result.getValue().isObject())
+            {
+                auto response = result.getValue();
+                if (response.hasProperty("stories"))
+                {
+                    auto* storiesArray = response["stories"].getArray();
+                    if (storiesArray)
+                    {
+                        // Check if any story belongs to this user and is not expired
+                        for (const auto& storyVar : *storiesArray)
+                        {
+                            juce::String storyUserId = storyVar["user_id"].toString();
+                            if (storyUserId == userId)
+                            {
+                                // Check expiration
+                                juce::String expiresAtStr = storyVar["expires_at"].toString();
+                                if (expiresAtStr.isNotEmpty())
+                                {
+                                    juce::Time expiresAt = juce::Time::fromISO8601(expiresAtStr);
+                                    if (expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < expiresAt)
+                                    {
+                                        hasStory = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (hasActiveStory != hasStory)
+            {
+                hasActiveStory = hasStory;
+                repaint();
+            }
+        });
+    });
 }

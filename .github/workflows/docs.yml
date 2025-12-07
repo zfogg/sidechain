@@ -66,7 +66,7 @@ jobs:
         run: |
           # Install only documentation tools - no C++ build dependencies
           sudo apt-get update
-          sudo apt-get install -y doxygen graphviz cmake
+          sudo apt-get install -y doxygen graphviz cmake ninja-build
 
           # Build docs directly from docs/ directory (standalone, no plugin build)
           # This only runs Doxygen to parse C++ source files (no compilation)

@@ -209,7 +209,7 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics& g)
     if (unlockAnimationProgress > 0.3f)
     {
         g.setFont(juce::Font(48.0f));
-        g.drawText("🎹", bounds.withY(bounds.getY() + 60), juce::Justification::centred);
+        g.drawText("SYNTH", bounds.withY(bounds.getY() + 60), juce::Justification::centred);
     }
 }
 

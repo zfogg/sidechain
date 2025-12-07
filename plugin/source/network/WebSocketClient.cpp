@@ -244,6 +244,15 @@ void WebSocketClient::attemptConnection()
         // Create and initialize client
         client = std::make_unique<wspp_client>();
 
+        // Disable verbose logging from websocketpp (only log errors)
+        client->clear_access_channels(websocketpp::log::alevel::all);
+        client->set_access_channels(websocketpp::log::alevel::fail);
+        client->clear_error_channels(websocketpp::log::elevel::all);
+        client->set_error_channels(websocketpp::log::elevel::info | 
+                                   websocketpp::log::elevel::warn | 
+                                   websocketpp::log::elevel::rerror | 
+                                   websocketpp::log::elevel::fatal);
+
         // Initialize ASIO
         client->init_asio();
 
@@ -282,6 +291,10 @@ void WebSocketClient::attemptConnection()
             handleDisconnect("Connection error: " + juce::String(ec.message().c_str()));
             return;
         }
+
+        // Note: Compression (permessage-deflate) is automatically negotiated by websocketpp
+        // if both client and server support it. The backend supports compression,
+        // so it will be enabled automatically during the WebSocket handshake.
 
         currentConnection = con->get_handle();
 
@@ -411,14 +424,83 @@ void WebSocketClient::onWsClose(connection_hdl hdl)
 
 void WebSocketClient::onWsMessage(connection_hdl hdl, message_ptr msg)
 {
-    std::string payload = msg->get_payload();
-    juce::String text = juce::String::fromUTF8(payload.c_str(), static_cast<int>(payload.length()));
-    processTextMessage(text);
-
+    try
     {
-        std::lock_guard<std::mutex> lock(statsMutex);
-        stats.messagesReceived++;
-        stats.lastMessageTime = juce::Time::currentTimeMillis();
+        // Get the opcode to determine message type
+        auto opcode = msg->get_opcode();
+        std::string payload = msg->get_payload();
+        
+        // Log raw payload info for debugging (truncate for readability)
+        if (payload.length() > 0)
+        {
+            juce::String payloadInfo = "WebSocket frame received - opcode: ";
+            payloadInfo += juce::String(static_cast<int>(opcode));
+            payloadInfo += ", size: " + juce::String(static_cast<int>(payload.length())) + " bytes";
+            
+            // If it's a text message, decode and show preview
+            if (opcode == websocketpp::frame::opcode::text)
+            {
+                juce::String text = juce::String::fromUTF8(payload.c_str(), static_cast<int>(payload.length()));
+                
+                // Log decoded text (truncate long messages)
+                if (text.length() > 200)
+                {
+                    payloadInfo += ", decoded (truncated): " + text.substring(0, 200) + "...";
+                }
+                else
+                {
+                    payloadInfo += ", decoded: " + text;
+                }
+                
+                Log::debug(payloadInfo);
+                processTextMessage(text);
+            }
+            else if (opcode == websocketpp::frame::opcode::binary)
+            {
+                // Binary message - show hex representation of first bytes
+                payloadInfo += ", binary data (hex): ";
+                int bytesToShow = juce::jmin(static_cast<int>(payload.length()), 50);
+                for (int i = 0; i < bytesToShow; ++i)
+                {
+                    payloadInfo += juce::String::formatted("%02X ", static_cast<unsigned char>(payload[i]));
+                }
+                if (payload.length() > 50)
+                {
+                    payloadInfo += "...";
+                }
+                Log::debug(payloadInfo);
+                
+                // Try to decode as UTF-8 text anyway (some servers send text as binary)
+                juce::String text = juce::String::fromUTF8(payload.c_str(), static_cast<int>(payload.length()));
+                if (text.isNotEmpty())
+                {
+                    processTextMessage(text);
+                }
+                else
+                {
+                    Log::warn("WebSocket: Received binary message that couldn't be decoded as text");
+                }
+            }
+            else
+            {
+                // Other opcodes (ping, pong, close, etc.)
+                Log::debug(payloadInfo);
+            }
+        }
+        else
+        {
+            Log::debug("WebSocket: Received empty frame - opcode: " + juce::String(static_cast<int>(opcode)));
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(statsMutex);
+            stats.messagesReceived++;
+            stats.lastMessageTime = juce::Time::currentTimeMillis();
+        }
+    }
+    catch (const std::exception& e)
+    {
+        Log::error("WebSocket: Error processing message - " + juce::String(e.what()));
     }
 }
 

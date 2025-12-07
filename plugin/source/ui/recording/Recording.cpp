@@ -3,7 +3,7 @@
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
-#include "../../util/Async.h"
+#include "../../util/Constants.h"
 
 //==============================================================================
 Recording::Recording(SidechainAudioProcessor& processor)
@@ -47,7 +47,10 @@ void Recording::timerCallback()
     }
 
     // Update progressive key detection periodically during recording
-    if (currentState == State::Recording && ProgressiveKeyDetector::isAvailable())
+    // Only update if detector is active and has processed some audio
+    // Calling getCurrentKey() before any audio is processed can cause crashes
+    if (currentState == State::Recording && ProgressiveKeyDetector::isAvailable() && 
+        progressiveKeyDetector.isActive() && progressiveKeyDetector.getSamplesProcessed() > 0)
     {
         updateKeyDetection();
     }
@@ -82,7 +85,11 @@ void Recording::paint(juce::Graphics& g)
 void Recording::resized()
 {
     Log::debug("Recording::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
-    auto bounds = getLocalBounds().reduced(20);
+    // Account for header - component is positioned below header in PluginEditor, but add extra top padding
+    // to ensure content doesn't appear too close to header visually
+    auto bounds = getLocalBounds();
+    bounds.removeFromTop(Constants::Ui::HEADER_HEIGHT / 2); // Add extra spacing from header
+    bounds = bounds.reduced(20); // Standard padding on all sides
 
     // Calculate areas based on component size
     int topSectionHeight = 80;
@@ -524,6 +531,16 @@ juce::Path Recording::generateWaveformPath(const juce::AudioBuffer<float>& buffe
 void Recording::startRecording()
 {
     Log::info("Recording::startRecording: Starting recording");
+    
+    // Safety check: ensure processor is prepared before starting
+    double sampleRate = audioProcessor.getCurrentSampleRate();
+    if (sampleRate <= 0.0)
+    {
+        Log::error("Recording::startRecording: Invalid sample rate (" + juce::String(sampleRate) + 
+                   "Hz). Processor may not be prepared. Using default.");
+        sampleRate = Constants::Audio::DEFAULT_SAMPLE_RATE;
+    }
+    
     audioProcessor.startRecording();
     currentState = State::Recording;
 
@@ -533,7 +550,6 @@ void Recording::startRecording()
     // Start progressive key detection if available
     if (ProgressiveKeyDetector::isAvailable())
     {
-        double sampleRate = audioProcessor.getCurrentSampleRate();
         if (progressiveKeyDetector.start(sampleRate))
         {
             Log::info("Recording::startRecording: Progressive key detection started at " + juce::String(sampleRate, 1) + "Hz");
@@ -696,7 +712,9 @@ void Recording::confirmRecording()
 void Recording::updateKeyDetection()
 {
     // Update key detection display from progressive detector
-    if (progressiveKeyDetector.isActive())
+    // Only call getCurrentKey() if detector is active and has processed samples
+    // Calling it before any audio chunks are added can cause crashes
+    if (progressiveKeyDetector.isActive() && progressiveKeyDetector.getSamplesProcessed() > 0)
     {
         auto result = progressiveKeyDetector.getCurrentKey();
         if (result.isValid())

@@ -42,6 +42,9 @@ juce_add_plugin(Sidechain
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Sidechain needs microphone access to capture audio"
 
+    # Configure standalone to use microphone input by default
+    # JUCE will enable input channels and use the default input device (microphone)
+
     # Don't copy after build in CI - we handle installation separately
     COPY_PLUGIN_AFTER_BUILD FALSE
 )
@@ -68,6 +71,14 @@ target_compile_definitions(Sidechain
         JucePlugin_PreferredChannelConfigurations=1
         JucePlugin_ChannelConfigurations="{2, 2}"
 )
+
+# Configure standalone app to use microphone by default
+# JUCE's auto-generated standalone wrapper will use the default input device (microphone)
+# when preferredDefaultNumInputChannels is set via StandalonePluginHolder::Options
+if(SIDECHAIN_BUILD_STANDALONE)
+    message(STATUS "Standalone app will be configured to use microphone input by default")
+    # The audio device configuration is handled in PluginProcessor for standalone mode
+endif()
 
 # Add generated headers to include path (for Version.h)
 target_include_directories(Sidechain PRIVATE 

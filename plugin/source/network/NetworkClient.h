@@ -101,6 +101,10 @@ public:
         // MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
         juce::var midiData;           ///< MIDI events captured during recording (optional)
         bool includeMidi = true;      ///< Whether to upload MIDI with the post
+
+        // Project file data (R.3.4 Project File Exchange)
+        juce::File projectFile;       ///< DAW project file to upload (optional)
+        bool includeProjectFile = false; ///< Whether to upload project file with the post
     };
 
     //==========================================================================
@@ -247,6 +251,36 @@ public:
      * @param callback Called with result or error
      */
     void reportPost(const juce::String& postId, const juce::String& reason, const juce::String& description = "", ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // R.3.2 Remix Chains operations
+
+    /** Get the remix chain for a post (shows original -> remix -> remix lineage)
+     * @param postId The post ID to get the chain for
+     * @param callback Called with chain data or error
+     *                 Response format: { chain: [{id, type, username, depth, is_current}, ...], total_depth: N }
+     */
+    void getRemixChain(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Get all remixes of a post
+     * @param postId The post ID
+     * @param callback Called with array of remix posts or error
+     */
+    void getPostRemixes(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Get remix source content (audio/MIDI URLs for remixing)
+     * @param postId The post ID to get remix source from
+     * @param callback Called with source URLs or error
+     *                 Response format: { audio_url, midi_url, bpm, key, remix_type }
+     */
+    void getRemixSource(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Create a remix post of another post
+     * @param sourcePostId The post being remixed
+     * @param remixType What was remixed: "audio", "midi", or "both"
+     * @param callback Called with new post data or error
+     */
+    void createRemixPost(const juce::String& sourcePostId, const juce::String& remixType, ResponseCallback callback = nullptr);
 
     //==========================================================================
     // Download operations
@@ -433,6 +467,21 @@ public:
     void downloadProjectFile(const juce::String& projectFileId, const juce::File& targetFile,
                              DownloadProgressCallback progressCallback = nullptr,
                              ResponseCallback callback = nullptr);
+
+    /** Upload a project file (DAW project: .als, .flp, .logic, etc.)
+     * @param projectFile The project file to upload
+     * @param audioPostId Optional audio post ID to link the project file to
+     * @param description Optional description
+     * @param isPublic Whether the project file is public (default: true)
+     * @param progressCallback Optional callback for upload progress (0.0 to 1.0)
+     * @param callback Called with project file ID or error
+     */
+    void uploadProjectFile(const juce::File& projectFile,
+                          const juce::String& audioPostId = "",
+                          const juce::String& description = "",
+                          bool isPublic = true,
+                          DownloadProgressCallback progressCallback = nullptr,
+                          UploadCallback callback = nullptr);
 
     /** Follow a user
      * @param userId The user ID to follow
@@ -722,6 +771,7 @@ public:
     // Stories operations
     // Get stories feed (ephemeral music clips from followed users)
     void getStoriesFeed(ResponseCallback callback = nullptr);
+    void deleteStory(const juce::String& storyId, ResponseCallback callback = nullptr);
 
     // Mark a story as viewed
     void viewStory(const juce::String& storyId, ResponseCallback callback = nullptr);

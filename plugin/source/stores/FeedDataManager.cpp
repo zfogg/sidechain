@@ -260,15 +260,15 @@ juce::String FeedDataManager::getEndpointForFeedType(FeedType feedType) const
     switch (feedType)
     {
         case FeedType::Timeline:
-            return "/api/feed/timeline";
+            return "/api/v1/feed/timeline";
         case FeedType::Global:
-            return "/api/feed/global";
+            return "/api/v1/feed/global";
         case FeedType::Trending:
-            return "/api/feed/trending";
+            return "/api/v1/feed/trending";
         case FeedType::ForYou:
-            return "/api/recommendations/for-you";
+            return "/api/v1/recommendations/for-you";
         default:
-            return "/api/feed/global";
+            return "/api/v1/feed/global";
     }
 }
 

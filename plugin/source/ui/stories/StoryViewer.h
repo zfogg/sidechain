@@ -72,6 +72,13 @@ public:
     // Called when user wants to download MIDI from story
     std::function<void(const StoryData& story)> onDownloadMIDIClicked;
 
+    // Called when user wants to remix the story (R.3.2 Remix Chains)
+    // Parameters: storyId, remixType ("audio", "midi", or "both")
+    std::function<void(const juce::String& storyId, const juce::String& remixType)> onRemixClicked;
+
+    // Called when user wants to delete their own story
+    std::function<void(const juce::String& storyId)> onDeleteClicked;
+
 private:
     //==============================================================================
     NetworkClient* networkClient = nullptr;
@@ -89,6 +96,10 @@ private:
 
     // Piano roll component for MIDI visualization
     std::unique_ptr<PianoRoll> pianoRoll;
+
+    // Waveform data
+    juce::Path currentWaveformPath;
+    bool waveformLoaded = false;
 
     // Swipe detection
     juce::Point<int> dragStartPoint;
@@ -112,7 +123,9 @@ private:
     juce::Rectangle<int> rightTapArea;
     juce::Rectangle<int> viewersButtonArea;
     juce::Rectangle<int> shareButtonArea;
+    juce::Rectangle<int> deleteButtonArea;  // Delete button for own stories
     juce::Rectangle<int> midiButtonArea;
+    juce::Rectangle<int> remixButtonArea;  // R.3.2 Remix Chains
 
     //==============================================================================
     // Drawing helpers
@@ -126,7 +139,9 @@ private:
     void drawExpiredMessage(juce::Graphics& g);
     void drawViewersButton(juce::Graphics& g);
     void drawShareButton(juce::Graphics& g);
+    void drawDeleteButton(juce::Graphics& g);  // Delete button for own stories
     void drawMIDIButton(juce::Graphics& g);
+    void drawRemixButton(juce::Graphics& g);  // R.3.2 Remix Chains
 
     // Story management
     void loadCurrentStory();
@@ -142,6 +157,9 @@ private:
 
     // Download MIDI from story (R.3.3.5.5)
     void handleDownloadMIDI(const StoryData& story);
+
+    // Delete story (for story owner)
+    void handleDeleteStory(const juce::String& storyId);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StoryViewer)
 };

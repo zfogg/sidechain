@@ -1,6 +1,7 @@
 #include "FeedPost.h"
 #include "../util/Json.h"
 #include "../util/Log.h"
+#include "../util/Time.h"
 
 //==============================================================================
 /** Create a FeedPost from JSON data
@@ -29,7 +30,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     {
         // getstream.io uses ISO 8601 format: "2024-01-15T10:30:00.000Z"
         post.timestamp = juce::Time::fromISO8601(timeStr);
-        post.timeAgo = formatTimeAgo(post.timestamp);
+        post.timeAgo = TimeUtils::formatTimeAgo(post.timestamp);
     }
 
     // User info (may be nested in actor_data or user object)
@@ -72,6 +73,34 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     // If we have a project_file_id, we have a project file
     if (post.projectFileId.isNotEmpty())
         post.hasProjectFile = true;
+
+    // Remix metadata (R.3.2 Remix Chains)
+    post.remixOfPostId = Json::getString(json, "remix_of_post_id");
+    post.remixOfStoryId = Json::getString(json, "remix_of_story_id");
+    post.remixType = Json::getString(json, "remix_type");
+    post.remixChainDepth = Json::getInt(json, "remix_chain_depth");
+    post.remixCount = Json::getInt(json, "remix_count");
+    // Post is a remix if it has a remix source
+    post.isRemix = post.remixOfPostId.isNotEmpty() || post.remixOfStoryId.isNotEmpty();
+    // Also check extra data for remix info (from getstream.io activity extra field)
+    if (!post.isRemix && Json::hasKey(json, "extra"))
+    {
+        auto extra = Json::getObject(json, "extra");
+        if (Json::hasKey(extra, "remix_of_post_id"))
+        {
+            post.remixOfPostId = Json::getString(extra, "remix_of_post_id");
+            post.isRemix = true;
+        }
+        if (Json::hasKey(extra, "remix_of_story_id"))
+        {
+            post.remixOfStoryId = Json::getString(extra, "remix_of_story_id");
+            post.isRemix = true;
+        }
+        if (Json::hasKey(extra, "remix_type"))
+            post.remixType = Json::getString(extra, "remix_type");
+        if (Json::hasKey(extra, "remix_chain_depth"))
+            post.remixChainDepth = Json::getInt(extra, "remix_chain_depth");
+    }
 
     // Parse genres array
     auto genreVar = Json::getArray(json, "genre");
@@ -209,6 +238,20 @@ juce::var FeedPost::toJson() const
         obj->setProperty("project_file_id", projectFileId);
     if (projectFileDaw.isNotEmpty())
         obj->setProperty("project_file_daw", projectFileDaw);
+
+    // Remix metadata (R.3.2)
+    if (isRemix || remixCount > 0)
+    {
+        obj->setProperty("is_remix", isRemix);
+        if (remixOfPostId.isNotEmpty())
+            obj->setProperty("remix_of_post_id", remixOfPostId);
+        if (remixOfStoryId.isNotEmpty())
+            obj->setProperty("remix_of_story_id", remixOfStoryId);
+        if (remixType.isNotEmpty())
+            obj->setProperty("remix_type", remixType);
+        obj->setProperty("remix_chain_depth", remixChainDepth);
+        obj->setProperty("remix_count", remixCount);
+    }
 
     // Genres
     juce::Array<juce::var> genreArray;
