@@ -129,49 +129,10 @@ jobs:
           # Go back to workspace root
           cd ${{ github.workspace }}
           
-          # Download all package pages and assets using wget mirror
-          # wget --mirror automatically handles link conversion and downloads all assets
-          echo "Downloading pkgsite documentation..."
-          PACKAGE_PATH="github.com/zfogg/sidechain/backend"
-          
-          wget \
-            --mirror \
-            --convert-links \
-            --adjust-extension \
-            --page-requisites \
-            --no-parent \
-            --no-host-directories \
-            --cut-dirs=0 \
-            --directory-prefix=docs/_build/html/backend/godoc \
-            --quiet \
-            --level=20 \
-            --wait=0 \
-            --recursive \
-            http://localhost:8080/${PACKAGE_PATH}/ || echo "Warning: Some files may not have downloaded"
-          
-          # Stop pkgsite
-          kill $PKGSITE_PID || true
-          wait $PKGSITE_PID 2>/dev/null || true
-          
-          # Verify we got the files
-          if [ -f "docs/_build/html/backend/godoc/${PACKAGE_PATH}/index.html" ]; then
-            echo "✓ Go documentation generated successfully"
-            HTML_COUNT=$(find docs/_build/html/backend/godoc -name "*.html" 2>/dev/null | wc -l)
-            echo "  Downloaded $HTML_COUNT HTML files"
-          else
-            echo "✗ Failed to generate Go documentation - no HTML files found"
-            exit 1
-          fi
-          
-          # Create symlink for zfogg/sidechain path (without github.com prefix)
-          # This matches the links in docs/backend/index.rst
-          echo "Creating symlink for zfogg/sidechain path..."
-          if [ -d "docs/_build/html/backend/godoc/github.com/zfogg/sidechain" ] && [ ! -d "docs/_build/html/backend/godoc/zfogg" ]; then
-            mkdir -p docs/_build/html/backend/godoc/zfogg
-            ln -sf ../github.com/zfogg/sidechain docs/_build/html/backend/godoc/zfogg/sidechain || \
-            cp -r docs/_build/html/backend/godoc/github.com/zfogg/sidechain docs/_build/html/backend/godoc/zfogg/sidechain
-            echo "✓ Created zfogg/sidechain path"
-          fi
+          # Use the generate-pkgsite.sh script to ensure consistency
+          cd ${{ github.workspace }}
+          chmod +x docs/generate-pkgsite.sh
+          ./docs/generate-pkgsite.sh
 
       - name: Build Sphinx documentation
         working-directory: docs
