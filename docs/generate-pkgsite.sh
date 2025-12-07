@@ -66,7 +66,8 @@ echo "Downloading pkgsite documentation and assets..."
 # pkgsite uses /github.com/username/repo/... path structure
 PACKAGE_PATH="github.com/zfogg/sidechain/backend"
 
-# Use wget mirror to download everything with automatic link conversion
+# First download the static assets directory
+echo "Downloading static assets..."
 wget \
     --mirror \
     --convert-links \
@@ -76,7 +77,24 @@ wget \
     --no-host-directories \
     --cut-dirs=0 \
     --directory-prefix=docs/_build/html/backend/godoc \
-    --accept="*.html,*.css,*.js,*.woff,*.woff2,*.ttf,*.svg,*.png,*.ico" \
+    --accept="*.css,*.js,*.woff,*.woff2,*.ttf,*.svg,*.png,*.ico" \
+    --reject="*.html,robots.txt" \
+    --quiet \
+    --level=5 \
+    http://localhost:8080/static/ || echo "Note: Some static assets may not be available"
+
+# Then download the package pages
+echo "Downloading package pages..."
+wget \
+    --mirror \
+    --convert-links \
+    --adjust-extension \
+    --page-requisites \
+    --no-parent \
+    --no-host-directories \
+    --cut-dirs=0 \
+    --directory-prefix=docs/_build/html/backend/godoc \
+    --accept="*.html" \
     --reject="robots.txt" \
     --quiet \
     --level=10 \
