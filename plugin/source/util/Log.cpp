@@ -16,6 +16,7 @@ namespace
     bool consoleLoggingEnabled = true;
     bool initialized = false;
     bool initializationAttempted = false;
+    bool shutdownCalled = false;
 
 #ifdef NDEBUG
     Level minLevel = Level::Info;  // Release: Info and above
@@ -59,7 +60,7 @@ namespace
     // Initialize file logging (lazy, thread-safe)
     void initializeFileLogging()
     {
-        if (initializationAttempted)
+        if (initializationAttempted || shutdownCalled)
             return;
 
         initializationAttempted = true;
@@ -294,6 +295,27 @@ void flush()
             // Ignore flush errors
         }
     }
+}
+
+void shutdown()
+{
+    std::lock_guard<std::mutex> lock(logMutex);
+
+    shutdownCalled = true;
+
+    if (fileStream)
+    {
+        try
+        {
+            fileStream->flush();
+        }
+        catch (...)
+        {
+            // Ignore flush errors
+        }
+        fileStream.reset();
+    }
+    initialized = false;
 }
 
 }  // namespace Log

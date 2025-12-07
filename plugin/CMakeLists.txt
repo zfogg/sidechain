@@ -82,6 +82,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
 endif()
 
+# PIC is required for all static libraries since they link into a VST3 shared library
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Export compile_commands.json for IDE support (clangd, etc.)
 # This can be overridden by setting CMAKE_EXPORT_COMPILE_COMMANDS=OFF
 if(NOT DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
@@ -147,11 +150,18 @@ target_link_libraries(SidechainJuceHeaderHelper PRIVATE
     juce::juce_gui_basics
     juce::juce_gui_extra
     # All modules linked to generate complete header
-    # JUCE modules will automatically link their system dependencies (GTK, etc.)
     juce::juce_recommended_config_flags
 )
 
-# GUI modules are now included - GTK is installed so they can compile
+# Add GTK includes for Linux (required by juce_gui_extra)
+if(UNIX AND NOT APPLE)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+    pkg_check_modules(WEBKIT REQUIRED webkit2gtk-4.1)
+    pkg_check_modules(CURL REQUIRED libcurl)
+    target_include_directories(SidechainJuceHeaderHelper PRIVATE ${GTK3_INCLUDE_DIRS} ${WEBKIT_INCLUDE_DIRS})
+    target_link_libraries(SidechainJuceHeaderHelper PRIVATE ${GTK3_LIBRARIES} ${WEBKIT_LIBRARIES} ${CURL_LIBRARIES})
+endif()
 
 # Generate the header - this creates JuceLibraryCode directory with JuceHeader.h
 juce_generate_juce_header(SidechainJuceHeaderHelper)
@@ -162,10 +172,10 @@ target_include_directories(SidechainJuceHeader INTERFACE
     ${CMAKE_CURRENT_BINARY_DIR}/SidechainJuceHeaderHelper_artefacts/JuceLibraryCode
 )
 
-# The header is generated during CMake configuration by juce_generate_juce_header
-# (it doesn't require building the helper executable - juce_generate_juce_header runs at configure time)
-# The header should already exist after CMake configuration completes
-# No need to add build-time dependencies - the header is available immediately after configuration
+# The header is generated at BUILD time by juce::juceaide (not configure time).
+# We must ensure SidechainJuceHeaderHelper builds before any library that includes JuceHeader.h.
+# This dependency propagates through the INTERFACE library.
+add_dependencies(SidechainJuceHeader SidechainJuceHeaderHelper)
 
 #==============================================================================
 # Build libraries in dependency order

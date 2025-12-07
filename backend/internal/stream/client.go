@@ -1368,6 +1368,29 @@ func convertStreamActivity(act *stream.Activity) *Activity {
 			}
 			activity.Extra["comment_count"] = int(commentCount)
 		}
+		// Extract MIDI info if present (R.3.3 Cross-DAW MIDI Collaboration)
+		if hasMidi, ok := act.Extra["has_midi"].(bool); ok && hasMidi {
+			if activity.Extra == nil {
+				activity.Extra = make(map[string]interface{})
+			}
+			activity.Extra["has_midi"] = true
+			if midiPatternID, ok := act.Extra["midi_pattern_id"].(string); ok {
+				activity.Extra["midi_pattern_id"] = midiPatternID
+			}
+		}
+		// Extract project file info if present (R.3.4 Project File Exchange)
+		if hasProjectFile, ok := act.Extra["has_project_file"].(bool); ok && hasProjectFile {
+			if activity.Extra == nil {
+				activity.Extra = make(map[string]interface{})
+			}
+			activity.Extra["has_project_file"] = true
+			if projectFileID, ok := act.Extra["project_file_id"].(string); ok {
+				activity.Extra["project_file_id"] = projectFileID
+			}
+			if projectFileDaw, ok := act.Extra["project_file_daw"].(string); ok {
+				activity.Extra["project_file_daw"] = projectFileDaw
+			}
+		}
 	}
 
 	// Extract Object field

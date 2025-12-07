@@ -51,6 +51,9 @@ public:
     // Set the audio to upload (called when user confirms recording)
     void setAudioToUpload(const juce::AudioBuffer<float>& audio, double sampleRate);
 
+    // Set the audio and MIDI data to upload (R.3.3 Cross-DAW MIDI Collaboration)
+    void setAudioToUpload(const juce::AudioBuffer<float>& audio, double sampleRate, const juce::var& midiData);
+
     // Clear state and prepare for new upload
     void reset();
 
@@ -99,6 +102,10 @@ private:
     bool bpmFromDAW = false;
     int selectedKeyIndex = 0;      // 0 = "Not set"
     int selectedGenreIndex = 0;    // 0 = first genre
+
+    // MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
+    juce::var midiData;            // Captured MIDI events from recording
+    bool includeMidi = true;       // Whether to include MIDI in upload
 
     // UI state
     int activeField = -1;  // -1 = none, 0 = title, 1 = bpm

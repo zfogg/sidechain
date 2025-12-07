@@ -589,6 +589,18 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
             fields["duration_bars"] = juce::String(juce::jmax(1, bars));
         }
 
+        // Include MIDI data if available (R.3.3 Cross-DAW MIDI Collaboration)
+        if (metadataCopy.includeMidi && !metadataCopy.midiData.isVoid())
+        {
+            // Serialize MIDI data as JSON string for multipart field
+            juce::String midiJson = juce::JSON::toString(metadataCopy.midiData, true);
+            if (midiJson.isNotEmpty() && midiJson != "null")
+            {
+                fields["midi_data"] = midiJson;
+                Log::debug("Including MIDI data in upload: " + juce::String(midiJson.length()) + " chars");
+            }
+        }
+
         // Generate filename
         juce::String safeTitle = metadataCopy.title.replaceCharacters(" /\\:*?\"<>|", "-----------");
         juce::String fileName = safeTitle + "-" + recordingId.substring(0, 8) + ".wav";

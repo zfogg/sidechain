@@ -140,5 +140,8 @@ private:
     // Share story (copy link to clipboard)
     void handleShareStory(const juce::String& storyId);
 
+    // Download MIDI from story (R.3.3.5.5)
+    void handleDownloadMIDI(const StoryData& story);
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StoryViewer)
 };

@@ -162,10 +162,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     //==========================================================================
     // Create RecordingComponent
     recordingComponent = std::make_unique<Recording>(audioProcessor);
-    recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio) {
+    recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float>& recordedAudio, const juce::var& midiData) {
         if (uploadComponent)
         {
-            uploadComponent->setAudioToUpload(recordedAudio, audioProcessor.getCurrentSampleRate());
+            // Use MIDI data passed from Recording (either captured or imported) (R.3.3)
+            uploadComponent->setAudioToUpload(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData);
             showView(AppView::Upload);
         }
     };

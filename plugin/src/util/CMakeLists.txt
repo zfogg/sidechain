@@ -62,7 +62,7 @@ if(CMAKE_CONFIGURATION_TYPES)
     )
 else()
     # Single-config generator (Unix Makefiles, Ninja) - check CMAKE_BUILD_TYPE
-    set(PIC_ENABLED OFF)
+    set(PIC_ENABLED ON)
     if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
         set(PIC_ENABLED ON)
     endif()

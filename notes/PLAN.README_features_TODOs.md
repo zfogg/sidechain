@@ -737,9 +737,10 @@ Based on feature audit, the following README features need completion:
   - Link via midi_id
   - Keeps embedded data for backwards compat
 
-- [ ] R.3.3.4.3 Update feed responses to include MIDI info
+- [x] R.3.3.4.3 Update feed responses to include MIDI info ✅
   - Add `has_midi: true` and `midi_id: "..."` to post responses
   - Plugin uses this to show "Download MIDI" button
+  - Implemented in `backend/internal/stream/client.go` (lines 1371-1380)
 
 - [x] R.3.3.4.4 Write handler tests
   - 14 tests covering all MIDI CRUD operations
@@ -775,25 +776,25 @@ Based on feature audit, the following README features need completion:
   - Shows success/error AlertWindow
   - File: `plugin/source/ui/feed/PostsFeed.cpp`
 
-- [ ] R.3.3.5.5 Add MIDI to Story viewer
+- [x] R.3.3.5.5 Add MIDI to Story viewer ✅
   - Stories with MIDI show download button
   - Same download flow as posts
   - File: `plugin/source/ui/stories/StoryViewer.cpp`
 
 #### R.3.3.6 Plugin UI - MIDI Upload
 
-- [ ] R.3.3.6.1 Capture MIDI during recording
+- [x] R.3.3.6.1 Capture MIDI during recording ✅
   - MIDICapture already captures MIDI events
   - Package as MIDIData JSON when recording completes
   - Include tempo from DAW if available
 
-- [ ] R.3.3.6.2 Update Upload component to include MIDI
+- [x] R.3.3.6.2 Update Upload component to include MIDI ✅
   - If MIDI was captured during recording, include in upload
   - Show MIDI preview (note count, duration)
   - Toggle: "Include MIDI" (default on if captured)
   - File: `plugin/source/ui/recording/Upload.cpp`
 
-- [ ] R.3.3.6.3 Add MIDI import option in recording
+- [x] R.3.3.6.3 Add MIDI import option in recording ✅
   - "Import MIDI" button in Recording view
   - File chooser for .mid files
   - Parse and display imported MIDI

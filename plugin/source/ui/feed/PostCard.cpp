@@ -366,6 +366,15 @@ void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds
         badgeY += BADGE_HEIGHT;
     }
 
+    // MIDI badge (always visible when post has MIDI)
+    if (post.hasMidi)
+    {
+        auto midiBadgeBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
+        UIHelpers::drawBadge(g, midiBadgeBounds, "MIDI",
+            SidechainColors::primary().withAlpha(0.2f), SidechainColors::primary(), 11.0f, 4.0f);
+        badgeY += BADGE_HEIGHT + 5;
+    }
+
     // Recommendation reason badge (for "For You" feed)
     if (post.recommendationReason.isNotEmpty())
     {

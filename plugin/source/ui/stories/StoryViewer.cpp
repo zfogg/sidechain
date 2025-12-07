@@ -179,6 +179,7 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
     // MIDI download button (available to all viewers when story has MIDI)
     if (story && story->hasDownloadableMIDI() && midiButtonArea.contains(pos))
     {
+        handleDownloadMIDI(*story);
         if (onDownloadMIDIClicked)
             onDownloadMIDIClicked(*story);
         return;
@@ -591,6 +592,72 @@ void StoryViewer::handleShareStory(const juce::String& storyId)
     juce::String shareUrl = "https://sidechain.live/story/" + storyId;
     juce::SystemClipboard::copyTextToClipboard(shareUrl);
     Log::info("StoryViewer: Copied story link to clipboard: " + shareUrl);
+}
+
+//==============================================================================
+// MIDI download functionality (R.3.3.5.5)
+void StoryViewer::handleDownloadMIDI(const StoryData& story)
+{
+    Log::debug("StoryViewer: Download MIDI clicked for story: " + story.id + ", midiId: " + story.midiPatternId);
+
+    if (!story.hasDownloadableMIDI() || story.midiPatternId.isEmpty())
+    {
+        Log::warn("StoryViewer: Cannot download MIDI - no MIDI pattern ID available");
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "Error",
+            "No MIDI data available for this story.");
+        return;
+    }
+
+    if (networkClient == nullptr)
+    {
+        Log::warn("StoryViewer: Cannot download MIDI - networkClient is null");
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "Error",
+            "Unable to download MIDI. Please try again later.");
+        return;
+    }
+
+    // Determine target location for MIDI files
+    juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+        .getChildFile("Sidechain")
+        .getChildFile("MIDI");
+
+    if (!targetDir.exists())
+    {
+        targetDir.createDirectory();
+    }
+
+    // Create filename from story username and ID
+    juce::String safeName = story.username.isNotEmpty() ? story.username : "unknown";
+    safeName = safeName.replaceCharacters(" /\\:*?\"<>|", "__________");
+    juce::String filename = safeName + "_" + story.midiPatternId.substring(0, 8) + ".mid";
+    juce::File targetFile = targetDir.getChildFile(filename);
+
+    // Download the MIDI file
+    networkClient->downloadMIDI(
+        story.midiPatternId,
+        targetFile,
+        [targetFile](Outcome<juce::var> result) {
+            if (result.isOk())
+            {
+                Log::info("Story MIDI downloaded: " + targetFile.getFullPathName());
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::MessageBoxIconType::InfoIcon,
+                    "MIDI Downloaded",
+                    "MIDI saved to:\n" + targetFile.getFullPathName());
+            }
+            else
+            {
+                Log::error("Failed to download story MIDI: " + result.getError());
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::MessageBoxIconType::WarningIcon,
+                    "Download Failed",
+                    "Failed to download MIDI:\n" + result.getError());
+            }
+        });
 }
 
 //==============================================================================

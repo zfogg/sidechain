@@ -49,6 +49,9 @@ SidechainAudioProcessor::SidechainAudioProcessor()
 SidechainAudioProcessor::~SidechainAudioProcessor()
 {
     Log::debug("SidechainAudioProcessor: Destroying");
+    // Shutdown logging last to ensure all log messages are written
+    // and to prevent JUCE leak detector warnings for FileOutputStream
+    Log::shutdown();
 }
 
 //==============================================================================
