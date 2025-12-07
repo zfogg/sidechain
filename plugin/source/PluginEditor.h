@@ -20,6 +20,7 @@
 #include "ui/messages/MessagesList.h"
 #include "ui/messages/MessageThread.h"
 #include "ui/stories/StoryRecording.h"
+#include "ui/synth/HiddenSynth.h"
 #include "network/StreamChatClient.h"
 
 //==============================================================================
@@ -64,7 +65,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, HiddenSynth };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
@@ -134,6 +135,7 @@ private:
     std::unique_ptr<MessagesList> messagesListComponent;
     std::unique_ptr<MessageThread> messageThreadComponent;
     std::unique_ptr<StoryRecording> storyRecordingComponent;
+    std::unique_ptr<HiddenSynth> hiddenSynthComponent;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;
