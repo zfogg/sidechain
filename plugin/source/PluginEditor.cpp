@@ -259,6 +259,26 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(storyRecordingComponent.get());
 
     //==========================================================================
+    // Create HiddenSynth easter egg (R.2.1)
+    hiddenSynthComponent = std::make_unique<HiddenSynth>(audioProcessor.getSynthEngine());
+    hiddenSynthComponent->onBackPressed = [this]() {
+        audioProcessor.setSynthEnabled(false);
+        showView(AppView::PostsFeed);
+    };
+    addChildComponent(hiddenSynthComponent.get());
+
+    // Setup synth unlock callback
+    audioProcessor.onSynthUnlocked = [this]() {
+        juce::MessageManager::callAsync([this]() {
+            Log::info("PluginEditor: Synth unlocked! Showing synth view");
+            audioProcessor.setSynthEnabled(true);
+            showView(AppView::HiddenSynth);
+            if (hiddenSynthComponent)
+                hiddenSynthComponent->playUnlockAnimation();
+        });
+    };
+
+    //==========================================================================
     // Create StreamChatClient for getstream.io messaging
     streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
@@ -507,6 +527,9 @@ void SidechainAudioProcessorEditor::resized()
 
     if (storyRecordingComponent)
         storyRecordingComponent->setBounds(contentBounds);
+
+    if (hiddenSynthComponent)
+        hiddenSynthComponent->setBounds(contentBounds);
 }
 
 //==============================================================================
@@ -536,6 +559,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::StoryRecording:
             componentToShow = storyRecordingComponent.get();
+            break;
+        case AppView::HiddenSynth:
+            componentToShow = hiddenSynthComponent.get();
             break;
         case AppView::Discovery:
             componentToShow = userDiscoveryComponent.get();
@@ -574,6 +600,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::StoryRecording:
             componentToHide = storyRecordingComponent.get();
+            break;
+        case AppView::HiddenSynth:
+            componentToHide = hiddenSynthComponent.get();
             break;
         case AppView::Discovery:
             componentToHide = userDiscoveryComponent.get();
@@ -698,7 +727,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             if (authComponent)
             {
                 authComponent->reset();
-                // Visibility already handled above
+                
             }
             break;
 
@@ -711,7 +740,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 {
                     profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
                 }
-                // Visibility already handled above
+                
             }
             break;
 
@@ -719,28 +748,30 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             if (postsFeedComponent)
             {
                 postsFeedComponent->setUserInfo(username, email, profilePicUrl);
-                // Visibility already handled above
                 postsFeedComponent->loadFeed();
             }
             break;
 
         case AppView::Recording:
-            // Visibility already handled above
+            
             break;
 
         case AppView::Upload:
-            // Visibility already handled above
+            
             break;
 
         case AppView::StoryRecording:
-            // Visibility already handled above
+
+            break;
+
+        case AppView::HiddenSynth:
+            // Synth is self-contained, no additional setup needed
             break;
 
         case AppView::Discovery:
             if (userDiscoveryComponent)
             {
                 userDiscoveryComponent->setCurrentUserId(authToken);  // Use auth token or actual user ID
-                // Visibility already handled above
                 userDiscoveryComponent->loadDiscoveryData();
             }
             break;
@@ -754,7 +785,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
 
                 // Load the profile for the specified user
                 profileComponent->loadProfile(profileUserIdToView);
-                // Visibility already handled above
+                
             }
             break;
 
@@ -763,7 +794,7 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             {
                 if (userDataStore)
                     searchComponent->setCurrentUserId(userDataStore->getUserId());
-                // Visibility already handled above
+                
                 searchComponent->focusSearchInput();
             }
             break;
@@ -771,7 +802,6 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         case AppView::Messages:
             if (messagesListComponent)
             {
-                // Visibility already handled above
                 messagesListComponent->loadChannels();
             }
             break;
@@ -782,7 +812,6 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 if (userDataStore)
                     messageThreadComponent->setCurrentUserId(userDataStore->getUserId());
                 messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
-                // Visibility already handled above
             }
             break;
     }

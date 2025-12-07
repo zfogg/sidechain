@@ -116,10 +116,18 @@ for pkg in internal/handlers internal/models internal/database internal/auth int
         http://localhost:8080/${PACKAGE_PATH}/$pkg/ || echo "    Note: $pkg may not exist"
 done
 
-# Fix any remaining localhost URLs to use relative paths
+# Fix versioned paths (@v0.0.0) - pkgsite generates links with versions but files are downloaded without
+# Also fix any remaining localhost URLs to use relative paths
 # Also fix absolute paths in JavaScript files
-echo "Fixing any remaining absolute URLs in HTML and JS files..."
+echo "Fixing versioned paths and absolute URLs in HTML and JS files..."
 find docs/_build/html/backend/godoc -name "*.html" -o -name "*.js" | while read f; do
+    # First, strip @v0.0.0 (or any @version) from paths in links
+    # This is needed because pkgsite generates links with versions but wget downloads without
+    sed -i \
+        -e 's|@v[0-9][^/"]*||g' \
+        -e 's|href="/github\.com/|href="github.com/|g' \
+        -e 's|src="/github\.com/|src="github.com/|g' \
+        "$f" || true
     # Calculate relative depth from godoc root
     REL_PATH=$(echo "$f" | sed 's|docs/_build/html/backend/godoc/||')
     
