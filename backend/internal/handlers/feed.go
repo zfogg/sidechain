@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"gorm.io/gorm"
 )
 
 // TODO: Phase 4.5.1.1 - Test GetTimeline - authenticated user, pagination, empty feed
@@ -376,5 +378,71 @@ func (h *Handlers) ReportPost(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message":   "report_created",
 		"report_id": report.ID,
+	})
+}
+
+// DownloadPost generates a download URL for a post and tracks the download
+// POST /api/v1/posts/:id/download
+func (h *Handlers) DownloadPost(c *gin.Context) {
+	postID := c.Param("id")
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	// Find the post
+	var post models.AudioPost
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "post_not_found"})
+		return
+	}
+
+	// Check if post is public or user owns it
+	if !post.IsPublic && post.UserID != userID.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "post_not_accessible"})
+		return
+	}
+
+	// Increment download count atomically
+	database.DB.Model(&post).UpdateColumn("download_count", gorm.Expr("download_count + 1"))
+
+	// Reload post to get updated download count
+	database.DB.First(&post, "id = ?", postID)
+
+	// Generate filename: {username}_{title}_{bpm}bpm.mp3
+	// For now, use a simple format since we don't have title field
+	var user models.User
+	database.DB.First(&user, "id = ?", post.UserID)
+	username := user.Username
+	if username == "" {
+		username = "user"
+	}
+
+	// Extract extension from audio URL or default to .mp3
+	extension := ".mp3"
+	if post.OriginalFilename != "" {
+		ext := filepath.Ext(post.OriginalFilename)
+		if ext != "" {
+			extension = ext
+		}
+	}
+
+	filename := fmt.Sprintf("%s_%s_%dbpm%s", username, postID[:8], post.BPM, extension)
+
+	// Return download URL and metadata
+	// Note: For now, we return the public audio URL directly
+	// In the future, we can generate signed URLs with expiration
+	c.JSON(http.StatusOK, gin.H{
+		"download_url": post.AudioURL,
+		"filename":     filename,
+		"metadata": gin.H{
+			"bpm":      post.BPM,
+			"key":      post.Key,
+			"duration": post.Duration,
+			"genre":    post.Genre,
+			"daw":      post.DAW,
+		},
+		"download_count": post.DownloadCount,
 	})
 }
