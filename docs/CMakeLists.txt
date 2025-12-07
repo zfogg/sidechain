@@ -137,9 +137,11 @@ elseif(APPLE)
     )
 else()
     # Linux and other Unix-like systems - use xdg-open with file:// URL
+    # Convert to absolute path using CMake's file(REAL_PATH)
+    file(REAL_PATH "${SPHINX_BUILD_DIR}/index.html" DOCS_INDEX_HTML BASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     add_custom_target(docs-open
         COMMAND ${CMAKE_COMMAND} -E echo "Opening documentation in default browser..."
-        COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}" bash -c "xdg-open \"file://$$(realpath ${SPHINX_BUILD_DIR}/index.html)\""
+        COMMAND bash -c "xdg-open \"file://$$(realpath \"${SPHINX_BUILD_DIR}/index.html\")\""
         DEPENDS docs
         COMMENT "Opening documentation: ${SPHINX_BUILD_DIR}/index.html"
         USES_TERMINAL
