@@ -64,6 +64,7 @@ void StoryViewer::paint(juce::Graphics& g)
     drawProgressBar(g);
     drawHeader(g);
     drawStoryContent(g);
+    drawMIDIButton(g);
 
     // Play/pause overlay if paused
     if (!playing)
@@ -97,6 +98,7 @@ void StoryViewer::resized()
     auto bottomArea = contentArea.removeFromBottom(50);
     viewersButtonArea = bottomArea.removeFromRight(120).reduced(10, 5);
     shareButtonArea = bottomArea.removeFromRight(100).reduced(10, 5);
+    midiButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);
 
     // Piano roll positioning
     if (pianoRoll)
@@ -172,6 +174,14 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
                 onShareClicked(story->id);
             return;
         }
+    }
+
+    // MIDI download button (available to all viewers when story has MIDI)
+    if (story && story->hasDownloadableMIDI() && midiButtonArea.contains(pos))
+    {
+        if (onDownloadMIDIClicked)
+            onDownloadMIDIClicked(*story);
+        return;
     }
 
     // Center tap = play/pause
@@ -547,6 +557,30 @@ void StoryViewer::drawShareButton(juce::Graphics& g)
     g.setColour(StoryViewerColors::textPrimary);
     g.setFont(12.0f);
     g.drawText("Share", shareButtonArea, juce::Justification::centred);
+}
+
+void StoryViewer::drawMIDIButton(juce::Graphics& g)
+{
+    const auto* story = getCurrentStory();
+    if (!story || !story->hasDownloadableMIDI())
+        return;
+
+    if (midiButtonArea.isEmpty())
+        return;
+
+    // Button background - use a slightly different color to indicate it's special
+    g.setColour(StoryViewerColors::waveformColor.withAlpha(0.3f));
+    g.fillRoundedRectangle(midiButtonArea.toFloat(), 8.0f);
+
+    // Button border
+    g.setColour(StoryViewerColors::waveformColor.withAlpha(0.7f));
+    g.drawRoundedRectangle(midiButtonArea.toFloat(), 8.0f, 1.0f);
+
+    // MIDI icon and text
+    g.setColour(StoryViewerColors::textPrimary);
+    g.setFont(11.0f);
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9")) + " MIDI",
+               midiButtonArea, juce::Justification::centred);
 }
 
 //==============================================================================
