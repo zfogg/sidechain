@@ -19,7 +19,9 @@ FeedDataManager::~FeedDataManager()
 //==============================================================================
 void FeedDataManager::fetchFeed(FeedType feedType, int limit, int offset, FeedCallback callback)
 {
-    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : (feedType == FeedType::Global ? "Global" : "Trending");
+    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : 
+                               feedType == FeedType::Global ? "Global" : 
+                               feedType == FeedType::Trending ? "Trending" : "ForYou";
     Log::debug("FeedDataManager: Fetching feed - type: " + feedTypeStr + ", limit: " + juce::String(limit) + ", offset: " + juce::String(offset));
 
     // Check cache first (only for offset 0, i.e., first page)
@@ -102,7 +104,9 @@ void FeedDataManager::performFetch(FeedType feedType, int limit, int offset, Fee
         return;
     }
 
-    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : (feedType == FeedType::Global ? "Global" : "Trending");
+    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : 
+                               feedType == FeedType::Global ? "Global" : 
+                               feedType == FeedType::Trending ? "Trending" : "ForYou";
     Log::info("FeedDataManager: Performing network fetch - type: " + feedTypeStr + ", limit: " + juce::String(limit) + ", offset: " + juce::String(offset));
 
     fetchingInProgress = true;
@@ -134,6 +138,9 @@ void FeedDataManager::performFetch(FeedType feedType, int limit, int offset, Fee
         case FeedType::Trending:
             networkClient->getTrendingFeed(limit, offset, networkCallback);
             break;
+        case FeedType::ForYou:
+            networkClient->getForYouFeed(limit, offset, networkCallback);
+            break;
     }
 }
 
@@ -145,7 +152,9 @@ void FeedDataManager::handleFetchResponse(const juce::var& feedData, FeedType fe
     feedResponse.limit = limit;
     feedResponse.offset = offset;
 
-    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : (feedType == FeedType::Global ? "Global" : "Trending");
+    juce::String feedTypeStr = feedType == FeedType::Timeline ? "Timeline" : 
+                               feedType == FeedType::Global ? "Global" : 
+                               feedType == FeedType::Trending ? "Trending" : "ForYou";
     Log::info("FeedDataManager: Fetch response received - type: " + feedTypeStr + ", posts: " + juce::String(feedResponse.posts.size()) + ", hasMore: " + juce::String(feedResponse.hasMore ? "true" : "false"));
 
     // Update pagination state
@@ -254,6 +263,10 @@ juce::String FeedDataManager::getEndpointForFeedType(FeedType feedType) const
             return "/api/feed/timeline";
         case FeedType::Global:
             return "/api/feed/global";
+        case FeedType::Trending:
+            return "/api/feed/trending";
+        case FeedType::ForYou:
+            return "/api/recommendations/for-you";
         default:
             return "/api/feed/global";
     }
@@ -269,7 +282,7 @@ void FeedDataManager::clearCache()
     loadedPosts.clear();
 
     // Delete cache files
-    for (auto feedType : { FeedType::Timeline, FeedType::Global, FeedType::Trending })
+    for (auto feedType : { FeedType::Timeline, FeedType::Global, FeedType::Trending, FeedType::ForYou })
     {
         auto cacheFile = getCacheFile(feedType);
         if (cacheFile.exists())
@@ -357,6 +370,7 @@ juce::File FeedDataManager::getCacheFile(FeedType feedType) const
         case FeedType::Timeline: filename = "feed_timeline.json"; break;
         case FeedType::Global:   filename = "feed_global.json"; break;
         case FeedType::Trending: filename = "feed_trending.json"; break;
+        case FeedType::ForYou:   filename = "feed_foryou.json"; break;
         default:                 filename = "feed_unknown.json"; break;
     }
 
@@ -418,7 +432,8 @@ void FeedDataManager::saveCacheToDisk(FeedType feedType, const CacheEntry& entry
     // Add cache metadata
     obj->setProperty("cache_timestamp", entry.timestamp.toISO8601(true));
     juce::String feedTypeStr = (feedType == FeedType::Timeline) ? "timeline" :
-                               (feedType == FeedType::Global) ? "global" : "trending";
+                               (feedType == FeedType::Global) ? "global" :
+                               (feedType == FeedType::Trending) ? "trending" : "foryou";
     obj->setProperty("feed_type", feedTypeStr);
 
     // Serialize posts

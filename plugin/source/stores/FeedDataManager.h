@@ -31,7 +31,8 @@ public:
     {
         Timeline,   // User's following feed (posts from people they follow)
         Global,     // Global discover feed (all public posts)
-        Trending    // Trending feed (posts sorted by engagement score)
+        Trending,   // Trending feed (posts sorted by engagement score)
+        ForYou      // Personalized recommendations based on listening history
     };
 
     //==============================================================================
