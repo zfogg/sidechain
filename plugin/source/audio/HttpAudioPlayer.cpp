@@ -445,18 +445,34 @@ void HttpAudioPlayer::downloadAudio(const juce::String& postId, const juce::Stri
 
     Async::runVoid([this, postId, url]()
     {
-        juce::URL audioUrl(url);
-        auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-            .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)
-            .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS);
-
         bool success = false;
         auto data = std::make_unique<juce::MemoryBlock>();
 
-        if (auto stream = audioUrl.createInputStream(options))
+        // Use NetworkClient if available - it handles HTTPS properly on Linux
+        if (networkClient != nullptr)
         {
-            stream->readIntoMemoryBlock(*data);
-            success = data->getSize() > 0;
+            Log::debug("HttpAudioPlayer: Using NetworkClient for download");
+            auto result = networkClient->makeAbsoluteRequestSync(url, "GET", juce::var(), false, juce::StringPairArray(), data.get());
+            success = result.success && data->getSize() > 0;
+            if (!success)
+            {
+                Log::warn("HttpAudioPlayer: NetworkClient download failed - " + result.errorMessage);
+            }
+        }
+        else
+        {
+            // Fallback to JUCE URL (may fail on Linux with HTTPS)
+            Log::debug("HttpAudioPlayer: Using JUCE URL for download (no NetworkClient)");
+            juce::URL audioUrl(url);
+            auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)
+                .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS);
+
+            if (auto stream = audioUrl.createInputStream(options))
+            {
+                stream->readIntoMemoryBlock(*data);
+                success = data->getSize() > 0;
+            }
         }
 
         // Back to message thread

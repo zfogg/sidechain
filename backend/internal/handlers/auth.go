@@ -3,8 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -448,9 +446,9 @@ func (h *AuthHandlers) UploadProfilePicture(c *gin.Context) {
 	})
 }
 
-// ProxyProfilePicture proxies profile picture requests (works around JUCE SSL issues on Linux)
+// GetProfilePictureURL returns the profile picture URL for a user
 // GET /api/v1/users/:id/profile-picture
-func (h *AuthHandlers) ProxyProfilePicture(c *gin.Context) {
+func (h *AuthHandlers) GetProfilePictureURL(c *gin.Context) {
 	userID := c.Param("id")
 
 	var user models.User
@@ -469,32 +467,11 @@ func (h *AuthHandlers) ProxyProfilePicture(c *gin.Context) {
 		return
 	}
 
-	// Actually proxy the image data (JUCE on Linux can't follow HTTPS redirects)
-	resp, err := http.Get(avatarURL)
-	if err != nil {
-		log.Printf("ProxyProfilePicture: Failed to fetch image from %s: %v", avatarURL, err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": "failed_to_fetch_image"})
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		log.Printf("ProxyProfilePicture: Upstream returned %d for %s", resp.StatusCode, avatarURL)
-		c.JSON(resp.StatusCode, gin.H{"error": "upstream_error"})
-		return
-	}
-
-	// Copy headers
-	contentType := resp.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "image/jpeg" // Default
-	}
-	c.Header("Content-Type", contentType)
-	c.Header("Cache-Control", "public, max-age=86400") // Cache for 1 day
-
-	// Stream the image data
-	c.Status(http.StatusOK)
-	io.Copy(c.Writer, resp.Body)
+	// Return the URL for the plugin to download directly
+	c.JSON(http.StatusOK, gin.H{
+		"url":     avatarURL,
+		"user_id": userID,
+	})
 }
 
 // RegisterDevice creates a new device ID for VST authentication

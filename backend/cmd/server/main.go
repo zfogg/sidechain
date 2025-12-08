@@ -287,10 +287,9 @@ func main() {
 			social.POST("/react", h.EmojiReact)
 		}
 
-		// Public profile picture proxy (no auth required - works around JUCE SSL issues on Linux)
-		// This must be outside the authenticated users group since JUCE may download
-		// profile pictures before auth is fully established
-		api.GET("/users/:id/profile-picture", authHandlers.ProxyProfilePicture)
+		// Public profile picture URL endpoint (no auth required)
+		// Returns the profile picture URL for JUCE to download directly via HTTPS
+		api.GET("/users/:id/profile-picture", authHandlers.GetProfilePictureURL)
 
 		// User routes
 		users := api.Group("/users")
