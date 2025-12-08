@@ -496,9 +496,8 @@ void setNetworkClient(NetworkClient* client)
 }
 
 //==============================================================================
-// Avatar loading through backend proxy
-// This works around JUCE SSL/redirect issues on Linux by fetching avatar images
-// through the backend, which handles the S3/OAuth redirect chains and returns raw bytes
+// Avatar loading - fetches URL from backend, then downloads image directly
+// The backend returns JSON with the actual image URL, which we then download via HTTPS
 
 void loadAvatarForUser(const juce::String& userId, ImageCallback callback, int width, int height)
 {
@@ -509,16 +508,153 @@ void loadAvatarForUser(const juce::String& userId, ImageCallback callback, int w
         return;
     }
 
-    // Construct proxy URL: /api/v1/users/{userId}/profile-picture
-    // This endpoint fetches the image from S3/OAuth and relays the bytes
-    juce::String proxyUrl = juce::String(Constants::Endpoints::DEV_BASE_URL)
+    // First, check if we have a cached image for this user (keyed by userId)
+    juce::String cacheKey = "avatar:" + userId;
+    {
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        auto it = cacheMap.find(cacheKey);
+        if (it != cacheMap.end())
+        {
+            stats.cacheHits++;
+            touchEntry(cacheKey);
+            juce::Image cachedImage = it->second->image;
+            juce::MessageManager::callAsync([callback, cachedImage]()
+            {
+                if (callback)
+                    callback(cachedImage);
+            });
+            return;
+        }
+    }
+
+    // Construct URL endpoint: /api/v1/users/{userId}/profile-picture
+    // This returns JSON: {"url": "...", "user_id": "..."}
+    juce::String apiUrl = juce::String(Constants::Endpoints::DEV_BASE_URL)
         + Constants::Endpoints::API_VERSION
         + "/users/" + userId + "/profile-picture";
 
-    Log::debug("ImageLoader: Loading avatar via proxy for user " + userId + ": " + proxyUrl);
+    Log::debug("ImageLoader: Fetching avatar URL for user " + userId);
 
-    // Use the standard load function which handles caching and NetworkClient
-    load(proxyUrl, callback, width, height);
+    // Fetch the JSON to get the actual image URL, then download the image
+    Async::runVoid([apiUrl, userId, cacheKey, callback, width, height]()
+    {
+        juce::String imageUrl;
+
+        // Step 1: Fetch JSON from backend to get the actual image URL
+        if (networkClient != nullptr)
+        {
+            auto result = networkClient->makeAbsoluteRequestSync(apiUrl, "GET");
+            if (result.success && result.data.isObject())
+            {
+                imageUrl = result.data.getProperty("url", "").toString();
+            }
+            else
+            {
+                Log::debug("ImageLoader: Failed to get avatar URL for user " + userId + ": " + result.errorMessage);
+            }
+        }
+        else
+        {
+            // Fallback: use JUCE URL
+            juce::URL url(apiUrl);
+            auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS);
+            if (auto stream = url.createInputStream(options))
+            {
+                juce::String jsonStr = stream->readEntireStreamAsString();
+                auto json = juce::JSON::parse(jsonStr);
+                if (json.isObject())
+                {
+                    imageUrl = json.getProperty("url", "").toString();
+                }
+            }
+        }
+
+        if (imageUrl.isEmpty())
+        {
+            juce::MessageManager::callAsync([callback]()
+            {
+                if (callback)
+                    callback(juce::Image());
+            });
+            return;
+        }
+
+        Log::debug("ImageLoader: Downloading avatar from " + imageUrl);
+
+        // Step 2: Download the actual image from the URL
+        juce::Image loadedImage;
+        juce::MemoryBlock data;
+        bool success = false;
+
+        if (networkClient != nullptr)
+        {
+            auto result = networkClient->makeAbsoluteRequestSync(imageUrl, "GET", juce::var(), false, juce::StringPairArray(), &data);
+            success = result.success && data.getSize() > 0;
+        }
+        else
+        {
+            juce::URL imgUrl(imageUrl);
+            auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS)
+                .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS);
+            if (auto stream = imgUrl.createInputStream(options))
+            {
+                stream->readIntoMemoryBlock(data);
+                success = data.getSize() > 0;
+            }
+        }
+
+        if (success && data.getSize() > 0)
+        {
+            loadedImage = juce::ImageFileFormat::loadFrom(data.getData(), data.getSize());
+
+            if (loadedImage.isValid())
+            {
+                // Resize if requested
+                if (width > 0 || height > 0)
+                {
+                    int newWidth = width > 0 ? width : loadedImage.getWidth();
+                    int newHeight = height > 0 ? height : loadedImage.getHeight();
+                    if (newWidth != loadedImage.getWidth() || newHeight != loadedImage.getHeight())
+                    {
+                        loadedImage = loadedImage.rescaled(newWidth, newHeight,
+                            juce::Graphics::highResamplingQuality);
+                    }
+                }
+
+                // Add to cache with userId-based key
+                {
+                    std::lock_guard<std::mutex> lock(cacheMutex);
+                    stats.downloadSuccesses++;
+                    addToCache(cacheKey, loadedImage);
+                }
+
+                Log::debug("ImageLoader: Avatar loaded for user " + userId + " (" +
+                          juce::String(loadedImage.getWidth()) + "x" +
+                          juce::String(loadedImage.getHeight()) + ")");
+            }
+            else
+            {
+                Log::warn("ImageLoader: Failed to decode avatar for user " + userId);
+                std::lock_guard<std::mutex> lock(cacheMutex);
+                stats.downloadFailures++;
+            }
+        }
+        else
+        {
+            Log::warn("ImageLoader: Failed to download avatar for user " + userId);
+            std::lock_guard<std::mutex> lock(cacheMutex);
+            stats.downloadFailures++;
+        }
+
+        // Deliver result on message thread
+        juce::MessageManager::callAsync([callback, loadedImage]()
+        {
+            if (callback)
+                callback(loadedImage);
+        });
+    });
 }
 
 }  // namespace ImageLoader
