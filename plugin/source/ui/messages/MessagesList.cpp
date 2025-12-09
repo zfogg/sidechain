@@ -30,12 +30,18 @@ void MessagesList::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colour(0xff1a1a1a));
 
+    // Always draw header with "New Message" button
+    drawHeader(g);
+
+    // Draw content below header based on state
+    auto contentArea = getLocalBounds().withTrimmedTop(HEADER_HEIGHT);
+
     switch (listState)
     {
         case ListState::Loading:
             g.setColour(juce::Colours::white);
             g.setFont(16.0f);
-            g.drawText("Loading conversations...", getLocalBounds(), juce::Justification::centred);
+            g.drawText("Loading conversations...", contentArea, juce::Justification::centred);
             break;
 
         case ListState::Empty:
@@ -47,8 +53,7 @@ void MessagesList::paint(juce::Graphics& g)
             break;
 
         case ListState::Loaded:
-            drawHeader(g);
-
+        {
             int y = HEADER_HEIGHT;
             for (size_t i = 0; i < channels.size(); i++)
             {
@@ -65,6 +70,7 @@ void MessagesList::paint(juce::Graphics& g)
                 y += ITEM_HEIGHT;
             }
             break;
+        }
     }
 }
 
@@ -174,13 +180,14 @@ void MessagesList::timerCallback()
 //==============================================================================
 void MessagesList::drawHeader(juce::Graphics& g)
 {
+    // Header background - slightly lighter than content area
     g.setColour(juce::Colour(0xff2a2a2a));
     g.fillRect(0, 0, getWidth(), HEADER_HEIGHT);
 
-    // Draw "Messages" title centered
+    // Draw "Messages" title on the left
     g.setColour(juce::Colours::white);
     g.setFont(juce::FontOptions(20.0f).withStyle("Bold"));
-    g.drawText("Messages", 0, 0, getWidth(), HEADER_HEIGHT, juce::Justification::centred);
+    g.drawText("Messages", 15, 0, 200, HEADER_HEIGHT, juce::Justification::centredLeft);
 
     // Draw circular "New Message" button (plus icon in circle) on the right
     auto newMessageBounds = getNewMessageButtonBounds();
@@ -192,9 +199,11 @@ void MessagesList::drawHeader(juce::Graphics& g)
     // White plus sign
     g.setColour(juce::Colours::white);
     auto center = newMessageBounds.getCentre();
-    int plusSize = 12;
-    g.drawLine(center.x - plusSize/2, center.y, center.x + plusSize/2, center.y, 2.5f);
-    g.drawLine(center.x, center.y - plusSize/2, center.x, center.y + plusSize/2, 2.5f);
+    int plusSize = 14;
+    g.drawLine(static_cast<float>(center.x - plusSize/2), static_cast<float>(center.y),
+               static_cast<float>(center.x + plusSize/2), static_cast<float>(center.y), 2.5f);
+    g.drawLine(static_cast<float>(center.x), static_cast<float>(center.y - plusSize/2),
+               static_cast<float>(center.x), static_cast<float>(center.y + plusSize/2), 2.5f);
 
     // Draw bottom border
     g.setColour(juce::Colour(0xff3a3a3a));

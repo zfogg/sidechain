@@ -100,6 +100,12 @@ if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp" OR EXISTS "${ASIO_DIR}/include/asi
     if(WIN32)
         # Windows: ASIO needs Windows sockets
         target_link_libraries(asio INTERFACE ws2_32 wsock32)
+        # Define Windows version to avoid ASIO warnings
+        # 0x0A00 = Windows 10, 0x0601 = Windows 7
+        target_compile_definitions(asio INTERFACE
+            _WIN32_WINNT=0x0A00
+            WINVER=0x0A00
+        )
     elseif(APPLE)
         # macOS: ASIO uses system libraries (no additional linking needed for basic functionality)
     elseif(UNIX)

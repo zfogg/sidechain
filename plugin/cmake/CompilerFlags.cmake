@@ -5,6 +5,16 @@
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#==============================================================================
+# Windows SDK include directories (when not using Developer Command Prompt)
+# These are needed when building with Ninja outside of VS environment
+#==============================================================================
+if(MSVC AND DEFINED SIDECHAIN_WIN_INCLUDE_DIRS)
+    include_directories(SYSTEM ${SIDECHAIN_WIN_INCLUDE_DIRS})
+    link_directories(${SIDECHAIN_WIN_LIB_DIRS})
+    message(STATUS "Added Windows SDK include/lib directories globally")
+endif()
+
 # Common warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     # GCC/Clang flags

@@ -2,6 +2,22 @@
   "version": 3,
   "configurePresets": [
     {
+      "name": "vcpkg-base",
+      "hidden": true,
+      "description": "Base preset for vcpkg integration on Windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      }
+    },
+    {
       "name": "default",
       "displayName": "Default Config",
       "description": "Default build using Ninja if available",
@@ -16,6 +32,7 @@
       "name": "debug",
       "displayName": "Debug",
       "description": "Debug build with Ninja",
+      "inherits": ["vcpkg-base"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
@@ -27,6 +44,29 @@
       "name": "release",
       "displayName": "Release",
       "description": "Release build with Ninja",
+      "inherits": ["vcpkg-base"],
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug-no-vcpkg",
+      "displayName": "Debug (no vcpkg)",
+      "description": "Debug build without vcpkg - for systems with system-installed dependencies",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "release-no-vcpkg",
+      "displayName": "Release (no vcpkg)",
+      "description": "Release build without vcpkg",
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
