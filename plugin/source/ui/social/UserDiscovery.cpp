@@ -76,7 +76,7 @@ void UserDiscovery::paint(juce::Graphics& g)
         case ViewMode::Discovery:
         {
             // Show recent searches if search box has focus
-            if (searchBox->hasKeyboardFocus(true) && recentSearches.size() > 0 && currentSearchQuery.isEmpty())
+            if (searchBox && searchBox->hasKeyboardFocus(true) && recentSearches.size() > 0 && currentSearchQuery.isEmpty())
             {
                 drawRecentSearches(g, contentBounds);
             }
@@ -549,8 +549,11 @@ void UserDiscovery::performSearch(const juce::String& query)
     addToRecentSearches(query);
     repaint();
 
-    networkClient->searchUsers(query, 30, 0, [this](Outcome<juce::var> responseOutcome) {
-        isSearching = false;
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->searchUsers(query, 30, 0, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isSearching = false;
 
         if (responseOutcome.isOk())
         {
@@ -562,10 +565,10 @@ void UserDiscovery::performSearch(const juce::String& query)
             {
                 for (int i = 0; i < users.size(); ++i)
                 {
-                    searchResults.add(DiscoveredUser::fromJson(users[i]));
+                    safeThis->searchResults.add(DiscoveredUser::fromJson(users[i]));
                 }
             }
-                Log::info("UserDiscovery: Search completed - results: " + juce::String(searchResults.size()));
+                Log::info("UserDiscovery: Search completed - results: " + juce::String(safeThis->searchResults.size()));
             }
             else
             {
@@ -577,8 +580,8 @@ void UserDiscovery::performSearch(const juce::String& query)
             Log::error("UserDiscovery: Search failed - " + responseOutcome.getError());
         }
 
-        rebuildUserCards();
-        repaint();
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
     });
 }
 
@@ -589,8 +592,11 @@ void UserDiscovery::fetchTrendingUsers()
 
     isTrendingLoading = true;
 
-    networkClient->getTrendingUsers(10, [this](Outcome<juce::var> responseOutcome) {
-        isTrendingLoading = false;
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getTrendingUsers(10, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isTrendingLoading = false;
 
         if (responseOutcome.isOk())
         {
@@ -600,12 +606,12 @@ void UserDiscovery::fetchTrendingUsers()
                 auto users = Json::getArray(response, "users");
                 if (Json::isArray(users))
                 {
-                    trendingUsers.clear();
+                    safeThis->trendingUsers.clear();
                     for (int i = 0; i < users.size(); ++i)
                     {
-                        trendingUsers.add(DiscoveredUser::fromJson(users[i]));
+                        safeThis->trendingUsers.add(DiscoveredUser::fromJson(users[i]));
                     }
-                    Log::info("UserDiscovery: Loaded " + juce::String(trendingUsers.size()) + " trending users");
+                    Log::info("UserDiscovery: Loaded " + juce::String(safeThis->trendingUsers.size()) + " trending users");
                 }
             }
             else
@@ -618,8 +624,8 @@ void UserDiscovery::fetchTrendingUsers()
             Log::error("UserDiscovery: Failed to load trending users - " + responseOutcome.getError());
         }
 
-        rebuildUserCards();
-        repaint();
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
     });
 }
 
@@ -630,8 +636,11 @@ void UserDiscovery::fetchFeaturedProducers()
 
     isFeaturedLoading = true;
 
-    networkClient->getFeaturedProducers(10, [this](Outcome<juce::var> responseOutcome) {
-        isFeaturedLoading = false;
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getFeaturedProducers(10, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isFeaturedLoading = false;
 
         if (responseOutcome.isOk())
         {
@@ -641,10 +650,10 @@ void UserDiscovery::fetchFeaturedProducers()
                 auto users = Json::getArray(response, "users");
                 if (Json::isArray(users))
                 {
-                    featuredProducers.clear();
+                    safeThis->featuredProducers.clear();
                     for (int i = 0; i < users.size(); ++i)
                     {
-                        featuredProducers.add(DiscoveredUser::fromJson(users[i]));
+                        safeThis->featuredProducers.add(DiscoveredUser::fromJson(users[i]));
                     }
                 }
             }
@@ -658,8 +667,8 @@ void UserDiscovery::fetchFeaturedProducers()
             Log::error("UserDiscovery: Failed to load featured producers - " + responseOutcome.getError());
         }
 
-        rebuildUserCards();
-        repaint();
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
     });
 }
 
@@ -670,8 +679,11 @@ void UserDiscovery::fetchSuggestedUsers()
 
     isSuggestedLoading = true;
 
-    networkClient->getSuggestedUsers(10, [this](Outcome<juce::var> responseOutcome) {
-        isSuggestedLoading = false;
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getSuggestedUsers(10, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isSuggestedLoading = false;
 
         if (responseOutcome.isOk())
         {
@@ -681,10 +693,10 @@ void UserDiscovery::fetchSuggestedUsers()
                 auto users = Json::getArray(response, "users");
                 if (Json::isArray(users))
                 {
-                    suggestedUsers.clear();
+                    safeThis->suggestedUsers.clear();
                     for (int i = 0; i < users.size(); ++i)
                     {
-                        suggestedUsers.add(DiscoveredUser::fromJson(users[i]));
+                        safeThis->suggestedUsers.add(DiscoveredUser::fromJson(users[i]));
                     }
                 }
             }
@@ -698,8 +710,8 @@ void UserDiscovery::fetchSuggestedUsers()
             Log::error("UserDiscovery: Failed to load suggested users - " + responseOutcome.getError());
         }
 
-        rebuildUserCards();
-        repaint();
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
     });
 }
 
@@ -710,8 +722,11 @@ void UserDiscovery::fetchSimilarProducers()
 
     isSimilarLoading = true;
 
-    networkClient->getSimilarUsers(currentUserId, 10, [this](Outcome<juce::var> responseOutcome) {
-        isSimilarLoading = false;
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getSimilarUsers(currentUserId, 10, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isSimilarLoading = false;
 
         if (responseOutcome.isOk())
         {
@@ -721,10 +736,10 @@ void UserDiscovery::fetchSimilarProducers()
                 auto users = Json::getArray(response, "users");
                 if (Json::isArray(users))
                 {
-                    similarProducers.clear();
+                    safeThis->similarProducers.clear();
                     for (int i = 0; i < users.size(); ++i)
                     {
-                        similarProducers.add(DiscoveredUser::fromJson(users[i]));
+                        safeThis->similarProducers.add(DiscoveredUser::fromJson(users[i]));
                     }
                 }
             }
@@ -738,8 +753,8 @@ void UserDiscovery::fetchSimilarProducers()
             Log::error("UserDiscovery: Failed to load similar producers - " + responseOutcome.getError());
         }
 
-        rebuildUserCards();
-        repaint();
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
     });
 }
 
@@ -750,8 +765,11 @@ void UserDiscovery::fetchAvailableGenres()
 
     isGenresLoading = true;
 
-    networkClient->getAvailableGenres([this](Outcome<juce::var> responseOutcome) {
-        isGenresLoading = false;
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getAvailableGenres([safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isGenresLoading = false;
 
         if (responseOutcome.isOk())
         {
@@ -761,10 +779,10 @@ void UserDiscovery::fetchAvailableGenres()
                 auto genres = Json::getArray(response, "genres");
                 if (Json::isArray(genres))
                 {
-                    availableGenres.clear();
+                    safeThis->availableGenres.clear();
                     for (int i = 0; i < Json::arraySize(genres); ++i)
                     {
-                        availableGenres.add(Json::getStringAt(genres, i));
+                        safeThis->availableGenres.add(Json::getStringAt(genres, i));
                     }
                 }
             }
@@ -778,7 +796,7 @@ void UserDiscovery::fetchAvailableGenres()
             Log::error("UserDiscovery: Failed to load genres - " + responseOutcome.getError());
         }
 
-        repaint();
+        safeThis->repaint();
     });
 }
 
@@ -790,7 +808,10 @@ void UserDiscovery::fetchUsersByGenre(const juce::String& genre)
     genreUsers.clear();
     repaint();
 
-    networkClient->getUsersByGenre(genre, 30, 0, [this](Outcome<juce::var> responseOutcome) {
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getUsersByGenre(genre, 30, 0, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
         if (responseOutcome.isOk())
         {
             auto response = responseOutcome.getValue();
@@ -801,7 +822,7 @@ void UserDiscovery::fetchUsersByGenre(const juce::String& genre)
                 {
                     for (int i = 0; i < users.size(); ++i)
                     {
-                        genreUsers.add(DiscoveredUser::fromJson(users[i]));
+                        safeThis->genreUsers.add(DiscoveredUser::fromJson(users[i]));
                     }
                 }
             }
@@ -815,8 +836,8 @@ void UserDiscovery::fetchUsersByGenre(const juce::String& genre)
             Log::error("UserDiscovery: Failed to load genre users - " + responseOutcome.getError());
         }
 
-        rebuildUserCards();
-        repaint();
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
     });
 }
 
@@ -897,6 +918,11 @@ juce::File UserDiscovery::getRecentSearchesFile() const
 //==============================================================================
 void UserDiscovery::rebuildUserCards()
 {
+    // Remove all cards from component tree before deleting
+    for (auto* card : userCards)
+    {
+        removeChildComponent(card);
+    }
     userCards.clear();
 
     // Build cards based on view mode
@@ -1207,7 +1233,10 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
     Log::debug("UserDiscovery::queryPresenceForUsers: Querying presence for " + juce::String(userIds.size()) + " users");
 
     // Query presence
-    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    streamChatClient->queryPresence(userIds, [safeThis](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
         if (result.isError())
         {
             Log::warn("UserDiscovery::queryPresenceForUsers: Failed to query presence: " + result.getError());
@@ -1233,15 +1262,15 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
             }
         };
 
-        updateUserPresenceInArray(searchResults);
-        updateUserPresenceInArray(trendingUsers);
-        updateUserPresenceInArray(featuredProducers);
-        updateUserPresenceInArray(suggestedUsers);
-        updateUserPresenceInArray(similarProducers);
-        updateUserPresenceInArray(genreUsers);
+        updateUserPresenceInArray(safeThis->searchResults);
+        updateUserPresenceInArray(safeThis->trendingUsers);
+        updateUserPresenceInArray(safeThis->featuredProducers);
+        updateUserPresenceInArray(safeThis->suggestedUsers);
+        updateUserPresenceInArray(safeThis->similarProducers);
+        updateUserPresenceInArray(safeThis->genreUsers);
 
         // Update corresponding UserCards
-        for (auto* card : userCards)
+        for (auto* card : safeThis->userCards)
         {
             auto user = card->getUser();
             for (const auto& presence : presenceList)
@@ -1257,7 +1286,7 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
         }
 
         // Repaint to show online indicators
-        repaint();
+        safeThis->repaint();
     });
 }
 

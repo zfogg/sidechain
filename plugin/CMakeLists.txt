@@ -3,6 +3,12 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+#==============================================================================
+# Windows Toolchain Setup (MUST be before project())
+# Sets up MSVC and Windows SDK paths for standalone builds
+#==============================================================================
+include(cmake/WindowsToolchain.cmake)
+
 # Prefer Ninja generator for faster builds (auto-parallelizes)
 # Note: CMAKE_GENERATOR is determined when CMake starts and cannot be changed from CMakeLists.txt
 # Use -G Ninja on command line, CMakePresets.json, or the Makefile which auto-detects Ninja

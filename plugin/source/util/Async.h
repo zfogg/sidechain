@@ -41,6 +41,9 @@ namespace Async
     //==========================================================================
     // Background Work with Result
 
+    // Internal - check if shutdown is in progress (implemented in Async.cpp)
+    bool isShutdownInProgress();
+
     /**
      * Run work on a background thread and deliver result to message thread.
      *
@@ -51,12 +54,24 @@ namespace Async
     template<typename T>
     void run(std::function<T()> work, std::function<void(T)> onComplete)
     {
+        // Don't start new work if we're shutting down
+        if (isShutdownInProgress())
+            return;
+
         std::thread([work = std::move(work), onComplete = std::move(onComplete)]() {
             T result = work();
-            juce::MessageManager::callAsync([result = std::move(result), onComplete]() {
-                if (onComplete)
-                    onComplete(result);
-            });
+
+            // Only call back to message thread if not shutting down
+            if (!isShutdownInProgress())
+            {
+                if (auto* mm = juce::MessageManager::getInstanceWithoutCreating())
+                {
+                    mm->callAsync([result = std::move(result), onComplete]() {
+                        if (onComplete && !isShutdownInProgress())
+                            onComplete(result);
+                    });
+                }
+            }
         }).detach();
     }
 
@@ -136,5 +151,16 @@ namespace Async
      * @param key       The throttle group to cancel
      */
     void cancelThrottle(const juce::String& key);
+
+    //==========================================================================
+    // Shutdown
+
+    /**
+     * Shutdown the async system - call before app exit to prevent hangs.
+     * This cancels all pending timers and prevents new async work from starting.
+     * Should be called early in the destruction sequence, before other subsystems
+     * that might be accessed by pending callbacks.
+     */
+    void shutdown();
 
 }  // namespace Async

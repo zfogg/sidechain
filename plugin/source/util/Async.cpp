@@ -15,6 +15,9 @@ namespace Async
         // Thread-safe counter for generating unique timer IDs
         std::atomic<int> nextTimerId{1};
 
+        // Shutdown flag to prevent new async work after shutdown starts
+        std::atomic<bool> isShuttingDown{false};
+
         /**
          * DelayTimer - Custom timer for delayed execution
          *
@@ -115,6 +118,15 @@ namespace Async
     }  // anonymous namespace
 
     //==========================================================================
+    // Shutdown Check
+    //==========================================================================
+
+    bool isShutdownInProgress()
+    {
+        return isShuttingDown.load();
+    }
+
+    //==========================================================================
     // Background Work (void version)
     //==========================================================================
 
@@ -124,15 +136,25 @@ namespace Async
      */
     void runVoid(std::function<void()> work, std::function<void()> onComplete)
     {
+        // Don't start new work if we're shutting down
+        if (isShuttingDown.load())
+            return;
+
         std::thread([work = std::move(work), onComplete = std::move(onComplete)]() {
             if (work)
                 work();
 
-            if (onComplete)
+            // Only call back to message thread if not shutting down
+            if (onComplete && !isShuttingDown.load())
             {
-                juce::MessageManager::callAsync([onComplete]() {
-                    onComplete();
-                });
+                // Check if MessageManager still exists
+                if (auto* mm = juce::MessageManager::getInstanceWithoutCreating())
+                {
+                    mm->callAsync([onComplete]() {
+                        if (!isShuttingDown.load())
+                            onComplete();
+                    });
+                }
             }
         }).detach();
     }
@@ -333,6 +355,53 @@ namespace Async
                 throttleStates.erase(it);
             }
         });
+    }
+
+    //==========================================================================
+    // Shutdown
+    //==========================================================================
+
+    /** Shutdown the async system - call before app exit to prevent hangs
+     * This should be called early in the destruction sequence.
+     */
+    void shutdown()
+    {
+        // Set shutdown flag to prevent new work from starting
+        isShuttingDown.store(true);
+
+        // Cancel all pending timers synchronously (we're on message thread)
+        {
+            std::lock_guard<std::mutex> lock(delayTimersMutex);
+            for (auto& pair : delayTimers)
+            {
+                pair.second->stopTimer();
+                delete pair.second;
+            }
+            delayTimers.clear();
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(debounceMutex);
+            for (auto& pair : debounceTimers)
+            {
+                pair.second->stopTimer();
+            }
+            debounceTimers.clear();
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(throttleMutex);
+            for (auto& pair : throttleStates)
+            {
+                if (pair.second.pendingTimer)
+                    pair.second.pendingTimer->stopTimer();
+            }
+            throttleStates.clear();
+        }
+
+        // Give detached threads a moment to check the shutdown flag
+        // This is a best-effort - we can't force-join detached threads
+        juce::Thread::sleep(50);
     }
 
 }  // namespace Async

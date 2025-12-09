@@ -30,9 +30,11 @@ void UserCard::setUser(const DiscoveredUser& newUser)
     // Load avatar via ImageCache
     if (user.avatarUrl.isNotEmpty())
     {
-        ::ImageLoader::load(user.avatarUrl, [this](const juce::Image& img) {
-            avatarImage = img;
-            repaint();
+        juce::Component::SafePointer<UserCard> safeThis(this);
+        ::ImageLoader::load(user.avatarUrl, [safeThis](const juce::Image& img) {
+            if (safeThis == nullptr) return;  // Component was deleted
+            safeThis->avatarImage = img;
+            safeThis->repaint();
         });
     }
 

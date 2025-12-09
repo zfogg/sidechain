@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "audio/NotificationSound.h"
+#include "util/Async.h"
 #include "util/Colors.h"
 #include "util/Constants.h"
 #include "util/Json.h"
@@ -483,11 +484,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         showMessageThread(channelType, channelId);
     };
     messagesListComponent->onNewMessage = [this]() {
-        // Handle new message action from header.
-        // NOT YET IMPLEMENTED - See notes/PLAN.md Phase 7 for messaging features.
-        // Should open user search/picker dialog to start new conversation.
-        // TODO: Open new message dialog / user search - see PLAN.md Phase 7
+        // Handle new message action - navigate to discovery to select user
+        Log::info("MessagesList: onNewMessage - about to show Discovery view");
         showView(AppView::Discovery);
+        Log::info("MessagesList: onNewMessage - showView returned");
     };
     messagesListComponent->onGoToDiscovery = [this]() {
         showView(AppView::Discovery);
@@ -627,6 +627,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
 SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
 {
+    // Shutdown async system first to prevent pending callbacks from accessing
+    // destroyed objects and to allow detached threads to exit cleanly
+    Async::shutdown();
+
     // Mark clean shutdown before destroying components
     markCleanShutdown();
 
@@ -643,6 +647,10 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
     // Disconnect WebSocket before destruction
     if (webSocketClient)
         webSocketClient->disconnect();
+
+    // Disconnect StreamChat WebSocket
+    if (streamChatClient)
+        streamChatClient->disconnectWebSocket();
 }
 
 //==============================================================================
@@ -736,6 +744,8 @@ void SidechainAudioProcessorEditor::resized()
 //==============================================================================
 void SidechainAudioProcessorEditor::showView(AppView view)
 {
+    Log::info("showView: entering, view=" + juce::String(static_cast<int>(view)) + ", currentView=" + juce::String(static_cast<int>(currentView)));
+
     // Get the component to show
     juce::Component* componentToShow = nullptr;
     juce::Component* componentToHide = nullptr;
@@ -849,11 +859,17 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
     }
 
-    // Animate slide transition if both components exist and are different
-    if (componentToShow && componentToHide && componentToShow != componentToHide && currentView != AppView::Authentication)
+    Log::info("showView: componentToShow=" + juce::String(componentToShow != nullptr ? "valid" : "null") +
+              ", componentToHide=" + juce::String(componentToHide != nullptr ? "valid" : "null"));
+
+    // TEMPORARILY DISABLED: Animate slide transition - testing if animation causes crash
+    // if (componentToShow && componentToHide && componentToShow != componentToHide && currentView != AppView::Authentication)
+    if (false)
     {
+        Log::info("showView: starting animation");
         // Set up initial positions for slide animation
-        auto bounds = getLocalBounds();
+        // Use content bounds (below header) for post-login views
+        auto bounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
         
         // Hide all other components immediately (no animation)
         if (authComponent && authComponent.get() != componentToShow && authComponent.get() != componentToHide)
@@ -888,49 +904,101 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             midiChallengeDetailComponent->setVisible(false);
 
         // Position new component off-screen to the right
+        Log::info("showView: positioning components for animation");
         componentToShow->setBounds(bounds.withX(bounds.getRight()));
         componentToShow->setVisible(true);
         componentToShow->toFront(false);
 
         // Animate: slide old component to the left, new component from the right
+        Log::info("showView: calling animateComponent");
         viewAnimator.animateComponent(componentToHide, bounds.withX(-bounds.getWidth()), 1.0f, 250, false, 1.0, 1.0);
         viewAnimator.animateComponent(componentToShow, bounds, 1.0f, 250, false, 1.0, 1.0);
+        Log::info("showView: animation started");
     }
     else
     {
         // No animation - just show/hide immediately (for first view or authentication)
+        auto contentBounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
+
         if (authComponent)
             authComponent->setVisible(view == AppView::Authentication);
         if (profileSetupComponent)
             profileSetupComponent->setVisible(view == AppView::ProfileSetup);
         if (postsFeedComponent)
+        {
+            postsFeedComponent->setBounds(contentBounds);
             postsFeedComponent->setVisible(view == AppView::PostsFeed);
+        }
         if (recordingComponent)
+        {
+            recordingComponent->setBounds(contentBounds);
             recordingComponent->setVisible(view == AppView::Recording);
+        }
         if (uploadComponent)
+        {
+            uploadComponent->setBounds(contentBounds);
             uploadComponent->setVisible(view == AppView::Upload);
+        }
         if (userDiscoveryComponent)
+        {
+            userDiscoveryComponent->setBounds(contentBounds);
             userDiscoveryComponent->setVisible(view == AppView::Discovery);
+        }
         if (profileComponent)
+        {
+            profileComponent->setBounds(contentBounds);
             profileComponent->setVisible(view == AppView::Profile);
+        }
         if (searchComponent)
+        {
+            searchComponent->setBounds(contentBounds);
             searchComponent->setVisible(view == AppView::Search);
+        }
         if (messagesListComponent)
+        {
+            messagesListComponent->setBounds(contentBounds);
             messagesListComponent->setVisible(view == AppView::Messages);
+        }
         if (messageThreadComponent)
+        {
+            messageThreadComponent->setBounds(contentBounds);
             messageThreadComponent->setVisible(view == AppView::MessageThread);
+        }
         if (storyRecordingComponent)
+        {
+            storyRecordingComponent->setBounds(contentBounds);
             storyRecordingComponent->setVisible(view == AppView::StoryRecording);
+        }
         if (storyViewerComponent)
+        {
+            storyViewerComponent->setBounds(contentBounds);
             storyViewerComponent->setVisible(view == AppView::StoryViewer);
+        }
         if (playlistsComponent)
+        {
+            playlistsComponent->setBounds(contentBounds);
             playlistsComponent->setVisible(view == AppView::Playlists);
+        }
         if (playlistDetailComponent)
+        {
+            playlistDetailComponent->setBounds(contentBounds);
             playlistDetailComponent->setVisible(view == AppView::PlaylistDetail);
+        }
         if (midiChallengesComponent)
+        {
+            midiChallengesComponent->setBounds(contentBounds);
             midiChallengesComponent->setVisible(view == AppView::MidiChallenges);
+        }
         if (midiChallengeDetailComponent)
+        {
+            midiChallengeDetailComponent->setBounds(contentBounds);
             midiChallengeDetailComponent->setVisible(view == AppView::MidiChallengeDetail);
+        }
+        if (hiddenSynthComponent)
+        {
+            hiddenSynthComponent->setBounds(contentBounds);
+            hiddenSynthComponent->setVisible(view == AppView::HiddenSynth);
+        }
     }
 
     // Push current view to navigation stack (except when going back)
@@ -1042,10 +1110,14 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
 
         case AppView::Discovery:
+            Log::info("showView: initializing Discovery component");
             if (userDiscoveryComponent)
             {
+                Log::info("showView: calling setCurrentUserId");
                 userDiscoveryComponent->setCurrentUserId(authToken);  // Use auth token or actual user ID
+                Log::info("showView: calling loadDiscoveryData");
                 userDiscoveryComponent->loadDiscoveryData();
+                Log::info("showView: Discovery initialization complete");
             }
             break;
 
@@ -1323,49 +1395,71 @@ void SidechainAudioProcessorEditor::navigateBack()
     if (uploadComponent) uploadComponent->setVisible(false);
     if (userDiscoveryComponent) userDiscoveryComponent->setVisible(false);
     if (profileComponent) profileComponent->setVisible(false);
+    if (searchComponent) searchComponent->setVisible(false);
+    if (messagesListComponent) messagesListComponent->setVisible(false);
+    if (messageThreadComponent) messageThreadComponent->setVisible(false);
+    if (storyRecordingComponent) storyRecordingComponent->setVisible(false);
+    if (storyViewerComponent) storyViewerComponent->setVisible(false);
+    if (hiddenSynthComponent) hiddenSynthComponent->setVisible(false);
+    if (playlistsComponent) playlistsComponent->setVisible(false);
+    if (playlistDetailComponent) playlistDetailComponent->setVisible(false);
+    if (midiChallengesComponent) midiChallengesComponent->setVisible(false);
+    if (midiChallengeDetailComponent) midiChallengeDetailComponent->setVisible(false);
 
-    // Show the previous view
+    // Content bounds for positioning
+    auto contentBounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
+
+    // Show the previous view with proper bounds
     switch (previousView)
     {
         case AppView::PostsFeed:
             if (postsFeedComponent)
             {
+                postsFeedComponent->setBounds(contentBounds);
                 postsFeedComponent->setVisible(true);
             }
             break;
         case AppView::Discovery:
             if (userDiscoveryComponent)
             {
+                userDiscoveryComponent->setCurrentUserId(authToken);
+                userDiscoveryComponent->loadDiscoveryData();
+                userDiscoveryComponent->setBounds(contentBounds);
                 userDiscoveryComponent->setVisible(true);
             }
             break;
         case AppView::Profile:
             if (profileComponent)
             {
+                profileComponent->setBounds(contentBounds);
                 profileComponent->setVisible(true);
             }
             break;
         case AppView::Recording:
             if (recordingComponent)
             {
+                recordingComponent->setBounds(contentBounds);
                 recordingComponent->setVisible(true);
             }
             break;
         case AppView::ProfileSetup:
             if (profileSetupComponent)
             {
+                profileSetupComponent->setBounds(contentBounds);
                 profileSetupComponent->setVisible(true);
             }
             break;
         case AppView::Search:
             if (searchComponent)
             {
+                searchComponent->setBounds(contentBounds);
                 searchComponent->setVisible(true);
             }
             break;
         case AppView::Messages:
             if (messagesListComponent)
             {
+                messagesListComponent->setBounds(contentBounds);
                 messagesListComponent->setVisible(true);
             }
             break;
@@ -1375,12 +1469,28 @@ void SidechainAudioProcessorEditor::navigateBack()
                 if (userDataStore)
                     messageThreadComponent->setCurrentUserId(userDataStore->getUserId());
                 messageThreadComponent->loadChannel(messageChannelType, messageChannelId);
+                messageThreadComponent->setBounds(contentBounds);
                 messageThreadComponent->setVisible(true);
+            }
+            break;
+        case AppView::Playlists:
+            if (playlistsComponent)
+            {
+                playlistsComponent->setBounds(contentBounds);
+                playlistsComponent->setVisible(true);
+            }
+            break;
+        case AppView::MidiChallenges:
+            if (midiChallengesComponent)
+            {
+                midiChallengesComponent->setBounds(contentBounds);
+                midiChallengesComponent->setVisible(true);
             }
             break;
         default:
             if (postsFeedComponent)
             {
+                postsFeedComponent->setBounds(contentBounds);
                 postsFeedComponent->setVisible(true);
             }
             break;

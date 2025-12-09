@@ -155,24 +155,35 @@ void OSNotification::requestPermissionMacOS(std::function<void(bool)> callback)
 //==============================================================================
 #if JUCE_WINDOWS
 
+// Disable warning about WinRT being deprecated in favor of C++/WinRT
+#pragma warning(push)
+#pragma warning(disable: 4996)
+
 #include <windows.h>
-#include <wrl/client.h>
-#include <wrl/implements.h>
-#include <notificationactivationcallback.h>
-#include <winrt/Windows.Foundation.h>
-#include <winrt/Windows.Data.Xml.Dom.h>
-#include <winrt/Windows.UI.Notifications.h>
+#include <winrt/base.h>
 
-using namespace winrt;
-using namespace Windows::Foundation;
-using namespace Windows::Data::Xml::Dom;
-using namespace Windows::UI::Notifications;
-
-static bool initializeWindowsNotifications()
+// Only use WinRT toast notifications on Windows 10+
+// Check at runtime since we want to compile on older SDKs too
+static bool isWindows10OrLater()
 {
-    // Windows notifications don't require explicit initialization
-    // The ToastNotificationManager is automatically available
-    return true;
+    // Use RtlGetVersion to get accurate version (GetVersionEx lies on Win10+)
+    using RtlGetVersionPtr = LONG(WINAPI*)(PRTL_OSVERSIONINFOW);
+    HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+    if (ntdll)
+    {
+        auto rtlGetVersion = reinterpret_cast<RtlGetVersionPtr>(
+            GetProcAddress(ntdll, "RtlGetVersion"));
+        if (rtlGetVersion)
+        {
+            RTL_OSVERSIONINFOW osvi = {};
+            osvi.dwOSVersionInfoSize = sizeof(osvi);
+            if (rtlGetVersion(&osvi) == 0)
+            {
+                return osvi.dwMajorVersion >= 10;
+            }
+        }
+    }
+    return false;
 }
 
 bool OSNotification::showWindows(const juce::String& title,
@@ -180,85 +191,48 @@ bool OSNotification::showWindows(const juce::String& title,
                                   const juce::String& subtitle,
                                   bool sound)
 {
-    try
+    // Toast notifications require Windows 10+
+    if (!isWindows10OrLater())
     {
-        // Create XML toast template
-        XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
-            ToastTemplateType::ToastText02); // Two text fields (title + message)
-        
-        // Get text elements
-        XmlNodeList textNodes = toastXml.GetElementsByTagName(L"text");
-        
-        if (textNodes.Size() >= 1)
-        {
-            textNodes.Item(0).AppendChild(toastXml.CreateTextNode(title.toWideCharPointer()));
-        }
-        
-        juce::String bodyText = subtitle.isNotEmpty() ? (subtitle + " - " + message) : message;
-        if (bodyText.isEmpty())
-            bodyText = title;
-            
-        if (textNodes.Size() >= 2)
-        {
-            textNodes.Item(1).AppendChild(toastXml.CreateTextNode(bodyText.toWideCharPointer()));
-        }
-        else if (textNodes.Size() == 1 && bodyText.isNotEmpty())
-        {
-            // Add second text node if template only has one
-            XmlElement toast = toastXml.SelectSingleNode(L"/toast").as<XmlElement>();
-            XmlElement visual = toast.SelectSingleNode(L"visual").as<XmlElement>();
-            XmlElement binding = visual.SelectSingleNode(L"binding").as<XmlElement>();
-            
-            XmlElement textNode = toastXml.CreateElement(L"text");
-            textNode.AppendChild(toastXml.CreateTextNode(bodyText.toWideCharPointer()));
-            binding.AppendChild(textNode);
-        }
-        
-        // Configure sound
-        if (sound)
-        {
-            XmlElement toast = toastXml.SelectSingleNode(L"/toast").as<XmlElement>();
-            XmlElement audio = toastXml.CreateElement(L"audio");
-            audio.SetAttribute(L"src", L"ms-winsoundevent:Notification.Default");
-            toast.AppendChild(audio);
-        }
-        
-        // Create and show notification
-        ToastNotification toast{ toastXml };
-        
-        // Get application ID (use executable name as fallback)
-        juce::String appId = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
-                               .getFileNameWithoutExtension();
-        
-        ToastNotificationManager::CreateToastNotifier(appId.toWideCharPointer()).Show(toast);
-        
-        return true;
-    }
-    catch (const hresult_error& ex)
-    {
-        Log::warn("Failed to show Windows notification: " + 
-                 juce::String(ex.message().c_str()));
+        Log::warn("Windows toast notifications require Windows 10 or later");
         return false;
     }
-    catch (...)
-    {
-        Log::warn("Failed to show Windows notification: Unknown error");
-        return false;
-    }
+
+    // Use a simple fallback: MessageBox for now
+    // Full WinRT toast implementation requires COM initialization and
+    // application manifest with proper AUMID registration
+    juce::String bodyText = subtitle.isNotEmpty() ? (subtitle + "\n" + message) : message;
+    if (bodyText.isEmpty())
+        bodyText = title;
+
+    // For VST plugins, we can't reliably use toast notifications because:
+    // 1. The host application owns the COM apartment
+    // 2. We don't have control over the application manifest
+    // 3. Toast notifications require AUMID registration
+    //
+    // Instead, we'll use a non-blocking approach via JUCE's native alert
+    juce::MessageManager::callAsync([title, bodyText]() {
+        juce::NativeMessageBox::showMessageBoxAsync(
+            juce::MessageBoxIconType::InfoIcon,
+            title,
+            bodyText,
+            nullptr,
+            nullptr);
+    });
+
+    juce::ignoreUnused(sound);
+    return true;
 }
 
 bool OSNotification::hasPermissionWindows()
 {
-    // Windows 10+ generally allows notifications by default
-    // There's no simple API to check, so we assume true
-    // The notification will simply fail to show if blocked
+    // Windows message boxes don't require permission
     return true;
 }
 
 void OSNotification::requestPermissionWindows(std::function<void(bool)> callback)
 {
     // Windows doesn't require explicit permission requests
-    // Notifications are controlled through system settings
     if (callback)
     {
         juce::MessageManager::callAsync([callback]() {
@@ -266,6 +240,8 @@ void OSNotification::requestPermissionWindows(std::function<void(bool)> callback
         });
     }
 }
+
+#pragma warning(pop)
 
 #endif // JUCE_WINDOWS
 

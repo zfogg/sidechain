@@ -2,10 +2,16 @@
 // This file is used by SidechainJuceHeaderHelper to trigger JUCE header generation
 #include <JuceHeader.h>
 
-// Empty main - this executable is never run, only used for header generation
-int main(int argc, char* argv[])
+// Minimal JUCE GUI application class for header generation
+class JuceHeaderHelperApp : public juce::JUCEApplication
 {
-    juce::ignoreUnused(argc, argv);
-    return 0;
-}
+public:
+    const juce::String getApplicationName() override { return "JuceHeaderHelper"; }
+    const juce::String getApplicationVersion() override { return "1.0.0"; }
+    void initialise(const juce::String&) override {}
+    void shutdown() override {}
+};
+
+// Required macro for JUCE GUI apps - provides WinMain on Windows
+START_JUCE_APPLICATION(JuceHeaderHelperApp)
 

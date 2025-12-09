@@ -625,13 +625,16 @@ void StreamChatClient::cleanupWebSocket()
             Log::debug("StreamChatClient: Error stopping WebSocket client - " + juce::String(e.what()));
         }
 
-        // Wait for ASIO thread to finish
+        // Wait for ASIO thread to finish (with timeout, then detach)
         if (wsAsioThread && wsAsioThread->joinable())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            // Give the thread time to respond to stop()
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
             if (wsAsioThread->joinable())
             {
-                wsAsioThread->join();
+                // Detach instead of blocking forever - the thread will exit
+                // on its own once the ASIO io_context is stopped
+                wsAsioThread->detach();
             }
             wsAsioThread.reset();
         }
