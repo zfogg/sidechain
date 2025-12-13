@@ -84,6 +84,12 @@ public:
     bool isOwnPost = false;    // Whether this is the current user's own post
 
     //==============================================================================
+    // Comment controls (Feature #12)
+    juce::String commentAudience = "everyone";  // "everyone", "followers", "off"
+    bool commentsDisabled() const { return commentAudience == "off"; }
+    bool commentsFollowersOnly() const { return commentAudience == "followers"; }
+
+    //==============================================================================
     // Repost metadata (when this post is a repost of another post)
     bool isARepost = false;             // Whether this post is actually a repost
     juce::String originalPostId;        // ID of the original post (if this is a repost)
