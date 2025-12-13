@@ -776,6 +776,12 @@ public:
     // Mark a story as viewed
     void viewStory(const juce::String& storyId, ResponseCallback callback = nullptr);
 
+    /** Get download info for a story (generates download URL and metadata) - 19.1
+     * @param storyId The story ID
+     * @param callback Called with download info or error
+     */
+    void getStoryDownloadInfo(const juce::String& storyId, DownloadInfoCallback callback = nullptr);
+
     // Get list of users who viewed a story (story owner only)
     void getStoryViews(const juce::String& storyId, ResponseCallback callback = nullptr);
 
