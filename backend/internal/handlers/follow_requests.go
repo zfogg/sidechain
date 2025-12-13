@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -146,6 +147,15 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 	}
 
 	tx.Commit()
+
+	// Sync follow event to Gorse for recommendations (async, don't block response)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFollowEvent(request.RequesterID, currentUser.ID); err != nil {
+				log.Printf("Warning: failed to sync follow to Gorse: %v", err)
+			}
+		}()
+	}
 
 	// Send notification to requester that their request was accepted
 	// TODO: Add notification via getstream.io notification feed

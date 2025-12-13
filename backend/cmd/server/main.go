@@ -22,6 +22,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/handlers"
 	"github.com/zfogg/sidechain/backend/internal/middleware"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/seed"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 	"github.com/zfogg/sidechain/backend/internal/stories"
@@ -178,9 +179,22 @@ func main() {
 	// Start WebSocket hub in background
 	go wsHub.Run()
 
+	// Initialize Gorse recommendation client for user recommendations
+	gorseURL := os.Getenv("GORSE_URL")
+	if gorseURL == "" {
+		gorseURL = "http://localhost:8087"
+	}
+	gorseAPIKey := os.Getenv("GORSE_API_KEY")
+	if gorseAPIKey == "" {
+		gorseAPIKey = "sidechain_gorse_api_key"
+	}
+	gorseClient := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	log.Printf("Gorse recommendation client initialized (URL: %s)", gorseURL)
+
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
+	h.SetGorseClient(gorseClient)    // Enable user follow recommendations
 	authHandlers := handlers.NewAuthHandlers(authService, s3Uploader, streamClient)
 	authHandlers.SetJWTSecret(jwtSecret)
 	authHandlers.SetEmailService(emailService) // Enable password reset emails
@@ -299,6 +313,9 @@ func main() {
 			users.PUT("/me", h.UpdateProfile)
 			users.PUT("/username", h.ChangeUsername)
 			users.POST("/upload-profile-picture", middleware.RateLimitUpload(), authHandlers.UploadProfilePicture)
+
+			// Recommended users to follow (collaborative filtering via Gorse)
+			users.GET("/recommended", h.GetUsersToFollow)
 
 			// Follow request endpoints (for private accounts)
 			users.GET("/me/follow-requests", h.GetFollowRequests)
