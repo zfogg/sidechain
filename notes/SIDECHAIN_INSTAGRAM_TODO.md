@@ -62,49 +62,77 @@ Sidechain has a solid foundation with core features implemented:
   - Verify `GET /api/v1/users/:id/highlights` returns highlights
   - Verify `POST /api/v1/highlights/:id/stories` adds stories
 
-### 2. Save/Bookmark Posts
+### 2. Save/Bookmark Posts ✅ IMPLEMENTED
 
 **Problem**: No way to save posts for later. Users want to bookmark loops they like.
 
-**TODO**:
-- [ ] **2.1** Create `SavedPost` model in backend
-  ```go
-  type SavedPost struct {
-      ID        uuid.UUID
-      UserID    uuid.UUID
-      PostID    uuid.UUID
-      CreatedAt time.Time
-  }
-  ```
+**COMPLETED**:
+- [x] **2.1** `SavedPost` model in `backend/internal/models/user.go`
+  - UserID, PostID, CreatedAt fields
+  - BeforeCreate hook for UUID generation
 
-- [ ] **2.2** Create backend endpoints
-  - `POST /api/v1/posts/:id/save` - Save post
-  - `DELETE /api/v1/posts/:id/save` - Unsave post
-  - `GET /api/v1/users/me/saved` - Get saved posts (paginated)
+- [x] **2.2** Backend endpoints in `backend/internal/handlers/saved_posts.go`:
+  - `POST /api/v1/posts/:id/save` - SavePost (with duplicate check)
+  - `DELETE /api/v1/posts/:id/save` - UnsavePost (with count decrement)
+  - `GET /api/v1/users/me/saved` - GetSavedPosts (paginated, with post details)
+  - `GET /api/v1/posts/:id/saved` - IsPostSaved (check status)
 
-- [ ] **2.3** Add bookmark icon to PostCardComponent
-  - Next to share button
-  - Filled when saved, outline when not
-  - Animation on save
+- [x] **2.3** Bookmark icon in PostCard (`plugin/src/ui/feed/PostCard.cpp`)
+  - `drawSaveButton()` with filled/outline bookmark icon
+  - `onSaveToggled` callback
+  - `updateSaveState()` for optimistic UI updates
+  - Tooltip: "Save to collection" / "Remove from saved"
 
-- [ ] **2.4** Create SavedPostsView
-  - Accessible from profile
-  - Private (only visible to owner)
-  - Same layout as feed
+- [x] **2.4** SavedPosts view (`plugin/src/ui/profile/SavedPosts.cpp`)
+  - Accessible via "Saved Posts" button on own profile
+  - Private - only visible to owner
+  - PostCard list with scroll and pagination
+  - Loading/empty/error states
+  - Unsave posts directly from the list
 
-### 3. Repost/Share to Feed
+- [x] **2.5** NetworkClient methods (`plugin/src/network/api/SocialClient.cpp`)
+  - `savePost()`, `unsavePost()`, `getSavedPosts()`
+
+- [x] **2.6** Profile integration
+  - "Saved Posts" button on own profile page
+  - `onSavedPostsClicked` callback
+
+### 3. Repost/Share to Feed ✅ IMPLEMENTED
 
 **Problem**: Can only share links. Can't repost to your own feed like Twitter/Instagram.
 
-**TODO**:
-- [ ] **3.0** Check getstream.io docs to see the correct way to repost posts to your own feed. Check if they can handle repost counts too.
-- [ ] **3.1** Add `repost_of_id` field to AudioPost model if we need it and getstream doesn't handle it
-- [ ] **3.2** Create `POST /api/v1/posts/:id/repost` endpoint if we need it and getstream doesn't handle it
-- [ ] **3.3** Show reposts in feed with original attribution
-  - "username reposted" header
-  - Link to original post author
-- [ ] **3.4** Add "Repost" option to post actions menu
-- [ ] **3.5** Show repost count on posts. We have to keep track of this if gestream.io doesn't handle it
+**COMPLETED**:
+- [x] **3.0** Researched getstream.io repost approach
+  - Uses reactions API with `targetFeeds` parameter
+  - Added `RepostActivity`, `UnrepostActivity`, `CheckUserReposted`, `NotifyRepost` to stream client
+  - Hybrid approach: database `Repost` model + stream activities for feeds
+
+- [x] **3.1** `Repost` model in `backend/internal/models/user.go`
+  - Tracks user_id, original_post_id, optional quote
+  - Stream activity ID for feed integration
+
+- [x] **3.2** Backend endpoints in `backend/internal/handlers/reposts.go`:
+  - `POST /api/v1/posts/:id/repost` - Create repost (with optional quote)
+  - `DELETE /api/v1/posts/:id/repost` - Undo repost
+  - `GET /api/v1/posts/:id/reposts` - Get users who reposted
+  - `GET /api/v1/posts/:id/reposted` - Check if current user reposted
+  - `GET /api/v1/users/:id/reposts` - Get user's reposts
+
+- [x] **3.3** Reposts show in feed with attribution
+  - `drawRepostAttribution()` in PostCard shows "username reposted" header
+  - Original post author info displayed
+  - FeedPost model has `isARepost`, `originalUserId`, `originalUsername`
+
+- [x] **3.4** Repost button in PostCard UI
+  - `drawRepostButton()` shows repost icon
+  - `onRepostClicked` callback wired in PostsFeed
+  - Confirmation dialog before reposting
+  - Toggle to undo repost if already reposted
+
+- [x] **3.5** Repost count tracking
+  - `repost_count` field on AudioPost model
+  - Displayed on PostCard
+  - Incremented/decremented atomically
 
 ### 4. Direct Share to DMs
 
@@ -170,7 +198,7 @@ Sidechain has a solid foundation with core features implemented:
 **Problem**: Errors just show text. Need actionable error states.
 
 **TODO**:
-- [ ] **7.1** Create consistent error component
+- [x] **7.1** Create consistent error component
   - Icon + message + retry button
   - Different styles for network/auth/generic errors
 
@@ -214,6 +242,7 @@ Sidechain has a solid foundation with core features implemented:
 
 **TODO**:
 - [ ] **9.1** Add activity status toggle to settings
+  - Presence should be managed by GetStream.io (their messages/chat api has presence we can use)
   - "Show Activity Status" on/off
   - Store in user preferences
 
@@ -715,13 +744,13 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 - [~] Read receipts (stub exists)
 
 ### Not Started
-- [ ] Save/bookmark posts
-- [ ] Repost to feed
+- [x] Save/bookmark posts ✅
+- [x] Repost to feed ✅
 - [ ] Share to DMs
 - [ ] Drafts system
 - [ ] Offline mode
 - [ ] Mute users
-- [ ] Private accounts
+- [x] Private accounts ✅
 - [ ] Pin posts
 - [ ] 2FA
 - [ ] Analytics
@@ -735,15 +764,15 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 | Priority | Feature | Effort | Impact | Dependencies |
 |----------|---------|--------|--------|--------------|
 | P0 | Story Highlights UI | Medium | High | Backend ready |
-| P0 | Save/Bookmark | Low | High | New feature |
+| ~~P0~~ | ~~Save/Bookmark~~ | ~~Low~~ | ~~High~~ | ✅ DONE |
 | P0 | Loading Skeletons | Low | High | None |
 | P0 | Error States | Low | High | None |
 | P0 | Drafts | Medium | High | Local storage |
-| P1 | Repost | Medium | Medium | Feed changes |
+| ~~P1~~ | ~~Repost~~ | ~~Medium~~ | ~~Medium~~ | ✅ DONE |
 | P1 | Share to DMs | Medium | Medium | Messages work |
 | P1 | Mute Users | Low | Medium | Backend simple |
 | P1 | Pin Posts | Low | Medium | Profile changes |
-| P1 | Notification Prefs | Medium | Medium | Settings UI |
+| ~~P1~~ | ~~Notification Prefs~~ | ~~Medium~~ | ~~Medium~~ | ✅ DONE |
 | P2 | Remix Chains UI | High | Medium | Backend ready |
 | P2 | Analytics | High | Medium | New system |
 | P2 | Verified Badges | Low | Low | Manual process |
@@ -756,11 +785,11 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 1. Loading skeletons for all views
 2. Error states with retry
 3. Story highlights UI
-4. Save/bookmark posts
+4. ~~Save/bookmark posts~~ ✅ DONE
 
 ### Sprint 2: Social Features (1-2 weeks)
 1. Drafts system
-2. Repost to feed
+2. ~~Repost to feed~~ ✅ DONE
 3. Share posts to DMs
 4. Mute users
 
