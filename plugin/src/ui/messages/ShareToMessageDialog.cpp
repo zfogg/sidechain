@@ -6,8 +6,6 @@
 //==============================================================================
 ShareToMessageDialog::ShareToMessageDialog()
 {
-    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
-
     // Search input
     searchInput = std::make_unique<juce::TextEditor>();
     searchInput->setMultiLine(false);
@@ -45,6 +43,9 @@ ShareToMessageDialog::ShareToMessageDialog()
     cancelButton->setColour(juce::TextButton::textColourOnId, SidechainColors::textPrimary());
     cancelButton->setColour(juce::TextButton::textColourOffId, SidechainColors::textPrimary());
     addAndMakeVisible(cancelButton.get());
+
+    // Set size last to avoid resized() being called before components are created
+    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
 }
 
 ShareToMessageDialog::~ShareToMessageDialog()
