@@ -604,6 +604,77 @@ func (h *Handlers) ViewStory(c *gin.Context) {
 	})
 }
 
+// DownloadStory returns download URLs for story audio and MIDI (19.1)
+// POST /api/v1/stories/:id/download
+func (h *Handlers) DownloadStory(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	currentUser := user.(*models.User)
+
+	storyID := c.Param("id")
+
+	// Find the story
+	var story models.Story
+	if err := database.DB.Preload("User").First(&story, "id = ?", storyID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "not_found",
+				"message": "Story not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "query_failed",
+			"message": "Failed to fetch story",
+		})
+		return
+	}
+
+	// Check if story has expired (but allow owner to still download)
+	if story.ExpiresAt.Before(time.Now().UTC()) && story.UserID != currentUser.ID {
+		c.JSON(http.StatusGone, gin.H{
+			"error":   "expired",
+			"message": "Story has expired",
+		})
+		return
+	}
+
+	// Increment download count atomically
+	database.DB.Model(&story).UpdateColumn("download_count", gorm.Expr("COALESCE(download_count, 0) + 1"))
+
+	// Generate filename: {username}_story_{id}.mp3
+	username := story.User.Username
+	if username == "" {
+		username = "user"
+	}
+
+	audioFilename := fmt.Sprintf("%s_story_%s.mp3", username, storyID[:8])
+
+	// Build response
+	response := gin.H{
+		"audio_url":      story.AudioURL,
+		"audio_filename": audioFilename,
+		"metadata": gin.H{
+			"bpm":      story.BPM,
+			"key":      story.Key,
+			"duration": story.AudioDuration,
+			"genre":    story.Genre,
+		},
+	}
+
+	// Add MIDI info if available
+	if story.MIDIPatternID != nil && *story.MIDIPatternID != "" {
+		response["midi_pattern_id"] = *story.MIDIPatternID
+		response["midi_download_url"] = fmt.Sprintf("/api/v1/midi/%s/file", *story.MIDIPatternID)
+		response["midi_filename"] = fmt.Sprintf("%s_story_%s.mid", username, storyID[:8])
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // GetStoryViews returns the list of users who viewed a story (7.5.1.4.2)
 func (h *Handlers) GetStoryViews(c *gin.Context) {
 	user, exists := c.Get("user")

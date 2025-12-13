@@ -152,6 +152,7 @@ func (suite *HandlersTestSuite) setupRoutes() {
 	api.GET("/stories/:id", suite.handlers.GetStory)
 	api.POST("/stories/:id/view", suite.handlers.ViewStory)
 	api.GET("/stories/:id/views", suite.handlers.GetStoryViews)
+	api.POST("/stories/:id/download", suite.handlers.DownloadStory)
 	api.GET("/users/:id/stories", suite.handlers.GetUserStories)
 
 	// MIDI routes (R.3.3)

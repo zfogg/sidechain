@@ -385,6 +385,7 @@ func main() {
 			stories.GET("/:id", h.GetStory)
 			stories.POST("/:id/view", h.ViewStory)
 			stories.GET("/:id/views", h.GetStoryViews)
+			stories.POST("/:id/download", h.DownloadStory) // 19.1 - Story download
 			stories.DELETE("/:id", h.DeleteStory)
 			// Remix routes for stories (R.3.2)
 			stories.POST("/:id/remix", h.CreateRemixPost)
