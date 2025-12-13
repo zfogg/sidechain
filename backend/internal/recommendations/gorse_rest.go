@@ -7,11 +7,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"gorm.io/gorm"
 )
+
+// UserItemPrefix is the prefix used for user items in Gorse
+// This distinguishes user items from post items
+const UserItemPrefix = "user:"
+
+// FeedbackTypeFollow is the feedback type for follow events
+const FeedbackTypeFollow = "follow"
 
 // GorseRESTClient provides recommendation algorithms using Gorse REST API
 type GorseRESTClient struct {
@@ -442,6 +450,279 @@ func (c *GorseRESTClient) BatchSyncFeedback() error {
 		_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedbacks)
 		if err != nil {
 			return fmt.Errorf("failed to sync feedback batch: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// =============================================================================
+// User-as-Item Methods for Follow Recommendations
+// =============================================================================
+
+// SyncUserAsItem creates a "user item" in Gorse so follows can be tracked as interactions
+// Users are stored with "user:" prefix to distinguish from posts
+func (c *GorseRESTClient) SyncUserAsItem(userID string) error {
+	var user models.User
+	if err := c.db.First(&user, "id = ?", userID).Error; err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	// Build categories from user's genres plus "users" category
+	categories := make([]string, 0, len(user.Genre)+1)
+	categories = append(categories, "users") // All user items are in "users" category
+	categories = append(categories, user.Genre...)
+
+	// Build labels with user metadata
+	labels := make(map[string]interface{})
+	labels["type"] = "user"
+	labels["username"] = user.Username
+	if len(user.Genre) > 0 {
+		labels["genres"] = user.Genre
+	}
+	if user.DAWPreference != "" {
+		labels["daw"] = user.DAWPreference
+	}
+	labels["follower_count"] = user.FollowerCount
+	labels["is_private"] = user.IsPrivate
+
+	gorseItem := GorseItem{
+		ItemId:     UserItemPrefix + userID,
+		IsHidden:   user.IsPrivate, // Hide private users from general recommendations
+		Categories: categories,
+		Timestamp:  user.CreatedAt.Format(time.RFC3339),
+		Labels:     labels,
+		Comment:    fmt.Sprintf("@%s - %s", user.Username, user.DisplayName),
+	}
+
+	_, err := c.makeRequest(context.Background(), "POST", "/api/item", gorseItem)
+	return err
+}
+
+// SyncFollowEvent syncs a follow relationship to Gorse as feedback
+// This enables collaborative filtering for "who to follow" recommendations
+func (c *GorseRESTClient) SyncFollowEvent(followerID, followeeID string) error {
+	feedback := []GorseFeedback{
+		{
+			FeedbackType: FeedbackTypeFollow,
+			UserId:       followerID,
+			ItemId:       UserItemPrefix + followeeID,
+			Timestamp:    time.Now().Format(time.RFC3339),
+		},
+	}
+
+	_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedback)
+	return err
+}
+
+// RemoveFollowEvent removes a follow relationship from Gorse
+// Called when a user unfollows someone
+func (c *GorseRESTClient) RemoveFollowEvent(followerID, followeeID string) error {
+	endpoint := fmt.Sprintf("/api/feedback/%s/%s/%s",
+		FeedbackTypeFollow, followerID, UserItemPrefix+followeeID)
+	_, err := c.makeRequest(context.Background(), "DELETE", endpoint, nil)
+	// Ignore errors - feedback might not exist
+	if err != nil {
+		// Log but don't fail - the feedback might not exist
+		fmt.Printf("Warning: failed to remove follow feedback: %v\n", err)
+	}
+	return nil
+}
+
+// UserScore represents a user with their recommendation score
+type UserScore struct {
+	User   models.User
+	Score  float64
+	Reason string
+}
+
+// GetUsersToFollow returns recommended users to follow based on collaborative filtering
+// Uses the "users" category to only return user items
+func (c *GorseRESTClient) GetUsersToFollow(userID string, limit, offset int) ([]UserScore, error) {
+	// Gorse GetRecommend endpoint with category filter
+	totalLimit := limit + offset
+	endpoint := fmt.Sprintf("/api/recommend/%s/users?n=%d", userID, totalLimit)
+	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	if err != nil {
+		// Fallback: try without category (older Gorse versions)
+		endpoint = fmt.Sprintf("/api/recommend/%s?n=%d", userID, totalLimit*2)
+		resp, err = c.makeRequest(context.Background(), "GET", endpoint, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user recommendations: %w", err)
+		}
+	}
+	defer resp.Body.Close()
+
+	var itemIDs []string
+	if err := json.NewDecoder(resp.Body).Decode(&itemIDs); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Filter to only user items (with "user:" prefix) and extract user IDs
+	userIDs := make([]string, 0)
+	for _, itemID := range itemIDs {
+		if strings.HasPrefix(itemID, UserItemPrefix) {
+			extractedID := strings.TrimPrefix(itemID, UserItemPrefix)
+			// Don't recommend following yourself
+			if extractedID != userID {
+				userIDs = append(userIDs, extractedID)
+			}
+		}
+	}
+
+	// Apply offset
+	if offset > 0 && offset < len(userIDs) {
+		userIDs = userIDs[offset:]
+	}
+	if len(userIDs) > limit {
+		userIDs = userIDs[:limit]
+	}
+
+	if len(userIDs) == 0 {
+		return []UserScore{}, nil
+	}
+
+	// Fetch user details from database
+	var users []models.User
+	if err := c.db.Where("id IN ? AND deleted_at IS NULL", userIDs).Find(&users).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch users: %w", err)
+	}
+
+	// Create map for ordering
+	userMap := make(map[string]models.User)
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+
+	// Build UserScore list maintaining Gorse's order
+	scores := make([]UserScore, 0, len(userIDs))
+	for _, uid := range userIDs {
+		if user, ok := userMap[uid]; ok {
+			scores = append(scores, UserScore{
+				User:   user,
+				Score:  1.0,
+				Reason: c.generateUserReason(user),
+			})
+		}
+	}
+
+	return scores, nil
+}
+
+// generateUserReason generates a human-readable reason for why a user was recommended
+func (c *GorseRESTClient) generateUserReason(user models.User) string {
+	reasons := make([]string, 0)
+
+	if len(user.Genre) > 0 {
+		reasons = append(reasons, "similar music taste")
+	}
+	if user.FollowerCount > 100 {
+		reasons = append(reasons, "popular producer")
+	}
+	if user.DAWPreference != "" {
+		reasons = append(reasons, fmt.Sprintf("uses %s", user.DAWPreference))
+	}
+
+	if len(reasons) == 0 {
+		return "followed by people you follow"
+	}
+	if len(reasons) == 1 {
+		return reasons[0]
+	}
+	return reasons[0] + " • " + reasons[1]
+}
+
+// BatchSyncUserItems syncs all users as items to Gorse (for initial setup)
+func (c *GorseRESTClient) BatchSyncUserItems() error {
+	var users []models.User
+	if err := c.db.Where("deleted_at IS NULL").Find(&users).Error; err != nil {
+		return fmt.Errorf("failed to fetch users: %w", err)
+	}
+
+	gorseItems := make([]GorseItem, 0, len(users))
+	for _, user := range users {
+		categories := make([]string, 0, len(user.Genre)+1)
+		categories = append(categories, "users")
+		categories = append(categories, user.Genre...)
+
+		labels := make(map[string]interface{})
+		labels["type"] = "user"
+		labels["username"] = user.Username
+		if len(user.Genre) > 0 {
+			labels["genres"] = user.Genre
+		}
+		if user.DAWPreference != "" {
+			labels["daw"] = user.DAWPreference
+		}
+		labels["follower_count"] = user.FollowerCount
+		labels["is_private"] = user.IsPrivate
+
+		gorseItems = append(gorseItems, GorseItem{
+			ItemId:     UserItemPrefix + user.ID,
+			IsHidden:   user.IsPrivate,
+			Categories: categories,
+			Timestamp:  user.CreatedAt.Format(time.RFC3339),
+			Labels:     labels,
+			Comment:    fmt.Sprintf("@%s - %s", user.Username, user.DisplayName),
+		})
+	}
+
+	// Batch in chunks of 100
+	const batchSize = 100
+	for i := 0; i < len(gorseItems); i += batchSize {
+		end := i + batchSize
+		if end > len(gorseItems) {
+			end = len(gorseItems)
+		}
+
+		_, err := c.makeRequest(context.Background(), "POST", "/api/items", gorseItems[i:end])
+		if err != nil {
+			return fmt.Errorf("failed to sync user items batch: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// StreamFollower represents a follower from GetStream.io
+type StreamFollower struct {
+	UserID string
+}
+
+// BatchSyncFollowsFromStream syncs existing follow relationships from GetStream.io to Gorse
+// This requires a function that fetches follows from Stream - pass it as a parameter
+type FollowFetcher func(userID string, limit, offset int) ([]StreamFollower, error)
+
+func (c *GorseRESTClient) BatchSyncFollowsFromList(follows []struct {
+	FollowerID string
+	FolloweeID string
+}) error {
+	if len(follows) == 0 {
+		return nil
+	}
+
+	// Batch in chunks of 100
+	const batchSize = 100
+	for i := 0; i < len(follows); i += batchSize {
+		end := i + batchSize
+		if end > len(follows) {
+			end = len(follows)
+		}
+
+		feedbacks := make([]GorseFeedback, 0, end-i)
+		for j := i; j < end; j++ {
+			f := follows[j]
+			feedbacks = append(feedbacks, GorseFeedback{
+				FeedbackType: FeedbackTypeFollow,
+				UserId:       f.FollowerID,
+				ItemId:       UserItemPrefix + f.FolloweeID,
+				Timestamp:    time.Now().Format(time.RFC3339),
+			})
+		}
+
+		_, err := c.makeRequest(context.Background(), "POST", "/api/feedback", feedbacks)
+		if err != nil {
+			return fmt.Errorf("failed to sync follow batch: %w", err)
 		}
 	}
 

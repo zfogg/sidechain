@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/zfogg/sidechain/backend/internal/audio"
+	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 )
@@ -19,6 +20,7 @@ type Handlers struct {
 	stream         stream.StreamClientInterface
 	audioProcessor *audio.Processor
 	wsHandler      *websocket.Handler
+	gorse          *recommendations.GorseRESTClient
 }
 
 // NewHandlers creates a new handlers instance
@@ -37,4 +39,9 @@ func NewHandlersWithClient(streamClient stream.StreamClientInterface, audioProce
 // SetWebSocketHandler sets the WebSocket handler for real-time notifications
 func (h *Handlers) SetWebSocketHandler(ws *websocket.Handler) {
 	h.wsHandler = ws
+}
+
+// SetGorseClient sets the Gorse recommendation client
+func (h *Handlers) SetGorseClient(gorse *recommendations.GorseRESTClient) {
+	h.gorse = gorse
 }

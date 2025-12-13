@@ -842,6 +842,15 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 		return
 	}
 
+	// Sync follow event to Gorse for recommendations (async, don't block response)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFollowEvent(currentUser.ID, targetUser.ID); err != nil {
+				log.Printf("Warning: failed to sync follow to Gorse: %v", err)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":      "following",
 		"target_user": targetUser.ID,
@@ -870,6 +879,15 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 	if err := h.stream.UnfollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
 		util.RespondInternalError(c, "unfollow_failed", err.Error())
 		return
+	}
+
+	// Remove follow event from Gorse for recommendations (async, don't block response)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.RemoveFollowEvent(currentUser.ID, targetUser.ID); err != nil {
+				log.Printf("Warning: failed to remove follow from Gorse: %v", err)
+			}
+		}()
 	}
 
 	c.JSON(http.StatusOK, gin.H{
