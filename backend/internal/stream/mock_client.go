@@ -45,6 +45,10 @@ type MockStreamClient struct {
 	RemoveReactionFunc                  func(reactionID string) error
 	RemoveReactionByActivityAndUserFunc func(activityID, userID, kind string) error
 	GetUserReactionsFunc                func(userID, kind string, limit int) ([]*Reaction, error)
+	RepostActivityFunc                  func(userID, activityID string) (*RepostResponse, error)
+	UnrepostActivityFunc                func(userID, activityID string) error
+	CheckUserRepostedFunc               func(userID, activityID string) (bool, string, error)
+	NotifyRepostFunc                    func(actorUserID, targetUserID, loopID string) error
 	GetNotificationsFunc                func(userID string, limit, offset int) (*NotificationResponse, error)
 	GetNotificationCountsFunc           func(userID string) (unseen, unread int, err error)
 	MarkNotificationsReadFunc           func(userID string) error
@@ -384,6 +388,53 @@ func (m *MockStreamClient) GetUserReactions(userID, kind string, limit int) ([]*
 		return nil, m.DefaultError
 	}
 	return []*Reaction{}, nil
+}
+
+// ============================================================================
+// Repost operations
+// ============================================================================
+
+func (m *MockStreamClient) RepostActivity(userID, activityID string) (*RepostResponse, error) {
+	m.recordCall("RepostActivity", userID, activityID)
+	if m.RepostActivityFunc != nil {
+		return m.RepostActivityFunc(userID, activityID)
+	}
+	if m.DefaultError != nil {
+		return nil, m.DefaultError
+	}
+	return &RepostResponse{
+		ReactionID: "mock-repost-reaction-id",
+		ActivityID: activityID,
+		UserID:     userID,
+		RepostedAt: time.Now().UTC(),
+	}, nil
+}
+
+func (m *MockStreamClient) UnrepostActivity(userID, activityID string) error {
+	m.recordCall("UnrepostActivity", userID, activityID)
+	if m.UnrepostActivityFunc != nil {
+		return m.UnrepostActivityFunc(userID, activityID)
+	}
+	return m.DefaultError
+}
+
+func (m *MockStreamClient) CheckUserReposted(userID, activityID string) (bool, string, error) {
+	m.recordCall("CheckUserReposted", userID, activityID)
+	if m.CheckUserRepostedFunc != nil {
+		return m.CheckUserRepostedFunc(userID, activityID)
+	}
+	if m.DefaultError != nil {
+		return false, "", m.DefaultError
+	}
+	return false, "", nil
+}
+
+func (m *MockStreamClient) NotifyRepost(actorUserID, targetUserID, loopID string) error {
+	m.recordCall("NotifyRepost", actorUserID, targetUserID, loopID)
+	if m.NotifyRepostFunc != nil {
+		return m.NotifyRepostFunc(actorUserID, targetUserID, loopID)
+	}
+	return m.DefaultError
 }
 
 // ============================================================================

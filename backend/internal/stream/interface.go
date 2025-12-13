@@ -47,6 +47,12 @@ type StreamClientInterface interface {
 	RemoveReactionByActivityAndUser(activityID, userID, kind string) error
 	GetUserReactions(userID, kind string, limit int) ([]*Reaction, error)
 
+	// Repost operations
+	RepostActivity(userID, activityID string) (*RepostResponse, error)
+	UnrepostActivity(userID, activityID string) error
+	CheckUserReposted(userID, activityID string) (bool, string, error)
+	NotifyRepost(actorUserID, targetUserID, loopID string) error
+
 	// Notification operations
 	GetNotifications(userID string, limit, offset int) (*NotificationResponse, error)
 	GetNotificationCounts(userID string) (unseen, unread int, err error)
