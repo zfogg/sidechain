@@ -119,12 +119,17 @@ private:
         Welcome,        // Initial state with login/signup options
         Login,          // Email login form
         Signup,         // Account creation form
-        OAuthWaiting    // Waiting for OAuth callback (8.3.11.9-12)
+        OAuthWaiting,   // Waiting for OAuth callback (8.3.11.9-12)
+        TwoFactorVerify // 2FA code entry after password login
     };
 
     AuthMode currentMode = AuthMode::Welcome;
     bool isLoading = false;
     juce::String errorMessage;
+
+    // Two-factor authentication state
+    juce::String twoFactorUserId;       // User ID for 2FA verification
+    juce::String twoFactorType;         // "totp" or "hotp"
 
     // OAuth waiting state (8.3.11.9-12)
     juce::String oauthWaitingProvider;    // Provider being waited for
@@ -166,21 +171,30 @@ private:
     std::unique_ptr<juce::TextButton> oauthCancelButton;
 
     //==============================================================================
+    // Two-factor authentication components
+    std::unique_ptr<juce::TextEditor> twoFactorCodeEditor;
+    std::unique_ptr<juce::TextButton> twoFactorVerifyButton;
+    std::unique_ptr<juce::TextButton> twoFactorBackButton;
+
+    //==============================================================================
     // Layout helpers
     void setupWelcomeComponents();
     void setupLoginComponents();
     void setupSignupComponents();
     void setupOAuthWaitingComponents();
+    void setupTwoFactorComponents();
 
     void showWelcome();
     void showLogin();
     void showSignup();
+    void showTwoFactorVerify();
 
     void hideAllComponents();
 
     void handleLogin();
     void handleSignup();
     void handleForgotPassword();
+    void handleTwoFactorVerify();
 
     // Styling helpers
     void styleTextEditor(juce::TextEditor& editor, const juce::String& placeholder, bool isPassword = false);

@@ -39,7 +39,7 @@ UserProfile UserProfile::fromJson(const juce::var& json)
     profile.isFollowing = Json::getBool(json, "is_following");
     profile.isFollowedBy = Json::getBool(json, "is_followed_by");
     profile.isPrivate = Json::getBool(json, "is_private");
-    profile.isMuted = Json::getBool(json, "is_muted");  // Feature #10
+    profile.isMuted = Json::getBool(json, "is_muted");
     profile.followRequestStatus = Json::getString(json, "follow_request_status");
     profile.followRequestId = Json::getString(json, "follow_request_id");
 
@@ -591,13 +591,21 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setFont(14.0f);
         g.drawText("Activity Status", activityBounds, juce::Justification::centred);
 
-        // Muted Users button (below activity status button) - Feature #10
+        // Muted Users button (below activity status button)
         auto mutedUsersBounds = getMutedUsersButtonBounds();
         g.setColour(Colors::badge);
         g.fillRoundedRectangle(mutedUsersBounds.toFloat(), 6.0f);
         g.setColour(Colors::textPrimary);
         g.setFont(14.0f);
         g.drawText("Muted Users", mutedUsersBounds, juce::Justification::centred);
+
+        // Two-Factor Auth button (below muted users button)
+        auto twoFactorBounds = getTwoFactorSettingsButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(twoFactorBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Two-Factor Auth", twoFactorBounds, juce::Justification::centred);
     }
     else
     {
@@ -648,7 +656,7 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setFont(14.0f);
         g.drawText("Message", messageBounds, juce::Justification::centred);
 
-        // Mute/Unmute button (below message button) - Feature #10
+        // Mute/Unmute button (below message button)
         auto muteBounds = getMuteButtonBounds();
         if (profile.isMuted)
         {
@@ -994,7 +1002,7 @@ void Profile::mouseUp(const juce::MouseEvent& event)
             return;
         }
 
-        // Feature #10: Muted users button
+        // Muted users button
         if (getMutedUsersButtonBounds().contains(pos))
         {
             Log::info("Profile::mouseUp: Muted users button clicked");
@@ -1002,6 +1010,17 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 onMutedUsersClicked();
             else
                 Log::warn("Profile::mouseUp: Muted users clicked but callback not set");
+            return;
+        }
+
+        // Two-Factor Auth button
+        if (getTwoFactorSettingsButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Two-factor auth button clicked");
+            if (onTwoFactorSettingsClicked)
+                onTwoFactorSettingsClicked();
+            else
+                Log::warn("Profile::mouseUp: Two-factor auth clicked but callback not set");
             return;
         }
     }
@@ -1024,7 +1043,7 @@ void Profile::mouseUp(const juce::MouseEvent& event)
             return;
         }
 
-        // Feature #10: Mute/Unmute button
+        // Mute/Unmute button
         if (getMuteButtonBounds().contains(pos))
         {
             Log::info("Profile::mouseUp: Mute button clicked - userId: " + profile.id + ", currentlyMuted: " + juce::String(profile.isMuted ? "true" : "false"));
@@ -1128,6 +1147,12 @@ juce::Rectangle<int> Profile::getMutedUsersButtonBounds() const
 {
     auto activityBounds = getActivityStatusButtonBounds();
     return activityBounds.translated(0, BUTTON_HEIGHT + 8);  // Below activity status button with spacing
+}
+
+juce::Rectangle<int> Profile::getTwoFactorSettingsButtonBounds() const
+{
+    auto mutedUsersBounds = getMutedUsersButtonBounds();
+    return mutedUsersBounds.translated(0, BUTTON_HEIGHT + 8);  // Below muted users button with spacing
 }
 
 juce::Rectangle<int> Profile::getMuteButtonBounds() const
@@ -1741,6 +1766,9 @@ juce::String Profile::getTooltip()
 
         if (getMutedUsersButtonBounds().contains(mousePos))
             return "View muted users";
+
+        if (getTwoFactorSettingsButtonBounds().contains(mousePos))
+            return "Set up two-factor authentication";
     }
     else
     {
