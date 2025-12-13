@@ -25,7 +25,8 @@
  * from network/audio code.
  */
 class PostCard : public juce::Component,
-                          public juce::Timer
+                          public juce::Timer,
+                          public juce::TooltipClient
 {
 public:
     PostCard();
@@ -228,6 +229,13 @@ public:
      */
     std::function<void(const FeedPost&)> onCardTapped;
 
+    /** Called when archive state is toggled
+     * @param post The post that was archived/unarchived
+     * @param archived true if post should be archived, false to unarchive
+     * @note Used for "Archive" option in more menu
+     */
+    std::function<void(const FeedPost&, bool archived)> onArchiveToggled;
+
     //==============================================================================
     // Component overrides
 
@@ -266,6 +274,11 @@ public:
     /** Timer callback for animations and long-press detection
      */
     void timerCallback() override;
+
+    /** Get tooltip text based on current mouse position
+     * @return Tooltip text for the element under the mouse, or empty string
+     */
+    juce::String getTooltip() override;
 
     //==============================================================================
     // Layout constants
