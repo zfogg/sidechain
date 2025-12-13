@@ -496,6 +496,44 @@ public:
     void unfollowUser(const juce::String& userId, ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Save/Bookmark operations (P0 Social Feature)
+
+    /** Save (bookmark) a post for later
+     * @param postId The post ID to save
+     * @param callback Called with result or error
+     */
+    void savePost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Remove a saved post (unbookmark)
+     * @param postId The post ID to unsave
+     * @param callback Called with result or error
+     */
+    void unsavePost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Get saved posts for the current user
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with saved posts or error
+     */
+    void getSavedPosts(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    //==========================================================================
+    // Repost operations (P0 Social Feature)
+
+    /** Repost a post to the current user's feed (like a retweet)
+     * @param postId The post ID to repost
+     * @param quote Optional quote text to add to the repost
+     * @param callback Called with result or error
+     */
+    void repostPost(const juce::String& postId, const juce::String& quote = "", ResponseCallback callback = nullptr);
+
+    /** Undo/remove a repost
+     * @param postId The original post ID that was reposted
+     * @param callback Called with result or error
+     */
+    void undoRepost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Profile operations
 
     /** Upload a profile picture

@@ -73,6 +73,18 @@ public:
      */
     void updateReaction(const juce::String& emoji);
 
+    /** Update the save state and count
+     * @param count The new save count
+     * @param isSaved Whether the current user has saved this post
+     */
+    void updateSaveState(int count, bool isSaved);
+
+    /** Update the repost state and count
+     * @param count The new repost count
+     * @param isReposted Whether the current user has reposted this post
+     */
+    void updateRepostState(int count, bool isReposted);
+
     /** Set the playback progress indicator
      * @param progress Progress from 0.0 to 1.0
      */
@@ -136,6 +148,18 @@ public:
      *          See @ref notes/PLAN.md for planned context menu features
      */
     std::function<void(const FeedPost&)> onMoreClicked;
+
+    /** Called when save/bookmark button is toggled
+     * @param post The post that was saved/unsaved
+     * @param saved true if post is now saved, false if unsaved
+     */
+    std::function<void(const FeedPost&, bool saved)> onSaveToggled;
+
+    /** Called when repost button is clicked
+     * @param post The post to be reposted
+     * @note Shows a confirmation dialog before reposting
+     */
+    std::function<void(const FeedPost&)> onRepostClicked;
 
     /** Called when waveform is clicked (seek to position)
      * @param post The post being seeked
@@ -312,6 +336,13 @@ private:
     juce::Rectangle<int> getAddToPlaylistButtonBounds() const;
     juce::Rectangle<int> getRemixButtonBounds() const;
     juce::Rectangle<int> getRemixChainBadgeBounds() const;
+    juce::Rectangle<int> getSaveButtonBounds() const;
+    juce::Rectangle<int> getRepostButtonBounds() const;
+
+    // Drawing helpers for save/repost
+    void drawSaveButton(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawRepostButton(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawRepostAttribution(juce::Graphics& g);  // Shows "User reposted" header
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)

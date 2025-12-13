@@ -91,6 +91,22 @@ void PostCard::updateReaction(const juce::String& emoji)
     repaint();
 }
 
+void PostCard::updateSaveState(int count, bool saved)
+{
+    post.saveCount = count;
+    post.isSaved = saved;
+    Log::debug("PostCard: Save state updated - post: " + post.id + ", count: " + juce::String(count) + ", saved: " + juce::String(saved ? "true" : "false"));
+    repaint();
+}
+
+void PostCard::updateRepostState(int count, bool reposted)
+{
+    post.repostCount = count;
+    post.isReposted = reposted;
+    Log::debug("PostCard: Repost state updated - post: " + post.id + ", count: " + juce::String(count) + ", reposted: " + juce::String(reposted ? "true" : "false"));
+    repaint();
+}
+
 void PostCard::setPlaybackProgress(float progress)
 {
     playbackProgress = juce::jlimit(0.0f, 1.0f, progress);
@@ -124,6 +140,11 @@ void PostCard::paint(juce::Graphics& g)
     g.setOpacity(fadeInOpacity.getValue());
 
     drawBackground(g);
+
+    // Draw repost attribution header if this is a repost
+    if (post.isARepost)
+        drawRepostAttribution(g);
+
     drawAvatar(g, getAvatarBounds());
     drawUserInfo(g, getUserInfoBounds());
     drawFollowButton(g, getFollowButtonBounds());
@@ -465,6 +486,13 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Draw individual emoji reaction counts (top 3 most popular)
     drawReactionCounts(g, likeBounds);
 
+    // Save/Bookmark button
+    drawSaveButton(g, getSaveButtonBounds());
+
+    // Repost button (don't show for own posts)
+    if (!post.isOwnPost)
+        drawRepostButton(g, getRepostButtonBounds());
+
     // Comment count
     auto commentBounds = getCommentButtonBounds();
     g.setColour(SidechainColors::textMuted());
@@ -706,6 +734,124 @@ void PostCard::drawReactionCounts(juce::Graphics& g, juce::Rectangle<int> likeBo
     }
 }
 
+void PostCard::drawSaveButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Bookmark/Save button
+    juce::Colour saveColor = post.isSaved ? SidechainColors::primary() : SidechainColors::textMuted();
+    g.setColour(saveColor);
+
+    // Draw bookmark icon
+    auto iconBounds = bounds.withWidth(16).withHeight(18).withY(bounds.getCentreY() - 9);
+    juce::Path bookmark;
+
+    if (post.isSaved)
+    {
+        // Filled bookmark
+        bookmark.addRectangle(iconBounds.getX(), iconBounds.getY(),
+                              iconBounds.getWidth(), iconBounds.getHeight() - 4);
+        // Triangular notch at bottom
+        bookmark.addTriangle(iconBounds.getX(), iconBounds.getBottom() - 4,
+                            iconBounds.getX() + iconBounds.getWidth(), iconBounds.getBottom() - 4,
+                            iconBounds.getCentreX(), iconBounds.getBottom() - 8);
+        g.fillPath(bookmark);
+    }
+    else
+    {
+        // Outline bookmark
+        bookmark.startNewSubPath(iconBounds.getX(), iconBounds.getY());
+        bookmark.lineTo(iconBounds.getX(), iconBounds.getBottom() - 4);
+        bookmark.lineTo(iconBounds.getCentreX(), iconBounds.getBottom() - 8);
+        bookmark.lineTo(iconBounds.getRight(), iconBounds.getBottom() - 4);
+        bookmark.lineTo(iconBounds.getRight(), iconBounds.getY());
+        bookmark.closeSubPath();
+        g.strokePath(bookmark, juce::PathStrokeType(1.5f));
+    }
+
+    // Draw save count if > 0
+    if (post.saveCount > 0)
+    {
+        g.setFont(11.0f);
+        g.drawText(StringFormatter::formatCount(post.saveCount),
+                   bounds.withX(bounds.getX() + 18).withWidth(25),
+                   juce::Justification::centredLeft);
+    }
+}
+
+void PostCard::drawRepostButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Don't show repost button for own posts
+    if (post.isOwnPost)
+        return;
+
+    juce::Colour repostColor = post.isReposted ? SidechainColors::success() : SidechainColors::textMuted();
+    g.setColour(repostColor);
+
+    // Draw repost icon (two arrows in circular motion, similar to Twitter retweet)
+    auto iconBounds = bounds.withWidth(18).withHeight(14).withY(bounds.getCentreY() - 7);
+    float cx = static_cast<float>(iconBounds.getCentreX());
+    float cy = static_cast<float>(iconBounds.getCentreY());
+    float size = 6.0f;
+
+    juce::Path repostIcon;
+
+    // Create arc paths with arrow heads
+    // Top-right arrow
+    juce::Path topArc;
+    topArc.addArc(cx - size, cy - size, size * 2.0f, size * 2.0f,
+                  -juce::MathConstants<float>::pi * 0.5f,
+                  juce::MathConstants<float>::pi * 0.5f, true);
+    // Arrow head at end of top arc
+    float arrowTipX = cx + size;
+    float arrowTipY = cy;
+    repostIcon.addTriangle(arrowTipX, arrowTipY - 4,
+                           arrowTipX, arrowTipY + 4,
+                           arrowTipX + 5, arrowTipY);
+
+    // Bottom-left arrow
+    juce::Path bottomArc;
+    bottomArc.addArc(cx - size, cy - size, size * 2.0f, size * 2.0f,
+                     juce::MathConstants<float>::pi * 0.5f,
+                     juce::MathConstants<float>::pi * 1.5f, true);
+    // Arrow head at end of bottom arc
+    arrowTipX = cx - size;
+    arrowTipY = cy;
+    repostIcon.addTriangle(arrowTipX, arrowTipY - 4,
+                           arrowTipX, arrowTipY + 4,
+                           arrowTipX - 5, arrowTipY);
+
+    g.fillPath(repostIcon);
+
+    // Stroke the arcs
+    g.strokePath(topArc, juce::PathStrokeType(1.5f));
+    g.strokePath(bottomArc, juce::PathStrokeType(1.5f));
+
+    // Draw repost count if > 0
+    if (post.repostCount > 0)
+    {
+        g.setFont(11.0f);
+        g.drawText(StringFormatter::formatCount(post.repostCount),
+                   bounds.withX(bounds.getX() + 20).withWidth(20),
+                   juce::Justification::centredLeft);
+    }
+}
+
+void PostCard::drawRepostAttribution(juce::Graphics& g)
+{
+    if (!post.isARepost || post.originalUsername.isEmpty())
+        return;
+
+    // Draw "Username reposted" header above the card content
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(11.0f);
+
+    // Repost icon (small arrows)
+    juce::String repostText = post.username + " reposted";
+
+    // Draw at the very top of the card
+    auto headerBounds = juce::Rectangle<int>(15, 2, getWidth() - 30, 14);
+    g.drawText(repostText, headerBounds, juce::Justification::centredLeft);
+}
+
 //==============================================================================
 void PostCard::resized()
 {
@@ -771,6 +917,22 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
     {
         if (onShareClicked)
             onShareClicked(post);
+        return;
+    }
+
+    // Check save/bookmark button
+    if (getSaveButtonBounds().contains(pos))
+    {
+        if (onSaveToggled)
+            onSaveToggled(post, !post.isSaved);
+        return;
+    }
+
+    // Check repost button (not for own posts)
+    if (!post.isOwnPost && getRepostButtonBounds().contains(pos))
+    {
+        if (onRepostClicked)
+            onRepostClicked(post);
         return;
     }
 
@@ -1001,6 +1163,18 @@ juce::Rectangle<int> PostCard::getRemixChainBadgeBounds() const
     // Position at top-right of waveform area to show remix lineage
     auto waveform = getWaveformBounds();
     return juce::Rectangle<int>(waveform.getRight() - 80, waveform.getY() - 2, 78, 16);
+}
+
+juce::Rectangle<int> PostCard::getSaveButtonBounds() const
+{
+    // Position next to comment button in social buttons row
+    return juce::Rectangle<int>(getWidth() - 160, CARD_HEIGHT - 35, 40, 25);
+}
+
+juce::Rectangle<int> PostCard::getRepostButtonBounds() const
+{
+    // Position next to save button in social buttons row
+    return juce::Rectangle<int>(getWidth() - 200, CARD_HEIGHT - 35, 35, 25);
 }
 
 //==============================================================================

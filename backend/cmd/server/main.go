@@ -322,6 +322,9 @@ func main() {
 			users.GET("/me/follow-requests/count", h.GetFollowRequestCount)
 			users.GET("/me/pending-requests", h.GetPendingFollowRequests)
 
+			// Current user's saved posts (P0 Social Feature) - must be before /:id routes
+			users.GET("/me/saved", h.GetSavedPosts)
+
 			// User profile endpoints (require auth for following checks)
 			users.GET("/:id/profile", h.GetUserProfile)
 			users.GET("/:id/posts", h.GetUserPosts)
@@ -332,6 +335,8 @@ func main() {
 			users.POST("/:id/follow", h.FollowUserByID)
 			users.DELETE("/:id/follow", h.UnfollowUserByID)
 			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
+			// User reposts endpoint (P0 Social Feature)
+			users.GET("/:id/reposts", h.GetUserReposts)
 		}
 
 		// Follow request management routes
@@ -370,7 +375,7 @@ func main() {
 			recommendations.GET("/similar-users/:user_id", h.GetRecommendedUsers)
 		}
 
-		// Post routes (for comments, deletion, reporting)
+		// Post routes (for comments, deletion, reporting, saving, reposting)
 		posts := api.Group("/posts")
 		{
 			posts.Use(authHandlers.AuthMiddleware())
@@ -379,6 +384,15 @@ func main() {
 			posts.DELETE("/:id", h.DeletePost)
 			posts.POST("/:id/report", h.ReportPost)
 			posts.POST("/:id/download", h.DownloadPost)
+			// Save/Bookmark routes (P0 Social Feature)
+			posts.POST("/:id/save", h.SavePost)
+			posts.DELETE("/:id/save", h.UnsavePost)
+			posts.GET("/:id/saved", h.IsPostSaved)
+			// Repost routes (P0 Social Feature)
+			posts.POST("/:id/repost", h.CreateRepost)
+			posts.DELETE("/:id/repost", h.UndoRepost)
+			posts.GET("/:id/reposts", h.GetReposts)
+			posts.GET("/:id/reposted", h.IsPostReposted)
 		}
 
 		// Comment routes

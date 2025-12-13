@@ -109,6 +109,8 @@ func Migrate() error {
 		&models.MIDIChallenge{},        // R.2.2 MIDI Battle Royale
 		&models.MIDIChallengeEntry{},   // R.2.2 MIDI Battle Royale (references AudioPost and MIDIPattern)
 		&models.MIDIChallengeVote{},    // R.2.2 MIDI Battle Royale
+		&models.SavedPost{},            // Save/Bookmark posts feature
+		&models.Repost{},               // Repost/Share to feed feature
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -244,6 +246,18 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_votes_entry ON midi_challenge_votes (entry_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_midi_challenge_votes_voter ON midi_challenge_votes (voter_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_midi_challenge_votes_unique ON midi_challenge_votes (challenge_id, voter_id) WHERE deleted_at IS NULL")
+
+	// Saved posts indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_saved_posts_user ON saved_posts (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_saved_posts_post ON saved_posts (post_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_saved_posts_user_created ON saved_posts (user_id, created_at DESC)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_saved_posts_unique ON saved_posts (user_id, post_id)")
+
+	// Repost indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reposts_user ON reposts (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reposts_original_post ON reposts (original_post_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reposts_user_created ON reposts (user_id, created_at DESC)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_reposts_unique ON reposts (user_id, original_post_id) WHERE deleted_at IS NULL")
 
 	return nil
 }

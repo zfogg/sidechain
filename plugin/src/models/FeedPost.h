@@ -75,9 +75,22 @@ public:
     int likeCount = 0;
     int playCount = 0;
     int commentCount = 0;
+    int saveCount = 0;         // Number of users who saved/bookmarked this post
+    int repostCount = 0;       // Number of times this post has been reposted
     bool isLiked = false;      // Whether current user has liked this post
+    bool isSaved = false;      // Whether current user has saved/bookmarked this post
+    bool isReposted = false;   // Whether current user has reposted this post
     bool isFollowing = false;  // Whether current user is following this post's author
     bool isOwnPost = false;    // Whether this is the current user's own post
+
+    //==============================================================================
+    // Repost metadata (when this post is a repost of another post)
+    bool isARepost = false;             // Whether this post is actually a repost
+    juce::String originalPostId;        // ID of the original post (if this is a repost)
+    juce::String originalUserId;        // User ID of original poster
+    juce::String originalUsername;      // Username of original poster
+    juce::String originalAvatarUrl;     // Avatar URL of original poster
+    juce::String repostQuote;           // Optional quote/comment from reposter
 
     //==============================================================================
     // Online status (presence)
