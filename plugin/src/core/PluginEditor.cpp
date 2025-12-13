@@ -66,6 +66,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // This automatically displays tooltips for any child component that provides one
     tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500);  // 500ms delay
 
+    // Add ToastManager to component hierarchy (for transient error notifications)
+    auto& toastManager = ToastManager::getInstance();
+    addAndMakeVisible(&toastManager);
+
     //==========================================================================
     // Create AuthComponent
     authComponent = std::make_unique<Auth>();
@@ -545,6 +549,18 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     // Not added as child - shown as modal overlay when needed
 
+    //==========================================================================
+    // Create NotificationSettings dialog
+    notificationSettingsDialog = std::make_unique<NotificationSettings>();
+    notificationSettingsDialog->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        notificationSettingsDialog->setUserDataStore(userDataStore.get());
+    notificationSettingsDialog->onClose = [this]() {
+        if (notificationSettingsDialog)
+            notificationSettingsDialog->closeDialog();
+    };
+    // Not added as child - shown as modal overlay when needed
+
     // Setup synth unlock callback
     audioProcessor.onSynthUnlocked = [this]() {
         juce::MessageManager::callAsync([this]() {
@@ -559,6 +575,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     //==========================================================================
     // Create StreamChatClient for getstream.io messaging
     streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
+
+    // Wire up message notification callback to check OS notification setting
+    streamChatClient->setMessageNotificationCallback([this](const juce::String& title, const juce::String& message) {
+        // Check if OS notifications are enabled before showing
+        if (userDataStore && userDataStore->isOSNotificationsEnabled())
+        {
+            OSNotification::show(title, message, "", userDataStore->isNotificationSoundEnabled());
+        }
+    });
 
     // Wire up unread count callback to update header badge
     streamChatClient->setUnreadCountCallback([this](int totalUnread) {
@@ -689,6 +714,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     profileComponent->onCreateHighlightClicked = [this]() {
         showCreateHighlightDialog();
+    };
+    profileComponent->onNotificationSettingsClicked = [this]() {
+        showNotificationSettings();
     };
     addChildComponent(profileComponent.get());
 
@@ -873,6 +901,10 @@ void SidechainAudioProcessorEditor::resized()
 
     if (archivedPostsComponent)
         archivedPostsComponent->setBounds(contentBounds);
+
+    // ToastManager covers entire window (transparent, toasts positioned within)
+    auto& toastManager = ToastManager::getInstance();
+    toastManager.setBounds(getLocalBounds());
 }
 
 //==============================================================================
@@ -1693,6 +1725,19 @@ void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData& sto
 
     // Show the dialog
     shareToMessageDialog->showModal(this);
+}
+
+void SidechainAudioProcessorEditor::showNotificationSettings()
+{
+    if (!notificationSettingsDialog)
+        return;
+
+    // Ensure UserDataStore is set (in case it wasn't set during construction)
+    if (userDataStore)
+        notificationSettingsDialog->setUserDataStore(userDataStore.get());
+
+    // Show the dialog
+    notificationSettingsDialog->showModal(this);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()
@@ -2530,14 +2575,18 @@ void SidechainAudioProcessorEditor::fetchNotifications()
         // Show OS notification for new notifications (most recent first)
         if (newNotifications && items.size() > 0)
         {
-            // Get the first (most recent) notification to show
-            const auto& latestNotification = items.getFirst();
-            juce::String notificationTitle = "Sidechain";
-            juce::String notificationMessage = latestNotification.getDisplayText();
-            
-            // Show desktop notification (checks isSupported internally)
-            OSNotification::show(notificationTitle, notificationMessage, "", 
-                               userDataStore && userDataStore->isNotificationSoundEnabled());
+            // Check if OS notifications are enabled
+            if (userDataStore && userDataStore->isOSNotificationsEnabled())
+            {
+                // Get the first (most recent) notification to show
+                const auto& latestNotification = items.getFirst();
+                juce::String notificationTitle = "Sidechain";
+                juce::String notificationMessage = latestNotification.getDisplayText();
+                
+                // Show desktop notification (checks isSupported internally)
+                OSNotification::show(notificationTitle, notificationMessage, "", 
+                                   userDataStore->isNotificationSoundEnabled());
+            }
         }
 
         if (notificationList)
@@ -2569,7 +2618,7 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts()
         }
         
         // Fetch and show OS notification for new notifications
-        if (newNotifications)
+        if (newNotifications && userDataStore && userDataStore->isOSNotificationsEnabled())
         {
             // Fetch the most recent notification to show in OS notification
             networkClient->getNotifications(1, 0, [this](Outcome<NetworkClient::NotificationResult> result) {

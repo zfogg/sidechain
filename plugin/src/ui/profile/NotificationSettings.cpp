@@ -1,5 +1,6 @@
 #include "NotificationSettings.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/UserDataStore.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 
@@ -53,6 +54,10 @@ void NotificationSettings::setupToggles()
 
     challengesToggle = std::make_unique<juce::ToggleButton>();
     styleToggle(*challengesToggle, "MIDI Challenges");
+
+    // Plugin settings (local)
+    osNotificationsToggle = std::make_unique<juce::ToggleButton>();
+    styleToggle(*osNotificationsToggle, "Show Desktop Notifications");
 
     // Close button
     closeButton = std::make_unique<juce::TextButton>("Close");
@@ -121,6 +126,16 @@ void NotificationSettings::populateFromPreferences()
     challengesToggle->setToggleState(challengesEnabled, juce::dontSendNotification);
 }
 
+void NotificationSettings::loadPluginSettings()
+{
+    if (userDataStore)
+    {
+        osNotificationsEnabled = userDataStore->isOSNotificationsEnabled();
+        if (osNotificationsToggle)
+            osNotificationsToggle->setToggleState(osNotificationsEnabled, juce::dontSendNotification);
+    }
+}
+
 void NotificationSettings::handleToggleChange(juce::ToggleButton* toggle)
 {
     // Update local state based on which toggle changed
@@ -140,8 +155,18 @@ void NotificationSettings::handleToggleChange(juce::ToggleButton* toggle)
         repostsEnabled = toggle->getToggleState();
     else if (toggle == challengesToggle.get())
         challengesEnabled = toggle->getToggleState();
+    else if (toggle == osNotificationsToggle.get())
+    {
+        // Plugin setting - save to UserDataStore
+        osNotificationsEnabled = toggle->getToggleState();
+        if (userDataStore)
+        {
+            userDataStore->setOSNotificationsEnabled(osNotificationsEnabled);
+        }
+        return; // Don't call savePreferences() for plugin settings
+    }
 
-    // Save immediately when changed
+    // Save immediately when changed (backend preferences only)
     savePreferences();
 }
 
@@ -208,6 +233,10 @@ void NotificationSettings::paint(juce::Graphics& g)
 
     // Activity notifications section
     drawSection(g, "ACTIVITY NOTIFICATIONS", juce::Rectangle<int>(PADDING, y, getWidth() - PADDING * 2, 20));
+    y += 25 + TOGGLE_HEIGHT * 2; // 2 toggles
+
+    // Plugin settings section
+    drawSection(g, "PLUGIN SETTINGS", juce::Rectangle<int>(PADDING, y, getWidth() - PADDING * 2, 20));
 
     // Loading indicator
     if (isLoading)
@@ -284,6 +313,11 @@ void NotificationSettings::resized()
     y += TOGGLE_HEIGHT;
 
     challengesToggle->setBounds(PADDING, y, toggleWidth, TOGGLE_HEIGHT);
+    y += TOGGLE_HEIGHT + SECTION_SPACING + 25; // Section spacing + label
+
+    // Plugin settings
+    if (osNotificationsToggle)
+        osNotificationsToggle->setBounds(PADDING, y, toggleWidth, TOGGLE_HEIGHT);
 }
 
 //==============================================================================
@@ -293,5 +327,31 @@ void NotificationSettings::buttonClicked(juce::Button* button)
     {
         if (onClose)
             onClose();
+        closeDialog();
     }
+}
+
+//==============================================================================
+void NotificationSettings::showModal(juce::Component* parentComponent)
+{
+    if (parentComponent == nullptr)
+        return;
+
+    // Load preferences when shown
+    loadPreferences();
+    loadPluginSettings();
+
+    // Size to fill parent
+    setBounds(parentComponent->getLocalBounds());
+    parentComponent->addAndMakeVisible(this);
+    toFront(true);
+}
+
+void NotificationSettings::closeDialog()
+{
+    juce::MessageManager::callAsync([this]() {
+        setVisible(false);
+        if (auto* parent = getParentComponent())
+            parent->removeChildComponent(this);
+    });
 }

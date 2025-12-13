@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 
 class NetworkClient;
+class UserDataStore;
 
 //==============================================================================
 /**
@@ -12,6 +13,7 @@ class NetworkClient;
  * - Toggle for each notification type (likes, comments, follows, etc.)
  * - All changes are persisted to the backend
  * - Loads current preferences on open
+ * - Plugin settings (OS notifications) stored locally
  */
 class NotificationSettings : public juce::Component,
                               public juce::Button::Listener
@@ -23,11 +25,17 @@ public:
     //==============================================================================
     // Data binding
     void setNetworkClient(NetworkClient* client) { networkClient = client; }
+    void setUserDataStore(UserDataStore* store) { userDataStore = store; loadPluginSettings(); }
     void loadPreferences();
 
     //==============================================================================
     // Callbacks
     std::function<void()> onClose;
+
+    //==============================================================================
+    // Modal display
+    void showModal(juce::Component* parentComponent);
+    void closeDialog();
 
     //==============================================================================
     // Component overrides
@@ -38,13 +46,14 @@ public:
 private:
     //==============================================================================
     NetworkClient* networkClient = nullptr;
+    UserDataStore* userDataStore = nullptr;
 
     // State
     bool isLoading = false;
     bool isSaving = false;
     juce::String errorMessage;
 
-    // Preferences state
+    // Preferences state (backend)
     bool likesEnabled = true;
     bool commentsEnabled = true;
     bool followsEnabled = true;
@@ -53,6 +62,9 @@ private:
     bool storiesEnabled = true;
     bool repostsEnabled = true;
     bool challengesEnabled = true;
+
+    // Plugin settings (local)
+    bool osNotificationsEnabled = true;
 
     //==============================================================================
     // UI Components
@@ -67,6 +79,9 @@ private:
     std::unique_ptr<juce::ToggleButton> storiesToggle;
     std::unique_ptr<juce::ToggleButton> repostsToggle;
     std::unique_ptr<juce::ToggleButton> challengesToggle;
+    
+    // Plugin settings toggles
+    std::unique_ptr<juce::ToggleButton> osNotificationsToggle;
 
     //==============================================================================
     // Drawing methods
@@ -77,6 +92,7 @@ private:
     // Helpers
     void setupToggles();
     void populateFromPreferences();
+    void loadPluginSettings();
     void handleToggleChange(juce::ToggleButton* toggle);
     void savePreferences();
 

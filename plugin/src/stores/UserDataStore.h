@@ -86,6 +86,16 @@ public:
      */
     void setNotificationSoundEnabled(bool enabled);
 
+    /** Check if OS notifications are enabled
+     *  @return true if OS notifications should be shown
+     */
+    bool isOSNotificationsEnabled() const { return osNotificationsEnabled; }
+
+    /** Set OS notifications preference
+     *  @param enabled Whether to show OS notifications
+     */
+    void setOSNotificationsEnabled(bool enabled);
+
     //==========================================================================
     // Data modification
 
@@ -155,6 +165,7 @@ private:
     juce::String profilePictureUrl;
     juce::String authToken;
     bool notificationSoundEnabled = true;  // Default: enabled
+    bool osNotificationsEnabled = true;   // Default: enabled
 
     // Cached profile image
     juce::Image cachedProfileImage;

@@ -12,11 +12,13 @@
 #include "ui/profile/Profile.h"
 #include "ui/profile/SavedPosts.h"
 #include "ui/profile/ArchivedPosts.h"
+#include "ui/profile/NotificationSettings.h"
 #include "ui/feed/PostsFeed.h"
 #include "ui/recording/Recording.h"
 #include "ui/recording/Upload.h"
 #include "ui/common/ConnectionIndicator.h"
 #include "ui/common/Header.h"
+#include "ui/common/ToastNotification.h"
 #include "ui/notifications/NotificationBell.h"
 #include "ui/notifications/NotificationList.h"
 #include "ui/social/UserDiscovery.h"
@@ -151,6 +153,10 @@ private:
      */
     void showShareStoryToMessage(const StoryData& story);
 
+    /** Show notification settings dialog
+     */
+    void showNotificationSettings();
+
     /** Navigate back to the previous view in the navigation stack
      */
     void navigateBack();
@@ -208,6 +214,9 @@ private:
 
     // Share to message dialog
     std::unique_ptr<ShareToMessageDialog> shareToMessageDialog;
+
+    // Settings dialogs
+    std::unique_ptr<NotificationSettings> notificationSettingsDialog;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;
