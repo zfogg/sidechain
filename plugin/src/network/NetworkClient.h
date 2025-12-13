@@ -105,6 +105,9 @@ public:
         // Project file data (R.3.4 Project File Exchange)
         juce::File projectFile;       ///< DAW project file to upload (optional)
         bool includeProjectFile = false; ///< Whether to upload project file with the post
+
+        // Comment controls (Feature #12)
+        juce::String commentAudience = "everyone"; ///< Who can comment: "everyone", "followers", "off"
     };
 
     //==========================================================================

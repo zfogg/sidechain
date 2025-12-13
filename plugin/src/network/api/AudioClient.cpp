@@ -238,6 +238,12 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
             }
         }
 
+        // Include comment audience setting (Feature #12)
+        if (metadataCopy.commentAudience.isNotEmpty())
+        {
+            fields["comment_audience"] = metadataCopy.commentAudience;
+        }
+
         // Generate filename
         juce::String safeTitle = metadataCopy.title.replaceCharacters(" /\\:*?\"<>|", "-----------");
         juce::String fileName = safeTitle + "-" + recordingId.substring(0, 8) + ".wav";
