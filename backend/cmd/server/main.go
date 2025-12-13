@@ -553,6 +553,24 @@ func main() {
 			midiChallenges.POST("/:id/entries/:entry_id/vote", h.VoteMIDIChallengeEntry)
 		}
 
+		// Sound routes (Feature #15 - Sound/Sample Pages)
+		soundHandlers := handlers.NewSoundHandlers()
+		sounds := api.Group("/sounds")
+		{
+			// Public: Get trending sounds
+			sounds.GET("/trending", soundHandlers.GetTrendingSounds)
+			sounds.GET("/search", soundHandlers.SearchSounds)
+
+			// Protected routes
+			sounds.Use(authHandlers.AuthMiddleware())
+			sounds.GET("/:id", soundHandlers.GetSound)
+			sounds.GET("/:id/posts", soundHandlers.GetSoundPosts)
+			sounds.PATCH("/:id", soundHandlers.UpdateSound)
+		}
+
+		// Post sound route (Feature #15)
+		posts.GET("/:id/sound", soundHandlers.GetPostSound)
+
 		// WebSocket routes
 		ws := api.Group("/ws")
 		{

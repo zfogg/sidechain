@@ -879,3 +879,136 @@ func (u *User) GetAvatarURL() string {
 	}
 	return u.OAuthProfilePictureURL
 }
+
+//==============================================================================
+// Sound/Sample Pages (Feature #15)
+// Audio fingerprinting to detect same audio used across posts
+//==============================================================================
+
+// Sound represents a unique audio signature that can appear in multiple posts
+// Similar to TikTok/Instagram sounds - when a sample is used by multiple users
+type Sound struct {
+	ID string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+
+	// Sound metadata
+	Name        string `json:"name"`         // Display name (auto-generated or user-provided)
+	Description string `json:"description"`  // Optional description
+	Duration    float64 `json:"duration"`    // Duration in seconds of the original sample
+
+	// Original source (first post that used this sound)
+	OriginalPostID  *string    `gorm:"index" json:"original_post_id,omitempty"`
+	OriginalPost    *AudioPost `gorm:"foreignKey:OriginalPostID" json:"original_post,omitempty"`
+	OriginalStoryID *string    `gorm:"index" json:"original_story_id,omitempty"`
+	OriginalStory   *Story     `gorm:"foreignKey:OriginalStoryID" json:"original_story,omitempty"`
+
+	// Creator (user who first uploaded this sound)
+	CreatorID string `gorm:"index" json:"creator_id"`
+	Creator   User   `gorm:"foreignKey:CreatorID" json:"creator,omitempty"`
+
+	// Usage statistics (cached, updated periodically)
+	UsageCount   int `gorm:"default:1" json:"usage_count"`   // Number of posts using this sound
+	TrendingRank int `gorm:"default:0;index" json:"trending_rank"` // For trending sounds discovery
+
+	// Fingerprint data (Shazam-style)
+	// The fingerprint hash is used for fast lookups
+	FingerprintHash string `gorm:"index;not null" json:"fingerprint_hash"`
+
+	// Status
+	IsPublic   bool `gorm:"default:true" json:"is_public"`   // Can others use this sound
+	IsTrending bool `gorm:"default:false;index" json:"is_trending"` // Featured in trending
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+func (Sound) TableName() string {
+	return "sounds"
+}
+
+func (s *Sound) BeforeCreate(tx *gorm.DB) error {
+	if s.ID == "" {
+		s.ID = generateUUID()
+	}
+	return nil
+}
+
+// AudioFingerprint stores the fingerprint data for an audio post or story
+// Links posts/stories to Sounds for "used this sound" discovery
+type AudioFingerprint struct {
+	ID string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+
+	// The post or story this fingerprint belongs to
+	AudioPostID *string    `gorm:"index" json:"audio_post_id,omitempty"`
+	AudioPost   *AudioPost `gorm:"foreignKey:AudioPostID" json:"audio_post,omitempty"`
+	StoryID     *string    `gorm:"index" json:"story_id,omitempty"`
+	Story       *Story     `gorm:"foreignKey:StoryID" json:"story,omitempty"`
+
+	// The matched Sound (set after fingerprint matching)
+	SoundID *string `gorm:"index" json:"sound_id,omitempty"`
+	Sound   *Sound  `gorm:"foreignKey:SoundID" json:"sound,omitempty"`
+
+	// Fingerprint data (stored for re-matching if needed)
+	// Hash is the primary identifier for fast lookups
+	FingerprintHash string `gorm:"index;not null" json:"fingerprint_hash"`
+
+	// Fingerprint components (stored as JSON for flexibility)
+	// These are the raw peak/hash data from the Shazam algorithm
+	FingerprintData []byte `gorm:"type:jsonb" json:"-"` // Full fingerprint data (not exposed in API)
+
+	// Match confidence (0.0 to 1.0) when matched to a Sound
+	MatchConfidence float64 `gorm:"default:0" json:"match_confidence"`
+
+	// Processing status
+	Status string `gorm:"default:'pending';index" json:"status"` // pending, processing, completed, failed
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+func (AudioFingerprint) TableName() string {
+	return "audio_fingerprints"
+}
+
+func (af *AudioFingerprint) BeforeCreate(tx *gorm.DB) error {
+	if af.ID == "" {
+		af.ID = generateUUID()
+	}
+	return nil
+}
+
+// SoundUsage tracks when a user uses a sound in their post
+// Allows for analytics and "X users used this sound" displays
+type SoundUsage struct {
+	ID string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+
+	SoundID string `gorm:"index;not null" json:"sound_id"`
+	Sound   Sound  `gorm:"foreignKey:SoundID" json:"sound,omitempty"`
+
+	UserID string `gorm:"index;not null" json:"user_id"`
+	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+
+	// What used the sound
+	AudioPostID *string    `gorm:"index" json:"audio_post_id,omitempty"`
+	AudioPost   *AudioPost `gorm:"foreignKey:AudioPostID" json:"audio_post,omitempty"`
+	StoryID     *string    `gorm:"index" json:"story_id,omitempty"`
+	Story       *Story     `gorm:"foreignKey:StoryID" json:"story,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+func (SoundUsage) TableName() string {
+	return "sound_usages"
+}
+
+func (su *SoundUsage) BeforeCreate(tx *gorm.DB) error {
+	if su.ID == "" {
+		su.ID = generateUUID()
+	}
+	return nil
+}
