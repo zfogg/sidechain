@@ -308,21 +308,28 @@ Sidechain has a solid foundation with core features implemented:
   - Pin badge/icon
   - Separate section or top of grid
 
-### 14. Post Archive (Hide Without Delete)
+### 14. Post Archive (Hide Without Delete) ✅ IMPLEMENTED
 
 **Problem**: Can only delete posts. Sometimes want to hide temporarily.
 
-**TODO**:
-- [ ] **14.1** Add `is_archived` field to AudioPost
-- [ ] **14.2** Add archive endpoints
-  - `POST /api/v1/posts/:id/archive`
-  - `POST /api/v1/posts/:id/unarchive`
-  - `GET /api/v1/users/me/archived`
+**COMPLETED**:
+- [x] **14.1** Add `is_archived` field to AudioPost
+  - Added to `backend/internal/models/user.go`
+  - Database indexes for efficient archived post queries
 
-- [ ] **14.3** Archive management UI
-  - View archived posts on profile
-  - Only visible to owner
-  - Restore option
+- [x] **14.2** Add archive endpoints
+  - `POST /api/v1/posts/:id/archive` - Archive a post
+  - `POST /api/v1/posts/:id/unarchive` - Unarchive a post
+  - `GET /api/v1/users/me/archived` - Get archived posts (paginated)
+  - `GET /api/v1/posts/:id/archived` - Check if post is archived
+  - Updated feed queries to filter out archived posts
+
+- [x] **14.3** Archive management UI
+  - Created `ArchivedPosts` component (`plugin/src/ui/profile/ArchivedPosts.h/cpp`)
+  - "Archived Posts" button on own profile page
+  - View archived posts in scrollable list
+  - Unarchive posts to restore them to feeds
+  - Added `archivePost()`, `unarchivePost()`, `getArchivedPosts()` to NetworkClient
 
 ### 15. Sound/Sample Pages
 
@@ -330,6 +337,7 @@ Sidechain has a solid foundation with core features implemented:
 
 **TODO**:
 - [ ] **15.1** Audio fingerprinting (phase 2)
+  - try using the golang fingerprinting code from https://github.com/sfluor/musig to fingerprint music, then store the result and match against the fingerprints in the database. you can rip the code out if you need (MIT license)
   - Detect same audio used across posts
   - Group by audio signature
 
@@ -705,7 +713,6 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 - [ ] Mute users
 - [ ] Private accounts
 - [ ] Pin posts
-- [ ] Archive posts
 - [ ] 2FA
 - [ ] Analytics
 - [ ] Verified badges
