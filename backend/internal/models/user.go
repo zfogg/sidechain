@@ -171,6 +171,10 @@ type AudioPost struct {
 	IsPublic         bool   `gorm:"default:true" json:"is_public"`
 	IsArchived       bool   `gorm:"default:false" json:"is_archived"` // Hidden from feeds but not deleted
 
+	// Pin to profile (Feature #13)
+	IsPinned bool `gorm:"default:false;index" json:"is_pinned"` // Show at top of profile
+	PinOrder int  `gorm:"default:0" json:"pin_order"`           // Order among pinned posts (1-3)
+
 	// Comment controls (Feature #12)
 	// CommentAudience controls who can comment: "everyone" (default), "followers", "off"
 	CommentAudience string `gorm:"default:everyone" json:"comment_audience"`

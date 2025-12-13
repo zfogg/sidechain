@@ -389,19 +389,30 @@ Sidechain has a solid foundation with core features implemented:
   - Tooltip shows "Comments are disabled" or "Followers only"
   - Comment button click is disabled when comments are off
 
-### 13. Pin Posts to Profile
+### 13. Pin Posts to Profile ✅ IMPLEMENTED
 
 **Problem**: Can't highlight best posts on profile.
 
-**TODO**:
-- [ ] **13.1** Add `is_pinned` and `pin_order` to AudioPost
-- [ ] **13.2** Add "Pin to Profile" option
-  - Max 3 pinned posts
-  - Reorder pinned posts
+**COMPLETED**:
+- [x] **13.1** Add `is_pinned` and `pin_order` to AudioPost
+  - Added `IsPinned` and `PinOrder` fields to `backend/internal/models/user.go`
+  - Database indexes for efficient pinned post queries
+  - FeedPost model updated with `isPinned` and `pinOrder` fields
 
-- [ ] **13.3** Show pinned posts first on profile
-  - Pin badge/icon
-  - Separate section or top of grid
+- [x] **13.2** Add "Pin to Profile" option
+  - Pin endpoints in `backend/internal/handlers/pinned_posts.go`:
+    - `POST /api/v1/posts/:id/pin` - Pin post (max 3 enforced)
+    - `DELETE /api/v1/posts/:id/pin` - Unpin post
+    - `PUT /api/v1/posts/:id/pin-order` - Reorder pinned posts
+    - `GET /api/v1/posts/:id/pinned` - Check if post is pinned
+    - `GET /api/v1/users/:id/pinned` - Get user's pinned posts
+  - NetworkClient methods: `pinPost()`, `unpinPost()`, `updatePinOrder()`, `isPostPinned()`
+
+- [x] **13.3** Show pinned posts first on profile
+  - Pin button in PostCard UI (only for own posts)
+  - "PINNED" badge displayed on pinned posts
+  - Pinned posts ordered first in GetUserPosts query (`ORDER BY is_pinned DESC, pin_order ASC`)
+  - Tooltip: "Pin to profile" / "Unpin from profile"
 
 ### 14. Post Archive (Hide Without Delete) ✅ IMPLEMENTED
 
@@ -830,9 +841,9 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 - [ ] Share to DMs
 - [x] Drafts system ✅
 - [ ] Offline mode
-- [ ] Mute users
+- [x] Mute users ✅
 - [x] Private accounts ✅
-- [ ] Pin posts
+- [x] Pin posts ✅
 - [ ] 2FA
 - [ ] Analytics
 - [ ] Verified badges
@@ -851,8 +862,8 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 | ~~P0~~ | ~~Drafts~~ | ~~Medium~~ | ~~High~~ | ✅ DONE |
 | ~~P1~~ | ~~Repost~~ | ~~Medium~~ | ~~Medium~~ | ✅ DONE |
 | P1 | Share to DMs | Medium | Medium | Messages work |
-| P1 | Mute Users | Low | Medium | Backend simple |
-| P1 | Pin Posts | Low | Medium | Profile changes |
+| ~~P1~~ | ~~Mute Users~~ | ~~Low~~ | ~~Medium~~ | ✅ DONE |
+| ~~P1~~ | ~~Pin Posts~~ | ~~Low~~ | ~~Medium~~ | ✅ DONE |
 | ~~P1~~ | ~~Notification Prefs~~ | ~~Medium~~ | ~~Medium~~ | ✅ DONE |
 | ~~P2~~ | ~~Remix Chains UI~~ | ~~High~~ | ~~Medium~~ | ✅ DONE |
 | P2 | Analytics | High | Medium | New system |
@@ -873,15 +884,15 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 1. ~~Drafts system~~ ✅ DONE
 2. ~~Repost to feed~~ ✅ DONE
 3. Share posts to DMs
-4. Mute users
+4. ~~Mute users~~ ✅ DONE
 5. ~~Download audio/MIDI~~ ✅ DONE
 6. ~~Remix chains UI~~ ✅ DONE
 
-### Sprint 3: Profile Enhancements (1 week)
-1. Pin posts to profile
-2. Archive posts
-3. Notification preferences
-4. Activity status toggle
+### Sprint 3: Profile Enhancements (1 week) ✅ COMPLETE
+1. ~~Pin posts to profile~~ ✅ DONE
+2. ~~Archive posts~~ ✅ DONE
+3. ~~Notification preferences~~ ✅ DONE
+4. ~~Activity status toggle~~ ✅ DONE
 
 ### Sprint 4: Creator Tools (2 weeks)
 1. Basic analytics

@@ -696,7 +696,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		var audioPosts []models.AudioPost
 		if err := database.DB.
 			Where("user_id = ? AND is_public = ? AND is_archived = ?", user.ID, true, false).
-			Order("created_at DESC").
+			Order("is_pinned DESC, pin_order ASC, created_at DESC").
 			Limit(limit).
 			Offset(offset).
 			Find(&audioPosts).Error; err != nil {
@@ -739,6 +739,8 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"remix_chain_depth": post.RemixChainDepth,
 				"remix_count":      post.RemixCount,
 				"status":           post.ProcessingStatus,
+				"is_pinned":        post.IsPinned,
+				"pin_order":        post.PinOrder,
 				"actor_data": gin.H{
 					"id":         user.ID,
 					"username":   user.Username,

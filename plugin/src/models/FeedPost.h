@@ -84,6 +84,11 @@ public:
     bool isOwnPost = false;    // Whether this is the current user's own post
 
     //==============================================================================
+    // Pinned post metadata (Feature #13)
+    bool isPinned = false;     // Whether this post is pinned to user's profile
+    int pinOrder = 0;          // Order among pinned posts (1-3), 0 if not pinned
+
+    //==============================================================================
     // Comment controls (Feature #12)
     juce::String commentAudience = "everyone";  // "everyone", "followers", "off"
     bool commentsDisabled() const { return commentAudience == "off"; }

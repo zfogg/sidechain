@@ -86,6 +86,12 @@ public:
      */
     void updateRepostState(int count, bool isReposted);
 
+    /** Update the pin state
+     * @param isPinned Whether the post is pinned
+     * @param pinOrder The position among pinned posts (1-3)
+     */
+    void updatePinState(bool isPinned, int pinOrder = 0);
+
     /** Set the playback progress indicator
      * @param progress Progress from 0.0 to 1.0
      */
@@ -236,6 +242,13 @@ public:
      */
     std::function<void(const FeedPost&, bool archived)> onArchiveToggled;
 
+    /** Called when pin state is toggled
+     * @param post The post that was pinned/unpinned
+     * @param pinned true if post should be pinned, false to unpin
+     * @note Only available for own posts. Max 3 pinned posts allowed.
+     */
+    std::function<void(const FeedPost&, bool pinned)> onPinToggled;
+
     //==============================================================================
     // Component overrides
 
@@ -351,11 +364,14 @@ private:
     juce::Rectangle<int> getRemixChainBadgeBounds() const;
     juce::Rectangle<int> getSaveButtonBounds() const;
     juce::Rectangle<int> getRepostButtonBounds() const;
+    juce::Rectangle<int> getPinButtonBounds() const;
 
-    // Drawing helpers for save/repost
+    // Drawing helpers for save/repost/pin
     void drawSaveButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawRepostButton(juce::Graphics& g, juce::Rectangle<int> bounds);
+    void drawPinButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawRepostAttribution(juce::Graphics& g);  // Shows "User reposted" header
+    void drawPinnedBadge(juce::Graphics& g);  // Shows pin badge for pinned posts
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)

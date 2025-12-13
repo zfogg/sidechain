@@ -587,6 +587,34 @@ public:
     void getArchivedPosts(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
     //==========================================================================
+    // Pin posts to profile operations (Feature #13)
+
+    /** Pin a post to user's profile (max 3 posts)
+     * @param postId The post ID to pin
+     * @param callback Called with result (is_pinned, pin_order) or error
+     */
+    void pinPost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Unpin a post from user's profile
+     * @param postId The post ID to unpin
+     * @param callback Called with result or error
+     */
+    void unpinPost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Update the order of a pinned post
+     * @param postId The post ID to reorder
+     * @param order New position (1-3)
+     * @param callback Called with result or error
+     */
+    void updatePinOrder(const juce::String& postId, int order, ResponseCallback callback = nullptr);
+
+    /** Check if a post is pinned
+     * @param postId The post ID to check
+     * @param callback Called with result (is_pinned, pin_order) or error
+     */
+    void isPostPinned(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Profile operations
 
     /** Upload a profile picture

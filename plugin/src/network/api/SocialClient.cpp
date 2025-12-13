@@ -463,3 +463,99 @@ void NetworkClient::isUserMuted(const juce::String& userId, ResponseCallback cal
         }
     });
 }
+
+//==============================================================================
+// Pin posts to profile operations (Feature #13)
+//==============================================================================
+
+void NetworkClient::pinPost(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/api/v1/posts/" + postId + "/pin";
+        auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+        Log::debug("Pin post response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::unpinPost(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/api/v1/posts/" + postId + "/pin";
+        auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+        Log::debug("Unpin post response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::updatePinOrder(const juce::String& postId, int order, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, order, callback]() {
+        juce::var data = juce::var(new juce::DynamicObject());
+        data.getDynamicObject()->setProperty("order", order);
+
+        juce::String endpoint = "/api/v1/posts/" + postId + "/pin-order";
+        auto result = makeRequestWithRetry(endpoint, "PUT", data, true);
+        Log::debug("Update pin order response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::isPostPinned(const juce::String& postId, ResponseCallback callback)
+{
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/api/v1/posts/" + postId + "/pinned";
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
+        Log::debug("Is post pinned response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
