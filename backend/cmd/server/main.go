@@ -21,7 +21,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/email"
 	"github.com/zfogg/sidechain/backend/internal/handlers"
 	"github.com/zfogg/sidechain/backend/internal/middleware"
-	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/models" // Used for NotificationPreferencesChecker
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/seed"
 	"github.com/zfogg/sidechain/backend/internal/storage"
@@ -87,6 +87,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize Stream.io client: %v", err)
 	}
+
+	// Initialize notification preferences checker and set on stream client
+	notifPrefsChecker := models.NewNotificationPreferencesChecker(database.DB)
+	streamClient.SetNotificationPreferencesChecker(notifPrefsChecker)
+	log.Println("✅ Notification preferences checker initialized")
 
 	// Initialize auth service
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
@@ -288,6 +293,9 @@ func main() {
 			notifications.GET("/counts", h.GetNotificationCounts)
 			notifications.POST("/read", h.MarkNotificationsRead)
 			notifications.POST("/seen", h.MarkNotificationsSeen)
+			// Notification preferences (TODO #17)
+			notifications.GET("/preferences", h.GetNotificationPreferences)
+			notifications.PUT("/preferences", h.UpdateNotificationPreferences)
 		}
 
 		// Social routes

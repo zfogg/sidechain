@@ -542,6 +542,14 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setColour(Colors::textPrimary);
         g.setFont(14.0f);
         g.drawText("Saved Posts", savedBounds, juce::Justification::centred);
+
+        // Notification Settings button (below saved posts button)
+        auto notifBounds = getNotificationSettingsButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(notifBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Notifications", notifBounds, juce::Justification::centred);
     }
     else
     {
@@ -880,6 +888,16 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 Log::warn("Profile::mouseUp: Saved posts clicked but callback not set");
             return;
         }
+
+        if (getNotificationSettingsButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Notification settings button clicked");
+            if (onNotificationSettingsClicked)
+                onNotificationSettingsClicked();
+            else
+                Log::warn("Profile::mouseUp: Notification settings clicked but callback not set");
+            return;
+        }
     }
     else
     {
@@ -972,6 +990,12 @@ juce::Rectangle<int> Profile::getSavedPostsButtonBounds() const
 {
     auto editBounds = getEditButtonBounds();
     return editBounds.translated(0, BUTTON_HEIGHT + 8);  // Below edit button with spacing
+}
+
+juce::Rectangle<int> Profile::getNotificationSettingsButtonBounds() const
+{
+    auto savedBounds = getSavedPostsButtonBounds();
+    return savedBounds.translated(0, BUTTON_HEIGHT + 8);  // Below saved posts button with spacing
 }
 
 juce::Rectangle<int> Profile::getShareButtonBounds() const
