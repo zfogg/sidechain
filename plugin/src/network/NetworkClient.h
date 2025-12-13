@@ -802,6 +802,65 @@ public:
                      ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Story Highlights operations (permanent story collections)
+
+    /** Get all highlights for a user
+     * @param userId The user ID to get highlights for
+     * @param callback Called with highlights array or error
+     */
+    void getHighlights(const juce::String& userId, ResponseCallback callback = nullptr);
+
+    /** Get a single highlight with its stories
+     * @param highlightId The highlight ID
+     * @param callback Called with highlight data including stories or error
+     */
+    void getHighlight(const juce::String& highlightId, ResponseCallback callback = nullptr);
+
+    /** Create a new highlight collection
+     * @param name Display name for the highlight
+     * @param description Optional description
+     * @param callback Called with created highlight or error
+     */
+    void createHighlight(const juce::String& name,
+                         const juce::String& description = "",
+                         ResponseCallback callback = nullptr);
+
+    /** Update an existing highlight
+     * @param highlightId The highlight ID to update
+     * @param name New name (empty to keep current)
+     * @param description New description (empty to keep current)
+     * @param callback Called with updated highlight or error
+     */
+    void updateHighlight(const juce::String& highlightId,
+                         const juce::String& name,
+                         const juce::String& description = "",
+                         ResponseCallback callback = nullptr);
+
+    /** Delete a highlight collection
+     * @param highlightId The highlight ID to delete
+     * @param callback Called with success/error
+     */
+    void deleteHighlight(const juce::String& highlightId, ResponseCallback callback = nullptr);
+
+    /** Add a story to a highlight
+     * @param highlightId The highlight to add to
+     * @param storyId The story to add
+     * @param callback Called with success/error
+     */
+    void addStoryToHighlight(const juce::String& highlightId,
+                             const juce::String& storyId,
+                             ResponseCallback callback = nullptr);
+
+    /** Remove a story from a highlight
+     * @param highlightId The highlight to remove from
+     * @param storyId The story to remove
+     * @param callback Called with success/error
+     */
+    void removeStoryFromHighlight(const juce::String& highlightId,
+                                  const juce::String& storyId,
+                                  ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Authentication state
 
     /** Set the authentication token

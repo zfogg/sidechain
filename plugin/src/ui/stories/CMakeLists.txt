@@ -9,6 +9,8 @@ add_library(SidechainUIStories STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/StoriesFeed.h
     ${CMAKE_CURRENT_SOURCE_DIR}/StoryViewer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StoryViewer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoryHighlights.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoryHighlights.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PianoRoll.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PianoRoll.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NoteWaterfall.cpp

@@ -65,3 +65,50 @@ struct Story
      */
     juce::var toJSON() const;
 };
+
+//==============================================================================
+/**
+ * StoryHighlight represents a collection of saved stories that persist beyond 24 hours
+ *
+ * Like Instagram Highlights, these allow users to save and organize their
+ * best stories for permanent display on their profile.
+ */
+struct StoryHighlight
+{
+    juce::String id;
+    juce::String userId;
+    juce::String name;               // Display name (e.g., "Jams", "Experiments")
+    juce::String coverImageUrl;      // Optional custom cover image
+    juce::String description;        // Optional description
+    int sortOrder = 0;               // Order on profile
+    int storyCount = 0;              // Number of stories in this highlight
+    juce::Time createdAt;
+    juce::Time updatedAt;
+
+    // Stories in this highlight (populated when fetching single highlight)
+    juce::Array<Story> stories;
+
+    //==============================================================================
+    // Helper methods
+
+    /** Check if highlight has a custom cover image
+     *  @return true if cover image URL is set
+     */
+    bool hasCoverImage() const { return coverImageUrl.isNotEmpty(); }
+
+    /** Get the cover image URL, or first story's waveform as fallback
+     *  @return URL for cover image display
+     */
+    juce::String getCoverUrl() const;
+
+    /** Parse from JSON response
+     *  @param json JSON var containing highlight data
+     *  @return StoryHighlight instance parsed from JSON
+     */
+    static StoryHighlight fromJSON(const juce::var& json);
+
+    /** Convert to JSON for creation/update
+     *  @return JSON var representation of this highlight
+     */
+    juce::var toJSON() const;
+};

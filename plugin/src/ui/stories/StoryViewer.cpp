@@ -67,6 +67,7 @@ void StoryViewer::paint(juce::Graphics& g)
     drawHeader(g);
     drawStoryContent(g);
     drawDeleteButton(g);  // Delete button for own stories
+    drawHighlightButton(g);  // Add to highlight button (own stories only)
     drawMIDIButton(g);
     drawAudioDownloadButton(g);  // 19.1 Audio download
     drawRemixButton(g);  // R.3.2 Remix Chains
@@ -104,6 +105,7 @@ void StoryViewer::resized()
     viewersButtonArea = bottomArea.removeFromRight(120).reduced(10, 5);
     shareButtonArea = bottomArea.removeFromRight(100).reduced(10, 5);
     deleteButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // Delete button for own stories
+    highlightButtonArea = bottomArea.removeFromRight(90).reduced(10, 5);  // Add to highlight (own stories only)
     midiButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);
     audioDownloadButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // 19.1 Audio download
     remixButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // R.3.2 Remix Chains
@@ -187,6 +189,14 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
         if (deleteButtonArea.contains(pos))
         {
             handleDeleteStory(story->id);
+            return;
+        }
+
+        // Add to Highlight button
+        if (highlightButtonArea.contains(pos))
+        {
+            if (onAddToHighlightClicked)
+                onAddToHighlightClicked(story->id);
             return;
         }
     }
@@ -697,6 +707,29 @@ void StoryViewer::drawDeleteButton(juce::Graphics& g)
     g.setColour(StoryViewerColors::textPrimary);
     g.setFont(11.0f);
     g.drawText("Delete", deleteButtonArea, juce::Justification::centred);
+}
+
+void StoryViewer::drawHighlightButton(juce::Graphics& g)
+{
+    const auto* story = getCurrentStory();
+    if (!story || story->userId != currentUserId)
+        return;  // Only show for own stories
+
+    if (highlightButtonArea.isEmpty())
+        return;
+
+    // Button background - cyan/accent color for highlight action
+    g.setColour(juce::Colour(0xff00d4ff).withAlpha(0.3f));
+    g.fillRoundedRectangle(highlightButtonArea.toFloat(), 8.0f);
+
+    // Button border
+    g.setColour(juce::Colour(0xff00d4ff).withAlpha(0.7f));
+    g.drawRoundedRectangle(highlightButtonArea.toFloat(), 8.0f, 1.0f);
+
+    // Button text
+    g.setColour(StoryViewerColors::textPrimary);
+    g.setFont(11.0f);
+    g.drawText("Highlight", highlightButtonArea, juce::Justification::centred);
 }
 
 void StoryViewer::drawRemixButton(juce::Graphics& g)
