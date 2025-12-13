@@ -17,6 +17,8 @@ add_library(SidechainUIProfile STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationSettings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ActivityStatusSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ActivityStatusSettings.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TwoFactorSettings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TwoFactorSettings.h
 )
 
 target_include_directories(SidechainUIProfile PUBLIC

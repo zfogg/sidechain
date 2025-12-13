@@ -259,6 +259,20 @@ func main() {
 
 			// getstream.io Chat token generation (protected)
 			authGroup.GET("/stream-token", authHandlers.AuthMiddleware(), authHandlers.GetStreamToken)
+
+			// Two-Factor Authentication
+			twoFactor := authGroup.Group("/2fa")
+			{
+				// Public: Complete 2FA login (after initial login returns requires_2fa)
+				twoFactor.POST("/login", authHandlers.Verify2FALogin)
+
+				// Protected: 2FA management endpoints
+				twoFactor.GET("/status", authHandlers.AuthMiddleware(), h.Get2FAStatus)
+				twoFactor.POST("/enable", authHandlers.AuthMiddleware(), h.Enable2FA)
+				twoFactor.POST("/verify", authHandlers.AuthMiddleware(), h.Verify2FA)
+				twoFactor.POST("/disable", authHandlers.AuthMiddleware(), h.Disable2FA)
+				twoFactor.POST("/backup-codes", authHandlers.AuthMiddleware(), h.RegenerateBackupCodes)
+			}
 		}
 
 		// Audio routes - with upload rate limiting
@@ -334,7 +348,7 @@ func main() {
 			users.GET("/me/saved", h.GetSavedPosts)
 			// Current user's archived posts - must be before /:id routes
 			users.GET("/me/archived", h.GetArchivedPosts)
-			// Current user's muted users (Feature #10) - must be before /:id routes
+			// Current user's muted users - must be before /:id routes
 			users.GET("/me/muted", h.GetMutedUsers)
 
 			// User profile endpoints (require auth for following checks)
@@ -349,15 +363,15 @@ func main() {
 			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
 			// User reposts endpoint (P0 Social Feature)
 			users.GET("/:id/reposts", h.GetUserReposts)
-			// Pinned posts endpoint (Feature #13)
+			// Pinned posts endpoint
 			users.GET("/:id/pinned", h.GetPinnedPosts)
-			// Mute endpoints (Feature #10)
+			// Mute endpoints
 			users.POST("/:id/mute", h.MuteUser)
 			users.DELETE("/:id/mute", h.UnmuteUser)
 			users.GET("/:id/muted", h.IsUserMuted)
 		}
 
-		// Settings routes (Feature #9 - Activity Status Controls)
+		// Settings routes
 		settings := api.Group("/settings")
 		{
 			settings.Use(authHandlers.AuthMiddleware())
@@ -423,9 +437,9 @@ func main() {
 			posts.POST("/:id/archive", h.ArchivePost)
 			posts.POST("/:id/unarchive", h.UnarchivePost)
 			posts.GET("/:id/archived", h.IsPostArchived)
-			// Comment controls (Feature #12)
+			// Comment controls
 			posts.PUT("/:id/comment-audience", h.UpdateCommentAudience)
-			// Pin posts to profile (Feature #13)
+			// Pin posts to profile
 			posts.POST("/:id/pin", h.PinPost)
 			posts.DELETE("/:id/pin", h.UnpinPost)
 			posts.PUT("/:id/pin-order", h.UpdatePinOrder)

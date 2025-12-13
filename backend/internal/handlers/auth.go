@@ -131,6 +131,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 
 // Login handles user login
 // POST /api/v1/auth/login
+// If 2FA is enabled, returns requires_2fa: true instead of token
 func (h *AuthHandlers) Login(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
@@ -150,6 +151,17 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "login_failed", "message": err.Error()})
+		return
+	}
+
+	// Check if 2FA is enabled for this user
+	if authResp.User.TwoFactorEnabled {
+		// Return 2FA required response instead of token
+		c.JSON(http.StatusOK, gin.H{
+			"requires_2fa": true,
+			"user_id":      authResp.User.ID,
+			"two_factor_type": authResp.User.TwoFactorType,
+		})
 		return
 	}
 

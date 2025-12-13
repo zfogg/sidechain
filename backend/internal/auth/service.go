@@ -199,6 +199,12 @@ func (s *Service) addPasswordToOAuthUser(user *models.User, password string) (*A
 	return s.generateAuthResponse(user)
 }
 
+// GenerateTokenForUser creates JWT token and auth response for a user
+// Used for 2FA login flow after successful verification
+func (s *Service) GenerateTokenForUser(user *models.User) (*AuthResponse, error) {
+	return s.generateAuthResponse(user)
+}
+
 // generateAuthResponse creates JWT token and auth response
 func (s *Service) generateAuthResponse(user *models.User) (*AuthResponse, error) {
 	expiresAt := time.Now().Add(24 * time.Hour) // 24 hour tokens

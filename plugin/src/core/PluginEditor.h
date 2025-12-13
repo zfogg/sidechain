@@ -13,6 +13,7 @@
 #include "ui/profile/SavedPosts.h"
 #include "ui/profile/ArchivedPosts.h"
 #include "ui/profile/NotificationSettings.h"
+#include "ui/profile/TwoFactorSettings.h"
 #include "ui/feed/PostsFeed.h"
 #include "ui/recording/Recording.h"
 #include "ui/recording/Upload.h"
@@ -82,6 +83,9 @@ private:
     enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Drafts, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail, SavedPosts, ArchivedPosts };
     AppView currentView = AppView::Authentication;
 
+    // Navigation direction for animated transitions
+    enum class NavigationDirection { Forward, Backward, None };
+
     // Navigation stack for back button support
     juce::Array<AppView> navigationStack;
     juce::String profileUserIdToView;  // User ID for Profile view
@@ -93,10 +97,20 @@ private:
     // Component animator for smooth view transitions
     juce::ComponentAnimator viewAnimator;
 
-    /** Show a specific view in the editor
-     * @param view The view to display
+    // Track component being animated out (for cleanup after animation)
+    juce::Component* animatingOutComponent = nullptr;
+
+    /** Get the component for a given view
+     * @param view The view to get the component for
+     * @return Pointer to the component, or nullptr if not found
      */
-    void showView(AppView view);
+    juce::Component* getComponentForView(AppView view);
+
+    /** Show a specific view in the editor with optional animation
+     * @param view The view to display
+     * @param direction Navigation direction for animation (Forward, Backward, or None)
+     */
+    void showView(AppView view, NavigationDirection direction = NavigationDirection::Forward);
 
     /** Show a message thread view
      * @param channelType The type of channel (e.g., "messaging", "team")
@@ -126,11 +140,11 @@ private:
      */
     void showArchivedPosts();
 
-    /** Navigate to drafts view (Feature #5)
+    /** Navigate to drafts view
      */
     void showDrafts();
 
-    /** Save current upload as draft and return to drafts view (Feature #5)
+    /** Save current upload as draft and return to drafts view
      */
     void saveCurrentUploadAsDraft();
 
@@ -166,6 +180,10 @@ private:
     /** Show notification settings dialog
      */
     void showNotificationSettings();
+
+    /** Show two-factor authentication settings dialog
+     */
+    void showTwoFactorSettings();
 
     /** Navigate back to the previous view in the navigation stack
      */
@@ -205,7 +223,7 @@ private:
     std::unique_ptr<Upload> uploadComponent;
     std::unique_ptr<DraftsView> draftsViewComponent;
 
-    // Draft storage (Feature #5)
+    // Draft storage
     std::unique_ptr<DraftStorage> draftStorage;
     std::unique_ptr<UserDiscovery> userDiscoveryComponent;
     std::unique_ptr<Profile> profileComponent;
@@ -231,6 +249,7 @@ private:
 
     // Settings dialogs
     std::unique_ptr<NotificationSettings> notificationSettingsDialog;
+    std::unique_ptr<TwoFactorSettings> twoFactorSettingsDialog;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;

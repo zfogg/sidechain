@@ -82,6 +82,42 @@ public:
     using ResponseCallback = std::function<void(Outcome<juce::var> response)>;
 
     //==========================================================================
+    // Two-Factor Authentication types
+
+    /** Result of login attempt - may require 2FA */
+    struct LoginResult
+    {
+        bool success = false;           ///< True if login completed (no 2FA or 2FA already verified)
+        bool requires2FA = false;       ///< True if 2FA verification is needed
+        juce::String token;             ///< Auth token (only if success)
+        juce::String userId;            ///< User ID (always set on valid credentials)
+        juce::String username;          ///< Username (only if success)
+        juce::String twoFactorType;     ///< "totp" or "hotp" (only if requires2FA)
+        juce::String errorMessage;      ///< Error message if failed
+    };
+    using LoginCallback = std::function<void(LoginResult)>;
+
+    /** 2FA status response */
+    struct TwoFactorStatus
+    {
+        bool enabled = false;           ///< Whether 2FA is enabled
+        juce::String type;              ///< "totp" or "hotp" (only if enabled)
+        int backupCodesRemaining = 0;   ///< Number of unused backup codes
+    };
+    using TwoFactorStatusCallback = std::function<void(Outcome<TwoFactorStatus>)>;
+
+    /** 2FA setup response (from enable2FA) */
+    struct TwoFactorSetup
+    {
+        juce::String type;              ///< "totp" or "hotp"
+        juce::String secret;            ///< Base32 secret for manual entry
+        juce::String qrCodeUrl;         ///< otpauth:// URL for QR code
+        juce::StringArray backupCodes;  ///< 10 backup codes
+        uint64_t counter = 0;           ///< Initial counter (HOTP only)
+    };
+    using TwoFactorSetupCallback = std::function<void(Outcome<TwoFactorSetup>)>;
+
+    //==========================================================================
     // Metadata for audio uploads
 
     /** Metadata structure for audio uploads */
@@ -106,7 +142,7 @@ public:
         juce::File projectFile;       ///< DAW project file to upload (optional)
         bool includeProjectFile = false; ///< Whether to upload project file with the post
 
-        // Comment controls (Feature #12)
+        // Comment controls
         juce::String commentAudience = "everyone"; ///< Who can comment: "everyone", "followers", "off"
     };
 
@@ -149,6 +185,56 @@ public:
      * @param callback Called when authentication completes
      */
     void setAuthenticationCallback(AuthenticationCallback callback);
+
+    //==========================================================================
+    // Two-Factor Authentication
+
+    /** Login with 2FA support
+     * @param email User's email address
+     * @param password User's password
+     * @param callback Called with LoginResult (may indicate 2FA required)
+     */
+    void loginWithTwoFactor(const juce::String& email, const juce::String& password,
+                            LoginCallback callback);
+
+    /** Complete 2FA login after receiving requires_2fa response
+     * @param userId User ID from initial login
+     * @param code TOTP/HOTP code or backup code
+     * @param callback Called with authentication result
+     */
+    void verify2FALogin(const juce::String& userId, const juce::String& code,
+                        AuthenticationCallback callback);
+
+    /** Get current 2FA status for authenticated user
+     * @param callback Called with 2FA status
+     */
+    void get2FAStatus(TwoFactorStatusCallback callback);
+
+    /** Enable 2FA for authenticated user
+     * @param password Current password for verification
+     * @param type "totp" for authenticator apps, "hotp" for YubiKey
+     * @param callback Called with setup data (secret, QR URL, backup codes)
+     */
+    void enable2FA(const juce::String& password, const juce::String& type,
+                   TwoFactorSetupCallback callback);
+
+    /** Verify and complete 2FA setup
+     * @param code TOTP/HOTP code from authenticator
+     * @param callback Called with result
+     */
+    void verify2FASetup(const juce::String& code, ResponseCallback callback);
+
+    /** Disable 2FA for authenticated user
+     * @param codeOrPassword TOTP/HOTP code, backup code, or password
+     * @param callback Called with result
+     */
+    void disable2FA(const juce::String& codeOrPassword, ResponseCallback callback);
+
+    /** Regenerate backup codes (invalidates old ones)
+     * @param code Current TOTP/HOTP code for verification
+     * @param callback Called with new backup codes
+     */
+    void regenerateBackupCodes(const juce::String& code, ResponseCallback callback);
 
     //==========================================================================
     // Audio operations
@@ -499,7 +585,7 @@ public:
     void unfollowUser(const juce::String& userId, ResponseCallback callback = nullptr);
 
     //==========================================================================
-    // Mute operations (Feature #10 - Mute users without blocking)
+    // Mute operations
 
     /** Mute a user (hide their posts from feeds without unfollowing)
      * @param userId The user ID to mute
@@ -587,7 +673,7 @@ public:
     void getArchivedPosts(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
 
     //==========================================================================
-    // Pin posts to profile operations (Feature #13)
+    // Pin posts to profile operations
 
     /** Pin a post to user's profile (max 3 posts)
      * @param postId The post ID to pin

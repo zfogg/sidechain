@@ -24,6 +24,9 @@ Auth::Auth()
     Log::debug("Auth: Setting up OAuth waiting components");
     setupOAuthWaitingComponents();
 
+    Log::debug("Auth: Setting up two-factor components");
+    setupTwoFactorComponents();
+
     Log::debug("Auth: Showing welcome screen");
     showWelcome();
 
@@ -156,6 +159,28 @@ void Auth::setupOAuthWaitingComponents()
     addChildComponent(oauthCancelButton.get());
 }
 
+void Auth::setupTwoFactorComponents()
+{
+    // Code input for 2FA verification
+    twoFactorCodeEditor = std::make_unique<juce::TextEditor>();
+    styleTextEditor(*twoFactorCodeEditor, "Enter 6-digit code");
+    twoFactorCodeEditor->setInputRestrictions(6, "0123456789");
+    twoFactorCodeEditor->addListener(this);
+    addChildComponent(twoFactorCodeEditor.get());
+
+    // Verify button
+    twoFactorVerifyButton = std::make_unique<juce::TextButton>("Verify");
+    stylePrimaryButton(*twoFactorVerifyButton);
+    twoFactorVerifyButton->addListener(this);
+    addChildComponent(twoFactorVerifyButton.get());
+
+    // Back button
+    twoFactorBackButton = std::make_unique<juce::TextButton>("Back");
+    styleSecondaryButton(*twoFactorBackButton);
+    twoFactorBackButton->addListener(this);
+    addChildComponent(twoFactorBackButton.get());
+}
+
 //==============================================================================
 void Auth::styleTextEditor(juce::TextEditor& editor, const juce::String& placeholder, bool isPassword)
 {
@@ -238,6 +263,9 @@ void Auth::paint(juce::Graphics& g)
         case AuthMode::OAuthWaiting:
             cardBounds = cardBounds.withHeight(350);
             break;
+        case AuthMode::TwoFactorVerify:
+            cardBounds = cardBounds.withHeight(380);
+            break;
     }
 
     cardBounds = cardBounds.withCentre(getLocalBounds().getCentre());
@@ -273,6 +301,10 @@ void Auth::paint(juce::Graphics& g)
         case AuthMode::OAuthWaiting:
             title = "Waiting for " + oauthWaitingProvider;
             subtitle = "Complete the sign-in in your browser";
+            break;
+        case AuthMode::TwoFactorVerify:
+            title = "Two-Factor Authentication";
+            subtitle = twoFactorType == "hotp" ? "Enter code from your security key" : "Enter code from your authenticator app";
             break;
     }
 
@@ -600,6 +632,16 @@ void Auth::resized()
             oauthCancelButton->setBounds(contentBounds.removeFromTop(BUTTON_HEIGHT));
             break;
         }
+
+        case AuthMode::TwoFactorVerify:
+        {
+            twoFactorCodeEditor->setBounds(contentBounds.removeFromTop(FIELD_HEIGHT));
+            contentBounds.removeFromTop(FIELD_SPACING);
+            twoFactorVerifyButton->setBounds(contentBounds.removeFromTop(BUTTON_HEIGHT));
+            contentBounds.removeFromTop(12);
+            twoFactorBackButton->setBounds(contentBounds.removeFromTop(BUTTON_HEIGHT));
+            break;
+        }
     }
 }
 
@@ -631,6 +673,11 @@ void Auth::hideAllComponents()
 
     // OAuth waiting components
     oauthCancelButton->setVisible(false);
+
+    // Two-factor authentication components
+    twoFactorCodeEditor->setVisible(false);
+    twoFactorVerifyButton->setVisible(false);
+    twoFactorBackButton->setVisible(false);
 }
 
 void Auth::showWelcome()
@@ -698,6 +745,25 @@ void Auth::showSignup()
     resized();
     repaint();
     Log::debug("Auth: Signup form displayed");
+}
+
+void Auth::showTwoFactorVerify()
+{
+    Log::info("Auth: Switching to two-factor verify mode");
+    currentMode = AuthMode::TwoFactorVerify;
+    hideAllComponents();
+    clearError();
+
+    twoFactorCodeEditor->setVisible(true);
+    twoFactorVerifyButton->setVisible(true);
+    twoFactorBackButton->setVisible(true);
+
+    twoFactorCodeEditor->clear();
+    twoFactorCodeEditor->grabKeyboardFocus();
+
+    resized();
+    repaint();
+    Log::debug("Auth: Two-factor verification form displayed");
 }
 
 //==============================================================================
@@ -827,6 +893,18 @@ void Auth::buttonClicked(juce::Button* button)
         if (onOAuthCancelled)
             onOAuthCancelled();
     }
+    else if (button == twoFactorVerifyButton.get())
+    {
+        Log::info("Auth: Two-factor verify button clicked");
+        handleTwoFactorVerify();
+    }
+    else if (button == twoFactorBackButton.get())
+    {
+        Log::debug("Auth: Two-factor back button clicked");
+        twoFactorUserId = "";
+        twoFactorType = "";
+        showLogin();
+    }
 }
 
 void Auth::textEditorReturnKeyPressed(juce::TextEditor& editor)
@@ -870,6 +948,14 @@ void Auth::textEditorReturnKeyPressed(juce::TextEditor& editor)
         {
             Log::debug("Auth: Return key pressed in signup confirm password field, submitting");
             handleSignup();
+        }
+    }
+    else if (currentMode == AuthMode::TwoFactorVerify)
+    {
+        if (&editor == twoFactorCodeEditor.get())
+        {
+            Log::debug("Auth: Return key pressed in 2FA code field, submitting");
+            handleTwoFactorVerify();
         }
     }
 }
@@ -946,98 +1032,96 @@ void Auth::handleLogin()
         return;
     }
 
-    juce::var loginData = juce::var(new juce::DynamicObject());
-    loginData.getDynamicObject()->setProperty("email", email);
-    loginData.getDynamicObject()->setProperty("password", password);
-
-    Log::info("Auth: Calling NetworkClient::loginAccount for: " + email);
-    networkClient->loginAccount(email, password, [this, email](Outcome<std::pair<juce::String, juce::String>> authResult) {
+    Log::info("Auth: Calling NetworkClient::loginWithTwoFactor for: " + email);
+    networkClient->loginWithTwoFactor(email, password, [this, email](NetworkClient::LoginResult result) {
         isLoading = false;
         loginSubmitButton->setEnabled(true);
 
-            if (authResult.isOk())
+        if (result.requires2FA)
+        {
+            // 2FA required - store user ID and show 2FA verification screen
+            Log::info("Auth: 2FA required for user: " + result.userId + " (type: " + result.twoFactorType + ")");
+            twoFactorUserId = result.userId;
+            twoFactorType = result.twoFactorType;
+            showTwoFactorVerify();
+        }
+        else if (result.success)
+        {
+            Log::info("Auth: Login successful for: " + email + ", userId: " + result.userId);
+            juce::String username = result.username;
+            juce::String token = result.token;
+
+            if (username.isEmpty() && networkClient)
             {
-                auto [token, userId] = authResult.getValue();
-                Log::info("Auth: Login successful for: " + email + ", userId: " + userId);
-                juce::String username = email.upToFirstOccurrenceOf("@", false, false);
+                username = networkClient->getCurrentUsername();
+                Log::debug("Auth: Retrieved username from NetworkClient: " + username);
+            }
 
-                if (networkClient)
-                {
-                    username = networkClient->getCurrentUsername();
-                    Log::debug("Auth: Retrieved username from NetworkClient: " + username);
-                }
+            // Handle "Remember me" - store credentials securely if checked
+            if (rememberMeCheckbox && rememberMeCheckbox->getToggleState())
+            {
+                // TODO: Phase 8.3.11.13 - Implement secure credential storage using OS keychain
+                Log::debug("Auth: Remember me checked - credentials should be stored securely");
+            }
 
-                // Handle "Remember me" - store credentials securely if checked
-                if (rememberMeCheckbox && rememberMeCheckbox->getToggleState())
-                {
-                    // TODO: Phase 8.3.11.13 - Implement secure credential storage using OS keychain
-                    // For now, just log that remember me was checked
-                    Log::debug("Auth: Remember me checked - credentials should be stored securely");
-                    // In production: Store email/password hash in OS keychain (Keychain on macOS, Credential Manager on Windows)
-                }
+            // Check email verification status - fetch user profile to check email_verified
+            if (networkClient)
+            {
+                juce::String meEndpoint = networkClient->getBaseUrl() + "/api/v1/auth/me";
+                networkClient->getAbsolute(meEndpoint, [this, username, email, token](Outcome<juce::var> meResult) {
+                    bool emailVerified = true;
 
-                // Check email verification status - fetch user profile to check email_verified
-                if (networkClient)
-                {
-                    // Make a call to /auth/me to get full user info including email_verified
-                    juce::String meEndpoint = networkClient->getBaseUrl() + "/api/v1/auth/me";
-                    networkClient->getAbsolute(meEndpoint, [this, username, email, token](Outcome<juce::var> meResult) {
-                        bool emailVerified = true;  // Default to verified
-
-                        if (meResult.isOk())
+                    if (meResult.isOk())
+                    {
+                        auto userData = meResult.getValue();
+                        if (userData.isObject())
                         {
-                            auto userData = meResult.getValue();
-                            if (userData.isObject())
-                            {
-                                emailVerified = userData.getProperty("email_verified", true).operator bool();
-                                Log::debug("Auth: Email verification status: " + juce::String(emailVerified ? "verified" : "not verified"));
-                            }
+                            emailVerified = userData.getProperty("email_verified", true).operator bool();
+                            Log::debug("Auth: Email verification status: " + juce::String(emailVerified ? "verified" : "not verified"));
                         }
+                    }
 
-                        // Show email verification prompt if needed
-                        if (!emailVerified)
-                        {
-                            auto opts = juce::MessageBoxOptions()
-                                .withIconType(juce::MessageBoxIconType::WarningIcon)
-                                .withTitle("Email Not Verified")
-                                .withMessage("Please verify your email address to access all features.\n\n"
-                                    "A verification email has been sent to " + email + ".\n\n"
-                                    "You can still use the app, but some features may be limited.")
-                                .withButton("OK");
+                    if (!emailVerified)
+                    {
+                        auto opts = juce::MessageBoxOptions()
+                            .withIconType(juce::MessageBoxIconType::WarningIcon)
+                            .withTitle("Email Not Verified")
+                            .withMessage("Please verify your email address to access all features.\n\n"
+                                "A verification email has been sent to " + email + ".\n\n"
+                                "You can still use the app, but some features may be limited.")
+                            .withButton("OK");
 
-                            juce::AlertWindow::showAsync(opts, [this, username, email, token](int) {
-                                // Continue with login even if email not verified
-                                if (onLoginSuccess)
-                                {
-                                    Log::info("Auth: Calling onLoginSuccess callback (email not verified)");
-                                    onLoginSuccess(username, email, token);
-                                }
-                            });
-                        }
-                        else
-                        {
+                        juce::AlertWindow::showAsync(opts, [this, username, email, token](int) {
                             if (onLoginSuccess)
                             {
-                                Log::info("Auth: Calling onLoginSuccess callback");
+                                Log::info("Auth: Calling onLoginSuccess callback (email not verified)");
                                 onLoginSuccess(username, email, token);
                             }
-                        }
-                    });
-                }
-                else
-                {
-                    // No network client - proceed with login
-                    if (onLoginSuccess)
-                    {
-                        Log::info("Auth: Calling onLoginSuccess callback");
-                        onLoginSuccess(username, email, token);
+                        });
                     }
+                    else
+                    {
+                        if (onLoginSuccess)
+                        {
+                            Log::info("Auth: Calling onLoginSuccess callback");
+                            onLoginSuccess(username, email, token);
+                        }
+                    }
+                });
+            }
+            else
+            {
+                if (onLoginSuccess)
+                {
+                    Log::info("Auth: Calling onLoginSuccess callback");
+                    onLoginSuccess(username, email, token);
                 }
             }
+        }
         else
         {
-            Log::warn("Auth: Login failed - invalid credentials for: " + email);
-            showError("Invalid email or password");
+            Log::warn("Auth: Login failed - " + result.errorMessage);
+            showError(result.errorMessage.isEmpty() ? "Invalid email or password" : result.errorMessage);
         }
         repaint();
     });
@@ -1229,6 +1313,94 @@ void Auth::handleSignup()
         {
             Log::warn("Auth: Signup failed for: " + email + " - " + authResult.getError());
             showError("Registration failed. Please try again.");
+        }
+        repaint();
+    });
+}
+
+void Auth::handleTwoFactorVerify()
+{
+    Log::info("Auth: Handling 2FA verification");
+    auto code = twoFactorCodeEditor->getText().trim();
+
+    // Validation
+    if (code.isEmpty())
+    {
+        Log::warn("Auth: 2FA validation failed - blank code");
+        showError("Please enter the verification code");
+        twoFactorCodeEditor->grabKeyboardFocus();
+        return;
+    }
+
+    if (code.length() != 6 && !code.contains("-"))
+    {
+        // Allow 6-digit codes or backup codes (which may contain dashes)
+        Log::warn("Auth: 2FA validation failed - invalid code format");
+        showError("Please enter a 6-digit code or backup code");
+        twoFactorCodeEditor->grabKeyboardFocus();
+        return;
+    }
+
+    if (twoFactorUserId.isEmpty())
+    {
+        Log::error("Auth: 2FA user ID is empty - cannot verify");
+        showError("Session expired. Please try logging in again.");
+        showLogin();
+        return;
+    }
+
+    Log::debug("Auth: 2FA validation passed, initiating API call");
+
+    // Show loading state
+    isLoading = true;
+    twoFactorVerifyButton->setEnabled(false);
+    repaint();
+
+    if (networkClient == nullptr)
+    {
+        Log::error("Auth: Cannot verify 2FA - NetworkClient is null");
+        isLoading = false;
+        twoFactorVerifyButton->setEnabled(true);
+        showError("Network client not available");
+        repaint();
+        return;
+    }
+
+    Log::info("Auth: Calling NetworkClient::verify2FALogin for userId: " + twoFactorUserId);
+    networkClient->verify2FALogin(twoFactorUserId, code, [this](Outcome<std::pair<juce::String, juce::String>> authResult) {
+        isLoading = false;
+        twoFactorVerifyButton->setEnabled(true);
+
+        if (authResult.isOk())
+        {
+            auto [token, userId] = authResult.getValue();
+            Log::info("Auth: 2FA verification successful for userId: " + userId);
+
+            juce::String username = "";
+            juce::String email = "";
+            if (networkClient)
+            {
+                username = networkClient->getCurrentUsername();
+                // Note: Email not available from 2FA login response, but we can proceed
+                Log::debug("Auth: Retrieved username from NetworkClient: " + username);
+            }
+
+            // Clear 2FA state
+            twoFactorUserId = "";
+            twoFactorType = "";
+
+            if (onLoginSuccess)
+            {
+                Log::info("Auth: Calling onLoginSuccess callback after 2FA");
+                onLoginSuccess(username, email, token);
+            }
+        }
+        else
+        {
+            Log::warn("Auth: 2FA verification failed: " + authResult.getError());
+            showError("Invalid verification code. Please try again.");
+            twoFactorCodeEditor->clear();
+            twoFactorCodeEditor->grabKeyboardFocus();
         }
         repaint();
     });

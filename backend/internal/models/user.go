@@ -80,6 +80,13 @@ type User struct {
 	EmailVerified    bool    `gorm:"default:false" json:"email_verified"`
 	EmailVerifyToken *string `gorm:"type:text" json:"-"`
 
+	// Two-Factor Authentication
+	TwoFactorEnabled bool    `gorm:"default:false" json:"two_factor_enabled"`
+	TwoFactorType    string  `gorm:"type:varchar(10);default:totp" json:"-"` // "totp" or "hotp"
+	TwoFactorSecret  *string `gorm:"type:text" json:"-"`                     // OTP secret
+	TwoFactorCounter *uint64 `gorm:"default:0" json:"-"`                     // HOTP counter (increments after each use)
+	BackupCodes      *string `gorm:"type:text" json:"-"`                     // JSON array of hashed backup codes
+
 	// OAuth provider IDs (nullable - users can have native accounts)
 	GoogleID  *string `gorm:"uniqueIndex" json:"-"`
 	DiscordID *string `gorm:"uniqueIndex" json:"-"`
@@ -100,7 +107,7 @@ type User struct {
 	// Privacy settings
 	IsPrivate bool `gorm:"default:false" json:"is_private"` // If true, requires follow approval
 
-	// Activity status privacy (Feature #9)
+	// Activity status privacy
 	ShowActivityStatus bool `gorm:"default:true" json:"show_activity_status"` // Show online/offline status to others
 	ShowLastActive     bool `gorm:"default:true" json:"show_last_active"`     // Show "last active X ago" to others
 
@@ -171,11 +178,11 @@ type AudioPost struct {
 	IsPublic         bool   `gorm:"default:true" json:"is_public"`
 	IsArchived       bool   `gorm:"default:false" json:"is_archived"` // Hidden from feeds but not deleted
 
-	// Pin to profile (Feature #13)
+	// Pin to profile
 	IsPinned bool `gorm:"default:false;index" json:"is_pinned"` // Show at top of profile
 	PinOrder int  `gorm:"default:0" json:"pin_order"`           // Order among pinned posts (1-3)
 
-	// Comment controls (Feature #12)
+	// Comment controls
 	// CommentAudience controls who can comment: "everyone" (default), "followers", "off"
 	CommentAudience string `gorm:"default:everyone" json:"comment_audience"`
 
@@ -661,7 +668,7 @@ func (Repost) TableName() string {
 	return "reposts"
 }
 
-// MutedUser represents a user muting another user (Feature #10)
+// MutedUser represents a user muting another user
 // Muting hides the muted user's posts from the muter's feed without unfollowing
 type MutedUser struct {
 	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`

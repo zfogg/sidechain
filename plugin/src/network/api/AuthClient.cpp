@@ -201,3 +201,266 @@ void NetworkClient::resetPassword(const juce::String& token, const juce::String&
         }
     });
 }
+
+//==============================================================================
+// Two-Factor Authentication
+
+void NetworkClient::loginWithTwoFactor(const juce::String& email, const juce::String& password,
+                                       LoginCallback callback)
+{
+    Async::runVoid([this, email, password, callback]() {
+        juce::var loginData = juce::var(new juce::DynamicObject());
+        loginData.getDynamicObject()->setProperty("email", email);
+        loginData.getDynamicObject()->setProperty("password", password);
+
+        auto response = makeRequest(buildApiPath("/auth/login"), "POST", loginData, false);
+
+        LoginResult result;
+
+        if (response.isObject())
+        {
+            // Check if 2FA is required
+            if (response.getProperty("requires_2fa", false).operator bool())
+            {
+                result.requires2FA = true;
+                result.userId = response.getProperty("user_id", "").toString();
+                result.twoFactorType = response.getProperty("two_factor_type", "totp").toString();
+                Log::info("Login requires 2FA verification (type: " + result.twoFactorType + ")");
+            }
+            else
+            {
+                // Normal login success
+                auto authData = response.getProperty("auth", juce::var());
+                if (authData.isObject())
+                {
+                    result.token = authData.getProperty("token", "").toString();
+                    auto user = authData.getProperty("user", juce::var());
+
+                    if (!result.token.isEmpty() && user.isObject())
+                    {
+                        result.success = true;
+                        result.userId = user.getProperty("id", "").toString();
+                        result.username = user.getProperty("username", "").toString();
+                    }
+                }
+            }
+        }
+
+        if (!result.success && !result.requires2FA)
+        {
+            result.errorMessage = "Login failed - invalid credentials";
+        }
+
+        juce::MessageManager::callAsync([this, callback, result]() {
+            if (result.success)
+            {
+                // Store authentication info
+                authToken = result.token;
+                currentUserId = result.userId;
+                currentUsername = result.username;
+                Log::info("Login successful: " + result.username);
+            }
+            callback(result);
+        });
+    });
+}
+
+void NetworkClient::verify2FALogin(const juce::String& userId, const juce::String& code,
+                                   AuthenticationCallback callback)
+{
+    Async::runVoid([this, userId, code, callback]() {
+        juce::var verifyData = juce::var(new juce::DynamicObject());
+        verifyData.getDynamicObject()->setProperty("user_id", userId);
+        verifyData.getDynamicObject()->setProperty("code", code);
+
+        auto response = makeRequest(buildApiPath("/auth/2fa/login"), "POST", verifyData, false);
+
+        juce::String token, returnedUserId, username;
+        bool success = false;
+
+        if (response.isObject())
+        {
+            auto authData = response.getProperty("auth", juce::var());
+            if (authData.isObject())
+            {
+                token = authData.getProperty("token", "").toString();
+                auto user = authData.getProperty("user", juce::var());
+
+                if (!token.isEmpty() && user.isObject())
+                {
+                    returnedUserId = user.getProperty("id", "").toString();
+                    username = user.getProperty("username", "").toString();
+                    success = true;
+                }
+            }
+        }
+
+        juce::MessageManager::callAsync([this, callback, token, returnedUserId, username, success]() {
+            if (success)
+            {
+                authToken = token;
+                currentUserId = returnedUserId;
+                currentUsername = username;
+
+                auto authResult = Outcome<std::pair<juce::String, juce::String>>::ok({token, returnedUserId});
+                callback(authResult);
+                Log::info("2FA verification successful: " + username);
+            }
+            else
+            {
+                auto authResult = Outcome<std::pair<juce::String, juce::String>>::error("Invalid 2FA code");
+                callback(authResult);
+                Log::warn("2FA verification failed");
+            }
+        });
+    });
+}
+
+void NetworkClient::get2FAStatus(TwoFactorStatusCallback callback)
+{
+    Async::runVoid([this, callback]() {
+        auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/status"), "GET", juce::var(), true);
+
+        TwoFactorStatus status;
+        bool success = false;
+
+        if (result.success && result.data.isObject())
+        {
+            status.enabled = result.data.getProperty("enabled", false).operator bool();
+            status.type = result.data.getProperty("type", "").toString();
+            status.backupCodesRemaining = static_cast<int>(result.data.getProperty("backup_codes_remaining", 0));
+            success = true;
+        }
+
+        juce::MessageManager::callAsync([callback, status, success, result]() {
+            if (success)
+            {
+                callback(Outcome<TwoFactorStatus>::ok(status));
+            }
+            else
+            {
+                callback(Outcome<TwoFactorStatus>::error(result.getUserFriendlyError()));
+            }
+        });
+    });
+}
+
+void NetworkClient::enable2FA(const juce::String& password, const juce::String& type,
+                              TwoFactorSetupCallback callback)
+{
+    Async::runVoid([this, password, type, callback]() {
+        juce::var enableData = juce::var(new juce::DynamicObject());
+        enableData.getDynamicObject()->setProperty("password", password);
+        enableData.getDynamicObject()->setProperty("type", type);
+
+        auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/enable"), "POST", enableData, true);
+
+        TwoFactorSetup setup;
+        bool success = false;
+
+        if (result.success && result.data.isObject())
+        {
+            setup.type = result.data.getProperty("type", "totp").toString();
+            setup.secret = result.data.getProperty("secret", "").toString();
+            setup.qrCodeUrl = result.data.getProperty("qr_code_url", "").toString();
+            setup.counter = static_cast<uint64_t>(result.data.getProperty("counter", 0).operator int64());
+
+            auto codes = result.data.getProperty("backup_codes", juce::var());
+            if (codes.isArray())
+            {
+                for (int i = 0; i < codes.size(); ++i)
+                {
+                    setup.backupCodes.add(codes[i].toString());
+                }
+            }
+            success = !setup.secret.isEmpty();
+        }
+
+        juce::MessageManager::callAsync([callback, setup, success, result]() {
+            if (success)
+            {
+                callback(Outcome<TwoFactorSetup>::ok(setup));
+                Log::info("2FA setup initiated (type: " + setup.type + ")");
+            }
+            else
+            {
+                callback(Outcome<TwoFactorSetup>::error(result.getUserFriendlyError()));
+            }
+        });
+    });
+}
+
+void NetworkClient::verify2FASetup(const juce::String& code, ResponseCallback callback)
+{
+    Async::runVoid([this, code, callback]() {
+        juce::var verifyData = juce::var(new juce::DynamicObject());
+        verifyData.getDynamicObject()->setProperty("code", code);
+
+        auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/verify"), "POST", verifyData, true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                if (outcome.isOk())
+                {
+                    Log::info("2FA enabled successfully");
+                }
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::disable2FA(const juce::String& codeOrPassword, ResponseCallback callback)
+{
+    Async::runVoid([this, codeOrPassword, callback]() {
+        juce::var disableData = juce::var(new juce::DynamicObject());
+        // The backend accepts either code or password
+        // If it looks like a 6-digit code or backup code format, send as code
+        if (codeOrPassword.length() == 6 || codeOrPassword.contains("-"))
+        {
+            disableData.getDynamicObject()->setProperty("code", codeOrPassword);
+        }
+        else
+        {
+            disableData.getDynamicObject()->setProperty("password", codeOrPassword);
+        }
+
+        auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/disable"), "POST", disableData, true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                if (outcome.isOk())
+                {
+                    Log::info("2FA disabled successfully");
+                }
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::regenerateBackupCodes(const juce::String& code, ResponseCallback callback)
+{
+    Async::runVoid([this, code, callback]() {
+        juce::var regenData = juce::var(new juce::DynamicObject());
+        regenData.getDynamicObject()->setProperty("code", code);
+
+        auto result = makeRequestWithRetry(buildApiPath("/auth/2fa/backup-codes"), "POST", regenData, true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                if (outcome.isOk())
+                {
+                    Log::info("Backup codes regenerated");
+                }
+                callback(outcome);
+            });
+        }
+    });
+}
