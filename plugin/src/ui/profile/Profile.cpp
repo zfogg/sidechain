@@ -123,6 +123,24 @@ Profile::Profile()
     addChildComponent(followersListPanel.get());
     Log::debug("Profile: Followers list panel created");
 
+    // Create error state component (initially hidden)
+    errorStateComponent = std::make_unique<ErrorState>();
+    errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+    errorStateComponent->setPrimaryAction("Try Again", [this]() {
+        Log::info("Profile: Retry requested from error state");
+        if (profile.id.isNotEmpty())
+            loadProfile(profile.id);
+        else if (currentUserId.isNotEmpty())
+            loadOwnProfile();
+    });
+    errorStateComponent->setSecondaryAction("Go Back", [this]() {
+        Log::info("Profile: Go back requested from error state");
+        if (onBackPressed)
+            onBackPressed();
+    });
+    addChildComponent(errorStateComponent.get());
+    Log::debug("Profile: Error state component created");
+
     // IMPORTANT: setSize must be called LAST because it triggers resized()
     // which uses scrollBar and other child components
     setSize(600, 800);
@@ -196,6 +214,10 @@ void Profile::setProfile(const UserProfile& newProfile)
     isLoading = false;
     hasError = false;
     avatarImage = juce::Image();
+
+    // Hide error state component on successful load
+    if (errorStateComponent != nullptr)
+        errorStateComponent->setVisible(false);
 
     // Load avatar via backend proxy to work around JUCE SSL/redirect issues on Linux
     // The backend downloads the image from S3/OAuth and relays the raw bytes
@@ -278,7 +300,8 @@ void Profile::paint(juce::Graphics& g)
 
     if (hasError)
     {
-        drawErrorState(g);
+        // ErrorState component handles the error UI as a child component
+        // Just ensure background is drawn (already done above)
         return;
     }
 
@@ -543,7 +566,15 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setFont(14.0f);
         g.drawText("Saved Posts", savedBounds, juce::Justification::centred);
 
-        // Notification Settings button (below saved posts button)
+        // Archived Posts button (below saved posts button)
+        auto archivedBounds = getArchivedPostsButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(archivedBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Archived Posts", archivedBounds, juce::Justification::centred);
+
+        // Notification Settings button (below archived posts button)
         auto notifBounds = getNotificationSettingsButtonBounds();
         g.setColour(Colors::badge);
         g.fillRoundedRectangle(notifBounds.toFloat(), 6.0f);
@@ -803,6 +834,12 @@ void Profile::resized()
         Log::debug("Profile::resized: Followers list panel repositioned - width: " + juce::String(panelWidth));
     }
 
+    // Position error state component to fill the entire area
+    if (errorStateComponent != nullptr)
+    {
+        errorStateComponent->setBounds(bounds);
+    }
+
     // TODO: Phase 4.1.10 - Add profile verification system (future: badges)
     // Note: Profile shows follower/following counts but clicking them opens FollowersList panel - this is already implemented
 }
@@ -886,6 +923,16 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 onSavedPostsClicked();
             else
                 Log::warn("Profile::mouseUp: Saved posts clicked but callback not set");
+            return;
+        }
+
+        if (getArchivedPostsButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Archived posts button clicked");
+            if (onArchivedPostsClicked)
+                onArchivedPostsClicked();
+            else
+                Log::warn("Profile::mouseUp: Archived posts clicked but callback not set");
             return;
         }
 
@@ -992,10 +1039,16 @@ juce::Rectangle<int> Profile::getSavedPostsButtonBounds() const
     return editBounds.translated(0, BUTTON_HEIGHT + 8);  // Below edit button with spacing
 }
 
-juce::Rectangle<int> Profile::getNotificationSettingsButtonBounds() const
+juce::Rectangle<int> Profile::getArchivedPostsButtonBounds() const
 {
     auto savedBounds = getSavedPostsButtonBounds();
     return savedBounds.translated(0, BUTTON_HEIGHT + 8);  // Below saved posts button with spacing
+}
+
+juce::Rectangle<int> Profile::getNotificationSettingsButtonBounds() const
+{
+    auto archivedBounds = getArchivedPostsButtonBounds();
+    return archivedBounds.translated(0, BUTTON_HEIGHT + 8);  // Below archived posts button with spacing
 }
 
 juce::Rectangle<int> Profile::getShareButtonBounds() const
@@ -1079,6 +1132,38 @@ void Profile::fetchProfile(const juce::String& userId)
                 {
                     errorMessage = result.getError();
                     Log::warn("Profile::fetchProfile: Error: " + errorMessage);
+                }
+
+                // Configure and show error state component
+                if (errorStateComponent != nullptr)
+                {
+                    // Determine error type based on message
+                    if (errorMessage.containsIgnoreCase("network") || errorMessage.containsIgnoreCase("connection") ||
+                        errorMessage.containsIgnoreCase("timeout") || errorMessage.containsIgnoreCase("offline"))
+                    {
+                        errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+                    }
+                    else if (errorMessage.containsIgnoreCase("not found") || errorMessage.containsIgnoreCase("404"))
+                    {
+                        errorStateComponent->setErrorType(ErrorState::ErrorType::NotFound);
+                        errorStateComponent->setTitle("Profile Not Found");
+                    }
+                    else if (errorMessage.containsIgnoreCase("auth") || errorMessage.containsIgnoreCase("unauthorized") ||
+                             errorMessage.containsIgnoreCase("401") || errorMessage.containsIgnoreCase("forbidden"))
+                    {
+                        errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
+                    }
+                    else if (errorMessage.containsIgnoreCase("500") || errorMessage.containsIgnoreCase("server"))
+                    {
+                        errorStateComponent->setErrorType(ErrorState::ErrorType::ServerError);
+                    }
+                    else
+                    {
+                        errorStateComponent->setErrorType(ErrorState::ErrorType::Generic);
+                    }
+
+                    errorStateComponent->setMessage(errorMessage);
+                    errorStateComponent->setVisible(true);
                 }
             }
 
@@ -1492,4 +1577,69 @@ void Profile::checkForActiveStories(const juce::String& userId)
             }
         });
     });
+}
+
+//==============================================================================
+juce::String Profile::getTooltip()
+{
+    auto mousePos = getMouseXYRelative();
+
+    // Back button
+    if (getBackButtonBounds().contains(mousePos))
+        return "Go back";
+
+    // Avatar (view story if available)
+    if (getAvatarBounds().contains(mousePos))
+    {
+        if (hasActiveStory)
+            return "View " + profile.username + "'s story";
+        return "";
+    }
+
+    // Stats
+    if (getFollowersBounds().contains(mousePos))
+        return "View followers";
+
+    if (getFollowingBounds().contains(mousePos))
+        return "View following";
+
+    // Action buttons - depends on whether it's own profile or another user's
+    bool isOwnProfile = profile.isOwnProfile(currentUserId);
+
+    if (isOwnProfile)
+    {
+        if (getEditButtonBounds().contains(mousePos))
+            return "Edit your profile";
+
+        if (getSavedPostsButtonBounds().contains(mousePos))
+            return "View saved posts";
+
+        if (getArchivedPostsButtonBounds().contains(mousePos))
+            return "View archived posts";
+
+        if (getNotificationSettingsButtonBounds().contains(mousePos))
+            return "Notification settings";
+    }
+    else
+    {
+        if (getFollowButtonBounds().contains(mousePos))
+        {
+            if (profile.isPrivate && !profile.isFollowing)
+            {
+                if (profile.followRequestStatus == "pending")
+                    return "Cancel follow request";
+                return "Request to follow";
+            }
+            return profile.isFollowing ? "Unfollow" : "Follow";
+        }
+
+        if (getMessageButtonBounds().contains(mousePos))
+            return "Send a message";
+    }
+
+    // Share button
+    if (getShareButtonBounds().contains(mousePos))
+        return "Copy profile link";
+
+    return {};
 }

@@ -4,6 +4,7 @@
 #include "../../models/FeedPost.h"
 #include "../social/FollowersList.h"
 #include "../stories/StoryHighlights.h"
+#include "../common/ErrorState.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -62,7 +63,8 @@ struct UserProfile
  * - Profile sharing
  */
 class Profile : public juce::Component,
-                         public juce::ScrollBar::Listener
+                         public juce::ScrollBar::Listener,
+                         public juce::TooltipClient
 {
 public:
     Profile();
@@ -85,6 +87,7 @@ public:
     std::function<void(const juce::String& userId)> onFollowingClicked;
     std::function<void()> onEditProfile;
     std::function<void()> onSavedPostsClicked;  // Navigate to saved posts view (own profile only)
+    std::function<void()> onArchivedPostsClicked;  // Navigate to archived posts view (own profile only)
     std::function<void()> onNotificationSettingsClicked;  // Navigate to notification settings (own profile only)
     std::function<void(const FeedPost&)> onPostClicked;
     std::function<void(const FeedPost&)> onPlayClicked;
@@ -102,6 +105,7 @@ public:
     void resized() override;
     void mouseUp(const juce::MouseEvent& event) override;
     void scrollBarMoved(juce::ScrollBar* scrollBarThatHasMoved, double newRangeStart) override;
+    juce::String getTooltip() override;
 
     //==============================================================================
     // Post playback state
@@ -173,6 +177,7 @@ private:
     juce::Rectangle<int> getMessageButtonBounds() const;
     juce::Rectangle<int> getEditButtonBounds() const;
     juce::Rectangle<int> getSavedPostsButtonBounds() const;
+    juce::Rectangle<int> getArchivedPostsButtonBounds() const;
     juce::Rectangle<int> getNotificationSettingsButtonBounds() const;
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getSocialLinkBounds(int index) const;
@@ -232,6 +237,10 @@ private:
     // Followers/Following list panel
     std::unique_ptr<FollowersList> followersListPanel;
     bool followersListVisible = false;
+
+    //==============================================================================
+    // Error state component (shown when profile loading fails)
+    std::unique_ptr<ErrorState> errorStateComponent;
 
     void showFollowersList(const juce::String& userId, FollowersList::ListType type);
     void hideFollowersList();
