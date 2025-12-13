@@ -165,6 +165,7 @@ type AudioPost struct {
 	// Status
 	ProcessingStatus string `gorm:"default:pending" json:"processing_status"` // pending, processing, complete, failed
 	IsPublic         bool   `gorm:"default:true" json:"is_public"`
+	IsArchived       bool   `gorm:"default:false" json:"is_archived"` // Hidden from feeds but not deleted
 
 	// GORM fields
 	CreatedAt time.Time      `json:"created_at"`
