@@ -39,6 +39,20 @@ Search::Search()
     // Start timer for debouncing search
     startTimer(300); // 300ms debounce
 
+    // Create error state component (initially hidden)
+    errorStateComponent = std::make_unique<ErrorState>();
+    errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+    errorStateComponent->setPrimaryAction("Try Again", [this]() {
+        Log::info("Search: Retry requested from error state");
+        performSearch();
+    });
+    errorStateComponent->setSecondaryAction("Clear Search", [this]() {
+        Log::info("Search: Clear search requested from error state");
+        clearSearch();
+    });
+    addChildComponent(errorStateComponent.get());
+    Log::debug("Search: Error state component created");
+
     // Set size after all components are initialized to avoid calling layoutComponents() before scrollBar exists
     setSize(1000, 700);
 
@@ -152,7 +166,8 @@ void Search::paint(juce::Graphics& g)
     }
     else if (searchState == SearchState::Error)
     {
-        drawErrorState(g);
+        // ErrorState component handles the error UI as a child component
+        // Just draw the header/tabs and let the component render in the results area
     }
     else if (searchState == SearchState::Results)
     {
@@ -462,11 +477,23 @@ void Search::performSearch()
                 Log::info("Search: User search completed - results: " + juce::String(userResults.size()) + ", total: " + juce::String(totalUserResults));
                 searchState = userResults.isEmpty() ? SearchState::NoResults : SearchState::Results;
                 selectedResultIndex = -1; // Reset keyboard navigation when new results arrive (7.3.8)
+
+                // Hide error state component on success
+                if (errorStateComponent != nullptr)
+                    errorStateComponent->setVisible(false);
             }
             else
             {
                 Log::error("Search: User search failed");
                 searchState = SearchState::Error;
+
+                // Configure and show error state component
+                if (errorStateComponent != nullptr)
+                {
+                    juce::String errorMsg = result.isError() ? result.getError() : "Search failed";
+                    errorStateComponent->configureFromError(errorMsg);
+                    errorStateComponent->setVisible(true);
+                }
             }
 
             repaint();
@@ -499,10 +526,22 @@ void Search::performSearch()
 
                     searchState = postResults.isEmpty() ? SearchState::NoResults : SearchState::Results;
                     selectedResultIndex = -1; // Reset keyboard navigation when new results arrive (7.3.8)
+
+                    // Hide error state component on success
+                    if (errorStateComponent != nullptr)
+                        errorStateComponent->setVisible(false);
                 }
                 else
                 {
                     searchState = SearchState::Error;
+
+                    // Configure and show error state component
+                    if (errorStateComponent != nullptr)
+                    {
+                        juce::String errorMsg = result.isError() ? result.getError() : "Search failed";
+                        errorStateComponent->configureFromError(errorMsg);
+                        errorStateComponent->setVisible(true);
+                    }
                 }
 
                 repaint();
@@ -1030,6 +1069,12 @@ void Search::layoutComponents()
     if (scrollBar != nullptr)
     {
         scrollBar->setBounds(bounds.removeFromRight(12));
+    }
+
+    // Position error state component in results area
+    if (errorStateComponent != nullptr)
+    {
+        errorStateComponent->setBounds(getResultsBounds());
     }
 
     // Header, filters, tabs, and results are drawn in paint()

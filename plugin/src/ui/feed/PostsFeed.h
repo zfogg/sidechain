@@ -8,6 +8,7 @@
 #include "Comment.h"
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/Playlist.h"
+#include "../common/ErrorState.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -164,6 +165,9 @@ private:
     bool commentsPanelVisible = false;
     AnimationValue<float> commentsPanelSlide{0.0f, 250, Animation::Easing::EaseOutCubic};  // 0.0 = hidden, 1.0 = visible
     juce::String currentUserId;
+
+    // Error state component (shown when feedState == Error)
+    std::unique_ptr<ErrorState> errorStateComponent;
 
     void showCommentsForPost(const FeedPost& post);
     void hideCommentsPanel();

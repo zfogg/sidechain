@@ -1137,32 +1137,7 @@ void Profile::fetchProfile(const juce::String& userId)
                 // Configure and show error state component
                 if (errorStateComponent != nullptr)
                 {
-                    // Determine error type based on message
-                    if (errorMessage.containsIgnoreCase("network") || errorMessage.containsIgnoreCase("connection") ||
-                        errorMessage.containsIgnoreCase("timeout") || errorMessage.containsIgnoreCase("offline"))
-                    {
-                        errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
-                    }
-                    else if (errorMessage.containsIgnoreCase("not found") || errorMessage.containsIgnoreCase("404"))
-                    {
-                        errorStateComponent->setErrorType(ErrorState::ErrorType::NotFound);
-                        errorStateComponent->setTitle("Profile Not Found");
-                    }
-                    else if (errorMessage.containsIgnoreCase("auth") || errorMessage.containsIgnoreCase("unauthorized") ||
-                             errorMessage.containsIgnoreCase("401") || errorMessage.containsIgnoreCase("forbidden"))
-                    {
-                        errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
-                    }
-                    else if (errorMessage.containsIgnoreCase("500") || errorMessage.containsIgnoreCase("server"))
-                    {
-                        errorStateComponent->setErrorType(ErrorState::ErrorType::ServerError);
-                    }
-                    else
-                    {
-                        errorStateComponent->setErrorType(ErrorState::ErrorType::Generic);
-                    }
-
-                    errorStateComponent->setMessage(errorMessage);
+                    errorStateComponent->configureFromError(errorMessage);
                     errorStateComponent->setVisible(true);
                 }
             }

@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../network/StreamChatClient.h"
+#include "../common/ErrorState.h"
 
 class NetworkClient;
 
@@ -71,6 +72,9 @@ private:
     static constexpr int ITEM_HEIGHT = 80;
     static constexpr int HEADER_HEIGHT = 60;
     static constexpr int BUTTON_HEIGHT = 40;
+
+    // Error state component
+    std::unique_ptr<ErrorState> errorStateComponent;
 
     // Drawing helpers
     void drawHeader(juce::Graphics& g);
