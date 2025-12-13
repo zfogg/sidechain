@@ -1,0 +1,58 @@
+name: 'Install Plugin Dependencies'
+description: 'Install build dependencies for the Sidechain plugin on all platforms'
+
+inputs:
+  with-coverage:
+    description: 'Install coverage tools (lcov)'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Linux Dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        PACKAGES=(
+          libasound2-dev
+          libjack-jackd2-dev
+          ladspa-sdk
+          libcurl4-openssl-dev
+          libfreetype6-dev
+          libx11-dev
+          libxcomposite-dev
+          libxcursor-dev
+          libxext-dev
+          libxinerama-dev
+          libxrandr-dev
+          libxrender-dev
+          libwebkit2gtk-4.1-dev
+          libglu1-mesa-dev
+          mesa-common-dev
+          ninja-build
+          libfftw3-dev
+          libnotify-dev
+        )
+        if [ "${{ inputs.with-coverage }}" = "true" ]; then
+          PACKAGES+=(lcov)
+        fi
+        sudo apt-get install -y "${PACKAGES[@]}"
+
+    - name: Install macOS Dependencies
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew install ninja openssl@3 fftw
+
+    - name: Install Windows Dependencies
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        choco install ninja openssl -y
+        # Set OpenSSL path for CMake
+        echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL" >> $env:GITHUB_ENV
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
