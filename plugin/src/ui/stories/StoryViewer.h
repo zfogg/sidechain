@@ -82,6 +82,9 @@ public:
     // Called when user wants to delete their own story
     std::function<void(const juce::String& storyId)> onDeleteClicked;
 
+    // Called when user wants to add their own story to a highlight
+    std::function<void(const juce::String& storyId)> onAddToHighlightClicked;
+
 private:
     //==============================================================================
     NetworkClient* networkClient = nullptr;
@@ -130,6 +133,7 @@ private:
     juce::Rectangle<int> midiButtonArea;
     juce::Rectangle<int> audioDownloadButtonArea;  // 19.1 Audio download
     juce::Rectangle<int> remixButtonArea;  // R.3.2 Remix Chains
+    juce::Rectangle<int> highlightButtonArea;  // Add to highlight button (own stories only)
 
     //==============================================================================
     // Drawing helpers
@@ -147,6 +151,7 @@ private:
     void drawMIDIButton(juce::Graphics& g);
     void drawAudioDownloadButton(juce::Graphics& g);  // 19.1 Audio download
     void drawRemixButton(juce::Graphics& g);  // R.3.2 Remix Chains
+    void drawHighlightButton(juce::Graphics& g);  // Add to highlight button (own stories only)
 
     // Story management
     void loadCurrentStory();

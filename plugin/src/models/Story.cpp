@@ -152,3 +152,89 @@ juce::var Story::toJSON() const
 
     return json;
 }
+
+//==============================================================================
+// StoryHighlight implementation
+
+/** Get the cover image URL, or first story's waveform as fallback
+ * @return URL for cover image display
+ */
+juce::String StoryHighlight::getCoverUrl() const
+{
+    if (coverImageUrl.isNotEmpty())
+        return coverImageUrl;
+
+    // Use first story's audio URL as placeholder (UI can show waveform)
+    if (!stories.isEmpty())
+        return stories[0].audioUrl;
+
+    return {};
+}
+
+/** Parse StoryHighlight from JSON response
+ * Creates a StoryHighlight instance from backend API JSON data.
+ * @param json JSON var containing highlight data from API
+ * @return StoryHighlight instance parsed from JSON
+ */
+StoryHighlight StoryHighlight::fromJSON(const juce::var& json)
+{
+    StoryHighlight highlight;
+
+    highlight.id = json["id"].toString();
+    highlight.userId = json["user_id"].toString();
+    highlight.name = json["name"].toString();
+    highlight.coverImageUrl = json["cover_image"].toString();
+    highlight.description = json["description"].toString();
+    highlight.sortOrder = static_cast<int>(json["sort_order"]);
+    highlight.storyCount = static_cast<int>(json["story_count"]);
+
+    // Parse stories array if present (when fetching single highlight)
+    if (json.hasProperty("stories"))
+    {
+        auto* storiesArray = json["stories"].getArray();
+        if (storiesArray)
+        {
+            for (const auto& storyJson : *storiesArray)
+            {
+                // Handle nested story structure from highlighted_stories join
+                if (storyJson.hasProperty("story"))
+                {
+                    highlight.stories.add(Story::fromJSON(storyJson["story"]));
+                }
+                else
+                {
+                    highlight.stories.add(Story::fromJSON(storyJson));
+                }
+            }
+        }
+    }
+
+    // Parse timestamps
+    highlight.createdAt = juce::Time::getCurrentTime();
+    highlight.updatedAt = juce::Time::getCurrentTime();
+
+    return highlight;
+}
+
+/** Convert StoryHighlight to JSON for creation/update
+ * Serializes highlight data to JSON format for API requests.
+ * @return JSON var representation of this highlight
+ */
+juce::var StoryHighlight::toJSON() const
+{
+    auto* obj = new juce::DynamicObject();
+    juce::var json(obj);
+
+    obj->setProperty("name", name);
+
+    if (description.isNotEmpty())
+        obj->setProperty("description", description);
+
+    if (coverImageUrl.isNotEmpty())
+        obj->setProperty("cover_image", coverImageUrl);
+
+    if (sortOrder > 0)
+        obj->setProperty("sort_order", sortOrder);
+
+    return json;
+}

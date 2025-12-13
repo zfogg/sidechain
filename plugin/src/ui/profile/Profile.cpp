@@ -93,6 +93,21 @@ Profile::Profile()
     addAndMakeVisible(scrollBar.get());
     Log::debug("Profile: Scroll bar created and added");
 
+    // Create story highlights component
+    storyHighlights = std::make_unique<StoryHighlights>();
+    storyHighlights->onHighlightClicked = [this](const StoryHighlight& highlight) {
+        Log::info("Profile: Highlight clicked - id: " + highlight.id + ", name: " + highlight.name);
+        if (onHighlightClicked)
+            onHighlightClicked(highlight);
+    };
+    storyHighlights->onCreateHighlightClicked = [this]() {
+        Log::info("Profile: Create highlight clicked");
+        if (onCreateHighlightClicked)
+            onCreateHighlightClicked();
+    };
+    addAndMakeVisible(storyHighlights.get());
+    Log::debug("Profile: Story highlights component created");
+
     // Create followers list panel (initially hidden)
     followersListPanel = std::make_unique<FollowersList>();
     followersListPanel->onClose = [this]() {
@@ -124,6 +139,8 @@ Profile::~Profile()
 void Profile::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
+    if (storyHighlights)
+        storyHighlights->setNetworkClient(client);
     Log::info("Profile: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
@@ -213,6 +230,15 @@ void Profile::setProfile(const UserProfile& newProfile)
 
         // Check if user has active stories
         checkForActiveStories(profile.id);
+
+        // Load story highlights
+        if (storyHighlights)
+        {
+            storyHighlights->setUserId(profile.id);
+            storyHighlights->setIsOwnProfile(profile.isOwnProfile(currentUserId));
+            storyHighlights->loadHighlights();
+            Log::debug("Profile::setProfile: Loading story highlights for user: " + profile.id);
+        }
 
         // Query presence for this user (if not own profile)
         if (!profile.isOwnProfile(currentUserId))
@@ -730,12 +756,22 @@ void Profile::resized()
     Log::debug("Profile::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
     auto bounds = getLocalBounds();
 
-    // Position scroll bar
-    scrollBar->setBounds(bounds.getRight() - 10, HEADER_HEIGHT, 10, bounds.getHeight() - HEADER_HEIGHT);
+    // Calculate content area offset (header + optional highlights)
+    int contentTopOffset = HEADER_HEIGHT;
+
+    // Position story highlights below header
+    if (storyHighlights)
+    {
+        storyHighlights->setBounds(0, HEADER_HEIGHT, bounds.getWidth() - 10, HIGHLIGHTS_HEIGHT);
+        contentTopOffset += HIGHLIGHTS_HEIGHT;
+    }
+
+    // Position scroll bar (starts after header and highlights)
+    scrollBar->setBounds(bounds.getRight() - 10, contentTopOffset, 10, bounds.getHeight() - contentTopOffset);
 
     // Update scroll bar range
     int contentHeight = calculateContentHeight();
-    int visibleHeight = bounds.getHeight() - HEADER_HEIGHT;
+    int visibleHeight = bounds.getHeight() - contentTopOffset;
     scrollBar->setRangeLimits(0.0, static_cast<double>(contentHeight));
     scrollBar->setCurrentRange(static_cast<double>(scrollOffset), static_cast<double>(visibleHeight));
     Log::debug("Profile::resized: Scroll range updated - contentHeight: " + juce::String(contentHeight) + ", visibleHeight: " + juce::String(visibleHeight));
@@ -921,7 +957,8 @@ juce::Rectangle<int> Profile::getShareButtonBounds() const
 
 juce::Rectangle<int> Profile::getPostsAreaBounds() const
 {
-    return juce::Rectangle<int>(0, HEADER_HEIGHT, getWidth() - 12, getHeight() - HEADER_HEIGHT);
+    int topOffset = HEADER_HEIGHT + HIGHLIGHTS_HEIGHT;
+    return juce::Rectangle<int>(0, topOffset, getWidth() - 12, getHeight() - topOffset);
 }
 
 //==============================================================================
@@ -1168,7 +1205,8 @@ void Profile::updatePostCards()
 
     // Update card data and positions
     auto postsArea = getPostsAreaBounds();
-    int y = HEADER_HEIGHT - scrollOffset;
+    int contentTopOffset = HEADER_HEIGHT + HIGHLIGHTS_HEIGHT;
+    int y = contentTopOffset - scrollOffset;
     int visibleCount = 0;
 
     for (int i = 0; i < userPosts.size(); ++i)
@@ -1191,7 +1229,7 @@ void Profile::updatePostCards()
         }
 
         // Show/hide based on visibility
-        bool isVisible = (y + POST_CARD_HEIGHT > HEADER_HEIGHT) && (y < getHeight());
+        bool isVisible = (y + POST_CARD_HEIGHT > contentTopOffset) && (y < getHeight());
         card->setVisible(isVisible);
         if (isVisible)
             visibleCount++;

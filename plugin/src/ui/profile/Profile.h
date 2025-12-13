@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../../models/FeedPost.h"
 #include "../social/FollowersList.h"
+#include "../stories/StoryHighlights.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -90,6 +91,8 @@ public:
     std::function<void(const juce::String& userId)> onMessageClicked;  // Opens DM with user
     std::function<void(const juce::String& userId)> onViewStoryClicked;  // Opens story viewer for user's story
     std::function<void(const juce::String& userId)> onNavigateToProfile;  // Navigates to another user's profile
+    std::function<void(const StoryHighlight&)> onHighlightClicked;  // Opens story viewer for a highlight
+    std::function<void()> onCreateHighlightClicked;  // Opens create highlight flow (own profile only)
 
     //==============================================================================
     // Component overrides
@@ -215,6 +218,11 @@ private:
         static inline juce::Colour link { 0xff00d4ff };
         static inline juce::Colour errorRed { 0xffff4757 };
     };
+
+    //==============================================================================
+    // Story Highlights component
+    std::unique_ptr<StoryHighlights> storyHighlights;
+    static constexpr int HIGHLIGHTS_HEIGHT = 96;  // Height of highlights row
 
     //==============================================================================
     // Followers/Following list panel
