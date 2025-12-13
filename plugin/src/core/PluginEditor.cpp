@@ -279,6 +279,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             profileComponent->refresh();
         }
     };
+    storyViewerComponent->onAddToHighlightClicked = [this](const juce::String& storyId) {
+        showSelectHighlightDialog(storyId);
+    };
     addChildComponent(storyViewerComponent.get());
 
     //==========================================================================
@@ -460,6 +463,36 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     addChildComponent(savedPostsComponent.get());
 
+    //==========================================================================
+    // Create Story Highlight dialogs
+    createHighlightDialog = std::make_unique<CreateHighlightDialog>();
+    createHighlightDialog->setNetworkClient(networkClient.get());
+    createHighlightDialog->onHighlightCreated = [this](const juce::String& highlightId) {
+        Log::info("PluginEditor: Highlight created: " + highlightId);
+        // Refresh profile to show new highlight
+        if (currentView == AppView::Profile && profileComponent)
+        {
+            profileComponent->refresh();
+        }
+    };
+    // Not added as child - shown as modal overlay when needed
+
+    selectHighlightDialog = std::make_unique<SelectHighlightDialog>();
+    selectHighlightDialog->setNetworkClient(networkClient.get());
+    selectHighlightDialog->onHighlightSelected = [this](const juce::String& highlightId) {
+        Log::info("PluginEditor: Story added to highlight: " + highlightId);
+        // Show success message
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::InfoIcon,
+            "Success",
+            "Story added to highlight!");
+    };
+    selectHighlightDialog->onCreateNewClicked = [this]() {
+        // Show create dialog, then after creation add the story
+        showCreateHighlightDialog();
+    };
+    // Not added as child - shown as modal overlay when needed
+
     // Setup synth unlock callback
     audioProcessor.onSynthUnlocked = [this]() {
         juce::MessageManager::callAsync([this]() {
@@ -594,6 +627,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     profileComponent->onNavigateToProfile = [this](const juce::String& userId) {
         showProfile(userId);
+    };
+    profileComponent->onHighlightClicked = [this](const StoryHighlight& highlight) {
+        showHighlightStories(highlight);
+    };
+    profileComponent->onCreateHighlightClicked = [this]() {
+        showCreateHighlightDialog();
     };
     addChildComponent(profileComponent.get());
 
@@ -1431,6 +1470,107 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String& userId)
             }
         });
     });
+}
+
+void SidechainAudioProcessorEditor::showHighlightStories(const StoryHighlight& highlight)
+{
+    if (!networkClient || highlight.id.isEmpty())
+        return;
+
+    // Fetch the highlight with its stories
+    networkClient->getHighlight(highlight.id, [this, highlightName = highlight.name](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, highlightName]() {
+            if (!result.isOk() || !result.getValue().isObject())
+            {
+                Log::error("PluginEditor: Failed to fetch highlight: " + result.getError());
+                return;
+            }
+
+            auto response = result.getValue();
+
+            // Parse stories from the highlight response
+            std::vector<StoryData> highlightStories;
+
+            // The response may have stories nested in different ways
+            juce::var storiesVar;
+            if (response.hasProperty("stories"))
+                storiesVar = response["stories"];
+            else if (response.hasProperty("highlighted_stories"))
+                storiesVar = response["highlighted_stories"];
+
+            if (storiesVar.isArray())
+            {
+                auto* storiesArray = storiesVar.getArray();
+                for (int i = 0; i < storiesArray->size(); ++i)
+                {
+                    const auto& storyVar = (*storiesArray)[i];
+
+                    // Handle nested "story" property from highlighted_stories join table
+                    juce::var storyData = storyVar.hasProperty("story") ? storyVar["story"] : storyVar;
+
+                    StoryData story;
+                    story.id = storyData["id"].toString();
+                    story.userId = storyData["user_id"].toString();
+                    story.username = storyData.hasProperty("user") ? storyData["user"]["username"].toString() : "";
+                    story.userAvatarUrl = storyData.hasProperty("user") ? storyData["user"]["avatar_url"].toString() : "";
+                    story.audioUrl = storyData["audio_url"].toString();
+                    story.audioDuration = static_cast<float>(storyData["audio_duration"]);
+                    story.midiData = storyData["midi_data"];
+                    story.midiPatternId = storyData["midi_pattern_id"].toString();
+                    story.viewCount = static_cast<int>(storyData["view_count"]);
+                    story.viewed = true; // Highlights are already "viewed" stories
+
+                    // Parse timestamps - highlights don't expire
+                    story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::days(365 * 10);
+                    juce::String createdAtStr = storyData["created_at"].toString();
+                    if (createdAtStr.isNotEmpty())
+                        story.createdAt = juce::Time::fromISO8601(createdAtStr);
+                    else
+                        story.createdAt = juce::Time::getCurrentTime();
+
+                    highlightStories.push_back(story);
+                }
+            }
+
+            if (highlightStories.empty())
+            {
+                Log::info("PluginEditor: No stories in highlight: " + highlightName);
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::MessageBoxIconType::InfoIcon,
+                    "Empty Highlight",
+                    "This highlight has no stories yet.");
+                return;
+            }
+
+            Log::info("PluginEditor: Showing " + juce::String(highlightStories.size()) + " stories from highlight: " + highlightName);
+
+            // Set stories and show viewer
+            if (storyViewerComponent)
+            {
+                storyViewerComponent->setStories(highlightStories, 0);
+                showView(AppView::StoryViewer);
+            }
+        });
+    });
+}
+
+void SidechainAudioProcessorEditor::showCreateHighlightDialog()
+{
+    if (!createHighlightDialog)
+        return;
+
+    createHighlightDialog->showModal(this);
+}
+
+void SidechainAudioProcessorEditor::showSelectHighlightDialog(const juce::String& storyId)
+{
+    if (!selectHighlightDialog || storyId.isEmpty())
+        return;
+
+    if (userDataStore)
+        selectHighlightDialog->setCurrentUserId(userDataStore->getUserId());
+    selectHighlightDialog->setStoryId(storyId);
+    selectHighlightDialog->showModal(this);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()

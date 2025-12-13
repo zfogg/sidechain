@@ -11,6 +11,10 @@ add_library(SidechainUIStories STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/StoryViewer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/StoryHighlights.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StoryHighlights.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/CreateHighlightDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CreateHighlightDialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SelectHighlightDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SelectHighlightDialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PianoRoll.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PianoRoll.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NoteWaterfall.cpp
