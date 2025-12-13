@@ -580,6 +580,10 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
     bool isReply = parentMessage != nullptr;
     int threadIndent = isReply ? 20 : 0;  // Indent replies
 
+    // Check for shared content
+    int sharedContentHeight = getSharedContentHeight(message);
+    bool hasSharedContent = sharedContentHeight > 0;
+
     // Calculate text bounds
     juce::Font font(juce::FontOptions().withHeight(14.0f));
     g.setFont(font);
@@ -592,7 +596,12 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
     widthLayout.createLayout(widthAttrStr, 10000.0f);  // Large width for width calculation
     int textWidth = juce::jmin(bubbleMaxWidth - 2 * bubblePadding - threadIndent,
                                static_cast<int>(widthLayout.getWidth()) + 2 * bubblePadding);
-    textWidth = juce::jmax(textWidth, 100);
+
+    // Ensure minimum width for shared content
+    if (hasSharedContent)
+        textWidth = juce::jmax(textWidth, 200);  // Wider for shared content cards
+    else
+        textWidth = juce::jmax(textWidth, 100);
 
     // Calculate height based on wrapped text
     juce::AttributedString attrStr;
@@ -604,9 +613,13 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
     layout.createLayout(attrStr, static_cast<float>(textWidth));
     int textHeight = static_cast<int>(layout.getHeight());
 
-    // Account for parent message preview
+    // For messages with only shared content (no text), reduce text height
+    if (message.text.isEmpty() && hasSharedContent)
+        textHeight = 0;
+
+    // Account for parent message preview and shared content
     int parentPreviewHeight = isReply ? 40 : 0;
-    int bubbleHeight = textHeight + 2 * bubblePadding + 20 + parentPreviewHeight; // Extra for timestamp + parent preview
+    int bubbleHeight = textHeight + 2 * bubblePadding + 20 + parentPreviewHeight + sharedContentHeight; // Extra for timestamp + parent preview + shared content
     int bubbleWidth = textWidth + 2 * bubblePadding;
 
     // Position bubble (indent replies)
@@ -661,10 +674,30 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
                             static_cast<float>(parentPreviewBounds.getRight()));
     }
 
-    // Draw message text
-    g.setColour(juce::Colours::white);
-    auto textBounds = bubbleBounds.reduced(bubblePadding).withTrimmedTop(parentPreviewHeight).withTrimmedBottom(16);
-    layout.draw(g, textBounds.toFloat());
+    // Draw message text (if any)
+    if (!message.text.isEmpty())
+    {
+        g.setColour(juce::Colours::white);
+        auto textBounds = bubbleBounds.reduced(bubblePadding).withTrimmedTop(parentPreviewHeight).withTrimmedBottom(16 + sharedContentHeight);
+        layout.draw(g, textBounds.toFloat());
+    }
+
+    // Draw shared content preview (post or story)
+    if (hasSharedContent)
+    {
+        int sharedContentY = bubbleBounds.getY() + bubblePadding + parentPreviewHeight + textHeight;
+        auto sharedContentBounds = juce::Rectangle<int>(
+            bubbleBounds.getX() + bubblePadding,
+            sharedContentY,
+            bubbleBounds.getWidth() - 2 * bubblePadding,
+            sharedContentHeight - 5  // Slight padding
+        );
+
+        if (hasSharedPost(message))
+            drawSharedPostPreview(g, message, sharedContentBounds);
+        else if (hasSharedStory(message))
+            drawSharedStoryPreview(g, message, sharedContentBounds);
+    }
 
     // Draw timestamp
     g.setColour(juce::Colour(0xffcccccc));
@@ -826,6 +859,9 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message& messa
     int parentPreviewHeight = isReply ? 40 : 0;
     int threadIndent = isReply ? 20 : 0;
 
+    // Check for shared content (posts/stories)
+    int sharedContentHeight = getSharedContentHeight(message);
+
     juce::AttributedString attrStr;
     attrStr.setText(message.text);
     attrStr.setFont(font);
@@ -834,7 +870,12 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message& messa
     layout.createLayout(attrStr, static_cast<float>(maxWidth - 2 * bubblePadding - threadIndent));
 
     int textHeight = static_cast<int>(layout.getHeight());
-    return textHeight + 2 * bubblePadding + 20 + parentPreviewHeight + MESSAGE_BUBBLE_PADDING; // Text + padding + timestamp + parent preview + gap
+
+    // For messages with only shared content (no text), ensure minimum height
+    if (message.text.isEmpty() && sharedContentHeight > 0)
+        textHeight = 0;
+
+    return textHeight + 2 * bubblePadding + 20 + parentPreviewHeight + sharedContentHeight + MESSAGE_BUBBLE_PADDING;
 }
 
 int MessageThread::calculateTotalMessagesHeight()
@@ -1601,4 +1642,178 @@ void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer
                 });
             }
         });
+}
+
+//==============================================================================
+// Shared content detection
+bool MessageThread::hasSharedPost(const StreamChatClient::Message& message) const
+{
+    if (!message.extraData.isObject())
+        return false;
+
+    auto* obj = message.extraData.getDynamicObject();
+    if (obj == nullptr)
+        return false;
+
+    auto sharedPost = obj->getProperty("shared_post");
+    return sharedPost.isObject();
+}
+
+bool MessageThread::hasSharedStory(const StreamChatClient::Message& message) const
+{
+    if (!message.extraData.isObject())
+        return false;
+
+    auto* obj = message.extraData.getDynamicObject();
+    if (obj == nullptr)
+        return false;
+
+    auto sharedStory = obj->getProperty("shared_story");
+    return sharedStory.isObject();
+}
+
+int MessageThread::getSharedContentHeight(const StreamChatClient::Message& message) const
+{
+    if (hasSharedPost(message) || hasSharedStory(message))
+        return 80; // Height for shared content card
+    return 0;
+}
+
+void MessageThread::drawSharedPostPreview(juce::Graphics& g, const StreamChatClient::Message& message,
+                                          juce::Rectangle<int> bounds)
+{
+    if (!message.extraData.isObject())
+        return;
+
+    auto* obj = message.extraData.getDynamicObject();
+    if (obj == nullptr)
+        return;
+
+    auto sharedPost = obj->getProperty("shared_post");
+    if (!sharedPost.isObject())
+        return;
+
+    // Extract post data
+    juce::String authorUsername = sharedPost.getProperty("author_username", "").toString();
+    juce::String audioUrl = sharedPost.getProperty("audio_url", "").toString();
+    int bpm = static_cast<int>(sharedPost.getProperty("bpm", 0));
+    juce::String key = sharedPost.getProperty("key", "").toString();
+    float duration = static_cast<float>(sharedPost.getProperty("duration_seconds", 0.0));
+    juce::String genres = sharedPost.getProperty("genres", "").toString();
+
+    // Card background
+    g.setColour(SidechainColors::surface().darker(0.1f));
+    g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
+
+    // Left accent border
+    g.setColour(SidechainColors::primary());
+    g.fillRoundedRectangle(bounds.removeFromLeft(4).toFloat(), 8.0f);
+
+    auto contentBounds = bounds.reduced(10, 8);
+
+    // Music icon
+    g.setColour(SidechainColors::primary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)));
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB5")), // Music note emoji
+               contentBounds.removeFromLeft(24), juce::Justification::centred);
+
+    contentBounds.removeFromLeft(8);
+
+    // Post author
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
+    g.drawText("Post by @" + authorUsername, contentBounds.removeFromTop(16), juce::Justification::centredLeft);
+
+    // Audio info (BPM, key, duration)
+    juce::String info;
+    if (bpm > 0)
+        info += juce::String(bpm) + " BPM";
+    if (key.isNotEmpty())
+    {
+        if (info.isNotEmpty()) info += " • ";
+        info += key;
+    }
+    if (duration > 0)
+    {
+        if (info.isNotEmpty()) info += " • ";
+        int secs = static_cast<int>(duration);
+        info += juce::String(secs / 60) + ":" + juce::String(secs % 60).paddedLeft('0', 2);
+    }
+
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)));
+    g.drawText(info, contentBounds.removeFromTop(18), juce::Justification::centredLeft);
+
+    // Genres
+    if (genres.isNotEmpty())
+    {
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
+        g.drawText(genres, contentBounds, juce::Justification::centredLeft);
+    }
+}
+
+void MessageThread::drawSharedStoryPreview(juce::Graphics& g, const StreamChatClient::Message& message,
+                                           juce::Rectangle<int> bounds)
+{
+    if (!message.extraData.isObject())
+        return;
+
+    auto* obj = message.extraData.getDynamicObject();
+    if (obj == nullptr)
+        return;
+
+    auto sharedStory = obj->getProperty("shared_story");
+    if (!sharedStory.isObject())
+        return;
+
+    // Extract story data
+    juce::String username = sharedStory.getProperty("username", "").toString();
+    juce::String audioUrl = sharedStory.getProperty("audio_url", "").toString();
+    float duration = static_cast<float>(sharedStory.getProperty("duration", 0.0));
+
+    // Card background
+    g.setColour(SidechainColors::surface().darker(0.1f));
+    g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
+
+    // Left accent border (gradient for stories)
+    auto gradientBounds = bounds.removeFromLeft(4);
+    juce::ColourGradient gradient(
+        juce::Colour(0xFFFF6B6B), gradientBounds.getX(), gradientBounds.getY(),
+        juce::Colour(0xFF9B59B6), gradientBounds.getX(), gradientBounds.getBottom(),
+        false);
+    g.setGradientFill(gradient);
+    g.fillRoundedRectangle(gradientBounds.toFloat(), 8.0f);
+
+    auto contentBounds = bounds.reduced(10, 8);
+
+    // Story icon (camera/story emoji)
+    g.setColour(SidechainColors::primary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)));
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA4")), // Microphone emoji
+               contentBounds.removeFromLeft(24), juce::Justification::centred);
+
+    contentBounds.removeFromLeft(8);
+
+    // Story author
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
+    g.drawText("Story by @" + username, contentBounds.removeFromTop(16), juce::Justification::centredLeft);
+
+    // Audio info
+    juce::String info = "Audio story";
+    if (duration > 0)
+    {
+        int secs = static_cast<int>(duration);
+        info += " • " + juce::String(secs / 60) + ":" + juce::String(secs % 60).paddedLeft('0', 2);
+    }
+
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)));
+    g.drawText(info, contentBounds.removeFromTop(18), juce::Justification::centredLeft);
+
+    // Tap to view hint
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
+    g.drawText("Tap to view", contentBounds, juce::Justification::centredLeft);
 }

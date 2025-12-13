@@ -11,6 +11,8 @@ add_library(SidechainUIMessages STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/AudioSnippetRecorder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/UserPickerDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UserPickerDialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ShareToMessageDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ShareToMessageDialog.h
 )
 
 target_include_directories(SidechainUIMessages PUBLIC

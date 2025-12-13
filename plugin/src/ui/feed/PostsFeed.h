@@ -69,6 +69,9 @@ public:
     // Callback for opening discovery/search
     std::function<void()> onGoToDiscovery;
 
+    // Callback for sharing a post to DMs
+    std::function<void(const FeedPost& post)> onSendPostToMessage;
+
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& profilePicUrl);
 

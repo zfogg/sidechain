@@ -62,6 +62,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     networkClient->checkConnection();
 
     //==========================================================================
+    // Create tooltip window for the entire plugin
+    // This automatically displays tooltips for any child component that provides one
+    tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500);  // 500ms delay
+
+    //==========================================================================
     // Create AuthComponent
     authComponent = std::make_unique<Auth>();
     authComponent->setNetworkClient(networkClient.get());
@@ -159,6 +164,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     postsFeedComponent->onLogout = [this]() { confirmAndLogout(); };
     postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };
     postsFeedComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
+    postsFeedComponent->onSendPostToMessage = [this](const FeedPost& post) {
+        showSharePostToMessage(post);
+    };
     addChildComponent(postsFeedComponent.get());
 
     //==========================================================================
@@ -281,6 +289,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     storyViewerComponent->onAddToHighlightClicked = [this](const juce::String& storyId) {
         showSelectHighlightDialog(storyId);
+    };
+    storyViewerComponent->onSendStoryToMessage = [this](const StoryData& story) {
+        showShareStoryToMessage(story);
     };
     addChildComponent(storyViewerComponent.get());
 
@@ -490,6 +501,18 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     selectHighlightDialog->onCreateNewClicked = [this]() {
         // Show create dialog, then after creation add the story
         showCreateHighlightDialog();
+    };
+    // Not added as child - shown as modal overlay when needed
+
+    //==========================================================================
+    // Create ShareToMessageDialog for sharing posts/stories to DMs
+    shareToMessageDialog = std::make_unique<ShareToMessageDialog>();
+    shareToMessageDialog->onShareComplete = [this]() {
+        Log::info("PluginEditor: Content shared to DM successfully");
+        // Optionally show success message
+    };
+    shareToMessageDialog->onCancelled = [this]() {
+        Log::debug("PluginEditor: Share to DM cancelled");
     };
     // Not added as child - shown as modal overlay when needed
 
@@ -1571,6 +1594,42 @@ void SidechainAudioProcessorEditor::showSelectHighlightDialog(const juce::String
         selectHighlightDialog->setCurrentUserId(userDataStore->getUserId());
     selectHighlightDialog->setStoryId(storyId);
     selectHighlightDialog->showModal(this);
+}
+
+void SidechainAudioProcessorEditor::showSharePostToMessage(const FeedPost& post)
+{
+    if (!shareToMessageDialog)
+        return;
+
+    // Set up the dialog with required clients
+    shareToMessageDialog->setNetworkClient(networkClient.get());
+    shareToMessageDialog->setStreamChatClient(streamChatClient.get());
+    if (userDataStore)
+        shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
+
+    // Set the post to share
+    shareToMessageDialog->setPostToShare(post);
+
+    // Show the dialog
+    shareToMessageDialog->showModal(this);
+}
+
+void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData& story)
+{
+    if (!shareToMessageDialog)
+        return;
+
+    // Set up the dialog with required clients
+    shareToMessageDialog->setNetworkClient(networkClient.get());
+    shareToMessageDialog->setStreamChatClient(streamChatClient.get());
+    if (userDataStore)
+        shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
+
+    // Set the story to share
+    shareToMessageDialog->setStoryToShare(story);
+
+    // Show the dialog
+    shareToMessageDialog->showModal(this);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()

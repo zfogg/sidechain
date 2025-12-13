@@ -26,6 +26,7 @@
 #include "ui/stories/StoryViewer.h"
 #include "ui/stories/CreateHighlightDialog.h"
 #include "ui/stories/SelectHighlightDialog.h"
+#include "ui/messages/ShareToMessageDialog.h"
 #include "ui/synth/HiddenSynth.h"
 #include "ui/playlists/Playlists.h"
 #include "ui/playlists/PlaylistDetail.h"
@@ -135,6 +136,16 @@ private:
      */
     void showSelectHighlightDialog(const juce::String& storyId);
 
+    /** Show share to message dialog for sharing a post to DMs
+     * @param post The post to share
+     */
+    void showSharePostToMessage(const FeedPost& post);
+
+    /** Show share to message dialog for sharing a story to DMs
+     * @param story The story to share
+     */
+    void showShareStoryToMessage(const StoryData& story);
+
     /** Navigate back to the previous view in the navigation stack
      */
     void navigateBack();
@@ -189,6 +200,9 @@ private:
     std::unique_ptr<CreateHighlightDialog> createHighlightDialog;
     std::unique_ptr<SelectHighlightDialog> selectHighlightDialog;
 
+    // Share to message dialog
+    std::unique_ptr<ShareToMessageDialog> shareToMessageDialog;
+
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;
 
@@ -208,6 +222,9 @@ private:
 
     // Central header component (shown on all post-login pages)
     std::unique_ptr<Header> headerComponent;
+
+    // Tooltip window for displaying tooltips throughout the app
+    std::unique_ptr<juce::TooltipWindow> tooltipWindow;
 
     //==============================================================================
     // Notification handling
