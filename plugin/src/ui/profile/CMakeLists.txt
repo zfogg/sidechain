@@ -9,6 +9,8 @@ add_library(SidechainUIProfile STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Profile.h
     ${CMAKE_CURRENT_SOURCE_DIR}/EditProfile.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/EditProfile.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SavedPosts.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SavedPosts.h
 )
 
 target_include_directories(SidechainUIProfile PUBLIC
