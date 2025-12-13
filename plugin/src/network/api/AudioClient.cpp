@@ -196,7 +196,7 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
         // Build metadata fields for multipart upload
         std::map<juce::String, juce::String> fields;
         fields["recording_id"] = recordingId;
-        fields["title"] = metadataCopy.title;
+        fields["filename"] = metadataCopy.filename;
 
         if (metadataCopy.bpm > 0)
             fields["bpm"] = juce::String(metadataCopy.bpm, 1);
@@ -244,9 +244,9 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
             fields["comment_audience"] = metadataCopy.commentAudience;
         }
 
-        // Generate filename
-        juce::String safeTitle = metadataCopy.title.replaceCharacters(" /\\:*?\"<>|", "-----------");
-        juce::String fileName = safeTitle + "-" + recordingId.substring(0, 8) + ".wav";
+        // Generate safe filename for upload
+        juce::String safeFilename = metadataCopy.filename.replaceCharacters(" /\\:*?\"<>|", "-----------");
+        juce::String fileName = safeFilename + "-" + recordingId.substring(0, 8) + ".wav";
 
         // Upload using multipart form data
         auto result = uploadMultipartData(

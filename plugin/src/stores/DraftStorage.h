@@ -8,14 +8,14 @@
  *
  * Contains all the metadata needed to resume editing a recording:
  * - Audio data (stored as WAV file)
- * - Form fields (title, BPM, key, genre)
+ * - Form fields (filename, BPM, key, genre)
  * - MIDI data (if captured during recording)
  * - Timestamps for sorting and display
  */
 struct Draft
 {
     juce::String id;              // UUID for the draft
-    juce::String title;           // User-entered title (may be empty)
+    juce::String filename;        // User-entered filename (may be empty)
     double bpm = 0.0;             // BPM (from DAW or manual)
     int keyIndex = 0;             // Musical key index (0 = Not set)
     int genreIndex = 0;           // Genre index

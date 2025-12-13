@@ -115,13 +115,13 @@ void Upload::setAudioToUpload(const juce::AudioBuffer<float>& audio, double samp
     }
 
     // Reset form state
-    title = "";
+    filename = "";
     selectedKeyIndex = 0;
     selectedGenreIndex = 0;
     uploadState = UploadState::Editing;
     uploadProgress = 0.0f;
     errorMessage = "";
-    activeField = 0; // Focus title field
+    activeField = 0; // Focus filename field
     includeMidi = true;  // Default to including MIDI if available
 
     // Log MIDI info
@@ -157,7 +157,7 @@ void Upload::reset()
     }
     
     audioBuffer.setSize(0, 0);
-    title = "";
+    filename = "";
     bpm = 0.0;
     bpmFromDAW = false;
     selectedKeyIndex = 0;
@@ -213,7 +213,7 @@ void Upload::paint(juce::Graphics& g)
     // Draw all sections
     drawHeader(g);
     drawWaveform(g);
-    drawTitleField(g);
+    drawFilenameField(g);
     drawBPMField(g);
     drawTapTempoButton(g);
     drawKeyDropdown(g);
@@ -246,8 +246,8 @@ void Upload::resized()
     waveformArea = bounds.removeFromTop(100);
     bounds.removeFromTop(fieldSpacing);
 
-    // Title field (full width)
-    titleFieldArea = bounds.removeFromTop(rowHeight);
+    // Filename field (full width)
+    filenameFieldArea = bounds.removeFromTop(rowHeight);
     bounds.removeFromTop(fieldSpacing);
 
     // BPM field + Tap tempo button (side by side)
@@ -305,10 +305,10 @@ void Upload::mouseUp(const juce::MouseEvent& event)
 
     if (uploadState == UploadState::Editing)
     {
-        // Title field
-        if (titleFieldArea.contains(pos))
+        // Filename field
+        if (filenameFieldArea.contains(pos))
         {
-            Log::info("Upload::mouseUp: Title field clicked");
+            Log::info("Upload::mouseUp: Filename field clicked");
             activeField = 0;
             grabKeyboardFocus();
             repaint();
@@ -451,9 +451,9 @@ void Upload::drawWaveform(juce::Graphics& g)
     g.strokePath(path, juce::PathStrokeType(2.0f));
 }
 
-void Upload::drawTitleField(juce::Graphics& g)
+void Upload::drawFilenameField(juce::Graphics& g)
 {
-    drawTextField(g, titleFieldArea, "Title", title, activeField == 0);
+    drawTextField(g, filenameFieldArea, "Filename", filename, activeField == 0);
 }
 
 void Upload::drawBPMField(juce::Graphics& g)
@@ -610,7 +610,7 @@ void Upload::drawButtons(juce::Graphics& g)
     bool cancelHovered = cancelButtonArea.contains(getMouseXYRelative());
     bool draftHovered = draftButtonArea.contains(getMouseXYRelative());
     bool shareHovered = shareButtonArea.contains(getMouseXYRelative());
-    bool canShare = !title.isEmpty() && audioBuffer.getNumSamples() > 0;
+    bool canShare = !filename.isEmpty() && audioBuffer.getNumSamples() > 0;
     bool canSaveDraft = audioBuffer.getNumSamples() > 0;  // Can save draft even without title
 
     if (uploadState == UploadState::Uploading)
@@ -650,7 +650,7 @@ void Upload::drawStatus(juce::Graphics& g)
         g.setColour(SidechainColors::textSecondary());
         g.setFont(12.0f);
 
-        juce::String details = "\"" + lastUploadedTitle + "\"";
+        juce::String details = "\"" + lastUploadedFilename + "\"";
         if (!lastUploadedGenre.isEmpty())
             details += " · " + lastUploadedGenre;
         if (lastUploadedBpm > 0)
@@ -664,11 +664,11 @@ void Upload::drawStatus(juce::Graphics& g)
         g.setFont(14.0f);
         g.drawText("Uploading... " + StringFormatter::formatPercentage(uploadProgress), statusArea, juce::Justification::centred);
     }
-    else if (title.isEmpty() && activeField != 0)
+    else if (filename.isEmpty() && activeField != 0)
     {
         g.setColour(SidechainColors::textMuted());
         g.setFont(12.0f);
-        g.drawText("Give your loop a title to share", statusArea, juce::Justification::centred);
+        g.drawText("Give your loop a filename to share", statusArea, juce::Justification::centred);
     }
 }
 
@@ -1122,10 +1122,29 @@ void Upload::startUpload()
 {
     Log::info("Upload::startUpload: Starting upload process");
 
-    if (title.isEmpty())
+    if (filename.isEmpty())
     {
-        Log::warn("Upload::startUpload: Validation failed - title is empty");
-        errorMessage = "Please enter a title";
+        Log::warn("Upload::startUpload: Validation failed - filename is empty");
+        errorMessage = "Please enter a filename";
+        uploadState = UploadState::Error;
+        repaint();
+        return;
+    }
+
+    // Validate filename - no directory separators allowed
+    if (filename.containsChar('/') || filename.containsChar('\\'))
+    {
+        Log::warn("Upload::startUpload: Validation failed - filename contains directory path");
+        errorMessage = "Filename cannot contain directory paths";
+        uploadState = UploadState::Error;
+        repaint();
+        return;
+    }
+
+    if (filename.length() > 255)
+    {
+        Log::warn("Upload::startUpload: Validation failed - filename too long");
+        errorMessage = "Filename too long (max 255 characters)";
         uploadState = UploadState::Error;
         repaint();
         return;
@@ -1151,7 +1170,7 @@ void Upload::startUpload()
     auto& genres = getGenres();
 
     NetworkClient::AudioUploadMetadata metadata;
-    metadata.title = title;
+    metadata.filename = filename;
     metadata.bpm = bpm;
     metadata.key = selectedKeyIndex > 0 && selectedKeyIndex < (int)keys.size()
         ? keys[selectedKeyIndex].shortName : "";
@@ -1174,7 +1193,7 @@ void Upload::startUpload()
     metadata.commentAudience = selectedCommentAudienceIndex < (int)audiences.size()
         ? audiences[selectedCommentAudienceIndex].value : "everyone";
 
-    Log::info("Upload::startUpload: Upload metadata - title: \"" + title + "\", BPM: " + juce::String(bpm, 1) +
+    Log::info("Upload::startUpload: Upload metadata - filename: \"" + filename + "\", BPM: " + juce::String(bpm, 1) +
               ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " +
               juce::String(metadata.durationSeconds, 2) + "s, sampleRate: " + juce::String(metadata.sampleRate) +
               "Hz, channels: " + juce::String(metadata.numChannels) +
@@ -1207,19 +1226,19 @@ void Upload::startUpload()
     // Start async upload with full metadata
     Log::info("Upload::startUpload: Calling networkClient.uploadAudioWithMetadata");
     networkClient.uploadAudioWithMetadata(audioBuffer, audioSampleRate, metadata,
-        [this, savedTitle = title, savedGenre = metadata.genre, savedBpm = bpm](Outcome<juce::String> uploadResult) {
-            juce::MessageManager::callAsync([this, uploadResult, savedTitle, savedGenre, savedBpm]() {
+        [this, savedFilename = filename, savedGenre = metadata.genre, savedBpm = bpm](Outcome<juce::String> uploadResult) {
+            juce::MessageManager::callAsync([this, uploadResult, savedFilename, savedGenre, savedBpm]() {
                 if (uploadResult.isOk())
                 {
                     auto audioUrl = uploadResult.getValue();
                     uploadState = UploadState::Success;
                     uploadProgress = 1.0f;
-                    lastUploadedTitle = savedTitle;
+                    lastUploadedFilename = savedFilename;
                     lastUploadedGenre = savedGenre;
                     lastUploadedBpm = savedBpm;
                     lastUploadedUrl = audioUrl;
                     Log::info("Upload::startUpload: Upload successful - URL: " + audioUrl);
-                    Log::info("Upload::startUpload: Upload details - Title: \"" + savedTitle +
+                    Log::info("Upload::startUpload: Upload details - Filename: \"" + savedFilename +
                              "\", Genre: " + savedGenre + ", BPM: " + juce::String(savedBpm, 1));
 
                     // Auto-dismiss after 3 seconds (longer to show success preview)
@@ -1275,14 +1294,14 @@ bool Upload::keyPressed(const juce::KeyPress& key)
         return true;
     }
 
-    if (activeField == 0) // Title field
+    if (activeField == 0) // Filename field
     {
         if (key == juce::KeyPress::backspaceKey)
         {
-            if (!title.isEmpty())
+            if (!filename.isEmpty())
             {
-                title = title.dropLastCharacters(1);
-                Log::debug("Upload::keyPressed: Backspace in title field, new length: " + juce::String(title.length()));
+                filename = filename.dropLastCharacters(1);
+                Log::debug("Upload::keyPressed: Backspace in filename field, new length: " + juce::String(filename.length()));
                 repaint();
             }
             return true;
@@ -1292,15 +1311,22 @@ bool Upload::keyPressed(const juce::KeyPress& key)
         juce::juce_wchar character = key.getTextCharacter();
         if (character >= 32 && character < 127) // Printable ASCII
         {
-            if (title.length() < 100) // Max title length
+            // Block directory separators in filename
+            if (character == '/' || character == '\\')
             {
-                title += juce::String::charToString(character);
-                Log::debug("Upload::keyPressed: Character added to title, new length: " + juce::String(title.length()));
+                Log::debug("Upload::keyPressed: Directory separator blocked in filename");
+                return true;
+            }
+
+            if (filename.length() < 255) // Max filename length
+            {
+                filename += juce::String::charToString(character);
+                Log::debug("Upload::keyPressed: Character added to filename, new length: " + juce::String(filename.length()));
                 repaint();
             }
             else
             {
-                Log::debug("Upload::keyPressed: Title max length (100) reached");
+                Log::debug("Upload::keyPressed: Filename max length (255) reached");
             }
             return true;
         }
@@ -1348,22 +1374,22 @@ bool Upload::keyPressed(const juce::KeyPress& key)
 
 void Upload::focusGained(FocusChangeType /*cause*/)
 {
-    // When component gains focus, activate title field if nothing is active
+    // When component gains focus, activate filename field if nothing is active
     if (activeField < 0)
     {
-        Log::debug("Upload::focusGained: Component gained focus, activating title field");
+        Log::debug("Upload::focusGained: Component gained focus, activating filename field");
         activeField = 0;
         repaint();
     }
 }
 
-void Upload::loadFromDraft(const juce::String& draftTitle, double draftBpm, int keyIdx, int genreIdx, int commentIdx)
+void Upload::loadFromDraft(const juce::String& draftFilename, double draftBpm, int keyIdx, int genreIdx, int commentIdx)
 {
-    Log::info("Upload::loadFromDraft: Loading draft data - title: \"" + draftTitle +
+    Log::info("Upload::loadFromDraft: Loading draft data - filename: \"" + draftFilename +
               "\", BPM: " + juce::String(draftBpm, 1) + ", key: " + juce::String(keyIdx) +
               ", genre: " + juce::String(genreIdx));
 
-    title = draftTitle;
+    filename = draftFilename;
     bpm = draftBpm;
     bpmFromDAW = false;  // Draft BPM is manual
     selectedKeyIndex = keyIdx;

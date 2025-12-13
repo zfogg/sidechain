@@ -46,6 +46,30 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		return
 	}
 
+	// Parse and validate display filename
+	filename := c.PostForm("filename")
+	if err := util.ValidateFilename(filename); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_filename",
+			"message": err.Error(),
+		})
+		return
+	}
+	// Default to original filename if not provided
+	if filename == "" {
+		filename = file.Filename
+	}
+
+	// Parse and validate MIDI filename (used if MIDI data is provided)
+	midiFilename := c.PostForm("midi_filename")
+	if err := util.ValidateFilename(midiFilename); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_midi_filename",
+			"message": err.Error(),
+		})
+		return
+	}
+
 	// Parse metadata from form
 	metadata := map[string]interface{}{
 		"bpm":           util.ParseInt(c.PostForm("bpm"), 120),
@@ -72,10 +96,11 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 	if midiDataStr != "" {
 		var midiData models.MIDIData
 		if err := json.Unmarshal([]byte(midiDataStr), &midiData); err == nil && len(midiData.Events) > 0 {
-			// Create standalone MIDI pattern
+			// Create standalone MIDI pattern with filename
 			pattern := &models.MIDIPattern{
 				UserID:        currentUser.ID,
 				Name:          "MIDI from upload",
+				Filename:      midiFilename, // User-provided MIDI filename
 				Events:        midiData.Events,
 				Tempo:         midiData.Tempo,
 				TimeSignature: midiData.TimeSignature,
@@ -102,6 +127,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		ID:               uuid.New().String(),
 		UserID:           currentUser.ID,
 		OriginalFilename: file.Filename,
+		Filename:         filename, // User-provided display filename
 		FileSize:         file.Size,
 		BPM:              util.ParseInt(c.PostForm("bpm"), 120),
 		Key:              c.DefaultPostForm("key", "C major"),

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"path/filepath"
 	"strings"
 
@@ -25,4 +26,20 @@ func ValidateProjectFileExtension(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	_, exists := models.ProjectFileExtensions[ext]
 	return exists
+}
+
+// ValidateFilename checks if a display filename is valid
+// Filename is required and cannot contain directory separators
+// Must be <= 255 chars
+func ValidateFilename(filename string) error {
+	if filename == "" {
+		return errors.New("filename is required")
+	}
+	if strings.Contains(filename, "/") || strings.Contains(filename, "\\") {
+		return errors.New("filename cannot contain directory paths")
+	}
+	if len(filename) > 255 {
+		return errors.New("filename too long (max 255 characters)")
+	}
+	return nil
 }

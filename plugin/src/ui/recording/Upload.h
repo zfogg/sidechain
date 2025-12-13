@@ -12,7 +12,7 @@ class SidechainAudioProcessor;
  * Upload provides the UI for sharing a recorded loop.
  *
  * Features:
- * - Title input (required)
+ * - Filename input (required) - display name for the audio file
  * - BPM display (auto-detected from DAW via AudioPlayHead)
  * - Musical key dropdown (24 keys + "Not set")
  * - Genre dropdown
@@ -71,7 +71,7 @@ public:
     // Draft support
 
     /** Get current form data for draft saving */
-    juce::String getTitle() const { return title; }
+    juce::String getFilename() const { return filename; }
     double getBpm() const { return bpm; }
     int getKeyIndex() const { return selectedKeyIndex; }
     int getGenreIndex() const { return selectedGenreIndex; }
@@ -81,7 +81,7 @@ public:
     double getSampleRate() const { return audioSampleRate; }
 
     /** Set form data from a draft */
-    void loadFromDraft(const juce::String& draftTitle, double draftBpm, int keyIdx, int genreIdx, int commentIdx);
+    void loadFromDraft(const juce::String& draftFilename, double draftBpm, int keyIdx, int genreIdx, int commentIdx);
 
     //==========================================================================
     void paint(juce::Graphics&) override;
@@ -124,7 +124,7 @@ private:
     int successDismissTimer = 0;
 
     // Form data
-    juce::String title;
+    juce::String filename;  // Display filename for the audio file
     double bpm = 0.0;
     bool bpmFromDAW = false;
     int selectedKeyIndex = 0;      // 0 = "Not set"
@@ -148,7 +148,7 @@ private:
     double lastTapTime = 0.0;
 
     // Last uploaded post info (for success preview)
-    juce::String lastUploadedTitle;
+    juce::String lastUploadedFilename;
     juce::String lastUploadedGenre;
     double lastUploadedBpm = 0.0;
     juce::String lastUploadedUrl;
@@ -156,7 +156,7 @@ private:
     // UI areas (calculated in resized())
     juce::Rectangle<int> headerArea;
     juce::Rectangle<int> waveformArea;
-    juce::Rectangle<int> titleFieldArea;
+    juce::Rectangle<int> filenameFieldArea;
     juce::Rectangle<int> bpmFieldArea;
     juce::Rectangle<int> tapTempoButtonArea;
     juce::Rectangle<int> keyDropdownArea;
@@ -174,7 +174,7 @@ private:
     // Drawing helpers
     void drawHeader(juce::Graphics& g);
     void drawWaveform(juce::Graphics& g);
-    void drawTitleField(juce::Graphics& g);
+    void drawFilenameField(juce::Graphics& g);
     void drawBPMField(juce::Graphics& g);
     void drawTapTempoButton(juce::Graphics& g);
     void drawKeyDropdown(juce::Graphics& g);

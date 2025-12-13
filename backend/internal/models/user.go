@@ -132,9 +132,10 @@ type AudioPost struct {
 	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
 
 	// Audio file data
-	AudioURL         string  `gorm:"not null" json:"audio_url"`
-	OriginalFilename string  `json:"original_filename"`
-	FileSize         int64   `json:"file_size"`
+	AudioURL         string `gorm:"not null" json:"audio_url"`
+	OriginalFilename string `json:"original_filename"`         // System filename from upload
+	Filename         string `json:"filename"`                  // User-editable display filename
+	FileSize         int64  `json:"file_size"`
 	Duration         float64 `json:"duration"` // seconds
 
 	// Audio metadata
@@ -526,6 +527,8 @@ type Story struct {
 	// Audio file data
 	AudioURL      string  `gorm:"not null" json:"audio_url"`
 	AudioDuration float64 `gorm:"not null" json:"audio_duration"` // seconds
+	Filename      string  `json:"filename"`                       // Display filename for audio
+	MIDIFilename  string  `json:"midi_filename"`                  // Display filename for MIDI if present
 
 	// MIDI data (optional - stories can be audio-only)
 	// References standalone MIDIPattern for sharing/downloading
