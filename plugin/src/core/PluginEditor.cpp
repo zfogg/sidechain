@@ -20,6 +20,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     userDataStore = std::make_unique<UserDataStore>();
     userDataStore->addChangeListener(this);
 
+    // Initialize draft storage (Feature #5)
+    draftStorage = std::make_unique<DraftStorage>();
+
     // Initialize network client with development config
     networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
 
@@ -185,6 +188,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         }
     };
     recordingComponent->onRecordingDiscarded = [this]() { showView(AppView::PostsFeed); };
+    recordingComponent->onViewDrafts = [this]() { showDrafts(); };
     addChildComponent(recordingComponent.get());
 
     //==========================================================================
@@ -198,7 +202,36 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         uploadComponent->reset();
         showView(AppView::Recording);
     };
+    uploadComponent->onSaveAsDraft = [this]() {
+        saveCurrentUploadAsDraft();
+    };
     addChildComponent(uploadComponent.get());
+
+    //==========================================================================
+    // Create DraftsView (Feature #5)
+    draftsViewComponent = std::make_unique<DraftsView>();
+    draftsViewComponent->setDraftStorage(draftStorage.get());
+    draftsViewComponent->onClose = [this]() {
+        navigateBack();
+    };
+    draftsViewComponent->onNewRecording = [this]() {
+        showView(AppView::Recording);
+    };
+    draftsViewComponent->onDraftSelected = [this](const Draft& draft) {
+        // Load draft into Upload component and navigate there
+        if (uploadComponent && draftStorage)
+        {
+            juce::AudioBuffer<float> audioBuffer;
+            Draft loadedDraft = draftStorage->loadDraft(draft.id, audioBuffer);
+            if (audioBuffer.getNumSamples() > 0)
+            {
+                uploadComponent->setAudioToUpload(audioBuffer, loadedDraft.sampleRate, loadedDraft.midiData);
+                uploadComponent->loadFromDraft(loadedDraft.title, loadedDraft.bpm, loadedDraft.keyIndex, loadedDraft.genreIndex, loadedDraft.commentAudienceIndex);
+                showView(AppView::Upload);
+            }
+        }
+    };
+    addChildComponent(draftsViewComponent.get());
 
     //==========================================================================
     // Create UserDiscoveryComponent
@@ -787,6 +820,30 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
     // destroyed objects and to allow detached threads to exit cleanly
     Async::shutdown();
 
+    // Auto-save unsaved upload as draft (Feature #5)
+    if (uploadComponent && draftStorage)
+    {
+        const auto& audioBuffer = uploadComponent->getAudioBuffer();
+        if (audioBuffer.getNumSamples() > 0)
+        {
+            // Create auto-recovery draft
+            Draft draft;
+            draft.id = "_auto_recovery";
+            draft.title = uploadComponent->getTitle();
+            draft.bpm = uploadComponent->getBpm();
+            draft.keyIndex = uploadComponent->getKeyIndex();
+            draft.genreIndex = uploadComponent->getGenreIndex();
+            draft.commentAudienceIndex = uploadComponent->getCommentAudienceIndex();
+            draft.sampleRate = uploadComponent->getSampleRate();
+            draft.midiData = uploadComponent->getMidiData();
+            draft.createdAt = juce::Time::getCurrentTime();
+            draft.updatedAt = juce::Time::getCurrentTime();
+
+            Log::info("PluginEditor: Auto-saving upload as recovery draft");
+            draftStorage->saveAutoRecoveryDraft(draft, audioBuffer);
+        }
+    }
+
     // Mark clean shutdown before destroying components
     markCleanShutdown();
 
@@ -863,6 +920,9 @@ void SidechainAudioProcessorEditor::resized()
     if (uploadComponent)
         uploadComponent->setBounds(contentBounds);
 
+    if (draftsViewComponent)
+        draftsViewComponent->setBounds(contentBounds);
+
     if (userDiscoveryComponent)
         userDiscoveryComponent->setBounds(contentBounds);
 
@@ -934,6 +994,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         case AppView::Upload:
             componentToShow = uploadComponent.get();
             break;
+        case AppView::Drafts:
+            componentToShow = draftsViewComponent.get();
+            break;
         case AppView::StoryRecording:
             componentToShow = storyRecordingComponent.get();
             break;
@@ -995,6 +1058,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::Upload:
             componentToHide = uploadComponent.get();
+            break;
+        case AppView::Drafts:
+            componentToHide = draftsViewComponent.get();
             break;
         case AppView::StoryRecording:
             componentToHide = storyRecordingComponent.get();
@@ -1060,6 +1126,8 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             recordingComponent->setVisible(false);
         if (uploadComponent && uploadComponent.get() != componentToShow && uploadComponent.get() != componentToHide)
             uploadComponent->setVisible(false);
+        if (draftsViewComponent && draftsViewComponent.get() != componentToShow && draftsViewComponent.get() != componentToHide)
+            draftsViewComponent->setVisible(false);
         if (userDiscoveryComponent && userDiscoveryComponent.get() != componentToShow && userDiscoveryComponent.get() != componentToHide)
             userDiscoveryComponent->setVisible(false);
         if (profileComponent && profileComponent.get() != componentToShow && profileComponent.get() != componentToHide)
@@ -1120,6 +1188,11 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         {
             uploadComponent->setBounds(contentBounds);
             uploadComponent->setVisible(view == AppView::Upload);
+        }
+        if (draftsViewComponent)
+        {
+            draftsViewComponent->setBounds(contentBounds);
+            draftsViewComponent->setVisible(view == AppView::Drafts);
         }
         if (userDiscoveryComponent)
         {
@@ -1263,7 +1336,11 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
 
         case AppView::Upload:
-            
+
+            break;
+
+        case AppView::Drafts:
+
             break;
 
         case AppView::StoryRecording:
@@ -1450,6 +1527,40 @@ void SidechainAudioProcessorEditor::showSavedPosts()
 void SidechainAudioProcessorEditor::showArchivedPosts()
 {
     showView(AppView::ArchivedPosts);
+}
+
+void SidechainAudioProcessorEditor::showDrafts()
+{
+    if (draftsViewComponent)
+        draftsViewComponent->refresh();
+    showView(AppView::Drafts);
+}
+
+void SidechainAudioProcessorEditor::saveCurrentUploadAsDraft()
+{
+    if (!uploadComponent || !draftStorage)
+        return;
+
+    // Create draft from current upload state
+    Draft draft;
+    draft.id = juce::Uuid().toString();
+    draft.title = uploadComponent->getTitle();
+    draft.bpm = uploadComponent->getBpm();
+    draft.keyIndex = uploadComponent->getKeyIndex();
+    draft.genreIndex = uploadComponent->getGenreIndex();
+    draft.commentAudienceIndex = uploadComponent->getCommentAudienceIndex();
+    draft.sampleRate = uploadComponent->getSampleRate();
+    draft.midiData = uploadComponent->getMidiData();
+    draft.createdAt = juce::Time::getCurrentTime();
+    draft.updatedAt = juce::Time::getCurrentTime();
+
+    const auto& audioBuffer = uploadComponent->getAudioBuffer();
+    if (audioBuffer.getNumSamples() > 0)
+    {
+        draftStorage->saveDraft(draft, audioBuffer);
+        uploadComponent->reset();
+        showDrafts();
+    }
 }
 
 void SidechainAudioProcessorEditor::checkForActiveStories()
@@ -1763,6 +1874,7 @@ void SidechainAudioProcessorEditor::navigateBack()
     if (postsFeedComponent) postsFeedComponent->setVisible(false);
     if (recordingComponent) recordingComponent->setVisible(false);
     if (uploadComponent) uploadComponent->setVisible(false);
+    if (draftsViewComponent) draftsViewComponent->setVisible(false);
     if (userDiscoveryComponent) userDiscoveryComponent->setVisible(false);
     if (profileComponent) profileComponent->setVisible(false);
     if (searchComponent) searchComponent->setVisible(false);

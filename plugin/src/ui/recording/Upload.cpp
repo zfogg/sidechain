@@ -284,10 +284,12 @@ void Upload::resized()
     statusArea = bounds.removeFromTop(24);
     bounds.removeFromTop(fieldSpacing);
 
-    // Buttons at bottom
+    // Buttons at bottom (3 buttons: Cancel, Save Draft, Share)
     auto buttonRow = bounds.removeFromBottom(52);
-    int buttonWidth = (buttonRow.getWidth() - 16) / 2;
+    int buttonWidth = (buttonRow.getWidth() - 32) / 3;  // 3 buttons with 2 gaps
     cancelButtonArea = buttonRow.removeFromLeft(buttonWidth);
+    buttonRow.removeFromLeft(16);
+    draftButtonArea = buttonRow.removeFromLeft(buttonWidth);
     buttonRow.removeFromLeft(16);
     shareButtonArea = buttonRow;
 }
@@ -378,6 +380,15 @@ void Upload::mouseUp(const juce::MouseEvent& event)
         {
             Log::info("Upload::mouseUp: Cancel button clicked");
             cancelUpload();
+            return;
+        }
+
+        // Save as Draft button
+        if (draftButtonArea.contains(pos))
+        {
+            Log::info("Upload::mouseUp: Save as Draft button clicked");
+            if (onSaveAsDraft)
+                onSaveAsDraft();
             return;
         }
 
@@ -597,19 +608,24 @@ void Upload::drawProgressBar(juce::Graphics& g)
 void Upload::drawButtons(juce::Graphics& g)
 {
     bool cancelHovered = cancelButtonArea.contains(getMouseXYRelative());
+    bool draftHovered = draftButtonArea.contains(getMouseXYRelative());
     bool shareHovered = shareButtonArea.contains(getMouseXYRelative());
     bool canShare = !title.isEmpty() && audioBuffer.getNumSamples() > 0;
+    bool canSaveDraft = audioBuffer.getNumSamples() > 0;  // Can save draft even without title
 
     if (uploadState == UploadState::Uploading)
     {
         // Show cancel only during upload
         drawButton(g, cancelButtonArea, "Cancel", SidechainColors::buttonSecondary(), cancelHovered, true);
+        // Draft button disabled during upload
+        drawButton(g, draftButtonArea, "Save Draft", SidechainColors::surface(), false, false);
         // Share button disabled during upload
         drawButton(g, shareButtonArea, "Uploading...", SidechainColors::primary().darker(0.2f), false, false);
     }
     else
     {
         drawButton(g, cancelButtonArea, "Cancel", SidechainColors::buttonSecondary(), cancelHovered, true);
+        drawButton(g, draftButtonArea, "Save Draft", SidechainColors::surface(), draftHovered, canSaveDraft);
         drawButton(g, shareButtonArea, "Share Loop", SidechainColors::primary(), shareHovered, canShare);
     }
 }
@@ -1339,4 +1355,26 @@ void Upload::focusGained(FocusChangeType /*cause*/)
         activeField = 0;
         repaint();
     }
+}
+
+void Upload::loadFromDraft(const juce::String& draftTitle, double draftBpm, int keyIdx, int genreIdx, int commentIdx)
+{
+    Log::info("Upload::loadFromDraft: Loading draft data - title: \"" + draftTitle +
+              "\", BPM: " + juce::String(draftBpm, 1) + ", key: " + juce::String(keyIdx) +
+              ", genre: " + juce::String(genreIdx));
+
+    title = draftTitle;
+    bpm = draftBpm;
+    bpmFromDAW = false;  // Draft BPM is manual
+    selectedKeyIndex = keyIdx;
+    selectedGenreIndex = genreIdx;
+    selectedCommentAudienceIndex = commentIdx;
+
+    // Ensure state is editing
+    uploadState = UploadState::Editing;
+    uploadProgress = 0.0f;
+    errorMessage = "";
+    activeField = -1;
+
+    repaint();
 }

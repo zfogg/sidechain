@@ -68,6 +68,22 @@ public:
     void reset();
 
     //==========================================================================
+    // Draft support (Feature #5)
+
+    /** Get current form data for draft saving */
+    juce::String getTitle() const { return title; }
+    double getBpm() const { return bpm; }
+    int getKeyIndex() const { return selectedKeyIndex; }
+    int getGenreIndex() const { return selectedGenreIndex; }
+    int getCommentAudienceIndex() const { return selectedCommentAudienceIndex; }
+    const juce::var& getMidiData() const { return midiData; }
+    const juce::AudioBuffer<float>& getAudioBuffer() const { return audioBuffer; }
+    double getSampleRate() const { return audioSampleRate; }
+
+    /** Set form data from a draft */
+    void loadFromDraft(const juce::String& draftTitle, double draftBpm, int keyIdx, int genreIdx, int commentIdx);
+
+    //==========================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
     void mouseUp(const juce::MouseEvent& event) override;
@@ -79,6 +95,7 @@ public:
     // Callbacks
     std::function<void()> onUploadComplete;  // Called after successful upload
     std::function<void()> onCancel;          // Called when user cancels
+    std::function<void()> onSaveAsDraft;     // Called when user saves as draft
 
 private:
     //==========================================================================
@@ -148,6 +165,7 @@ private:
     juce::Rectangle<int> commentAudienceArea;  // Feature #12
     juce::Rectangle<int> projectFileArea;  // R.3.4 Project File Exchange
     juce::Rectangle<int> progressBarArea;
+    juce::Rectangle<int> draftButtonArea;
     juce::Rectangle<int> cancelButtonArea;
     juce::Rectangle<int> shareButtonArea;
     juce::Rectangle<int> statusArea;
