@@ -1,4 +1,68 @@
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sidechain-backend
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      # Server
+      PORT: "8787"
+      HOST: "0.0.0.0"
+      ENVIRONMENT: "${ENVIRONMENT:-development}"
+
+      # Database (connects to postgres container)
+      DATABASE_URL: "postgres://sidechain:sidechain_dev_password@postgres:5432/sidechain?sslmode=disable"
+
+      # Gorse recommendations (API is on dashboard port 8088)
+      GORSE_URL: "http://gorse:8088"
+      GORSE_API_KEY: "sidechain_gorse_api_key"
+
+      # Stream.io (from .env or host environment)
+      STREAM_API_KEY: "${STREAM_API_KEY}"
+      STREAM_API_SECRET: "${STREAM_API_SECRET}"
+
+      # Security
+      JWT_SECRET: "${JWT_SECRET:-dev_jwt_secret_change_in_production}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-*}"
+
+      # AWS/S3 Storage
+      STORAGE_PROVIDER: "${STORAGE_PROVIDER:-local}"
+      AWS_REGION: "${AWS_REGION:-us-west-2}"
+      AWS_BUCKET: "${AWS_BUCKET:-sidechain-audio}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      CDN_BASE_URL: "${CDN_BASE_URL:-http://localhost:8787}"
+
+      # OAuth
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+
+      # Email (AWS SES)
+      SES_FROM_EMAIL: "${SES_FROM_EMAIL}"
+      SES_FROM_NAME: "${SES_FROM_NAME:-Sidechain}"
+      BASE_URL: "${BASE_URL:-http://localhost:8787}"
+
+      # Logging
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gorse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 3s
+
   postgres:
     image: postgres:16-alpine
     container_name: sidechain-postgres
@@ -41,43 +105,33 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 40s
+      start_period: 3s
 
   gorse:
-    image: zhenghaoz/gorse-in-one:latest
+    image: zhenghaoz/gorse-in-one:nightly
     container_name: sidechain-gorse
     restart: unless-stopped
     ports:
-      - "8087:8087"  # API server
-      - "8088:8088"  # Dashboard
-    environment:
-      - GORSE_MASTER_PORT=8086
-      - GORSE_MASTER_HOST=0.0.0.0
-      - GORSE_SERVER_PORT=8087
-      - GORSE_SERVER_HOST=0.0.0.0
-      - GORSE_DASHBOARD_PORT=8088
-      - GORSE_DASHBOARD_HOST=0.0.0.0
-      - GORSE_API_KEY=sidechain_gorse_api_key
-      # Use PostgreSQL for data storage (shared with main app)
-      - GORSE_DATABASE_STORE=postgres://sidechain:sidechain_dev_password@postgres:5432/gorse?sslmode=disable
-      - GORSE_DATABASE_CACHE=redis://redis:6379
+      - "8088:8088"  # API + Dashboard (combined in gorse-in-one)
+    volumes:
+      - ./gorse.toml:/etc/gorse/config.toml:ro
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8087/api/health || exit 1"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8088'"]
+      interval: 5s
+      timeout: 3s
       retries: 5
-    # Note: Gorse will create its own database schema in the postgres database
+      start_period: 3s
 
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack-server:latest
     container_name: sidechain-redis
     restart: unless-stopped
     ports:
