@@ -38,6 +38,32 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		return
 	}
 
+	// Check comment audience restrictions (Feature #12)
+	// Post owner can always comment on their own posts
+	if post.UserID != userID {
+		switch post.CommentAudience {
+		case models.CommentAudienceOff:
+			c.JSON(http.StatusForbidden, gin.H{
+				"error":   "comments_disabled",
+				"message": "Comments are disabled for this post",
+			})
+			return
+		case models.CommentAudienceFollowers:
+			// Check if the commenter follows the post owner
+			if h.stream != nil {
+				isFollowing, err := h.stream.CheckIsFollowing(userID, post.UserID)
+				if err != nil || !isFollowing {
+					c.JSON(http.StatusForbidden, gin.H{
+						"error":   "followers_only",
+						"message": "Only followers can comment on this post",
+					})
+					return
+				}
+			}
+		}
+		// CommentAudienceEveryone allows all users to comment
+	}
+
 	// If replying to a comment, verify the parent exists and belongs to the same post
 	if req.ParentID != nil && *req.ParentID != "" {
 		var parentComment models.Comment
