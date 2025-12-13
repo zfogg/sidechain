@@ -87,6 +87,15 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		}
 	}
 
+	// Parse comment_audience (default to "everyone")
+	commentAudience := c.DefaultPostForm("comment_audience", models.CommentAudienceEveryone)
+	// Validate comment_audience value
+	if commentAudience != models.CommentAudienceEveryone &&
+		commentAudience != models.CommentAudienceFollowers &&
+		commentAudience != models.CommentAudienceOff {
+		commentAudience = models.CommentAudienceEveryone
+	}
+
 	// Create pending audio post in database FIRST to get the postID
 	// This allows the background job to update this record when complete
 	audioPost := &models.AudioPost{
@@ -102,6 +111,7 @@ func (h *Handlers) UploadAudio(c *gin.Context) {
 		ProcessingStatus: "pending",
 		IsPublic:         true,
 		MIDIPatternID:    midiPatternID, // Link to MIDI pattern if created
+		CommentAudience:  commentAudience,
 	}
 
 	err = database.DB.Create(audioPost).Error

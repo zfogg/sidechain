@@ -829,3 +829,53 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 		"download_count": post.DownloadCount,
 	})
 }
+
+// UpdateCommentAudience updates the comment audience setting for a post
+// PUT /api/v1/posts/:id/comment-audience
+func (h *Handlers) UpdateCommentAudience(c *gin.Context) {
+	postID := c.Param("id")
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+
+	var req struct {
+		CommentAudience string `json:"comment_audience" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.RespondBadRequest(c, "invalid_request", err.Error())
+		return
+	}
+
+	// Validate comment_audience value
+	if req.CommentAudience != models.CommentAudienceEveryone &&
+		req.CommentAudience != models.CommentAudienceFollowers &&
+		req.CommentAudience != models.CommentAudienceOff {
+		util.RespondBadRequest(c, "invalid_comment_audience", "Must be 'everyone', 'followers', or 'off'")
+		return
+	}
+
+	// Find the post
+	var post models.AudioPost
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		util.RespondNotFound(c, "post_not_found")
+		return
+	}
+
+	// Check ownership
+	if post.UserID != userID {
+		util.RespondForbidden(c, "not_post_owner")
+		return
+	}
+
+	// Update the comment_audience
+	if err := database.DB.Model(&post).Update("comment_audience", req.CommentAudience).Error; err != nil {
+		util.RespondInternalError(c, "failed_to_update")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":          "comment_audience_updated",
+		"comment_audience": req.CommentAudience,
+	})
+}

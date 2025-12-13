@@ -167,6 +167,10 @@ type AudioPost struct {
 	IsPublic         bool   `gorm:"default:true" json:"is_public"`
 	IsArchived       bool   `gorm:"default:false" json:"is_archived"` // Hidden from feeds but not deleted
 
+	// Comment controls (Feature #12)
+	// CommentAudience controls who can comment: "everyone" (default), "followers", "off"
+	CommentAudience string `gorm:"default:everyone" json:"comment_audience"`
+
 	// GORM fields
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -338,6 +342,13 @@ const (
 	ReportTargetPost    ReportTargetType = "post"
 	ReportTargetComment ReportTargetType = "comment"
 	ReportTargetUser    ReportTargetType = "user"
+)
+
+// CommentAudience constants for who can comment on a post
+const (
+	CommentAudienceEveryone  = "everyone"  // Anyone can comment (default)
+	CommentAudienceFollowers = "followers" // Only followers can comment
+	CommentAudienceOff       = "off"       // Comments disabled
 )
 
 // Report represents a user report for moderation

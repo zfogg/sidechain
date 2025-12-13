@@ -407,6 +407,8 @@ func main() {
 			posts.POST("/:id/archive", h.ArchivePost)
 			posts.POST("/:id/unarchive", h.UnarchivePost)
 			posts.GET("/:id/archived", h.IsPostArchived)
+			// Comment controls (Feature #12)
+			posts.PUT("/:id/comment-audience", h.UpdateCommentAudience)
 		}
 
 		// Comment routes
