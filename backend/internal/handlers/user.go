@@ -252,7 +252,8 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		avatarURL = user.OAuthProfilePictureURL
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	// Build response with base fields
+	response := gin.H{
 		"id":                         user.ID,
 		"username":                   user.Username,
 		"display_name":               user.DisplayName,
@@ -274,7 +275,26 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		"follow_request_id":          followRequestID,
 		"highlights":                 highlights,
 		"created_at":                 user.CreatedAt,
-	})
+	}
+
+	// Add activity status info only if the user allows it (Feature #9)
+	// Viewing your own profile always shows activity status
+	if currentUserID == user.ID {
+		response["is_online"] = user.IsOnline
+		response["last_active_at"] = user.LastActiveAt
+		response["show_activity_status"] = user.ShowActivityStatus
+		response["show_last_active"] = user.ShowLastActive
+	} else {
+		// For other users, respect their privacy settings
+		if user.ShowActivityStatus {
+			response["is_online"] = user.IsOnline
+		}
+		if user.ShowLastActive {
+			response["last_active_at"] = user.LastActiveAt
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetMyProfile gets the authenticated user's own profile

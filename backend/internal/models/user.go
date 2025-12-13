@@ -100,6 +100,10 @@ type User struct {
 	// Privacy settings
 	IsPrivate bool `gorm:"default:false" json:"is_private"` // If true, requires follow approval
 
+	// Activity status privacy (Feature #9)
+	ShowActivityStatus bool `gorm:"default:true" json:"show_activity_status"` // Show online/offline status to others
+	ShowLastActive     bool `gorm:"default:true" json:"show_last_active"`     // Show "last active X ago" to others
+
 	// Activity tracking
 	LastActiveAt *time.Time `json:"last_active_at"`
 	IsOnline     bool       `gorm:"default:false" json:"is_online"`

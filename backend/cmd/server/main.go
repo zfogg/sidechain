@@ -349,6 +349,14 @@ func main() {
 			users.GET("/:id/reposts", h.GetUserReposts)
 		}
 
+		// Settings routes (Feature #9 - Activity Status Controls)
+		settings := api.Group("/settings")
+		{
+			settings.Use(authHandlers.AuthMiddleware())
+			settings.GET("/activity-status", h.GetActivityStatusSettings)
+			settings.PUT("/activity-status", h.UpdateActivityStatusSettings)
+		}
+
 		// Follow request management routes
 		followRequests := api.Group("/follow-requests")
 		{
