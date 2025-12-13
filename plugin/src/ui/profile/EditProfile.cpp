@@ -9,7 +9,7 @@
 EditProfile::EditProfile()
 {
     Log::info("EditProfile: Initializing");
-    setSize(500, 780);  // Increased height for username field
+    setSize(500, 870);  // Increased height for username field and privacy section
     setupEditors();
 }
 
@@ -101,6 +101,14 @@ void EditProfile::setupEditors()
     changePhotoButton->setColour(juce::TextButton::textColourOffId, Colors::accent);
     changePhotoButton->addListener(this);
     addAndMakeVisible(changePhotoButton.get());
+
+    // Private account toggle
+    privateAccountToggle = std::make_unique<juce::ToggleButton>("Private Account");
+    privateAccountToggle->setColour(juce::ToggleButton::textColourId, Colors::textPrimary);
+    privateAccountToggle->setColour(juce::ToggleButton::tickColourId, Colors::accent);
+    privateAccountToggle->setColour(juce::ToggleButton::tickDisabledColourId, Colors::textSecondary);
+    privateAccountToggle->onClick = [this]() { updateHasChanges(); };
+    addAndMakeVisible(privateAccountToggle.get());
 }
 
 void EditProfile::setProfile(const UserProfile& newProfile)
@@ -139,6 +147,7 @@ void EditProfile::populateFromProfile()
     locationEditor->setText(profile.location, false);
     genreEditor->setText(profile.genre, false);
     dawEditor->setText(profile.dawPreference, false);
+    privateAccountToggle->setToggleState(profile.isPrivate, juce::dontSendNotification);
 
     // Reset username validation state
     isUsernameValid = true;
@@ -176,6 +185,7 @@ void EditProfile::collectToProfile()
     profile.location = locationEditor->getText().trim();
     profile.genre = genreEditor->getText().trim();
     profile.dawPreference = dawEditor->getText().trim();
+    profile.isPrivate = privateAccountToggle->getToggleState();
 
     // Build social links object
     auto* linksObj = new juce::DynamicObject();
@@ -212,6 +222,7 @@ void EditProfile::updateHasChanges()
                   profile.location != originalProfile.location ||
                   profile.genre != originalProfile.genre ||
                   profile.dawPreference != originalProfile.dawPreference ||
+                  profile.isPrivate != originalProfile.isPrivate ||
                   pendingAvatarPath.isNotEmpty() ||
                   juce::JSON::toString(profile.socialLinks) != juce::JSON::toString(originalProfile.socialLinks));
 
@@ -275,6 +286,17 @@ void EditProfile::paint(juce::Graphics& g)
     // Social Links section
     int socialY = basicInfoY + (FIELD_HEIGHT + FIELD_SPACING) * 5 + SECTION_SPACING;
     drawFormSection(g, "Social Links", juce::Rectangle<int>(PADDING, socialY - 25, getWidth() - PADDING * 2, 20));
+
+    // Privacy section
+    int privacyY = socialY + (FIELD_HEIGHT + FIELD_SPACING) * 4 + SECTION_SPACING;
+    drawFormSection(g, "Privacy", juce::Rectangle<int>(PADDING, privacyY - 25, getWidth() - PADDING * 2, 20));
+
+    // Draw privacy description
+    g.setColour(Colors::textSecondary);
+    g.setFont(11.0f);
+    g.drawText("When enabled, only approved followers can see your posts.",
+               PADDING, privacyY + FIELD_HEIGHT + 5, getWidth() - PADDING * 2, 15,
+               juce::Justification::centredLeft);
 
     // Error message
     if (errorMessage.isNotEmpty())
@@ -397,6 +419,10 @@ void EditProfile::resized()
     y += FIELD_HEIGHT + FIELD_SPACING;
 
     twitterEditor->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
+    y += FIELD_HEIGHT + SECTION_SPACING + 25;
+
+    // Privacy section
+    privateAccountToggle->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
 }
 
 juce::Rectangle<int> EditProfile::getAvatarBounds() const
@@ -475,6 +501,7 @@ void EditProfile::saveProfileData()
     updateData->setProperty("genre", profile.genre);
     updateData->setProperty("daw_preference", profile.dawPreference);
     updateData->setProperty("social_links", profile.socialLinks);
+    updateData->setProperty("is_private", profile.isPrivate);
 
     // Include profile picture URL if set (either from upload or existing)
     if (profile.profilePictureUrl.isNotEmpty())

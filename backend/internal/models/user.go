@@ -97,6 +97,9 @@ type User struct {
 	FollowingCount int `gorm:"default:0" json:"following_count"`
 	PostCount      int `gorm:"default:0" json:"post_count"`
 
+	// Privacy settings
+	IsPrivate bool `gorm:"default:false" json:"is_private"` // If true, requires follow approval
+
 	// Activity tracking
 	LastActiveAt *time.Time `json:"last_active_at"`
 	IsOnline     bool       `gorm:"default:false" json:"is_online"`
@@ -378,6 +381,43 @@ type UserBlock struct {
 // Ensure unique constraint: one block per user pair
 func (UserBlock) TableName() string {
 	return "user_blocks"
+}
+
+// FollowRequestStatus represents the status of a follow request
+type FollowRequestStatus string
+
+const (
+	FollowRequestStatusPending  FollowRequestStatus = "pending"
+	FollowRequestStatusAccepted FollowRequestStatus = "accepted"
+	FollowRequestStatusRejected FollowRequestStatus = "rejected"
+)
+
+// FollowRequest represents a pending follow request for private accounts
+type FollowRequest struct {
+	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	RequesterID string `gorm:"not null;index" json:"requester_id"` // User requesting to follow
+	Requester   User   `gorm:"foreignKey:RequesterID" json:"requester,omitempty"`
+	TargetID    string `gorm:"not null;index" json:"target_id"` // Private account being requested to follow
+	Target      User   `gorm:"foreignKey:TargetID" json:"target,omitempty"`
+
+	Status FollowRequestStatus `gorm:"type:varchar(20);default:pending" json:"status"`
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName for follow requests
+func (FollowRequest) TableName() string {
+	return "follow_requests"
+}
+
+func (fr *FollowRequest) BeforeCreate(tx *gorm.DB) error {
+	if fr.ID == "" {
+		fr.ID = generateUUID()
+	}
+	return nil
 }
 
 // SearchQuery represents a tracked search query for analytics (7.1.9)

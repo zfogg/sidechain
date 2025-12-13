@@ -29,6 +29,9 @@ struct UserProfile
     int postCount = 0;
     bool isFollowing = false;
     bool isFollowedBy = false;
+    bool isPrivate = false;
+    juce::String followRequestStatus;  // "pending", "accepted", "rejected", or empty
+    juce::String followRequestId;
     juce::Time createdAt;
 
     // Online status (presence)

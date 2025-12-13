@@ -87,6 +87,9 @@ private:
     std::unique_ptr<juce::TextButton> saveButton;
     std::unique_ptr<juce::TextButton> changePhotoButton;
 
+    // Privacy toggle
+    std::unique_ptr<juce::ToggleButton> privateAccountToggle;
+
     // Avatar
     juce::Image avatarImage;
     juce::String pendingAvatarPath;

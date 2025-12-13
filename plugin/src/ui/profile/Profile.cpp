@@ -38,6 +38,9 @@ UserProfile UserProfile::fromJson(const juce::var& json)
     profile.postCount = Json::getInt(json, "post_count");
     profile.isFollowing = Json::getBool(json, "is_following");
     profile.isFollowedBy = Json::getBool(json, "is_followed_by");
+    profile.isPrivate = Json::getBool(json, "is_private");
+    profile.followRequestStatus = Json::getString(json, "follow_request_status");
+    profile.followRequestId = Json::getString(json, "follow_request_id");
 
     // Parse created_at timestamp
     juce::String createdAtStr = Json::getString(json, "created_at");
@@ -398,12 +401,30 @@ void Profile::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void Profile::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Display name
+    // Display name with optional lock icon for private accounts
     g.setColour(Colors::textPrimary);
     g.setFont(juce::Font(22.0f, juce::Font::bold));
     juce::String name = profile.displayName.isEmpty() ? profile.username : profile.displayName;
-    g.drawText(name, bounds.getX(), bounds.getY() + 10, bounds.getWidth(), 28,
-               juce::Justification::centredLeft);
+
+    if (profile.isPrivate)
+    {
+        // Measure the name width to position the lock icon
+        auto nameWidth = g.getCurrentFont().getStringWidth(name);
+        g.drawText(name, bounds.getX(), bounds.getY() + 10, bounds.getWidth(), 28,
+                   juce::Justification::centredLeft);
+
+        // Draw lock icon after the name
+        g.setColour(Colors::textSecondary);
+        g.setFont(16.0f);
+        g.drawText(juce::String::fromUTF8("\xF0\x9F\x94\x92"), // 🔒 Lock emoji
+                   bounds.getX() + nameWidth + 8, bounds.getY() + 12, 24, 24,
+                   juce::Justification::centredLeft);
+    }
+    else
+    {
+        g.drawText(name, bounds.getX(), bounds.getY() + 10, bounds.getWidth(), 28,
+                   juce::Justification::centredLeft);
+    }
 
     // Username
     g.setColour(Colors::textSecondary);
@@ -490,18 +511,38 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     }
     else
     {
-        // Follow/Following button (left side)
+        // Follow/Following/Request button (left side)
         auto followBounds = getFollowButtonBounds();
         if (profile.isFollowing)
         {
+            // Already following
             g.setColour(Colors::followingButton);
             g.fillRoundedRectangle(followBounds.toFloat(), 6.0f);
             g.setColour(Colors::textSecondary);
             g.setFont(14.0f);
             g.drawText("Following", followBounds, juce::Justification::centred);
         }
+        else if (profile.followRequestStatus == "pending")
+        {
+            // Pending follow request
+            g.setColour(Colors::followingButton);
+            g.fillRoundedRectangle(followBounds.toFloat(), 6.0f);
+            g.setColour(Colors::textSecondary);
+            g.setFont(14.0f);
+            g.drawText("Requested", followBounds, juce::Justification::centred);
+        }
+        else if (profile.isPrivate)
+        {
+            // Private account - show "Request" button
+            g.setColour(Colors::followButton);
+            g.fillRoundedRectangle(followBounds.toFloat(), 6.0f);
+            g.setColour(Colors::textPrimary);
+            g.setFont(14.0f);
+            g.drawText("Request", followBounds, juce::Justification::centred);
+        }
         else
         {
+            // Public account - show "Follow" button
             g.setColour(Colors::followButton);
             g.fillRoundedRectangle(followBounds.toFloat(), 6.0f);
             g.setColour(Colors::textPrimary);
