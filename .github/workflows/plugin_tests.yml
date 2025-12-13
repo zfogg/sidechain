@@ -153,7 +153,6 @@ jobs:
   test-plugin:
     runs-on: ubuntu-latest
     name: Plugin Tests & Coverage
-    needs: [build-plugin]  # Run after builds complete
 
     steps:
       - name: Checkout
