@@ -3,14 +3,14 @@
 #==============================================================================
 
 add_library(SidechainUINotifications STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/notifications/NotificationBell.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/notifications/NotificationBell.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/notifications/NotificationList.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/notifications/NotificationList.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationBell.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationBell.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationList.h
 )
 
 target_include_directories(SidechainUINotifications PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUINotifications PUBLIC

@@ -3,12 +3,12 @@
 #==============================================================================
 
 add_library(SidechainUISynth STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/synth/HiddenSynth.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/synth/HiddenSynth.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/HiddenSynth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HiddenSynth.h
 )
 
 target_include_directories(SidechainUISynth PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUISynth PUBLIC

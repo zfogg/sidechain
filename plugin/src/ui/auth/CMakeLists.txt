@@ -3,12 +3,12 @@
 #==============================================================================
 
 add_library(SidechainUIAuth STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/auth/Auth.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/auth/Auth.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Auth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Auth.h
 )
 
 target_include_directories(SidechainUIAuth PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIAuth PUBLIC

@@ -3,16 +3,16 @@
 #==============================================================================
 
 add_library(SidechainUISocial STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/social/UserCard.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/social/UserCard.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/social/UserDiscovery.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/social/UserDiscovery.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/social/FollowersList.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/social/FollowersList.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserCard.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserCard.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserDiscovery.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserDiscovery.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FollowersList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FollowersList.h
 )
 
 target_include_directories(SidechainUISocial PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUISocial PUBLIC

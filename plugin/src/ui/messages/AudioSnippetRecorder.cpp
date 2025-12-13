@@ -1,5 +1,5 @@
 #include "AudioSnippetRecorder.h"
-#include "../../PluginProcessor.h"
+#include "core/PluginProcessor.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 

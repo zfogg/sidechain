@@ -4,36 +4,36 @@
 #==============================================================================
 
 add_library(SidechainAudio STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/AudioCapture.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/AudioCapture.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/MIDICapture.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/MIDICapture.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/HttpAudioPlayer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/HttpAudioPlayer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/BufferAudioPlayer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/BufferAudioPlayer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/KeyDetector.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/KeyDetector.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/NotificationSound.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/NotificationSound.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ProgressiveKeyDetector.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ProgressiveKeyDetector.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ChordSequenceDetector.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/ChordSequenceDetector.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/SynthEngine.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/SynthEngine.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/Microphone.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/audio/Microphone.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AudioCapture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AudioCapture.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MIDICapture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MIDICapture.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/HttpAudioPlayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HttpAudioPlayer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/BufferAudioPlayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/BufferAudioPlayer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/KeyDetector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/KeyDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationSound.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationSound.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProgressiveKeyDetector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProgressiveKeyDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChordSequenceDetector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChordSequenceDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SynthEngine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SynthEngine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Microphone.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Microphone.h
 )
 
 # Include directories
 target_include_directories(SidechainAudio PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Add keyfinder include if available
 if(SIDECHAIN_HAS_KEYFINDER)
-    target_include_directories(SidechainAudio PRIVATE 
+    target_include_directories(SidechainAudio PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/libkeyfinder/src
     )
 endif()

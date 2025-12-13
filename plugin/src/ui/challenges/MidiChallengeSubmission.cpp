@@ -1,6 +1,6 @@
 #include "MidiChallengeSubmission.h"
 #include "../../network/NetworkClient.h"
-#include "../../PluginProcessor.h"
+#include "core/PluginProcessor.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"

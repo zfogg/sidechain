@@ -4,17 +4,17 @@
 #==============================================================================
 
 add_library(SidechainStores STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/stores/UserDataStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/stores/UserDataStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/stores/FeedDataManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/stores/FeedDataManager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/stores/ImageCache.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/stores/ImageCache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserDataStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserDataStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.h
 )
 
 # Include directories
 target_include_directories(SidechainStores PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Dependencies

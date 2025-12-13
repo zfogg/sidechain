@@ -23,7 +23,7 @@ add_library(SidechainUI STATIC)
 
 # Include directories
 target_include_directories(SidechainUI PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Link all UI submodules

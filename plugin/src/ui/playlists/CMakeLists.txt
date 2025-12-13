@@ -3,14 +3,14 @@
 #==============================================================================
 
 add_library(SidechainUIPlaylists STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/playlists/Playlists.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/playlists/Playlists.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/playlists/PlaylistDetail.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/playlists/PlaylistDetail.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Playlists.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Playlists.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlaylistDetail.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlaylistDetail.h
 )
 
 target_include_directories(SidechainUIPlaylists PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIPlaylists PUBLIC

@@ -3,16 +3,16 @@
 #==============================================================================
 
 add_library(SidechainUIProfile STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/profile/ProfileSetup.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/profile/ProfileSetup.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/profile/Profile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/profile/Profile.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/profile/EditProfile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/profile/EditProfile.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProfileSetup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProfileSetup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Profile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Profile.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/EditProfile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/EditProfile.h
 )
 
 target_include_directories(SidechainUIProfile PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIProfile PUBLIC
