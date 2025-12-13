@@ -3,22 +3,22 @@
 #==============================================================================
 
 add_library(SidechainUIStories STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/StoryRecording.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/StoryRecording.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/StoriesFeed.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/StoriesFeed.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/StoryViewer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/StoryViewer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/PianoRoll.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/PianoRoll.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/NoteWaterfall.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/NoteWaterfall.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/CircularVisualization.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/stories/CircularVisualization.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoryRecording.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoryRecording.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoriesFeed.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoriesFeed.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoryViewer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StoryViewer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PianoRoll.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PianoRoll.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NoteWaterfall.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NoteWaterfall.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/CircularVisualization.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CircularVisualization.h
 )
 
 target_include_directories(SidechainUIStories PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIStories PUBLIC

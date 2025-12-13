@@ -76,7 +76,7 @@ project(Sidechain VERSION ${SIDECHAIN_VERSION} LANGUAGES CXX C)
 
 # Generate Version.h from template
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/source/Version.h.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/Version.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/Version.h"
     @ONLY
 )

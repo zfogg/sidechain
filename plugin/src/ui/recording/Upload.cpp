@@ -1,5 +1,5 @@
 #include "Upload.h"
-#include "../../PluginProcessor.h"
+#include "core/PluginProcessor.h"
 #include "../../util/Colors.h"
 #include "../../util/Constants.h"
 #include "../../util/StringFormatter.h"

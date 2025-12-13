@@ -4,18 +4,18 @@
 #==============================================================================
 
 add_library(SidechainNetwork STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/NetworkClient.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/NetworkClient.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/WebSocketClient.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/WebSocketClient.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/StreamChatClient.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/StreamChatClient.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/network/asio_compat.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NetworkClient.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NetworkClient.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StreamChatClient.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StreamChatClient.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/asio_compat.h
 )
 
 # Include directories
 target_include_directories(SidechainNetwork PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Dependencies: Util library and external networking libraries

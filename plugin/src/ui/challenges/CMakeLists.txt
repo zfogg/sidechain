@@ -3,16 +3,16 @@
 #==============================================================================
 
 add_library(SidechainUIChallenges STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/challenges/MidiChallenges.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/challenges/MidiChallenges.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/challenges/MidiChallengeDetail.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/challenges/MidiChallengeDetail.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/challenges/MidiChallengeSubmission.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/challenges/MidiChallengeSubmission.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallenges.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallenges.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallengeDetail.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallengeDetail.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallengeSubmission.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallengeSubmission.h
 )
 
 target_include_directories(SidechainUIChallenges PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIChallenges PUBLIC

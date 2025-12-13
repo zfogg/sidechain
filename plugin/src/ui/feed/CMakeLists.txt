@@ -3,18 +3,18 @@
 #==============================================================================
 
 add_library(SidechainUIFeed STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/PostsFeed.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/PostsFeed.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/PostCard.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/PostCard.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/Comment.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/Comment.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/EmojiReactionsPanel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/feed/EmojiReactionsPanel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PostsFeed.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PostsFeed.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PostCard.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PostCard.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Comment.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Comment.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/EmojiReactionsPanel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/EmojiReactionsPanel.h
 )
 
 target_include_directories(SidechainUIFeed PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIFeed PUBLIC

@@ -1,5 +1,5 @@
 #include "StoryRecording.h"
-#include "../../PluginProcessor.h"
+#include "core/PluginProcessor.h"
 #include "../../util/Log.h"
 #include "../../util/UIHelpers.h"
 #include "../../util/WaveformGenerator.h"

@@ -3,14 +3,14 @@
 #==============================================================================
 
 add_library(SidechainUIRecording STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/recording/Recording.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/recording/Recording.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/recording/Upload.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/recording/Upload.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Recording.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Recording.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Upload.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Upload.h
 )
 
 target_include_directories(SidechainUIRecording PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIRecording PUBLIC

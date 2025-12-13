@@ -4,44 +4,44 @@
 #==============================================================================
 
 add_library(SidechainUtil STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Time.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Time.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Colors.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/HttpErrorHandler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Log.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Log.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Image.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Image.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Json.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Json.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Validate.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Validate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Async.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Async.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Result.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/UIHelpers.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/UIHelpers.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Constants.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/StringFormatter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/StringFormatter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/TextEditorStyler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/TextEditorStyler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Animation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Animation.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/HoverState.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/LongPressDetector.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/Emoji.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/DAWProjectFolder.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/DAWProjectFolder.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/OSNotification.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/OSNotification.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/WaveformGenerator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/util/WaveformGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Time.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Time.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Colors.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/HttpErrorHandler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Log.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Log.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Image.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Image.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Json.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Json.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Validate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Validate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Async.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Async.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Result.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UIHelpers.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UIHelpers.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/StringFormatter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StringFormatter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TextEditorStyler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TextEditorStyler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Animation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Animation.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/HoverState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/LongPressDetector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Emoji.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DAWProjectFolder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DAWProjectFolder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/OSNotification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OSNotification.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"
 target_include_directories(SidechainUtil PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Link JuceHeader target to get generated header (generated during CMake config)

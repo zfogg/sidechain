@@ -3,13 +3,13 @@
 #==============================================================================
 
 add_library(SidechainUICommon STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/common/Header.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/common/Header.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/common/ConnectionIndicator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Header.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Header.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ConnectionIndicator.h
 )
 
 target_include_directories(SidechainUICommon PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUICommon PUBLIC

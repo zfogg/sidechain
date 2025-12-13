@@ -3,18 +3,18 @@
 #==============================================================================
 
 add_library(SidechainUIMessages STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/MessagesList.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/MessagesList.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/MessageThread.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/MessageThread.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/AudioSnippetRecorder.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/AudioSnippetRecorder.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/UserPickerDialog.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/messages/UserPickerDialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessagesList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessagesList.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessageThread.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessageThread.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AudioSnippetRecorder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AudioSnippetRecorder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserPickerDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserPickerDialog.h
 )
 
 target_include_directories(SidechainUIMessages PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUIMessages PUBLIC

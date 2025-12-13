@@ -3,12 +3,12 @@
 #==============================================================================
 
 add_library(SidechainUISearch STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/search/Search.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source/ui/search/Search.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Search.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Search.h
 )
 
 target_include_directories(SidechainUISearch PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
 target_link_libraries(SidechainUISearch PUBLIC

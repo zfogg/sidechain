@@ -56,10 +56,10 @@ target_link_libraries(Sidechain PRIVATE SidechainJuceHeader)
 
 # Add plugin entry point sources only
 target_sources(Sidechain PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/PluginProcessor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/PluginProcessor.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/PluginEditor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/PluginEditor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PluginProcessor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PluginProcessor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PluginEditor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PluginEditor.h
 )
 
 # Preprocessor definitions
@@ -82,7 +82,7 @@ endif()
 
 # Add generated headers to include path (for Version.h)
 target_include_directories(Sidechain PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
     "${CMAKE_CURRENT_BINARY_DIR}/../../generated"
 )
 

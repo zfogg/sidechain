@@ -4,22 +4,22 @@
 #==============================================================================
 
 add_library(SidechainModels STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/FeedPost.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/FeedPost.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/FeedResponse.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/AggregatedFeedGroup.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/AggregatedFeedResponse.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Story.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Story.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Playlist.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/Playlist.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/MidiChallenge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/models/MidiChallenge.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedPost.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedPost.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedResponse.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AggregatedFeedGroup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AggregatedFeedResponse.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Story.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Story.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Playlist.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Playlist.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallenge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallenge.h
 )
 
 # Include directories
 target_include_directories(SidechainModels PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
 # Dependencies: Util library
