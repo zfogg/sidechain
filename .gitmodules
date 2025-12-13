@@ -3,7 +3,7 @@
 	url = https://github.com/mixxxdj/libkeyfinder.git
 [submodule "deps/websocketpp"]
 	path = deps/websocketpp
-	url = https://github.com/zaphoyd/websocketpp.git
+	url = git@github.com:zfogg/websocketpp.git
 [submodule "deps/asio"]
 	path = deps/asio
 	url = git@github.com:chriskohlhoff/asio.git

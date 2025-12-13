@@ -65,7 +65,7 @@ coverage:
         target: 60%
         threshold: 5%
         paths:
-          - "plugin/Source/**/*"
+          - "plugin/source/**/*"
 
     patch:
       default:
@@ -166,7 +166,7 @@ component_management:
     - component_id: plugin_core
       name: "Plugin Core"
       paths:
-        - "plugin/Source/**/*"
+        - "plugin/source/**/*"
       statuses:
         - type: project
           target: 60%
@@ -177,7 +177,7 @@ component_management:
     - component_id: plugin_network
       name: "Plugin Network"
       paths:
-        - "plugin/Source/NetworkClient.*"
+        - "plugin/source/network/NetworkClient.*"
       statuses:
         - type: project
           target: 70%
@@ -186,8 +186,8 @@ component_management:
     - component_id: plugin_ui
       name: "Plugin UI"
       paths:
-        - "plugin/Source/PluginEditor.*"
-        - "plugin/Source/*Indicator.*"
+        - "plugin/source/core/PluginEditor.*"
+        - "plugin/source/ui/**/*"
       statuses:
         - type: project
           target: 60%
@@ -220,7 +220,7 @@ flags:
     carryforward: false
   plugin:
     paths:
-      - "plugin/Source/"
+      - "plugin/source/"
       - "plugin/tests/"
     carryforward: false
 
