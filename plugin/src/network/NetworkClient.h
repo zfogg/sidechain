@@ -752,6 +752,13 @@ public:
     // Get users similar to a specific user (by BPM/key preferences)
     void getSimilarUsers(const juce::String& userId, int limit = 10, ResponseCallback callback = nullptr);
 
+    /** Get personalized user recommendations to follow (via Gorse collaborative filtering)
+     *  @param limit Maximum number of results
+     *  @param offset Pagination offset
+     *  @param callback Called with recommended users or error
+     */
+    void getRecommendedUsersToFollow(int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
+
     //==========================================================================
     // Search operations
     // Search posts with optional filters (genre, BPM range, key)

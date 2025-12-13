@@ -114,14 +114,22 @@ void UserDiscovery::paint(juce::Graphics& g)
             {
                 drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Producers You Might Like");
                 drawSimilarSection(g, contentBounds);
+                contentBounds.removeFromTop(16);
+            }
+
+            // Recommended to follow section (Gorse collaborative filtering)
+            if (!recommendedToFollow.isEmpty())
+            {
+                drawSectionHeader(g, contentBounds.removeFromTop(SECTION_HEADER_HEIGHT), "Recommended to Follow");
+                drawRecommendedSection(g, contentBounds);
             }
 
             // Loading state
-            if (isTrendingLoading && isFeaturedLoading && isSuggestedLoading && isSimilarLoading)
+            if (isTrendingLoading && isFeaturedLoading && isSuggestedLoading && isSimilarLoading && isRecommendedLoading)
             {
                 drawLoadingState(g, getContentBounds());
             }
-            else if (trendingUsers.isEmpty() && featuredProducers.isEmpty() && suggestedUsers.isEmpty() && similarProducers.isEmpty())
+            else if (trendingUsers.isEmpty() && featuredProducers.isEmpty() && suggestedUsers.isEmpty() && similarProducers.isEmpty() && recommendedToFollow.isEmpty())
             {
                 drawEmptyState(g, getContentBounds(), "No users to discover yet.\nBe the first to share your music!");
             }
@@ -287,6 +295,14 @@ void UserDiscovery::drawSuggestedSection(juce::Graphics& g, juce::Rectangle<int>
 void UserDiscovery::drawSimilarSection(juce::Graphics& g, juce::Rectangle<int>& bounds)
 {
     for (int i = 0; i < juce::jmin(5, similarProducers.size()); ++i)
+    {
+        bounds.removeFromTop(USER_CARD_HEIGHT);
+    }
+}
+
+void UserDiscovery::drawRecommendedSection(juce::Graphics& g, juce::Rectangle<int>& bounds)
+{
+    for (int i = 0; i < juce::jmin(5, recommendedToFollow.size()); ++i)
     {
         bounds.removeFromTop(USER_CARD_HEIGHT);
     }
@@ -513,6 +529,7 @@ void UserDiscovery::loadDiscoveryData()
     fetchFeaturedProducers();
     fetchSuggestedUsers();
     fetchSimilarProducers();
+    fetchRecommendedToFollow();
     fetchAvailableGenres();
 }
 
@@ -521,11 +538,15 @@ void UserDiscovery::refresh()
     trendingUsers.clear();
     featuredProducers.clear();
     suggestedUsers.clear();
+    similarProducers.clear();
+    recommendedToFollow.clear();
     genreUsers.clear();
 
     isTrendingLoading = true;
     isFeaturedLoading = true;
     isSuggestedLoading = true;
+    isSimilarLoading = true;
+    isRecommendedLoading = true;
 
     userCards.clear();
     loadDiscoveryData();
@@ -758,6 +779,50 @@ void UserDiscovery::fetchSimilarProducers()
     });
 }
 
+void UserDiscovery::fetchRecommendedToFollow()
+{
+    if (networkClient == nullptr)
+        return;
+
+    isRecommendedLoading = true;
+
+    juce::Component::SafePointer<UserDiscovery> safeThis(this);
+    networkClient->getRecommendedUsersToFollow(10, 0, [safeThis](Outcome<juce::var> responseOutcome) {
+        if (safeThis == nullptr) return;  // Component was deleted
+
+        safeThis->isRecommendedLoading = false;
+
+        if (responseOutcome.isOk())
+        {
+            auto response = responseOutcome.getValue();
+            if (Json::isObject(response))
+            {
+                auto users = Json::getArray(response, "users");
+                if (Json::isArray(users))
+                {
+                    safeThis->recommendedToFollow.clear();
+                    for (int i = 0; i < users.size(); ++i)
+                    {
+                        safeThis->recommendedToFollow.add(DiscoveredUser::fromJson(users[i]));
+                    }
+                    Log::info("UserDiscovery: Loaded " + juce::String(safeThis->recommendedToFollow.size()) + " recommended users to follow");
+                }
+            }
+            else
+            {
+                Log::error("UserDiscovery: Invalid recommended users response");
+            }
+        }
+        else
+        {
+            Log::error("UserDiscovery: Failed to load recommended users - " + responseOutcome.getError());
+        }
+
+        safeThis->rebuildUserCards();
+        safeThis->repaint();
+    });
+}
+
 void UserDiscovery::fetchAvailableGenres()
 {
     if (networkClient == nullptr)
@@ -977,6 +1042,15 @@ void UserDiscovery::rebuildUserCards()
                 addAndMakeVisible(card);
             }
 
+            // Recommended to follow (Gorse collaborative filtering)
+            for (auto& user : recommendedToFollow)
+            {
+                auto* card = userCards.add(new UserCard());
+                card->setUser(user);
+                setupUserCardCallbacks(card);
+                addAndMakeVisible(card);
+            }
+
             updateUserCardPositions();
             updateScrollBounds();
             return;
@@ -1012,6 +1086,8 @@ void UserDiscovery::rebuildUserCards()
             allUsers.addArray(trendingUsers);
             allUsers.addArray(featuredProducers);
             allUsers.addArray(suggestedUsers);
+            allUsers.addArray(similarProducers);
+            allUsers.addArray(recommendedToFollow);
             break;
     }
 
@@ -1082,6 +1158,18 @@ void UserDiscovery::updateUserCardPositions()
                     userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
                     y += USER_CARD_HEIGHT;
                 }
+                y += 16;
+            }
+
+            // Recommended to follow section
+            if (!recommendedToFollow.isEmpty())
+            {
+                y += SECTION_HEADER_HEIGHT;
+                for (int i = 0; i < recommendedToFollow.size() && cardIndex < userCards.size(); ++i, ++cardIndex)
+                {
+                    userCards[cardIndex]->setBounds(contentBounds.getX(), y, contentBounds.getWidth(), USER_CARD_HEIGHT);
+                    y += USER_CARD_HEIGHT;
+                }
             }
             break;
         }
@@ -1134,9 +1222,11 @@ int UserDiscovery::calculateContentHeight() const
             if (!featuredProducers.isEmpty())
                 height += SECTION_HEADER_HEIGHT + (featuredProducers.size() * USER_CARD_HEIGHT) + 16;
             if (!suggestedUsers.isEmpty())
-                height += SECTION_HEADER_HEIGHT + (suggestedUsers.size() * USER_CARD_HEIGHT);
+                height += SECTION_HEADER_HEIGHT + (suggestedUsers.size() * USER_CARD_HEIGHT) + 16;
             if (!similarProducers.isEmpty())
-                height += SECTION_HEADER_HEIGHT + (similarProducers.size() * USER_CARD_HEIGHT);
+                height += SECTION_HEADER_HEIGHT + (similarProducers.size() * USER_CARD_HEIGHT) + 16;
+            if (!recommendedToFollow.isEmpty())
+                height += SECTION_HEADER_HEIGHT + (recommendedToFollow.size() * USER_CARD_HEIGHT);
             break;
 
         case ViewMode::SearchResults:
@@ -1267,6 +1357,7 @@ void UserDiscovery::queryPresenceForUsers(const juce::Array<DiscoveredUser>& use
         updateUserPresenceInArray(safeThis->featuredProducers);
         updateUserPresenceInArray(safeThis->suggestedUsers);
         updateUserPresenceInArray(safeThis->similarProducers);
+        updateUserPresenceInArray(safeThis->recommendedToFollow);
         updateUserPresenceInArray(safeThis->genreUsers);
 
         // Update corresponding UserCards
@@ -1315,6 +1406,7 @@ void UserDiscovery::updateUserPresence(const juce::String& userId, bool isOnline
     updatePresenceInArray(featuredProducers);
     updatePresenceInArray(suggestedUsers);
     updatePresenceInArray(similarProducers);
+    updatePresenceInArray(recommendedToFollow);
     updatePresenceInArray(genreUsers);
 
     // Update corresponding UserCards

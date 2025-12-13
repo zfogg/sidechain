@@ -86,6 +86,7 @@ private:
     juce::Array<DiscoveredUser> featuredProducers;
     juce::Array<DiscoveredUser> suggestedUsers;
     juce::Array<DiscoveredUser> similarProducers;
+    juce::Array<DiscoveredUser> recommendedToFollow;  // Gorse collaborative filtering recommendations
 
     // Recent searches (persisted)
     juce::StringArray recentSearches;
@@ -101,6 +102,7 @@ private:
     bool isFeaturedLoading = true;
     bool isSuggestedLoading = true;
     bool isSimilarLoading = true;
+    bool isRecommendedLoading = true;
     bool isGenresLoading = true;
 
     // Error state
@@ -134,6 +136,7 @@ private:
     void drawFeaturedSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawSuggestedSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawSimilarSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
+    void drawRecommendedSection(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawGenreChips(juce::Graphics& g, juce::Rectangle<int>& bounds);
     void drawSearchResults(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawLoadingState(juce::Graphics& g, juce::Rectangle<int> bounds);
@@ -155,6 +158,7 @@ private:
     void fetchFeaturedProducers();
     void fetchSuggestedUsers();
     void fetchSimilarProducers();
+    void fetchRecommendedToFollow();
     void fetchAvailableGenres();
     void fetchUsersByGenre(const juce::String& genre);
     void handleFollowToggle(const DiscoveredUser& user, bool willFollow);
