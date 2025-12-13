@@ -15,6 +15,8 @@ add_library(SidechainUIProfile STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ArchivedPosts.h
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NotificationSettings.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ActivityStatusSettings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ActivityStatusSettings.h
 )
 
 target_include_directories(SidechainUIProfile PUBLIC

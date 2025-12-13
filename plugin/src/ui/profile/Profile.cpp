@@ -581,6 +581,14 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setColour(Colors::textPrimary);
         g.setFont(14.0f);
         g.drawText("Notifications", notifBounds, juce::Justification::centred);
+
+        // Activity Status button (below notification settings button)
+        auto activityBounds = getActivityStatusButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(activityBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Activity Status", activityBounds, juce::Justification::centred);
     }
     else
     {
@@ -945,6 +953,16 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 Log::warn("Profile::mouseUp: Notification settings clicked but callback not set");
             return;
         }
+
+        if (getActivityStatusButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Activity status button clicked");
+            if (onActivityStatusClicked)
+                onActivityStatusClicked();
+            else
+                Log::warn("Profile::mouseUp: Activity status clicked but callback not set");
+            return;
+        }
     }
     else
     {
@@ -1049,6 +1067,12 @@ juce::Rectangle<int> Profile::getNotificationSettingsButtonBounds() const
 {
     auto archivedBounds = getArchivedPostsButtonBounds();
     return archivedBounds.translated(0, BUTTON_HEIGHT + 8);  // Below archived posts button with spacing
+}
+
+juce::Rectangle<int> Profile::getActivityStatusButtonBounds() const
+{
+    auto notifBounds = getNotificationSettingsButtonBounds();
+    return notifBounds.translated(0, BUTTON_HEIGHT + 8);  // Below notification settings button with spacing
 }
 
 juce::Rectangle<int> Profile::getShareButtonBounds() const
@@ -1594,6 +1618,9 @@ juce::String Profile::getTooltip()
 
         if (getNotificationSettingsButtonBounds().contains(mousePos))
             return "Notification settings";
+
+        if (getActivityStatusButtonBounds().contains(mousePos))
+            return "Activity status privacy";
     }
     else
     {

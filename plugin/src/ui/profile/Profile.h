@@ -89,6 +89,7 @@ public:
     std::function<void()> onSavedPostsClicked;  // Navigate to saved posts view (own profile only)
     std::function<void()> onArchivedPostsClicked;  // Navigate to archived posts view (own profile only)
     std::function<void()> onNotificationSettingsClicked;  // Navigate to notification settings (own profile only)
+    std::function<void()> onActivityStatusClicked;  // Navigate to activity status settings (own profile only)
     std::function<void(const FeedPost&)> onPostClicked;
     std::function<void(const FeedPost&)> onPlayClicked;
     std::function<void(const FeedPost&)> onPauseClicked;
@@ -179,6 +180,7 @@ private:
     juce::Rectangle<int> getSavedPostsButtonBounds() const;
     juce::Rectangle<int> getArchivedPostsButtonBounds() const;
     juce::Rectangle<int> getNotificationSettingsButtonBounds() const;
+    juce::Rectangle<int> getActivityStatusButtonBounds() const;
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getSocialLinkBounds(int index) const;
     juce::Rectangle<int> getPostsAreaBounds() const;

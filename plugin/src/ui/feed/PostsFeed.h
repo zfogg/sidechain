@@ -9,6 +9,7 @@
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/Playlist.h"
 #include "../common/ErrorState.h"
+#include "../common/SkeletonLoader.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -168,6 +169,9 @@ private:
 
     // Error state component (shown when feedState == Error)
     std::unique_ptr<ErrorState> errorStateComponent;
+
+    // Skeleton loader (shown when feedState == Loading)
+    std::unique_ptr<FeedSkeleton> feedSkeleton;
 
     void showCommentsForPost(const FeedPost& post);
     void hideCommentsPanel();

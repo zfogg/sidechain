@@ -10,6 +10,8 @@ add_library(SidechainUICommon STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ErrorState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ToastNotification.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ToastNotification.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SkeletonLoader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SkeletonLoader.h
 )
 
 target_include_directories(SidechainUICommon PUBLIC

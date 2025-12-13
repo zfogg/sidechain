@@ -9,6 +9,7 @@
 #include "../../util/Animation.h"
 #include "../../util/Result.h"
 #include "../../util/DAWProjectFolder.h"
+#include "../common/ToastNotification.h"
 #include <set>
 #include <vector>
 
@@ -72,6 +73,11 @@ PostsFeed::PostsFeed()
     });
     addChildComponent(errorStateComponent.get());
     Log::debug("PostsFeedComponent: Error state component created");
+
+    // Create feed skeleton (shown during initial loading)
+    feedSkeleton = std::make_unique<FeedSkeleton>(4);  // Show 4 skeleton cards
+    addChildComponent(feedSkeleton.get());
+    Log::debug("PostsFeedComponent: Feed skeleton created");
 
     Log::info("PostsFeedComponent: Initialization complete");
 }
@@ -274,6 +280,10 @@ void PostsFeed::loadFeed()
                                currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
     Log::info("PostsFeed::loadFeed: Loading feed - type: " + feedTypeStr);
     feedState = FeedState::Loading;
+
+    // Show skeleton during loading
+    if (feedSkeleton != nullptr)
+        feedSkeleton->setVisible(true);
     repaint();
 
     feedDataManager.setCurrentFeedType(currentFeedType);
@@ -297,6 +307,10 @@ void PostsFeed::refreshFeed()
                                currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
     Log::info("PostsFeed::refreshFeed: Refreshing feed - type: " + feedTypeStr);
     feedState = FeedState::Loading;
+
+    // Show skeleton during loading
+    if (feedSkeleton != nullptr)
+        feedSkeleton->setVisible(true);
     repaint();
 
     feedDataManager.clearCache(currentFeedType);
@@ -357,9 +371,11 @@ void PostsFeed::onFeedLoaded(const FeedResponse& response)
     Log::info("PostsFeed::onFeedLoaded: Feed loaded - posts: " + juce::String(response.posts.size()));
     posts = response.posts;
 
-    // Hide error state on successful load
+    // Hide error state and skeleton on successful load
     if (errorStateComponent != nullptr)
         errorStateComponent->setVisible(false);
+    if (feedSkeleton != nullptr)
+        feedSkeleton->setVisible(false);
 
     if (posts.isEmpty())
     {
@@ -495,6 +511,10 @@ void PostsFeed::onFeedError(const juce::String& error)
     errorMessage = error;
     feedState = FeedState::Error;
 
+    // Hide skeleton
+    if (feedSkeleton != nullptr)
+        feedSkeleton->setVisible(false);
+
     // Configure and show error state component
     if (errorStateComponent != nullptr)
     {
@@ -518,7 +538,8 @@ void PostsFeed::paint(juce::Graphics& g)
     switch (feedState)
     {
         case FeedState::Loading:
-            drawLoadingState(g);
+            // FeedSkeleton component handles the loading UI as a child component
+            // Just ensure background is drawn (already done above)
             break;
         case FeedState::Loaded:
             drawFeedPosts(g);
@@ -894,6 +915,9 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                     // API call failed - revert optimistic update (5.5.6)
                     Log::warn("Like API call failed - reverting optimistic update: " + responseOutcome.getError());
                     card->updateLikeCount(originalCount, originalLiked);
+
+                    // Show toast notification for transient error
+                    ToastManager::getInstance().showError("Couldn't update like. Please try again.");
                 }
             };
 
@@ -1800,13 +1824,9 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                     if (c->getPost().userId == post.userId)
                         c->updateFollowState(!willFollow);
                 }
-                // Show error to user
-                juce::MessageManager::callAsync([result, willFollow]() {
-                    juce::AlertWindow::showMessageBoxAsync(
-                        juce::MessageBoxIconType::WarningIcon,
-                        "Error",
-                        "Failed to " + juce::String(willFollow ? "follow" : "unfollow") + " user: " + result.getError());
-                });
+                // Show toast notification
+                ToastManager::getInstance().showError(
+                    "Couldn't " + juce::String(willFollow ? "follow" : "unfollow") + " user. Please try again.");
             }
             else
             {
@@ -1839,10 +1859,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         if (networkClient == nullptr)
         {
             Log::warn("PostsFeedComponent: Cannot save/unsave - networkClient is null");
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::WarningIcon,
-                "Error",
-                "Unable to save post. Please try again later.");
+            ToastManager::getInstance().showError("Unable to save post. Please try again later.");
             return;
         }
 
@@ -1855,11 +1872,13 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         card->updateSaveState(optimisticCount, saved);
 
         // Call backend API
-        auto callback = [card, originalCount, originalSaved](Outcome<juce::var> result) {
+        auto callback = [card, originalCount, originalSaved, saved](Outcome<juce::var> result) {
             if (result.isError())
             {
                 Log::error("PostsFeedComponent: Save API call failed - reverting: " + result.getError());
                 card->updateSaveState(originalCount, originalSaved);
+                ToastManager::getInstance().showError(
+                    "Couldn't " + juce::String(saved ? "save" : "unsave") + " post. Please try again.");
             }
             else
             {
@@ -1880,10 +1899,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         if (networkClient == nullptr)
         {
             Log::warn("PostsFeedComponent: Cannot repost - networkClient is null");
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::WarningIcon,
-                "Error",
-                "Unable to repost. Please try again later.");
+            ToastManager::getInstance().showError("Unable to repost. Please try again later.");
             return;
         }
 
@@ -1908,16 +1924,12 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                     {
                         Log::error("PostsFeedComponent: Undo repost failed - reverting: " + result.getError());
                         card->updateRepostState(originalCount, true);
-                        juce::MessageManager::callAsync([result]() {
-                            juce::AlertWindow::showMessageBoxAsync(
-                                juce::MessageBoxIconType::WarningIcon,
-                                "Error",
-                                "Failed to remove repost: " + result.getError());
-                        });
+                        ToastManager::getInstance().showError("Couldn't remove repost. Please try again.");
                     }
                     else
                     {
                         Log::debug("PostsFeedComponent: Undo repost succeeded");
+                        ToastManager::getInstance().showSuccess("Repost removed");
                     }
                 });
             });
@@ -1943,21 +1955,15 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                 {
                     Log::error("PostsFeedComponent: Repost failed - reverting: " + result.getError());
                     card->updateRepostState(originalCount, false);
-                    juce::MessageManager::callAsync([result]() {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::WarningIcon,
-                            "Error",
-                            "Failed to repost: " + result.getError());
+                    juce::MessageManager::callAsync([]() {
+                        ToastManager::getInstance().showError("Couldn't repost. Please try again.");
                     });
                 }
                 else
                 {
                     Log::debug("PostsFeedComponent: Repost succeeded");
                     juce::MessageManager::callAsync([]() {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::InfoIcon,
-                            "Reposted",
-                            "Loop shared to your feed!");
+                        ToastManager::getInstance().showSuccess("Shared to your feed!");
                     });
                 }
             });
@@ -2002,6 +2008,12 @@ void PostsFeed::resized()
     if (errorStateComponent != nullptr)
     {
         errorStateComponent->setBounds(contentBounds);
+    }
+
+    // Position feed skeleton in content area
+    if (feedSkeleton != nullptr)
+    {
+        feedSkeleton->setBounds(contentBounds);
     }
 
     // Position comments panel if visible (animation will handle position updates)
