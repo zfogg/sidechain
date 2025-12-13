@@ -504,6 +504,98 @@ func (c *Client) RemoveReactionByActivityAndUser(activityID, userID, kind string
 	return nil
 }
 
+// RepostActivity creates a repost of an activity to the user's feed
+// This uses getstream.io's reaction system with targetFeeds to add the original
+// activity to the user's feed as a repost. The repost will show as "user reposted"
+// in followers' timelines.
+func (c *Client) RepostActivity(userID, activityID string) (*RepostResponse, error) {
+	ctx := context.Background()
+
+	// Create a "repost" reaction with targetFeeds to send to user's feed
+	// This makes the activity appear in the user's feed and their followers' timelines
+	req := stream.AddReactionRequestObject{
+		Kind:       "repost",
+		ActivityID: activityID,
+		UserID:     userID,
+		TargetFeeds: []string{
+			fmt.Sprintf("%s:%s", FeedGroupUser, userID), // Add to user's own feed
+		},
+		Data: map[string]any{
+			"reposted_at": time.Now().UTC().Format(time.RFC3339),
+		},
+	}
+
+	resp, err := c.feedsClient.Reactions().Add(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create repost: %w", err)
+	}
+
+	fmt.Printf("🔄 %s reposted activity %s (reaction_id: %s)\n", userID, activityID, resp.ID)
+
+	return &RepostResponse{
+		ReactionID: resp.ID,
+		ActivityID: activityID,
+		UserID:     userID,
+		RepostedAt: time.Now().UTC(),
+	}, nil
+}
+
+// UnrepostActivity removes a repost of an activity
+func (c *Client) UnrepostActivity(userID, activityID string) error {
+	return c.RemoveReactionByActivityAndUser(activityID, userID, "repost")
+}
+
+// CheckUserReposted checks if a user has reposted an activity
+func (c *Client) CheckUserReposted(userID, activityID string) (bool, string, error) {
+	ctx := context.Background()
+
+	// Filter reactions by activity ID and kind "repost"
+	// ByKind is chained after ByActivityID
+	resp, err := c.feedsClient.Reactions().Filter(ctx,
+		stream.ByActivityID(activityID).ByKind("repost"),
+	)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to check repost status: %w", err)
+	}
+
+	// Check if user has a repost reaction
+	for _, r := range resp.Results {
+		if r.UserID == userID {
+			return true, r.ID, nil
+		}
+	}
+
+	return false, "", nil
+}
+
+// NotifyRepost sends a notification to the original post owner about the repost
+func (c *Client) NotifyRepost(actorUserID, targetUserID, loopID string) error {
+	// Don't notify yourself
+	if actorUserID == targetUserID {
+		return nil
+	}
+
+	// Check notification preferences
+	if c.notifPrefs != nil && !c.notifPrefs.IsEnabled(targetUserID, NotifVerbRepost) {
+		fmt.Printf("🔕 Skipping repost notification to %s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
+	return c.AddToNotificationFeed(targetUserID, &Activity{
+		Actor:  actorUserID,
+		Verb:   NotifVerbRepost,
+		Object: loopID,
+	})
+}
+
+// RepostResponse contains information about a successful repost
+type RepostResponse struct {
+	ReactionID string    `json:"reaction_id"`
+	ActivityID string    `json:"activity_id"`
+	UserID     string    `json:"user_id"`
+	RepostedAt time.Time `json:"reposted_at"`
+}
+
 // FollowStats contains follower and following counts
 type FollowStats struct {
 	FollowerCount  int `json:"follower_count"`
