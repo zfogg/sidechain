@@ -775,6 +775,42 @@ func (r *Repost) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// NotificationPreferences stores user preferences for different notification types
+type NotificationPreferences struct {
+	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID string `gorm:"uniqueIndex;not null" json:"user_id"`
+	User   User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
+
+	// Notification type toggles (all default to true - enabled)
+	LikesEnabled    bool `gorm:"default:true" json:"likes_enabled"`    // Notifications when someone likes your post
+	CommentsEnabled bool `gorm:"default:true" json:"comments_enabled"` // Notifications when someone comments on your post
+	FollowsEnabled  bool `gorm:"default:true" json:"follows_enabled"`  // Notifications when someone follows you
+	MentionsEnabled bool `gorm:"default:true" json:"mentions_enabled"` // Notifications when someone mentions you
+	DMsEnabled      bool `gorm:"default:true" json:"dms_enabled"`      // Notifications for direct messages
+	StoriesEnabled  bool `gorm:"default:true" json:"stories_enabled"`  // Notifications for story-related activity
+	RepostsEnabled  bool `gorm:"default:true" json:"reposts_enabled"`  // Notifications when someone reposts your content
+
+	// Challenge notifications (can be spammy, separate control)
+	ChallengesEnabled bool `gorm:"default:true" json:"challenges_enabled"` // Notifications for MIDI challenges
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName for notification preferences
+func (NotificationPreferences) TableName() string {
+	return "notification_preferences"
+}
+
+func (np *NotificationPreferences) BeforeCreate(tx *gorm.DB) error {
+	if np.ID == "" {
+		np.ID = generateUUID()
+	}
+	return nil
+}
+
 // Helper function for UUID generation
 func generateUUID() string {
 	return uuid.New().String()

@@ -40,10 +40,17 @@ const (
 	NotifVerbChallengeEnded      = "challenge_ended"    // Challenge ended (winner announced)
 )
 
+// NotificationPreferencesChecker is an interface for checking notification preferences
+// This allows the stream client to check user preferences before sending notifications
+type NotificationPreferencesChecker interface {
+	IsEnabled(userID string, verb string) bool
+}
+
 // Client wraps the getstream.io clients with Sidechain-specific functionality
 type Client struct {
 	feedsClient *stream.Client
 	ChatClient  *chat.Client
+	notifPrefs  NotificationPreferencesChecker
 }
 
 // Activity represents a Sidechain activity (loop post)
@@ -94,6 +101,22 @@ func NewClient() (*Client, error) {
 // FeedsClient returns the underlying feeds client for direct access if needed
 func (c *Client) FeedsClient() *stream.Client {
 	return c.feedsClient
+}
+
+// SetNotificationPreferencesChecker sets the notification preferences checker
+// This should be called during server initialization to enable preference-based filtering
+func (c *Client) SetNotificationPreferencesChecker(checker NotificationPreferencesChecker) {
+	c.notifPrefs = checker
+}
+
+// isNotificationEnabled checks if a notification should be sent to the target user
+// Returns true if notifications are enabled for this verb type or if no checker is set
+func (c *Client) isNotificationEnabled(targetUserID, verb string) bool {
+	if c.notifPrefs == nil {
+		// No checker set, allow all notifications (backwards compatible)
+		return true
+	}
+	return c.notifPrefs.IsEnabled(targetUserID, verb)
 }
 
 // CreateUser creates a getstream.io user for both feeds and chat
@@ -1037,6 +1060,12 @@ func (c *Client) AddToNotificationFeed(targetUserID string, activity *Activity) 
 
 // NotifyLike sends a like notification to the loop owner
 func (c *Client) NotifyLike(actorUserID, targetUserID, loopID string) error {
+	// Check if target user has like notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbLike) {
+		fmt.Printf("🔕 Like notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  fmt.Sprintf("user:%s", actorUserID),
 		Verb:   NotifVerbLike,
@@ -1051,6 +1080,12 @@ func (c *Client) NotifyLike(actorUserID, targetUserID, loopID string) error {
 
 // NotifyFollow sends a follow notification to the followed user
 func (c *Client) NotifyFollow(actorUserID, targetUserID string) error {
+	// Check if target user has follow notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbFollow) {
+		fmt.Printf("🔕 Follow notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  fmt.Sprintf("user:%s", actorUserID),
 		Verb:   NotifVerbFollow,
@@ -1065,6 +1100,12 @@ func (c *Client) NotifyFollow(actorUserID, targetUserID string) error {
 
 // NotifyComment sends a comment notification to the loop owner
 func (c *Client) NotifyComment(actorUserID, targetUserID, loopID, commentText string) error {
+	// Check if target user has comment notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbComment) {
+		fmt.Printf("🔕 Comment notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  fmt.Sprintf("user:%s", actorUserID),
 		Verb:   NotifVerbComment,
@@ -1080,6 +1121,12 @@ func (c *Client) NotifyComment(actorUserID, targetUserID, loopID, commentText st
 
 // NotifyMention sends a mention notification when a user is @mentioned in a comment
 func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID string) error {
+	// Check if target user has mention notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbMention) {
+		fmt.Printf("🔕 Mention notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  fmt.Sprintf("user:%s", actorUserID),
 		Verb:   NotifVerbMention,
@@ -1096,6 +1143,12 @@ func (c *Client) NotifyMention(actorUserID, targetUserID, loopID, commentID stri
 // NotifyChallengeCreated sends a notification when a new MIDI challenge is created (R.2.2.4.4)
 // Note: For "notify all users", call this for each user or use a broadcast mechanism
 func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitle string) error {
+	// Check if target user has challenge notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeCreated) {
+		fmt.Printf("🔕 Challenge created notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  "system", // System-generated notification
 		Verb:   NotifVerbChallengeCreated,
@@ -1110,6 +1163,12 @@ func (c *Client) NotifyChallengeCreated(targetUserID, challengeID, challengeTitl
 
 // NotifyChallengeDeadline sends a notification when challenge deadline is approaching (R.2.2.4.4)
 func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTitle string, hoursRemaining int) error {
+	// Check if target user has challenge notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeDeadline) {
+		fmt.Printf("🔕 Challenge deadline notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  "system",
 		Verb:   NotifVerbChallengeDeadline,
@@ -1125,6 +1184,12 @@ func (c *Client) NotifyChallengeDeadline(targetUserID, challengeID, challengeTit
 
 // NotifyChallengeVotingOpen sends a notification when voting period starts (R.2.2.4.4)
 func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeTitle string) error {
+	// Check if target user has challenge notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeVotingOpen) {
+		fmt.Printf("🔕 Challenge voting notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  "system",
 		Verb:   NotifVerbChallengeVotingOpen,
@@ -1139,6 +1204,12 @@ func (c *Client) NotifyChallengeVotingOpen(targetUserID, challengeID, challengeT
 
 // NotifyChallengeEnded sends a notification when challenge ends with winner info (R.2.2.4.4)
 func (c *Client) NotifyChallengeEnded(targetUserID, challengeID, challengeTitle string, winnerUserID, winnerUsername string, userEntryRank int) error {
+	// Check if target user has challenge notifications enabled
+	if !c.isNotificationEnabled(targetUserID, NotifVerbChallengeEnded) {
+		fmt.Printf("🔕 Challenge ended notification skipped for user:%s (disabled in preferences)\n", targetUserID)
+		return nil
+	}
+
 	activity := &Activity{
 		Actor:  "system",
 		Verb:   NotifVerbChallengeEnded,

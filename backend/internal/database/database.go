@@ -109,8 +109,9 @@ func Migrate() error {
 		&models.MIDIChallenge{},        // R.2.2 MIDI Battle Royale
 		&models.MIDIChallengeEntry{},   // R.2.2 MIDI Battle Royale (references AudioPost and MIDIPattern)
 		&models.MIDIChallengeVote{},    // R.2.2 MIDI Battle Royale
-		&models.SavedPost{},            // Save/Bookmark posts feature
-		&models.Repost{},               // Repost/Share to feed feature
+		&models.SavedPost{},               // Save/Bookmark posts feature
+		&models.Repost{},                  // Repost/Share to feed feature
+		&models.NotificationPreferences{}, // Notification preferences per user
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -258,6 +259,9 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reposts_original_post ON reposts (original_post_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_reposts_user_created ON reposts (user_id, created_at DESC)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_reposts_unique ON reposts (user_id, original_post_id) WHERE deleted_at IS NULL")
+
+	// Notification preferences indexes
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_preferences_user ON notification_preferences (user_id) WHERE deleted_at IS NULL")
 
 	return nil
 }
