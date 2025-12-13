@@ -67,6 +67,12 @@ public:
     int remixCount = 0;              // Number of remixes this post has
 
     //==============================================================================
+    // Sound/Sample metadata (Feature #15 - Sound Pages)
+    juce::String soundId;            // ID of the detected sound/sample (if any)
+    juce::String soundName;          // Name of the sound (e.g., "808 Bass Hit")
+    int soundUsageCount = 0;         // Number of posts using this same sound
+
+    //==============================================================================
     // Genres/tags
     juce::StringArray genres;
 

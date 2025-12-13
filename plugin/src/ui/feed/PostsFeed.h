@@ -74,6 +74,9 @@ public:
     // Callback for sharing a post to DMs
     std::function<void(const FeedPost& post)> onSendPostToMessage;
 
+    // Callback for navigating to a sound page (Feature #15)
+    std::function<void(const juce::String& soundId)> onSoundClicked;
+
     // Set user info
     void setUserInfo(const juce::String& username, const juce::String& email, const juce::String& profilePicUrl);
 

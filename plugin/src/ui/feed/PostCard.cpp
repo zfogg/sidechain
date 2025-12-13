@@ -158,6 +158,7 @@ void PostCard::paint(juce::Graphics& g)
     drawFollowButton(g, getFollowButtonBounds());
     drawWaveform(g, getWaveformBounds());
     drawPlayButton(g, getPlayButtonBounds());
+    drawSoundBadge(g);  // Sound indicator below waveform
     drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 125, 10, 115, CARD_HEIGHT - 30));
     drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 125, CARD_HEIGHT - 40, 115, 30));
 
@@ -938,6 +939,52 @@ void PostCard::drawPinnedBadge(juce::Graphics& g)
     g.drawText("PINNED", badgeBounds, juce::Justification::centred);
 }
 
+void PostCard::drawSoundBadge(juce::Graphics& g)
+{
+    // Only show if post has a detected sound with multiple usages
+    if (post.soundId.isEmpty() || post.soundUsageCount < 2)
+        return;
+
+    auto badgeBounds = getSoundBadgeBounds();
+
+    // Hover state - highlight on hover
+    bool isHovered = hoverState.isHovered() && badgeBounds.contains(getMouseXYRelative());
+
+    // Background with subtle gradient
+    if (isHovered)
+    {
+        g.setColour(SidechainColors::primary().withAlpha(0.25f));
+    }
+    else
+    {
+        g.setColour(SidechainColors::backgroundLighter().withAlpha(0.9f));
+    }
+    g.fillRoundedRectangle(badgeBounds.toFloat(), 4.0f);
+
+    // Border
+    g.setColour(isHovered ? SidechainColors::primary().withAlpha(0.6f) : SidechainColors::border());
+    g.drawRoundedRectangle(badgeBounds.toFloat(), 4.0f, 1.0f);
+
+    // Music note icon (using text since we can't use emojis reliably on Linux)
+    g.setColour(isHovered ? SidechainColors::primary() : SidechainColors::textSecondary());
+    g.setFont(10.0f);
+
+    // Format text: use sound name if available, otherwise generic text
+    juce::String badgeText;
+    if (post.soundName.isNotEmpty())
+    {
+        // Truncate long sound names
+        juce::String name = post.soundName.length() > 10 ? post.soundName.substring(0, 8) + ".." : post.soundName;
+        badgeText = name + " (" + juce::String(post.soundUsageCount) + ")";
+    }
+    else
+    {
+        badgeText = juce::String(post.soundUsageCount) + " posts";
+    }
+
+    g.drawText(badgeText, badgeBounds.reduced(4, 0), juce::Justification::centred);
+}
+
 void PostCard::drawRepostAttribution(juce::Graphics& g)
 {
     if (!post.isARepost || post.originalUsername.isEmpty())
@@ -1128,6 +1175,14 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
+    // Check sound badge (navigate to sound page)
+    if (post.soundId.isNotEmpty() && post.soundUsageCount >= 2 && getSoundBadgeBounds().contains(pos))
+    {
+        if (onSoundClicked)
+            onSoundClicked(post.soundId);
+        return;
+    }
+
     // Check avatar (navigate to profile)
     if (getAvatarBounds().contains(pos))
     {
@@ -1292,6 +1347,13 @@ juce::Rectangle<int> PostCard::getPinButtonBounds() const
 {
     // Position next to repost/save button area, only shown for own posts
     return juce::Rectangle<int>(getWidth() - 240, CARD_HEIGHT - 35, 35, 25);
+}
+
+juce::Rectangle<int> PostCard::getSoundBadgeBounds() const
+{
+    // Position below the waveform, shows "X posts with this sound"
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getX(), waveform.getBottom() + 2, 120, 16);
 }
 
 //==============================================================================
@@ -1490,6 +1552,15 @@ juce::String PostCard::getTooltip()
     // Remix chain badge
     if ((post.isRemix || post.remixCount > 0) && getRemixChainBadgeBounds().contains(mousePos))
         return "View remix chain";
+
+    // Sound badge
+    if (post.soundId.isNotEmpty() && post.soundUsageCount >= 2 && getSoundBadgeBounds().contains(mousePos))
+    {
+        juce::String tooltip = "View " + juce::String(post.soundUsageCount) + " posts with this sound";
+        if (post.soundName.isNotEmpty())
+            tooltip = post.soundName + " - " + tooltip;
+        return tooltip;
+    }
 
     return {};  // No tooltip for this area
 }

@@ -36,6 +36,7 @@
 #include "ui/synth/HiddenSynth.h"
 #include "ui/playlists/Playlists.h"
 #include "ui/playlists/PlaylistDetail.h"
+#include "ui/sounds/SoundPage.h"
 #include "network/StreamChatClient.h"
 
 //==============================================================================
@@ -80,7 +81,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Drafts, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail, SavedPosts, ArchivedPosts };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Drafts, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, SoundPage, MidiChallenges, MidiChallengeDetail, SavedPosts, ArchivedPosts };
     AppView currentView = AppView::Authentication;
 
     // Navigation direction for animated transitions
@@ -92,6 +93,7 @@ private:
     juce::String messageChannelType;   // Channel type for MessageThread view
     juce::String messageChannelId;     // Channel ID for MessageThread view
     juce::String playlistIdToView;    // Playlist ID for PlaylistDetail view
+    juce::String soundIdToView;       // Sound ID for SoundPage view
     juce::String challengeIdToView;   // Challenge ID for MidiChallengeDetail view
 
     // Component animator for smooth view transitions
@@ -131,6 +133,11 @@ private:
      * @param playlistId The playlist ID to display
      */
     void showPlaylistDetail(const juce::String& playlistId);
+
+    /** Navigate to sound page view
+     * @param soundId The sound ID to display
+     */
+    void showSoundPage(const juce::String& soundId);
 
     /** Navigate to saved posts view
      */
@@ -235,6 +242,7 @@ private:
     std::unique_ptr<HiddenSynth> hiddenSynthComponent;
     std::unique_ptr<Playlists> playlistsComponent;
     std::unique_ptr<PlaylistDetail> playlistDetailComponent;
+    std::unique_ptr<SoundPage> soundPageComponent;
     std::unique_ptr<MidiChallenges> midiChallengesComponent;
     std::unique_ptr<MidiChallengeDetail> midiChallengeDetailComponent;
     std::unique_ptr<SavedPosts> savedPostsComponent;

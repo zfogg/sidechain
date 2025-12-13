@@ -230,6 +230,12 @@ public:
      */
     std::function<void(const FeedPost&)> onRemixChainClicked;
 
+    /** Called when sound indicator is clicked (navigate to sound page)
+     * @param soundId The ID of the sound to navigate to
+     * @note Shows the sound page with all posts using this sound. Part of Feature #15 Sound Pages.
+     */
+    std::function<void(const juce::String& soundId)> onSoundClicked;
+
     /** Called when card is tapped (for expanding details)
      * @param post The post that was tapped
      */
@@ -365,6 +371,7 @@ private:
     juce::Rectangle<int> getSaveButtonBounds() const;
     juce::Rectangle<int> getRepostButtonBounds() const;
     juce::Rectangle<int> getPinButtonBounds() const;
+    juce::Rectangle<int> getSoundBadgeBounds() const;
 
     // Drawing helpers for save/repost/pin
     void drawSaveButton(juce::Graphics& g, juce::Rectangle<int> bounds);
@@ -372,6 +379,7 @@ private:
     void drawPinButton(juce::Graphics& g, juce::Rectangle<int> bounds);
     void drawRepostAttribution(juce::Graphics& g);  // Shows "User reposted" header
     void drawPinnedBadge(juce::Graphics& g);  // Shows pin badge for pinned posts
+    void drawSoundBadge(juce::Graphics& g);   // Shows sound usage indicator
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PostCard)
