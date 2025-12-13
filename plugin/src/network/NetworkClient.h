@@ -123,7 +123,7 @@ public:
     /** Metadata structure for audio uploads */
     struct AudioUploadMetadata
     {
-        juce::String title;           ///< Post title
+        juce::String filename;        ///< Display filename for the audio file (e.g., "my_loop.wav")
         double bpm = 0.0;             ///< Beats per minute (0.0 if unknown)
         juce::String key;             ///< Musical key (e.g., "C", "Am", "F#m" or empty)
         juce::String genre;           ///< Genre (e.g., "Electronic", "Hip-Hop")

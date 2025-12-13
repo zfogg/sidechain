@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/util"
 	"gorm.io/gorm"
 )
 
@@ -200,6 +201,30 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
+	// Parse and validate display filename
+	filename := c.PostForm("filename")
+	if err := util.ValidateFilename(filename); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_filename",
+			"message": err.Error(),
+		})
+		return
+	}
+	// Default to original filename if not provided
+	if filename == "" {
+		filename = file.Filename
+	}
+
+	// Parse and validate MIDI filename
+	midiFilename := c.PostForm("midi_filename")
+	if err := util.ValidateFilename(midiFilename); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_midi_filename",
+			"message": err.Error(),
+		})
+		return
+	}
+
 	// Read audio file content
 	src, err := file.Open()
 	if err != nil {
@@ -256,10 +281,11 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		var md models.MIDIData
 		if err := json.Unmarshal([]byte(midiDataStr), &md); err == nil && len(md.Events) > 0 {
 			midiData = &md
-			// Create standalone MIDI pattern (R.3.3)
+			// Create standalone MIDI pattern with filename (R.3.3)
 			pattern := &models.MIDIPattern{
 				UserID:        currentUser.ID,
 				Name:          "MIDI from story",
+				Filename:      midiFilename, // User-provided MIDI filename
 				Events:        md.Events,
 				Tempo:         md.Tempo,
 				TimeSignature: md.TimeSignature,
@@ -276,6 +302,8 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		UserID:        currentUser.ID,
 		AudioURL:      audioURL,
 		AudioDuration: audioDuration,
+		Filename:      filename,     // User-provided display filename
+		MIDIFilename:  midiFilename, // User-provided MIDI filename
 		MIDIData:      midiData,
 		MIDIPatternID: midiPatternID,
 		BPM:           bpm,

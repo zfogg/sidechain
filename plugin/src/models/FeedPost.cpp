@@ -50,6 +50,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     // Audio metadata
     post.audioUrl = Json::getString(json, "audio_url");
     post.waveformSvg = Json::getString(json, "waveform");
+    post.filename = Json::getString(json, "filename");
     post.durationSeconds = Json::getFloat(json, "duration_seconds");
     post.durationBars = Json::getInt(json, "duration_bars");
     post.bpm = Json::getInt(json, "bpm");
@@ -59,6 +60,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     // MIDI metadata (R.3.3 Cross-DAW MIDI Collaboration)
     post.hasMidi = Json::getBool(json, "has_midi");
     post.midiId = Json::getString(json, "midi_pattern_id");
+    post.midiFilename = Json::getString(json, "midi_filename");
     // Also check for midi_id as alternative field name
     if (post.midiId.isEmpty())
         post.midiId = Json::getString(json, "midi_id");
@@ -272,6 +274,8 @@ juce::var FeedPost::toJson() const
     // Audio metadata
     obj->setProperty("audio_url", audioUrl);
     obj->setProperty("waveform", waveformSvg);
+    if (filename.isNotEmpty())
+        obj->setProperty("filename", filename);
     obj->setProperty("duration_seconds", durationSeconds);
     obj->setProperty("duration_bars", durationBars);
     obj->setProperty("bpm", bpm);
@@ -282,6 +286,8 @@ juce::var FeedPost::toJson() const
     obj->setProperty("has_midi", hasMidi);
     if (midiId.isNotEmpty())
         obj->setProperty("midi_pattern_id", midiId);
+    if (midiFilename.isNotEmpty())
+        obj->setProperty("midi_filename", midiFilename);
 
     // Project file metadata (R.3.4)
     obj->setProperty("has_project_file", hasProjectFile);

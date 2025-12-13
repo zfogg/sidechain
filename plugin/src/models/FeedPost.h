@@ -40,6 +40,7 @@ public:
     // Audio metadata
     juce::String audioUrl;     // URL to the audio file (MP3)
     juce::String waveformSvg;  // SVG waveform data or URL
+    juce::String filename;     // Display filename (e.g., "my_loop.wav")
     float durationSeconds = 0.0f;
     int durationBars = 0;
     int bpm = 0;
@@ -50,6 +51,7 @@ public:
     // MIDI metadata (R.3.3 Cross-DAW MIDI Collaboration)
     bool hasMidi = false;      // Whether this post has associated MIDI data
     juce::String midiId;       // UUID of the MIDI pattern (for download)
+    juce::String midiFilename; // Display filename for MIDI (e.g., "melody.mid")
 
     //==============================================================================
     // Project file metadata (R.3.4 Project File Exchange)

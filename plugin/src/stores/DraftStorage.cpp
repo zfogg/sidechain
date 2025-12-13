@@ -14,7 +14,7 @@ Draft Draft::fromJson(const juce::var& json)
         return draft;
 
     draft.id = Json::getString(json, "id");
-    draft.title = Json::getString(json, "title");
+    draft.filename = Json::getString(json, "filename");
     draft.bpm = Json::getDouble(json, "bpm");
     draft.keyIndex = Json::getInt(json, "key_index");
     draft.genreIndex = Json::getInt(json, "genre_index");
@@ -42,7 +42,7 @@ juce::var Draft::toJson() const
     auto* obj = new juce::DynamicObject();
 
     obj->setProperty("id", id);
-    obj->setProperty("title", title);
+    obj->setProperty("filename", filename);
     obj->setProperty("bpm", bpm);
     obj->setProperty("key_index", keyIndex);
     obj->setProperty("genre_index", genreIndex);

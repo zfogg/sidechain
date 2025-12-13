@@ -429,10 +429,27 @@ void StoryViewer::drawHeader(juce::Graphics& g)
 
     bounds.removeFromLeft(10);
 
-    // Username
+    // Primary header: filename if available, otherwise username
     g.setColour(StoryViewerColors::textPrimary);
     g.setFont(juce::Font(14.0f, juce::Font::bold));
-    g.drawText(story->username, bounds.removeFromTop(20), juce::Justification::centredLeft);
+
+    if (story->filename.isNotEmpty())
+    {
+        // Show filename as main header
+        g.drawText(story->filename, bounds.removeFromTop(18), juce::Justification::centredLeft);
+
+        // Show "by username" below
+        g.setColour(StoryViewerColors::textSecondary);
+        g.setFont(12.0f);
+        g.drawText("by " + (story->username.isNotEmpty() ? story->username : "Unknown"),
+                   bounds.removeFromTop(16), juce::Justification::centredLeft);
+    }
+    else
+    {
+        // Fallback: show username as main header
+        g.drawText(story->username.isNotEmpty() ? story->username : "Unknown",
+                   bounds.removeFromTop(20), juce::Justification::centredLeft);
+    }
 
     // Expiration time
     g.setColour(StoryViewerColors::textSecondary);

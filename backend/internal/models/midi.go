@@ -33,6 +33,7 @@ type MIDIPattern struct {
 
 	// Metadata
 	Name        string `json:"name"`        // Optional display name (e.g., "Chord Progression A")
+	Filename    string `json:"filename"`    // Display filename (e.g., "melody.mid")
 	Description string `json:"description"` // Optional description
 
 	// MIDI data

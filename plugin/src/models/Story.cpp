@@ -65,6 +65,8 @@ Story Story::fromJSON(const juce::var& json)
     story.userId = json["user_id"].toString();
     story.audioUrl = json["audio_url"].toString();
     story.audioDuration = static_cast<float>(json["audio_duration"]);
+    story.filename = json["filename"].toString();
+    story.midiFilename = json["midi_filename"].toString();
     story.midiData = json["midi_data"];
     story.midiPatternId = json["midi_pattern_id"].toString();
     story.waveformData = json["waveform_data"].toString();
@@ -124,6 +126,12 @@ juce::var Story::toJSON() const
 
     obj->setProperty("audio_url", audioUrl);
     obj->setProperty("audio_duration", audioDuration);
+
+    if (filename.isNotEmpty())
+        obj->setProperty("filename", filename);
+
+    if (midiFilename.isNotEmpty())
+        obj->setProperty("midi_filename", midiFilename);
 
     if (midiData.isObject())
     {

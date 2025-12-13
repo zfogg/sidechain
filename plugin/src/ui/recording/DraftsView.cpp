@@ -190,11 +190,11 @@ void DraftsView::drawDraftCard(juce::Graphics& g, const Draft& draft, juce::Rect
     int y = bounds.getY() + PADDING;
     int contentWidth = bounds.getWidth() - PADDING * 2 - 100; // Leave space for buttons
 
-    // Title or "Untitled"
+    // Filename or "Untitled"
     g.setColour(SidechainColors::textPrimary());
     g.setFont(juce::Font(16.0f, juce::Font::bold));
-    juce::String title = draft.title.isEmpty() ? "Untitled Draft" : draft.title;
-    g.drawText(title, x, y, contentWidth, 22, juce::Justification::centredLeft);
+    juce::String displayName = draft.filename.isEmpty() ? "Untitled Draft" : draft.filename;
+    g.drawText(displayName, x, y, contentWidth, 22, juce::Justification::centredLeft);
 
     // Duration and date
     g.setColour(SidechainColors::textSecondary());

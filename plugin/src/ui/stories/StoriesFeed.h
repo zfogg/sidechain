@@ -16,6 +16,8 @@ struct StoryData
     juce::String username;
     juce::String userAvatarUrl;
     juce::String audioUrl;
+    juce::String filename;           // Display filename for audio
+    juce::String midiFilename;       // Display filename for MIDI
     float audioDuration = 0.0f;
     juce::var midiData;
     juce::String midiPatternId;      // ID of standalone MIDI pattern (for download)

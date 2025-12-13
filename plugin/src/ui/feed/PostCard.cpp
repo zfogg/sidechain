@@ -215,18 +215,42 @@ void PostCard::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
-    // Username
+    int yOffset = bounds.getY();
+
+    // Primary header: filename if available, otherwise username
     g.setColour(SidechainColors::textPrimary());
     g.setFont(14.0f);
-    g.drawText(post.username.isEmpty() ? "Unknown" : post.username,
-               bounds.getX(), bounds.getY(), bounds.getWidth(), 20,
-               juce::Justification::centredLeft);
+
+    if (post.filename.isNotEmpty())
+    {
+        // Show filename as main header
+        g.drawText(post.filename,
+                   bounds.getX(), yOffset, bounds.getWidth(), 20,
+                   juce::Justification::centredLeft);
+        yOffset += 18;
+
+        // Show "by username" below
+        g.setColour(SidechainColors::textSecondary());
+        g.setFont(12.0f);
+        g.drawText("by " + (post.username.isEmpty() ? "Unknown" : post.username),
+                   bounds.getX(), yOffset, bounds.getWidth(), 18,
+                   juce::Justification::centredLeft);
+        yOffset += 16;
+    }
+    else
+    {
+        // Fallback: show username as main header
+        g.drawText(post.username.isEmpty() ? "Unknown" : post.username,
+                   bounds.getX(), yOffset, bounds.getWidth(), 20,
+                   juce::Justification::centredLeft);
+        yOffset += 20;
+    }
 
     // Timestamp
     g.setColour(SidechainColors::textMuted());
     g.setFont(12.0f);
     g.drawText(post.timeAgo,
-               bounds.getX(), bounds.getY() + 20, bounds.getWidth(), 18,
+               bounds.getX(), yOffset, bounds.getWidth(), 18,
                juce::Justification::centredLeft);
 
     // DAW badge if present
@@ -235,7 +259,7 @@ void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setColour(SidechainColors::textMuted());
         g.setFont(10.0f);
         g.drawText(post.daw,
-                   bounds.getX(), bounds.getY() + 40, bounds.getWidth(), 15,
+                   bounds.getX(), yOffset + 18, bounds.getWidth(), 15,
                    juce::Justification::centredLeft);
     }
 }

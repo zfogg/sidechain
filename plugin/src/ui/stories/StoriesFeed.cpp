@@ -165,6 +165,8 @@ void StoriesFeed::loadStories()
                         story.id = storyVar["id"].toString();
                         story.userId = storyVar["user_id"].toString();
                         story.audioUrl = storyVar["audio_url"].toString();
+                        story.filename = storyVar["filename"].toString();
+                        story.midiFilename = storyVar["midi_filename"].toString();
                         story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
                         story.midiData = storyVar["midi_data"];
                         story.midiPatternId = storyVar["midi_pattern_id"].toString();  // R.3.3.5.5 - MIDI download support
