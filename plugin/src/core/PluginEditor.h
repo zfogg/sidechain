@@ -10,6 +10,7 @@
 #include "ui/challenges/MidiChallenges.h"
 #include "ui/profile/ProfileSetup.h"
 #include "ui/profile/Profile.h"
+#include "ui/profile/SavedPosts.h"
 #include "ui/feed/PostsFeed.h"
 #include "ui/recording/Recording.h"
 #include "ui/recording/Upload.h"
@@ -70,7 +71,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail, SavedPosts };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
@@ -108,6 +109,10 @@ private:
      * @param playlistId The playlist ID to display
      */
     void showPlaylistDetail(const juce::String& playlistId);
+
+    /** Navigate to saved posts view
+     */
+    void showSavedPosts();
 
     /** Show story viewer for a user's stories
      * @param userId The user ID whose stories to display
@@ -162,6 +167,7 @@ private:
     std::unique_ptr<PlaylistDetail> playlistDetailComponent;
     std::unique_ptr<MidiChallenges> midiChallengesComponent;
     std::unique_ptr<MidiChallengeDetail> midiChallengeDetailComponent;
+    std::unique_ptr<SavedPosts> savedPostsComponent;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;

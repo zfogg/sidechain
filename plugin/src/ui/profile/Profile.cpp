@@ -534,6 +534,14 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setColour(Colors::textPrimary);
         g.setFont(14.0f);
         g.drawText("Edit Profile", editBounds, juce::Justification::centred);
+
+        // Saved Posts button (below edit button)
+        auto savedBounds = getSavedPostsButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(savedBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Saved Posts", savedBounds, juce::Justification::centred);
     }
     else
     {
@@ -862,6 +870,16 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 Log::warn("Profile::mouseUp: Edit profile clicked but callback not set");
             return;
         }
+
+        if (getSavedPostsButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Saved posts button clicked");
+            if (onSavedPostsClicked)
+                onSavedPostsClicked();
+            else
+                Log::warn("Profile::mouseUp: Saved posts clicked but callback not set");
+            return;
+        }
     }
     else
     {
@@ -948,6 +966,12 @@ juce::Rectangle<int> Profile::getMessageButtonBounds() const
 juce::Rectangle<int> Profile::getEditButtonBounds() const
 {
     return getFollowButtonBounds();  // Same position
+}
+
+juce::Rectangle<int> Profile::getSavedPostsButtonBounds() const
+{
+    auto editBounds = getEditButtonBounds();
+    return editBounds.translated(0, BUTTON_HEIGHT + 8);  // Below edit button with spacing
 }
 
 juce::Rectangle<int> Profile::getShareButtonBounds() const

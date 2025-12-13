@@ -84,6 +84,7 @@ public:
     std::function<void(const juce::String& userId)> onFollowersClicked;
     std::function<void(const juce::String& userId)> onFollowingClicked;
     std::function<void()> onEditProfile;
+    std::function<void()> onSavedPostsClicked;  // Navigate to saved posts view (own profile only)
     std::function<void(const FeedPost&)> onPostClicked;
     std::function<void(const FeedPost&)> onPlayClicked;
     std::function<void(const FeedPost&)> onPauseClicked;
@@ -170,6 +171,7 @@ private:
     juce::Rectangle<int> getFollowButtonBounds() const;
     juce::Rectangle<int> getMessageButtonBounds() const;
     juce::Rectangle<int> getEditButtonBounds() const;
+    juce::Rectangle<int> getSavedPostsButtonBounds() const;
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getSocialLinkBounds(int index) const;
     juce::Rectangle<int> getPostsAreaBounds() const;
