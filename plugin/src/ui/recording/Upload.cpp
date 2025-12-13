@@ -61,7 +61,7 @@ const std::array<juce::String, Upload::NUM_GENRES>& Upload::getGenres()
     return genres;
 }
 
-// Static data: Comment audience options (Feature #12)
+// Static data: Comment audience options
 const std::array<Upload::CommentAudienceOption, Upload::NUM_COMMENT_AUDIENCES>& Upload::getCommentAudiences()
 {
     static const std::array<CommentAudienceOption, NUM_COMMENT_AUDIENCES> audiences = {{
@@ -162,7 +162,7 @@ void Upload::reset()
     bpmFromDAW = false;
     selectedKeyIndex = 0;
     selectedGenreIndex = 0;
-    selectedCommentAudienceIndex = 0;  // Reset to "Everyone" (Feature #12)
+    selectedCommentAudienceIndex = 0;  // Reset to "Everyone"
     uploadState = UploadState::Editing;
     uploadProgress = 0.0f;
     errorMessage = "";
@@ -219,7 +219,7 @@ void Upload::paint(juce::Graphics& g)
     drawKeyDropdown(g);
     drawDetectKeyButton(g);
     drawGenreDropdown(g);
-    drawCommentAudienceDropdown(g);  // Feature #12
+    drawCommentAudienceDropdown(g);
     drawProjectFileButton(g);
 
     if (uploadState == UploadState::Uploading)
@@ -267,7 +267,7 @@ void Upload::resized()
     genreDropdownArea = dropdownRow;
     bounds.removeFromTop(fieldSpacing);
 
-    // Comment audience dropdown (Feature #12) - takes half width
+    // Comment audience dropdown - takes half width
     auto commentRow = bounds.removeFromTop(rowHeight);
     commentAudienceArea = commentRow.removeFromLeft(commentRow.getWidth() / 2 - 8);
     bounds.removeFromTop(fieldSpacing);
@@ -359,7 +359,7 @@ void Upload::mouseUp(const juce::MouseEvent& event)
             return;
         }
 
-        // Comment audience dropdown (Feature #12)
+        // Comment audience dropdown
         if (commentAudienceArea.contains(pos))
         {
             Log::info("Upload::mouseUp: Comment audience dropdown clicked");
@@ -1169,7 +1169,7 @@ void Upload::startUpload()
     metadata.projectFile = projectFile;
     metadata.includeProjectFile = includeProjectFile && projectFile.existsAsFile();
 
-    // Include comment audience setting (Feature #12)
+    // Include comment audience setting
     auto& audiences = getCommentAudiences();
     metadata.commentAudience = selectedCommentAudienceIndex < (int)audiences.size()
         ? audiences[selectedCommentAudienceIndex].value : "everyone";

@@ -350,7 +350,7 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 // getFallbackFeed returns recommended posts when the user's timeline is empty
 // First tries Gorse recommendations, then falls back to recent posts from database
 func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interface{} {
-	// Get muted user IDs for filtering (Feature #10)
+	// Get muted user IDs for filtering
 	mutedUserIDs, _ := GetMutedUserIDs(userID)
 	mutedUserSet := make(map[string]bool, len(mutedUserIDs))
 	for _, id := range mutedUserIDs {
@@ -372,7 +372,7 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	if err == nil && len(scores) > 0 {
 		activities := make([]map[string]interface{}, 0, len(scores))
 		for _, score := range scores {
-			// Skip posts from muted users (Feature #10)
+			// Skip posts from muted users
 			if mutedUserSet[score.Post.UserID] {
 				continue
 			}
@@ -400,7 +400,7 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 
 	// Fall back to recent posts from database
 	// Include all public posts (including user's own) since this is a discovery feed
-	// Exclude archived posts and posts from muted users (Feature #10)
+	// Exclude archived posts and posts from muted users
 	query := database.DB.
 		Where("is_public = ? AND is_archived = ? AND deleted_at IS NULL", true, false)
 

@@ -357,7 +357,7 @@ func (pm *PresenceManager) checkTimeouts() {
 
 // broadcastToFollowers sends a presence update to all of a user's followers
 func (pm *PresenceManager) broadcastToFollowers(userID string, msgType string, payload PresencePayload) {
-	// Check if user has activity status visibility enabled (Feature #9)
+	// Check if user has activity status visibility enabled
 	var showActivityStatus bool
 	if err := database.DB.Model(&models.User{}).Select("show_activity_status").
 		Where("id = ?", userID).Scan(&showActivityStatus).Error; err != nil {

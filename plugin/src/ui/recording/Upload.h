@@ -44,7 +44,7 @@ public:
     static const std::array<juce::String, NUM_GENRES>& getGenres();
 
     //==========================================================================
-    // Comment audience options (Feature #12)
+    // Comment audience options
     static constexpr int NUM_COMMENT_AUDIENCES = 3;
     struct CommentAudienceOption
     {
@@ -68,7 +68,7 @@ public:
     void reset();
 
     //==========================================================================
-    // Draft support (Feature #5)
+    // Draft support
 
     /** Get current form data for draft saving */
     juce::String getTitle() const { return title; }
@@ -129,7 +129,7 @@ private:
     bool bpmFromDAW = false;
     int selectedKeyIndex = 0;      // 0 = "Not set"
     int selectedGenreIndex = 0;    // 0 = first genre
-    int selectedCommentAudienceIndex = 0; // 0 = "Everyone" (Feature #12)
+    int selectedCommentAudienceIndex = 0; // 0 = "Everyone"
 
     // MIDI data (R.3.3 Cross-DAW MIDI Collaboration)
     juce::var midiData;            // Captured MIDI events from recording
@@ -162,7 +162,7 @@ private:
     juce::Rectangle<int> keyDropdownArea;
     juce::Rectangle<int> detectKeyButtonArea;
     juce::Rectangle<int> genreDropdownArea;
-    juce::Rectangle<int> commentAudienceArea;  // Feature #12
+    juce::Rectangle<int> commentAudienceArea;
     juce::Rectangle<int> projectFileArea;  // R.3.4 Project File Exchange
     juce::Rectangle<int> progressBarArea;
     juce::Rectangle<int> draftButtonArea;
@@ -180,7 +180,7 @@ private:
     void drawKeyDropdown(juce::Graphics& g);
     void drawDetectKeyButton(juce::Graphics& g);
     void drawGenreDropdown(juce::Graphics& g);
-    void drawCommentAudienceDropdown(juce::Graphics& g);  // Feature #12
+    void drawCommentAudienceDropdown(juce::Graphics& g);
     void drawProjectFileButton(juce::Graphics& g);  // R.3.4 Project File Exchange
     void drawProgressBar(juce::Graphics& g);
     void drawButtons(juce::Graphics& g);
@@ -205,7 +205,7 @@ private:
     void detectKey();
     void showKeyPicker();
     void showGenrePicker();
-    void showCommentAudiencePicker();  // Feature #12
+    void showCommentAudiencePicker();
     void selectProjectFile();  // R.3.4 Project File Exchange
     void cancelUpload();
     void startUpload();

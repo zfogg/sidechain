@@ -238,7 +238,7 @@ void NetworkClient::uploadAudioWithMetadata(const juce::AudioBuffer<float>& audi
             }
         }
 
-        // Include comment audience setting (Feature #12)
+        // Include comment audience setting
         if (metadataCopy.commentAudience.isNotEmpty())
         {
             fields["comment_audience"] = metadataCopy.commentAudience;

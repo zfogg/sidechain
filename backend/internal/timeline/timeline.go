@@ -81,7 +81,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 	// We'll fetch more than needed to allow for deduplication and ranking
 	fetchLimit := limit * 3
 
-	// Get muted user IDs for filtering (Feature #10)
+	// Get muted user IDs for filtering
 	mutedUserIDs, err := s.getMutedUserIDs(userID)
 	if err != nil {
 		// Log but continue - don't break timeline if mute lookup fails
@@ -162,7 +162,7 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		}
 	}
 
-	// Filter out posts from muted users (Feature #10)
+	// Filter out posts from muted users
 	filteredItems := make([]TimelineItem, 0, len(uniqueItems))
 	for _, item := range uniqueItems {
 		// Check if the post author is muted
@@ -460,7 +460,7 @@ func (s *Service) RecordInteraction(userID, postID, interactionType string) erro
 	return s.gorseClient.SyncFeedback(userID, postID, interactionType)
 }
 
-// getMutedUserIDs returns the IDs of users that the given user has muted (Feature #10)
+// getMutedUserIDs returns the IDs of users that the given user has muted
 func (s *Service) getMutedUserIDs(userID string) ([]string, error) {
 	var mutedUserIDs []string
 	err := s.db.Model(&models.MutedUser{}).

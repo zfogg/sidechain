@@ -38,7 +38,7 @@ func (h *Handlers) CreateComment(c *gin.Context) {
 		return
 	}
 
-	// Check comment audience restrictions (Feature #12)
+	// Check comment audience restrictions
 	// Post owner can always comment on their own posts
 	if post.UserID != userID {
 		switch post.CommentAudience {

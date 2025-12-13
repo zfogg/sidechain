@@ -131,7 +131,7 @@ void Recording::resized()
     bounds.removeFromTop(10);
     importMidiButtonArea = bounds.removeFromTop(buttonHeight);
 
-    // View Drafts button (Feature #5)
+    // View Drafts button
     bounds.removeFromTop(10);
     viewDraftsButtonArea = bounds.removeFromTop(buttonHeight);
 }
@@ -214,7 +214,7 @@ void Recording::drawIdleState(juce::Graphics& g)
     // Draw import MIDI button (R.3.3.6.3)
     drawImportMidiButton(g);
 
-    // Draw View Drafts button (Feature #5)
+    // Draw View Drafts button
     drawViewDraftsButton(g);
 }
 
