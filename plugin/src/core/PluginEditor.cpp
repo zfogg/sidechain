@@ -644,6 +644,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         // Navigate to saved posts view
         showSavedPosts();
     };
+    profileComponent->onArchivedPostsClicked = [this]() {
+        // Navigate to archived posts view
+        showArchivedPosts();
+    };
     profileComponent->onPlayClicked = [this](const FeedPost& post) {
         audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
     };
