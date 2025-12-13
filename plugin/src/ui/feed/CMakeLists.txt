@@ -22,6 +22,7 @@ target_link_libraries(SidechainUIFeed PUBLIC
     SidechainModels
     SidechainNetwork
     SidechainStores
+    SidechainUICommon
     juce::juce_core
     juce::juce_data_structures
     juce::juce_events

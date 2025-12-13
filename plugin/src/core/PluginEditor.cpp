@@ -475,6 +475,35 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     addChildComponent(savedPostsComponent.get());
 
     //==========================================================================
+    // Create ArchivedPosts component (Feature #14: Post Archive)
+    archivedPostsComponent = std::make_unique<ArchivedPosts>();
+    archivedPostsComponent->setNetworkClient(networkClient.get());
+    if (userDataStore)
+        archivedPostsComponent->setCurrentUserId(userDataStore->getUserId());
+    archivedPostsComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    archivedPostsComponent->onPostClicked = [this](const FeedPost& post) {
+        // Navigate to user profile when post is clicked
+        showProfile(post.userId);
+    };
+    archivedPostsComponent->onPlayClicked = [this](const FeedPost& post) {
+        if (!post.audioUrl.isEmpty())
+        {
+            audioProcessor.getAudioPlayer().loadAndPlay(post.audioUrl, post.id);
+            archivedPostsComponent->setCurrentlyPlayingPost(post.id);
+        }
+    };
+    archivedPostsComponent->onPauseClicked = [this](const FeedPost& /*post*/) {
+        audioProcessor.getAudioPlayer().stop();
+        archivedPostsComponent->clearPlayingState();
+    };
+    archivedPostsComponent->onUserClicked = [this](const juce::String& userId) {
+        showProfile(userId);
+    };
+    addChildComponent(archivedPostsComponent.get());
+
+    //==========================================================================
     // Create Story Highlight dialogs
     createHighlightDialog = std::make_unique<CreateHighlightDialog>();
     createHighlightDialog->setNetworkClient(networkClient.get());
@@ -837,6 +866,9 @@ void SidechainAudioProcessorEditor::resized()
 
     if (savedPostsComponent)
         savedPostsComponent->setBounds(contentBounds);
+
+    if (archivedPostsComponent)
+        archivedPostsComponent->setBounds(contentBounds);
 }
 
 //==============================================================================
@@ -889,6 +921,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::SavedPosts:
             componentToShow = savedPostsComponent.get();
+            break;
+        case AppView::ArchivedPosts:
+            componentToShow = archivedPostsComponent.get();
             break;
         case AppView::Discovery:
             componentToShow = userDiscoveryComponent.get();
@@ -945,6 +980,9 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             break;
         case AppView::SavedPosts:
             componentToHide = savedPostsComponent.get();
+            break;
+        case AppView::ArchivedPosts:
+            componentToHide = archivedPostsComponent.get();
             break;
         case AppView::Discovery:
             componentToHide = userDiscoveryComponent.get();
@@ -1008,6 +1046,8 @@ void SidechainAudioProcessorEditor::showView(AppView view)
             midiChallengeDetailComponent->setVisible(false);
         if (savedPostsComponent && savedPostsComponent.get() != componentToShow && savedPostsComponent.get() != componentToHide)
             savedPostsComponent->setVisible(false);
+        if (archivedPostsComponent && archivedPostsComponent.get() != componentToShow && archivedPostsComponent.get() != componentToHide)
+            archivedPostsComponent->setVisible(false);
 
         // Position new component off-screen to the right
         Log::info("showView: positioning components for animation");
@@ -1104,6 +1144,11 @@ void SidechainAudioProcessorEditor::showView(AppView view)
         {
             savedPostsComponent->setBounds(contentBounds);
             savedPostsComponent->setVisible(view == AppView::SavedPosts);
+        }
+        if (archivedPostsComponent)
+        {
+            archivedPostsComponent->setBounds(contentBounds);
+            archivedPostsComponent->setVisible(view == AppView::ArchivedPosts);
         }
         if (hiddenSynthComponent)
         {
@@ -1226,6 +1271,15 @@ void SidechainAudioProcessorEditor::showView(AppView view)
                 if (userDataStore)
                     savedPostsComponent->setCurrentUserId(userDataStore->getUserId());
                 savedPostsComponent->loadSavedPosts();
+            }
+            break;
+
+        case AppView::ArchivedPosts:
+            if (archivedPostsComponent)
+            {
+                if (userDataStore)
+                    archivedPostsComponent->setCurrentUserId(userDataStore->getUserId());
+                archivedPostsComponent->loadArchivedPosts();
             }
             break;
 
@@ -1355,6 +1409,11 @@ void SidechainAudioProcessorEditor::showPlaylistDetail(const juce::String& playl
 void SidechainAudioProcessorEditor::showSavedPosts()
 {
     showView(AppView::SavedPosts);
+}
+
+void SidechainAudioProcessorEditor::showArchivedPosts()
+{
+    showView(AppView::ArchivedPosts);
 }
 
 void SidechainAudioProcessorEditor::checkForActiveStories()
@@ -1668,6 +1727,7 @@ void SidechainAudioProcessorEditor::navigateBack()
     if (midiChallengesComponent) midiChallengesComponent->setVisible(false);
     if (midiChallengeDetailComponent) midiChallengeDetailComponent->setVisible(false);
     if (savedPostsComponent) savedPostsComponent->setVisible(false);
+    if (archivedPostsComponent) archivedPostsComponent->setVisible(false);
 
     // Content bounds for positioning
     auto contentBounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
@@ -1755,6 +1815,13 @@ void SidechainAudioProcessorEditor::navigateBack()
             {
                 savedPostsComponent->setBounds(contentBounds);
                 savedPostsComponent->setVisible(true);
+            }
+            break;
+        case AppView::ArchivedPosts:
+            if (archivedPostsComponent)
+            {
+                archivedPostsComponent->setBounds(contentBounds);
+                archivedPostsComponent->setVisible(true);
             }
             break;
         default:
