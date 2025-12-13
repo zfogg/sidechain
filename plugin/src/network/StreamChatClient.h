@@ -135,6 +135,7 @@ public:
     using MessageReceivedCallback = std::function<void(const Message& message, const juce::String& channelId)>;
     using TypingCallback = std::function<void(const juce::String& userId, bool isTyping)>;
     using PresenceChangedCallback = std::function<void(const UserPresence& presence)>;
+    using MessageNotificationCallback = std::function<void(const juce::String& title, const juce::String& message)>;
 
     StreamChatClient(NetworkClient* networkClient, const Config& config = Config::development());
     ~StreamChatClient();
@@ -379,6 +380,7 @@ public:
     void setTypingCallback(TypingCallback callback) { typingCallback = callback; }
     void setPresenceChangedCallback(PresenceChangedCallback callback) { presenceChangedCallback = callback; }
     void setUnreadCountCallback(std::function<void(int totalUnread)> callback) { unreadCountCallback = callback; }
+    void setMessageNotificationCallback(MessageNotificationCallback callback) { onMessageNotificationRequested = callback; }
 
     // Send typing indicator via REST API event endpoint
     void sendTypingIndicator(const juce::String& channelType, const juce::String& channelId, bool isTyping);
@@ -447,6 +449,7 @@ private:
     TypingCallback typingCallback;
     PresenceChangedCallback presenceChangedCallback;
     std::function<void(int)> unreadCountCallback;
+    MessageNotificationCallback onMessageNotificationRequested;
 
     // Channel watching (polling-based real-time)
     juce::String watchedChannelType;

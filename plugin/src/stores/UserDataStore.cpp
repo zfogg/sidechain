@@ -63,6 +63,17 @@ void UserDataStore::setNotificationSoundEnabled(bool enabled)
     sendChangeMessage();
 }
 
+/** Set OS notifications preference
+ * Updates the OS notifications setting and saves to preferences
+ * @param enabled Whether to show OS notifications
+ */
+void UserDataStore::setOSNotificationsEnabled(bool enabled)
+{
+    osNotificationsEnabled = enabled;
+    saveToSettings();
+    sendChangeMessage();
+}
+
 /** Set profile picture URL and start async download
  * Downloads the profile image from the URL in the background
  * @param url Profile picture URL
@@ -333,6 +344,7 @@ void UserDataStore::saveToSettings()
         appProperties->setValue("profilePicUrl", profilePictureUrl);
         appProperties->setValue("authToken", authToken);
         appProperties->setValue("notificationSoundEnabled", notificationSoundEnabled);
+        appProperties->setValue("osNotificationsEnabled", osNotificationsEnabled);
     }
     else
     {
@@ -368,6 +380,9 @@ void UserDataStore::loadFromSettings()
 
         // Load notification sound preference (default: enabled)
         notificationSoundEnabled = appProperties->getBoolValue("notificationSoundEnabled", true);
+        
+        // Load OS notifications preference (default: enabled)
+        osNotificationsEnabled = appProperties->getBoolValue("osNotificationsEnabled", true);
 
         Log::debug("UserDataStore: Loaded settings - username: " + username);
     }

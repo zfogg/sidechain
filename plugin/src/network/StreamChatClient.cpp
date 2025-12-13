@@ -1425,19 +1425,29 @@ void StreamChatClient::parseWebSocketEvent(const juce::var& event)
                     displayText = displayText.substring(0, 100) + "...";
                 }
                 
-                // Show OS notification
+                // Show OS notification (setting check done via callback if provided)
                 juce::String notificationTitle = message.userName.isNotEmpty() 
                     ? message.userName + " sent a message"
                     : "New message";
                 
-                OSNotification::show(
-                    notificationTitle,
-                    displayText,
-                    "",
-                    true  // sound enabled
-                );
+                // Use callback if provided (allows PluginEditor to check settings)
+                // Otherwise show directly (for backwards compatibility)
+                if (onMessageNotificationRequested)
+                {
+                    onMessageNotificationRequested(notificationTitle, displayText);
+                }
+                else
+                {
+                    // Fallback: show notification directly
+                    OSNotification::show(
+                        notificationTitle,
+                        displayText,
+                        "",
+                        true  // sound enabled
+                    );
+                }
                 
-                Log::debug("StreamChatClient: OS notification shown for message from " + message.userName);
+                Log::debug("StreamChatClient: OS notification requested for message from " + message.userName);
             }
             
             // Call the existing callback for UI updates
