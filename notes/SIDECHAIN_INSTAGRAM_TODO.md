@@ -358,21 +358,31 @@ Sidechain has a solid foundation with core features implemented:
   - Backup codes download
   - Recovery options
 
-### 17. Notification Preferences
+### 17. Notification Preferences ✅ IMPLEMENTED
 
 **Problem**: All-or-nothing notifications. Users want granular control.
 
-**TODO**:
-- [ ] **17.1** Create notification preferences model
-  - likes_enabled, comments_enabled, follows_enabled
-  - mentions_enabled, dms_enabled, stories_enabled
+**COMPLETED**:
+- [x] **17.1** Create notification preferences model
+  - Created `NotificationPreferences` model in `backend/internal/models/user.go`
+  - Stores per-user preferences for: likes, comments, follows, mentions, DMs, stories, reposts, challenges
+  - All notifications enabled by default
+  - Auto-migrates with database startup
 
-- [ ] **17.2** Notification settings UI
-  - Toggle for each notification type
-  - Push vs in-app settings
+- [x] **17.2** Notification settings UI
+  - Created `NotificationSettings` component in plugin (`plugin/src/ui/profile/NotificationSettings.h/cpp`)
+  - Toggle for each notification type organized by category:
+    - Social: Likes, Comments, New Followers, Mentions
+    - Content: Stories, Reposts
+    - Activity: Direct Messages, MIDI Challenges
+  - Accessible from Profile view via "Notifications" button
+  - Changes save immediately to backend
 
-- [ ] **17.3** Apply preferences in backend
-  - Filter notifications by user preferences
+- [x] **17.3** Apply preferences in backend
+  - Created notification preferences handler (`backend/internal/handlers/notification_preferences.go`)
+  - Endpoints: `GET/PUT /api/v1/notifications/preferences`
+  - Stream client checks preferences before sending notifications
+  - Skipped notifications logged with 🔕 indicator
 
 ### 18. Keyboard Shortcuts & Accessibility
 

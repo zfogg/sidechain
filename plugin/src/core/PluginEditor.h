@@ -24,6 +24,8 @@
 #include "ui/messages/MessageThread.h"
 #include "ui/stories/StoryRecording.h"
 #include "ui/stories/StoryViewer.h"
+#include "ui/stories/CreateHighlightDialog.h"
+#include "ui/stories/SelectHighlightDialog.h"
 #include "ui/synth/HiddenSynth.h"
 #include "ui/playlists/Playlists.h"
 #include "ui/playlists/PlaylistDetail.h"
@@ -119,6 +121,20 @@ private:
      */
     void showUserStory(const juce::String& userId);
 
+    /** Show story viewer for a highlight's stories
+     * @param highlight The highlight to display
+     */
+    void showHighlightStories(const StoryHighlight& highlight);
+
+    /** Show the create highlight dialog
+     */
+    void showCreateHighlightDialog();
+
+    /** Show the select highlight dialog for adding a story
+     * @param storyId The story ID to add to a highlight
+     */
+    void showSelectHighlightDialog(const juce::String& storyId);
+
     /** Navigate back to the previous view in the navigation stack
      */
     void navigateBack();
@@ -168,6 +184,10 @@ private:
     std::unique_ptr<MidiChallenges> midiChallengesComponent;
     std::unique_ptr<MidiChallengeDetail> midiChallengeDetailComponent;
     std::unique_ptr<SavedPosts> savedPostsComponent;
+
+    // Story highlight dialogs
+    std::unique_ptr<CreateHighlightDialog> createHighlightDialog;
+    std::unique_ptr<SelectHighlightDialog> selectHighlightDialog;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;
