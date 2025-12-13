@@ -226,6 +226,18 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		isFollowedBy, _ = h.stream.CheckIsFollowing(user.StreamUserID, currentUserID)
 	}
 
+	// Check for pending follow request if account is private
+	var followRequestStatus string
+	var followRequestID string
+	if user.IsPrivate && currentUserID != "" && currentUserID != user.ID && !isFollowing {
+		var request models.FollowRequest
+		if err := database.DB.Where("requester_id = ? AND target_id = ?", currentUserID, user.ID).
+			First(&request).Error; err == nil {
+			followRequestStatus = string(request.Status)
+			followRequestID = request.ID
+		}
+	}
+
 	// Count posts
 	var postCount int64
 	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true", user.ID).Count(&postCount)
@@ -257,6 +269,9 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		"post_count":                 postCount,
 		"is_following":               isFollowing,
 		"is_followed_by":             isFollowedBy,
+		"is_private":                 user.IsPrivate,
+		"follow_request_status":      followRequestStatus,
+		"follow_request_id":          followRequestID,
 		"highlights":                 highlights,
 		"created_at":                 user.CreatedAt,
 	})
@@ -314,6 +329,7 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 		"following_count":            followingCount,
 		"post_count":                 postCount,
 		"email_verified":             currentUser.EmailVerified,
+		"is_private":                 currentUser.IsPrivate,
 		"highlights":                 highlights,
 		"created_at":                 currentUser.CreatedAt,
 	})
@@ -335,6 +351,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 		Genre             []string            `json:"genre"`
 		SocialLinks       *models.SocialLinks `json:"social_links"`
 		ProfilePictureURL *string             `json:"profile_picture_url"`
+		IsPrivate         *bool               `json:"is_private"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -365,6 +382,9 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 	if req.ProfilePictureURL != nil {
 		updates["profile_picture_url"] = *req.ProfilePictureURL
 	}
+	if req.IsPrivate != nil {
+		updates["is_private"] = *req.IsPrivate
+	}
 
 	if len(updates) == 0 {
 		util.RespondBadRequest(c, "no_fields_to_update")
@@ -391,6 +411,7 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 			"genre":               currentUser.Genre,
 			"social_links":        currentUser.SocialLinks,
 			"profile_picture_url": currentUser.ProfilePictureURL,
+			"is_private":          currentUser.IsPrivate,
 		},
 		"updated_at": time.Now().UTC(),
 	})
@@ -580,6 +601,7 @@ func (h *Handlers) GetUserFollowing(c *gin.Context) {
 // GET /api/users/:id/posts
 func (h *Handlers) GetUserPosts(c *gin.Context) {
 	targetUserID := c.Param("id")
+	currentUserID := c.GetString("user_id") // May be empty if not authenticated
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
@@ -587,6 +609,45 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	var user models.User
 	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
+			return
+		}
+	}
+
+	// Check if user is private and if viewer has permission
+	if user.IsPrivate && currentUserID != user.ID {
+		// Not viewing own profile - check if following
+		canView := false
+		if currentUserID != "" && h.stream != nil {
+			// Check if current user follows this private account
+			isFollowing, _ := h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
+			canView = isFollowing
+		}
+
+		if !canView {
+			// Get effective avatar URL
+			avatarURL := user.ProfilePictureURL
+			if avatarURL == "" {
+				avatarURL = user.OAuthProfilePictureURL
+			}
+
+			// Return empty posts with privacy message
+			c.JSON(http.StatusOK, gin.H{
+				"posts": []gin.H{},
+				"user": gin.H{
+					"id":           user.ID,
+					"username":     user.Username,
+					"display_name": user.DisplayName,
+					"avatar_url":   avatarURL,
+					"is_private":   true,
+				},
+				"meta": gin.H{
+					"limit":      limit,
+					"offset":     offset,
+					"count":      0,
+					"is_private": true,
+					"message":    "This account is private. Follow to see their posts.",
+				},
+			})
 			return
 		}
 	}
@@ -698,6 +759,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 
 // FollowUserByID follows a user by ID (path param version)
 // POST /api/users/:id/follow
+// If target user is private, creates a follow request instead
 func (h *Handlers) FollowUserByID(c *gin.Context) {
 	currentUser, ok := util.GetUserFromContext(c)
 	if !ok {
@@ -719,7 +781,62 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 		return
 	}
 
-	// Follow via Stream.io
+	// Check if target account is private
+	if targetUser.IsPrivate {
+		// Check if there's already a pending request
+		var existingRequest models.FollowRequest
+		err := database.DB.Where("requester_id = ? AND target_id = ? AND status = ?",
+			currentUser.ID, targetUser.ID, models.FollowRequestStatusPending).
+			First(&existingRequest).Error
+
+		if err == nil {
+			// Already have a pending request
+			c.JSON(http.StatusOK, gin.H{
+				"status":      "requested",
+				"target_user": targetUser.ID,
+				"username":    targetUser.Username,
+				"request_id":  existingRequest.ID,
+				"message":     "Follow request already pending",
+			})
+			return
+		}
+
+		if err != gorm.ErrRecordNotFound {
+			util.RespondInternalError(c, "check_failed", "Failed to check existing request")
+			return
+		}
+
+		// Check if they previously rejected and we're trying again - allow it
+		// First delete any old rejected request
+		database.DB.Where("requester_id = ? AND target_id = ? AND status = ?",
+			currentUser.ID, targetUser.ID, models.FollowRequestStatusRejected).
+			Delete(&models.FollowRequest{})
+
+		// Create a new follow request
+		followRequest := models.FollowRequest{
+			RequesterID: currentUser.ID,
+			TargetID:    targetUser.ID,
+			Status:      models.FollowRequestStatusPending,
+		}
+
+		if err := database.DB.Create(&followRequest).Error; err != nil {
+			util.RespondInternalError(c, "request_failed", "Failed to create follow request")
+			return
+		}
+
+		// TODO: Send notification to target user about new follow request
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":      "requested",
+			"target_user": targetUser.ID,
+			"username":    targetUser.Username,
+			"request_id":  followRequest.ID,
+			"message":     "Follow request sent",
+		})
+		return
+	}
+
+	// Public account - follow directly via Stream.io
 	if err := h.stream.FollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
 		util.RespondInternalError(c, "follow_failed", err.Error())
 		return

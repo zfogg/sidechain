@@ -243,22 +243,39 @@ Sidechain has a solid foundation with core features implemented:
 
 - [ ] **10.4** Add "Mute" option to user menu
 
-### 11. Private Account Option
+### 11. Private Account Option ✅ IMPLEMENTED
 
 **Problem**: All accounts are public. Some users want private accounts.
 
-**TODO**:
-- [ ] **11.1** Add `is_private` field to User model
-- [ ] **11.2** Implement follow request system
-  - Pending follows for private accounts
-  - Accept/deny follow requests
-  - Notification for follow requests
+**COMPLETED**:
+- [x] **11.1** Add `is_private` field to User model
+  - Added to `backend/internal/models/user.go`
 
-- [ ] **11.3** Hide posts for private accounts
-  - Only visible to approved followers
-  - Show lock icon on profile
+- [x] **11.2** Implement follow request system
+  - Created `FollowRequest` model with pending/accepted/rejected status
+  - Created handlers in `backend/internal/handlers/follow_requests.go`:
+    - `GET /api/v1/users/me/follow-requests` - Get pending requests
+    - `GET /api/v1/users/me/pending-requests` - Get sent requests
+    - `POST /api/v1/follow-requests/:id/accept` - Accept request
+    - `POST /api/v1/follow-requests/:id/reject` - Reject request
+    - `DELETE /api/v1/follow-requests/:id` - Cancel request
+    - `GET /api/v1/users/:id/follow-request-status` - Check status
+  - Updated `FollowUserByID` to create follow request for private accounts
+  - Notification for follow requests (TODO: WebSocket integration)
 
-- [ ] **11.4** Private account settings UI
+- [x] **11.3** Hide posts for private accounts
+  - `GetUserPosts` returns empty list with privacy message for non-followers
+  - `GetUserProfile` includes is_private and follow_request_status fields
+  - Lock icon shown next to display name on Profile component
+
+- [x] **11.4** Private account settings UI
+  - Added toggle in EditProfile component
+  - Privacy section with explanatory text
+  - Saves to backend via `is_private` field
+
+**TODO (follow-up)**:
+- [ ] WebSocket notification when follow request is accepted
+- [ ] Show pending follow requests count in notification bell
 
 ### 12. Post Comments Control
 
@@ -379,6 +396,16 @@ Sidechain has a solid foundation with core features implemented:
   - Help screen with all shortcuts
   - Accessible via `?` key
 
+
+### 19. Let users download the audio and midi of a post or story
+
+Problem: users might wanna do stuff like use what they find in the plugin in their DAW to make music, or just have the file.
+Solution: unlike instagram and tiktok, we'll provide file downloads to our media.
+
+**TODO**:
+- [ ] **19.1** File download endpoints for the backend for a post's audio and midi
+  - the midi needs to be formatted as a midi file DAWs can import
+- [ ] **19.2** Plugin needs to implement these endpoints in the ui to let users download the audio and midi of any post or story in the plugin.
 ---
 
 ## P2: Medium Priority - Differentiators
@@ -406,8 +433,8 @@ Sidechain has a solid foundation with core features implemented:
 **Problem**: Stories are passive. Instagram has polls, questions, quizzes.
 
 **TODO**:
-- [ ] **20.1** BPM/Key guess poll
-  - "Guess the BPM" interactive element
+- [ ] **20.1** Key guess poll
+  - "Guess the key" interactive element
   - Reveal answer after voting
 
 - [ ] **20.2** "Ask me anything" for producers

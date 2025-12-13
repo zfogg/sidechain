@@ -93,6 +93,7 @@ func Migrate() error {
 		&models.CommentMention{},
 		&models.Report{},
 		&models.UserBlock{},
+		&models.FollowRequest{}, // Private accounts follow request system
 		&models.SearchQuery{},
 		&models.UserPreference{},
 		&models.PlayHistory{},

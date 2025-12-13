@@ -300,6 +300,11 @@ func main() {
 			users.PUT("/username", h.ChangeUsername)
 			users.POST("/upload-profile-picture", middleware.RateLimitUpload(), authHandlers.UploadProfilePicture)
 
+			// Follow request endpoints (for private accounts)
+			users.GET("/me/follow-requests", h.GetFollowRequests)
+			users.GET("/me/follow-requests/count", h.GetFollowRequestCount)
+			users.GET("/me/pending-requests", h.GetPendingFollowRequests)
+
 			// User profile endpoints (require auth for following checks)
 			users.GET("/:id/profile", h.GetUserProfile)
 			users.GET("/:id/posts", h.GetUserPosts)
@@ -309,6 +314,16 @@ func main() {
 			users.GET("/:id/similar", h.GetSimilarUsers)
 			users.POST("/:id/follow", h.FollowUserByID)
 			users.DELETE("/:id/follow", h.UnfollowUserByID)
+			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
+		}
+
+		// Follow request management routes
+		followRequests := api.Group("/follow-requests")
+		{
+			followRequests.Use(authHandlers.AuthMiddleware())
+			followRequests.POST("/:id/accept", h.AcceptFollowRequest)
+			followRequests.POST("/:id/reject", h.RejectFollowRequest)
+			followRequests.DELETE("/:id", h.CancelFollowRequest)
 		}
 
 		// Search routes
