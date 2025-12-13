@@ -33,6 +33,16 @@ void NotificationBell::setUnreadCount(int count)
     }
 }
 
+void NotificationBell::setFollowRequestCount(int count)
+{
+    if (followRequestCount != count)
+    {
+        followRequestCount = juce::jmax(0, count);
+        Log::debug("NotificationBell: Follow request count updated - " + juce::String(followRequestCount));
+        repaint();
+    }
+}
+
 void NotificationBell::clearBadge()
 {
     if (unseenCount != 0)
@@ -58,8 +68,8 @@ void NotificationBell::paint(juce::Graphics& g)
     auto bellBounds = bounds.reduced(4.0f);
     drawBell(g, bellBounds);
 
-    // Draw badge if there are unseen notifications
-    if (unseenCount > 0)
+    // Draw badge if there are unseen notifications or follow requests
+    if (getTotalBadgeCount() > 0)
     {
         drawBadge(g, bounds);
     }
@@ -69,7 +79,7 @@ void NotificationBell::drawBell(juce::Graphics& g, juce::Rectangle<float> bounds
 {
     // Bell color - slightly dimmed when no notifications, brighter on hover
     juce::Colour bellColor;
-    if (unseenCount > 0)
+    if (getTotalBadgeCount() > 0)
         bellColor = juce::Colours::white;
     else if (hoverState.isHovered())
         bellColor = juce::Colours::white.withAlpha(0.9f);
@@ -166,9 +176,10 @@ void NotificationBell::drawBadge(juce::Graphics& g, juce::Rectangle<float> bound
 
 juce::String NotificationBell::getBadgeText() const
 {
-    if (unseenCount >= 100)
+    int total = getTotalBadgeCount();
+    if (total >= 100)
         return "99+";
-    return juce::String(unseenCount);
+    return juce::String(total);
 }
 
 //==============================================================================
@@ -195,10 +206,21 @@ void NotificationBell::mouseDown(const juce::MouseEvent&)
 
 juce::String NotificationBell::getTooltip()
 {
-    if (unseenCount == 0)
+    int total = getTotalBadgeCount();
+
+    if (total == 0)
         return "No new notifications";
-    else if (unseenCount == 1)
-        return "1 new notification";
-    else
-        return juce::String(unseenCount) + " new notifications";
+
+    juce::String tooltip;
+    if (unseenCount > 0)
+    {
+        tooltip = juce::String(unseenCount) + " new notification" + (unseenCount == 1 ? "" : "s");
+    }
+    if (followRequestCount > 0)
+    {
+        if (tooltip.isNotEmpty())
+            tooltip += ", ";
+        tooltip += juce::String(followRequestCount) + " follow request" + (followRequestCount == 1 ? "" : "s");
+    }
+    return tooltip;
 }

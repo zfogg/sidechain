@@ -358,9 +358,9 @@ Sidechain has a solid foundation with core features implemented:
   - Privacy section with explanatory text
   - Saves to backend via `is_private` field
 
-**TODO (follow-up)**:
-- [ ] WebSocket notification when follow request is accepted
-- [ ] Show pending follow requests count in notification bell
+**COMPLETED (follow-up)**:
+- [x] WebSocket notification when follow request is accepted
+- [x] Show pending follow requests count in notification bell
 
 ### 12. Post Comments Control ✅ IMPLEMENTED
 
@@ -443,7 +443,7 @@ Sidechain has a solid foundation with core features implemented:
 
 **TODO**:
 - [ ] **15.1** Audio fingerprinting (phase 2)
-  - try using the golang fingerprinting code from https://github.com/sfluor/musig to fingerprint music, then store the result and match against the fingerprints in the database. you can rip the code out if you need (MIT license)
+  - try using the golang fingerprinting code from https://github.com/sfluor/musig to fingerprint music, then store the result and match against the fingerprints in the database. you can rip the code out if you need (MIT license). also search and see if you can find a better implementation of shazam's fingerprinting and fingerprint matching database software that we can use via web search.
   - Detect same audio used across posts
   - Group by audio signature
 
@@ -672,7 +672,7 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 
 ### 25. QR Code Profile Sharing
 
-**Problem**: Sharing profiles requires copying links.
+**Problem**: Sharing profiles is difficult because we can't link to something in a DAW plugin (or can we? research this)
 
 **TODO**:
 - [ ] **25.1** Generate profile QR code

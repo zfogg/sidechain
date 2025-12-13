@@ -61,6 +61,7 @@ type StreamClientInterface interface {
 	AddToNotificationFeed(targetUserID string, activity *Activity) error
 	NotifyLike(actorUserID, targetUserID, loopID string) error
 	NotifyFollow(actorUserID, targetUserID string) error
+	NotifyFollowRequestAccepted(acceptorUserID, requesterUserID string) error
 	NotifyComment(actorUserID, targetUserID, loopID, commentText string) error
 	NotifyMention(actorUserID, targetUserID, loopID, commentID string) error
 

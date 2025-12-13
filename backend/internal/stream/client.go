@@ -29,15 +29,16 @@ const (
 
 // Notification verbs - these become the "verb" field in notification activities
 const (
-	NotifVerbLike                = "like"               // Someone liked your loop
-	NotifVerbFollow              = "follow"             // Someone followed you
-	NotifVerbComment             = "comment"            // Someone commented on your loop
-	NotifVerbMention             = "mention"            // Someone mentioned you in a comment
-	NotifVerbRepost              = "repost"             // Someone reposted your loop
-	NotifVerbChallengeCreated    = "challenge_created"  // New MIDI challenge created
-	NotifVerbChallengeDeadline   = "challenge_deadline" // Challenge deadline approaching
-	NotifVerbChallengeVotingOpen = "challenge_voting"   // Challenge voting period started
-	NotifVerbChallengeEnded      = "challenge_ended"    // Challenge ended (winner announced)
+	NotifVerbLike                    = "like"                     // Someone liked your loop
+	NotifVerbFollow                  = "follow"                   // Someone followed you
+	NotifVerbFollowRequestAccepted   = "follow_request_accepted"  // Your follow request was accepted
+	NotifVerbComment                 = "comment"                  // Someone commented on your loop
+	NotifVerbMention                 = "mention"                  // Someone mentioned you in a comment
+	NotifVerbRepost                  = "repost"                   // Someone reposted your loop
+	NotifVerbChallengeCreated        = "challenge_created"        // New MIDI challenge created
+	NotifVerbChallengeDeadline       = "challenge_deadline"       // Challenge deadline approaching
+	NotifVerbChallengeVotingOpen     = "challenge_voting"         // Challenge voting period started
+	NotifVerbChallengeEnded          = "challenge_ended"          // Challenge ended (winner announced)
 )
 
 // NotificationPreferencesChecker is an interface for checking notification preferences
@@ -1188,6 +1189,28 @@ func (c *Client) NotifyFollow(actorUserID, targetUserID string) error {
 		},
 	}
 	return c.AddToNotificationFeed(targetUserID, activity)
+}
+
+// NotifyFollowRequestAccepted notifies a user that their follow request was accepted
+// This is sent to the requester (not the private account owner)
+func (c *Client) NotifyFollowRequestAccepted(acceptorUserID, requesterUserID string) error {
+	// Check if requester has follow notifications enabled (use same pref as follow)
+	if !c.isNotificationEnabled(requesterUserID, NotifVerbFollow) {
+		fmt.Printf("🔕 Follow request accepted notification skipped for user:%s (disabled in preferences)\n", requesterUserID)
+		return nil
+	}
+
+	activity := &Activity{
+		Actor:  fmt.Sprintf("user:%s", acceptorUserID),
+		Verb:   NotifVerbFollowRequestAccepted,
+		Object: fmt.Sprintf("user:%s", requesterUserID),
+		Extra: map[string]interface{}{
+			"actor_id":    acceptorUserID,   // The private account user who accepted
+			"target_id":   requesterUserID,  // The user whose request was accepted
+			"request_id":  "",               // Will be populated by caller if needed
+		},
+	}
+	return c.AddToNotificationFeed(requesterUserID, activity)
 }
 
 // NotifyComment sends a comment notification to the loop owner

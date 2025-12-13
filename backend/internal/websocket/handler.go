@@ -360,6 +360,16 @@ func (h *Handler) NotifyFollow(followeeID string, payload *FollowPayload) {
 	h.hub.SendToUser(followeeID, NewMessage(MessageTypeNewFollower, payload))
 }
 
+// NotifyFollowRequestAccepted sends a notification when a follow request is accepted
+func (h *Handler) NotifyFollowRequestAccepted(requesterID, acceptorID, acceptorUsername string) {
+	payload := &FollowRequestAcceptedPayload{
+		AcceptorID:   acceptorID,
+		AcceptorName: acceptorUsername,
+		RequesterID:  requesterID,
+	}
+	h.hub.SendToUser(requesterID, NewMessage(MessageTypeFollowRequestAccepted, payload))
+}
+
 // BroadcastLikeCountUpdate broadcasts like count update to all viewers
 func (h *Handler) BroadcastLikeCountUpdate(postID string, likeCount int) {
 	h.hub.Broadcast(NewMessage(MessageTypeLikeCountUpdate, map[string]interface{}{
