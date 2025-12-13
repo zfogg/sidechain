@@ -277,22 +277,32 @@ Sidechain has a solid foundation with core features implemented:
 - [ ] WebSocket notification when follow request is accepted
 - [ ] Show pending follow requests count in notification bell
 
-### 12. Post Comments Control
+### 12. Post Comments Control ✅ IMPLEMENTED
 
 **Problem**: Can't control who comments on your posts.
 
-**TODO**:
-- [ ] **12.1** Add comment controls to post creation
-  - "Allow comments: Everyone / Followers / Off"
+**COMPLETED**:
+- [x] **12.1** Add comment controls to post creation
+  - "Comments" dropdown in Upload component: "Everyone" / "Followers Only" / "Off"
+  - Included in upload metadata sent to backend
 
-- [ ] **12.2** Store setting on post
-  - `comments_enabled` field
-  - `comment_audience` enum
+- [x] **12.2** Store setting on post
+  - Added `comment_audience` field to AudioPost model (backend/internal/models/user.go)
+  - Constants: `CommentAudienceEveryone`, `CommentAudienceFollowers`, `CommentAudienceOff`
+  - Added to AudioUploadMetadata in NetworkClient
 
-- [ ] **12.3** Enforce in backend
-  - Check audience before allowing comment
+- [x] **12.3** Enforce in backend
+  - CreateComment handler checks `comment_audience` before allowing comment
+  - Post owner can always comment on their own posts
+  - "followers" mode checks if commenter follows post owner via Stream.io
+  - Added `PUT /api/v1/posts/:id/comment-audience` to update setting on existing posts
 
-- [ ] **12.4** Show "Comments disabled" on posts
+- [x] **12.4** Show "Comments disabled" on posts
+  - Added `commentAudience` field to FeedPost model in plugin
+  - PostCard shows dimmed/crossed-out comment icon when comments disabled
+  - Displays "Off" instead of comment count when disabled
+  - Tooltip shows "Comments are disabled" or "Followers only"
+  - Comment button click is disabled when comments are off
 
 ### 13. Pin Posts to Profile
 
