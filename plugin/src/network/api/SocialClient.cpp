@@ -281,3 +281,82 @@ void NetworkClient::undoRepost(const juce::String& postId, ResponseCallback call
         }
     });
 }
+
+//==============================================================================
+// Archive operations (hide posts without deleting)
+//==============================================================================
+
+void NetworkClient::archivePost(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/api/v1/posts/" + postId + "/archive";
+        auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+        Log::debug("Archive post response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::unarchivePost(const juce::String& postId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/api/v1/posts/" + postId + "/unarchive";
+        auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+        Log::debug("Unarchive post response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        juce::String endpoint = buildApiPath("/users/me/archived") +
+            "?limit=" + juce::String(limit) +
+            "&offset=" + juce::String(offset);
+
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        Log::debug("Get archived posts response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
