@@ -8,7 +8,7 @@ class NetworkClient;
 /**
  * ActivityStatusSettings provides a UI for managing activity status privacy settings
  *
- * Features (Feature #9):
+ * Features:
  * - Toggle to show/hide online status to other users
  * - Toggle to show/hide "last active" time to other users
  * - All changes are persisted to the backend

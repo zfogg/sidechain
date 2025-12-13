@@ -362,7 +362,7 @@ void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callbac
 }
 
 //==============================================================================
-// Mute operations (Feature #10 - Mute users without blocking)
+// Mute operations
 //==============================================================================
 
 void NetworkClient::muteUser(const juce::String& userId, ResponseCallback callback)
@@ -465,7 +465,7 @@ void NetworkClient::isUserMuted(const juce::String& userId, ResponseCallback cal
 }
 
 //==============================================================================
-// Pin posts to profile operations (Feature #13)
+// Pin posts to profile operations
 //==============================================================================
 
 void NetworkClient::pinPost(const juce::String& postId, ResponseCallback callback)

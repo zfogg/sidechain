@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// MuteUser mutes a user for the current user (Feature #10)
+// MuteUser mutes a user for the current user
 // Muting hides the muted user's posts from the feed without unfollowing
 // POST /api/v1/users/:id/mute
 func (h *Handlers) MuteUser(c *gin.Context) {

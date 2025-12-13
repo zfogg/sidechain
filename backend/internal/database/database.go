@@ -112,7 +112,7 @@ func Migrate() error {
 		&models.SavedPost{},               // Save/Bookmark posts feature
 		&models.Repost{},                  // Repost/Share to feed feature
 		&models.NotificationPreferences{}, // Notification preferences per user
-		&models.MutedUser{},               // Mute users without unfollowing (Feature #10)
+		&models.MutedUser{},               // Mute users without unfollowing
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -266,7 +266,7 @@ func createIndexes() error {
 	// Notification preferences indexes
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_preferences_user ON notification_preferences (user_id) WHERE deleted_at IS NULL")
 
-	// Muted users indexes (Feature #10)
+	// Muted users indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_muted_users_user ON muted_users (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_muted_users_muted ON muted_users (muted_user_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_muted_users_unique ON muted_users (user_id, muted_user_id)")

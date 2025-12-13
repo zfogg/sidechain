@@ -238,7 +238,7 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		}
 	}
 
-	// Check if current user has muted this profile (Feature #10)
+	// Check if current user has muted this profile
 	var isMuted bool
 	if currentUserID != "" && currentUserID != user.ID {
 		var mutedUser models.MutedUser
@@ -281,14 +281,14 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		"is_following":               isFollowing,
 		"is_followed_by":             isFollowedBy,
 		"is_private":                 user.IsPrivate,
-		"is_muted":                   isMuted,  // Feature #10
+		"is_muted":                   isMuted,
 		"follow_request_status":      followRequestStatus,
 		"follow_request_id":          followRequestID,
 		"highlights":                 highlights,
 		"created_at":                 user.CreatedAt,
 	}
 
-	// Add activity status info only if the user allows it (Feature #9)
+	// Add activity status info only if the user allows it
 	// Viewing your own profile always shows activity status
 	if currentUserID == user.ID {
 		response["is_online"] = user.IsOnline

@@ -178,11 +178,11 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.isFollowing = Json::getBool(json, "is_following");
     post.isOwnPost = Json::getBool(json, "is_own_post");
 
-    // Pin metadata (Feature #13)
+    // Pin metadata
     post.isPinned = Json::getBool(json, "is_pinned");
     post.pinOrder = Json::getInt(json, "pin_order");
 
-    // Comment audience setting (Feature #12)
+    // Comment audience setting
     post.commentAudience = Json::getString(json, "comment_audience");
     if (post.commentAudience.isEmpty())
         post.commentAudience = "everyone";  // Default
@@ -318,7 +318,7 @@ juce::var FeedPost::toJson() const
     obj->setProperty("is_own_post", isOwnPost);
     obj->setProperty("comment_audience", commentAudience);
 
-    // Pin metadata (Feature #13)
+    // Pin metadata
     obj->setProperty("is_pinned", isPinned);
     obj->setProperty("pin_order", pinOrder);
 
