@@ -4,6 +4,7 @@
 #include "../../models/FeedPost.h"
 #include "../feed/PostCard.h"
 #include "../social/UserCard.h"  // For DiscoveredUser struct and UserCard
+#include "../common/ErrorState.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -135,6 +136,7 @@ private:
     std::unique_ptr<juce::ScrollBar> scrollBar;
     juce::OwnedArray<PostCard> postCards;
     juce::OwnedArray<UserCard> userCards;
+    std::unique_ptr<ErrorState> errorStateComponent;
 
     // Filter UI bounds
     juce::Rectangle<int> genreFilterBounds;

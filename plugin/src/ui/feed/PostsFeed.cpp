@@ -62,6 +62,17 @@ PostsFeed::PostsFeed()
     };
     addChildComponent(commentsPanel.get());
     Log::debug("PostsFeedComponent: Comments panel created");
+
+    // Create error state component (initially hidden)
+    errorStateComponent = std::make_unique<ErrorState>();
+    errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+    errorStateComponent->setPrimaryAction("Try Again", [this]() {
+        Log::info("PostsFeed: Retry requested from error state");
+        loadFeed();
+    });
+    addChildComponent(errorStateComponent.get());
+    Log::debug("PostsFeedComponent: Error state component created");
+
     Log::info("PostsFeedComponent: Initialization complete");
 }
 
@@ -346,6 +357,10 @@ void PostsFeed::onFeedLoaded(const FeedResponse& response)
     Log::info("PostsFeed::onFeedLoaded: Feed loaded - posts: " + juce::String(response.posts.size()));
     posts = response.posts;
 
+    // Hide error state on successful load
+    if (errorStateComponent != nullptr)
+        errorStateComponent->setVisible(false);
+
     if (posts.isEmpty())
     {
         feedState = FeedState::Empty;
@@ -479,6 +494,14 @@ void PostsFeed::onFeedError(const juce::String& error)
     Log::error("PostsFeed::onFeedError: Feed error - " + error);
     errorMessage = error;
     feedState = FeedState::Error;
+
+    // Configure and show error state component
+    if (errorStateComponent != nullptr)
+    {
+        errorStateComponent->configureFromError(error);
+        errorStateComponent->setVisible(true);
+    }
+
     repaint();
 }
 
@@ -509,7 +532,8 @@ void PostsFeed::paint(juce::Graphics& g)
             drawEmptyState(g);
             break;
         case FeedState::Error:
-            drawErrorState(g);
+            // ErrorState component handles the error UI as a child component
+            // Just ensure background is drawn (already done above)
             break;
     }
 }
@@ -1973,6 +1997,12 @@ void PostsFeed::resized()
     scrollBar.setBounds(bounds.getRight() - 12, contentBounds.getY(), 12, contentBounds.getHeight());
     updateScrollBounds();
     updatePostCardPositions();
+
+    // Position error state component in content area
+    if (errorStateComponent != nullptr)
+    {
+        errorStateComponent->setBounds(contentBounds);
+    }
 
     // Position comments panel if visible (animation will handle position updates)
     if (commentsPanel != nullptr && commentsPanelVisible)

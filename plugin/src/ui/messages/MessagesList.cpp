@@ -13,6 +13,16 @@ MessagesList::MessagesList()
     scrollBar.setRangeLimits(0.0, 0.0);
     scrollBar.addListener(this);
 
+    // Create error state component (initially hidden)
+    errorStateComponent = std::make_unique<ErrorState>();
+    errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+    errorStateComponent->setPrimaryAction("Reconnect", [this]() {
+        Log::info("MessagesList: Reconnect requested from error state");
+        loadChannels();
+    });
+    addChildComponent(errorStateComponent.get());
+    Log::debug("MessagesList: Error state component created");
+
     startTimer(10000); // Refresh every 10 seconds
 
     // TODO: Phase 6.2.10 - Show "typing" indicator (future) - Deferred to future phase
@@ -49,7 +59,7 @@ void MessagesList::paint(juce::Graphics& g)
             break;
 
         case ListState::Error:
-            drawErrorState(g);
+            // ErrorState component handles the error UI as a child component
             break;
 
         case ListState::Loaded:
@@ -82,6 +92,13 @@ void MessagesList::resized()
     int totalHeight = HEADER_HEIGHT + static_cast<int>(channels.size() * ITEM_HEIGHT);
     scrollBar.setRangeLimits(0.0, static_cast<double>(juce::jmax(0, totalHeight - getHeight())));
     scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+
+    // Position error state component in content area below header
+    if (errorStateComponent != nullptr)
+    {
+        auto contentArea = getLocalBounds().withTrimmedTop(HEADER_HEIGHT);
+        errorStateComponent->setBounds(contentArea);
+    }
 }
 
 void MessagesList::mouseUp(const juce::MouseEvent& event)
@@ -139,6 +156,14 @@ void MessagesList::loadChannels()
         Log::warn("MessagesList: Cannot load channels - not authenticated");
         listState = ListState::Error;
         errorMessage = "Not authenticated";
+
+        // Show auth error state
+        if (errorStateComponent != nullptr)
+        {
+            errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
+            errorStateComponent->setMessage("Please sign in to view your messages.");
+            errorStateComponent->setVisible(true);
+        }
         repaint();
         return;
     }
@@ -153,12 +178,23 @@ void MessagesList::loadChannels()
             channels = channelsResult.getValue();
             Log::info("MessagesList: Loaded " + juce::String(channels.size()) + " conversations");
             listState = channels.empty() ? ListState::Empty : ListState::Loaded;
+
+            // Hide error state on success
+            if (errorStateComponent != nullptr)
+                errorStateComponent->setVisible(false);
         }
         else
         {
             Log::error("MessagesList: Failed to load channels - " + channelsResult.getError());
             listState = ListState::Error;
             errorMessage = "Failed to load channels: " + channelsResult.getError();
+
+            // Configure and show error state component
+            if (errorStateComponent != nullptr)
+            {
+                errorStateComponent->configureFromError(channelsResult.getError());
+                errorStateComponent->setVisible(true);
+            }
         }
         repaint();
     });

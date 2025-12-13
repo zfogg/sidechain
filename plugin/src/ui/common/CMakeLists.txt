@@ -6,6 +6,10 @@ add_library(SidechainUICommon STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Header.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Header.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ConnectionIndicator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ErrorState.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ErrorState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ToastNotification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ToastNotification.h
 )
 
 target_include_directories(SidechainUICommon PUBLIC
