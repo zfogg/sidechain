@@ -134,21 +134,35 @@ Sidechain has a solid foundation with core features implemented:
   - Displayed on PostCard
   - Incremented/decremented atomically
 
-### 4. Direct Share to DMs
+### 4. Direct Share to DMs ✅ IMPLEMENTED
 
 **Problem**: Can't share posts or stories directly to messages like Instagram.
 
-**TODO**:
-- [ ] **4.0** Research how we can embed posts and stories into getstream.io chats.
-- [ ] **4.1** Add "Send" option to share menu on posts and when viewing someone else's stories
-- [ ] **4.2** Create user/channel picker dialog
-  - Recent conversations at top
-  - Search for users, recently-searched-for and recently-messaged users suggested at the top
-  - Select multiple recipients
-- [ ] **4.3** Share post as message with preview
-  - Audio preview in message
-  - Click to open full post
-- [ ] **4.4** Share stories to DMs similarly
+**COMPLETED**:
+- [x] **4.0** Research getstream.io chat embedding
+  - Messages use `extraData` to embed `shared_post` or `shared_story` objects
+  - Full metadata included: author, audio_url, BPM, key, duration, genres
+
+- [x] **4.1** Share menus with "Send to..." option
+  - PostCard share menu (`plugin/src/ui/feed/PostsFeed.cpp`) with "Copy Link" and "Send to..." options
+  - StoryViewer share menu (`plugin/src/ui/stories/StoryViewer.cpp`) with same options
+  - Both wired via `onSendPostToMessage` and `onSendStoryToMessage` callbacks
+
+- [x] **4.2** ShareToMessageDialog user/channel picker (`plugin/src/ui/messages/ShareToMessageDialog.h/cpp`)
+  - Recent conversations loaded from getstream.io
+  - User search with 300ms debounce
+  - Multi-select recipients support
+  - Send progress tracking ("X of Y")
+
+- [x] **4.3** Post sharing with preview
+  - Content preview in ShareToMessageDialog shows author, BPM, key, duration, genres
+  - MessageThread renders shared posts (`drawSharedPostPreview`) with card UI
+  - Music note icon, author attribution, audio metadata display
+
+- [x] **4.4** Story sharing to DMs
+  - `setStoryToShare()` method on ShareToMessageDialog
+  - MessageThread renders shared stories (`drawSharedStoryPreview`)
+  - Story icon, author info, duration display
 
 ### 5. Drafts System
 
