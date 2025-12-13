@@ -453,24 +453,36 @@ Sidechain has a solid foundation with core features implemented:
 
 - [ ] **15.3** Trending sounds section in discovery
 
-### 16. Two-Factor Authentication
+### 16. Two-Factor Authentication ✅ BACKEND IMPLEMENTED
 
 **Problem**: No 2FA option. Security concern for popular creators.
 
-**TODO**:
-- [ ] **16.1** Implement TOTP-based 2FA
-  - QR code generation
-  - Backup codes
+**COMPLETED** (Backend):
+- [x] **16.1** Implement TOTP and HOTP-based 2FA
+  - TOTP support for authenticator apps (Google Authenticator, Authy, Yubico Authenticator)
+  - HOTP support for hardware tokens (YubiKey)
+  - QR code URL generation (otpauth:// protocol)
+  - 10 backup codes with SHA-256 hashing
+  - Counter synchronization with look-ahead window for HOTP
 
-- [ ] **16.2** 2FA endpoints
-  - `POST /api/v1/auth/2fa/enable`
-  - `POST /api/v1/auth/2fa/verify`
-  - `POST /api/v1/auth/2fa/disable`
+- [x] **16.2** 2FA endpoints in `backend/internal/handlers/two_factor.go`:
+  - `GET /api/v1/auth/2fa/status` - Get 2FA status (enabled, type, backup codes remaining)
+  - `POST /api/v1/auth/2fa/enable` - Initiate 2FA setup (pass `type: "hotp"` for YubiKey)
+  - `POST /api/v1/auth/2fa/verify` - Complete 2FA setup by verifying code
+  - `POST /api/v1/auth/2fa/disable` - Disable 2FA (requires code or password)
+  - `POST /api/v1/auth/2fa/login` - Complete login with 2FA code
+  - `POST /api/v1/auth/2fa/backup-codes` - Regenerate backup codes
 
-- [ ] **16.3** 2FA settings UI
-  - Enable/disable toggle
-  - Backup codes download
-  - Recovery options
+- [x] **16.3** Login flow modification:
+  - Modified `Login` handler to return `requires_2fa: true` when 2FA is enabled
+  - Response includes `user_id` and `two_factor_type` for client to complete login
+
+**TODO** (Plugin UI):
+- [ ] **16.4** 2FA settings UI in plugin
+  - Enable/disable toggle with type selection (TOTP for apps, HOTP for YubiKey)
+  - QR code display for TOTP setup
+  - Backup codes display with download/copy option
+  - 2FA verification during login flow
 
 ### 17. Notification Preferences ✅ IMPLEMENTED
 
@@ -595,9 +607,10 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
   - Record alongside another post
   - Split screen playback
 
-- [ ] **21.2** Layered collaboration
+- [ ] **21.2** Layered collaboration / remixes
   - Add your layer to existing post
   - Mix of original + your addition
+  - The backend should keep track of remixes and the plugin ui should show if something is a remix of another post and link to it.
 
 - [ ] **21.3** Collaboration requests
   - Request to collab with someone
@@ -619,6 +632,7 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
   - Audience demographics
 
 - [ ] **22.3** Analytics UI
+  - Build this into an admin section of the web ui we need to build
   - Graphs and charts
   - Time period filters
   - Export data
@@ -634,6 +648,8 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
   - On posts, profile, comments
 
 - [ ] **23.3** Verification request system (phase 2)
+  - Let users send an email for now
+  - We'll build the sidechain side of things into an admin section of the web ui we need to build
   - Manual review process
   - Criteria documentation
 
