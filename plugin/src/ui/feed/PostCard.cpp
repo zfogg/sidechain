@@ -107,6 +107,14 @@ void PostCard::updateRepostState(int count, bool reposted)
     repaint();
 }
 
+void PostCard::updatePinState(bool isPinned, int pinOrder)
+{
+    post.isPinned = isPinned;
+    post.pinOrder = pinOrder;
+    Log::debug("PostCard: Pin state updated - post: " + post.id + ", pinned: " + juce::String(isPinned ? "true" : "false") + ", order: " + juce::String(pinOrder));
+    repaint();
+}
+
 void PostCard::setPlaybackProgress(float progress)
 {
     playbackProgress = juce::jlimit(0.0f, 1.0f, progress);
@@ -493,6 +501,14 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     if (!post.isOwnPost)
         drawRepostButton(g, getRepostButtonBounds());
 
+    // Pin button (only show for own posts)
+    if (post.isOwnPost)
+        drawPinButton(g, getPinButtonBounds());
+
+    // Pinned badge (show if post is pinned)
+    if (post.isPinned)
+        drawPinnedBadge(g);
+
     // Comment count/status
     auto commentBounds = getCommentButtonBounds();
     bool commentsOff = post.commentsDisabled();
@@ -854,6 +870,74 @@ void PostCard::drawRepostButton(juce::Graphics& g, juce::Rectangle<int> bounds)
     }
 }
 
+void PostCard::drawPinButton(juce::Graphics& g, juce::Rectangle<int> bounds)
+{
+    // Only show for own posts
+    if (!post.isOwnPost)
+        return;
+
+    juce::Colour pinColor = post.isPinned ? SidechainColors::primary() : SidechainColors::textMuted();
+    g.setColour(pinColor);
+
+    // Draw pin icon (pushpin shape)
+    auto iconBounds = bounds.withWidth(16).withHeight(18).withY(bounds.getCentreY() - 9);
+    float x = static_cast<float>(iconBounds.getX());
+    float y = static_cast<float>(iconBounds.getY());
+    float w = static_cast<float>(iconBounds.getWidth());
+    float h = static_cast<float>(iconBounds.getHeight());
+
+    juce::Path pin;
+
+    if (post.isPinned)
+    {
+        // Filled pushpin for pinned state
+        // Pin head (rounded rectangle at top)
+        pin.addRoundedRectangle(x + 2, y, w - 4, h * 0.35f, 2.0f);
+        // Pin body (tapered rectangle)
+        pin.addRectangle(x + 4, y + h * 0.35f, w - 8, h * 0.3f);
+        // Pin point (triangle)
+        pin.addTriangle(x + w * 0.5f, y + h,  // bottom point
+                        x + 4, y + h * 0.65f,  // top left
+                        x + w - 4, y + h * 0.65f);  // top right
+        g.fillPath(pin);
+    }
+    else
+    {
+        // Outlined pushpin for unpinned state
+        // Pin head outline
+        g.drawRoundedRectangle(x + 2, y, w - 4, h * 0.35f, 2.0f, 1.5f);
+        // Pin body outline
+        g.drawRect(x + 4, y + h * 0.35f, w - 8, h * 0.3f, 1.5f);
+        // Pin point (triangle outline)
+        pin.addTriangle(x + w * 0.5f, y + h,
+                        x + 4, y + h * 0.65f,
+                        x + w - 4, y + h * 0.65f);
+        g.strokePath(pin, juce::PathStrokeType(1.5f));
+    }
+}
+
+void PostCard::drawPinnedBadge(juce::Graphics& g)
+{
+    if (!post.isPinned)
+        return;
+
+    // Draw small pin badge in top-right corner of the card
+    auto badgeBounds = juce::Rectangle<int>(getWidth() - 55, 8, 48, 16);
+
+    // Background
+    g.setColour(SidechainColors::primary().withAlpha(0.2f));
+    g.fillRoundedRectangle(badgeBounds.toFloat(), 4.0f);
+
+    // Border
+    g.setColour(SidechainColors::primary().withAlpha(0.5f));
+    g.drawRoundedRectangle(badgeBounds.toFloat(), 4.0f, 1.0f);
+
+    // Text
+    g.setColour(SidechainColors::primary());
+    g.setFont(10.0f);
+    g.drawText("PINNED", badgeBounds, juce::Justification::centred);
+}
+
 void PostCard::drawRepostAttribution(juce::Graphics& g)
 {
     if (!post.isARepost || post.originalUsername.isEmpty())
@@ -952,6 +1036,14 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
     {
         if (onRepostClicked)
             onRepostClicked(post);
+        return;
+    }
+
+    // Check pin button (only for own posts)
+    if (post.isOwnPost && getPinButtonBounds().contains(pos))
+    {
+        if (onPinToggled)
+            onPinToggled(post, !post.isPinned);
         return;
     }
 
@@ -1196,6 +1288,12 @@ juce::Rectangle<int> PostCard::getRepostButtonBounds() const
     return juce::Rectangle<int>(getWidth() - 200, CARD_HEIGHT - 35, 35, 25);
 }
 
+juce::Rectangle<int> PostCard::getPinButtonBounds() const
+{
+    // Position next to repost/save button area, only shown for own posts
+    return juce::Rectangle<int>(getWidth() - 240, CARD_HEIGHT - 35, 35, 25);
+}
+
 //==============================================================================
 // Like Animation
 
@@ -1344,6 +1442,10 @@ juce::String PostCard::getTooltip()
     // Repost button
     if (!post.isOwnPost && getRepostButtonBounds().contains(mousePos))
         return post.isReposted ? "Undo repost" : "Repost to your feed";
+
+    // Pin button (only for own posts)
+    if (post.isOwnPost && getPinButtonBounds().contains(mousePos))
+        return post.isPinned ? "Unpin from profile" : "Pin to profile";
 
     // More button (context menu)
     if (getMoreButtonBounds().contains(mousePos))

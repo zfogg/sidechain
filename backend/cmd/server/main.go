@@ -349,6 +349,8 @@ func main() {
 			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
 			// User reposts endpoint (P0 Social Feature)
 			users.GET("/:id/reposts", h.GetUserReposts)
+			// Pinned posts endpoint (Feature #13)
+			users.GET("/:id/pinned", h.GetPinnedPosts)
 			// Mute endpoints (Feature #10)
 			users.POST("/:id/mute", h.MuteUser)
 			users.DELETE("/:id/mute", h.UnmuteUser)
@@ -423,6 +425,11 @@ func main() {
 			posts.GET("/:id/archived", h.IsPostArchived)
 			// Comment controls (Feature #12)
 			posts.PUT("/:id/comment-audience", h.UpdateCommentAudience)
+			// Pin posts to profile (Feature #13)
+			posts.POST("/:id/pin", h.PinPost)
+			posts.DELETE("/:id/pin", h.UnpinPost)
+			posts.PUT("/:id/pin-order", h.UpdatePinOrder)
+			posts.GET("/:id/pinned", h.IsPostPinned)
 		}
 
 		// Comment routes
