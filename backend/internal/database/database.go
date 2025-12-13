@@ -113,6 +113,9 @@ func Migrate() error {
 		&models.Repost{},                  // Repost/Share to feed feature
 		&models.NotificationPreferences{}, // Notification preferences per user
 		&models.MutedUser{},               // Mute users without unfollowing
+		&models.Sound{},                   // Feature #15: Sound/Sample Pages
+		&models.AudioFingerprint{},        // Feature #15: Audio fingerprinting for sound detection
+		&models.SoundUsage{},              // Feature #15: Track sound usage across posts
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -270,6 +273,28 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_muted_users_user ON muted_users (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_muted_users_muted ON muted_users (muted_user_id)")
 	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_muted_users_unique ON muted_users (user_id, muted_user_id)")
+
+	// Sound/Sample Pages indexes (Feature #15)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_fingerprint_hash ON sounds (fingerprint_hash)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_creator ON sounds (creator_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_trending ON sounds (is_trending, trending_rank DESC) WHERE is_trending = true")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_usage_count ON sounds (usage_count DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_created ON sounds (created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sounds_original_post ON sounds (original_post_id) WHERE original_post_id IS NOT NULL")
+
+	// Audio fingerprint indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_fingerprints_hash ON audio_fingerprints (fingerprint_hash)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_fingerprints_sound ON audio_fingerprints (sound_id) WHERE sound_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_fingerprints_post ON audio_fingerprints (audio_post_id) WHERE audio_post_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_fingerprints_story ON audio_fingerprints (story_id) WHERE story_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_fingerprints_status ON audio_fingerprints (status)")
+	DB.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_audio_fingerprints_post_unique ON audio_fingerprints (audio_post_id) WHERE audio_post_id IS NOT NULL AND deleted_at IS NULL")
+
+	// Sound usage indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_sound ON sound_usages (sound_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_user ON sound_usages (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_post ON sound_usages (audio_post_id) WHERE audio_post_id IS NOT NULL")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_sound_created ON sound_usages (sound_id, created_at DESC)")
 
 	return nil
 }

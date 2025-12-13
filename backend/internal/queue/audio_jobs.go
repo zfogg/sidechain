@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/fingerprint"
 	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/storage"
 )
@@ -251,6 +252,9 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 		return
 	}
 
+	// 5. Generate audio fingerprint for Sound detection (Feature #15)
+	// Note: Fingerprinting is done in processAudioWithFFmpeg while the processed file is still available
+
 	// Success!
 	q.updateJobStatus(job.ID, "complete", result, nil)
 
@@ -305,7 +309,17 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 		duration = 0
 	}
 
-	// Step 4: Read processed file
+	// Step 4: Generate audio fingerprint for Sound detection (Feature #15)
+	// This must happen while the processed file is still available
+	fingerprintCtx, fingerprintCancel := context.WithTimeout(ctx, 30*time.Second)
+	err = fingerprint.ProcessPostFingerprint(fingerprintCtx, outputPath, job.PostID, job.UserID)
+	fingerprintCancel()
+	if err != nil {
+		// Non-fatal - fingerprinting failure shouldn't block upload
+		log.Printf("⚠️ Audio fingerprinting failed: %v", err)
+	}
+
+	// Step 5: Read processed file
 	data, err := os.ReadFile(outputPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read processed file: %w", err)
