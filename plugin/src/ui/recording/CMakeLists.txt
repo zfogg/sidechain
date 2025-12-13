@@ -7,6 +7,8 @@ add_library(SidechainUIRecording STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Recording.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Upload.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Upload.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DraftsView.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DraftsView.h
 )
 
 target_include_directories(SidechainUIRecording PUBLIC
@@ -18,12 +20,14 @@ target_link_libraries(SidechainUIRecording PUBLIC
     SidechainModels
     SidechainNetwork
     SidechainAudio
+    SidechainStores
     juce::juce_core
     juce::juce_data_structures
     juce::juce_events
     juce::juce_graphics
     juce::juce_gui_basics
     juce::juce_gui_extra
+    juce::juce_audio_formats
 )
 
 # Enable PIC for Release builds, disable for Debug (faster compilation)

@@ -16,6 +16,8 @@
 #include "ui/feed/PostsFeed.h"
 #include "ui/recording/Recording.h"
 #include "ui/recording/Upload.h"
+#include "ui/recording/DraftsView.h"
+#include "stores/DraftStorage.h"
 #include "ui/common/ConnectionIndicator.h"
 #include "ui/common/Header.h"
 #include "ui/common/ToastNotification.h"
@@ -77,7 +79,7 @@ private:
 
     //==============================================================================
     // View management
-    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail, SavedPosts, ArchivedPosts };
+    enum class AppView { Authentication, ProfileSetup, PostsFeed, Recording, Upload, Drafts, Discovery, Profile, Search, Messages, MessageThread, StoryRecording, StoryViewer, HiddenSynth, Playlists, PlaylistDetail, MidiChallenges, MidiChallengeDetail, SavedPosts, ArchivedPosts };
     AppView currentView = AppView::Authentication;
 
     // Navigation stack for back button support
@@ -123,6 +125,14 @@ private:
     /** Navigate to archived posts view
      */
     void showArchivedPosts();
+
+    /** Navigate to drafts view (Feature #5)
+     */
+    void showDrafts();
+
+    /** Save current upload as draft and return to drafts view (Feature #5)
+     */
+    void saveCurrentUploadAsDraft();
 
     /** Show story viewer for a user's stories
      * @param userId The user ID whose stories to display
@@ -193,6 +203,10 @@ private:
     std::unique_ptr<PostsFeed> postsFeedComponent;
     std::unique_ptr<Recording> recordingComponent;
     std::unique_ptr<Upload> uploadComponent;
+    std::unique_ptr<DraftsView> draftsViewComponent;
+
+    // Draft storage (Feature #5)
+    std::unique_ptr<DraftStorage> draftStorage;
     std::unique_ptr<UserDiscovery> userDiscoveryComponent;
     std::unique_ptr<Profile> profileComponent;
     std::unique_ptr<Search> searchComponent;

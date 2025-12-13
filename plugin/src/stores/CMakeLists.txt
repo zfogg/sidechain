@@ -10,6 +10,8 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.h
 )
 
 # Include directories

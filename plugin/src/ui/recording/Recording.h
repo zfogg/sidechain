@@ -46,6 +46,9 @@ public:
     // Callback when user wants to discard recording
     std::function<void()> onRecordingDiscarded;
 
+    // Callback when user wants to view drafts (Feature #5)
+    std::function<void()> onViewDrafts;
+
 private:
     //==============================================================================
     SidechainAudioProcessor& audioProcessor;
@@ -82,6 +85,7 @@ private:
     juce::Rectangle<int> waveformArea;
     juce::Rectangle<int> actionButtonsArea;
     juce::Rectangle<int> importMidiButtonArea;  // R.3.3.6.3 MIDI import button
+    juce::Rectangle<int> viewDraftsButtonArea;  // Feature #5: View drafts button
 
     // Imported MIDI data (R.3.3.6.3)
     juce::var importedMidiData;
@@ -120,6 +124,7 @@ private:
     void showMidiImportDialog();
     void importMidiFile(const juce::File& file);
     void drawImportMidiButton(juce::Graphics& g);
+    void drawViewDraftsButton(juce::Graphics& g);  // Feature #5
 
     //==============================================================================
     // Progressive key detection

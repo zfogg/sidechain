@@ -130,6 +130,10 @@ void Recording::resized()
     // Import MIDI button (below action buttons in idle state)
     bounds.removeFromTop(10);
     importMidiButtonArea = bounds.removeFromTop(buttonHeight);
+
+    // View Drafts button (Feature #5)
+    bounds.removeFromTop(10);
+    viewDraftsButtonArea = bounds.removeFromTop(buttonHeight);
 }
 
 void Recording::mouseUp(const juce::MouseEvent& event)
@@ -150,6 +154,12 @@ void Recording::mouseUp(const juce::MouseEvent& event)
             {
                 Log::info("Recording::mouseUp: Import MIDI button clicked");
                 showMidiImportDialog();
+            }
+            else if (viewDraftsButtonArea.contains(pos))
+            {
+                Log::info("Recording::mouseUp: View Drafts button clicked");
+                if (onViewDrafts)
+                    onViewDrafts();
             }
             break;
 
@@ -203,6 +213,9 @@ void Recording::drawIdleState(juce::Graphics& g)
 
     // Draw import MIDI button (R.3.3.6.3)
     drawImportMidiButton(g);
+
+    // Draw View Drafts button (Feature #5)
+    drawViewDraftsButton(g);
 }
 
 void Recording::drawRecordingState(juce::Graphics& g)
@@ -754,6 +767,24 @@ void Recording::drawImportMidiButton(juce::Graphics& g)
 
     juce::String buttonText = hasImportedMidi ? "MIDI Imported ✓" : "Import MIDI File...";
     g.drawText(buttonText, importMidiButtonArea, juce::Justification::centred);
+}
+
+void Recording::drawViewDraftsButton(juce::Graphics& g)
+{
+    bool isHovered = viewDraftsButtonArea.contains(getMouseXYRelative());
+    auto bgColor = isHovered ? SidechainColors::surfaceHover() : SidechainColors::surface();
+
+    g.setColour(bgColor);
+    g.fillRoundedRectangle(viewDraftsButtonArea.toFloat(), 8.0f);
+
+    // Border
+    g.setColour(SidechainColors::border());
+    g.drawRoundedRectangle(viewDraftsButtonArea.toFloat(), 8.0f, 1.0f);
+
+    // Folder icon and text
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(14.0f);
+    g.drawText("View Drafts", viewDraftsButtonArea, juce::Justification::centred);
 }
 
 void Recording::showMidiImportDialog()
