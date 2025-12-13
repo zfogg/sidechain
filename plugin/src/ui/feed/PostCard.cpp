@@ -493,9 +493,10 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     if (!post.isOwnPost)
         drawRepostButton(g, getRepostButtonBounds());
 
-    // Comment count
+    // Comment count/status
     auto commentBounds = getCommentButtonBounds();
-    g.setColour(SidechainColors::textMuted());
+    bool commentsOff = post.commentsDisabled();
+    g.setColour(commentsOff ? SidechainColors::textMuted().withAlpha(0.4f) : SidechainColors::textMuted());
     g.setFont(14.0f);
     // Draw comment bubble icon (avoid emoji for Linux font compatibility)
     auto iconBounds = commentBounds.withWidth(16).withHeight(14).withY(commentBounds.getCentreY() - 7);
@@ -507,10 +508,28 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
                      iconBounds.getX() + 2, iconBounds.getBottom() + 4);
     g.fillPath(tail);
 
+    // Draw strike-through line if comments disabled
+    if (commentsOff)
+    {
+        g.setColour(SidechainColors::textMuted().withAlpha(0.6f));
+        g.drawLine(iconBounds.getX() - 1, iconBounds.getBottom() + 2,
+                   iconBounds.getRight() + 1, iconBounds.getY() - 2, 1.5f);
+    }
+
     g.setFont(11.0f);
-    g.drawText(StringFormatter::formatCount(post.commentCount),
-               commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
-               juce::Justification::centredLeft);
+    if (commentsOff)
+    {
+        g.setColour(SidechainColors::textMuted().withAlpha(0.4f));
+        g.drawText("Off",
+                   commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
+                   juce::Justification::centredLeft);
+    }
+    else
+    {
+        g.drawText(StringFormatter::formatCount(post.commentCount),
+                   commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
+                   juce::Justification::centredLeft);
+    }
 
     // Add to DAW button
     auto addToDAWBounds = getAddToDAWButtonBounds();
@@ -904,10 +923,10 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
-    // Check comment button
+    // Check comment button (only if comments are enabled)
     if (getCommentButtonBounds().contains(pos))
     {
-        if (onCommentClicked)
+        if (!post.commentsDisabled() && onCommentClicked)
             onCommentClicked(post);
         return;
     }
@@ -1305,7 +1324,14 @@ juce::String PostCard::getTooltip()
 
     // Comment button
     if (getCommentButtonBounds().contains(mousePos))
-        return "View comments";
+    {
+        if (post.commentsDisabled())
+            return "Comments are disabled";
+        else if (post.commentsFollowersOnly())
+            return "Comments: Followers only";
+        else
+            return "View comments";
+    }
 
     // Share button
     if (getShareButtonBounds().contains(mousePos))

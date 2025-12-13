@@ -178,6 +178,11 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.isFollowing = Json::getBool(json, "is_following");
     post.isOwnPost = Json::getBool(json, "is_own_post");
 
+    // Comment audience setting (Feature #12)
+    post.commentAudience = Json::getString(json, "comment_audience");
+    if (post.commentAudience.isEmpty())
+        post.commentAudience = "everyone";  // Default
+
     // Repost metadata (if this is a repost of another post)
     // Check extra data from getstream.io activity
     if (Json::hasKey(json, "extra"))
@@ -307,6 +312,7 @@ juce::var FeedPost::toJson() const
     obj->setProperty("is_reposted", isReposted);
     obj->setProperty("is_following", isFollowing);
     obj->setProperty("is_own_post", isOwnPost);
+    obj->setProperty("comment_audience", commentAudience);
 
     // Repost metadata
     if (isARepost)
