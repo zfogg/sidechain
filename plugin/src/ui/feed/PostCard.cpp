@@ -1287,3 +1287,81 @@ void PostCard::handleEmojiSelected(const juce::String& emoji)
 
     repaint();
 }
+
+//==============================================================================
+// Tooltips
+
+juce::String PostCard::getTooltip()
+{
+    auto mousePos = getMouseXYRelative();
+
+    // Play/pause button
+    if (getPlayButtonBounds().contains(mousePos))
+        return isPlaying ? "Pause (Space)" : "Play loop (Space)";
+
+    // Like button
+    if (getLikeButtonBounds().contains(mousePos))
+        return post.isLiked ? "Unlike" : "Like (hold for reactions)";
+
+    // Comment button
+    if (getCommentButtonBounds().contains(mousePos))
+        return "View comments";
+
+    // Share button
+    if (getShareButtonBounds().contains(mousePos))
+        return "Copy link to clipboard";
+
+    // Save/bookmark button
+    if (getSaveButtonBounds().contains(mousePos))
+        return post.isSaved ? "Remove from saved" : "Save to collection";
+
+    // Repost button
+    if (!post.isOwnPost && getRepostButtonBounds().contains(mousePos))
+        return post.isReposted ? "Undo repost" : "Repost to your feed";
+
+    // More button (context menu)
+    if (getMoreButtonBounds().contains(mousePos))
+        return "More options";
+
+    // Follow button
+    if (!post.isOwnPost && getFollowButtonBounds().contains(mousePos))
+        return post.isFollowing ? "Unfollow" : "Follow";
+
+    // User avatar/info - navigate to profile
+    if (getAvatarBounds().contains(mousePos) || getUserInfoBounds().contains(mousePos))
+        return "View " + post.username + "'s profile";
+
+    // Waveform - seek
+    if (getWaveformBounds().contains(mousePos))
+        return "Click to seek";
+
+    // Download MIDI button
+    if (post.hasMidi && getDownloadMIDIButtonBounds().contains(mousePos))
+        return "Download MIDI file";
+
+    // Download project file button
+    if (post.hasProjectFile && getDownloadProjectButtonBounds().contains(mousePos))
+        return "Download DAW project file";
+
+    // Add to DAW button
+    if (getAddToDAWButtonBounds().contains(mousePos))
+        return "Save audio to disk";
+
+    // Drop to Track button
+    if (getDropToTrackButtonBounds().contains(mousePos))
+        return "Add to your project";
+
+    // Add to Playlist button
+    if (getAddToPlaylistButtonBounds().contains(mousePos))
+        return "Add to a playlist";
+
+    // Remix button
+    if (getRemixButtonBounds().contains(mousePos))
+        return "Create a remix";
+
+    // Remix chain badge
+    if ((post.isRemix || post.remixCount > 0) && getRemixChainBadgeBounds().contains(mousePos))
+        return "View remix chain";
+
+    return {};  // No tooltip for this area
+}

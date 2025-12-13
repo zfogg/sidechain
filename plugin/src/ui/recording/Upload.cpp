@@ -61,6 +61,17 @@ const std::array<juce::String, Upload::NUM_GENRES>& Upload::getGenres()
     return genres;
 }
 
+// Static data: Comment audience options (Feature #12)
+const std::array<Upload::CommentAudienceOption, Upload::NUM_COMMENT_AUDIENCES>& Upload::getCommentAudiences()
+{
+    static const std::array<CommentAudienceOption, NUM_COMMENT_AUDIENCES> audiences = {{
+        { "everyone", "Everyone" },
+        { "followers", "Followers Only" },
+        { "off", "Off" }
+    }};
+    return audiences;
+}
+
 //==============================================================================
 Upload::Upload(SidechainAudioProcessor& processor, NetworkClient& network)
     : audioProcessor(processor), networkClient(network)
@@ -151,6 +162,7 @@ void Upload::reset()
     bpmFromDAW = false;
     selectedKeyIndex = 0;
     selectedGenreIndex = 0;
+    selectedCommentAudienceIndex = 0;  // Reset to "Everyone" (Feature #12)
     uploadState = UploadState::Editing;
     uploadProgress = 0.0f;
     errorMessage = "";
@@ -207,6 +219,7 @@ void Upload::paint(juce::Graphics& g)
     drawKeyDropdown(g);
     drawDetectKeyButton(g);
     drawGenreDropdown(g);
+    drawCommentAudienceDropdown(g);  // Feature #12
     drawProjectFileButton(g);
 
     if (uploadState == UploadState::Uploading)
@@ -252,6 +265,11 @@ void Upload::resized()
     detectKeyButtonArea = leftHalf;  // Remaining space for detect button
     dropdownRow.removeFromLeft(16);
     genreDropdownArea = dropdownRow;
+    bounds.removeFromTop(fieldSpacing);
+
+    // Comment audience dropdown (Feature #12) - takes half width
+    auto commentRow = bounds.removeFromTop(rowHeight);
+    commentAudienceArea = commentRow.removeFromLeft(commentRow.getWidth() / 2 - 8);
     bounds.removeFromTop(fieldSpacing);
 
     // Project file button (R.3.4 Project File Exchange)
@@ -336,6 +354,14 @@ void Upload::mouseUp(const juce::MouseEvent& event)
         {
             Log::info("Upload::mouseUp: Genre dropdown clicked");
             showGenrePicker();
+            return;
+        }
+
+        // Comment audience dropdown (Feature #12)
+        if (commentAudienceArea.contains(pos))
+        {
+            Log::info("Upload::mouseUp: Comment audience dropdown clicked");
+            showCommentAudiencePicker();
             return;
         }
 
@@ -483,6 +509,15 @@ void Upload::drawGenreDropdown(juce::Graphics& g)
     juce::String value = selectedGenreIndex < (int)genres.size() ? genres[selectedGenreIndex] : "Electronic";
     bool isHovered = genreDropdownArea.contains(getMouseXYRelative());
     drawDropdown(g, genreDropdownArea, "Genre", value, isHovered);
+}
+
+void Upload::drawCommentAudienceDropdown(juce::Graphics& g)
+{
+    auto& audiences = getCommentAudiences();
+    juce::String value = selectedCommentAudienceIndex < (int)audiences.size()
+        ? audiences[selectedCommentAudienceIndex].displayName : "Everyone";
+    bool isHovered = commentAudienceArea.contains(getMouseXYRelative());
+    drawDropdown(g, commentAudienceArea, "Comments", value, isHovered);
 }
 
 void Upload::drawProjectFileButton(juce::Graphics& g)
@@ -946,6 +981,33 @@ void Upload::showGenrePicker()
         });
 }
 
+void Upload::showCommentAudiencePicker()
+{
+    Log::debug("Upload::showCommentAudiencePicker: Showing comment audience picker menu");
+    juce::PopupMenu menu;
+    auto& audiences = getCommentAudiences();
+
+    for (int i = 0; i < (int)audiences.size(); ++i)
+    {
+        menu.addItem(i + 1, audiences[i].displayName, true, i == selectedCommentAudienceIndex);
+    }
+
+    menu.showMenuAsync(juce::PopupMenu::Options()
+        .withTargetComponent(this)
+        .withTargetScreenArea(commentAudienceArea.translated(getScreenX(), getScreenY())),
+        [this](int result) {
+            if (result > 0)
+            {
+                auto& audiences = getCommentAudiences();
+                int newIndex = result - 1;
+                Log::info("Upload::showCommentAudiencePicker: Comment audience selected: " +
+                         audiences[newIndex].displayName + " (" + audiences[newIndex].value + ")");
+                selectedCommentAudienceIndex = newIndex;
+                repaint();
+            }
+        });
+}
+
 void Upload::selectProjectFile()
 {
     Log::debug("Upload::selectProjectFile: Opening file chooser");
@@ -1091,12 +1153,18 @@ void Upload::startUpload()
     metadata.projectFile = projectFile;
     metadata.includeProjectFile = includeProjectFile && projectFile.existsAsFile();
 
+    // Include comment audience setting (Feature #12)
+    auto& audiences = getCommentAudiences();
+    metadata.commentAudience = selectedCommentAudienceIndex < (int)audiences.size()
+        ? audiences[selectedCommentAudienceIndex].value : "everyone";
+
     Log::info("Upload::startUpload: Upload metadata - title: \"" + title + "\", BPM: " + juce::String(bpm, 1) +
               ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " +
               juce::String(metadata.durationSeconds, 2) + "s, sampleRate: " + juce::String(metadata.sampleRate) +
               "Hz, channels: " + juce::String(metadata.numChannels) +
               ", includeMidi: " + (metadata.includeMidi ? "yes" : "no") +
-              ", includeProjectFile: " + (metadata.includeProjectFile ? "yes" : "no"));
+              ", includeProjectFile: " + (metadata.includeProjectFile ? "yes" : "no") +
+              ", commentAudience: " + metadata.commentAudience);
 
     // Simulate progress updates while waiting for upload
     // (JUCE's URL class doesn't provide progress callbacks)

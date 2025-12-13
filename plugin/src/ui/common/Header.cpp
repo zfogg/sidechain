@@ -464,3 +464,41 @@ void Header::setHasStories(bool hasStoriesValue)
         repaint();
     }
 }
+
+//==============================================================================
+juce::String Header::getTooltip()
+{
+    auto mousePos = getMouseXYRelative();
+
+    if (getLogoBounds().contains(mousePos))
+        return "Return to feed";
+
+    if (getSearchButtonBounds().contains(mousePos))
+        return "Find producers and sounds";
+
+    if (getRecordButtonBounds().contains(mousePos))
+        return "Record a new loop";
+
+    if (getMessagesButtonBounds().contains(mousePos))
+        return "Direct messages";
+
+    if (getStoryButtonBounds().contains(mousePos))
+        return "Post a story";
+
+    if (getProfileBounds().contains(mousePos))
+    {
+        // Check if hovering over profile picture specifically
+        auto picBounds = juce::Rectangle<int>(
+            getProfileBounds().getX(),
+            getProfileBounds().getCentreY() - 18,
+            36, 36
+        );
+
+        if (picBounds.contains(mousePos) && hasStories)
+            return "View your story";
+
+        return "Your profile";
+    }
+
+    return {};
+}

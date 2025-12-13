@@ -15,7 +15,8 @@ class NetworkClient;
  * - User profile section with avatar and username
  * - Consistent styling across all views
  */
-class Header : public juce::Component
+class Header : public juce::Component,
+               public juce::TooltipClient
 {
 public:
     /** Height of the header component in pixels */
@@ -41,6 +42,11 @@ public:
      *  @param event Mouse event information
      */
     void mouseUp(const juce::MouseEvent& event) override;
+
+    /** Get tooltip text based on current mouse position
+     *  @return Tooltip text for the element under the mouse
+     */
+    juce::String getTooltip() override;
 
     /** Set user information for display
      *  @param username User's username to display

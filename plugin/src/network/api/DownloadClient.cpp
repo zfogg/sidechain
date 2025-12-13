@@ -76,27 +76,37 @@ void NetworkClient::downloadFile(const juce::String& url, const juce::File& targ
                                   DownloadProgressCallback progressCallback,
                                   ResponseCallback callback)
 {
-    Async::runVoid([ url, targetFile, progressCallback, callback]() {
+    // Create parent directory if it doesn't exist
+    targetFile.getParentDirectory().createDirectory();
+
+    Async::runVoid([url, targetFile, progressCallback, callback]() {
         juce::URL downloadUrl(url);
         auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
             .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS)
             .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS);
 
-        juce::MemoryBlock fileData;
         bool success = false;
+        juce::String errorMessage = "Download failed";
 
         if (auto stream = downloadUrl.createInputStream(options))
         {
             // Get total size if available (for progress)
             int64 totalBytes = stream->getTotalLength();
             int64 bytesRead = 0;
-            const int bufferSize = 8192;
+            const int bufferSize = 32768;  // 32KB buffer for better throughput
             juce::HeapBlock<char> buffer(bufferSize);
 
             // Create output file
             juce::FileOutputStream output(targetFile);
             if (output.openedOk())
             {
+                // Throttle progress updates to avoid flooding message queue
+                // Update at most every 100ms or 2% progress change
+                float lastReportedProgress = 0.0f;
+                auto lastProgressTime = juce::Time::getCurrentTime();
+                const auto minProgressInterval = juce::RelativeTime::milliseconds(100);
+                const float minProgressDelta = 0.02f;
+
                 // Read and write in chunks
                 int bytesReadThisChunk;
                 while ((bytesReadThisChunk = stream->read(buffer.getData(), bufferSize)) > 0)
@@ -104,25 +114,45 @@ void NetworkClient::downloadFile(const juce::String& url, const juce::File& targ
                     output.write(buffer.getData(), bytesReadThisChunk);
                     bytesRead += bytesReadThisChunk;
 
-                    // Report progress if callback provided
+                    // Throttled progress reporting
                     if (progressCallback && totalBytes > 0)
                     {
                         float progress = static_cast<float>(bytesRead) / static_cast<float>(totalBytes);
-                        juce::MessageManager::callAsync([progressCallback, progress]() {
-                            progressCallback(progress);
-                        });
+                        auto now = juce::Time::getCurrentTime();
+                        bool shouldReport = (progress - lastReportedProgress >= minProgressDelta) ||
+                                           (now - lastProgressTime >= minProgressInterval) ||
+                                           (progress >= 1.0f);
+
+                        if (shouldReport)
+                        {
+                            lastReportedProgress = progress;
+                            lastProgressTime = now;
+                            juce::MessageManager::callAsync([progressCallback, progress]() {
+                                progressCallback(progress);
+                            });
+                        }
                     }
                 }
 
                 output.flush();
                 success = (bytesRead > 0);
+
+                if (!success)
+                    errorMessage = "No data received from server";
             }
+            else
+            {
+                errorMessage = "Failed to create output file: " + targetFile.getFullPathName();
+            }
+        }
+        else
+        {
+            errorMessage = "Failed to connect to: " + url;
         }
 
         if (callback)
         {
-            juce::String urlCopy = url;  // Capture URL for error message
-            juce::MessageManager::callAsync([callback, success, targetFile, urlCopy]() {
+            juce::MessageManager::callAsync([callback, success, targetFile, errorMessage]() {
                 if (success)
                 {
                     Log::info("File downloaded successfully to: " + targetFile.getFullPathName());
@@ -130,8 +160,8 @@ void NetworkClient::downloadFile(const juce::String& url, const juce::File& targ
                 }
                 else
                 {
-                    Log::error("Failed to download file from: " + urlCopy);
-                    callback(Outcome<juce::var>::error("Download failed"));
+                    Log::error(errorMessage);
+                    callback(Outcome<juce::var>::error(errorMessage));
                 }
             });
         }
