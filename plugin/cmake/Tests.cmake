@@ -23,10 +23,9 @@ if(SIDECHAIN_BUILD_TESTS)
     include(Catch)
 
     # Create a test library that uses the modular libraries
-    # Instead of duplicating sources, we link against the libraries
-    # Note: We create a subset for tests that excludes some components
+    # We link against the full libraries to ensure all dependencies are available
     add_library(SidechainTestLib STATIC
-        # Audio sources for tests (excludes KeyDetector which requires libkeyfinder)
+        # Audio sources for tests
         ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/AudioCapture.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/AudioCapture.h
         ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/MIDICapture.cpp
@@ -35,6 +34,14 @@ if(SIDECHAIN_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/HttpAudioPlayer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/BufferAudioPlayer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/BufferAudioPlayer.h
+        # KeyDetector is needed by NetworkClient
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/KeyDetector.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/audio/KeyDetector.h
+        # Stores for FeedDataManager tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/stores/FeedDataManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/stores/FeedDataManager.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/stores/ImageCache.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/stores/ImageCache.h
     )
 
     # SidechainTestLib needs access to Sidechain's generated JuceHeader.h
@@ -81,6 +88,15 @@ if(SIDECHAIN_BUILD_TESTS)
         target_link_libraries(SidechainTestLib PRIVATE asio)
     endif()
 
+    # Link libkeyfinder if available (needed for KeyDetector)
+    if(SIDECHAIN_HAS_KEYFINDER)
+        target_include_directories(SidechainTestLib PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../deps/libkeyfinder/src
+        )
+        target_link_libraries(SidechainTestLib PRIVATE keyfinder)
+        target_compile_definitions(SidechainTestLib PUBLIC SIDECHAIN_HAS_KEYFINDER=1)
+    endif()
+
     # Coverage flags
     if(SIDECHAIN_ENABLE_COVERAGE)
         if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -99,9 +115,12 @@ if(SIDECHAIN_BUILD_TESTS)
     # Test executable
     add_executable(SidechainTests ${SIDECHAIN_TEST_SOURCES})
 
+    # SidechainNetwork depends on KeyDetector which is in SidechainTestLib
+    # List SidechainTestLib last to resolve the circular dependency
     target_link_libraries(SidechainTests PRIVATE
-        SidechainTestLib
         Catch2::Catch2WithMain
+        SidechainNetwork
+        SidechainTestLib
     )
 
     # Coverage flags for test executable
