@@ -500,6 +500,11 @@ func (m *MockStreamClient) NotifyFollow(actorUserID, targetUserID string) error 
 	return m.DefaultError
 }
 
+func (m *MockStreamClient) NotifyFollowRequestAccepted(acceptorUserID, requesterUserID string) error {
+	m.recordCall("NotifyFollowRequestAccepted", acceptorUserID, requesterUserID)
+	return m.DefaultError
+}
+
 func (m *MockStreamClient) NotifyComment(actorUserID, targetUserID, loopID, commentText string) error {
 	m.recordCall("NotifyComment", actorUserID, targetUserID, loopID, commentText)
 	if m.NotifyCommentFunc != nil {

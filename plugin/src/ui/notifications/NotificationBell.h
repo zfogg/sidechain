@@ -30,6 +30,13 @@ public:
     void setUnreadCount(int count);
     int getUnreadCount() const { return unreadCount; }
 
+    // Follow request count (shown in combined badge)
+    void setFollowRequestCount(int count);
+    int getFollowRequestCount() const { return followRequestCount; }
+
+    // Total badge count (unseenCount + followRequestCount)
+    int getTotalBadgeCount() const { return unseenCount + followRequestCount; }
+
     // Clear badge (mark as seen)
     void clearBadge();
 
@@ -57,6 +64,7 @@ private:
     //==============================================================================
     int unseenCount = 0;
     int unreadCount = 0;
+    int followRequestCount = 0;
     HoverState hoverState;
 
     //==============================================================================

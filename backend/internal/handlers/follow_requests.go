@@ -157,8 +157,19 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 		}()
 	}
 
-	// Send notification to requester that their request was accepted
-	// TODO: Add notification via getstream.io notification feed
+	// Send notification to requester that their follow request was accepted
+	if h.stream != nil {
+		go func() {
+			if err := h.stream.NotifyFollowRequestAccepted(currentUser.ID, request.RequesterID); err != nil {
+				log.Printf("Warning: failed to send follow request accepted notification: %v", err)
+			}
+		}()
+	}
+
+	// Send WebSocket notification for real-time update
+	if h.wsHandler != nil {
+		h.wsHandler.NotifyFollowRequestAccepted(request.RequesterID, currentUser.ID, currentUser.Username)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "accepted",

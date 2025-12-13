@@ -121,3 +121,23 @@ void NetworkClient::markNotificationsSeen(ResponseCallback callback)
         }
     });
 }
+
+void NetworkClient::getFollowRequestCount(std::function<void(int count)> callback)
+{
+    if (callback == nullptr)
+        return;
+
+    Async::runVoid([this, callback]() {
+        auto result = makeRequestWithRetry(buildApiPath("/users/me/follow-requests/count"), "GET", juce::var(), true);
+
+        int count = 0;
+        if (result.success && result.data.isObject())
+        {
+            count = static_cast<int>(result.data.getProperty("count", 0));
+        }
+
+        juce::MessageManager::callAsync([callback, count]() {
+            callback(count);
+        });
+    });
+}

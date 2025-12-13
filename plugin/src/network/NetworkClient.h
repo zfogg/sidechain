@@ -915,6 +915,14 @@ public:
     void markNotificationsSeen(ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Follow Request operations
+
+    /** Get pending follow request count (for private account feature)
+     *  @param callback Called with count of pending follow requests
+     */
+    void getFollowRequestCount(std::function<void(int count)> callback);
+
+    //==========================================================================
     // User Discovery operations
 
     /** Search users by username or display name

@@ -2519,24 +2519,25 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts()
     if (!networkClient || !networkClient->isAuthenticated())
         return;
 
+    // Fetch regular notification counts
     networkClient->getNotificationCounts([this](int unseen, int unread) {
         // Check if new notifications arrived (unseen count increased)
         static int previousUnseenCount = 0;
         bool newNotifications = unseen > previousUnseenCount && previousUnseenCount >= 0;
         previousUnseenCount = unseen;
-        
+
         if (notificationBell)
         {
             notificationBell->setUnseenCount(unseen);
             notificationBell->setUnreadCount(unread);
         }
-        
+
         // Play notification sound if enabled and new notifications arrived
         if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled())
         {
             NotificationSound::playBeep();
         }
-        
+
         // Fetch and show OS notification for new notifications
         if (newNotifications && userDataStore && userDataStore->isOSNotificationsEnabled())
         {
@@ -2550,13 +2551,21 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts()
                         auto latestNotification = NotificationItem::fromJson(notifResult.notifications[0]);
                         juce::String notificationTitle = "Sidechain";
                         juce::String notificationMessage = latestNotification.getDisplayText();
-                        
+
                         // Show desktop notification (checks isSupported internally)
                         OSNotification::show(notificationTitle, notificationMessage, "",
                                            userDataStore && userDataStore->isNotificationSoundEnabled());
                     }
                 }
             });
+        }
+    });
+
+    // Fetch pending follow request count (for private account feature)
+    networkClient->getFollowRequestCount([this](int count) {
+        if (notificationBell)
+        {
+            notificationBell->setFollowRequestCount(count);
         }
     });
 }

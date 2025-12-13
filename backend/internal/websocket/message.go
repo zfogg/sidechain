@@ -22,8 +22,9 @@ const (
 	MessageTypeNewReaction = "new_reaction"
 
 	// Social messages
-	MessageTypeNewFollower = "new_follower"
-	MessageTypeUnfollowed  = "unfollowed"
+	MessageTypeNewFollower            = "new_follower"
+	MessageTypeUnfollowed             = "unfollowed"
+	MessageTypeFollowRequestAccepted  = "follow_request_accepted"
 
 	// Presence messages
 	MessageTypePresence     = "presence"
@@ -168,6 +169,13 @@ type FollowPayload struct {
 	FolloweeID     string `json:"followee_id"`
 	FolloweeName   string `json:"followee_name"`
 	FollowerCount  int    `json:"follower_count,omitempty"`
+}
+
+// FollowRequestAcceptedPayload is sent when a follow request is accepted
+type FollowRequestAcceptedPayload struct {
+	AcceptorID   string `json:"acceptor_id"`   // The private account user who accepted
+	AcceptorName string `json:"acceptor_name"` // Username of the acceptor
+	RequesterID  string `json:"requester_id"`  // The user whose request was accepted
 }
 
 // NotificationPayload represents a notification
