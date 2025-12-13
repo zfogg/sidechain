@@ -902,11 +902,29 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         showCommentsForPost(post);
     };
 
-    card->onShareClicked = [](const FeedPost& post) {
+    card->onShareClicked = [this](const FeedPost& post) {
         Log::debug("Share clicked for post: " + post.id);
-        // Copy shareable link to clipboard
-        juce::String shareUrl = "https://sidechain.live/post/" + post.id;
-        juce::SystemClipboard::copyTextToClipboard(shareUrl);
+
+        juce::PopupMenu shareMenu;
+        shareMenu.addItem(1, "Copy Link");
+        shareMenu.addItem(2, "Send to...");
+
+        shareMenu.showMenuAsync(juce::PopupMenu::Options(),
+            [this, post](int result) {
+                if (result == 1)
+                {
+                    // Copy shareable link to clipboard
+                    juce::String shareUrl = "https://sidechain.live/post/" + post.id;
+                    juce::SystemClipboard::copyTextToClipboard(shareUrl);
+                    Log::info("PostsFeed: Copied link for post " + post.id);
+                }
+                else if (result == 2)
+                {
+                    // Send to message
+                    if (onSendPostToMessage)
+                        onSendPostToMessage(post);
+                }
+            });
     };
 
     card->onMoreClicked = [this](const FeedPost& post) {

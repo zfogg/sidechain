@@ -176,12 +176,32 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
             return;
         }
 
-        // Share button
+        // Share button - show popup menu with options
         if (shareButtonArea.contains(pos))
         {
-            handleShareStory(story->id);
-            if (onShareClicked)
-                onShareClicked(story->id);
+            juce::PopupMenu shareMenu;
+            shareMenu.addItem(1, "Copy Link");
+            shareMenu.addItem(2, "Send to...");
+
+            juce::String storyId = story->id;
+            StoryData currentStory = *story;
+
+            shareMenu.showMenuAsync(juce::PopupMenu::Options(),
+                [this, storyId, currentStory](int result) {
+                    if (result == 1)
+                    {
+                        // Copy link to clipboard
+                        handleShareStory(storyId);
+                        if (onShareClicked)
+                            onShareClicked(storyId);
+                    }
+                    else if (result == 2)
+                    {
+                        // Send to message
+                        if (onSendStoryToMessage)
+                            onSendStoryToMessage(currentStory);
+                    }
+                });
             return;
         }
 

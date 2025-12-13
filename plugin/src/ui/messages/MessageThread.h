@@ -151,6 +151,15 @@ private:
     juce::Rectangle<int> getReplyPreviewBounds() const;
     juce::Rectangle<int> getCancelReplyButtonBounds() const;
 
+    // Shared content detection and rendering
+    bool hasSharedPost(const StreamChatClient::Message& message) const;
+    bool hasSharedStory(const StreamChatClient::Message& message) const;
+    void drawSharedPostPreview(juce::Graphics& g, const StreamChatClient::Message& message,
+                                juce::Rectangle<int> bounds);
+    void drawSharedStoryPreview(juce::Graphics& g, const StreamChatClient::Message& message,
+                                 juce::Rectangle<int> bounds);
+    int getSharedContentHeight(const StreamChatClient::Message& message) const;
+
     // Reply/edit state
     juce::String replyingToMessageId;
     StreamChatClient::Message replyingToMessage;  // Full message being replied to

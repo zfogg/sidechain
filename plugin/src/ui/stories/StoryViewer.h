@@ -66,8 +66,11 @@ public:
     // Called when user wants to see viewers list
     std::function<void(const juce::String& storyId)> onViewersClicked;
 
-    // Called when user wants to share story
+    // Called when user wants to share story (copy link)
     std::function<void(const juce::String& storyId)> onShareClicked;
+
+    // Called when user wants to send story to a DM conversation
+    std::function<void(const StoryData& story)> onSendStoryToMessage;
 
     // Called when user wants to download MIDI from story
     std::function<void(const StoryData& story)> onDownloadMIDIClicked;
