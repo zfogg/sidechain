@@ -332,6 +332,8 @@ func main() {
 
 			// Current user's saved posts (P0 Social Feature) - must be before /:id routes
 			users.GET("/me/saved", h.GetSavedPosts)
+			// Current user's archived posts - must be before /:id routes
+			users.GET("/me/archived", h.GetArchivedPosts)
 
 			// User profile endpoints (require auth for following checks)
 			users.GET("/:id/profile", h.GetUserProfile)
@@ -401,6 +403,10 @@ func main() {
 			posts.DELETE("/:id/repost", h.UndoRepost)
 			posts.GET("/:id/reposts", h.GetReposts)
 			posts.GET("/:id/reposted", h.IsPostReposted)
+			// Archive routes (hide without delete)
+			posts.POST("/:id/archive", h.ArchivePost)
+			posts.POST("/:id/unarchive", h.UnarchivePost)
+			posts.GET("/:id/archived", h.IsPostArchived)
 		}
 
 		// Comment routes

@@ -204,10 +204,10 @@ func (s *Service) getFollowingPosts(ctx context.Context, userID string, limit in
 			continue
 		}
 
-		// Fetch the actual post from database
+		// Fetch the actual post from database (exclude archived posts)
 		var post models.AudioPost
-		if err := s.db.Preload("User").First(&post, "id = ? AND deleted_at IS NULL", postID).Error; err != nil {
-			continue // Skip if post not found
+		if err := s.db.Preload("User").First(&post, "id = ? AND deleted_at IS NULL AND is_archived = ?", postID, false).Error; err != nil {
+			continue // Skip if post not found or archived
 		}
 
 		createdAt := time.Now()
@@ -264,7 +264,7 @@ func (s *Service) getTrendingPosts(ctx context.Context, limit int) ([]TimelineIt
 	var posts []models.AudioPost
 	err := s.db.
 		Preload("User").
-		Where("is_public = ? AND deleted_at IS NULL AND created_at > ?", true, sevenDaysAgo).
+		Where("is_public = ? AND deleted_at IS NULL AND is_archived = ? AND created_at > ?", true, false, sevenDaysAgo).
 		Order("(like_count + play_count * 0.5 + comment_count * 2) / GREATEST(1, EXTRACT(EPOCH FROM (NOW() - created_at)) / 3600) DESC").
 		Limit(limit).
 		Find(&posts).Error
@@ -298,7 +298,7 @@ func (s *Service) getRecentPosts(ctx context.Context, userID string, limit int) 
 	var posts []models.AudioPost
 	err := s.db.
 		Preload("User").
-		Where("is_public = ? AND deleted_at IS NULL AND user_id != ?", true, userID).
+		Where("is_public = ? AND deleted_at IS NULL AND is_archived = ? AND user_id != ?", true, false, userID).
 		Order("created_at DESC").
 		Limit(limit).
 		Find(&posts).Error

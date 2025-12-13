@@ -238,9 +238,9 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		}
 	}
 
-	// Count posts
+	// Count posts (exclude archived)
 	var postCount int64
-	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true", user.ID).Count(&postCount)
+	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true AND is_archived = false", user.ID).Count(&postCount)
 
 	// Fetch story highlights (7.5.6.2)
 	var highlights []models.StoryHighlight
@@ -298,9 +298,9 @@ func (h *Handlers) GetMyProfile(c *gin.Context) {
 		followingCount = followStats.FollowingCount
 	}
 
-	// Count posts
+	// Count posts (exclude archived)
 	var postCount int64
-	database.DB.Model(&models.AudioPost{}).Where("user_id = ?", currentUser.ID).Count(&postCount)
+	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_archived = false", currentUser.ID).Count(&postCount)
 
 	// Fetch story highlights (7.5.6.2)
 	var highlights []models.StoryHighlight
@@ -664,7 +664,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 	if len(activities) == 0 {
 		var audioPosts []models.AudioPost
 		if err := database.DB.
-			Where("user_id = ? AND is_public = ?", user.ID, true).
+			Where("user_id = ? AND is_public = ? AND is_archived = ?", user.ID, true, false).
 			Order("created_at DESC").
 			Limit(limit).
 			Offset(offset).

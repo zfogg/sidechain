@@ -139,6 +139,8 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_posts_public_created ON audio_posts (is_public, created_at DESC)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_posts_bpm ON audio_posts (bpm) WHERE bpm > 0")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_posts_genre ON audio_posts USING GIN (genre)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_posts_archived ON audio_posts (user_id, is_archived, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audio_posts_not_archived ON audio_posts (user_id, created_at DESC) WHERE is_archived = false")
 
 	// Device indexes
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_devices_fingerprint ON devices (device_fingerprint)")

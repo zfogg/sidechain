@@ -389,9 +389,10 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 
 	// Fall back to recent posts from database
 	// Include all public posts (including user's own) since this is a discovery feed
+	// Exclude archived posts
 	var posts []models.AudioPost
 	if err := database.DB.
-		Where("is_public = ? AND deleted_at IS NULL", true).
+		Where("is_public = ? AND is_archived = ? AND deleted_at IS NULL", true, false).
 		Order("created_at DESC").
 		Limit(limit).
 		Find(&posts).Error; err != nil {
