@@ -131,18 +131,13 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 		database.DB.Model(&repost).UpdateColumn("stream_activity_id", activity.ID)
 	}
 
-	// Send notification to original post owner
+	// Send notification to original post owner via GetStream.io
 	if h.stream != nil && post.UserID != userID {
-		notifActivity := &stream.Activity{
-			Actor:  "user:" + userID,
-			Verb:   stream.NotifVerbRepost,
-			Object: "loop:" + postID,
-			Extra: map[string]interface{}{
-				"repost_id": repost.ID,
-				"quote":     req.Quote,
-			},
+		// Get target user's StreamUserID for notification
+		var targetUser models.User
+		if err := database.DB.First(&targetUser, "id = ?", post.UserID).Error; err == nil && targetUser.StreamUserID != "" {
+			h.stream.NotifyRepost(userID, targetUser.StreamUserID, postID)
 		}
-		h.stream.AddToNotificationFeed(post.UserID, notifActivity)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{

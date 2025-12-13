@@ -2,6 +2,7 @@
 #include "../util/Log.h"
 #include "../util/Async.h"
 #include "../util/Result.h"
+#include "../util/OSNotification.h"
 #include <JuceHeader.h>
 #include <websocketpp/common/thread.hpp>
 #include <websocketpp/common/memory.hpp>
@@ -1409,14 +1410,44 @@ void StreamChatClient::parseWebSocketEvent(const juce::var& event)
     if (eventType == "message.new")
     {
         auto messageData = event.getProperty("message", juce::var());
-        if (messageData.isObject() && messageReceivedCallback)
+        if (messageData.isObject())
         {
             auto message = parseMessage(messageData);
             auto channelId = event.getProperty("channel_id", "").toString();
-            juce::MessageManager::callAsync([this, message, channelId]() {
-                if (messageReceivedCallback)
-                    messageReceivedCallback(message, channelId);
-            });
+            
+            // Show OS notification for messages from other users (GetStream.io Chat notifications)
+            if (message.userId != currentUserId && !message.userId.isEmpty())
+            {
+                // Truncate message text if too long
+                juce::String displayText = message.text;
+                if (displayText.length() > 100)
+                {
+                    displayText = displayText.substring(0, 100) + "...";
+                }
+                
+                // Show OS notification
+                juce::String notificationTitle = message.userName.isNotEmpty() 
+                    ? message.userName + " sent a message"
+                    : "New message";
+                
+                OSNotification::show(
+                    notificationTitle,
+                    displayText,
+                    "",
+                    true  // sound enabled
+                );
+                
+                Log::debug("StreamChatClient: OS notification shown for message from " + message.userName);
+            }
+            
+            // Call the existing callback for UI updates
+            if (messageReceivedCallback)
+            {
+                juce::MessageManager::callAsync([this, message, channelId]() {
+                    if (messageReceivedCallback)
+                        messageReceivedCallback(message, channelId);
+                });
+            }
         }
     }
     else if (eventType == "typing.start" || eventType == "typing.stop")

@@ -360,19 +360,6 @@ func (h *Handler) NotifyFollow(followeeID string, payload *FollowPayload) {
 	h.hub.SendToUser(followeeID, NewMessage(MessageTypeNewFollower, payload))
 }
 
-// NotifyNotification sends a generic notification
-func (h *Handler) NotifyNotification(userID string, payload *NotificationPayload) {
-	h.hub.SendToUser(userID, NewMessage(MessageTypeNotification, payload))
-}
-
-// UpdateNotificationCount sends updated notification counts
-func (h *Handler) UpdateNotificationCount(userID string, unread, unseen int) {
-	h.hub.SendToUser(userID, NewMessage(MessageTypeNotificationCount, NotificationCountPayload{
-		UnreadCount: unread,
-		UnseenCount: unseen,
-	}))
-}
-
 // BroadcastLikeCountUpdate broadcasts like count update to all viewers
 func (h *Handler) BroadcastLikeCountUpdate(postID string, likeCount int) {
 	h.hub.Broadcast(NewMessage(MessageTypeLikeCountUpdate, map[string]interface{}{
