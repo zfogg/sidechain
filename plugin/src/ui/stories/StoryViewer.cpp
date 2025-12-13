@@ -68,6 +68,7 @@ void StoryViewer::paint(juce::Graphics& g)
     drawStoryContent(g);
     drawDeleteButton(g);  // Delete button for own stories
     drawMIDIButton(g);
+    drawAudioDownloadButton(g);  // 19.1 Audio download
     drawRemixButton(g);  // R.3.2 Remix Chains
 
     // Play/pause overlay if paused
@@ -104,6 +105,7 @@ void StoryViewer::resized()
     shareButtonArea = bottomArea.removeFromRight(100).reduced(10, 5);
     deleteButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // Delete button for own stories
     midiButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);
+    audioDownloadButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // 19.1 Audio download
     remixButtonArea = bottomArea.removeFromRight(80).reduced(10, 5);  // R.3.2 Remix Chains
 
     // Piano roll positioning
@@ -195,6 +197,15 @@ void StoryViewer::mouseUp(const juce::MouseEvent& event)
         handleDownloadMIDI(*story);
         if (onDownloadMIDIClicked)
             onDownloadMIDIClicked(*story);
+        return;
+    }
+
+    // Audio download button (19.1 - available to all viewers when story has audio)
+    if (story && story->audioUrl.isNotEmpty() && audioDownloadButtonArea.contains(pos))
+    {
+        handleDownloadAudio(*story);
+        if (onDownloadAudioClicked)
+            onDownloadAudioClicked(*story);
         return;
     }
 
@@ -642,6 +653,29 @@ void StoryViewer::drawMIDIButton(juce::Graphics& g)
     g.drawText("[MIDI]", midiButtonArea, juce::Justification::centred);
 }
 
+void StoryViewer::drawAudioDownloadButton(juce::Graphics& g)
+{
+    const auto* story = getCurrentStory();
+    if (!story || story->audioUrl.isEmpty())
+        return;
+
+    if (audioDownloadButtonArea.isEmpty())
+        return;
+
+    // Button background - blue tint for audio download
+    g.setColour(juce::Colour(0xff2196F3).withAlpha(0.3f));
+    g.fillRoundedRectangle(audioDownloadButtonArea.toFloat(), 8.0f);
+
+    // Button border
+    g.setColour(juce::Colour(0xff2196F3).withAlpha(0.7f));
+    g.drawRoundedRectangle(audioDownloadButtonArea.toFloat(), 8.0f, 1.0f);
+
+    // Button text
+    g.setColour(StoryViewerColors::textPrimary);
+    g.setFont(11.0f);
+    g.drawText("[Audio]", audioDownloadButtonArea, juce::Justification::centred);
+}
+
 void StoryViewer::drawDeleteButton(juce::Graphics& g)
 {
     const auto* story = getCurrentStory();
@@ -858,6 +892,90 @@ void StoryViewer::handleDownloadMIDI(const StoryData& story)
                     "Failed to download MIDI:\n" + result.getError());
             }
         });
+}
+
+void StoryViewer::handleDownloadAudio(const StoryData& story)
+{
+    Log::debug("StoryViewer: Download audio clicked for story: " + story.id);
+
+    if (story.audioUrl.isEmpty())
+    {
+        Log::warn("StoryViewer: Cannot download audio - no audio URL available");
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "Error",
+            "No audio data available for this story.");
+        return;
+    }
+
+    if (networkClient == nullptr)
+    {
+        Log::warn("StoryViewer: Cannot download audio - networkClient is null");
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon,
+            "Error",
+            "Unable to download audio. Please try again later.");
+        return;
+    }
+
+    // Get download info from backend (19.1)
+    networkClient->getStoryDownloadInfo(story.id, [this, story](Outcome<NetworkClient::DownloadInfo> downloadInfoOutcome) {
+        if (!downloadInfoOutcome.isOk())
+        {
+            Log::error("Failed to get story download info: " + downloadInfoOutcome.getError());
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Failed to get download information. Please try again.");
+            return;
+        }
+
+        auto info = downloadInfoOutcome.getValue();
+
+        // Determine target location for audio files
+        juce::File targetDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+            .getChildFile("Sidechain")
+            .getChildFile("Downloads");
+
+        if (!targetDir.exists())
+        {
+            targetDir.createDirectory();
+        }
+
+        juce::File targetFile = targetDir.getChildFile(info.filename);
+
+        // Detect DAW for notification message
+        auto dawInfo = DAWProjectFolder::detectDAWProjectFolder();
+        juce::String notificationMessage = "Audio saved to:\n" + targetFile.getFullPathName();
+        if (dawInfo.isAccessible && dawInfo.dawName != "Unknown")
+        {
+            notificationMessage += "\n\nYou can drag this file into your " + dawInfo.dawName + " project.";
+        }
+
+        // Download the audio file
+        networkClient->downloadFile(
+            info.downloadUrl,
+            targetFile,
+            nullptr,  // No progress callback for now
+            [targetFile, notificationMessage](Outcome<juce::var> result) {
+                if (result.isOk())
+                {
+                    Log::info("Story audio downloaded: " + targetFile.getFullPathName());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::InfoIcon,
+                        "Audio Downloaded",
+                        notificationMessage);
+                }
+                else
+                {
+                    Log::error("Failed to download story audio: " + result.getError());
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Download Failed",
+                        "Failed to download audio:\n" + result.getError());
+                }
+            });
+    });
 }
 
 //==============================================================================
