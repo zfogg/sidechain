@@ -15,6 +15,7 @@ add_subdirectory(profile)
 add_subdirectory(recording)
 add_subdirectory(search)
 add_subdirectory(social)
+add_subdirectory(sounds)
 add_subdirectory(stories)
 add_subdirectory(synth)
 
@@ -39,6 +40,7 @@ target_link_libraries(SidechainUI PUBLIC
     SidechainUIRecording
     SidechainUISearch
     SidechainUISocial
+    SidechainUISounds
     SidechainUIStories
     SidechainUISynth
 )
@@ -81,6 +83,7 @@ if(UNIX AND NOT APPLE)
         SidechainUIRecording
         SidechainUISearch
         SidechainUISocial
+        SidechainUISounds
         SidechainUIStories
         SidechainUISynth
     )

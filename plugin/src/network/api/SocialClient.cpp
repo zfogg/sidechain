@@ -559,3 +559,117 @@ void NetworkClient::isPostPinned(const juce::String& postId, ResponseCallback ca
         }
     });
 }
+
+// ============================================================================
+// Sound/Sample API
+// ============================================================================
+
+void NetworkClient::getSound(const juce::String& soundId, ResponseCallback callback)
+{
+    Async::runVoid([this, soundId, callback]() {
+        juce::String endpoint = "/api/v1/sounds/" + soundId;
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
+        Log::debug("Get sound response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getSoundPosts(const juce::String& soundId, int limit, int offset, ResponseCallback callback)
+{
+    Async::runVoid([this, soundId, limit, offset, callback]() {
+        juce::String endpoint = "/api/v1/sounds/" + soundId + "/posts?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
+        Log::debug("Get sound posts response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getTrendingSounds(int limit, ResponseCallback callback)
+{
+    Async::runVoid([this, limit, callback]() {
+        juce::String endpoint = "/api/v1/sounds/trending?limit=" + juce::String(limit);
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
+        Log::debug("Get trending sounds response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::searchSounds(const juce::String& query, int limit, ResponseCallback callback)
+{
+    Async::runVoid([this, query, limit, callback]() {
+        juce::String endpoint = "/api/v1/sounds/search?q=" + juce::URL::addEscapeChars(query, true) + "&limit=" + juce::String(limit);
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
+        Log::debug("Search sounds response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getSoundForPost(const juce::String& postId, ResponseCallback callback)
+{
+    Async::runVoid([this, postId, callback]() {
+        juce::String endpoint = "/api/v1/posts/" + postId + "/sound";
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), false);
+        Log::debug("Get post sound response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::updateSound(const juce::String& soundId, const juce::String& name, const juce::String& description, bool isPublic, ResponseCallback callback)
+{
+    Async::runVoid([this, soundId, name, description, isPublic, callback]() {
+        juce::String endpoint = "/api/v1/sounds/" + soundId;
+
+        auto body = new juce::DynamicObject();
+        if (name.isNotEmpty())
+            body->setProperty("name", name);
+        if (description.isNotEmpty())
+            body->setProperty("description", description);
+        body->setProperty("is_public", isPublic);
+
+        auto result = makeRequestWithRetry(endpoint, "PATCH", juce::var(body), true);
+        Log::debug("Update sound response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}

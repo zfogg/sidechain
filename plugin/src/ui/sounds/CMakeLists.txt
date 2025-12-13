@@ -1,39 +1,33 @@
 #==============================================================================
-# SidechainModels - Data Models Library
-# Data structures and DTOs
+# SidechainUISounds - Sound/Sample Pages UI Components (Feature #15)
 #==============================================================================
 
-add_library(SidechainModels STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedPost.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedPost.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedResponse.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/AggregatedFeedGroup.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/AggregatedFeedResponse.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Story.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Story.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Playlist.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Playlist.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallenge.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MidiChallenge.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Sound.h
+add_library(SidechainUISounds STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/SoundPage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SoundPage.h
 )
 
-# Include directories
-target_include_directories(SidechainModels PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
+target_include_directories(SidechainUISounds PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
-# Dependencies: Util library
-target_link_libraries(SidechainModels PUBLIC
+target_link_libraries(SidechainUISounds PUBLIC
     SidechainUtil
+    SidechainModels
+    SidechainNetwork
     juce::juce_core
+    juce::juce_data_structures
+    juce::juce_events
+    juce::juce_graphics
+    juce::juce_gui_basics
+    juce::juce_gui_extra
 )
 
 # Enable PIC for Release builds, disable for Debug (faster compilation)
 # Handle both single-config (CMAKE_BUILD_TYPE) and multi-config generators (CMAKE_CONFIGURATION_TYPES)
 if(CMAKE_CONFIGURATION_TYPES)
     # Multi-config generator (Visual Studio, Xcode) - set per-config via generator expressions
-    set_target_properties(SidechainModels PROPERTIES
+    set_target_properties(SidechainUISounds PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
         POSITION_INDEPENDENT_CODE "$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>"
@@ -44,10 +38,9 @@ else()
     if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
         set(PIC_ENABLED ON)
     endif()
-    set_target_properties(SidechainModels PROPERTIES
+    set_target_properties(SidechainUISounds PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
         POSITION_INDEPENDENT_CODE ${PIC_ENABLED}
     )
 endif()
-

@@ -701,6 +701,55 @@ public:
     void isPostPinned(const juce::String& postId, ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Sound/Sample Pages operations (Feature #15)
+
+    /** Get a sound by ID
+     * @param soundId The sound ID
+     * @param callback Called with sound data or error
+     */
+    void getSound(const juce::String& soundId, ResponseCallback callback = nullptr);
+
+    /** Get posts using a specific sound
+     * @param soundId The sound ID
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with posts array or error
+     */
+    void getSoundPosts(const juce::String& soundId, int limit = 20, int offset = 0, ResponseCallback callback = nullptr);
+
+    /** Get trending sounds
+     * @param limit Maximum number of sounds to return
+     * @param callback Called with sounds array or error
+     */
+    void getTrendingSounds(int limit = 20, ResponseCallback callback = nullptr);
+
+    /** Search sounds by name
+     * @param query Search query
+     * @param limit Maximum number of results
+     * @param callback Called with sounds array or error
+     */
+    void searchSounds(const juce::String& query, int limit = 20, ResponseCallback callback = nullptr);
+
+    /** Get the sound associated with a post
+     * @param postId The post ID
+     * @param callback Called with sound data or error
+     */
+    void getSoundForPost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Update a sound (creator only)
+     * @param soundId The sound ID
+     * @param name New name (optional)
+     * @param description New description (optional)
+     * @param isPublic New public status (optional)
+     * @param callback Called with updated sound or error
+     */
+    void updateSound(const juce::String& soundId,
+                     const juce::String& name = "",
+                     const juce::String& description = "",
+                     bool isPublic = true,
+                     ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Profile operations
 
     /** Upload a profile picture

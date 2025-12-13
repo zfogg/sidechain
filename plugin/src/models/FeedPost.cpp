@@ -82,6 +82,11 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.remixCount = Json::getInt(json, "remix_count");
     // Post is a remix if it has a remix source
     post.isRemix = post.remixOfPostId.isNotEmpty() || post.remixOfStoryId.isNotEmpty();
+
+    // Sound/Sample metadata (Feature #15 - Sound Pages)
+    post.soundId = Json::getString(json, "sound_id");
+    post.soundName = Json::getString(json, "sound_name");
+    post.soundUsageCount = Json::getInt(json, "sound_usage_count");
     // Also check extra data for remix info (from getstream.io activity extra field)
     if (!post.isRemix && Json::hasKey(json, "extra"))
     {
@@ -297,6 +302,15 @@ juce::var FeedPost::toJson() const
             obj->setProperty("remix_type", remixType);
         obj->setProperty("remix_chain_depth", remixChainDepth);
         obj->setProperty("remix_count", remixCount);
+    }
+
+    // Sound/Sample metadata (Feature #15)
+    if (soundId.isNotEmpty())
+    {
+        obj->setProperty("sound_id", soundId);
+        if (soundName.isNotEmpty())
+            obj->setProperty("sound_name", soundName);
+        obj->setProperty("sound_usage_count", soundUsageCount);
     }
 
     // Genres

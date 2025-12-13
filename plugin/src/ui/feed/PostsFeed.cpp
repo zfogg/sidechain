@@ -1990,6 +1990,13 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
             }
         }
     };
+
+    // Feature #15 - Sound/Sample Pages
+    card->onSoundClicked = [this](const juce::String& soundId) {
+        Log::debug("Sound clicked: " + soundId);
+        if (onSoundClicked)
+            onSoundClicked(soundId);
+    };
 }
 
 //==============================================================================

@@ -174,6 +174,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     postsFeedComponent->onSendPostToMessage = [this](const FeedPost& post) {
         showSharePostToMessage(post);
     };
+    postsFeedComponent->onSoundClicked = [this](const juce::String& soundId) {
+        showSoundPage(soundId);
+    };
     addChildComponent(postsFeedComponent.get());
 
     //==========================================================================
@@ -445,6 +448,22 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             "Playlist link copied to clipboard:\n" + shareLink);
     };
     addChildComponent(playlistDetailComponent.get());
+
+    //==========================================================================
+    // Create SoundPage component (Feature #15 - Sound/Sample Pages)
+    soundPageComponent = std::make_unique<SoundPage>();
+    soundPageComponent->setNetworkClient(networkClient.get());
+    soundPageComponent->onBackPressed = [this]() {
+        navigateBack();
+    };
+    soundPageComponent->onPostSelected = [](const juce::String& postId) {
+        // TODO: Navigate to post detail view when implemented
+        Log::info("Post selected from sound page: " + postId);
+    };
+    soundPageComponent->onUserSelected = [this](const juce::String& userId) {
+        showProfile(userId);
+    };
+    addChildComponent(soundPageComponent.get());
 
     //==========================================================================
     // Create MidiChallenges component (R.2.2.4.1)
@@ -963,6 +982,9 @@ void SidechainAudioProcessorEditor::resized()
     if (playlistDetailComponent)
         playlistDetailComponent->setBounds(contentBounds);
 
+    if (soundPageComponent)
+        soundPageComponent->setBounds(contentBounds);
+
     if (midiChallengesComponent)
         midiChallengesComponent->setBounds(contentBounds);
 
@@ -996,6 +1018,7 @@ juce::Component* SidechainAudioProcessorEditor::getComponentForView(AppView view
         case AppView::HiddenSynth:        return hiddenSynthComponent.get();
         case AppView::Playlists:          return playlistsComponent.get();
         case AppView::PlaylistDetail:     return playlistDetailComponent.get();
+        case AppView::SoundPage:          return soundPageComponent.get();
         case AppView::MidiChallenges:     return midiChallengesComponent.get();
         case AppView::MidiChallengeDetail: return midiChallengeDetailComponent.get();
         case AppView::SavedPosts:         return savedPostsComponent.get();
@@ -1160,6 +1183,11 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
             playlistDetailComponent->setBounds(contentBounds);
             playlistDetailComponent->setVisible(view == AppView::PlaylistDetail);
         }
+        if (soundPageComponent)
+        {
+            soundPageComponent->setBounds(contentBounds);
+            soundPageComponent->setVisible(view == AppView::SoundPage);
+        }
         if (midiChallengesComponent)
         {
             midiChallengesComponent->setBounds(contentBounds);
@@ -1284,6 +1312,13 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
             if (playlistDetailComponent && playlistIdToView.isNotEmpty())
             {
                 playlistDetailComponent->loadPlaylist(playlistIdToView);
+            }
+            break;
+
+        case AppView::SoundPage:
+            if (soundPageComponent && soundIdToView.isNotEmpty())
+            {
+                soundPageComponent->loadSound(soundIdToView);
             }
             break;
 
@@ -1443,6 +1478,12 @@ void SidechainAudioProcessorEditor::showPlaylistDetail(const juce::String& playl
 {
     playlistIdToView = playlistId;
     showView(AppView::PlaylistDetail);
+}
+
+void SidechainAudioProcessorEditor::showSoundPage(const juce::String& soundId)
+{
+    soundIdToView = soundId;
+    showView(AppView::SoundPage);
 }
 
 void SidechainAudioProcessorEditor::showSavedPosts()
