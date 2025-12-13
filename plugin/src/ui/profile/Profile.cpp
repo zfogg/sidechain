@@ -39,6 +39,7 @@ UserProfile UserProfile::fromJson(const juce::var& json)
     profile.isFollowing = Json::getBool(json, "is_following");
     profile.isFollowedBy = Json::getBool(json, "is_followed_by");
     profile.isPrivate = Json::getBool(json, "is_private");
+    profile.isMuted = Json::getBool(json, "is_muted");  // Feature #10
     profile.followRequestStatus = Json::getString(json, "follow_request_status");
     profile.followRequestId = Json::getString(json, "follow_request_id");
 
@@ -589,6 +590,14 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setColour(Colors::textPrimary);
         g.setFont(14.0f);
         g.drawText("Activity Status", activityBounds, juce::Justification::centred);
+
+        // Muted Users button (below activity status button) - Feature #10
+        auto mutedUsersBounds = getMutedUsersButtonBounds();
+        g.setColour(Colors::badge);
+        g.fillRoundedRectangle(mutedUsersBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(14.0f);
+        g.drawText("Muted Users", mutedUsersBounds, juce::Justification::centred);
     }
     else
     {
@@ -638,6 +647,27 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         g.setColour(Colors::textPrimary);
         g.setFont(14.0f);
         g.drawText("Message", messageBounds, juce::Justification::centred);
+
+        // Mute/Unmute button (below message button) - Feature #10
+        auto muteBounds = getMuteButtonBounds();
+        if (profile.isMuted)
+        {
+            // Currently muted - show "Unmute" button
+            g.setColour(Colors::errorRed.withAlpha(0.3f));
+            g.fillRoundedRectangle(muteBounds.toFloat(), 6.0f);
+            g.setColour(Colors::errorRed);
+            g.setFont(14.0f);
+            g.drawText("Unmute", muteBounds, juce::Justification::centred);
+        }
+        else
+        {
+            // Not muted - show "Mute" button
+            g.setColour(Colors::badge);
+            g.fillRoundedRectangle(muteBounds.toFloat(), 6.0f);
+            g.setColour(Colors::textSecondary);
+            g.setFont(14.0f);
+            g.drawText("Mute", muteBounds, juce::Justification::centred);
+        }
     }
 }
 
@@ -963,6 +993,17 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 Log::warn("Profile::mouseUp: Activity status clicked but callback not set");
             return;
         }
+
+        // Feature #10: Muted users button
+        if (getMutedUsersButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Muted users button clicked");
+            if (onMutedUsersClicked)
+                onMutedUsersClicked();
+            else
+                Log::warn("Profile::mouseUp: Muted users clicked but callback not set");
+            return;
+        }
     }
     else
     {
@@ -980,6 +1021,14 @@ void Profile::mouseUp(const juce::MouseEvent& event)
                 onMessageClicked(profile.id);
             else
                 Log::warn("Profile::mouseUp: Message clicked but callback not set");
+            return;
+        }
+
+        // Feature #10: Mute/Unmute button
+        if (getMuteButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Mute button clicked - userId: " + profile.id + ", currentlyMuted: " + juce::String(profile.isMuted ? "true" : "false"));
+            handleMuteToggle();
             return;
         }
     }
@@ -1073,6 +1122,19 @@ juce::Rectangle<int> Profile::getActivityStatusButtonBounds() const
 {
     auto notifBounds = getNotificationSettingsButtonBounds();
     return notifBounds.translated(0, BUTTON_HEIGHT + 8);  // Below notification settings button with spacing
+}
+
+juce::Rectangle<int> Profile::getMutedUsersButtonBounds() const
+{
+    auto activityBounds = getActivityStatusButtonBounds();
+    return activityBounds.translated(0, BUTTON_HEIGHT + 8);  // Below activity status button with spacing
+}
+
+juce::Rectangle<int> Profile::getMuteButtonBounds() const
+{
+    // Position mute button below the message button (for other users' profiles)
+    auto messageBounds = getMessageButtonBounds();
+    return messageBounds.translated(0, BUTTON_HEIGHT + 8);
 }
 
 juce::Rectangle<int> Profile::getShareButtonBounds() const
@@ -1276,6 +1338,61 @@ void Profile::handleFollowToggle()
     {
         Log::debug("Profile::handleFollowToggle: Calling unfollowUser API");
         networkClient->unfollowUser(profile.id, callback);
+    }
+}
+
+void Profile::handleMuteToggle()
+{
+    if (networkClient == nullptr || profile.id.isEmpty())
+    {
+        Log::warn("Profile::handleMuteToggle: Cannot toggle mute - NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+        return;
+    }
+
+    bool wasMuted = profile.isMuted;
+    bool willMute = !wasMuted;
+
+    Log::info("Profile::handleMuteToggle: Toggling mute for userId: " + profile.id + " - wasMuted: " + juce::String(wasMuted ? "true" : "false") + ", willMute: " + juce::String(willMute ? "true" : "false"));
+
+    // Optimistic UI update
+    profile.isMuted = willMute;
+    repaint();
+
+    // Use NetworkClient methods for mute/unmute
+    auto callback = [this, wasMuted, willMute](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, wasMuted, willMute]() {
+            if (result.isError())
+            {
+                Log::error("Profile::handleMuteToggle: Mute toggle failed, reverting optimistic update");
+                // Revert on failure
+                profile.isMuted = wasMuted;
+                repaint();
+            }
+            else
+            {
+                Log::info("Profile::handleMuteToggle: Mute toggle successful - isMuted: " + juce::String(profile.isMuted ? "true" : "false"));
+                if (onMuteToggled)
+                {
+                    Log::debug("Profile::handleMuteToggle: Calling onMuteToggled callback");
+                    onMuteToggled(profile.id, profile.isMuted);
+                }
+                else
+                {
+                    Log::warn("Profile::handleMuteToggle: Mute toggle succeeded but callback not set");
+                }
+            }
+        });
+    };
+
+    if (willMute)
+    {
+        Log::debug("Profile::handleMuteToggle: Calling muteUser API");
+        networkClient->muteUser(profile.id, callback);
+    }
+    else
+    {
+        Log::debug("Profile::handleMuteToggle: Calling unmuteUser API");
+        networkClient->unmuteUser(profile.id, callback);
     }
 }
 
@@ -1621,6 +1738,9 @@ juce::String Profile::getTooltip()
 
         if (getActivityStatusButtonBounds().contains(mousePos))
             return "Activity status privacy";
+
+        if (getMutedUsersButtonBounds().contains(mousePos))
+            return "View muted users";
     }
     else
     {
@@ -1637,6 +1757,9 @@ juce::String Profile::getTooltip()
 
         if (getMessageButtonBounds().contains(mousePos))
             return "Send a message";
+
+        if (getMuteButtonBounds().contains(mousePos))
+            return profile.isMuted ? "Unmute user" : "Mute user (hide their posts from your feed)";
     }
 
     // Share button

@@ -32,6 +32,7 @@ struct UserProfile
     bool isFollowing = false;
     bool isFollowedBy = false;
     bool isPrivate = false;
+    bool isMuted = false;  // Feature #10: Mute users without blocking
     juce::String followRequestStatus;  // "pending", "accepted", "rejected", or empty
     juce::String followRequestId;
     juce::Time createdAt;
@@ -94,6 +95,8 @@ public:
     std::function<void(const FeedPost&)> onPlayClicked;
     std::function<void(const FeedPost&)> onPauseClicked;
     std::function<void(const juce::String& userId)> onFollowToggled;
+    std::function<void(const juce::String& userId, bool isMuted)> onMuteToggled;  // Feature #10: Mute/unmute user
+    std::function<void()> onMutedUsersClicked;  // Navigate to muted users list (own profile only)
     std::function<void(const juce::String& userId)> onMessageClicked;  // Opens DM with user
     std::function<void(const juce::String& userId)> onViewStoryClicked;  // Opens story viewer for user's story
     std::function<void(const juce::String& userId)> onNavigateToProfile;  // Navigates to another user's profile
@@ -176,11 +179,13 @@ private:
     juce::Rectangle<int> getFollowingBounds() const;
     juce::Rectangle<int> getFollowButtonBounds() const;
     juce::Rectangle<int> getMessageButtonBounds() const;
+    juce::Rectangle<int> getMuteButtonBounds() const;  // Feature #10: Mute button (for other users)
     juce::Rectangle<int> getEditButtonBounds() const;
     juce::Rectangle<int> getSavedPostsButtonBounds() const;
     juce::Rectangle<int> getArchivedPostsButtonBounds() const;
     juce::Rectangle<int> getNotificationSettingsButtonBounds() const;
     juce::Rectangle<int> getActivityStatusButtonBounds() const;
+    juce::Rectangle<int> getMutedUsersButtonBounds() const;  // Feature #10: Muted users list (own profile only)
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getSocialLinkBounds(int index) const;
     juce::Rectangle<int> getPostsAreaBounds() const;
@@ -190,6 +195,7 @@ private:
     void fetchProfile(const juce::String& userId);
     void fetchUserPosts(const juce::String& userId);
     void handleFollowToggle();
+    void handleMuteToggle();  // Feature #10: Mute/unmute toggle
     void shareProfile();
 
     // Presence querying

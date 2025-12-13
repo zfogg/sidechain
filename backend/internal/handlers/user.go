@@ -238,6 +238,16 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		}
 	}
 
+	// Check if current user has muted this profile (Feature #10)
+	var isMuted bool
+	if currentUserID != "" && currentUserID != user.ID {
+		var mutedUser models.MutedUser
+		if err := database.DB.Where("user_id = ? AND muted_user_id = ?", currentUserID, user.ID).
+			First(&mutedUser).Error; err == nil {
+			isMuted = true
+		}
+	}
+
 	// Count posts (exclude archived)
 	var postCount int64
 	database.DB.Model(&models.AudioPost{}).Where("user_id = ? AND is_public = true AND is_archived = false", user.ID).Count(&postCount)
@@ -271,6 +281,7 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 		"is_following":               isFollowing,
 		"is_followed_by":             isFollowedBy,
 		"is_private":                 user.IsPrivate,
+		"is_muted":                   isMuted,  // Feature #10
 		"follow_request_status":      followRequestStatus,
 		"follow_request_id":          followRequestID,
 		"highlights":                 highlights,

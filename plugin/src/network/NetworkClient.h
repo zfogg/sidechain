@@ -499,6 +499,34 @@ public:
     void unfollowUser(const juce::String& userId, ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Mute operations (Feature #10 - Mute users without blocking)
+
+    /** Mute a user (hide their posts from feeds without unfollowing)
+     * @param userId The user ID to mute
+     * @param callback Called with result or error
+     */
+    void muteUser(const juce::String& userId, ResponseCallback callback = nullptr);
+
+    /** Unmute a user (show their posts in feeds again)
+     * @param userId The user ID to unmute
+     * @param callback Called with result or error
+     */
+    void unmuteUser(const juce::String& userId, ResponseCallback callback = nullptr);
+
+    /** Get list of muted users
+     * @param limit Maximum number of results
+     * @param offset Pagination offset
+     * @param callback Called with muted users list or error
+     */
+    void getMutedUsers(int limit = 50, int offset = 0, ResponseCallback callback = nullptr);
+
+    /** Check if a user is muted
+     * @param userId The user ID to check
+     * @param callback Called with result (muted: true/false) or error
+     */
+    void isUserMuted(const juce::String& userId, ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Save/Bookmark operations (P0 Social Feature)
 
     /** Save (bookmark) a post for later

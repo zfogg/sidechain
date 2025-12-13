@@ -106,7 +106,7 @@ public:
     void showWarning(const juce::String& message, int durationMs = 4000);
 
     /** Show an error toast */
-    void showError(const juce::String& message, int durationMs = 4000);
+    void showError(const juce::String& message, int durationMs = 3000);
 
     /** Show a custom toast */
     void showToast(const juce::String& message, ToastNotification::ToastType type, int durationMs);

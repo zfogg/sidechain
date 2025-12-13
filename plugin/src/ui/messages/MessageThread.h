@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../network/StreamChatClient.h"
+#include "../common/ErrorState.h"
 
 class NetworkClient;
 class SidechainAudioProcessor;
@@ -96,6 +97,9 @@ private:
     std::unique_ptr<class AudioSnippetRecorder> audioSnippetRecorder;
     bool showAudioRecorder = false;
     SidechainAudioProcessor* audioProcessor = nullptr;
+
+    // Error state component
+    std::unique_ptr<ErrorState> errorStateComponent;
 
     // Drawing helpers
     void drawHeader(juce::Graphics& g);

@@ -334,6 +334,8 @@ func main() {
 			users.GET("/me/saved", h.GetSavedPosts)
 			// Current user's archived posts - must be before /:id routes
 			users.GET("/me/archived", h.GetArchivedPosts)
+			// Current user's muted users (Feature #10) - must be before /:id routes
+			users.GET("/me/muted", h.GetMutedUsers)
 
 			// User profile endpoints (require auth for following checks)
 			users.GET("/:id/profile", h.GetUserProfile)
@@ -347,6 +349,10 @@ func main() {
 			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
 			// User reposts endpoint (P0 Social Feature)
 			users.GET("/:id/reposts", h.GetUserReposts)
+			// Mute endpoints (Feature #10)
+			users.POST("/:id/mute", h.MuteUser)
+			users.DELETE("/:id/mute", h.UnmuteUser)
+			users.GET("/:id/muted", h.IsUserMuted)
 		}
 
 		// Settings routes (Feature #9 - Activity Status Controls)

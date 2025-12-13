@@ -360,3 +360,106 @@ void NetworkClient::getArchivedPosts(int limit, int offset, FeedCallback callbac
         }
     });
 }
+
+//==============================================================================
+// Mute operations (Feature #10 - Mute users without blocking)
+//==============================================================================
+
+void NetworkClient::muteUser(const juce::String& userId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, userId, callback]() {
+        juce::String endpoint = buildApiPath("/users/") + userId + "/mute";
+        auto result = makeRequestWithRetry(endpoint, "POST", juce::var(), true);
+        Log::debug("Mute user response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::unmuteUser(const juce::String& userId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, userId, callback]() {
+        juce::String endpoint = buildApiPath("/users/") + userId + "/mute";
+        auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+        Log::debug("Unmute user response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::getMutedUsers(int limit, int offset, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        juce::String endpoint = buildApiPath("/users/me/muted") +
+            "?limit=" + juce::String(limit) +
+            "&offset=" + juce::String(offset);
+
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        Log::debug("Get muted users response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::isUserMuted(const juce::String& userId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, userId, callback]() {
+        juce::String endpoint = buildApiPath("/users/") + userId + "/muted";
+        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+        Log::debug("Is user muted response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
