@@ -534,6 +534,28 @@ public:
     void undoRepost(const juce::String& postId, ResponseCallback callback = nullptr);
 
     //==========================================================================
+    // Archive operations (hide posts without deleting)
+
+    /** Archive a post (hide from feeds without deleting)
+     * @param postId The post ID to archive
+     * @param callback Called with result or error
+     */
+    void archivePost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Unarchive a post (make visible in feeds again)
+     * @param postId The post ID to unarchive
+     * @param callback Called with result or error
+     */
+    void unarchivePost(const juce::String& postId, ResponseCallback callback = nullptr);
+
+    /** Get archived posts for the current user
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with archived posts or error
+     */
+    void getArchivedPosts(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    //==========================================================================
     // Profile operations
 
     /** Upload a profile picture
