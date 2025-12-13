@@ -3185,6 +3185,46 @@ void NetworkClient::getStoryViews(const juce::String& storyId, ResponseCallback 
     });
 }
 
+void NetworkClient::getStoryDownloadInfo(const juce::String& storyId, DownloadInfoCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<DownloadInfo>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, storyId, callback]() {
+        juce::String endpoint = "/stories/" + storyId + "/download";
+        auto result = makeRequestWithRetry(buildApiPath(endpoint.toRawUTF8()), "POST", juce::var(), true);
+        Log::debug("Get story download info response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                if (result.success && result.data.isObject())
+                {
+                    DownloadInfo info;
+                    auto* obj = result.data.getDynamicObject();
+                    if (obj != nullptr)
+                    {
+                        info.downloadUrl = obj->getProperty("audio_url").toString();
+                        info.filename = obj->getProperty("audio_filename").toString();
+                        info.metadata = obj->getProperty("metadata");
+                        // Note: download_count not tracked in response, but incremented server-side
+                    }
+                    callback(Outcome<DownloadInfo>::ok(info));
+                }
+                else
+                {
+                    auto outcome = requestResultToOutcome(result);
+                    callback(Outcome<DownloadInfo>::error(outcome.getError()));
+                }
+            });
+        }
+    });
+}
+
 //==============================================================================
 // Profile operations
 
