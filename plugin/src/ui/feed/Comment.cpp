@@ -7,6 +7,7 @@
 #include "../../util/StringFormatter.h"
 #include "../../util/Emoji.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
+#include "../../ui/common/ToastNotification.h"
 #include "../../network/NetworkClient.h"
 #include "../../util/Log.h"
 
@@ -651,6 +652,8 @@ void CommentsPanel::handleCommentLikeToggled(const Comment& comment, bool liked)
                         break;
                     }
                 }
+                // Show toast notification for transient error
+                ToastManager::getInstance().showError("Couldn't update like. Please try again.");
             }
             else
             {
@@ -675,6 +678,8 @@ void CommentsPanel::handleCommentLikeToggled(const Comment& comment, bool liked)
                         break;
                     }
                 }
+                // Show toast notification for transient error
+                ToastManager::getInstance().showError("Couldn't update like. Please try again.");
             }
             else
             {
@@ -713,13 +718,8 @@ void CommentsPanel::handleCommentCreated(Outcome<juce::var> commentResult)
     {
         errorMessage = "Failed to post comment: " + commentResult.getError();
         Log::error("CommentsPanel::handleCommentCreated: Failed to post comment - " + commentResult.getError());
-        // Show error to user
-        juce::MessageManager::callAsync([commentResult]() {
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::WarningIcon,
-                "Error",
-                "Failed to post comment: " + commentResult.getError());
-        });
+        // Show toast notification for transient error
+        ToastManager::getInstance().showError("Couldn't post comment. Please try again.");
     }
 
     repaint();
@@ -801,12 +801,8 @@ void CommentsPanel::submitComment()
                 else
                 {
                     Log::error("CommentsPanel::submitComment: Failed to update comment - " + commentResult.getError());
-                    juce::MessageManager::callAsync([commentResult]() {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::WarningIcon,
-                            "Error",
-                            "Failed to update comment: " + commentResult.getError());
-                    });
+                    // Show toast notification for transient error
+                    ToastManager::getInstance().showError("Couldn't update comment. Please try again.");
                 }
                 repaint();
             });

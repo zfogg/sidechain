@@ -350,6 +350,13 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 // getFallbackFeed returns recommended posts when the user's timeline is empty
 // First tries Gorse recommendations, then falls back to recent posts from database
 func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interface{} {
+	// Get muted user IDs for filtering (Feature #10)
+	mutedUserIDs, _ := GetMutedUserIDs(userID)
+	mutedUserSet := make(map[string]bool, len(mutedUserIDs))
+	for _, id := range mutedUserIDs {
+		mutedUserSet[id] = true
+	}
+
 	// Try Gorse recommendations first
 	gorseURL := os.Getenv("GORSE_URL")
 	if gorseURL == "" {
@@ -365,6 +372,10 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 	if err == nil && len(scores) > 0 {
 		activities := make([]map[string]interface{}, 0, len(scores))
 		for _, score := range scores {
+			// Skip posts from muted users (Feature #10)
+			if mutedUserSet[score.Post.UserID] {
+				continue
+			}
 			activity := map[string]interface{}{
 				"id":                    score.Post.ID,
 				"actor":                 "user:" + score.Post.UserID,
@@ -389,10 +400,17 @@ func (h *Handlers) getFallbackFeed(userID string, limit int) []map[string]interf
 
 	// Fall back to recent posts from database
 	// Include all public posts (including user's own) since this is a discovery feed
-	// Exclude archived posts
+	// Exclude archived posts and posts from muted users (Feature #10)
+	query := database.DB.
+		Where("is_public = ? AND is_archived = ? AND deleted_at IS NULL", true, false)
+
+	// Filter out muted users
+	if len(mutedUserIDs) > 0 {
+		query = query.Where("user_id NOT IN ?", mutedUserIDs)
+	}
+
 	var posts []models.AudioPost
-	if err := database.DB.
-		Where("is_public = ? AND is_archived = ? AND deleted_at IS NULL", true, false).
+	if err := query.
 		Order("created_at DESC").
 		Limit(limit).
 		Find(&posts).Error; err != nil {

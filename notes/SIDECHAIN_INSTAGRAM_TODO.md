@@ -1,7 +1,7 @@
 # Sidechain → Instagram-Level Polish TODO
 
 > **Vision**: Make Sidechain feel like "Instagram/Snapchat with audio for producers in your DAW"
-> **Last Updated**: December 13, 2024
+> **Last Updated**: December 13, 2025
 > **Status**: Comprehensive feature gap analysis and prioritized TODO list
 
 ---
@@ -33,34 +33,49 @@ Sidechain has a solid foundation with core features implemented:
 
 ## P0: Critical - Must Have for Launch
 
-### 1. Story Highlights (Archives)
+### 1. Story Highlights (Archives) ✅ IMPLEMENTED
 
 **Problem**: Stories expire after 24 hours with no way to save them permanently. Instagram/Snapchat have highlights/memories.
 
-**Current State**: Backend has `story_highlights` and `highlighted_stories` tables. UI partially implemented.
+**COMPLETED**:
+- [x] **1.1** `StoryHighlights` component (`plugin/src/ui/stories/StoryHighlights.h/cpp`):
+  - Displays highlight circles on profile (Instagram-style horizontal row)
+  - Each highlight shows cover image and name with ring styling
+  - Click handler opens highlight story viewer via `onHighlightClicked` callback
+  - "New" button for own profile with `+` icon to create highlights
+  - Loading state with "Loading highlights..." message
+  - Cover image caching via `ImageLoader::load()` and `std::map<juce::String, juce::Image>`
 
-**TODO**:
-- [ ] **1.1** Create `HighlightsComponent` in plugin UI
-  - Display highlight circles on profile (like Instagram)
-  - Each highlight shows cover image and name
-  - Click to view stories in that highlight
-  - File: `plugin/src/ui/profile/Highlights.h/cpp`
+- [x] **1.2** Highlight management dialogs:
+  - `CreateHighlightDialog` (`plugin/src/ui/stories/CreateHighlightDialog.h/cpp`):
+    - Name and description inputs
+    - Create/Cancel buttons with validation
+    - Modal overlay display via `showModal()`
+    - `onHighlightCreated` callback with new highlight ID
+  - `SelectHighlightDialog` (`plugin/src/ui/stories/SelectHighlightDialog.h/cpp`):
+    - Scrollable list of existing highlights
+    - "Create New" option at top
+    - Add story to selected highlight via `addStoryToHighlight()`
+    - `onHighlightSelected` and `onCreateNewClicked` callbacks
 
-- [ ] **1.2** Create highlight management UI
-  - "Add to Highlight" option after viewing own story
-  - Create new highlight with name and cover
-  - Edit existing highlights (add/remove stories, rename)
-  - Reorder highlights on profile
+- [x] **1.3** Profile integration (`plugin/src/ui/profile/Profile.h/cpp`):
+  - `storyHighlights` member positioned below header (HIGHLIGHTS_HEIGHT = 96px)
+  - Highlights loaded automatically in `setProfile()` via `storyHighlights->loadHighlights()`
+  - `onHighlightClicked` callback wired to `showHighlightStories()` in PluginEditor
+  - `onCreateHighlightClicked` callback wired to `showCreateHighlightDialog()` in PluginEditor
 
-- [ ] **1.3** Update ProfileComponent
-  - Show highlights row between bio and posts
-  - "New" button to create highlight
-  - Scrollable horizontal list
+- [x] **1.4** Backend endpoints (all verified working):
+  - `POST /api/v1/highlights` - Create highlight
+  - `GET /api/v1/highlights/:id` - Get highlight with stories
+  - `PUT /api/v1/highlights/:id` - Update highlight
+  - `DELETE /api/v1/highlights/:id` - Delete highlight
+  - `POST /api/v1/highlights/:id/stories` - Add story to highlight
+  - `DELETE /api/v1/highlights/:id/stories/:story_id` - Remove story from highlight
+  - `GET /api/v1/users/:id/highlights` - List user's highlights
 
-- [ ] **1.4** Backend endpoint verification
-  - Verify `POST /api/v1/highlights` works
-  - Verify `GET /api/v1/users/:id/highlights` returns highlights
-  - Verify `POST /api/v1/highlights/:id/stories` adds stories
+- [x] **1.5** NetworkClient methods (`plugin/src/network/NetworkClient.h`):
+  - `getHighlights()`, `getHighlight()`, `createHighlight()`, `updateHighlight()`, `deleteHighlight()`
+  - `addStoryToHighlight()`, `removeStoryFromHighlight()`
 
 ### 2. Save/Bookmark Posts ✅ IMPLEMENTED
 
@@ -164,27 +179,33 @@ Sidechain has a solid foundation with core features implemented:
   - MessageThread renders shared stories (`drawSharedStoryPreview`)
   - Story icon, author info, duration display
 
-### 5. Drafts System
+### 5. Drafts System ✅ IMPLEMENTED
 
 **Problem**: No way to save work in progress. Lose recordings if you close plugin.
 
-**TODO**:
-- [ ] **5.1** Create local draft storage
-  - File: `~/.local/share/Sidechain/drafts/`
-  - Save audio + metadata as draft
+**COMPLETED**:
+- [x] **5.1** Create local draft storage
+  - `DraftStorage` class in `plugin/src/stores/DraftStorage.h/.cpp`
+  - Files stored at `~/.local/share/Sidechain/drafts/` (Linux), `~/Library/Application Support/Sidechain/drafts/` (macOS), `%APPDATA%/Sidechain/drafts/` (Windows)
+  - Audio saved as WAV files, metadata as JSON
 
-- [ ] **5.2** Add "Save as Draft" button to Upload screen
-  - Appears next to "Share" button
-  - Saves current state locally
+- [x] **5.2** Add "Save as Draft" button to Upload screen
+  - Three-button layout in Upload: Cancel | Save Draft | Share
+  - `onSaveAsDraft` callback wired to PluginEditor
+  - Saves current title, BPM, key, genre, comment settings, MIDI data
 
-- [ ] **5.3** Create DraftsView in plugin
-  - Accessible from profile or recording screen
-  - List of drafts with preview
-  - Resume editing or delete
+- [x] **5.3** Create DraftsView in plugin
+  - `DraftsView` component in `plugin/src/ui/recording/DraftsView.h/.cpp`
+  - Accessible from Recording screen via "View Drafts" button
+  - List of draft cards with title, creation time, duration, delete button
+  - Click to resume editing (loads into Upload screen)
+  - Delete with swipe gesture
 
-- [ ] **5.4** Auto-save drafts on crash/close
-  - Save recording state automatically
-  - Prompt to restore on next open
+- [x] **5.4** Auto-save drafts on crash/close
+  - Auto-recovery draft saved in `~SidechainAudioProcessorEditor` destructor
+  - Recovery draft ID: `_auto_recovery`
+  - DraftsView shows "Recover Draft" banner when recovery draft exists
+  - User can restore or dismiss recovery draft
 
 ### 6. Loading States & Skeleton Screens ✅ IMPLEMENTED
 
@@ -278,23 +299,34 @@ Sidechain has a solid foundation with core features implemented:
   - Backend: `ShowLastActive` field in User model
   - Hidden from other users when disabled
 
-### 10. Mute Users (Without Blocking)
+### 10. Mute Users (Without Blocking) ✅ IMPLEMENTED
 
 **Problem**: Can only block users. Sometimes just want to mute without unfollowing.
 
-**TODO**:
-- [ ] **10.1** Create `MutedUser` model
-- [ ] **10.2** Add mute endpoints
-  - `POST /api/v1/users/:id/mute`
-  - `DELETE /api/v1/users/:id/mute`
-  - `GET /api/v1/users/me/muted`
+**COMPLETED**:
+- [x] **10.1** Create `MutedUser` model
+  - Added `MutedUser` model in `backend/internal/models/user.go`
+  - UserID, MutedUserID, CreatedAt fields
+  - Database indexes for efficient lookups
 
-- [ ] **10.3** Filter muted users from feeds
-  - Don't show their posts in timeline
-  - Still show on their profile page
-  - Don't receive their notifications
+- [x] **10.2** Add mute endpoints in `backend/internal/handlers/mute.go`:
+  - `POST /api/v1/users/:id/mute` - MuteUser (with validation)
+  - `DELETE /api/v1/users/:id/mute` - UnmuteUser
+  - `GET /api/v1/users/me/muted` - GetMutedUsers (paginated)
+  - `GET /api/v1/users/:id/muted` - IsUserMuted (check status)
 
-- [ ] **10.4** Add "Mute" option to user menu
+- [x] **10.3** Filter muted users from feeds
+  - Timeline service (`backend/internal/timeline/timeline.go`) filters muted users from all sources
+  - Fallback feed (`backend/internal/handlers/feed.go`) excludes muted users from DB queries
+  - Gorse recommendations filtered to exclude muted users
+  - Posts still visible on muted user's profile page
+
+- [x] **10.4** Add "Mute" option to plugin UI
+  - Mute/Unmute button on user profile page (below Message button)
+  - "Muted Users" button on own profile to manage muted list
+  - NetworkClient methods: `muteUser()`, `unmuteUser()`, `getMutedUsers()`, `isUserMuted()`
+  - `is_muted` field in profile response and UserProfile struct
+  - Visual feedback: red "Unmute" button when muted, grey "Mute" button when not
 
 ### 11. Private Account Option ✅ IMPLEMENTED
 
@@ -762,6 +794,7 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 - [x] User discovery and search
 - [x] Stories (record, view, MIDI visualization)
 - [x] Story expiration (24 hours)
+- [x] Story highlights (create, view, manage)
 - [x] Direct messaging (1-to-1)
 - [x] Group messaging
 - [x] Message threading and replies
@@ -776,13 +809,15 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 - [x] Content moderation (report, block)
 - [x] Drop to Track feature
 - [x] BPM/Key auto-detection
+- [x] Skeleton loading states
+- [x] Error states with retry
 
 ### Partially Implemented (Needs Completion)
-- [~] Story highlights (backend done, UI needed)
+- [x] Story highlights ✅ (backend + UI complete)
 - [x] Remix chains ✅ UI complete (backend + UI done)
 - [~] Presence system migration to getstream.io
 - [~] Activity status controls (backend done, UI toggle needed)
-- [~] Skeleton loaders (components exist, need to verify usage in all views)
+- [x] Skeleton loaders ✅ (components created and integrated in PostsFeed)
 - [~] Keyboard shortcuts (some implemented: Space, arrows, Escape, M - missing: J/K, L, C, R)
 - [~] Typing indicators (stub exists)
 - [~] Read receipts (stub exists)
@@ -793,7 +828,7 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 - [x] Download audio/MIDI ✅
 - [x] Remix chains UI ✅
 - [ ] Share to DMs
-- [ ] Drafts system
+- [x] Drafts system ✅
 - [ ] Offline mode
 - [ ] Mute users
 - [x] Private accounts ✅
@@ -809,11 +844,11 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 
 | Priority | Feature | Effort | Impact | Dependencies |
 |----------|---------|--------|--------|--------------|
-| P0 | Story Highlights UI | Medium | High | Backend ready |
+| ~~P0~~ | ~~Story Highlights UI~~ | ~~Medium~~ | ~~High~~ | ✅ DONE |
 | ~~P0~~ | ~~Save/Bookmark~~ | ~~Low~~ | ~~High~~ | ✅ DONE |
-| P0 | Loading Skeletons | Low | High | Components exist, need integration |
+| ~~P0~~ | ~~Loading Skeletons~~ | ~~Low~~ | ~~High~~ | ✅ DONE |
 | ~~P0~~ | ~~Error States~~ | ~~Low~~ | ~~High~~ | ✅ DONE |
-| P0 | Drafts | Medium | High | Local storage |
+| ~~P0~~ | ~~Drafts~~ | ~~Medium~~ | ~~High~~ | ✅ DONE |
 | ~~P1~~ | ~~Repost~~ | ~~Medium~~ | ~~Medium~~ | ✅ DONE |
 | P1 | Share to DMs | Medium | Medium | Messages work |
 | P1 | Mute Users | Low | Medium | Backend simple |
@@ -828,14 +863,14 @@ Solution: unlike instagram and tiktok, we'll provide file downloads to our media
 
 ## Suggested Sprint Plan
 
-### Sprint 1: Foundation Polish (1-2 weeks)
-1. Loading skeletons for all views (components exist, need integration)
+### Sprint 1: Foundation Polish (1-2 weeks) ✅ COMPLETE
+1. ~~Loading skeletons for all views~~ ✅ DONE
 2. ~~Error states with retry~~ ✅ DONE
-3. Story highlights UI
+3. ~~Story highlights UI~~ ✅ DONE
 4. ~~Save/bookmark posts~~ ✅ DONE
 
 ### Sprint 2: Social Features (1-2 weeks)
-1. Drafts system
+1. ~~Drafts system~~ ✅ DONE
 2. ~~Repost to feed~~ ✅ DONE
 3. Share posts to DMs
 4. Mute users

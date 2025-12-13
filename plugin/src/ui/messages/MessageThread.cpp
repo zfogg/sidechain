@@ -30,6 +30,21 @@ MessageThread::MessageThread()
     messageInput.addListener(this);
     addAndMakeVisible(messageInput);
 
+    // Create error state component
+    errorStateComponent = std::make_unique<ErrorState>();
+    errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+    errorStateComponent->setPrimaryAction("Reconnect", [this]() {
+        Log::info("MessageThread: Reconnect requested from error state");
+        loadMessages();
+    });
+    errorStateComponent->setSecondaryAction("Go Back", [this]() {
+        Log::info("MessageThread: Go back requested from error state");
+        if (onBackPressed)
+            onBackPressed();
+    });
+    addChildComponent(errorStateComponent.get());
+    Log::debug("MessageThread: Error state component created");
+
     startTimer(5000); // Refresh every 5 seconds
 }
 
@@ -91,7 +106,7 @@ void MessageThread::paint(juce::Graphics& g)
             break;
 
         case ThreadState::Error:
-            drawErrorState(g);
+            // ErrorState component handles the error UI as a child component
             break;
 
         case ThreadState::Loaded:
@@ -141,6 +156,13 @@ void MessageThread::resized()
     int visibleHeight = getHeight() - HEADER_HEIGHT - bottomAreaHeight;
     scrollBar.setRangeLimits(0.0, static_cast<double>(juce::jmax(0, totalHeight - visibleHeight)));
     scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+
+    // Position error state component in message area
+    if (errorStateComponent != nullptr)
+    {
+        auto errorArea = getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(INPUT_HEIGHT);
+        errorStateComponent->setBounds(errorArea);
+    }
 }
 
 void MessageThread::mouseUp(const juce::MouseEvent& event)
@@ -360,6 +382,14 @@ void MessageThread::loadChannel(const juce::String& type, const juce::String& id
     {
         threadState = ThreadState::Error;
         errorMessage = "Not authenticated";
+
+        // Configure and show error state component
+        if (errorStateComponent != nullptr)
+        {
+            errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
+            errorStateComponent->setMessage("Please sign in to view your messages.");
+            errorStateComponent->setVisible(true);
+        }
         repaint();
     }
 }
@@ -370,11 +400,24 @@ void MessageThread::loadMessages()
     {
         threadState = ThreadState::Error;
         errorMessage = "Not authenticated";
+
+        // Configure and show error state component
+        if (errorStateComponent != nullptr)
+        {
+            errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
+            errorStateComponent->setMessage("Please sign in to view your messages.");
+            errorStateComponent->setVisible(true);
+        }
         repaint();
         return;
     }
 
     threadState = ThreadState::Loading;
+
+    // Hide error state while loading
+    if (errorStateComponent != nullptr)
+        errorStateComponent->setVisible(false);
+
     repaint();
 
     streamChatClient->queryMessages(channelType, channelId, 50, 0, [this](Outcome<std::vector<StreamChatClient::Message>> result) {
@@ -383,6 +426,10 @@ void MessageThread::loadMessages()
             messages = result.getValue();
             Log::info("MessageThread: Loaded " + juce::String(messages.size()) + " messages");
             threadState = messages.empty() ? ThreadState::Empty : ThreadState::Loaded;
+
+            // Hide error state on success
+            if (errorStateComponent != nullptr)
+                errorStateComponent->setVisible(false);
 
             // Mark channel as read
             streamChatClient->markChannelRead(channelType, channelId, [](Outcome<void> readResult) {
@@ -405,6 +452,13 @@ void MessageThread::loadMessages()
             Log::error("MessageThread: Failed to load messages - " + result.getError());
             threadState = ThreadState::Error;
             errorMessage = "Failed to load messages";
+
+            // Configure and show error state component
+            if (errorStateComponent != nullptr)
+            {
+                errorStateComponent->configureFromError(result.getError());
+                errorStateComponent->setVisible(true);
+            }
         }
         repaint();
     });

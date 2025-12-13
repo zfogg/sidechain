@@ -81,6 +81,18 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 	// We'll fetch more than needed to allow for deduplication and ranking
 	fetchLimit := limit * 3
 
+	// Get muted user IDs for filtering (Feature #10)
+	mutedUserIDs, err := s.getMutedUserIDs(userID)
+	if err != nil {
+		// Log but continue - don't break timeline if mute lookup fails
+		fmt.Printf("⚠️ Failed to get muted users: %v\n", err)
+		mutedUserIDs = []string{}
+	}
+	mutedUserSet := make(map[string]bool, len(mutedUserIDs))
+	for _, id := range mutedUserIDs {
+		mutedUserSet[id] = true
+	}
+
 	// Collect items from all sources in parallel
 	type sourceResult struct {
 		items  []TimelineItem
@@ -150,8 +162,21 @@ func (s *Service) GetTimeline(ctx context.Context, userID string, limit, offset 
 		}
 	}
 
+	// Filter out posts from muted users (Feature #10)
+	filteredItems := make([]TimelineItem, 0, len(uniqueItems))
+	for _, item := range uniqueItems {
+		// Check if the post author is muted
+		if item.Post != nil && mutedUserSet[item.Post.UserID] {
+			continue // Skip posts from muted users
+		}
+		if item.User != nil && mutedUserSet[item.User.ID] {
+			continue // Skip posts from muted users (backup check)
+		}
+		filteredItems = append(filteredItems, item)
+	}
+
 	// Rank and sort items
-	rankedItems := s.rankItems(uniqueItems, userID)
+	rankedItems := s.rankItems(filteredItems, userID)
 
 	// Apply pagination
 	start := offset
@@ -433,4 +458,13 @@ func (s *Service) SyncPostToGorse(postID string) error {
 // RecordInteraction records a user interaction with a post to Gorse
 func (s *Service) RecordInteraction(userID, postID, interactionType string) error {
 	return s.gorseClient.SyncFeedback(userID, postID, interactionType)
+}
+
+// getMutedUserIDs returns the IDs of users that the given user has muted (Feature #10)
+func (s *Service) getMutedUserIDs(userID string) ([]string, error) {
+	var mutedUserIDs []string
+	err := s.db.Model(&models.MutedUser{}).
+		Where("user_id = ?", userID).
+		Pluck("muted_user_id", &mutedUserIDs).Error
+	return mutedUserIDs, err
 }

@@ -657,6 +657,34 @@ func (Repost) TableName() string {
 	return "reposts"
 }
 
+// MutedUser represents a user muting another user (Feature #10)
+// Muting hides the muted user's posts from the muter's feed without unfollowing
+type MutedUser struct {
+	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID      string `gorm:"not null;index" json:"user_id"`       // User who is muting
+	MutedUserID string `gorm:"not null;index" json:"muted_user_id"` // User being muted
+
+	// Relations
+	User      User `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	MutedUser User `gorm:"foreignKey:MutedUserID" json:"muted_user,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// TableName for muted users
+func (MutedUser) TableName() string {
+	return "muted_users"
+}
+
+// BeforeCreate generates UUID for MutedUser
+func (mu *MutedUser) BeforeCreate(tx *gorm.DB) error {
+	if mu.ID == "" {
+		mu.ID = uuid.New().String()
+	}
+	return nil
+}
+
 // BeforeCreate hooks for GORM
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
