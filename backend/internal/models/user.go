@@ -156,6 +156,8 @@ type AudioPost struct {
 	PlayCount     int `gorm:"default:0" json:"play_count"`
 	CommentCount  int `gorm:"default:0" json:"comment_count"`
 	DownloadCount int `gorm:"default:0" json:"download_count"` // Track downloads for analytics
+	SaveCount     int `gorm:"default:0" json:"save_count"`     // How many users saved/bookmarked this post
+	RepostCount   int `gorm:"default:0" json:"repost_count"`   // How many users reposted this
 
 	// getstream.io integration
 	StreamActivityID string `gorm:"uniqueIndex" json:"stream_activity_id"`
@@ -593,6 +595,52 @@ func (HighlightedStory) TableName() string {
 	return "highlighted_stories"
 }
 
+// SavedPost represents a bookmarked/saved post by a user
+type SavedPost struct {
+	ID     string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID string `gorm:"not null;index" json:"user_id"`
+	PostID string `gorm:"not null;index" json:"post_id"`
+
+	// Relations
+	User User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Post AudioPost `gorm:"foreignKey:PostID" json:"post,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// TableName for saved posts
+func (SavedPost) TableName() string {
+	return "saved_posts"
+}
+
+// Repost represents a user sharing another user's post to their feed
+type Repost struct {
+	ID             string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	UserID         string `gorm:"not null;index" json:"user_id"`          // User who reposted
+	OriginalPostID string `gorm:"not null;index" json:"original_post_id"` // Original post being reposted
+
+	// Optional quote/comment when reposting
+	Quote string `gorm:"type:text" json:"quote,omitempty"`
+
+	// Relations
+	User         User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	OriginalPost AudioPost `gorm:"foreignKey:OriginalPostID" json:"original_post,omitempty"`
+
+	// getstream.io integration - the activity ID for this repost in the feed
+	StreamActivityID string `gorm:"uniqueIndex" json:"stream_activity_id,omitempty"`
+
+	// GORM fields
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// TableName for reposts
+func (Repost) TableName() string {
+	return "reposts"
+}
+
 // BeforeCreate hooks for GORM
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
@@ -706,6 +754,23 @@ func (hs *HighlightedStory) BeforeCreate(tx *gorm.DB) error {
 func (sv *StoryView) BeforeCreate(tx *gorm.DB) error {
 	if sv.ID == "" {
 		sv.ID = generateUUID()
+	}
+	return nil
+}
+
+func (sp *SavedPost) BeforeCreate(tx *gorm.DB) error {
+	if sp.ID == "" {
+		sp.ID = generateUUID()
+	}
+	return nil
+}
+
+func (r *Repost) BeforeCreate(tx *gorm.DB) error {
+	if r.ID == "" {
+		r.ID = generateUUID()
+	}
+	if r.StreamActivityID == "" {
+		r.StreamActivityID = generateUUID()
 	}
 	return nil
 }

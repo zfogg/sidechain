@@ -1790,6 +1790,138 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         }
     };
 
+    // Save/Bookmark toggle (P0 Social Feature)
+    card->onSaveToggled = [this, card](const FeedPost& post, bool saved) {
+        Log::info("PostsFeedComponent: Save toggled for post: " + post.id + " -> " + (saved ? "saved" : "unsaved"));
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeedComponent: Cannot save/unsave - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to save post. Please try again later.");
+            return;
+        }
+
+        // Store original state for conflict resolution
+        int originalCount = post.saveCount;
+        bool originalSaved = post.isSaved;
+
+        // Optimistic UI update
+        int optimisticCount = originalCount + (saved ? 1 : -1);
+        card->updateSaveState(optimisticCount, saved);
+
+        // Call backend API
+        auto callback = [card, originalCount, originalSaved](Outcome<juce::var> result) {
+            if (result.isError())
+            {
+                Log::error("PostsFeedComponent: Save API call failed - reverting: " + result.getError());
+                card->updateSaveState(originalCount, originalSaved);
+            }
+            else
+            {
+                Log::debug("PostsFeedComponent: Save API call succeeded");
+            }
+        };
+
+        if (saved)
+            networkClient->savePost(post.id, callback);
+        else
+            networkClient->unsavePost(post.id, callback);
+    };
+
+    // Repost toggle (P0 Social Feature)
+    card->onRepostClicked = [this, card](const FeedPost& post) {
+        Log::info("PostsFeedComponent: Repost clicked for post: " + post.id);
+
+        if (networkClient == nullptr)
+        {
+            Log::warn("PostsFeedComponent: Cannot repost - networkClient is null");
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::WarningIcon,
+                "Error",
+                "Unable to repost. Please try again later.");
+            return;
+        }
+
+        // Check if already reposted - if so, undo the repost
+        if (post.isReposted)
+        {
+            auto options = juce::MessageBoxOptions()
+                .withTitle("Remove Repost")
+                .withMessage("Remove your repost of this loop?")
+                .withButton("Remove")
+                .withButton("Cancel");
+
+            juce::AlertWindow::showAsync(options, [this, card, post](int result) {
+                if (result != 1) return;
+
+                // Optimistic UI update
+                int originalCount = post.repostCount;
+                card->updateRepostState(originalCount - 1, false);
+
+                networkClient->undoRepost(post.id, [card, originalCount](Outcome<juce::var> result) {
+                    if (result.isError())
+                    {
+                        Log::error("PostsFeedComponent: Undo repost failed - reverting: " + result.getError());
+                        card->updateRepostState(originalCount, true);
+                        juce::MessageManager::callAsync([result]() {
+                            juce::AlertWindow::showMessageBoxAsync(
+                                juce::MessageBoxIconType::WarningIcon,
+                                "Error",
+                                "Failed to remove repost: " + result.getError());
+                        });
+                    }
+                    else
+                    {
+                        Log::debug("PostsFeedComponent: Undo repost succeeded");
+                    }
+                });
+            });
+            return;
+        }
+
+        // Show confirmation dialog for new repost
+        auto options = juce::MessageBoxOptions()
+            .withTitle("Repost to Your Feed")
+            .withMessage("Share @" + post.username + "'s loop with your followers?")
+            .withButton("Repost")
+            .withButton("Cancel");
+
+        juce::AlertWindow::showAsync(options, [this, card, post](int result) {
+            if (result != 1) return;
+
+            // Optimistic UI update
+            int originalCount = post.repostCount;
+            card->updateRepostState(originalCount + 1, true);
+
+            networkClient->repostPost(post.id, "", [card, originalCount](Outcome<juce::var> result) {
+                if (result.isError())
+                {
+                    Log::error("PostsFeedComponent: Repost failed - reverting: " + result.getError());
+                    card->updateRepostState(originalCount, false);
+                    juce::MessageManager::callAsync([result]() {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::WarningIcon,
+                            "Error",
+                            "Failed to repost: " + result.getError());
+                    });
+                }
+                else
+                {
+                    Log::debug("PostsFeedComponent: Repost succeeded");
+                    juce::MessageManager::callAsync([]() {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::InfoIcon,
+                            "Reposted",
+                            "Loop shared to your feed!");
+                    });
+                }
+            });
+        });
+    };
+
     card->onWaveformClicked = [this](const FeedPost& post, float position) {
         Log::debug("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
         if (audioPlayer)

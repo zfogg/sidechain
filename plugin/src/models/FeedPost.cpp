@@ -171,8 +171,42 @@ FeedPost FeedPost::fromJson(const juce::var& json)
 
     post.playCount = Json::getInt(json, "play_count");
     post.commentCount = Json::getInt(json, "comment_count");
+    post.saveCount = Json::getInt(json, "save_count");
+    post.repostCount = Json::getInt(json, "repost_count");
+    post.isSaved = Json::getBool(json, "is_saved");
+    post.isReposted = Json::getBool(json, "is_reposted");
     post.isFollowing = Json::getBool(json, "is_following");
     post.isOwnPost = Json::getBool(json, "is_own_post");
+
+    // Repost metadata (if this is a repost of another post)
+    // Check extra data from getstream.io activity
+    if (Json::hasKey(json, "extra"))
+    {
+        auto extra = Json::getObject(json, "extra");
+        if (Json::getBool(extra, "is_repost"))
+        {
+            post.isARepost = true;
+            post.originalPostId = Json::getString(extra, "original_post_id");
+            post.originalUserId = Json::getString(extra, "original_user_id");
+            post.originalUsername = Json::getString(extra, "original_username");
+            post.originalAvatarUrl = Json::getString(extra, "original_avatar");
+            post.repostQuote = Json::getString(extra, "quote");
+        }
+    }
+    // Also check top-level fields for repost info (alternative format)
+    if (!post.isARepost)
+    {
+        post.isARepost = Json::getBool(json, "is_a_repost");
+        if (post.isARepost || Json::hasKey(json, "original_post_id"))
+        {
+            post.isARepost = true;
+            post.originalPostId = Json::getString(json, "original_post_id");
+            post.originalUserId = Json::getString(json, "original_user_id");
+            post.originalUsername = Json::getString(json, "original_username");
+            post.originalAvatarUrl = Json::getString(json, "original_avatar_url");
+            post.repostQuote = Json::getString(json, "repost_quote");
+        }
+    }
 
     // Recommendation reason (for unified timeline feed)
     post.recommendationReason = Json::getString(json, "recommendation_reason");
@@ -266,9 +300,29 @@ juce::var FeedPost::toJson() const
     obj->setProperty("like_count", likeCount);
     obj->setProperty("play_count", playCount);
     obj->setProperty("comment_count", commentCount);
+    obj->setProperty("save_count", saveCount);
+    obj->setProperty("repost_count", repostCount);
     obj->setProperty("is_liked", isLiked);
+    obj->setProperty("is_saved", isSaved);
+    obj->setProperty("is_reposted", isReposted);
     obj->setProperty("is_following", isFollowing);
     obj->setProperty("is_own_post", isOwnPost);
+
+    // Repost metadata
+    if (isARepost)
+    {
+        obj->setProperty("is_a_repost", isARepost);
+        if (originalPostId.isNotEmpty())
+            obj->setProperty("original_post_id", originalPostId);
+        if (originalUserId.isNotEmpty())
+            obj->setProperty("original_user_id", originalUserId);
+        if (originalUsername.isNotEmpty())
+            obj->setProperty("original_username", originalUsername);
+        if (originalAvatarUrl.isNotEmpty())
+            obj->setProperty("original_avatar_url", originalAvatarUrl);
+        if (repostQuote.isNotEmpty())
+            obj->setProperty("repost_quote", repostQuote);
+    }
 
     // Serialize reaction counts for caching enriched data
     if (!reactionCounts.empty())
