@@ -9,8 +9,9 @@
 EditProfile::EditProfile()
 {
     Log::info("EditProfile: Initializing");
-    setSize(500, 870);  // Increased height for username field and privacy section
     setupEditors();
+    // Set size last to avoid resized() being called before components are created
+    setSize(500, 870);  // Increased height for username field and privacy section
 }
 
 EditProfile::~EditProfile()

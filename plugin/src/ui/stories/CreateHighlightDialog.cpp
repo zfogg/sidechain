@@ -6,8 +6,6 @@
 //==============================================================================
 CreateHighlightDialog::CreateHighlightDialog()
 {
-    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
-
     // Name input
     nameInput = std::make_unique<juce::TextEditor>();
     nameInput->setMultiLine(false);
@@ -53,6 +51,9 @@ CreateHighlightDialog::CreateHighlightDialog()
     cancelButton->setColour(juce::TextButton::textColourOnId, SidechainColors::textPrimary());
     cancelButton->setColour(juce::TextButton::textColourOffId, SidechainColors::textPrimary());
     addAndMakeVisible(cancelButton.get());
+
+    // Set size last to avoid resized() being called before components are created
+    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
 }
 
 CreateHighlightDialog::~CreateHighlightDialog()

@@ -8,8 +8,6 @@
 //==============================================================================
 UserPickerDialog::UserPickerDialog()
 {
-    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
-
     // Create search input
     searchInput = std::make_unique<juce::TextEditor>();
     searchInput->setMultiLine(false);
@@ -36,6 +34,9 @@ UserPickerDialog::UserPickerDialog()
     scrollBar = std::make_unique<juce::ScrollBar>(true);
     scrollBar->setRangeLimits(0.0, 0.0);
     addAndMakeVisible(scrollBar.get());
+
+    // Set size last to avoid resized() being called before components are created
+    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
 
     // Start timer for debouncing search
     startTimer(300);

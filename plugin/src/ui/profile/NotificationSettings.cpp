@@ -8,8 +8,9 @@
 NotificationSettings::NotificationSettings()
 {
     Log::info("NotificationSettings: Initializing");
-    setSize(400, 550);
     setupToggles();
+    // Set size last to avoid resized() being called before components are created
+    setSize(400, 550);
 }
 
 NotificationSettings::~NotificationSettings()

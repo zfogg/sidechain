@@ -8,8 +8,6 @@
 //==============================================================================
 SelectHighlightDialog::SelectHighlightDialog()
 {
-    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
-
     // Scroll bar
     scrollBar = std::make_unique<juce::ScrollBar>(true);
     scrollBar->addListener(this);
@@ -23,6 +21,9 @@ SelectHighlightDialog::SelectHighlightDialog()
     cancelButton->setColour(juce::TextButton::textColourOnId, SidechainColors::textPrimary());
     cancelButton->setColour(juce::TextButton::textColourOffId, SidechainColors::textPrimary());
     addAndMakeVisible(cancelButton.get());
+
+    // Set size last to avoid resized() being called before components are created
+    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
 }
 
 SelectHighlightDialog::~SelectHighlightDialog()

@@ -7,8 +7,9 @@
 ActivityStatusSettings::ActivityStatusSettings()
 {
     Log::info("ActivityStatusSettings: Initializing");
-    setSize(400, 320);
     setupToggles();
+    // Set size last to avoid resized() being called before components are created
+    setSize(400, 320);
 }
 
 ActivityStatusSettings::~ActivityStatusSettings()
