@@ -312,9 +312,12 @@ public:
      */
     const RateLimitConfig& getConfig() const { return config_; }
 
-private:
+    /**
+     * Constructor (use create() instead for proper shared_ptr management)
+     */
     RateLimiter();
 
+private:
     void initializeImplementation();
 
     RateLimitConfig config_;

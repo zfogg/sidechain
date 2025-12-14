@@ -41,6 +41,7 @@
 #include "ui/playlists/PlaylistDetail.h"
 #include "ui/sounds/SoundPage.h"
 #include "network/StreamChatClient.h"
+#include "ui/animations/ViewTransitionManager.h"
 
 //==============================================================================
 /**
@@ -99,11 +100,8 @@ private:
     juce::String soundIdToView;       // Sound ID for SoundPage view
     juce::String challengeIdToView;   // Challenge ID for MidiChallengeDetail view
 
-    // Component animator for smooth view transitions
-    juce::ComponentAnimator viewAnimator;
-
-    // Track component being animated out (for cleanup after animation)
-    juce::Component* animatingOutComponent = nullptr;
+    // View transition manager for smooth view transitions
+    std::shared_ptr<ViewTransitionManager> viewTransitionManager;
 
     /** Get the component for a given view
      * @param view The view to get the component for
