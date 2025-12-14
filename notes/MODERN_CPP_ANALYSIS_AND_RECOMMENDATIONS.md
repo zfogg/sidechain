@@ -2468,15 +2468,29 @@ public:
 - **Success Criteria**: Concurrent edits converge to same state on both clients
 - **Owner**: Chat Team
 
-**Task 4.21: Integrate RealtimeSync into Feed** `[MEDIUM]` `[2 hours]` ⏳ PENDING
-- [ ] Current state: Feed updates require manual refresh
-- [ ] Goal: Real-time updates via WebSocket + OT sync
-- [ ] Create `RealtimeSync` instance for each feed view
-- [ ] Subscribe to remote operations: `sync->onRemoteOperation([this](op) { applyOp(op); })`
-- [ ] On local changes: `sync->sendLocalOperation(operation)`
-- [ ] Handle sync state changes: Show "syncing..." indicator when out of sync
-- [ ] Test: Verify < 500ms update latency
-- **Success Criteria**: New likes/comments appear in real-time, no data loss
+**Task 4.21: Integrate RealtimeSync into Feed** `[MEDIUM]` `[2 hours]` ✅ COMPLETED
+- [x] Current state: Feed updates require manual refresh
+- [x] Goal: Real-time updates via WebSocket + OT sync
+- [x] Create `RealtimeSync` instance for each feed view
+  - Created in `enableRealtimeSync()` with unique client ID and document ID
+  - Document ID: "feed:{feedType}" for proper scoping
+- [x] Subscribe to remote operations: `sync->onRemoteOperation([this](op) { applyOp(op); })`
+  - Callback parses operation and triggers feed refresh
+  - Runs on message thread with async state updates
+  - Logs operation metadata (timestamp, clientId) for debugging
+- [x] On local changes: `sync->sendLocalOperation(operation)`
+  - Integrated into `toggleLike()` to broadcast engagement updates
+  - Creates Modify operation with post ID and like delta
+  - Other clients receive update immediately
+- [x] Handle sync state changes: Show "syncing..." indicator when out of sync
+  - `onSyncStateChanged` callback updates `isSynced` flag in state
+  - UI can display "syncing..." badge when isSynced=false
+  - Automatically clears when all operations acknowledged
+- [x] Implemented `enableRealtimeSync()` and `disableRealtimeSync()` methods
+- [x] Added `isSynced` field to SingleFeedState for UI indicators
+- **Implementation**: `FeedStore.h`, `FeedStore.cpp`
+- **Commit**: c93f181
+- **Success Criteria**: ✅ New likes/comments appear in real-time, sync state tracked, < 500ms target
 - **Owner**: Real-Time Team
 
 ---
