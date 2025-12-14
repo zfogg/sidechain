@@ -4,35 +4,36 @@
 #include "../../util/Colors.h"
 
 UserPickerDialog::UserPickerDialog()
+    : scrollBar(true)  // Initialize scrollbar as vertical
 {
     Log::info("UserPickerDialog: Initializing");
-    
+
     // Setup search input
     searchInput.setMultiLine(false);
     searchInput.setReturnKeyStartsNewLine(false);
     searchInput.setPopupMenuEnabled(true);
     searchInput.setTextToShowWhenEmpty("Search for people...", SidechainColors::textMuted());
-    searchInput.setColour(juce::TextEditor::backgroundColourId, SidechainColors::inputBg());
-    searchInput.setColour(juce::TextEditor::outlineColourId, SidechainColors::inputBorder());
+    searchInput.setColour(juce::TextEditor::backgroundColourId, SidechainColors::surface());
+    searchInput.setColour(juce::TextEditor::outlineColourId, SidechainColors::border());
     searchInput.setColour(juce::TextEditor::focusedOutlineColourId, SidechainColors::accent());
     searchInput.setColour(juce::TextEditor::textColourId, SidechainColors::textPrimary());
     searchInput.setFont(juce::FontOptions(14.0f));
     searchInput.addListener(this);
     addAndMakeVisible(searchInput);
-    
+
     // Setup group name input (hidden by default)
     groupNameInput.setMultiLine(false);
     groupNameInput.setReturnKeyStartsNewLine(false);
     groupNameInput.setPopupMenuEnabled(true);
     groupNameInput.setTextToShowWhenEmpty("Group name (optional)", SidechainColors::textMuted());
-    groupNameInput.setColour(juce::TextEditor::backgroundColourId, SidechainColors::inputBg());
-    groupNameInput.setColour(juce::TextEditor::outlineColourId, SidechainColors::inputBorder());
+    groupNameInput.setColour(juce::TextEditor::backgroundColourId, SidechainColors::surface());
+    groupNameInput.setColour(juce::TextEditor::outlineColourId, SidechainColors::border());
     groupNameInput.setColour(juce::TextEditor::focusedOutlineColourId, SidechainColors::accent());
     groupNameInput.setColour(juce::TextEditor::textColourId, SidechainColors::textPrimary());
     groupNameInput.setFont(juce::FontOptions(14.0f));
     groupNameInput.setVisible(false);
     addAndMakeVisible(groupNameInput);
-    
+
     // Setup scroll bar
     scrollBar.setAutoHide(false);
     scrollBar.addListener(this);
