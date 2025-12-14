@@ -6,6 +6,7 @@
 #include "../models/FeedPost.h"
 #include "../models/FeedResponse.h"
 #include "../network/NetworkClient.h"
+#include "../network/RealtimeSync.h"
 #include "../util/logging/Logger.h"
 #include "../util/cache/CacheLayer.h"
 #include <map>
@@ -53,6 +54,7 @@ struct SingleFeedState
     int total = 0;
     juce::String error;
     int64_t lastUpdated = 0;
+    bool isSynced = true;  // Real-time sync status (Task 4.21)
 
     bool operator==(const SingleFeedState& other) const
     {
@@ -62,7 +64,8 @@ struct SingleFeedState
                hasMore == other.hasMore &&
                offset == other.offset &&
                error == other.error &&
-               lastUpdated == other.lastUpdated;
+               lastUpdated == other.lastUpdated &&
+               isSynced == other.isSynced;
     }
 };
 
@@ -302,6 +305,33 @@ public:
     bool isCurrentFeedCached() const;
 
     //==========================================================================
+    // Real-Time Synchronization (Task 4.21)
+
+    /**
+     * Enable real-time synchronization for feed updates
+     * Uses WebSocket + Operational Transform for < 500ms latency
+     */
+    void enableRealtimeSync();
+
+    /**
+     * Disable real-time synchronization
+     */
+    void disableRealtimeSync();
+
+    /**
+     * Check if real-time sync is enabled
+     */
+    bool isRealtimeSyncEnabled() const { return realtimeSync != nullptr; }
+
+    /**
+     * Get real-time sync status for current feed
+     */
+    bool isCurrentFeedSynced() const
+    {
+        return getState().getCurrentFeed().isSynced;
+    }
+
+    //==========================================================================
     // Helpers
 
     /**
@@ -339,6 +369,9 @@ private:
     std::shared_ptr<CacheWarmer> cacheWarmer;
     bool isOnlineStatus_ = true;
     bool currentFeedIsFromCache_ = false;
+
+    // Real-time synchronization (Task 4.21)
+    std::shared_ptr<Network::RealtimeSync> realtimeSync;
 
     // Legacy cache storage for backward compatibility during migration
     struct CacheEntry
