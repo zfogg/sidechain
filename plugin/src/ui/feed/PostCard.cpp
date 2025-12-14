@@ -159,8 +159,8 @@ void PostCard::paint(juce::Graphics& g)
     drawWaveform(g, getWaveformBounds());
     drawPlayButton(g, getPlayButtonBounds());
     drawSoundBadge(g);  // Sound indicator below waveform
-    drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - 125, 10, 115, CARD_HEIGHT - 30));
-    drawSocialButtons(g, juce::Rectangle<int>(getWidth() - 125, CARD_HEIGHT - 40, 115, 30));
+    drawMetadataBadges(g, juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH - 10, 10, RIGHT_PANEL_WIDTH, CARD_HEIGHT - 50));
+    drawSocialButtons(g, juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH - 10, CARD_HEIGHT - 45, RIGHT_PANEL_WIDTH, 35));
 
     // Reset opacity for like animation (should be fully visible)
     g.setOpacity(1.0f);
@@ -219,47 +219,47 @@ void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
 
     // Primary header: filename if available, otherwise username
     g.setColour(SidechainColors::textPrimary());
-    g.setFont(14.0f);
+    g.setFont(16.0f);
 
     if (post.filename.isNotEmpty())
     {
         // Show filename as main header
         g.drawText(post.filename,
-                   bounds.getX(), yOffset, bounds.getWidth(), 20,
+                   bounds.getX(), yOffset, bounds.getWidth(), 22,
                    juce::Justification::centredLeft);
-        yOffset += 18;
+        yOffset += 22;
 
         // Show "by username" below
         g.setColour(SidechainColors::textSecondary());
-        g.setFont(12.0f);
+        g.setFont(14.0f);
         g.drawText("by " + (post.username.isEmpty() ? "Unknown" : post.username),
-                   bounds.getX(), yOffset, bounds.getWidth(), 18,
+                   bounds.getX(), yOffset, bounds.getWidth(), 20,
                    juce::Justification::centredLeft);
-        yOffset += 16;
+        yOffset += 20;
     }
     else
     {
         // Fallback: show username as main header
         g.drawText(post.username.isEmpty() ? "Unknown" : post.username,
-                   bounds.getX(), yOffset, bounds.getWidth(), 20,
+                   bounds.getX(), yOffset, bounds.getWidth(), 22,
                    juce::Justification::centredLeft);
-        yOffset += 20;
+        yOffset += 24;
     }
 
     // Timestamp
     g.setColour(SidechainColors::textMuted());
-    g.setFont(12.0f);
+    g.setFont(13.0f);
     g.drawText(post.timeAgo,
-               bounds.getX(), yOffset, bounds.getWidth(), 18,
+               bounds.getX(), yOffset, bounds.getWidth(), 20,
                juce::Justification::centredLeft);
 
     // DAW badge if present
     if (post.daw.isNotEmpty())
     {
         g.setColour(SidechainColors::textMuted());
-        g.setFont(10.0f);
+        g.setFont(12.0f);
         g.drawText(post.daw,
-                   bounds.getX(), yOffset + 18, bounds.getWidth(), 15,
+                   bounds.getX(), yOffset + 20, bounds.getWidth(), 18,
                    juce::Justification::centredLeft);
     }
 }
@@ -393,85 +393,75 @@ void PostCard::drawMetadataBadges(juce::Graphics& g, juce::Rectangle<int> bounds
 {
     int badgeY = bounds.getY();
     int badgeX = bounds.getX();
+    int colWidth = bounds.getWidth() / 2 - 4;  // Two columns with spacing
 
-    // BPM and Key badges side-by-side on the same row
+    // Row 1: BPM and Key badges side-by-side
     bool hasBpm = post.bpm > 0;
     bool hasKey = post.key.isNotEmpty();
 
     if (hasBpm || hasKey)
     {
-        int smallBadgeWidth = 52;
-        int spacing = 4;
-
-        if (hasBpm && hasKey)
+        if (hasBpm)
         {
-            // Both badges side-by-side
-            auto bpmBounds = juce::Rectangle<int>(badgeX, badgeY, smallBadgeWidth, BADGE_HEIGHT);
+            auto bpmBounds = juce::Rectangle<int>(badgeX, badgeY, colWidth, BADGE_HEIGHT);
             UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
-                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
+                SidechainColors::surface(), SidechainColors::textPrimary(), 13.0f, 4.0f);
+        }
 
-            auto keyBounds = juce::Rectangle<int>(badgeX + smallBadgeWidth + spacing, badgeY, smallBadgeWidth, BADGE_HEIGHT);
-            UIHelpers::drawBadge(g, keyBounds, post.key,
-                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
-        }
-        else if (hasBpm)
+        if (hasKey)
         {
-            // Only BPM
-            auto bpmBounds = juce::Rectangle<int>(badgeX, badgeY, smallBadgeWidth, BADGE_HEIGHT);
-            UIHelpers::drawBadge(g, bpmBounds, StringFormatter::formatBPM(post.bpm),
-                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
-        }
-        else
-        {
-            // Only Key
-            auto keyBounds = juce::Rectangle<int>(badgeX, badgeY, smallBadgeWidth, BADGE_HEIGHT);
+            int keyX = hasBpm ? badgeX + colWidth + 8 : badgeX;
+            auto keyBounds = juce::Rectangle<int>(keyX, badgeY, colWidth, BADGE_HEIGHT);
             UIHelpers::drawBadge(g, keyBounds, post.key,
-                SidechainColors::surface(), SidechainColors::textPrimary(), 10.0f, 4.0f);
+                SidechainColors::surface(), SidechainColors::textPrimary(), 13.0f, 4.0f);
         }
-        badgeY += BADGE_HEIGHT + 5;
+        badgeY += BADGE_HEIGHT + 6;
     }
 
-    // Play count below BPM/Key
+    // Row 2: Play count
     if (post.playCount > 0)
     {
-        g.setColour(SidechainColors::textMuted());
-        g.setFont(10.0f);
+        g.setColour(SidechainColors::textSecondary());
+        g.setFont(13.0f);
         g.drawText(StringFormatter::formatPlays(post.playCount),
-                   badgeX, badgeY, bounds.getWidth(), 14,
+                   badgeX, badgeY, bounds.getWidth(), 18,
                    juce::Justification::centredLeft);
-        badgeY += 16;
+        badgeY += 22;
     }
 
-    // Genre badges (first two) - truncate text if needed
-    for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i)
+    // Row 3: Genre badges (up to two, side by side)
+    if (post.genres.size() > 0)
     {
-        juce::String genre = post.genres[i];
-        // Truncate long genre names
-        if (genre.length() > 12)
-            genre = genre.substring(0, 10) + "..";
+        for (int i = 0; i < juce::jmin(2, post.genres.size()); ++i)
+        {
+            juce::String genre = post.genres[i];
+            // Truncate long genre names
+            if (genre.length() > 10)
+                genre = genre.substring(0, 8) + "..";
 
-        auto genreBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
-        UIHelpers::drawBadge(g, genreBounds, genre,
-            SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 9.0f, 3.0f);
-        badgeY += BADGE_HEIGHT;
+            int genreX = badgeX + i * (colWidth + 8);
+            auto genreBounds = juce::Rectangle<int>(genreX, badgeY, colWidth, BADGE_HEIGHT - 2);
+            UIHelpers::drawBadge(g, genreBounds, genre,
+                SidechainColors::backgroundLighter(), SidechainColors::textSecondary(), 12.0f, 4.0f);
+        }
+        badgeY += BADGE_HEIGHT + 4;
     }
 
-    // MIDI badge (always visible when post has MIDI)
+    // Row 4: MIDI badge (always visible when post has MIDI)
     if (post.hasMidi)
     {
-        auto midiBadgeBounds = juce::Rectangle<int>(bounds.getX(), badgeY, 55, BADGE_HEIGHT);
+        auto midiBadgeBounds = juce::Rectangle<int>(badgeX, badgeY, 65, BADGE_HEIGHT);
         UIHelpers::drawBadge(g, midiBadgeBounds, "MIDI",
-            SidechainColors::primary().withAlpha(0.2f), SidechainColors::primary(), 11.0f, 4.0f);
-        badgeY += BADGE_HEIGHT + 5;
+            SidechainColors::primary().withAlpha(0.2f), SidechainColors::primary(), 13.0f, 4.0f);
+        badgeY += BADGE_HEIGHT + 6;
     }
 
-    // Recommendation reason badge (for "For You" feed)
+    // Row 5: Recommendation reason badge (for "For You" feed)
     if (post.recommendationReason.isNotEmpty())
     {
-        auto reasonBounds = juce::Rectangle<int>(bounds.getX(), badgeY, bounds.getWidth(), BADGE_HEIGHT - 4);
-        // Use a subtle accent color to indicate it's a recommendation
+        auto reasonBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT);
         UIHelpers::drawBadge(g, reasonBounds, post.recommendationReason,
-            SidechainColors::primary().withAlpha(0.2f), SidechainColors::primary(), 9.0f, 3.0f);
+            SidechainColors::primary().withAlpha(0.2f), SidechainColors::primary(), 11.0f, 4.0f);
     }
 }
 
@@ -484,18 +474,18 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     if (post.userReaction.isNotEmpty())
     {
         // Show the emoji the user reacted with
-        g.setFont(16.0f);
+        g.setFont(18.0f);
         g.setColour(SidechainColors::textPrimary());
-        g.drawText(post.userReaction, likeBounds.withWidth(22), juce::Justification::centred);
+        g.drawText(post.userReaction, likeBounds.withWidth(24), juce::Justification::centred);
     }
     else
     {
         // Show heart icon
         juce::Colour likeColor = post.isLiked ? SidechainColors::like() : SidechainColors::textMuted();
         g.setColour(likeColor);
-        g.setFont(14.0f);
+        g.setFont(16.0f);
         juce::String heartIcon = post.isLiked ? juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5")) : juce::String(juce::CharPointer_UTF8("\xE2\x99\xA1"));
-        g.drawText(heartIcon, likeBounds.withWidth(20), juce::Justification::centred);
+        g.drawText(heartIcon, likeBounds.withWidth(22), juce::Justification::centred);
     }
 
     // Calculate total reaction count (sum of all emoji reactions)
@@ -510,9 +500,9 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     if (totalReactions > 0)
     {
         g.setColour(post.isLiked || post.userReaction.isNotEmpty() ? SidechainColors::like() : SidechainColors::textMuted());
-        g.setFont(11.0f);
+        g.setFont(13.0f);
         g.drawText(StringFormatter::formatCount(totalReactions),
-                   likeBounds.withX(likeBounds.getX() + 20).withWidth(30),
+                   likeBounds.withX(likeBounds.getX() + 24).withWidth(30),
                    juce::Justification::centredLeft);
     }
 
@@ -538,15 +528,15 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
     auto commentBounds = getCommentButtonBounds();
     bool commentsOff = post.commentsDisabled();
     g.setColour(commentsOff ? SidechainColors::textMuted().withAlpha(0.4f) : SidechainColors::textMuted());
-    g.setFont(14.0f);
+    g.setFont(16.0f);
     // Draw comment bubble icon (avoid emoji for Linux font compatibility)
-    auto iconBounds = commentBounds.withWidth(16).withHeight(14).withY(commentBounds.getCentreY() - 7);
+    auto iconBounds = commentBounds.withWidth(18).withHeight(16).withY(commentBounds.getCentreY() - 8);
     g.drawRoundedRectangle(iconBounds.toFloat(), 3.0f, 1.5f);
     // Small tail for speech bubble
     juce::Path tail;
     tail.addTriangle(iconBounds.getX() + 3, iconBounds.getBottom(),
-                     iconBounds.getX() + 8, iconBounds.getBottom(),
-                     iconBounds.getX() + 2, iconBounds.getBottom() + 4);
+                     iconBounds.getX() + 9, iconBounds.getBottom(),
+                     iconBounds.getX() + 2, iconBounds.getBottom() + 5);
     g.fillPath(tail);
 
     // Draw strike-through line if comments disabled
@@ -557,31 +547,37 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
                    iconBounds.getRight() + 1, iconBounds.getY() - 2, 1.5f);
     }
 
-    g.setFont(11.0f);
+    g.setFont(13.0f);
     if (commentsOff)
     {
         g.setColour(SidechainColors::textMuted().withAlpha(0.4f));
         g.drawText("Off",
-                   commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
+                   commentBounds.withX(commentBounds.getX() + 22).withWidth(28),
                    juce::Justification::centredLeft);
     }
     else
     {
         g.drawText(StringFormatter::formatCount(post.commentCount),
-                   commentBounds.withX(commentBounds.getX() + 18).withWidth(25),
+                   commentBounds.withX(commentBounds.getX() + 22).withWidth(28),
                    juce::Justification::centredLeft);
     }
 
-    // Add to DAW button
+    // Add to DAW button - always visible with background
     auto addToDAWBounds = getAddToDAWButtonBounds();
-    if (hoverState.isHovered() && addToDAWBounds.contains(getMouseXYRelative()))
-    {
-        g.setColour(SidechainColors::surfaceHover());
-        g.fillRoundedRectangle(addToDAWBounds.toFloat(), 4.0f);
-    }
 
-    g.setColour(SidechainColors::textSecondary());
-    g.setFont(10.0f);
+    // Draw button background
+    if (hoverState.isHovered() && addToDAWBounds.contains(getMouseXYRelative()))
+        g.setColour(SidechainColors::surfaceHover());
+    else
+        g.setColour(SidechainColors::backgroundLighter());
+    g.fillRoundedRectangle(addToDAWBounds.toFloat(), 4.0f);
+
+    // Draw border
+    g.setColour(SidechainColors::border());
+    g.drawRoundedRectangle(addToDAWBounds.toFloat(), 4.0f, 1.0f);
+
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(12.0f);
     g.drawText("Add to DAW", addToDAWBounds, juce::Justification::centred);
 
     // Drop to Track button (shown on hover or when downloading)
@@ -600,7 +596,7 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
             g.fillRoundedRectangle(progressBounds.toFloat(), 4.0f);
 
             g.setColour(SidechainColors::textPrimary());
-            g.setFont(9.0f);
+            g.setFont(11.0f);
             juce::String progressText = juce::String(static_cast<int>(downloadProgress * 100)) + "%";
             g.drawText(progressText, dropToTrackBounds, juce::Justification::centred);
         }
@@ -614,7 +610,7 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
             }
 
             g.setColour(SidechainColors::textPrimary());
-            g.setFont(10.0f);
+            g.setFont(11.0f);
             g.drawText("Drop to Track", dropToTrackBounds, juce::Justification::centred);
         }
     }
@@ -632,8 +628,8 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
 
         // Use text to indicate MIDI (avoid emoji for Linux font compatibility)
         g.setColour(SidechainColors::primary());
-        g.setFont(9.0f);
-        g.drawText("[MIDI]", midiBounds, juce::Justification::centred);
+        g.setFont(11.0f);
+        g.drawText("MIDI", midiBounds, juce::Justification::centred);
     }
 
     // Add to Playlist button (shown on hover) - R.3.1.3.3
@@ -648,8 +644,8 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         }
 
         g.setColour(SidechainColors::textSecondary());
-        g.setFont(9.0f);
-        g.drawText("[+Playlist]", playlistBounds, juce::Justification::centred);
+        g.setFont(11.0f);
+        g.drawText("+Playlist", playlistBounds, juce::Justification::centred);
     }
 
     // Download Project File button (only shown when post has project file and on hover)
@@ -666,20 +662,24 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         // Use DAW type to indicate project file (avoid emoji for Linux font compatibility)
         juce::String dawLabel = post.projectFileDaw.isNotEmpty() ? post.projectFileDaw.toUpperCase().substring(0, 3) : "PRJ";
         g.setColour(SidechainColors::primary());
-        g.setFont(9.0f);
-        g.drawText("[" + dawLabel + "]", projectBounds, juce::Justification::centred);
+        g.setFont(11.0f);
+        g.drawText(dawLabel, projectBounds, juce::Justification::centred);
     }
 
-    // Remix button (R.3.2 Remix Chains) - always shown on hover
-    if (hoverState.isHovered())
+    // Remix button (R.3.2 Remix Chains) - always visible
     {
         auto remixBounds = getRemixButtonBounds();
 
-        if (remixBounds.contains(getMouseXYRelative()))
-        {
-            g.setColour(SidechainColors::surfaceHover());
-            g.fillRoundedRectangle(remixBounds.toFloat(), 4.0f);
-        }
+        // Draw button background
+        if (hoverState.isHovered() && remixBounds.contains(getMouseXYRelative()))
+            g.setColour(SidechainColors::primary().withAlpha(0.3f));
+        else
+            g.setColour(SidechainColors::primary().withAlpha(0.15f));
+        g.fillRoundedRectangle(remixBounds.toFloat(), 4.0f);
+
+        // Draw border
+        g.setColour(SidechainColors::primary().withAlpha(0.5f));
+        g.drawRoundedRectangle(remixBounds.toFloat(), 4.0f, 1.0f);
 
         // Show different label based on what's remixable
         juce::String remixLabel;
@@ -688,10 +688,10 @@ void PostCard::drawSocialButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
         else if (post.hasMidi)
             remixLabel = "Remix MIDI";
         else
-            remixLabel = "Remix Audio";
+            remixLabel = "Remix";
 
         g.setColour(SidechainColors::primary());
-        g.setFont(9.0f);
+        g.setFont(12.0f);
         g.drawText(remixLabel, remixBounds, juce::Justification::centred);
     }
 
@@ -1174,8 +1174,8 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
         return;
     }
 
-    // Check Remix button (R.3.2 Remix Chains)
-    if (hoverState.isHovered() && getRemixButtonBounds().contains(pos))
+    // Check Remix button (R.3.2 Remix Chains) - always clickable
+    if (getRemixButtonBounds().contains(pos))
     {
         if (onRemixClicked)
         {
@@ -1265,15 +1265,15 @@ juce::Rectangle<int> PostCard::getAvatarBounds() const
 juce::Rectangle<int> PostCard::getUserInfoBounds() const
 {
     auto avatar = getAvatarBounds();
-    return juce::Rectangle<int>(avatar.getRight() + 15, 15, 140, CARD_HEIGHT - 30);
+    return juce::Rectangle<int>(avatar.getRight() + 15, 15, 160, CARD_HEIGHT - 30);
 }
 
 juce::Rectangle<int> PostCard::getWaveformBounds() const
 {
     auto userInfo = getUserInfoBounds();
     int waveformX = userInfo.getRight() + 15;
-    int waveformWidth = getWidth() - waveformX - 130;
-    return juce::Rectangle<int>(waveformX, 20, waveformWidth, CARD_HEIGHT - 40);
+    int waveformWidth = getWidth() - waveformX - RIGHT_PANEL_WIDTH - 20;
+    return juce::Rectangle<int>(waveformX, 25, waveformWidth, CARD_HEIGHT - 55);
 }
 
 juce::Rectangle<int> PostCard::getPlayButtonBounds() const
@@ -1286,66 +1286,72 @@ juce::Rectangle<int> PostCard::getPlayButtonBounds() const
 
 juce::Rectangle<int> PostCard::getLikeButtonBounds() const
 {
-    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 35, 50, 25);
+    return juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH, CARD_HEIGHT - 40, 55, 28);
 }
 
 juce::Rectangle<int> PostCard::getCommentButtonBounds() const
 {
-    return juce::Rectangle<int>(getWidth() - 60, CARD_HEIGHT - 35, 45, 25);
+    return juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH + 60, CARD_HEIGHT - 40, 50, 28);
 }
 
 juce::Rectangle<int> PostCard::getShareButtonBounds() const
 {
-    return juce::Rectangle<int>(getWidth() - 35, 15, 25, 25);
+    return juce::Rectangle<int>(getWidth() - 40, 15, 30, 30);
 }
 
 juce::Rectangle<int> PostCard::getMoreButtonBounds() const
 {
-    return juce::Rectangle<int>(getWidth() - 35, 45, 25, 25);
+    return juce::Rectangle<int>(getWidth() - 40, 50, 30, 30);
 }
 
 juce::Rectangle<int> PostCard::getFollowButtonBounds() const
 {
     // Position follow button below the timestamp, to the right of user info
     auto userInfo = getUserInfoBounds();
-    return juce::Rectangle<int>(userInfo.getX(), userInfo.getY() + 58, 65, 22);
+    return juce::Rectangle<int>(userInfo.getX(), userInfo.getY() + 70, 75, 26);
 }
 
 juce::Rectangle<int> PostCard::getAddToDAWButtonBounds() const
 {
-    // Position below the play count, on the left side
-    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 20, 70, 18);
+    // Position below the metadata badges
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getX(), CARD_HEIGHT - 25, 85, 20);
 }
 
 juce::Rectangle<int> PostCard::getDropToTrackButtonBounds() const
 {
-    // Position next to Add to DAW button, slightly above
-    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 40, 70, 18);
+    // Position next to Add to DAW button
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getX() + 90, CARD_HEIGHT - 25, 90, 20);
 }
 
 juce::Rectangle<int> PostCard::getDownloadMIDIButtonBounds() const
 {
-    // Position above Drop to Track button (only shown when post has MIDI)
-    return juce::Rectangle<int>(getWidth() - 115, CARD_HEIGHT - 58, 70, 16);
+    // Position next to Drop to Track
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getX() + 185, CARD_HEIGHT - 25, 60, 20);
 }
 
 juce::Rectangle<int> PostCard::getDownloadProjectButtonBounds() const
 {
-    // Position above MIDI button (or above Drop to Track if no MIDI)
-    int yOffset = post.hasMidi ? CARD_HEIGHT - 76 : CARD_HEIGHT - 58;
-    return juce::Rectangle<int>(getWidth() - 115, yOffset, 70, 16);
+    // Position next to MIDI button
+    auto waveform = getWaveformBounds();
+    int xOffset = post.hasMidi ? 250 : 185;
+    return juce::Rectangle<int>(waveform.getX() + xOffset, CARD_HEIGHT - 25, 60, 20);
 }
 
 juce::Rectangle<int> PostCard::getAddToPlaylistButtonBounds() const
 {
-    // Position to the left of Drop to Track button
-    return juce::Rectangle<int>(getWidth() - 190, CARD_HEIGHT - 40, 70, 18);
+    // Position below waveform on the right
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getRight() - 80, CARD_HEIGHT - 25, 80, 20);
 }
 
 juce::Rectangle<int> PostCard::getRemixButtonBounds() const
 {
-    // Position to the left of Add to Playlist button
-    return juce::Rectangle<int>(getWidth() - 265, CARD_HEIGHT - 40, 70, 18);
+    // Position left of Add to Playlist
+    auto waveform = getWaveformBounds();
+    return juce::Rectangle<int>(waveform.getRight() - 165, CARD_HEIGHT - 25, 80, 20);
 }
 
 juce::Rectangle<int> PostCard::getRemixChainBadgeBounds() const
@@ -1358,19 +1364,19 @@ juce::Rectangle<int> PostCard::getRemixChainBadgeBounds() const
 juce::Rectangle<int> PostCard::getSaveButtonBounds() const
 {
     // Position next to comment button in social buttons row
-    return juce::Rectangle<int>(getWidth() - 160, CARD_HEIGHT - 35, 40, 25);
+    return juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH + 115, CARD_HEIGHT - 40, 45, 28);
 }
 
 juce::Rectangle<int> PostCard::getRepostButtonBounds() const
 {
     // Position next to save button in social buttons row
-    return juce::Rectangle<int>(getWidth() - 200, CARD_HEIGHT - 35, 35, 25);
+    return juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH + 165, CARD_HEIGHT - 40, 40, 28);
 }
 
 juce::Rectangle<int> PostCard::getPinButtonBounds() const
 {
     // Position next to repost/save button area, only shown for own posts
-    return juce::Rectangle<int>(getWidth() - 240, CARD_HEIGHT - 35, 35, 25);
+    return juce::Rectangle<int>(getWidth() - RIGHT_PANEL_WIDTH + 165, CARD_HEIGHT - 40, 40, 28);
 }
 
 juce::Rectangle<int> PostCard::getSoundBadgeBounds() const

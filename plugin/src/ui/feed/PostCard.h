@@ -301,10 +301,11 @@ public:
 
     //==============================================================================
     // Layout constants
-    static constexpr int CARD_HEIGHT = 120;
-    static constexpr int AVATAR_SIZE = 50;
-    static constexpr int BADGE_HEIGHT = 22;
-    static constexpr int BUTTON_SIZE = 32;
+    static constexpr int CARD_HEIGHT = 160;
+    static constexpr int AVATAR_SIZE = 56;
+    static constexpr int BADGE_HEIGHT = 26;
+    static constexpr int BUTTON_SIZE = 36;
+    static constexpr int RIGHT_PANEL_WIDTH = 200;
 
 private:
     //==============================================================================
