@@ -60,6 +60,15 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         add_compile_options("$<$<CONFIG:Release>:-flto>")
         add_link_options("$<$<CONFIG:Release>:-flto>")
         add_link_options("$<$<CONFIG:Release>:-s>")  # Strip symbols
+
+        # Use LLD linker for faster link times (if available)
+        find_program(LLD_LINKER ld.lld)
+        if(LLD_LINKER)
+            message(STATUS "Using LLD linker for faster link times: ${LLD_LINKER}")
+            add_link_options(-fuse-ld=lld)
+        else()
+            message(STATUS "LLD linker not found, using default linker. Install lld for faster builds.")
+        endif()
     endif()
 
 elseif(MSVC)

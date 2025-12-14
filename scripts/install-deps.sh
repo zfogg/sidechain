@@ -57,6 +57,7 @@ install_arch() {
         ninja \
         git \
         clang \
+        lld \
         ccache
 
     # JUCE dependencies
@@ -105,6 +106,7 @@ install_debian() {
         ninja-build \
         git \
         clang \
+        lld \
         ccache \
         pkg-config
 
@@ -162,6 +164,7 @@ install_fedora() {
         ninja-build \
         git \
         clang \
+        lld \
         ccache
 
     # JUCE dependencies
