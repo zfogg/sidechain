@@ -2,10 +2,10 @@
 
 #include <JuceHeader.h>
 #include "../../models/FeedPost.h"
+#include "../../models/Story.h"
 #include "../../network/StreamChatClient.h"
 
 class NetworkClient;
-struct Story;
 
 //==============================================================================
 /**
@@ -73,9 +73,18 @@ private:
         Error
     };
 
+    enum class ShareType
+    {
+        None,
+        Post,
+        Story
+    };
+
     DialogState dialogState = DialogState::Loading;
     juce::String errorMessage;
-    FeedPost post;  // The post being shared
+    ShareType shareType = ShareType::None;
+    FeedPost post;    // The post being shared (when shareType == Post)
+    Story story;      // The story being shared (when shareType == Story)
 
     StreamChatClient* streamChatClient = nullptr;
     NetworkClient* networkClient = nullptr;
