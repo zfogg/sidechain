@@ -108,59 +108,36 @@
 
 **Tasks**:
 
-- [ ] **3.1 Create Batch Sync Goroutine**
-  - File: `backend/cmd/server/main.go`
-  - After Gorse client initialization, add:
-    ```go
-    // Start background sync every hour
-    go func() {
-        ticker := time.NewTicker(1 * time.Hour)
-        defer ticker.Stop()
+- [x] **3.1 Create Batch Sync Goroutine** ✅ COMPLETED
+  - File: `backend/cmd/server/main.go` (lines 254-289)
+  - Created ticker-based goroutine that syncs every interval
+  - Syncs users, items, user-as-items, and feedback
+  - Logs all sync operations
 
-        for range ticker.C {
-            log.Println("Starting Gorse batch sync...")
+- [x] **3.2 Add Graceful Shutdown** ✅ COMPLETED
+  - File: `backend/cmd/server/main.go` (line 221-222, 284-286)
+  - Uses context cancellation: `syncCtx, syncCancel := context.WithCancel()`
+  - Deferred cancel ensures cleanup: `defer syncCancel()`
+  - Goroutine stops on `<-syncCtx.Done()`
 
-            // Sync users
-            if err := gorseClient.BatchSyncUsers(); err != nil {
-                log.Printf("Batch user sync failed: %v", err)
-            }
+- [x] **3.3 Add Sync on Startup** ✅ COMPLETED
+  - File: `backend/cmd/server/main.go` (lines 224-252)
+  - Initial sync runs immediately in separate goroutine
+  - Syncs all data before periodic sync starts
+  - Logs each sync operation for visibility
 
-            // Sync items (posts)
-            if err := gorseClient.BatchSyncItems(); err != nil {
-                log.Printf("Batch item sync failed: %v", err)
-            }
-
-            // Sync user-as-items (for follow recommendations)
-            if err := gorseClient.BatchSyncUserItems(); err != nil {
-                log.Printf("Batch user-items sync failed: %v", err)
-            }
-
-            // Sync historical feedback
-            if err := gorseClient.BatchSyncFeedback(); err != nil {
-                log.Printf("Batch feedback sync failed: %v", err)
-            }
-
-            log.Println("Gorse batch sync completed")
-        }
-    }()
-    ```
-
-- [ ] **3.2 Add Graceful Shutdown**
-  - Ensure sync goroutine stops on server shutdown
-  - Use context cancellation or shutdown channel
-
-- [ ] **3.3 Add Sync on Startup**
-  - First sync should happen on server start
-  - Don't wait 1 hour for first sync
-
-- [ ] **3.4 Make Sync Interval Configurable**
-  - Add `GORSE_SYNC_INTERVAL` env var (default: 1h)
-  - Parse and use in ticker
+- [x] **3.4 Make Sync Interval Configurable** ✅ COMPLETED
+  - File: `backend/cmd/server/main.go` (lines 209-218)
+  - Reads `GORSE_SYNC_INTERVAL` env var
+  - Defaults to 1 hour if not set
+  - Supports Go duration format (e.g., "30m", "2h", "90s")
 
 **Success Metrics**:
 - [ ] Logs show hourly sync activity
 - [ ] Gorse dashboard shows regular data updates
 - [ ] Manual testing: stop real-time sync, verify batch recovers it
+
+**✅ TASK #3 COMPLETE** - Background batch sync jobs fully implemented!
 
 ---
 
