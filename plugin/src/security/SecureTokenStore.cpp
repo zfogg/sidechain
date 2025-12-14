@@ -1,12 +1,27 @@
 #include "SecureTokenStore.h"
 #include <JuceHeader.h>
 
+// Include platform-specific headers after JUCE
+// Use a workaround to avoid Point naming conflict
+#ifdef JUCE_MAC
+    #define Point MacPoint
+    #define Rect MacRect
+    #include <Security/Security.h>
+    #undef Point
+    #undef Rect
+#endif
+
+#ifdef JUCE_WINDOWS
+    #include <windows.h>
+    #include <wincrypt.h>
+    #pragma comment(lib, "crypt32.lib")
+#endif
+
 namespace Sidechain {
 namespace Security {
 
-// Static instance definition
-template <>
-SecureTokenStore* juce::SingletonHolder<SecureTokenStore>::instance = nullptr;
+// Static instance definition (JUCE singleton implementation)
+JUCE_IMPLEMENT_SINGLETON(SecureTokenStore)
 
 SecureTokenStore::SecureTokenStore()
 {

@@ -2,10 +2,12 @@
 
 #include <JuceHeader.h>
 #include "Store.h"
+#include "CacheWarmer.h"
 #include "../models/FeedPost.h"
 #include "../models/FeedResponse.h"
 #include "../network/NetworkClient.h"
 #include "../util/logging/Logger.h"
+#include "../util/cache/CacheLayer.h"
 #include <map>
 
 namespace Sidechain {
@@ -248,7 +250,7 @@ public:
     // Cache Management
 
     /**
-     * Set cache TTL in seconds (default 300 = 5 minutes)
+     * Set cache TTL in seconds (default 3600 = 1 hour)
      */
     void setCacheTTL(int seconds) { cacheTTLSeconds = seconds; }
 
@@ -266,6 +268,38 @@ public:
      * Clear cache for a specific feed type
      */
     void clearCache(FeedType feedType);
+
+    //==========================================================================
+    // Cache Warming & Offline Support (Task 4.14)
+
+    /**
+     * Start cache warming for popular feeds
+     * Pre-fetches Timeline, Trending, and user's own posts in background
+     */
+    void startCacheWarming();
+
+    /**
+     * Stop cache warming
+     */
+    void stopCacheWarming();
+
+    /**
+     * Set online/offline status
+     * When offline, shows cached data. When online, auto-syncs.
+     *
+     * @param isOnline True if online, false if offline
+     */
+    void setOnlineStatus(bool isOnline);
+
+    /**
+     * Get current online status
+     */
+    bool isOnline() const { return isOnlineStatus_; }
+
+    /**
+     * Check if current feed data is from cache (for "cached" badge)
+     */
+    bool isCurrentFeedCached() const;
 
     //==========================================================================
     // Helpers
@@ -295,9 +329,18 @@ private:
     NetworkClient* networkClient = nullptr;
 
     // Cache settings
-    int cacheTTLSeconds = 300; // 5 minutes
+    int cacheTTLSeconds = 3600; // 1 hour (Task 4.13 requirement)
 
-    // Cache storage (disk persistence)
+    // Multi-tier cache for feed data (Task 4.13)
+    // Key: FeedType encoded as string, Value: Array of FeedPosts
+    std::unique_ptr<Util::Cache::MultiTierCache<juce::String, juce::Array<FeedPost>>> feedCache;
+
+    // Cache warmer for offline support (Task 4.14)
+    std::shared_ptr<CacheWarmer> cacheWarmer;
+    bool isOnlineStatus_ = true;
+    bool currentFeedIsFromCache_ = false;
+
+    // Legacy cache storage for backward compatibility during migration
     struct CacheEntry
     {
         FeedResponse response;
@@ -317,7 +360,16 @@ private:
     void handleFetchError(FeedType feedType, const juce::String& error);
     FeedResponse parseJsonResponse(const juce::var& json);
 
-    // Disk cache helpers
+    // Cache helpers (Task 4.13)
+    juce::String feedTypeToCacheKey(FeedType feedType) const;
+
+    // Cache warming helpers (Task 4.14)
+    void schedulePopularFeedWarmup();
+    void warmTimeline();
+    void warmTrending();
+    void warmUserPosts();
+
+    // Disk cache helpers (legacy)
     juce::File getCacheFile(FeedType feedType) const;
     void loadCacheFromDisk(FeedType feedType);
     void saveCacheToDisk(FeedType feedType, const CacheEntry& entry);

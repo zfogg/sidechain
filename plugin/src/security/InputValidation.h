@@ -135,6 +135,7 @@ class StringRule : public ValidationRule
 {
 public:
     StringRule() : minLen_(0), maxLen_(std::numeric_limits<int>::max()), pattern_("") {}
+    ~StringRule() override = default;
 
     StringRule& minLength(int len)
     {
@@ -191,6 +192,8 @@ public:
         return "";
     }
 
+    juce::String getDescription() const override { return "String"; }
+
 protected:
     int minLen_;
     int maxLen_;
@@ -244,16 +247,24 @@ private:
 /**
  * InputValidator - Main validation coordinator
  */
-class InputValidator
+class InputValidator : public std::enable_shared_from_this<InputValidator>
 {
 public:
+    // Token to enable make_shared with public constructor
+    struct PrivateToken {};
+
     /**
      * Create a new validator
      */
     static std::shared_ptr<InputValidator> create()
     {
-        return std::make_shared<InputValidator>();
+        return std::make_shared<InputValidator>(PrivateToken{});
     }
+
+    /**
+     * Public constructor for make_shared (use create() instead)
+     */
+    explicit InputValidator(PrivateToken) {}
 
     /**
      * Email validation rule
@@ -304,10 +315,13 @@ public:
     /**
      * Add validation rule for a field
      */
+    template <typename RuleType>
     std::shared_ptr<InputValidator> addRule(const juce::String& field,
-                                            std::shared_ptr<ValidationRule> rule)
+                                            std::shared_ptr<RuleType> rule)
     {
-        rules_[field] = rule;
+        static_assert(std::is_base_of<ValidationRule, RuleType>::value,
+                      "RuleType must derive from ValidationRule");
+        rules_[field] = std::static_pointer_cast<ValidationRule>(rule);
         return shared_from_this();
     }
 
@@ -411,11 +425,7 @@ public:
     }
 
 private:
-    InputValidator() : std::enable_shared_from_this<InputValidator>() {}
-
     std::map<juce::String, std::shared_ptr<ValidationRule>> rules_;
-
-    friend class std::enable_shared_from_this<InputValidator>;
 };
 
 }  // namespace Security

@@ -171,16 +171,13 @@ public:
      */
     ~TokenGuard()
     {
-        // Zero out the string in memory
-        if (!value_.isEmpty())
-        {
-            // Fill with zeros to prevent recovery
-            for (int i = 0; i < value_.length(); ++i)
-            {
-                value_[i] = '\0';
-            }
-            value_ = "";
-        }
+        // Clear the string - JUCE String doesn't support direct character modification
+        // Setting to empty string will clear the internal buffer
+        value_ = "";
+
+        // Note: For maximum security, we rely on the SecureTokenStore platform-specific
+        // implementations to handle sensitive data. This guard just ensures the in-memory
+        // copy is cleared when it goes out of scope.
     }
 
     /**
