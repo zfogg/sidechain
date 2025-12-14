@@ -3,7 +3,8 @@
 #include <JuceHeader.h>
 #include "../../stores/FeedDataManager.h"
 #include "../../models/FeedResponse.h"
-#include "../../util/Animation.h"
+#include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/animations/Easing.h"
 #include "PostCard.h"
 #include "Comment.h"
 #include "../../audio/HttpAudioPlayer.h"
@@ -130,7 +131,8 @@ private:
     int pendingNewPostsCount = 0;  // Count of new posts received while user is viewing feed
     juce::Time lastNewPostTime;    // Track when last new post notification arrived
     bool showingNewPostsToast = false;
-    AnimationValue<float> toastOpacity{0.0f, 200, Animation::Easing::EaseOutCubic};  // Fade in/out animation
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> toastAnimation;
+    float currentToastOpacity = 0.0f;
 
     // Scroll state
     double scrollPosition = 0.0;
@@ -167,7 +169,8 @@ private:
     // Comments panel (slide-in overlay)
     std::unique_ptr<CommentsPanel> commentsPanel;
     bool commentsPanelVisible = false;
-    AnimationValue<float> commentsPanelSlide{0.0f, 250, Animation::Easing::EaseOutCubic};  // 0.0 = hidden, 1.0 = visible
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> commentsPanelAnimation;
+    float currentCommentsPanelSlide = 0.0f;
     juce::String currentUserId;
 
     // Error state component (shown when feedState == Error)

@@ -121,6 +121,14 @@ public:
     }
 
     /**
+     * Alias for onCompletion (shorter name)
+     */
+    std::shared_ptr<TransitionAnimation> onComplete(CompletionCallback callback)
+    {
+        return onCompletion(callback);
+    }
+
+    /**
      * Register a callback invoked when animation is cancelled
      *
      * @param callback Invoked when cancelled via cancel()
@@ -149,8 +157,7 @@ public:
         pausedElapsed_ = 0;
 
         // Start update timer
-        timer_.reset(new juce::Timer);
-        timer_->onTimerCallback = [this]() { updateFrame(); };
+        timer_ = std::make_unique<AnimationTimer>(this);
         timer_->startTimer(16);  // ~60fps @ 16ms per frame
 
         return this->shared_from_this();
@@ -276,6 +283,22 @@ public:
     const T& getEndValue() const { return end_; }
 
 private:
+    // Inner timer class that inherits from juce::Timer
+    class AnimationTimer : public juce::Timer
+    {
+    public:
+        AnimationTimer(TransitionAnimation* parent) : parent_(parent) {}
+
+        void timerCallback() override
+        {
+            if (parent_)
+                parent_->updateFrame();
+        }
+
+    private:
+        TransitionAnimation* parent_;
+    };
+
     T start_;
     T end_;
     int duration_;
@@ -291,7 +314,7 @@ private:
     std::chrono::steady_clock::time_point pauseTime_;
     int pausedElapsed_;
 
-    std::unique_ptr<juce::Timer> timer_;
+    std::unique_ptr<AnimationTimer> timer_;
 
     /**
      * Called on each frame to update animation progress
@@ -431,7 +454,7 @@ inline juce::Rectangle<float> TransitionAnimation<juce::Rectangle<float>>::linea
  *       .from(0.0f).to(100.0f)
  *       .duration(300)
  *       .easing(Easing::easeOutCubic)
- *       .onProgress([](float v) { /* ... */ })
+ *       .onProgress([](float v) { // update logic })
  *       .start();
  */
 template<typename T>

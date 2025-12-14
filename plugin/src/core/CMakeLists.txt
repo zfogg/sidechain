@@ -92,6 +92,7 @@ target_include_directories(Sidechain PRIVATE
 target_link_libraries(Sidechain
     PRIVATE
         SidechainUtil
+        SidechainSecurity
         SidechainModels
         SidechainNetwork
         SidechainAudio

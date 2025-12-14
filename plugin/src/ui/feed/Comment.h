@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../util/Animation.h"
 #include "../../util/Time.h"
 #include "../../util/Colors.h"
 #include "../../util/HoverState.h"
