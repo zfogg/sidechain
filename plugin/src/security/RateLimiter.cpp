@@ -17,16 +17,14 @@ double TokenBucketLimiter::getRefillRate() const
 
 TokenBucketLimiter::BucketState& TokenBucketLimiter::getOrCreateBucket(const juce::String& identifier)
 {
-    auto key = identifier.toStdString();
-    auto it = buckets_.find(key);
-    if (it == buckets_.end())
+    if (!buckets_.contains(identifier))
     {
-        buckets_[key] = BucketState{
+        buckets_.set(identifier, BucketState{
             static_cast<double>(config_.burstSize),
             std::chrono::steady_clock::now()
-        };
+        });
     }
-    return buckets_[key];
+    return buckets_.getReference(identifier);
 }
 
 void TokenBucketLimiter::refillBucket(BucketState& bucket)
@@ -82,16 +80,14 @@ RateLimitStatus TokenBucketLimiter::tryConsume(const juce::String& identifier, i
 void TokenBucketLimiter::reset(const juce::String& identifier)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto key = identifier.toStdString();
-    buckets_.erase(key);
+    buckets_.remove(identifier);
 }
 
 RateLimitStatus TokenBucketLimiter::getStatus(const juce::String& identifier) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto it = buckets_.find(identifier.toStdString());
-    if (it == buckets_.end())
+    if (!buckets_.contains(identifier))
     {
         return RateLimitStatus{
             true,
@@ -102,7 +98,7 @@ RateLimitStatus TokenBucketLimiter::getStatus(const juce::String& identifier) co
         };
     }
 
-    auto bucket = it->second;
+    auto bucket = buckets_[identifier];
     auto now = std::chrono::steady_clock::now();
     auto elapsedSeconds = std::chrono::duration<double>(now - bucket.lastRefillTime).count();
     double tokensNow = std::min(
@@ -129,26 +125,26 @@ void TokenBucketLimiter::cleanup()
 {
     // Remove entries with low token counts (idle)
     auto now = std::chrono::steady_clock::now();
-    auto it = buckets_.begin();
-    while (it != buckets_.end())
+    juce::Array<juce::String> keysToRemove;
+
+    for (auto it = buckets_.begin(); it != buckets_.end(); ++it)
     {
         auto elapsedMinutes = std::chrono::duration_cast<std::chrono::minutes>(
-            now - it->second.lastRefillTime
+            now - it.getValue().lastRefillTime
         ).count();
 
         if (elapsedMinutes > config_.cleanupIntervalMinutes)
         {
-            it = buckets_.erase(it);
-        }
-        else
-        {
-            ++it;
+            keysToRemove.add(it.getKey());
         }
 
         // Stop if we're under max size
         if (buckets_.size() < static_cast<size_t>(config_.maxTrackedIdentifiers))
             break;
     }
+
+    for (const auto& key : keysToRemove)
+        buckets_.remove(key);
 
     lastCleanup_ = now;
 }
@@ -193,17 +189,15 @@ RateLimitStatus SlidingWindowLimiter::tryConsume(const juce::String& identifier,
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto key = identifier.toStdString();
-    auto it = windows_.find(key);
-    if (it == windows_.end())
+    if (!windows_.contains(identifier))
     {
-        windows_[key] = WindowState{
+        windows_.set(identifier, WindowState{
             std::vector<std::chrono::steady_clock::time_point>(),
             std::chrono::steady_clock::now()
-        };
+        });
     }
 
-    auto& window = windows_[key];
+    auto& window = windows_.getReference(identifier);
     cleanupWindow(window);
 
     RateLimitStatus status;
@@ -246,15 +240,18 @@ RateLimitStatus SlidingWindowLimiter::tryConsume(const juce::String& identifier,
         >= config_.cleanupIntervalMinutes)
     {
         // Clean up old windows
-        auto it2 = windows_.begin();
-        while (it2 != windows_.end())
+        juce::Array<juce::String> emptyWindows;
+        for (auto it = windows_.begin(); it != windows_.end(); ++it)
         {
-            cleanupWindow(it2->second);
-            if (it2->second.requests.empty())
-                it2 = windows_.erase(it2);
-            else
-                ++it2;
+            auto& windowState = windows_.getReference(it.getKey());
+            cleanupWindow(windowState);
+            if (windowState.requests.empty())
+                emptyWindows.add(it.getKey());
         }
+
+        for (const auto& key : emptyWindows)
+            windows_.remove(key);
+
         lastGlobalCleanup_ = now;
     }
 
@@ -264,15 +261,14 @@ RateLimitStatus SlidingWindowLimiter::tryConsume(const juce::String& identifier,
 void SlidingWindowLimiter::reset(const juce::String& identifier)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    windows_.erase(identifier.toStdString());
+    windows_.remove(identifier);
 }
 
 RateLimitStatus SlidingWindowLimiter::getStatus(const juce::String& identifier) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto it = windows_.find(identifier.toStdString());
-    if (it == windows_.end())
+    if (!windows_.contains(identifier))
     {
         return RateLimitStatus{
             true,
@@ -283,7 +279,7 @@ RateLimitStatus SlidingWindowLimiter::getStatus(const juce::String& identifier) 
         };
     }
 
-    int currentRequests = getRequestsInWindow(it->second);
+    int currentRequests = getRequestsInWindow(windows_[identifier]);
     return RateLimitStatus{
         true,
         config_.rateLimit - currentRequests,
@@ -304,25 +300,25 @@ void SlidingWindowLimiter::cleanup()
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto now = std::chrono::steady_clock::now();
-    auto it = windows_.begin();
-    while (it != windows_.end())
+    juce::Array<juce::String> keysToRemove;
+
+    for (auto it = windows_.begin(); it != windows_.end(); ++it)
     {
         auto elapsedMinutes = std::chrono::duration_cast<std::chrono::minutes>(
-            now - it->second.lastCleanup
+            now - it.getValue().lastCleanup
         ).count();
 
         if (elapsedMinutes > config_.cleanupIntervalMinutes)
         {
-            it = windows_.erase(it);
-        }
-        else
-        {
-            ++it;
+            keysToRemove.add(it.getKey());
         }
 
         if (windows_.size() < static_cast<size_t>(config_.maxTrackedIdentifiers))
             break;
     }
+
+    for (const auto& key : keysToRemove)
+        windows_.remove(key);
 }
 
 // ========== RateLimiter ==========

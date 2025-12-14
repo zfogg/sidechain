@@ -6,9 +6,8 @@ namespace Sidechain {
 namespace Util {
 namespace Error {
 
-// Static instance definition
-template <>
-ErrorTracker* juce::SingletonHolder<ErrorTracker>::instance = nullptr;
+// Static instance definition (JUCE singleton implementation)
+JUCE_IMPLEMENT_SINGLETON(ErrorTracker)
 
 ErrorTracker::ErrorTracker()
 {
@@ -210,17 +209,17 @@ juce::var ErrorTracker::exportAsJson() const
         auto timeT = std::chrono::system_clock::to_time_t(error.timestamp);
         std::ostringstream oss;
         oss << std::put_time(std::gmtime(&timeT), "%Y-%m-%dT%H:%M:%SZ");
-        obj->setProperty("timestamp", oss.str());
+        obj->setProperty("timestamp", juce::String(oss.str()));
 
         // Add context
         juce::DynamicObject::Ptr contextObj(new juce::DynamicObject());
         for (const auto& pair : error.context)
         {
-            contextObj->setProperty(pair.first, pair.second);
+            contextObj->setProperty(pair.first, juce::var(pair.second));
         }
-        obj->setProperty("context", contextObj.release());
+        obj->setProperty("context", juce::var(contextObj.get()));
 
-        errorsArray.add(juce::var(obj.release()));
+        errorsArray.add(juce::var(obj.get()));
     }
 
     return juce::var(errorsArray);

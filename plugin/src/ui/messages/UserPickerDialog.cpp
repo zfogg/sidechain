@@ -857,3 +857,29 @@ void UserPickerDialog::handleError(const juce::String& error)
     dialogState = DialogState::Error;
     repaint();
 }
+
+void UserPickerDialog::setExcludedUserIds(const juce::Array<juce::String>& userIds)
+{
+    excludedUserIds = userIds;
+}
+
+void UserPickerDialog::showModal(juce::Component* parent)
+{
+    if (parent == nullptr)
+        return;
+
+    // Set dialog size and position
+    auto parentBounds = parent->getLocalBounds();
+    int width = 500;
+    int height = 600;
+    int x = (parentBounds.getWidth() - width) / 2;
+    int y = (parentBounds.getHeight() - height) / 2;
+    setBounds(x, y, width, height);
+
+    parent->addAndMakeVisible(this);
+    toFront(true);
+    searchInput.grabKeyboardFocus();
+
+    // Load initial data
+    loadRecentConversations();
+}

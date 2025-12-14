@@ -2,7 +2,6 @@
 
 #include <JuceHeader.h>
 #include <chrono>
-#include <unordered_map>
 #include <mutex>
 #include <memory>
 #include <optional>
@@ -139,7 +138,7 @@ private:
 
     RateLimitConfig config_;
     mutable std::mutex mutex_;
-    std::unordered_map<std::string, BucketState> buckets_;
+    juce::HashMap<juce::String, BucketState> buckets_;
     std::chrono::steady_clock::time_point lastCleanup_;
 
     double getRefillRate() const;
@@ -191,7 +190,7 @@ private:
 
     RateLimitConfig config_;
     mutable std::mutex mutex_;
-    std::unordered_map<std::string, WindowState> windows_;
+    juce::HashMap<juce::String, WindowState> windows_;
     std::chrono::steady_clock::time_point lastGlobalCleanup_;
 
     int getRequestsInWindow(const WindowState& window) const;
