@@ -94,7 +94,7 @@ public:
      * @return Unsubscriber function - call to unsubscribe
      *
      * Example:
-     *   auto unsub = property.observe([](const auto& val) { /* ... */ });
+     *   auto unsub = property.observe([](const auto& val) { ... });
      *   unsub();  // Unsubscribe later
      *
      * Note: For complex observer cleanup, use std::shared_ptr<ObservableProperty>
