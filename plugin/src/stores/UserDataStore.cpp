@@ -112,8 +112,9 @@ juce::String UserDataStore::getProxyUrl() const
     // If we have a user ID, use the backend proxy endpoint
     if (userId.isNotEmpty() && networkClient != nullptr)
     {
-        // Construct proxy URL using constant: /api/v1/users/{userId}/profile-picture
-        return juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION + "/users/" + userId + "/profile-picture";
+        // Construct proxy URL using constant: /api/v1/users/{userId}/profile-picture?proxy=true
+        // The ?proxy=true tells the backend to return actual image bytes instead of JSON
+        return juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION + "/users/" + userId + "/profile-picture?proxy=true";
     }
     return "";
 }

@@ -10,6 +10,18 @@
 #include "../util/Result.h"
 
 //==============================================================================
+// Helper to create JSON POST body from juce::var without null terminator issues
+// See: https://forum.juce.com/t/posting-json-in-url-body/25240
+// JSON::toString() can add a null terminator that breaks backend parsers.
+// This function ensures clean JSON string for POST bodies.
+static juce::MemoryBlock createJsonPostBody(const juce::var& data)
+{
+    juce::String jsonString = juce::JSON::toString(data, true);  // compact format
+    // Create MemoryBlock without null terminator - use exact byte length
+    return juce::MemoryBlock(jsonString.toRawUTF8(), jsonString.getNumBytesAsUTF8());
+}
+
+//==============================================================================
 // Helper to convert RequestResult to Outcome<juce::var> for type-safe error handling
 static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult& result)
 {
@@ -209,17 +221,21 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
         {
             if (!data.isVoid())
             {
-                juce::String jsonData = juce::JSON::toString(data);
-                url = url.withPOSTData(jsonData);
+                // Use helper function to avoid null terminator issues with JSON
+                auto jsonBody = createJsonPostBody(data);
+                Log::debug("POST data: " + juce::String((const char*)jsonBody.getData(), jsonBody.getSize()) +
+                          " (size: " + juce::String((int)jsonBody.getSize()) + " bytes)");
+                url = url.withPOSTData(jsonBody);
             }
             else if (method == "POST")
             {
                 // Empty POST body
-                url = url.withPOSTData("");
+                url = url.withPOSTData(juce::MemoryBlock());
             }
         }
 
         // Make request
+        Log::debug("Making " + method + " request to: " + url.toString(true));
         auto stream = url.createInputStream(options);
 
         activeRequestCount--;
@@ -347,13 +363,13 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestWithRetry(const j
         {
             if (!data.isVoid())
             {
-                juce::String jsonData = juce::JSON::toString(data);
-                url = url.withPOSTData(jsonData);
+                // Use helper function to avoid null terminator issues with JSON
+                url = url.withPOSTData(createJsonPostBody(data));
             }
             else if (method == "POST")
             {
                 // Empty POST body
-                url = url.withPOSTData("");
+                url = url.withPOSTData(juce::MemoryBlock());
             }
         }
 
@@ -480,13 +496,13 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::
     {
         if (!data.isVoid())
         {
-            juce::String jsonData = juce::JSON::toString(data);
-            url = url.withPOSTData(jsonData);
+            // Use helper function to avoid null terminator issues with JSON
+            url = url.withPOSTData(createJsonPostBody(data));
         }
         else if (method == "POST")
         {
             // Empty POST body
-            url = url.withPOSTData("");
+            url = url.withPOSTData(juce::MemoryBlock());
         }
     }
 

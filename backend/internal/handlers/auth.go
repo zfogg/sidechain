@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -479,7 +480,39 @@ func (h *AuthHandlers) GetProfilePictureURL(c *gin.Context) {
 		return
 	}
 
-	// Return the URL for the plugin to download directly
+	// Check if client wants the actual image data (proxy mode)
+	// This is indicated by Accept header containing image/* or query param ?proxy=true
+	acceptHeader := c.GetHeader("Accept")
+	proxyMode := c.Query("proxy") == "true" || strings.Contains(acceptHeader, "image/")
+
+	if proxyMode {
+		// Proxy the actual image data from S3/external URL
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Get(avatarURL)
+		if err != nil {
+			c.JSON(http.StatusBadGateway, gin.H{"error": "failed_to_fetch_image"})
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			c.JSON(http.StatusBadGateway, gin.H{"error": "image_not_found"})
+			return
+		}
+
+		// Forward content type and stream the image
+		contentType := resp.Header.Get("Content-Type")
+		if contentType == "" {
+			contentType = "image/jpeg" // Default fallback
+		}
+		c.Header("Content-Type", contentType)
+		c.Header("Cache-Control", "public, max-age=3600") // Cache for 1 hour
+		c.Status(http.StatusOK)
+		io.Copy(c.Writer, resp.Body)
+		return
+	}
+
+	// Default: Return the URL for the plugin to download directly
 	c.JSON(http.StatusOK, gin.H{
 		"url":     avatarURL,
 		"user_id": userID,
