@@ -2249,14 +2249,29 @@ void SidechainAudioProcessorEditor::loadLoginState()
 
             // Fetch fresh profile to get latest data (including profile picture)
             userDataStore->fetchUserProfile([this](bool success) {
-                Log::debug("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
+                Log::info("📸 fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
                 juce::MessageManager::callAsync([this]() {
                     // Sync profile URL from UserDataStore
                     if (userDataStore)
                     {
                         profilePicUrl = userDataStore->getProfilePictureUrl();
-                        Log::debug("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
+                        Log::info("📸 After fetchUserProfile: profilePicUrl=" + profilePicUrl +
                             ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
+
+                        // Force update header with latest profile image
+                        if (headerComponent)
+                        {
+                            headerComponent->setUserInfo(userDataStore->getUsername(), profilePicUrl);
+                            if (userDataStore->hasProfileImage())
+                            {
+                                Log::info("📸 Updating header with fetched profile image");
+                                headerComponent->setProfileImage(userDataStore->getProfileImage());
+                            }
+                            else
+                            {
+                                Log::warn("📸 No profile image available after fetch");
+                            }
+                        }
                     }
 
                     // Check if user has active stories and update header
