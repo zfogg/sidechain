@@ -17,10 +17,32 @@
 using namespace Sidechain::UI::Animations;
 
 //==============================================================================
+// Local state enum for feed display
+enum class FeedState
+{
+    Loading,
+    Loaded,
+    Empty,
+    Error
+};
+
+static FeedState feedState = FeedState::Loading;
+
+//==============================================================================
 PostsFeed::PostsFeed()
 {
+    using namespace Sidechain::Stores;
+
     Log::info("PostsFeed: Initializing feed component");
     setSize(1000, 800);
+
+    // Get FeedStore instance and subscribe (Task 2.6)
+    feedStore = &FeedStore::getInstance();
+    storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
+        // FeedStore state changed - rebuild UI
+        handleFeedStateChanged();
+    });
+    Log::debug("PostsFeed: Subscribed to FeedStore");
 
     // Add scroll bar
     addAndMakeVisible(scrollBar);
@@ -75,6 +97,11 @@ PostsFeed::PostsFeed()
 PostsFeed::~PostsFeed()
 {
     Log::debug("PostsFeed: Destroying feed component");
+
+    // Unsubscribe from FeedStore (Task 2.6)
+    if (storeUnsubscribe)
+        storeUnsubscribe();
+
     removeKeyListener(this);
     scrollBar.removeListener(this);
 }
@@ -92,7 +119,9 @@ void PostsFeed::setUserInfo(const juce::String& user, const juce::String& userEm
 void PostsFeed::setNetworkClient(NetworkClient* client)
 {
     networkClient = client;
-    feedDataManager.setNetworkClient(client);
+    // Set NetworkClient on FeedStore (Task 2.6)
+    if (feedStore)
+        feedStore->setNetworkClient(client);
     Log::info("PostsFeed::setNetworkClient: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
@@ -260,100 +289,121 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer* player)
 //==============================================================================
 void PostsFeed::loadFeed()
 {
-    juce::String feedTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
-                               currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
-    Log::info("PostsFeed::loadFeed: Loading feed - type: " + feedTypeStr);
-    feedState = FeedState::Loading;
+    using namespace Sidechain::Stores;
 
-    // Show skeleton during loading
-    if (feedSkeleton != nullptr)
-        feedSkeleton->setVisible(true);
-    repaint();
+    Log::info("PostsFeed::loadFeed: Loading feed via FeedStore (Task 2.6)");
 
-    feedDataManager.setCurrentFeedType(currentFeedType);
-    feedDataManager.fetchFeed(currentFeedType, [this, feedTypeStr](const FeedResponse& response) {
-        if (response.error.isNotEmpty())
-        {
-            Log::error("PostsFeed::loadFeed: Feed load failed - type: " + feedTypeStr + ", error: " + response.error);
-            onFeedError(response.error);
-        }
-        else
-        {
-            Log::info("PostsFeed::loadFeed: Feed loaded successfully - type: " + feedTypeStr + ", posts: " + juce::String(response.posts.size()));
-            onFeedLoaded(response);
-        }
-    });
+    // FeedStore will handle loading and notify via subscription
+    if (feedStore)
+    {
+        feedStore->loadFeed(feedStore->getCurrentFeedType(), false);
+        Log::debug("PostsFeed::loadFeed: FeedStore.loadFeed() called");
+    }
+    else
+    {
+        Log::error("PostsFeed::loadFeed: FeedStore is null!");
+    }
 }
 
 void PostsFeed::refreshFeed()
 {
-    juce::String feedTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
-                               currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" : "Global";
-    Log::info("PostsFeed::refreshFeed: Refreshing feed - type: " + feedTypeStr);
-    feedState = FeedState::Loading;
+    using namespace Sidechain::Stores;
 
-    // Show skeleton during loading
-    if (feedSkeleton != nullptr)
-        feedSkeleton->setVisible(true);
-    repaint();
+    Log::info("PostsFeed::refreshFeed: Refreshing feed via FeedStore (Task 2.6)");
 
-    feedDataManager.clearCache(currentFeedType);
-    Log::debug("PostsFeed::refreshFeed: Cache cleared for type: " + feedTypeStr);
-    feedDataManager.fetchFeed(currentFeedType, [this, feedTypeStr](const FeedResponse& response) {
-        if (response.error.isNotEmpty())
-        {
-            Log::error("PostsFeed::refreshFeed: Feed refresh failed - type: " + feedTypeStr + ", error: " + response.error);
-            onFeedError(response.error);
-        }
-        else
-        {
-            Log::info("PostsFeed::refreshFeed: Feed refreshed successfully - type: " + feedTypeStr + ", posts: " + juce::String(response.posts.size()));
-            onFeedLoaded(response);
-        }
-    });
+    // FeedStore will handle refresh and notify via subscription
+    if (feedStore)
+    {
+        feedStore->refreshCurrentFeed();
+        Log::debug("PostsFeed::refreshFeed: FeedStore.refreshCurrentFeed() called");
+    }
+    else
+    {
+        Log::error("PostsFeed::refreshFeed: FeedStore is null!");
+    }
 }
 
-void PostsFeed::switchFeedType(FeedDataManager::FeedType type)
+void PostsFeed::switchFeedType(Sidechain::Stores::FeedType type)
 {
-    juce::String typeStr = type == FeedDataManager::FeedType::Timeline ? "Timeline" :
-                           type == FeedDataManager::FeedType::Trending ? "Trending" :
-                           type == FeedDataManager::FeedType::ForYou ? "ForYou" : "Global";
+    using namespace Sidechain::Stores;
 
-    if (currentFeedType == type)
+    juce::String typeStr = feedTypeToString(type);
+    juce::String currentTypeStr = feedTypeToString(feedStore ? feedStore->getCurrentFeedType() : FeedType::Timeline);
+
+    if (feedStore && feedStore->getCurrentFeedType() == type)
     {
         Log::debug("PostsFeed::switchFeedType: Already on feed type: " + typeStr);
         return;
     }
 
-    juce::String oldTypeStr = currentFeedType == FeedDataManager::FeedType::Timeline ? "Timeline" :
-                              currentFeedType == FeedDataManager::FeedType::Trending ? "Trending" :
-                              currentFeedType == FeedDataManager::FeedType::ForYou ? "ForYou" : "Global";
-    Log::info("PostsFeed::switchFeedType: Switching from " + oldTypeStr + " to " + typeStr);
+    Log::info("PostsFeed::switchFeedType: Switching from " + currentTypeStr + " to " + typeStr + " (Task 2.6)");
 
-    currentFeedType = type;
+    // Reset scroll position when switching feeds
     scrollPosition = 0.0;
-    posts.clear();
-    Log::debug("PostsFeed::switchFeedType: Reset scroll position and cleared posts");
+    scrollBar.setCurrentRangeStart(0.0);
 
-    // Check if we have valid cache for this feed type
-    if (feedDataManager.isCacheValid(type))
+    // FeedStore will handle feed switching and notify via subscription
+    if (feedStore)
     {
-        Log::debug("PostsFeed::switchFeedType: Using cached feed for type: " + typeStr);
-        auto cached = feedDataManager.getCachedFeed(type);
-        onFeedLoaded(cached);
+        feedStore->switchFeedType(type);
+        Log::debug("PostsFeed::switchFeedType: FeedStore.switchFeedType() called");
     }
     else
     {
-        Log::debug("PostsFeed::switchFeedType: No valid cache, loading feed for type: " + typeStr);
-        loadFeed();
+        Log::error("PostsFeed::switchFeedType: FeedStore is null!");
     }
 }
 
 //==============================================================================
-void PostsFeed::onFeedLoaded(const FeedResponse& response)
+void PostsFeed::handleFeedStateChanged()
 {
-    Log::info("PostsFeed::onFeedLoaded: Feed loaded - posts: " + juce::String(response.posts.size()));
-    posts = response.posts;
+    using namespace Sidechain::Stores;
+
+    if (!feedStore)
+    {
+        Log::error("PostsFeed::handleFeedStateChanged: FeedStore is null!");
+        return;
+    }
+
+    const auto& state = feedStore->getState();
+    const auto& currentFeed = state.getCurrentFeed();
+
+    Log::debug("PostsFeed::handleFeedStateChanged: State changed - loading: " + juce::String(currentFeed.isLoading ? "true" : "false") +
+               ", error: " + currentFeed.error + ", posts: " + juce::String(currentFeed.posts.size()));
+
+    // Handle loading state
+    if (currentFeed.isLoading || currentFeed.isRefreshing)
+    {
+        feedState = FeedState::Loading;
+        if (feedSkeleton != nullptr)
+            feedSkeleton->setVisible(true);
+        if (errorStateComponent != nullptr)
+            errorStateComponent->setVisible(false);
+        repaint();
+        return;
+    }
+
+    // Handle error state
+    if (currentFeed.error.isNotEmpty())
+    {
+        feedState = FeedState::Error;
+        Log::error("PostsFeed::handleFeedStateChanged: Feed error - " + currentFeed.error);
+
+        if (feedSkeleton != nullptr)
+            feedSkeleton->setVisible(false);
+
+        if (errorStateComponent != nullptr)
+        {
+            errorStateComponent->configureFromError(currentFeed.error);
+            errorStateComponent->setVisible(true);
+        }
+
+        repaint();
+        return;
+    }
+
+    // Handle loaded state
+    Log::info("PostsFeed::handleFeedStateChanged: Feed loaded - posts: " + juce::String(currentFeed.posts.size()));
 
     // Hide error state and skeleton on successful load
     if (errorStateComponent != nullptr)
@@ -361,17 +411,13 @@ void PostsFeed::onFeedLoaded(const FeedResponse& response)
     if (feedSkeleton != nullptr)
         feedSkeleton->setVisible(false);
 
-    if (posts.isEmpty())
-    {
+    // Determine if feed is empty or loaded
+    if (currentFeed.posts.isEmpty())
         feedState = FeedState::Empty;
-        Log::debug("PostsFeed::onFeedLoaded: Feed is empty");
-    }
     else
-    {
         feedState = FeedState::Loaded;
-        Log::debug("PostsFeed::onFeedLoaded: Feed has " + juce::String(posts.size()) + " posts");
-    }
 
+    // Rebuild post cards from FeedStore state
     rebuildPostCards();
     updateScrollBounds();
     updateAudioPlayerPlaylist();
@@ -385,9 +431,18 @@ void PostsFeed::onFeedLoaded(const FeedResponse& response)
 //==============================================================================
 void PostsFeed::queryPresenceForPosts()
 {
-    if (!streamChatClient || posts.isEmpty())
+    using namespace Sidechain::Stores;
+
+    if (!streamChatClient || !feedStore)
     {
-        Log::debug("PostsFeed::queryPresenceForPosts: Skipping - streamChatClient is null or no posts");
+        Log::debug("PostsFeed::queryPresenceForPosts: Skipping - streamChatClient or feedStore is null");
+        return;
+    }
+
+    const auto& posts = feedStore->getState().getCurrentFeed().posts;
+    if (posts.isEmpty())
+    {
+        Log::debug("PostsFeed::queryPresenceForPosts: Skipping - no posts");
         return;
     }
 
@@ -423,34 +478,22 @@ void PostsFeed::queryPresenceForPosts()
         auto presenceList = result.getValue();
         Log::debug("PostsFeed::queryPresenceForPosts: Received presence data for " + juce::String(presenceList.size()) + " users");
 
-        // Update posts with presence data
-        for (auto& post : posts)
+        // Update PostCards with presence data
+        for (const auto& presence : presenceList)
         {
-            for (const auto& presence : presenceList)
+            for (auto* card : postCards)
             {
-                if (presence.userId == post.userId)
+                if (card->getPost().userId == presence.userId)
                 {
-                    post.isOnline = presence.online;
-                    post.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
-
-                    // Update corresponding PostCard
-                    for (auto* card : postCards)
-                    {
-                        if (card->getPost().userId == post.userId)
-                        {
-                            auto updatedPost = card->getPost();
-                            updatedPost.isOnline = post.isOnline;
-                            updatedPost.isInStudio = post.isInStudio;
-                            card->setPost(updatedPost);
-                            break;
-                        }
-                    }
-                    break;
+                    auto updatedPost = card->getPost();
+                    updatedPost.isOnline = presence.online;
+                    updatedPost.isInStudio = (presence.status == "in_studio" || presence.status == "in studio");
+                    card->setPost(updatedPost);
                 }
             }
         }
 
-        // Repaint to show online indicators
+        // Repaint to show updated online indicators
         repaint();
     });
 }
@@ -462,50 +505,19 @@ void PostsFeed::updateUserPresence(const juce::String& userId, bool isOnline, co
 
     bool isInStudio = (status == "in_studio" || status == "in studio" || status == "recording");
 
-    // Update presence in posts array
-    for (auto& post : posts)
+    // Update PostCards with presence data (Task 2.6 - no local posts array)
+    for (auto* card : postCards)
     {
-        if (post.userId == userId)
+        if (card->getPost().userId == userId)
         {
-            post.isOnline = isOnline;
-            post.isInStudio = isInStudio;
-
-            // Update corresponding PostCard
-            for (auto* card : postCards)
-            {
-                if (card->getPost().userId == userId)
-                {
-                    auto updatedPost = card->getPost();
-                    updatedPost.isOnline = isOnline;
-                    updatedPost.isInStudio = isInStudio;
-                    card->setPost(updatedPost);
-                    break;
-                }
-            }
+            auto updatedPost = card->getPost();
+            updatedPost.isOnline = isOnline;
+            updatedPost.isInStudio = isInStudio;
+            card->setPost(updatedPost);
         }
     }
 
     // Repaint to show updated online indicators
-    repaint();
-}
-
-void PostsFeed::onFeedError(const juce::String& error)
-{
-    Log::error("PostsFeed::onFeedError: Feed error - " + error);
-    errorMessage = error;
-    feedState = FeedState::Error;
-
-    // Hide skeleton
-    if (feedSkeleton != nullptr)
-        feedSkeleton->setVisible(false);
-
-    // Configure and show error state component
-    if (errorStateComponent != nullptr)
-    {
-        errorStateComponent->configureFromError(error);
-        errorStateComponent->setVisible(true);
-    }
-
     repaint();
 }
 
@@ -552,9 +564,13 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
     g.setColour(SidechainColors::background());
     g.fillRect(tabsBounds);
 
+    // Get current feed type from store
+    using namespace Sidechain::Stores;
+    auto currentFeedType = feedStore ? feedStore->getCurrentFeedType() : FeedType::Timeline;
+
     // Timeline (Following) tab
     auto timelineTab = getTimelineTabBounds();
-    bool isTimelineActive = (currentFeedType == FeedDataManager::FeedType::Timeline);
+    bool isTimelineActive = (currentFeedType == FeedType::Timeline);
 
     // Use UIHelpers::drawButton for consistent tab styling
     if (isTimelineActive)
@@ -571,7 +587,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
 
     // Trending tab
     auto trendingTab = getTrendingTabBounds();
-    bool isTrendingActive = (currentFeedType == FeedDataManager::FeedType::Trending);
+    bool isTrendingActive = (currentFeedType == FeedType::Trending);
 
     // Use UIHelpers::drawButton for consistent tab styling
     if (isTrendingActive)
@@ -588,7 +604,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
 
     // Global (Discover) tab
     auto globalTab = getGlobalTabBounds();
-    bool isGlobalActive = (currentFeedType == FeedDataManager::FeedType::Global);
+    bool isGlobalActive = (currentFeedType == FeedType::Global);
 
     // Use UIHelpers::drawButton for consistent tab styling
     if (isGlobalActive)
@@ -605,7 +621,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
 
     // For You tab
     auto forYouTab = getForYouTabBounds();
-    bool isForYouActive = (currentFeedType == FeedDataManager::FeedType::ForYou);
+    bool isForYouActive = (currentFeedType == FeedType::ForYou);
 
     // Use UIHelpers::drawButton for consistent tab styling
     if (isForYouActive)
@@ -622,7 +638,8 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
 
     // Refresh button
     auto refreshBtn = getRefreshButtonBounds();
-    g.setColour(feedDataManager.isFetching() ? SidechainColors::textMuted() : SidechainColors::textSecondary());
+    auto currentState = feedStore ? feedStore->getState().getCurrentFeed() : Sidechain::Stores::SingleFeedState{};
+    g.setColour(currentState.isLoading ? SidechainColors::textMuted() : SidechainColors::textSecondary());
     g.setFont(18.0f);
     g.drawText("Refresh", refreshBtn, juce::Justification::centred);
 
@@ -656,9 +673,11 @@ void PostsFeed::drawEmptyState(juce::Graphics& g)
     auto centerBounds = contentBounds.withSizeKeepingCentre(400, 300);
 
     // Different message for Timeline vs Global
+    using namespace Sidechain::Stores;
+    auto currentFeedType = feedStore ? feedStore->getCurrentFeedType() : FeedType::Timeline;
     juce::String title, subtitle1, subtitle2;
 
-    if (currentFeedType == FeedDataManager::FeedType::Timeline)
+    if (currentFeedType == FeedType::Timeline)
     {
         title = "Your Feed is Empty";
         subtitle1 = "Follow other producers to see their loops here,";
@@ -712,7 +731,8 @@ void PostsFeed::drawErrorState(juce::Graphics& g)
     // Error details
     g.setColour(SidechainColors::textSecondary());
     g.setFont(14.0f);
-    juce::String displayError = errorMessage.isEmpty() ? "Network error. Please check your connection." : errorMessage;
+    auto errorMsg = feedStore ? feedStore->getState().getCurrentFeed().error : juce::String("Network error");
+    juce::String displayError = errorMsg.isEmpty() ? "Network error. Please check your connection." : errorMsg;
     g.drawFittedText(displayError, centerBounds.withY(centerBounds.getY() + 130).withHeight(40), juce::Justification::centred, 2);
 
     // Retry button
@@ -728,18 +748,22 @@ void PostsFeed::drawFeedPosts(juce::Graphics& g)
     updatePostCardPositions();
 
     // Loading more indicator at bottom
-    if (feedDataManager.isFetching() && feedDataManager.hasMorePosts())
+    if (feedStore)
     {
-        auto contentBounds = getFeedContentBounds();
-        int loadingY = contentBounds.getY() + totalContentHeight - static_cast<int>(scrollPosition);
-
-        if (loadingY < contentBounds.getBottom())
+        auto currentFeed = feedStore->getState().getCurrentFeed();
+        if (currentFeed.isLoading)
         {
-            g.setColour(SidechainColors::textMuted());
-            g.setFont(14.0f);
-            g.drawText("Loading more...",
-                       contentBounds.getX(), loadingY, contentBounds.getWidth(), 40,
-                       juce::Justification::centred);
+            auto contentBounds = getFeedContentBounds();
+            int loadingY = contentBounds.getY() + totalContentHeight - static_cast<int>(scrollPosition);
+
+            if (loadingY < contentBounds.getBottom())
+            {
+                g.setColour(SidechainColors::textMuted());
+                g.setFont(14.0f);
+                g.drawText("Loading more...",
+                           contentBounds.getX(), loadingY, contentBounds.getWidth(), 40,
+                           juce::Justification::centred);
+            }
         }
     }
 }
@@ -786,6 +810,16 @@ void PostsFeed::drawNewPostsToast(juce::Graphics& g)
 //==============================================================================
 void PostsFeed::rebuildPostCards()
 {
+    using namespace Sidechain::Stores;
+
+    if (!feedStore)
+    {
+        Log::error("PostsFeed::rebuildPostCards: FeedStore is null!");
+        return;
+    }
+
+    const auto& posts = feedStore->getState().getCurrentFeed().posts;
+
     Log::info("PostsFeed::rebuildPostCards: Rebuilding post cards - current: " + juce::String(postCards.size()) + ", posts: " + juce::String(posts.size()));
     postCards.clear();
 
@@ -793,6 +827,7 @@ void PostsFeed::rebuildPostCards()
     {
         auto* card = postCards.add(new PostCard());
         card->setNetworkClient(networkClient);  // Pass NetworkClient for waveform downloads
+        card->setFeedStore(feedStore);  // Task 2.6: Connect PostCard to FeedStore for reactive updates
         card->setPost(post);
         setupPostCardCallbacks(card);
         addAndMakeVisible(card);
@@ -839,23 +874,27 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
             audioPlayer->loadAndPlay(post.id, post.audioUrl);
 
             // Pre-buffer next post for seamless playback
-            int currentIndex = -1;
-            for (int i = 0; i < posts.size(); ++i)
+            if (feedStore)
             {
-                if (posts[i].id == post.id)
+                const auto& posts = feedStore->getState().getCurrentFeed().posts;
+                int currentIndex = -1;
+                for (int i = 0; i < posts.size(); ++i)
                 {
-                    currentIndex = i;
-                    break;
+                    if (posts[i].id == post.id)
+                    {
+                        currentIndex = i;
+                        break;
+                    }
                 }
-            }
 
-            if (currentIndex >= 0 && currentIndex < posts.size() - 1)
-            {
-                const FeedPost& nextPost = posts[currentIndex + 1];
-                if (nextPost.audioUrl.isNotEmpty())
+                if (currentIndex >= 0 && currentIndex < posts.size() - 1)
                 {
-                    Log::debug("PostsFeed: Pre-buffering next post: " + nextPost.id);
-                    audioPlayer->preloadAudio(nextPost.id, nextPost.audioUrl);
+                    const FeedPost& nextPost = posts[currentIndex + 1];
+                    if (nextPost.audioUrl.isNotEmpty())
+                    {
+                        Log::debug("PostsFeed: Pre-buffering next post: " + nextPost.id);
+                        audioPlayer->preloadAudio(nextPost.id, nextPost.audioUrl);
+                    }
                 }
             }
         }
@@ -969,7 +1008,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                                                 response.posts.add(feedPost);
                                         }
                                         response.hasMore = false; // Similar posts don't paginate
-                                        onFeedLoaded(response);
+                                        // onFeedLoaded(response); // Task 2.6: Refactored to use FeedStore subscription
                                         Log::info("PostsFeedComponent: Loaded " + juce::String(response.posts.size()) + " similar posts");
                                     }
                                 }
@@ -1015,17 +1054,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
                                 if (result.isOk())
                                 {
                                     Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
-                                    // Remove post from local feed
-                                    for (int i = posts.size() - 1; i >= 0; --i)
-                                    {
-                                        if (posts[i].id == postId)
-                                        {
-                                            posts.remove(i);
-                                            rebuildPostCards();
-                                            repaint();
-                                            break;
-                                        }
-                                    }
+                                    // Task 2.6: Post deletion now handled by FeedStore subscription
+                                    // The feed will automatically update when the delete succeeds
                                     juce::MessageManager::callAsync([]() {
                                         juce::AlertWindow::showMessageBoxAsync(
                                             juce::MessageBoxIconType::InfoIcon,
@@ -1724,54 +1754,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         });
     };
 
-    card->onFollowToggled = [this, card](const FeedPost& post, bool willFollow) {
-        Log::info("PostsFeedComponent: Follow toggled for user: " + post.userId + " -> " + (willFollow ? "follow" : "unfollow"));
-
-        if (networkClient == nullptr)
-        {
-            Log::warn("PostsFeedComponent: Cannot follow/unfollow - networkClient is null");
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::WarningIcon,
-                "Error",
-                "Unable to follow/unfollow user. Please try again later.");
-            return;
-        }
-
-        // Note: PostCard now updates automatically via FeedStore subscription (Task 2.5)
-        // Manual update calls have been removed
-
-        // Call backend API to follow/unfollow
-        auto callback = [this, post, willFollow](Outcome<juce::var> result) {
-            if (result.isError())
-            {
-                Log::error("PostsFeedComponent: Failed to " + juce::String(willFollow ? "follow" : "unfollow") + " user: " + result.getError());
-                // Show toast notification
-                ToastManager::getInstance().showError(
-                    "Couldn't " + juce::String(willFollow ? "follow" : "unfollow") + " user. Please try again.");
-            }
-            else
-            {
-                // Show success notification
-                Log::debug("PostsFeedComponent: Successfully " + juce::String(willFollow ? "followed" : "unfollowed") + " user: " + post.userId);
-                // Optional: Show brief success toast (commented out to avoid notification spam)
-                // juce::MessageManager::callAsync([willFollow, username = post.username]() {
-                //     juce::AlertWindow::showMessageBoxAsync(
-                //         juce::MessageBoxIconType::InfoIcon,
-                //         "Success",
-                //         "Successfully " + juce::String(willFollow ? "following" : "unfollowed") + " " + username);
-                // });
-            }
-        };
-
-        if (willFollow)
-        {
-            networkClient->followUser(post.userId, callback);
-        }
-        else
-        {
-            networkClient->unfollowUser(post.userId, callback);
-        }
-    };
+    // Follow/Unfollow handled by FeedStore.toggleFollow() (Task 2.2 - reactive refactoring)
+    // The callback is no longer needed as PostCard now uses FeedStore directly
 
     // Save/Bookmark handled by FeedStore.toggleSave() (Task 2.1 - reactive refactoring)
     // The callback is no longer needed as PostCard now uses FeedStore directly
@@ -1876,6 +1860,8 @@ void PostsFeed::mouseWheelMove(const juce::MouseEvent& /*event*/, const juce::Mo
 void PostsFeed::updateScrollBounds()
 {
     auto contentBounds = getFeedContentBounds();
+    // Task 2.6: Use FeedStore instead of local posts array
+    const auto& posts = feedStore ? feedStore->getState().getCurrentFeed().posts : juce::Array<FeedPost>{};
     totalContentHeight = static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
 
     double visibleHeight = contentBounds.getHeight();
@@ -1886,13 +1872,21 @@ void PostsFeed::updateScrollBounds()
 
 void PostsFeed::checkLoadMore()
 {
-    if (feedState != FeedState::Loaded || !feedDataManager.hasMorePosts() || feedDataManager.isFetching())
+    // Task 2.6: Use FeedStore instead of feedDataManager
+    if (!feedStore)
+    {
+        Log::debug("PostsFeed::checkLoadMore: FeedStore is null, skipping");
+        return;
+    }
+
+    const auto& currentFeed = feedStore->getState().getCurrentFeed();
+    if (feedState != FeedState::Loaded || !currentFeed.hasMore || currentFeed.isLoading)
     {
         if (feedState != FeedState::Loaded)
             Log::debug("PostsFeed::checkLoadMore: Feed not loaded, skipping");
-        else if (!feedDataManager.hasMorePosts())
+        else if (!currentFeed.hasMore)
             Log::debug("PostsFeed::checkLoadMore: No more posts available");
-        else if (feedDataManager.isFetching())
+        else if (currentFeed.isLoading)
             Log::debug("PostsFeed::checkLoadMore: Already fetching, skipping");
         return;
     }
@@ -1906,33 +1900,8 @@ void PostsFeed::checkLoadMore()
     if (scrollEnd >= threshold)
     {
         Log::info("PostsFeed::checkLoadMore: Threshold reached, loading more posts");
-        feedDataManager.loadMorePosts([this](const FeedResponse& response) {
-            if (response.error.isEmpty())
-            {
-                // Add new posts to array
-                posts.addArray(response.posts);
-                Log::info("PostsFeed::checkLoadMore: Loaded " + juce::String(response.posts.size()) + " more posts (total: " + juce::String(posts.size()) + ")");
-
-                // Create card components for new posts
-                for (const auto& post : response.posts)
-                {
-                    auto* card = postCards.add(new PostCard());
-                    card->setNetworkClient(networkClient);  // Pass NetworkClient for waveform downloads
-                    card->setPost(post);
-                    setupPostCardCallbacks(card);
-                    addAndMakeVisible(card);
-                    Log::debug("PostsFeed::checkLoadMore: Created card for new post: " + post.id);
-                }
-
-                updateScrollBounds();
-                updatePostCardPositions();
-                repaint();
-            }
-            else
-            {
-                Log::error("PostsFeed::checkLoadMore: Failed to load more posts - error: " + response.error);
-            }
-        });
+        // Task 2.6: Use FeedStore.loadMore() - it will notify via subscription
+        feedStore->loadMore();
     }
 }
 
@@ -1963,33 +1932,34 @@ void PostsFeed::mouseUp(const juce::MouseEvent& event)
     if (getTimelineTabBounds().contains(pos))
     {
         Log::info("PostsFeed::mouseUp: Timeline tab clicked");
-        switchFeedType(FeedDataManager::FeedType::Timeline);
+        switchFeedType(Sidechain::Stores::FeedType::Timeline);
         return;
     }
 
     if (getTrendingTabBounds().contains(pos))
     {
         Log::info("PostsFeed::mouseUp: Trending tab clicked");
-        switchFeedType(FeedDataManager::FeedType::Trending);
+        switchFeedType(Sidechain::Stores::FeedType::Trending);
         return;
     }
 
     if (getGlobalTabBounds().contains(pos))
     {
         Log::info("PostsFeed::mouseUp: Global/Discover tab clicked");
-        switchFeedType(FeedDataManager::FeedType::Global);
+        switchFeedType(Sidechain::Stores::FeedType::Global);
         return;
     }
 
     if (getForYouTabBounds().contains(pos))
     {
         Log::info("PostsFeed::mouseUp: For You tab clicked");
-        switchFeedType(FeedDataManager::FeedType::ForYou);
+        switchFeedType(Sidechain::Stores::FeedType::ForYou);
         return;
     }
 
-    // Check refresh button
-    if (getRefreshButtonBounds().contains(pos) && !feedDataManager.isFetching())
+    // Check refresh button - Task 2.6: Use FeedStore instead of feedDataManager
+    const auto& currentFeed = feedStore ? feedStore->getState().getCurrentFeed() : Sidechain::Stores::SingleFeedState{};
+    if (getRefreshButtonBounds().contains(pos) && !currentFeed.isLoading)
     {
         Log::info("PostsFeed::mouseUp: Refresh button clicked");
         refreshFeed();
@@ -2218,6 +2188,8 @@ void PostsFeed::updateAudioPlayerPlaylist()
     juce::StringArray postIds;
     juce::StringArray audioUrls;
 
+    // Task 2.6: Use FeedStore instead of local posts array
+    const auto& posts = feedStore ? feedStore->getState().getCurrentFeed().posts : juce::Array<FeedPost>{};
     for (const auto& post : posts)
     {
         if (post.audioUrl.isNotEmpty())
