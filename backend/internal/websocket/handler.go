@@ -41,36 +41,40 @@ func (h *Handler) GetPresenceManager() *PresenceManager {
 	return h.presenceManager
 }
 
-// HandleWebSocket handles WebSocket upgrade requests
-// Authentication is done via JWT token in query param: ?token=...
-// Or via Authorization header: Bearer <token>
-func (h *Handler) HandleWebSocket(c *gin.Context) {
-	// Extract and validate JWT token
-	user, err := h.authenticateRequest(c)
+// HandleWebSocketHTTP is a raw http.Handler for WebSocket upgrades
+// This bypasses Gin's ResponseWriter wrapper which can interfere with connection hijacking
+func (h *Handler) HandleWebSocketHTTP(w http.ResponseWriter, r *http.Request) {
+	// Extract and validate JWT token from query param or header
+	user, err := h.authenticateHTTPRequest(r)
 	if err != nil {
 		log.Printf("WebSocket auth failed: %v", err)
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":   "authentication_failed",
-			"message": err.Error(),
-		})
+		http.Error(w, `{"error":"authentication_failed","message":"`+err.Error()+`"}`, http.StatusUnauthorized)
 		return
 	}
 
-	// Upgrade the HTTP connection to WebSocket
-	conn, err := websocket.Accept(c.Writer, c.Request, &websocket.AcceptOptions{
-		// In production, set specific origins
-		InsecureSkipVerify: true, // TODO: Configure CORS properly for production
-		CompressionMode:    websocket.CompressionContextTakeover,
+	// Upgrade the HTTP connection to WebSocket using raw http.ResponseWriter
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		InsecureSkipVerify: true,
+		CompressionMode:    websocket.CompressionDisabled,
 	})
 	if err != nil {
 		log.Printf("WebSocket upgrade failed: %v", err)
 		return
 	}
 
+	// Get client IP from X-Forwarded-For or RemoteAddr
+	clientIP := r.Header.Get("X-Forwarded-For")
+	if clientIP == "" {
+		clientIP = r.Header.Get("X-Real-IP")
+	}
+	if clientIP == "" {
+		clientIP = r.RemoteAddr
+	}
+
 	// Create client
 	client := NewClient(h.hub, conn, user.ID, user.Username)
-	client.RemoteAddr = c.ClientIP()
-	client.UserAgent = c.GetHeader("User-Agent")
+	client.RemoteAddr = clientIP
+	client.UserAgent = r.Header.Get("User-Agent")
 
 	// Register client with hub
 	h.hub.Register(client)
@@ -96,10 +100,64 @@ func (h *Handler) HandleWebSocket(c *gin.Context) {
 	go client.WritePump()
 	client.ReadPump() // This blocks until client disconnects
 
-	// Client disconnected - notify presence manager
+	// Cleanup after disconnect
 	if h.presenceManager != nil {
 		h.presenceManager.OnClientDisconnect(client)
 	}
+}
+
+// authenticateHTTPRequest extracts and validates JWT from raw HTTP request
+func (h *Handler) authenticateHTTPRequest(r *http.Request) (*models.User, error) {
+	// Try query param first
+	tokenString := r.URL.Query().Get("token")
+
+	// Fall back to Authorization header
+	if tokenString == "" {
+		authHeader := r.Header.Get("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+	}
+
+	if tokenString == "" {
+		return nil, errors.New("no token provided")
+	}
+
+	// Parse and validate the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return h.jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims")
+	}
+
+	userID, ok := claims["user_id"].(string)
+	if !ok {
+		return nil, errors.New("user_id not found in token")
+	}
+
+	// Look up user in database
+	var user models.User
+	if err := database.DB.First(&user, "id = ?", userID).Error; err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return &user, nil
+}
+
+// HandleWebSocket handles WebSocket upgrade requests (Gin wrapper)
+// This wraps HandleWebSocketHTTP for use with Gin routes
+func (h *Handler) HandleWebSocket(c *gin.Context) {
+	h.HandleWebSocketHTTP(c.Writer, c.Request)
 }
 
 // authenticateRequest extracts and validates the JWT token from the request

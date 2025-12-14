@@ -204,8 +204,17 @@ func main() {
 	authHandlers.SetJWTSecret(jwtSecret)
 	authHandlers.SetEmailService(emailService) // Enable password reset emails
 
-	// Setup Gin router
-	r := gin.Default()
+	// Setup Gin router - use gin.New() instead of gin.Default() to control middleware
+	r := gin.New()
+
+	// NOTE: WebSocket routes (/api/v1/ws, /api/v1/ws/connect) are handled OUTSIDE of Gin
+	// by a custom http.Handler wrapper that bypasses Gin's ResponseWriter.
+	// This is necessary because Gin's ResponseWriter wrapper interferes with WebSocket
+	// connection hijacking. See the http.Server Handler setup below.
+
+	// Standard Gin middleware
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 
 	// Gzip compression middleware (compress responses > 1KB)
 	r.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{
@@ -571,12 +580,11 @@ func main() {
 		// Post sound route (Feature #15)
 		posts.GET("/:id/sound", soundHandlers.GetPostSound)
 
-		// WebSocket routes
+		// WebSocket auxiliary routes (the main ws routes are registered before middleware)
 		ws := api.Group("/ws")
 		{
-			// WebSocket connection endpoint - auth via query param ?token=... or Authorization header
-			ws.GET("", wsHandler.HandleWebSocket)
-			ws.GET("/connect", wsHandler.HandleWebSocket)
+			// Note: Main WebSocket connection endpoints (GET "" and GET "/connect") are registered
+			// at the top of main() BEFORE middleware to avoid connection hijacking issues
 
 			// Metrics endpoint (protected)
 			ws.GET("/metrics", authHandlers.AuthMiddleware(), wsHandler.HandleMetrics)
@@ -596,9 +604,21 @@ func main() {
 		port = "8787"
 	}
 
+	// Create a custom handler that routes WebSocket requests to raw HTTP handler
+	// This bypasses Gin's ResponseWriter wrapper which interferes with connection hijacking
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// Route WebSocket upgrade requests directly to raw HTTP handler
+		if req.URL.Path == "/api/v1/ws" || req.URL.Path == "/api/v1/ws/connect" {
+			wsHandler.HandleWebSocketHTTP(w, req)
+			return
+		}
+		// All other requests go through Gin
+		r.ServeHTTP(w, req)
+	})
+
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: r,
+		Handler: handler,
 	}
 
 	// Start server in a goroutine
