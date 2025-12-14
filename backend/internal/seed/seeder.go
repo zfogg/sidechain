@@ -255,10 +255,14 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 			}
 		}
 
+		// Generate a filename for this post
+		generatedFilename := fmt.Sprintf("loop_%s.wav", gofakeit.Word())
+
 		post := models.AudioPost{
 			UserID:           user.ID,
 			AudioURL:         fmt.Sprintf("https://cdn.sidechain.app/audio/%s.mp3", gofakeit.UUID()),
-			OriginalFilename: fmt.Sprintf("loop_%s.wav", gofakeit.Word()),
+			OriginalFilename: generatedFilename,
+			Filename:         generatedFilename, // User-editable display filename (required)
 			FileSize:         int64(rand.Intn(5000000) + 1000000), // 1-6 MB
 			Duration:         duration,
 			BPM:              bpm,

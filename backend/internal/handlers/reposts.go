@@ -106,6 +106,7 @@ func (h *Handlers) CreateRepost(c *gin.Context) {
 			"original_user_id":  post.UserID,
 			"original_username": post.User.Username,
 			"original_avatar":   post.User.GetAvatarURL(),
+			"original_filename": post.Filename, // Display filename for the original post
 			"original_created":  post.CreatedAt,
 			"quote":             req.Quote,
 		},
@@ -339,6 +340,7 @@ func (h *Handlers) GetUserReposts(c *gin.Context) {
 				"user_id":    r.OriginalPost.UserID,
 				"user":       formatUserResponse(&r.OriginalPost.User),
 				"audio_url":  r.OriginalPost.AudioURL,
+				"filename":   r.OriginalPost.Filename, // Display filename (required)
 				"duration":   r.OriginalPost.Duration,
 				"bpm":        r.OriginalPost.BPM,
 				"key":        r.OriginalPost.Key,

@@ -206,6 +206,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
             post.originalUserId = Json::getString(extra, "original_user_id");
             post.originalUsername = Json::getString(extra, "original_username");
             post.originalAvatarUrl = Json::getString(extra, "original_avatar");
+            post.originalFilename = Json::getString(extra, "original_filename");
             post.repostQuote = Json::getString(extra, "quote");
         }
     }
@@ -220,6 +221,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
             post.originalUserId = Json::getString(json, "original_user_id");
             post.originalUsername = Json::getString(json, "original_username");
             post.originalAvatarUrl = Json::getString(json, "original_avatar_url");
+            post.originalFilename = Json::getString(json, "original_filename");
             post.repostQuote = Json::getString(json, "repost_quote");
         }
     }

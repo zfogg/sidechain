@@ -109,6 +109,7 @@ public:
     juce::String originalUserId;        // User ID of original poster
     juce::String originalUsername;      // Username of original poster
     juce::String originalAvatarUrl;     // Avatar URL of original poster
+    juce::String originalFilename;      // Filename of original post (for display)
     juce::String repostQuote;           // Optional quote/comment from reposter
 
     //==============================================================================
