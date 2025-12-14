@@ -10,3 +10,6 @@
 [submodule "deps/RxCpp"]
 	path = deps/RxCpp
 	url = https://github.com/ReactiveX/RxCpp.git
+[submodule "deps/uuid"]
+	path = deps/uuid
+	url = https://github.com/mariusbancila/stduuid.git

@@ -309,3 +309,26 @@ else()
     set(SIDECHAIN_HAS_RXCPP FALSE CACHE INTERNAL "")
 endif()
 
+#==============================================================================
+# stduuid - UUID Generation Library (Header-Only)
+#==============================================================================
+set(STDUUID_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/uuid")
+if(EXISTS "${STDUUID_DIR}/include/uuid.h")
+    message(STATUS "stduuid found at: ${STDUUID_DIR}")
+
+    # Create an interface library for stduuid (header-only)
+    # Use SYSTEM to suppress warnings from stduuid headers
+    add_library(stduuid INTERFACE)
+    target_include_directories(stduuid SYSTEM INTERFACE "${STDUUID_DIR}/include")
+
+    # stduuid requires C++20 or later (we're using C++20+)
+    target_compile_features(stduuid INTERFACE cxx_std_20)
+
+    set(SIDECHAIN_HAS_STDUUID TRUE CACHE INTERNAL "")
+    message(STATUS "stduuid will be available as an interface library (header-only)")
+else()
+    message(WARNING "stduuid not found at ${STDUUID_DIR}")
+    message(STATUS "Run: git submodule update --init --recursive")
+    set(SIDECHAIN_HAS_STDUUID FALSE CACHE INTERNAL "")
+endif()
+
