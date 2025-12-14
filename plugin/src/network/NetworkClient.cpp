@@ -385,6 +385,30 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
 
         Log::debug("API Response from " + endpoint + " (HTTP " + juce::String(result.httpStatus) + "): " + response);
 
+        // Check for server rate limiting (429) and honor Retry-After header (Task 4.18)
+        if (result.httpStatus == 429 && attempts < config.maxRetries)
+        {
+            auto retryAfterHeader = responseHeaders.getValue("Retry-After", "");
+            int retryDelaySeconds = 60; // Default to 60 seconds
+
+            if (retryAfterHeader.isNotEmpty())
+            {
+                // Try to parse as integer (seconds)
+                retryDelaySeconds = retryAfterHeader.getIntValue();
+
+                // If 0, might be HTTP-date format - use default
+                if (retryDelaySeconds == 0)
+                    retryDelaySeconds = 60;
+            }
+
+            Log::warn("Server rate limit (429) on " + endpoint +
+                      ", retrying after " + juce::String(retryDelaySeconds) + "s");
+
+            // Respect server's retry-after time
+            juce::Thread::sleep(retryDelaySeconds * 1000);
+            continue; // Retry the request
+        }
+
         // Check for server errors that should trigger retry
         if (result.httpStatus >= 500 && attempts < config.maxRetries)
         {
@@ -904,6 +928,63 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
     SCOPED_TIMER_THRESHOLD("network::upload", 5000.0);
     RequestResult result;
 
+    // Rate limiting check (Task 4.18) - BEFORE authentication check to prevent wasted resources
+    if (uploadRateLimiter)
+    {
+        juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
+        auto rateLimitStatus = uploadRateLimiter->tryConsume(identifier, 1);
+
+        if (!rateLimitStatus.allowed)
+        {
+            result.success = false;
+            result.httpStatus = 429;
+
+            int retrySeconds = rateLimitStatus.retryAfterSeconds > 0
+                ? rateLimitStatus.retryAfterSeconds
+                : rateLimitStatus.resetInSeconds;
+
+            juce::String retryMsg = retrySeconds > 0
+                ? " Please try again in " + juce::String(retrySeconds / 60) + " minutes."
+                : " Please try again later.";
+
+            result.errorMessage = "Upload rate limit exceeded" + retryMsg;
+
+            auto* errorObj = new juce::DynamicObject();
+            errorObj->setProperty("error", "upload_rate_limit_exceeded");
+            errorObj->setProperty("message", result.errorMessage);
+            errorObj->setProperty("retry_after", retrySeconds);
+            errorObj->setProperty("limit", rateLimitStatus.limit);
+            errorObj->setProperty("remaining", rateLimitStatus.remaining);
+            result.data = juce::var(errorObj);
+
+            Log::warn("Upload rate limit exceeded for " + identifier + ": " + result.errorMessage);
+
+            HttpErrorHandler::getInstance().reportError(
+                endpoint, "POST", 429, result.errorMessage,
+                juce::JSON::toString(result.data));
+
+            // Track error (Task 4.19 integration point)
+            using namespace Sidechain::Util::Error;
+            auto errorTracker = ErrorTracker::getInstance();
+            errorTracker->recordError(
+                ErrorSource::Network,
+                "Upload rate limit exceeded: " + result.errorMessage,
+                ErrorSeverity::Warning,
+                {
+                    {"endpoint", endpoint},
+                    {"method", "POST"},
+                    {"identifier", identifier},
+                    {"retry_after", juce::String(retrySeconds)}
+                }
+            );
+
+            return result;
+        }
+
+        Log::debug("Upload rate limit check passed for " + identifier +
+                   " (" + juce::String(rateLimitStatus.remaining) + " uploads remaining)");
+    }
+
     if (!isAuthenticated())
     {
         result.errorMessage = Constants::Errors::NOT_AUTHENTICATED;
@@ -1003,6 +1084,22 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
     return result;
 }
 
+/**
+ * Upload file data to an external endpoint using absolute URL (Task 4.18)
+ *
+ * IMPORTANT: This method bypasses rate limiting because it's designed for external
+ * endpoints (CDN, S3, etc.) which have their own rate limiting mechanisms.
+ * These uploads should not count against the API's rate limits.
+ *
+ * @param absoluteUrl Full URL to upload to (not relative to API host)
+ * @param fieldName Form field name for the file
+ * @param fileData Binary data to upload
+ * @param fileName Original filename to include in multipart form
+ * @param mimeType Content type for the file
+ * @param extraFields Additional form fields to include
+ * @param customHeaders Additional HTTP headers to include
+ * @return RequestResult with status and error details
+ */
 NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
     const juce::String& absoluteUrl,
     const juce::String& fieldName,
