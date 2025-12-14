@@ -641,6 +641,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         userPickerDialog->setCurrentUserId(userDataStore->getUserId());
 
     userPickerDialog->onUserSelected = [this](const juce::String& userId) {
+        // Hide dialog immediately
+        if (userPickerDialog)
+            userPickerDialog->setVisible(false);
+
         // Create direct channel with selected user
         if (streamChatClient && streamChatClient->isAuthenticated())
         {
@@ -665,6 +669,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
 
     userPickerDialog->onGroupCreated = [this](const std::vector<juce::String>& userIds, const juce::String& groupName) {
+        // Hide dialog immediately
+        if (userPickerDialog)
+            userPickerDialog->setVisible(false);
+
         // Create group channel with selected users
         if (streamChatClient && streamChatClient->isAuthenticated())
         {
@@ -691,8 +699,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         }
     };
 
-    userPickerDialog->onCancelled = []() {
+    userPickerDialog->onCancelled = [this]() {
         Log::debug("PluginEditor: User picker cancelled");
+        if (userPickerDialog)
+            userPickerDialog->setVisible(false);
     };
     // Not added as child - shown as modal overlay when needed
 

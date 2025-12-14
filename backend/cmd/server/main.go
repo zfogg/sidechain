@@ -206,6 +206,88 @@ func main() {
 		}
 	})
 
+	// Configure batch sync interval (Task 3.4)
+	syncIntervalStr := os.Getenv("GORSE_SYNC_INTERVAL")
+	syncInterval := 1 * time.Hour // Default: 1 hour
+	if syncIntervalStr != "" {
+		if parsed, err := time.ParseDuration(syncIntervalStr); err == nil {
+			syncInterval = parsed
+		} else {
+			log.Printf("Warning: Invalid GORSE_SYNC_INTERVAL '%s', using default 1h", syncIntervalStr)
+		}
+	}
+
+	// Start background batch sync (Task 3.1, 3.2, 3.3)
+	syncCtx, syncCancel := context.WithCancel(context.Background())
+	defer syncCancel()
+
+	// Initial sync on startup (Task 3.3)
+	go func() {
+		log.Println("🔄 Starting initial Gorse batch sync...")
+		if err := gorseClient.BatchSyncUsers(); err != nil {
+			log.Printf("Initial user sync failed: %v", err)
+		} else {
+			log.Println("✅ Initial user sync completed")
+		}
+
+		if err := gorseClient.BatchSyncItems(); err != nil {
+			log.Printf("Initial item sync failed: %v", err)
+		} else {
+			log.Println("✅ Initial item sync completed")
+		}
+
+		if err := gorseClient.BatchSyncUserItems(); err != nil {
+			log.Printf("Initial user-items sync failed: %v", err)
+		} else {
+			log.Println("✅ Initial user-items sync completed")
+		}
+
+		if err := gorseClient.BatchSyncFeedback(); err != nil {
+			log.Printf("Initial feedback sync failed: %v", err)
+		} else {
+			log.Println("✅ Initial feedback sync completed")
+		}
+
+		log.Println("✅ Initial Gorse batch sync completed")
+	}()
+
+	// Periodic batch sync (Task 3.1)
+	go func() {
+		ticker := time.NewTicker(syncInterval)
+		defer ticker.Stop()
+
+		log.Printf("🔄 Gorse batch sync scheduled every %v", syncInterval)
+
+		for {
+			select {
+			case <-ticker.C:
+				log.Println("🔄 Starting scheduled Gorse batch sync...")
+
+				if err := gorseClient.BatchSyncUsers(); err != nil {
+					log.Printf("Batch user sync failed: %v", err)
+				}
+
+				if err := gorseClient.BatchSyncItems(); err != nil {
+					log.Printf("Batch item sync failed: %v", err)
+				}
+
+				if err := gorseClient.BatchSyncUserItems(); err != nil {
+					log.Printf("Batch user-items sync failed: %v", err)
+				}
+
+				if err := gorseClient.BatchSyncFeedback(); err != nil {
+					log.Printf("Batch feedback sync failed: %v", err)
+				}
+
+				log.Println("✅ Scheduled Gorse batch sync completed")
+
+			case <-syncCtx.Done():
+				log.Println("🛑 Gorse batch sync stopped")
+				return
+			}
+		}
+	}()
+
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
