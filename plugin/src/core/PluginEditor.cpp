@@ -1004,6 +1004,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     //==========================================================================
     // Load persistent state and show appropriate view
     loadLoginState();
+
+    //==========================================================================
+    // Trigger initial layout now that all components are created
+    resized();
 }
 
 SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
@@ -2143,20 +2147,8 @@ void SidechainAudioProcessorEditor::showEditProfile()
     if (!editProfileDialog)
         return;
 
-    // Set the current user's profile data before showing
-    if (userDataStore)
-    {
-        UserProfile profile;
-        profile.id = userDataStore->getUserId();
-        profile.username = userDataStore->getUsername();
-        profile.displayName = userDataStore->getDisplayName();
-        profile.bio = userDataStore->getBio();
-        profile.profilePictureUrl = userDataStore->getProfilePictureUrl();
-        editProfileDialog->setProfile(profile);
-    }
-
-    // Show the dialog
-    editProfileDialog->showModal(this);
+    // Task 2.4: Use reactive pattern - showWithCurrentProfile reads from UserStore
+    editProfileDialog->showWithCurrentProfile(this);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()

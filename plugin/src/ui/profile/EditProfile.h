@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "Profile.h"
 #include "../../stores/UserStore.h"
+#include "../../util/reactive/ReactiveBoundComponent.h"
 
 class NetworkClient;
 
@@ -19,7 +20,7 @@ class NetworkClient;
  * - DAW preference
  * - Social links editing
  */
-class EditProfile : public juce::Component,
+class EditProfile : public Sidechain::Util::ReactiveBoundComponent,
                              public juce::Button::Listener,
                              public juce::TextEditor::Listener
 {
@@ -31,8 +32,9 @@ public:
     // Data binding
     void setNetworkClient(NetworkClient* client) { networkClient = client; }
     void setUserStore(Sidechain::Stores::UserStore* store);  // Task 2.4: Use UserStore for profile management
-    void setProfile(const UserProfile& profile);
-    const UserProfile& getProfile() const { return profile; }
+
+    // Task 2.4: Show modal with current profile from UserStore
+    void showWithCurrentProfile(juce::Component* parentComponent);
 
     // Get pending local path for upload
     const juce::String& getPendingAvatarPath() const { return pendingAvatarPath; }
@@ -59,16 +61,14 @@ public:
 
 private:
     //==============================================================================
-    UserProfile profile;
-    UserProfile originalProfile;
     NetworkClient* networkClient = nullptr;
     Sidechain::Stores::UserStore* userStore = nullptr;
     std::function<void()> userStoreUnsubscribe;  // Unsubscribe function for UserStore (Task 2.4)
 
-    // Form state
-    bool isSaving = false;
-    bool hasChanges = false;
-    juce::String errorMessage;
+    // Task 2.4: Local form state (tracks what user is editing, not saved state)
+    // Saved state comes from UserStore; editors hold unsaved changes
+    juce::String originalUsername;  // Username when form opened (to detect changes)
+    bool hasUnsavedChanges = false;  // Computed from comparing editors to UserStore
 
     //==============================================================================
     // UI Components
@@ -117,14 +117,14 @@ private:
     //==============================================================================
     // Helpers
     void setupEditors();
-    void populateFromProfile();
-    void collectToProfile();
-    void updateHasChanges();
-    void handleSave();
-    void saveProfileData();
+    void populateFromUserStore();  // Task 2.4: Populate form from UserStore
+    void updateHasChanges();  // Task 2.4: Compare editors to UserStore
+    void handleSave();  // Task 2.4: Save editors to UserStore
     void handlePhotoSelect();
     void validateUsername(const juce::String& username);
-    void handleUsernameChange();
+
+    // Task 2.4: Helper to build social links JSON from editors
+    juce::var getSocialLinksFromEditors() const;
 
     //==============================================================================
     // Hit testing
