@@ -74,7 +74,8 @@ void NetworkClient::uploadProfilePicture(const juce::File& imageFile, ProfilePic
         juce::URL url(config.baseUrl + buildApiPath("/users/upload-profile-picture"));
 
         // Use withFileToUpload - JUCE will automatically create proper multipart/form-data
-        url = url.withFileToUpload("profile_picture", imageFile, getMimeType(imageFile.getFileExtension()));
+        // Note: Server expects field name "file", not "profile_picture"
+        url = url.withFileToUpload("file", imageFile, getMimeType(imageFile.getFileExtension()));
 
         // Build headers (auth only - Content-Type will be set automatically by JUCE)
         juce::String headers = "Authorization: Bearer " + authToken + "\r\n";
