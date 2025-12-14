@@ -161,7 +161,8 @@ type AudioPost struct {
 	RemixType      string     `json:"remix_type,omitempty"`
 
 	// Visual data
-	WaveformSVG string `gorm:"type:text" json:"waveform_svg"`
+	WaveformSVG string `gorm:"type:text" json:"waveform_svg"` // Legacy SVG (deprecated)
+	WaveformURL string `json:"waveform_url"`                  // CDN URL to waveform PNG
 
 	// Engagement metrics (cached from getstream.io)
 	LikeCount     int `gorm:"default:0" json:"like_count"`
@@ -540,7 +541,8 @@ type Story struct {
 	MIDIData *MIDIData `gorm:"type:jsonb;serializer:json" json:"midi_data,omitempty"`
 
 	// Visual data
-	WaveformData string `gorm:"type:text" json:"waveform_data"` // SVG waveform
+	WaveformData string `gorm:"type:text" json:"waveform_data"` // Legacy SVG (deprecated)
+	WaveformURL  string `json:"waveform_url"`                   // CDN URL to waveform PNG
 
 	// Audio metadata (optional for quick sharing)
 	BPM   *int        `json:"bpm,omitempty"`

@@ -135,7 +135,7 @@ private:
         static inline juce::Colour textPrimary { 0xffffffff };
         static inline juce::Colour textSecondary { 0xffa0a0a0 };
         static inline juce::Colour accent { 0xff00d4ff };
-        static inline juce::Colour followButton { 0xff00d4ff };
+        static inline juce::Colour followButton { 0xffc9d9fb };  // Light blue
         static inline juce::Colour followingButton { 0xff3a3a3e };
         static inline juce::Colour badge { 0xff3a3a3e };
         static inline juce::Colour onlineIndicator { 0xff00d464 };    // Green dot for online

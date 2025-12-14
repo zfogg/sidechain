@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -255,6 +256,24 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		return
 	}
 
+	// Generate and upload waveform PNG
+	var waveformURL string
+	if h.waveformGenerator != nil && h.waveformStorage != nil {
+		// Generate waveform from audio data
+		waveformPNG, err := h.waveformGenerator.GenerateFromWAV(bytes.NewReader(audioData))
+		if err != nil {
+			// Log error but don't fail the request - waveform is optional
+			fmt.Printf("Warning: Failed to generate waveform for story %s: %v\n", currentUser.ID, err)
+		} else {
+			// Upload waveform to S3
+			waveformURL, err = h.waveformStorage.UploadWaveform(waveformPNG, currentUser.ID, "story-"+currentUser.ID)
+			if err != nil {
+				// Log error but don't fail the request
+				fmt.Printf("Warning: Failed to upload waveform for story %s: %v\n", currentUser.ID, err)
+			}
+		}
+	}
+
 	// Parse optional fields from form
 	var bpm *int
 	if bpmStr := c.PostForm("bpm"); bpmStr != "" {
@@ -306,6 +325,7 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		MIDIFilename:  midiFilename, // User-provided MIDI filename
 		MIDIData:      midiData,
 		MIDIPatternID: midiPatternID,
+		WaveformURL:   waveformURL, // CDN URL to waveform PNG
 		BPM:           bpm,
 		Key:           key,
 		Genre:         genre,
@@ -326,6 +346,9 @@ func (h *Handlers) CreateStory(c *gin.Context) {
 		"audio_url":  audioURL,
 		"expires_at": story.ExpiresAt.Format(time.RFC3339),
 		"message":    "Story created successfully",
+	}
+	if waveformURL != "" {
+		response["waveform_url"] = waveformURL
 	}
 	if midiPatternID != nil {
 		response["midi_pattern_id"] = *midiPatternID

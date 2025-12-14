@@ -39,7 +39,8 @@ public:
     //==============================================================================
     // Audio metadata
     juce::String audioUrl;     // URL to the audio file (MP3)
-    juce::String waveformSvg;  // SVG waveform data or URL
+    juce::String waveformSvg;  // SVG waveform data or URL (legacy, deprecated)
+    juce::String waveformUrl;  // CDN URL to waveform PNG image
     juce::String filename;     // Display filename (e.g., "my_loop.wav")
     float durationSeconds = 0.0f;
     int durationBars = 0;

@@ -412,18 +412,18 @@ func runManualMigrations() {
 	if fakeCdnCount > 0 {
 		log.Printf("📦 Running migration: Replacing %d fake CDN URLs with real test audio", fakeCdnCount)
 
-		// Real test audio URLs (same as seeder)
+		// Working test audio URLs (verified HTTP 200, kozco.com)
 		testAudioURLs := []string{
-			"https://cdn.freesound.org/previews/171/171497_2437358-lq.mp3",
-			"https://cdn.freesound.org/previews/350/350876_5121236-lq.mp3",
-			"https://cdn.freesound.org/previews/380/380468_7138151-lq.mp3",
-			"https://cdn.freesound.org/previews/344/344310_5121236-lq.mp3",
-			"https://cdn.freesound.org/previews/541/541445_11861866-lq.mp3",
-			"https://cdn.freesound.org/previews/380/380480_7138151-lq.mp3",
-			"https://cdn.freesound.org/previews/380/380477_7138151-lq.mp3",
-			"https://www.kozco.com/tech/organfinale.mp3",
-			"https://www.kozco.com/tech/piano2.mp3",
+			"https://www.kozco.com/tech/piano2.wav",
+			"https://www.kozco.com/tech/organfinale.wav",
+			"https://www.kozco.com/tech/LRMonoPhase4.wav",
+			"https://www.kozco.com/tech/LRMonoPhaset4.wav",
+			"https://www.kozco.com/tech/WAV-MP3.wav",
+			"https://www.kozco.com/tech/c304-2.wav",
+			"https://www.kozco.com/tech/32.mp3",
 			"https://www.kozco.com/tech/LRMonoPhase4.mp3",
+			"https://www.kozco.com/tech/organfinale.mp3",
+			"https://www.kozco.com/tech/piano2-CoolEdit.mp3",
 		}
 
 		// Update all posts with fake URLs to use real ones (distributed randomly)
@@ -436,5 +436,35 @@ func runManualMigrations() {
 		}
 
 		log.Printf("✅ Replaced %d fake CDN URLs with real test audio", fakeCdnCount)
+	}
+
+	// Replace broken freesound.org URLs with working kozco.com URLs
+	var brokenCount int64
+	DB.Model(&models.AudioPost{}).Where("audio_url LIKE 'https://cdn.freesound.org/%'").Count(&brokenCount)
+	if brokenCount > 0 {
+		log.Printf("📦 Running migration: Replacing %d broken freesound.org URLs with working audio", brokenCount)
+
+		workingAudioURLs := []string{
+			"https://www.kozco.com/tech/piano2.wav",
+			"https://www.kozco.com/tech/organfinale.wav",
+			"https://www.kozco.com/tech/LRMonoPhase4.wav",
+			"https://www.kozco.com/tech/LRMonoPhaset4.wav",
+			"https://www.kozco.com/tech/WAV-MP3.wav",
+			"https://www.kozco.com/tech/c304-2.wav",
+			"https://www.kozco.com/tech/32.mp3",
+			"https://www.kozco.com/tech/LRMonoPhase4.mp3",
+			"https://www.kozco.com/tech/organfinale.mp3",
+			"https://www.kozco.com/tech/piano2-CoolEdit.mp3",
+		}
+
+		var posts []models.AudioPost
+		DB.Where("audio_url LIKE 'https://cdn.freesound.org/%'").Find(&posts)
+
+		for i, post := range posts {
+			audioURL := workingAudioURLs[i%len(workingAudioURLs)]
+			DB.Model(&post).Update("audio_url", audioURL)
+		}
+
+		log.Printf("✅ Replaced %d broken URLs with working audio", brokenCount)
 	}
 }

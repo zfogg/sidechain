@@ -190,7 +190,7 @@ namespace SidechainColors
     inline const juce::Colour share()               { return lavender(); }
 
     // Follow button color
-    inline const juce::Colour follow()              { return skyBlue(); }
+    inline const juce::Colour follow()              { return juce::Colour(0xFFC9D9FB); }  // Light blue
 
     //==========================================================================
     // Gradients

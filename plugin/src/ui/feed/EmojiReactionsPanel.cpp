@@ -208,9 +208,11 @@ void EmojiReactionsBubble::dismiss()
     if (auto* parent = getParentComponent())
         parent->removeChildComponent(this);
 
-    // Self-destruct after dismissal
-    juce::MessageManager::callAsync([this]() {
-        delete this;
+    // Self-destruct after dismissal - use SafePointer to avoid use-after-free
+    juce::Component::SafePointer<EmojiReactionsBubble> safeThis(this);
+    juce::MessageManager::callAsync([safeThis]() {
+        if (safeThis != nullptr)
+            delete safeThis.getComponent();
     });
 }
 

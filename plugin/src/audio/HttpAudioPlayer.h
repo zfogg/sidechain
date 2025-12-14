@@ -232,7 +232,7 @@ private:
     std::atomic<float> volume { 0.8f };
 
     // Auto-play state
-    std::atomic<bool> autoPlayEnabled { true };
+    std::atomic<bool> autoPlayEnabled { false };  // Disabled by default - only play clicked post
     juce::StringArray playlistPostIds;
     juce::StringArray playlistAudioUrls;
     juce::CriticalSection playlistLock;

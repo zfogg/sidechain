@@ -31,6 +31,10 @@ PostCard::PostCard()
     fadeInOpacity.onAnimationComplete = []() {
         // Animation complete, opacity is now 1.0
     };
+
+    // Add waveform image view as child component
+    addAndMakeVisible(waveformView);
+    waveformView.setBackgroundColour(SidechainColors::waveformBackground());
 }
 
 PostCard::~PostCard()
@@ -38,6 +42,11 @@ PostCard::~PostCard()
 }
 
 //==============================================================================
+void PostCard::setNetworkClient(NetworkClient* client)
+{
+    waveformView.setNetworkClient(client);
+}
+
 void PostCard::setPost(const FeedPost& newPost)
 {
     post = newPost;
@@ -55,6 +64,17 @@ void PostCard::setPost(const FeedPost& newPost)
             avatarImage = img;
             repaint();
         });
+    }
+
+    // Load waveform image from CDN
+    if (post.waveformUrl.isNotEmpty())
+    {
+        Log::debug("PostCard: Loading waveform from " + post.waveformUrl);
+        waveformView.loadFromUrl(post.waveformUrl);
+    }
+    else
+    {
+        waveformView.clear();
     }
 
     repaint();
@@ -310,6 +330,22 @@ void PostCard::drawFollowButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void PostCard::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
+    // If we have a waveform URL, the WaveformImageView component will handle rendering
+    if (post.waveformUrl.isNotEmpty())
+    {
+        // Duration overlay at bottom-right of waveform - use UIHelpers::drawBadge
+        if (post.durationSeconds > 0)
+        {
+            juce::String duration = StringFormatter::formatDuration(post.durationSeconds);
+            auto durationBounds = bounds.removeFromBottom(18).removeFromRight(50).reduced(2);
+            UIHelpers::drawBadge(g, durationBounds, duration,
+                SidechainColors::background().withAlpha(0.85f),
+                SidechainColors::textPrimary(), 10.0f, 3.0f);
+        }
+        return;
+    }
+
+    // Fallback: draw fake waveform if no waveformUrl (legacy posts)
     // Waveform background
     g.setColour(SidechainColors::waveformBackground());
     g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
@@ -1033,7 +1069,8 @@ void PostCard::drawRepostAttribution(juce::Graphics& g)
 //==============================================================================
 void PostCard::resized()
 {
-    // Layout is handled in paint() using bounds calculations
+    // Position waveform image view
+    waveformView.setBounds(getWaveformBounds());
 }
 
 void PostCard::mouseDown(const juce::MouseEvent& event)
@@ -1457,7 +1494,7 @@ void PostCard::drawLikeAnimation(juce::Graphics& g)
 
         g.setColour(SidechainColors::like().withAlpha(alpha * 0.8f));
         g.setFont(heartSize);
-        g.drawText("♥", static_cast<int>(hx - heartSize / 2), static_cast<int>(hy - heartSize / 2),
+        g.drawText("<3", static_cast<int>(hx - heartSize / 2), static_cast<int>(hy - heartSize / 2),
                    static_cast<int>(heartSize), static_cast<int>(heartSize), juce::Justification::centred);
     }
 
@@ -1466,7 +1503,7 @@ void PostCard::drawLikeAnimation(juce::Graphics& g)
     float alpha = juce::jmin(1.0f, 2.0f - easedT * 1.5f);
     g.setColour(SidechainColors::like().withAlpha(alpha));
     g.setFont(centralSize);
-    g.drawText("♥", static_cast<int>(cx - centralSize / 2), static_cast<int>(cy - centralSize / 2),
+    g.drawText("<3", static_cast<int>(cx - centralSize / 2), static_cast<int>(cy - centralSize / 2),
                static_cast<int>(centralSize), static_cast<int>(centralSize), juce::Justification::centred);
 
     // Draw a ring that expands
