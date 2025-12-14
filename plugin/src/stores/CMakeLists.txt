@@ -20,6 +20,8 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChatStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChatStore.h
 )
 
 # Include directories

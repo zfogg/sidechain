@@ -132,7 +132,7 @@ public:
             formatted << getResetCode();
 
         // Write to appropriate stream
-        auto stream = (entry.level >= LogLevel::Error) ? std::cerr : std::cout;
+        auto& stream = (entry.level >= LogLevel::Error) ? std::cerr : std::cout;
         stream << formatted.toStdString() << "\n";
         stream.flush();
     }
