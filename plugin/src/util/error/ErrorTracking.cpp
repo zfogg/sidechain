@@ -274,9 +274,9 @@ void ErrorTracker::acknowledgeAll()
 
 size_t ErrorTracker::computeHash(const ErrorInfo& error) const
 {
-    std::hash<std::string> hasher;
-    size_t h1 = hasher(error.message.toStdString());
-    size_t h2 = hasher(std::to_string(static_cast<int>(error.source)));
+    // Use JUCE's hash function to avoid std:: hash linking issues
+    size_t h1 = error.message.hash();
+    size_t h2 = juce::String(static_cast<int>(error.source)).hash();
     return h1 ^ (h2 << 1);
 }
 
