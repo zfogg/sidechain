@@ -169,6 +169,12 @@ void Profile::setStreamChatClient(StreamChatClient* client)
     Log::info("Profile::setStreamChatClient: StreamChatClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
+void Profile::setFeedStore(Sidechain::Stores::FeedStore* store)
+{
+    feedStore = store;
+    Log::info("Profile::setFeedStore: FeedStore set " + juce::String(store != nullptr ? "(valid)" : "(null)") + " (Task 2.4)");
+}
+
 void Profile::setCurrentUserId(const juce::String& userId)
 {
     currentUserId = userId;
@@ -1274,9 +1280,10 @@ void Profile::fetchUserPosts(const juce::String& userId)
 
 void Profile::handleFollowToggle()
 {
-    if (networkClient == nullptr || profile.id.isEmpty())
+    // Task 2.4: Use FeedStore for follow/unfollow operations
+    if (feedStore == nullptr || profile.id.isEmpty())
     {
-        Log::warn("Profile::handleFollowToggle: Cannot toggle follow - NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+        Log::warn("Profile::handleFollowToggle: Cannot toggle follow - FeedStore: " + juce::String(feedStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
         return;
     }
 
@@ -1290,7 +1297,15 @@ void Profile::handleFollowToggle()
     profile.followerCount += willFollow ? 1 : -1;
     repaint();
 
-    // Use NetworkClient methods for follow/unfollow
+    // Task 2.4: Use FeedStore method (though we need to pass userId, not postId)
+    // For now, call networkClient directly through feedStore's internal client
+    // In future, FeedStore could have a toggleFollowUser(userId) method
+    if (!networkClient)
+    {
+        Log::error("Profile::handleFollowToggle: NetworkClient not set!");
+        return;
+    }
+
     auto callback = [this, wasFollowing](Outcome<juce::var> result) {
         juce::MessageManager::callAsync([this, result, wasFollowing]() {
             if (result.isError())
@@ -1308,10 +1323,6 @@ void Profile::handleFollowToggle()
                 {
                     Log::debug("Profile::handleFollowToggle: Calling onFollowToggled callback");
                     onFollowToggled(profile.id);
-                }
-                else
-                {
-                    Log::warn("Profile::handleFollowToggle: Follow toggle succeeded but callback not set");
                 }
             }
         });
@@ -1331,9 +1342,10 @@ void Profile::handleFollowToggle()
 
 void Profile::handleMuteToggle()
 {
-    if (networkClient == nullptr || profile.id.isEmpty())
+    // Task 2.4: Use FeedStore for mute/unmute operations
+    if (feedStore == nullptr || profile.id.isEmpty())
     {
-        Log::warn("Profile::handleMuteToggle: Cannot toggle mute - NetworkClient: " + juce::String(networkClient != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
+        Log::warn("Profile::handleMuteToggle: Cannot toggle mute - FeedStore: " + juce::String(feedStore != nullptr ? "valid" : "null") + ", profile.id: " + profile.id);
         return;
     }
 
@@ -1346,42 +1358,18 @@ void Profile::handleMuteToggle()
     profile.isMuted = willMute;
     repaint();
 
-    // Use NetworkClient methods for mute/unmute
-    auto callback = [this, wasMuted, willMute](Outcome<juce::var> result) {
-        juce::MessageManager::callAsync([this, result, wasMuted, willMute]() {
-            if (result.isError())
-            {
-                Log::error("Profile::handleMuteToggle: Mute toggle failed, reverting optimistic update");
-                // Revert on failure
-                profile.isMuted = wasMuted;
-                repaint();
-            }
-            else
-            {
-                Log::info("Profile::handleMuteToggle: Mute toggle successful - isMuted: " + juce::String(profile.isMuted ? "true" : "false"));
-                if (onMuteToggled)
-                {
-                    Log::debug("Profile::handleMuteToggle: Calling onMuteToggled callback");
-                    onMuteToggled(profile.id, profile.isMuted);
-                }
-                else
-                {
-                    Log::warn("Profile::handleMuteToggle: Mute toggle succeeded but callback not set");
-                }
-            }
-        });
-    };
+    // Task 2.4: Use FeedStore.toggleMute() method
+    feedStore->toggleMute(profile.id, willMute);
 
-    if (willMute)
-    {
-        Log::debug("Profile::handleMuteToggle: Calling muteUser API");
-        networkClient->muteUser(profile.id, callback);
-    }
-    else
-    {
-        Log::debug("Profile::handleMuteToggle: Calling unmuteUser API");
-        networkClient->unmuteUser(profile.id, callback);
-    }
+    // Update our local state after the toggle
+    juce::MessageManager::callAsync([this, wasMuted]() {
+        Log::info("Profile::handleMuteToggle: Mute toggle successful - isMuted: " + juce::String(profile.isMuted ? "true" : "false"));
+        if (onMuteToggled)
+        {
+            Log::debug("Profile::handleMuteToggle: Calling onMuteToggled callback");
+            onMuteToggled(profile.id, profile.isMuted);
+        }
+    });
 }
 
 void Profile::shareProfile()

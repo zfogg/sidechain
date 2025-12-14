@@ -18,6 +18,9 @@ EditProfile::EditProfile()
 EditProfile::~EditProfile()
 {
     Log::debug("EditProfile: Destroying");
+    // Task 2.4: Unsubscribe from UserStore
+    if (userStoreUnsubscribe)
+        userStoreUnsubscribe();
 }
 
 //==============================================================================
@@ -166,6 +169,23 @@ void EditProfile::setProfile(const UserProfile& newProfile)
     repaint();
 }
 
+void EditProfile::setUserStore(Sidechain::Stores::UserStore* store)
+{
+    userStore = store;
+    if (userStore)
+    {
+        Log::debug("EditProfile: UserStore set, subscribing to state changes");
+        userStoreUnsubscribe = userStore->subscribe([this](const Sidechain::Stores::UserState& state) {
+            Log::debug("EditProfile: UserStore state updated");
+            // Subscription triggers automatic repaint/resized
+        });
+    }
+    else
+    {
+        Log::warn("EditProfile: UserStore is nullptr!");
+    }
+}
+
 void EditProfile::populateFromProfile()
 {
     usernameEditor->setText(profile.username, false);
@@ -191,16 +211,6 @@ void EditProfile::populateFromProfile()
             spotifyEditor->setText(obj->getProperty("spotify").toString(), false);
             twitterEditor->setText(obj->getProperty("twitter").toString(), false);
         }
-    }
-}
-
-void EditProfile::setUploadedProfilePictureUrl(const juce::String& s3Url)
-{
-    if (s3Url.isNotEmpty())
-    {
-        profile.profilePictureUrl = s3Url;
-        pendingAvatarPath = ""; // Clear local path since we have the S3 URL now
-        updateHasChanges();
     }
 }
 
@@ -554,8 +564,8 @@ void EditProfile::buttonClicked(juce::Button* button)
 {
     if (button == cancelButton.get())
     {
-        if (onCancel)
-            onCancel();
+        // Task 2.4: Close dialog directly without callback
+        closeDialog();
     }
     else if (button == saveButton.get())
     {
@@ -601,7 +611,8 @@ void EditProfile::textEditorTextChanged(juce::TextEditor& editor)
 //==============================================================================
 void EditProfile::handleSave()
 {
-    if (networkClient == nullptr || !hasChanges)
+    // Task 2.4: Use UserStore instead of NetworkClient
+    if (userStore == nullptr || !hasChanges)
         return;
 
     collectToProfile();
@@ -626,74 +637,60 @@ void EditProfile::handleSave()
 
 void EditProfile::saveProfileData()
 {
-    Log::info("EditProfile: Saving profile data");
-    // Build update payload (everything except username)
-    auto* updateData = new juce::DynamicObject();
-    updateData->setProperty("display_name", profile.displayName);
-    updateData->setProperty("bio", profile.bio);
-    updateData->setProperty("location", profile.location);
-    updateData->setProperty("genre", profile.genre);
-    updateData->setProperty("daw_preference", profile.dawPreference);
-    updateData->setProperty("social_links", profile.socialLinks);
-    updateData->setProperty("is_private", profile.isPrivate);
+    Log::info("EditProfile: Saving profile data (Task 2.4 - using UserStore)");
 
-    // Include profile picture URL if set (either from upload or existing)
-    if (profile.profilePictureUrl.isNotEmpty())
-        updateData->setProperty("profile_picture_url", profile.profilePictureUrl);
+    if (userStore == nullptr)
+    {
+        Log::error("EditProfile: UserStore not set!");
+        isSaving = false;
+        saveButton->setEnabled(true);
+        repaint();
+        return;
+    }
 
-    juce::var payload(updateData);
+    // Task 2.4: Use UserStore to update profile (all fields except username)
+    userStore->updateProfileComplete(
+        profile.displayName,
+        profile.bio,
+        profile.location,
+        profile.genre,
+        profile.dawPreference,
+        profile.socialLinks,
+        profile.isPrivate,
+        profile.profilePictureUrl.isNotEmpty() ? profile.profilePictureUrl : ""
+    );
 
-    networkClient->put("/profile", payload, [this](Outcome<juce::var> responseOutcome) {
-        juce::MessageManager::callAsync([this, responseOutcome]() {
-            isSaving = false;
-
-            if (responseOutcome.isOk())
-            {
-                auto response = responseOutcome.getValue();
-                // Update original profile to reflect saved state
-                originalProfile = profile;
-                hasChanges = false;
-                updateHasChanges();
-
-                if (onSave)
-                    onSave(profile);
-            }
-            else
-            {
-                errorMessage = "Failed to save profile: " + responseOutcome.getError();
-                saveButton->setEnabled(true);
-            }
-
-            repaint();
-        });
+    // Mark as saved immediately (optimistic update)
+    juce::MessageManager::callAsync([this]() {
+        isSaving = false;
+        originalProfile = profile;
+        hasChanges = false;
+        updateHasChanges();
+        Log::info("EditProfile: Profile saved successfully");
+        closeDialog();
+        repaint();
     });
 }
 
 void EditProfile::handleUsernameChange()
 {
-    if (networkClient == nullptr)
+    // Task 2.4: Use UserStore to change username
+    if (userStore == nullptr)
+    {
+        Log::error("EditProfile: UserStore not set for username change!");
+        isSaving = false;
+        saveButton->setEnabled(true);
+        repaint();
         return;
+    }
 
-    networkClient->changeUsername(profile.username, [this](Outcome<juce::var> responseOutcome) {
-        juce::MessageManager::callAsync([this, responseOutcome]() {
-            if (responseOutcome.isOk())
-            {
-                // Username changed successfully, now save other profile data
-                originalProfile.username = profile.username;
-                saveProfileData();
-            }
-            else
-            {
-                isSaving = false;
+    // Change username via UserStore
+    userStore->changeUsername(profile.username);
 
-                // Show username-specific error
-                usernameError = "Username not available: " + responseOutcome.getError();
-
-                isUsernameValid = false;
-                updateHasChanges();
-                repaint();
-            }
-        });
+    // Username changed, now save other profile data
+    juce::MessageManager::callAsync([this]() {
+        originalProfile.username = profile.username;
+        saveProfileData();
     });
 }
 
@@ -750,9 +747,16 @@ void EditProfile::handlePhotoSelect()
             updateHasChanges();
             repaint();
 
-            // Notify parent for upload
-            if (onProfilePicSelected)
-                onProfilePicSelected(pendingAvatarPath);
+            // Task 2.4: Upload via UserStore instead of callback
+            if (userStore != nullptr)
+            {
+                Log::debug("EditProfile: Uploading profile picture via UserStore");
+                userStore->uploadProfilePicture(selectedFile);
+            }
+            else
+            {
+                Log::warn("EditProfile: UserStore not set for profile picture upload");
+            }
         });
 }
 

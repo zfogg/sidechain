@@ -570,6 +570,116 @@ void ChatStore::addReaction(const juce::String& channelId, const juce::String& m
 }
 
 //==============================================================================
+// Sharing Content to Channels (Task 2.5)
+
+void ChatStore::sharePostToChannels(const juce::String& postId, const std::vector<juce::String>& channelIds,
+                                   const juce::String& optionalMessage)
+{
+    if (!streamChatClient || !isAuthenticated())
+    {
+        Util::logError("ChatStore", "Cannot share post - not authenticated");
+        return;
+    }
+
+    if (postId.isEmpty() || channelIds.empty())
+    {
+        Util::logError("ChatStore", "Cannot share post - invalid postId or channelIds");
+        return;
+    }
+
+    Util::logDebug("ChatStore", "Sharing post to channels", "postId=" + postId + " channelCount=" + juce::String((int)channelIds.size()));
+
+    // Build shared content object with post metadata
+    auto* sharedObj = new juce::DynamicObject();
+    sharedObj->setProperty("type", "post");
+    sharedObj->setProperty("id", postId);
+    // Additional post data would be fetched separately if needed
+    juce::var sharedContent(sharedObj);
+
+    // Send to each channel
+    for (const auto& channelId : channelIds)
+    {
+        sendMessageWithSharedContent(channelId, optionalMessage, sharedContent);
+    }
+}
+
+void ChatStore::shareStoryToChannels(const juce::String& storyId, const std::vector<juce::String>& channelIds,
+                                    const juce::String& optionalMessage)
+{
+    if (!streamChatClient || !isAuthenticated())
+    {
+        Util::logError("ChatStore", "Cannot share story - not authenticated");
+        return;
+    }
+
+    if (storyId.isEmpty() || channelIds.empty())
+    {
+        Util::logError("ChatStore", "Cannot share story - invalid storyId or channelIds");
+        return;
+    }
+
+    Util::logDebug("ChatStore", "Sharing story to channels", "storyId=" + storyId + " channelCount=" + juce::String((int)channelIds.size()));
+
+    // Build shared content object with story metadata
+    auto* sharedObj = new juce::DynamicObject();
+    sharedObj->setProperty("type", "story");
+    sharedObj->setProperty("id", storyId);
+    // Additional story data would be fetched separately if needed
+    juce::var sharedContent(sharedObj);
+
+    // Send to each channel
+    for (const auto& channelId : channelIds)
+    {
+        sendMessageWithSharedContent(channelId, optionalMessage, sharedContent);
+    }
+}
+
+void ChatStore::sendMessageWithSharedContent(const juce::String& channelId, const juce::String& text,
+                                            const juce::var& sharedContent)
+{
+    if (!streamChatClient || !isAuthenticated())
+    {
+        Util::logError("ChatStore", "Cannot send message - not authenticated");
+        return;
+    }
+
+    auto currentState = getState();
+    auto it = currentState.channels.find(channelId);
+    if (it == currentState.channels.end())
+    {
+        Util::logWarning("ChatStore", "Channel not found for sharing", "channelId=" + channelId);
+        return;
+    }
+
+    Util::logDebug("ChatStore", "Sending message with shared content", "channelId=" + channelId);
+
+    // Build message with shared content
+    auto* messageObj = new juce::DynamicObject();
+    if (text.isNotEmpty())
+        messageObj->setProperty("text", text);
+    messageObj->setProperty("shared_content", sharedContent);
+    juce::var messageData(messageObj);
+
+    auto channelType = it->second.type;
+
+    // Send message via StreamChatClient
+    streamChatClient->sendMessage(channelType, channelId, text, messageData,
+        [channelId, text](Outcome<StreamChatClient::Message> result)
+        {
+            if (!result.isOk())
+            {
+                Util::logError("ChatStore", "Failed to send message with shared content: " + result.getError(),
+                               "channelId=" + channelId);
+            }
+            else
+            {
+                Util::logDebug("ChatStore", "Message with shared content sent successfully", "channelId=" + channelId);
+            }
+        }
+    );
+}
+
+//==============================================================================
 // Typing Indicators
 
 void ChatStore::startTyping(const juce::String& channelId)

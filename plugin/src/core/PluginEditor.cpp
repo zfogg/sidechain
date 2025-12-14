@@ -1070,9 +1070,15 @@ void SidechainAudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
     auto headerHeight = Header::HEADER_HEIGHT;
 
+    Log::debug("PluginEditor::resized: Resizing to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
+
     // Position central header at top (for post-login views)
     if (headerComponent)
-        headerComponent->setBounds(bounds.removeFromTop(headerHeight));
+    {
+        auto headerBounds = bounds.removeFromTop(headerHeight);
+        Log::debug("PluginEditor::resized: Setting header bounds to " + juce::String(headerBounds.getWidth()) + "x" + juce::String(headerBounds.getHeight()));
+        headerComponent->setBounds(headerBounds);
+    }
 
     // Bounds for content below header (used by post-login views)
     auto contentBounds = getLocalBounds().withTrimmedTop(headerHeight);

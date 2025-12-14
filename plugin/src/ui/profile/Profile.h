@@ -5,6 +5,7 @@
 #include "../social/FollowersList.h"
 #include "../stories/StoryHighlights.h"
 #include "../common/ErrorState.h"
+#include "../../stores/FeedStore.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -75,6 +76,7 @@ public:
     // Data binding
     void setNetworkClient(NetworkClient* client);
     void setStreamChatClient(StreamChatClient* client);
+    void setFeedStore(Sidechain::Stores::FeedStore* store);  // Task 2.4: Use FeedStore for follow/mute
     void setCurrentUserId(const juce::String& userId);
     void loadProfile(const juce::String& userId);
     void loadOwnProfile();
@@ -134,6 +136,7 @@ private:
     juce::Array<FeedPost> userPosts;
     NetworkClient* networkClient = nullptr;
     StreamChatClient* streamChatClient = nullptr;
+    Sidechain::Stores::FeedStore* feedStore = nullptr;  // Task 2.4: For follow/mute operations
 
     // Loading/error states
     bool isLoading = false;

@@ -13,7 +13,8 @@ Header::Header()
 {
     Log::info("Header: Initializing header component");
     // Set initial size - parent will call setBounds() to resize to full width
-    setSize(1920, HEADER_HEIGHT);  // Will be resized by parent's setBounds()
+    // Note: Don't set a fixed width here - let parent's setBounds() control it
+    setSize(100, HEADER_HEIGHT);  // Minimal width, will be resized by parent
     Log::info("Header: Initialization complete");
 }
 

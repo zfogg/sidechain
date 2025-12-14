@@ -821,6 +821,14 @@ void PostsFeed::rebuildPostCards()
     const auto currentFeedType = feedStore->getCurrentFeedType();
     const bool isAggregated = isAggregatedFeedType(currentFeedType);
 
+    Log::debug("PostsFeed::rebuildPostCards: FeedType=" + feedTypeToString(currentFeedType) +
+               ", isAggregated=" + juce::String(isAggregated ? "true" : "false"));
+
+    // Debug: Log all feed types in state
+    const auto& fullState = feedStore->getState();
+    Log::debug("PostsFeed::rebuildPostCards: State has " + juce::String(fullState.feeds.size()) + " feeds, " +
+               juce::String(fullState.aggregatedFeeds.size()) + " aggregated feeds");
+
     if (isAggregated)
     {
         // Build aggregated feed cards
@@ -868,10 +876,15 @@ void PostsFeed::rebuildPostCards()
     else
     {
         // Build regular post cards
-        const auto& posts = feedStore->getState().getCurrentFeed().posts;
+        const auto& state = feedStore->getState();
+        const auto& currentFeed = state.getCurrentFeed();
+        const auto& posts = currentFeed.posts;
 
         Log::info("PostsFeed::rebuildPostCards: Rebuilding post cards - current: " +
                   juce::String(postCards.size()) + ", posts: " + juce::String(posts.size()));
+        Log::debug("PostsFeed::rebuildPostCards: CurrentFeed isLoading=" + juce::String(currentFeed.isLoading ? "true" : "false") +
+                   ", hasMore=" + juce::String(currentFeed.hasMore ? "true" : "false") +
+                   ", error=" + currentFeed.error);
 
         postCards.clear();
         aggregatedCards.clear();
