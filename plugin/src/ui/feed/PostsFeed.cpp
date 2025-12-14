@@ -150,14 +150,8 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer* player)
                         if (newPlayCount >= 0)
                         {
                             Log::debug("PostsFeedComponent: Updating play count to " + juce::String(newPlayCount) + " for postId: " + postId);
-                            for (auto* card : postCards)
-                            {
-                                if (card->getPostId() == postId)
-                                {
-                                    card->updatePlayCount(newPlayCount);
-                                    break;
-                                }
-                            }
+                            // Note: PostCard now updates automatically via FeedStore subscription (Task 2.5)
+                            // Manual update calls have been removed
                         }
                     }
                     else
@@ -881,57 +875,11 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         showCommentsForPost(post);
     };
 
-    card->onLikeToggled = [this, card](const FeedPost& post, bool liked) {
-        Log::debug("Like toggled for post: " + post.id + " -> " + (liked ? "liked" : "unliked"));
+    // Like/unlike handled by FeedStore.toggleLike() (Task 2.1 - reactive refactoring)
+    // The callback is no longer needed as PostCard now uses FeedStore directly
 
-        // Store original state for conflict resolution (5.5.6)
-        int originalCount = post.likeCount;
-        bool originalLiked = post.isLiked;
-
-        // Optimistic UI update (5.5.5) - update immediately for instant feedback
-        int optimisticCount = originalCount + (liked ? 1 : -1);
-        card->updateLikeCount(optimisticCount, liked);
-
-        // Call backend API with callback to handle conflicts (5.5.5, 5.5.6)
-        if (networkClient != nullptr)
-        {
-            auto callback = [card, originalCount, originalLiked](Outcome<juce::var> responseOutcome) {
-                if (responseOutcome.isOk())
-                {
-                    // Server confirmed - check if count matches our optimistic update (5.5.6)
-                    // Note: likePost API may not return like_count, so we rely on WebSocket updates
-                    // But we can still verify the action succeeded
-                    Log::debug("Like API call succeeded");
-                    // Real count will come via WebSocket update (5.5.3)
-                }
-                else
-                {
-                    // API call failed - revert optimistic update (5.5.6)
-                    Log::warn("Like API call failed - reverting optimistic update: " + responseOutcome.getError());
-                    card->updateLikeCount(originalCount, originalLiked);
-
-                    // Show toast notification for transient error
-                    ToastManager::getInstance().showError("Couldn't update like. Please try again.");
-                }
-            };
-
-            if (liked)
-                networkClient->likePost(post.id, "", callback);
-            else
-                networkClient->unlikePost(post.id, callback);
-        }
-    };
-
-    card->onEmojiReaction = [this](const FeedPost& post, const juce::String& emoji) {
-        Log::debug("Emoji reaction for post: " + post.id + " -> " + emoji);
-
-        // Optimistic UI update is already done in handleEmojiSelected
-        // Call backend API with the emoji
-        if (networkClient != nullptr)
-        {
-            networkClient->likePost(post.id, emoji);
-        }
-    };
+    // Emoji reactions handled by FeedStore.addReaction() (Task 2.1 - reactive refactoring)
+    // The callback is no longer needed as PostCard now uses FeedStore directly
 
     card->onUserClicked = [this](const FeedPost& post) {
         Log::debug("User clicked: " + post.username + " (id: " + post.userId + ")");
@@ -1789,35 +1737,14 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
             return;
         }
 
-        // Optimistic UI update
-        card->updateFollowState(willFollow);
-
-        // Update all other cards by the same user
-        int updatedCards = 0;
-        for (auto* otherCard : postCards)
-        {
-            if (otherCard != card && otherCard->getPost().userId == post.userId)
-            {
-                otherCard->updateFollowState(willFollow);
-                updatedCards++;
-            }
-        }
-        if (updatedCards > 0)
-        {
-            Log::debug("PostsFeedComponent: Updated follow state for " + juce::String(updatedCards) + " other card(s) by same user");
-        }
+        // Note: PostCard now updates automatically via FeedStore subscription (Task 2.5)
+        // Manual update calls have been removed
 
         // Call backend API to follow/unfollow
         auto callback = [this, post, willFollow](Outcome<juce::var> result) {
             if (result.isError())
             {
                 Log::error("PostsFeedComponent: Failed to " + juce::String(willFollow ? "follow" : "unfollow") + " user: " + result.getError());
-                // Revert on failure
-                for (auto* c : postCards)
-                {
-                    if (c->getPost().userId == post.userId)
-                        c->updateFollowState(!willFollow);
-                }
                 // Show toast notification
                 ToastManager::getInstance().showError(
                     "Couldn't " + juce::String(willFollow ? "follow" : "unfollow") + " user. Please try again.");
@@ -1846,123 +1773,12 @@ void PostsFeed::setupPostCardCallbacks(PostCard* card)
         }
     };
 
-    // Save/Bookmark toggle (P0 Social Feature)
-    card->onSaveToggled = [this, card](const FeedPost& post, bool saved) {
-        Log::info("PostsFeedComponent: Save toggled for post: " + post.id + " -> " + (saved ? "saved" : "unsaved"));
+    // Save/Bookmark handled by FeedStore.toggleSave() (Task 2.1 - reactive refactoring)
+    // The callback is no longer needed as PostCard now uses FeedStore directly
 
-        if (networkClient == nullptr)
-        {
-            Log::warn("PostsFeedComponent: Cannot save/unsave - networkClient is null");
-            ToastManager::getInstance().showError("Unable to save post. Please try again later.");
-            return;
-        }
-
-        // Store original state for conflict resolution
-        int originalCount = post.saveCount;
-        bool originalSaved = post.isSaved;
-
-        // Optimistic UI update
-        int optimisticCount = originalCount + (saved ? 1 : -1);
-        card->updateSaveState(optimisticCount, saved);
-
-        // Call backend API
-        auto callback = [card, originalCount, originalSaved, saved](Outcome<juce::var> result) {
-            if (result.isError())
-            {
-                Log::error("PostsFeedComponent: Save API call failed - reverting: " + result.getError());
-                card->updateSaveState(originalCount, originalSaved);
-                ToastManager::getInstance().showError(
-                    "Couldn't " + juce::String(saved ? "save" : "unsave") + " post. Please try again.");
-            }
-            else
-            {
-                Log::debug("PostsFeedComponent: Save API call succeeded");
-            }
-        };
-
-        if (saved)
-            networkClient->savePost(post.id, callback);
-        else
-            networkClient->unsavePost(post.id, callback);
-    };
-
-    // Repost toggle (P0 Social Feature)
-    card->onRepostClicked = [this, card](const FeedPost& post) {
-        Log::info("PostsFeedComponent: Repost clicked for post: " + post.id);
-
-        if (networkClient == nullptr)
-        {
-            Log::warn("PostsFeedComponent: Cannot repost - networkClient is null");
-            ToastManager::getInstance().showError("Unable to repost. Please try again later.");
-            return;
-        }
-
-        // Check if already reposted - if so, undo the repost
-        if (post.isReposted)
-        {
-            auto options = juce::MessageBoxOptions()
-                .withTitle("Remove Repost")
-                .withMessage("Remove your repost of this loop?")
-                .withButton("Remove")
-                .withButton("Cancel");
-
-            juce::AlertWindow::showAsync(options, [this, card, post](int result) {
-                if (result != 1) return;
-
-                // Optimistic UI update
-                int originalCount = post.repostCount;
-                card->updateRepostState(originalCount - 1, false);
-
-                networkClient->undoRepost(post.id, [card, originalCount](Outcome<juce::var> result) {
-                    if (result.isError())
-                    {
-                        Log::error("PostsFeedComponent: Undo repost failed - reverting: " + result.getError());
-                        card->updateRepostState(originalCount, true);
-                        ToastManager::getInstance().showError("Couldn't remove repost. Please try again.");
-                    }
-                    else
-                    {
-                        Log::debug("PostsFeedComponent: Undo repost succeeded");
-                        ToastManager::getInstance().showSuccess("Repost removed");
-                    }
-                });
-            });
-            return;
-        }
-
-        // Show confirmation dialog for new repost
-        auto options = juce::MessageBoxOptions()
-            .withTitle("Repost to Your Feed")
-            .withMessage("Share @" + post.username + "'s loop with your followers?")
-            .withButton("Repost")
-            .withButton("Cancel");
-
-        juce::AlertWindow::showAsync(options, [this, card, post](int result) {
-            if (result != 1) return;
-
-            // Optimistic UI update
-            int originalCount = post.repostCount;
-            card->updateRepostState(originalCount + 1, true);
-
-            networkClient->repostPost(post.id, "", [card, originalCount](Outcome<juce::var> result) {
-                if (result.isError())
-                {
-                    Log::error("PostsFeedComponent: Repost failed - reverting: " + result.getError());
-                    card->updateRepostState(originalCount, false);
-                    juce::MessageManager::callAsync([]() {
-                        ToastManager::getInstance().showError("Couldn't repost. Please try again.");
-                    });
-                }
-                else
-                {
-                    Log::debug("PostsFeedComponent: Repost succeeded");
-                    juce::MessageManager::callAsync([]() {
-                        ToastManager::getInstance().showSuccess("Shared to your feed!");
-                    });
-                }
-            });
-        });
-    };
+    // Repost handled by FeedStore.toggleRepost() (Task 2.1 - reactive refactoring)
+    // The callback is no longer needed as PostCard now uses FeedStore directly
+    // Note: Confirmation dialogs moved to a future enhancement in PostCard or a dialog service
 
     card->onWaveformClicked = [this](const FeedPost& post, float position) {
         Log::debug("Waveform seek for post: " + post.id + " to " + juce::String(position, 2));
@@ -2448,25 +2264,10 @@ void PostsFeed::handleNewPostNotification(const juce::var& postData)
 void PostsFeed::handleLikeCountUpdate(const juce::String& postId, int likeCount)
 {
     Log::debug("PostsFeed::handleLikeCountUpdate: Updating like count - postId: " + postId + ", count: " + juce::String(likeCount));
-    // Find the post card and update like count (5.5.3)
-    bool found = false;
-    for (auto* card : postCards)
-    {
-        if (card->getPostId() == postId)
-        {
-            // Get current liked state before updating
-            bool wasLiked = card->getPost().isLiked;
-            card->updateLikeCount(likeCount, wasLiked);
-            found = true;
-            Log::debug("PostsFeed::handleLikeCountUpdate: Updated like count for post: " + postId);
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        Log::warn("PostsFeed::handleLikeCountUpdate: Post card not found for postId: " + postId);
-    }
+    // Note: PostCard now updates automatically via FeedStore subscription (Task 2.5)
+    // This method is kept for backward compatibility with WebSocket notifications
+    // but manual update calls have been removed
+    juce::ignoreUnused(postId, likeCount);
 }
 
 void PostsFeed::handleFollowerCountUpdate(const juce::String& userId, int followerCount)

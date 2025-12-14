@@ -1,6 +1,7 @@
 #include "PostCard.h"
 #include "../../util/Colors.h"
 #include "../../stores/ImageCache.h"
+#include "../../stores/FeedStore.h"
 #include "../../util/UIHelpers.h"
 #include "../../util/StringFormatter.h"
 #include "../../util/HoverState.h"
@@ -38,12 +39,61 @@ PostCard::PostCard()
 
 PostCard::~PostCard()
 {
+    // Unsubscribe from FeedStore (Task 2.5)
+    if (storeUnsubscribe)
+        storeUnsubscribe();
 }
 
 //==============================================================================
 void PostCard::setNetworkClient(NetworkClient* client)
 {
     waveformView.setNetworkClient(client);
+}
+
+void PostCard::setFeedStore(Sidechain::Stores::FeedStore* store)
+{
+    using namespace Sidechain::Stores;
+
+    // Unsubscribe from previous store if any
+    if (storeUnsubscribe)
+        storeUnsubscribe();
+
+    feedStore = store;
+
+    if (!feedStore)
+        return;
+
+    // Subscribe to FeedStore for reactive updates (Task 2.5)
+    storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
+        // Find our post in the current feed
+        const auto& currentFeed = state.getCurrentFeed();
+
+        for (const auto& feedPost : currentFeed.posts)
+        {
+            if (feedPost.id == post.id)
+            {
+                // Post found - update our local copy
+                // Only update if something changed to avoid unnecessary repaints
+                if (feedPost.likeCount != post.likeCount ||
+                    feedPost.isLiked != post.isLiked ||
+                    feedPost.commentCount != post.commentCount ||
+                    feedPost.playCount != post.playCount ||
+                    feedPost.isFollowing != post.isFollowing ||
+                    feedPost.userReaction != post.userReaction ||
+                    feedPost.saveCount != post.saveCount ||
+                    feedPost.isSaved != post.isSaved ||
+                    feedPost.repostCount != post.repostCount ||
+                    feedPost.isReposted != post.isReposted ||
+                    feedPost.isPinned != post.isPinned)
+                {
+                    post = feedPost;
+                    // ReactiveBoundComponent will automatically repaint
+                    repaint();
+                }
+                return;
+            }
+        }
+    });
 }
 
 void PostCard::setPost(const FeedPost& newPost)
@@ -85,60 +135,9 @@ void PostCard::setPost(const FeedPost& newPost)
     repaint();
 }
 
-void PostCard::updateLikeCount(int count, bool liked)
-{
-    post.likeCount = count;
-    post.isLiked = liked;
-    Log::debug("PostCard: Like count updated - post: " + post.id + ", count: " + juce::String(count) + ", liked: " + juce::String(liked ? "true" : "false"));
-    repaint();
-}
-
-void PostCard::updatePlayCount(int count)
-{
-    post.playCount = count;
-    Log::debug("PostCard: Play count updated - post: " + post.id + ", count: " + juce::String(count));
-    repaint();
-}
-
-void PostCard::updateFollowState(bool following)
-{
-    post.isFollowing = following;
-    repaint();
-}
-
-void PostCard::updateReaction(const juce::String& emoji)
-{
-    post.userReaction = emoji;
-    if (emoji.isNotEmpty())
-    {
-        post.isLiked = true;  // Reacting also counts as a like
-    }
-    repaint();
-}
-
-void PostCard::updateSaveState(int count, bool saved)
-{
-    post.saveCount = count;
-    post.isSaved = saved;
-    Log::debug("PostCard: Save state updated - post: " + post.id + ", count: " + juce::String(count) + ", saved: " + juce::String(saved ? "true" : "false"));
-    repaint();
-}
-
-void PostCard::updateRepostState(int count, bool reposted)
-{
-    post.repostCount = count;
-    post.isReposted = reposted;
-    Log::debug("PostCard: Repost state updated - post: " + post.id + ", count: " + juce::String(count) + ", reposted: " + juce::String(reposted ? "true" : "false"));
-    repaint();
-}
-
-void PostCard::updatePinState(bool isPinned, int pinOrder)
-{
-    post.isPinned = isPinned;
-    post.pinOrder = pinOrder;
-    Log::debug("PostCard: Pin state updated - post: " + post.id + ", pinned: " + juce::String(isPinned ? "true" : "false") + ", order: " + juce::String(pinOrder));
-    repaint();
-}
+//==============================================================================
+// UI State Updates (not persisted to FeedStore)
+// Post data updates now come automatically via FeedStore subscription (Task 2.5)
 
 void PostCard::setPlaybackProgress(float progress)
 {
@@ -1135,8 +1134,15 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
     {
         if (!wasLongPress)
         {
-            if (onLikeToggled)
+            if (feedStore)
+            {
+                feedStore->toggleLike(post.id);
+            }
+            else if (onLikeToggled)
+            {
+                // Fallback for when FeedStore is not set
                 onLikeToggled(post, !post.isLiked);
+            }
         }
         return;
     }
@@ -1160,16 +1166,30 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
     // Check save/bookmark button
     if (getSaveButtonBounds().contains(pos))
     {
-        if (onSaveToggled)
+        if (feedStore)
+        {
+            feedStore->toggleSave(post.id);
+        }
+        else if (onSaveToggled)
+        {
+            // Fallback for when FeedStore is not set
             onSaveToggled(post, !post.isSaved);
+        }
         return;
     }
 
     // Check repost button (not for own posts)
     if (!post.isOwnPost && getRepostButtonBounds().contains(pos))
     {
-        if (onRepostClicked)
+        if (feedStore)
+        {
+            feedStore->toggleRepost(post.id);
+        }
+        else if (onRepostClicked)
+        {
+            // Fallback for when FeedStore is not set
             onRepostClicked(post);
+        }
         return;
     }
 
@@ -1553,16 +1573,21 @@ void PostCard::showEmojiReactionsPanel()
 
 void PostCard::handleEmojiSelected(const juce::String& emoji)
 {
-    // Update local state
-    post.userReaction = emoji;
-    post.isLiked = true;
-
-    // Trigger animation
+    // Trigger animation (happens immediately for optimistic UI)
     startLikeAnimation();
 
-    // Notify callback
-    if (onEmojiReaction)
+    // Use FeedStore for reactive update if available
+    if (feedStore)
+    {
+        feedStore->addReaction(post.id, emoji);
+    }
+    else if (onEmojiReaction)
+    {
+        // Fallback for when FeedStore is not set
+        post.userReaction = emoji;
+        post.isLiked = true;
         onEmojiReaction(post, emoji);
+    }
 
     repaint();
 }

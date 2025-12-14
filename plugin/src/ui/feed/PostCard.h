@@ -6,11 +6,13 @@
 #include "../../ui/animations/Easing.h"
 #include "../../util/HoverState.h"
 #include "../../util/LongPressDetector.h"
+#include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/WaveformImageView.h"
 #include "EmojiReactionsPanel.h"
 
 // Forward declarations
 class NetworkClient;
+namespace Sidechain { namespace Stores { class FeedStore; } }
 
 //==============================================================================
 /**
@@ -29,7 +31,7 @@ class NetworkClient;
  * The component uses a callback-based API for actions to keep it decoupled
  * from network/audio code.
  */
-class PostCard : public juce::Component,
+class PostCard : public Sidechain::Util::ReactiveBoundComponent,
                           public juce::Timer,
                           public juce::TooltipClient
 {
@@ -60,47 +62,14 @@ public:
      */
     void setNetworkClient(NetworkClient* client);
 
+    /** Set the FeedStore for reactive state updates (Task 2.5)
+     * @param store Pointer to the FeedStore instance
+     */
+    void setFeedStore(Sidechain::Stores::FeedStore* store);
+
     //==============================================================================
-    // Update specific fields without full refresh
-
-    /** Update the like count and liked state
-     * @param count The new like count
-     * @param isLiked Whether the current user has liked this post
-     */
-    void updateLikeCount(int count, bool isLiked);
-
-    /** Update the play count
-     * @param count The new play count
-     */
-    void updatePlayCount(int count);
-
-    /** Update the follow state for the post author
-     * @param isFollowing Whether the current user is following the author
-     */
-    void updateFollowState(bool isFollowing);
-
-    /** Update the user's reaction emoji
-     * @param emoji The emoji reaction (empty string to clear)
-     */
-    void updateReaction(const juce::String& emoji);
-
-    /** Update the save state and count
-     * @param count The new save count
-     * @param isSaved Whether the current user has saved this post
-     */
-    void updateSaveState(int count, bool isSaved);
-
-    /** Update the repost state and count
-     * @param count The new repost count
-     * @param isReposted Whether the current user has reposted this post
-     */
-    void updateRepostState(int count, bool isReposted);
-
-    /** Update the pin state
-     * @param isPinned Whether the post is pinned
-     * @param pinOrder The position among pinned posts (1-3)
-     */
-    void updatePinState(bool isPinned, int pinOrder = 0);
+    // Update UI state (not persisted to FeedStore)
+    // Note: Post data updates now come automatically via FeedStore subscription (Task 2.5)
 
     /** Set the playback progress indicator
      * @param progress Progress from 0.0 to 1.0
@@ -320,6 +289,10 @@ public:
 private:
     //==============================================================================
     FeedPost post;
+
+    // FeedStore subscription for reactive updates (Task 2.5)
+    Sidechain::Stores::FeedStore* feedStore = nullptr;
+    std::function<void()> storeUnsubscribe;
 
     // UI state
     HoverState hoverState;
