@@ -1,10 +1,11 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../stores/FeedDataManager.h"
+#include "../../stores/FeedStore.h"
 #include "../../models/FeedResponse.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../ui/animations/Easing.h"
+#include "../../util/reactive/ReactiveBoundComponent.h"
 #include "PostCard.h"
 #include "Comment.h"
 #include "../../audio/HttpAudioPlayer.h"
@@ -14,6 +15,9 @@
 
 class NetworkClient;
 class StreamChatClient;
+
+// Forward declarations
+namespace Sidechain { namespace Stores { class FeedStore; } }
 
 //==============================================================================
 /**
@@ -33,7 +37,7 @@ class StreamChatClient;
  * - All UI operations must be on the message thread
  * - Network callbacks are automatically marshalled to message thread
  */
-class PostsFeed : public juce::Component,
+class PostsFeed : public Sidechain::Util::ReactiveBoundComponent,
                            public juce::ScrollBar::Listener,
                            public juce::KeyListener,
                            public juce::Timer
@@ -93,7 +97,7 @@ public:
     // Feed control
     void loadFeed();
     void refreshFeed();
-    void switchFeedType(FeedDataManager::FeedType type);
+    void switchFeedType(Sidechain::Stores::FeedType type);
 
     // Real-time updates (5.5)
     void handleNewPostNotification(const juce::var& postData);
@@ -112,20 +116,9 @@ public:
 
 private:
     //==============================================================================
-    // Feed state
-    enum class FeedState
-    {
-        Loading,    // Initial loading or refreshing
-        Loaded,     // Successfully loaded with posts
-        Empty,      // Loaded but no posts
-        Error       // Error occurred
-    };
-
-    FeedState feedState = FeedState::Loading;
-    juce::String errorMessage;
-    juce::Array<FeedPost> posts;
-    FeedDataManager feedDataManager;
-    FeedDataManager::FeedType currentFeedType = FeedDataManager::FeedType::Timeline;
+    // Feed store subscription (Task 2.6 - reactive refactoring)
+    Sidechain::Stores::FeedStore* feedStore = nullptr;
+    std::function<void()> storeUnsubscribe;
 
     // Real-time update state (5.5)
     int pendingNewPostsCount = 0;  // Count of new posts received while user is viewing feed
@@ -201,9 +194,8 @@ private:
     void setupPostCardCallbacks(PostCard* card);
     void updateAudioPlayerPlaylist();
 
-    // Feed callback handlers
-    void onFeedLoaded(const FeedResponse& response);
-    void onFeedError(const juce::String& error);
+    // Feed state handling (Task 2.6 - now from FeedStore subscription)
+    void handleFeedStateChanged();
 
     // Presence querying
     void queryPresenceForPosts();
