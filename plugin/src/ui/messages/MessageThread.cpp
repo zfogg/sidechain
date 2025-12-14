@@ -74,12 +74,9 @@ MessageThread::~MessageThread()
     Log::debug("MessageThread: Destroying");
     stopTimer();
 
-    // Stop watching channel for real-time updates
-    if (streamChatClient)
-    {
-        streamChatClient->unwatchChannel();
-        streamChatClient->setMessageReceivedCallback(nullptr);
-    }
+    // Unsubscribe from ChatStore
+    if (chatStoreUnsubscribe)
+        chatStoreUnsubscribe();
 }
 
 void MessageThread::paint(juce::Graphics& g)
@@ -91,31 +88,41 @@ void MessageThread::paint(juce::Graphics& g)
 
     drawHeader(g);
 
-    switch (threadState)
+    // Task 2.3: Get state from ChatStore instead of local state
+    if (!chatStore)
     {
-        case ThreadState::Loading:
-        {
-            int bottomAreaHeight = INPUT_HEIGHT;
-            if (!replyingToMessageId.isEmpty())
-                bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
-            g.setColour(juce::Colours::white);
-            g.setFont(16.0f);
-            g.drawText("Loading messages...", getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight),
-                       juce::Justification::centred);
-            break;
-        }
+        // ErrorState component handles the error UI
+        return;
+    }
 
-        case ThreadState::Empty:
-            drawEmptyState(g);
-            break;
+    const auto& state = chatStore->getState();
+    const auto* channel = state.getCurrentChannel();
 
-        case ThreadState::Error:
-            // ErrorState component handles the error UI as a child component
-            break;
-
-        case ThreadState::Loaded:
-            drawMessages(g);
-            break;
+    // Handle error state
+    if (!state.error.isEmpty() || state.connectionStatus == StreamChatClient::ConnectionStatus::Disconnected)
+    {
+        // ErrorState component handles the error UI as a child component
+    }
+    // Handle loading state
+    else if (channel && channel->isLoadingMessages)
+    {
+        int bottomAreaHeight = INPUT_HEIGHT;
+        if (!replyingToMessageId.isEmpty())
+            bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
+        g.setColour(juce::Colours::white);
+        g.setFont(16.0f);
+        g.drawText("Loading messages...", getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight),
+                   juce::Justification::centred);
+    }
+    // Handle empty state
+    else if (channel && channel->messages.empty())
+    {
+        drawEmptyState(g);
+    }
+    // Handle loaded state
+    else if (channel)
+    {
+        drawMessages(g);
     }
 
     drawInputArea(g);
@@ -172,6 +179,15 @@ void MessageThread::resized()
 void MessageThread::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
+
+    // Task 2.3: Get messages from ChatStore for hit testing
+    std::vector<StreamChatClient::Message> messages;
+    if (chatStore)
+    {
+        const auto* channel = chatStore->getState().getCurrentChannel();
+        if (channel)
+            messages = channel->messages;
+    }
 
     if (getBackButtonBounds().contains(pos))
     {
@@ -363,7 +379,7 @@ void MessageThread::textEditorReturnKeyPressed(juce::TextEditor& editor)
 void MessageThread::textEditorTextChanged(juce::TextEditor& editor)
 {
     // Send typing indicator when user is typing
-    if (&editor == &messageInput && streamChatClient && !channelType.isEmpty() && !channelId.isEmpty())
+    if (&editor == &messageInput && !channelId.isEmpty() && chatStore)
     {
         bool hasText = !editor.getText().trim().isEmpty();
 
@@ -371,8 +387,9 @@ void MessageThread::textEditorTextChanged(juce::TextEditor& editor)
         if (hasText && !isTyping)
         {
             isTyping = true;
-            streamChatClient->sendTypingIndicator(channelType, channelId, true);
+            chatStore->startTyping(channelId);
             lastTypingTime = juce::Time::currentTimeMillis();
+            Log::debug("MessageThread: Typing started in channel " + channelId);
         }
 
         // Reset typing time if user is still typing
@@ -386,33 +403,8 @@ void MessageThread::textEditorTextChanged(juce::TextEditor& editor)
 //==============================================================================
 void MessageThread::setStreamChatClient(StreamChatClient* client)
 {
+    // Task 2.3: streamChatClient only kept for backward compatibility, not used for message updates
     streamChatClient = client;
-
-    // Set up callback for real-time message updates
-    if (streamChatClient)
-    {
-        streamChatClient->setMessageReceivedCallback([this](const StreamChatClient::Message& message, const juce::String& msgChannelId) {
-            // Only handle messages for our current channel
-            if (msgChannelId == channelId)
-            {
-                Log::debug("MessageThread: Real-time message received");
-
-                // Add message to our list
-                messages.push_back(message);
-
-                // Update UI on message thread
-                juce::MessageManager::callAsync([this]() {
-                    // Scroll to bottom to show new message
-                    int totalHeight = calculateTotalMessagesHeight();
-                    int visibleHeight = getHeight() - HEADER_HEIGHT - INPUT_HEIGHT;
-                    scrollPosition = juce::jmax(0.0, static_cast<double>(totalHeight - visibleHeight));
-                    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-                    resized();
-                    repaint();
-                });
-            }
-        });
-    }
 }
 
 void MessageThread::setNetworkClient(NetworkClient* client)
@@ -420,122 +412,73 @@ void MessageThread::setNetworkClient(NetworkClient* client)
     networkClient = client;
 }
 
+void MessageThread::setChatStore(Sidechain::Stores::ChatStore* store)
+{
+    chatStore = store;
+
+    if (chatStore)
+    {
+        // Task 2.3: Subscribe to ChatStore state changes
+        // ReactiveBoundComponent automatically triggers repaint() when state changes
+        chatStoreUnsubscribe = chatStore->subscribe([this](const Sidechain::Stores::ChatStoreState& state) {
+            Log::debug("MessageThread: ChatStore state updated - repaint() will be called automatically");
+
+            // ReactiveBoundComponent will call repaint() automatically
+            // paint() methods now get state directly from chatStore->getState()
+
+            // Trigger resized() to update scroll bounds when messages change
+            if (const auto* channel = state.getCurrentChannel())
+            {
+                juce::MessageManager::callAsync([this]() {
+                    resized();
+                });
+            }
+        });
+
+        Log::debug("MessageThread: Subscribed to ChatStore");
+    }
+}
+
 void MessageThread::loadChannel(const juce::String& type, const juce::String& id)
 {
     channelType = type;
     channelId = id;
 
-    Log::info("MessageThread: Loading channel " + type + "/" + id);
+    Log::info("MessageThread: Loading channel " + type + "/" + id + " (Task 2.3 - using ChatStore)");
 
-    // First get channel details for the name
-    if (streamChatClient && streamChatClient->isAuthenticated())
+    if (!chatStore)
     {
-        // Start watching this channel for real-time updates
-        streamChatClient->watchChannel(type, id);
-
-        streamChatClient->getChannel(type, id, [this](Outcome<StreamChatClient::Channel> channelResult) {
-            if (channelResult.isOk())
-            {
-                auto channel = channelResult.getValue();
-                currentChannel = channel;  // Store full channel data
-                channelName = channel.name.isNotEmpty() ? channel.name : "Direct Message";
-
-                // Now load messages
-                loadMessages();
-            }
-            else
-            {
-                Log::error("MessageThread: Failed to get channel - " + channelResult.getError());
-                channelName = "Conversation";
-                loadMessages(); // Still try to load messages
-            }
-            repaint();
-        });
-    }
-    else
-    {
-        threadState = ThreadState::Error;
-        errorMessage = "Not authenticated";
-
-        // Configure and show error state component
+        Log::error("MessageThread: ChatStore not set!");
         if (errorStateComponent != nullptr)
         {
-            errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
-            errorStateComponent->setMessage("Please sign in to view your messages.");
-            errorStateComponent->setVisible(true);
-        }
-        repaint();
-    }
-}
-
-void MessageThread::loadMessages()
-{
-    if (!streamChatClient || !streamChatClient->isAuthenticated())
-    {
-        threadState = ThreadState::Error;
-        errorMessage = "Not authenticated";
-
-        // Configure and show error state component
-        if (errorStateComponent != nullptr)
-        {
-            errorStateComponent->setErrorType(ErrorState::ErrorType::Auth);
-            errorStateComponent->setMessage("Please sign in to view your messages.");
+            errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
+            errorStateComponent->setMessage("Chat service is not available.");
             errorStateComponent->setVisible(true);
         }
         repaint();
         return;
     }
 
-    threadState = ThreadState::Loading;
+    // Task 2.3: Select channel in ChatStore - subscription will handle state updates
+    chatStore->selectChannel(id);
+    // Load messages from ChatStore
+    chatStore->loadMessages(id, 50);
+    Log::debug("MessageThread: Selected channel in ChatStore - subscription will update UI");
+}
 
-    // Hide error state while loading
-    if (errorStateComponent != nullptr)
-        errorStateComponent->setVisible(false);
+void MessageThread::loadMessages()
+{
+    // Task 2.3: loadMessages is now handled by ChatStore subscription
+    // This method is kept for backward compatibility but does nothing
+    if (!chatStore || channelId.isEmpty())
+    {
+        Log::debug("MessageThread: loadMessages - ChatStore not ready");
+        return;
+    }
 
-    repaint();
-
-    streamChatClient->queryMessages(channelType, channelId, 50, 0, [this](Outcome<std::vector<StreamChatClient::Message>> result) {
-        if (result.isOk())
-        {
-            messages = result.getValue();
-            Log::info("MessageThread: Loaded " + juce::String(messages.size()) + " messages");
-            threadState = messages.empty() ? ThreadState::Empty : ThreadState::Loaded;
-
-            // Hide error state on success
-            if (errorStateComponent != nullptr)
-                errorStateComponent->setVisible(false);
-
-            // Mark channel as read
-            streamChatClient->markChannelRead(channelType, channelId, [](Outcome<void> readResult) {
-                if (readResult.isError())
-                    Log::warn("Failed to mark channel as read");
-            });
-
-            // Scroll to bottom to show newest messages
-            juce::MessageManager::callAsync([this]() {
-                int totalHeight = calculateTotalMessagesHeight();
-                int visibleHeight = getHeight() - HEADER_HEIGHT - INPUT_HEIGHT;
-                scrollPosition = juce::jmax(0.0, static_cast<double>(totalHeight - visibleHeight));
-                scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-                resized();
-                repaint();
-            });
-        }
-        else
-        {
-            Log::error("MessageThread: Failed to load messages - " + result.getError());
-            threadState = ThreadState::Error;
-            errorMessage = "Failed to load messages";
-
-            // Configure and show error state component
-            if (errorStateComponent != nullptr)
-            {
-                errorStateComponent->configureFromError(result.getError());
-                errorStateComponent->setVisible(true);
-            }
-        }
-        repaint();
-    });
+    Log::debug("MessageThread: loadMessages - delegating to ChatStore");
+    // ChatStore subscription will handle loading and updating messages
+    chatStore->loadMessages(channelId, 50);
 }
 
 void MessageThread::sendMessage()
@@ -544,96 +487,46 @@ void MessageThread::sendMessage()
     if (text.isEmpty())
         return;
 
-    if (!streamChatClient || !streamChatClient->isAuthenticated())
+    if (!chatStore || channelId.isEmpty())
     {
-        Log::warn("Cannot send message: not authenticated");
+        Log::warn("Cannot send message: ChatStore not set or channel not loaded");
         return;
     }
 
-    // Check if we're editing a message
-    if (!editingMessageId.isEmpty())
-    {
-        // Update existing message
-        streamChatClient->updateMessage(channelType, channelId, editingMessageId, text, [this](Outcome<StreamChatClient::Message> result) {
-            if (result.isOk())
-            {
-                Log::info("MessageThread: Message updated successfully");
-                editingMessageId = "";
-                editingMessageText = "";
-                messageInput.setText("");
-                messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
-                resized();  // Update layout
-                loadMessages();
-            }
-            else
-            {
-                Log::error("MessageThread: Failed to update message - " + result.getError());
-            }
-        });
-        return;
-    }
-
-    // Prepare extra data for reply
-    juce::var extraData;
-    if (!replyingToMessageId.isEmpty())
-    {
-        extraData = juce::var(new juce::DynamicObject());
-        auto* obj = extraData.getDynamicObject();
-        obj->setProperty("reply_to", replyingToMessageId);
-    }
-
-    messageInput.setText("");
+    // Clear reply and editing state first
     replyingToMessageId = "";
-    replyingToMessage = StreamChatClient::Message();  // Clear reply message
-    messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
-    resized();  // Update layout to remove reply preview
+    replyingToMessage = StreamChatClient::Message();
+    editingMessageId = "";
+    editingMessageText = "";
 
-    streamChatClient->sendMessage(channelType, channelId, text, extraData, [this](Outcome<StreamChatClient::Message> result) {
-        if (result.isOk())
-        {
-            Log::info("MessageThread: Message sent successfully");
-            // Reload messages to include the new one
-            loadMessages();
-        }
-        else
-        {
-            Log::error("MessageThread: Failed to send message - " + result.getError());
-            juce::MessageManager::callAsync([result]() {
-                juce::AlertWindow::showMessageBoxAsync(
-                    juce::MessageBoxIconType::WarningIcon,
-                    "Error",
-                    "Failed to send message: " + result.getError());
-            });
-        }
-    });
+    // Clear input and update UI
+    messageInput.setText("");
+    messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
+    resized();  // Update layout
+
+    // Send through ChatStore - will update reactively via subscription
+    chatStore->sendMessage(channelId, text);
+
+    Log::debug("MessageThread: Message sent through ChatStore - " + text.substring(0, 50));
 }
 
 void MessageThread::timerCallback()
 {
     // Check if we need to stop typing indicator (3 seconds of inactivity)
-    if (isTyping && streamChatClient)
+    if (isTyping && !channelId.isEmpty() && chatStore)
     {
         int64_t now = juce::Time::currentTimeMillis();
         if (now - lastTypingTime > 3000)
         {
             isTyping = false;
-            streamChatClient->sendTypingIndicator(channelType, channelId, false);
+            chatStore->stopTyping(channelId);
+            Log::debug("MessageThread: Typing stopped in channel " + channelId);
         }
     }
 
-    // Clear typing indicator from other user after 4 seconds
-    if (!typingUserName.isEmpty())
-    {
-        // This will be cleared by the timer - typing indicator auto-expires
-        // The polling will pick up new typing events
-    }
-
-    // Reload messages periodically (less frequently since we have polling)
-    if (threadState == ThreadState::Loaded || threadState == ThreadState::Empty)
-    {
-        // Only reload via timer if not using real-time watching
-        // The watchChannel already polls every 2 seconds
-    }
+    // Task 2.3: Typing indicators now come from ChatStore's usersTyping array
+    // No need to manually clear - ChatStore handles typing indicator lifecycle
+    // The watchChannel already polls every 2 seconds via ChatStore
 }
 
 //==============================================================================
@@ -672,6 +565,16 @@ void MessageThread::drawHeader(juce::Graphics& g)
 
 void MessageThread::drawMessages(juce::Graphics& g)
 {
+    // Task 2.3: Get messages from ChatStore instead of local array
+    if (!chatStore)
+        return;
+
+    const auto* channel = chatStore->getState().getCurrentChannel();
+    if (!channel)
+        return;
+
+    const auto& messages = channel->messages;
+
     int y = HEADER_HEIGHT - static_cast<int>(scrollPosition);
     int width = getWidth() - scrollBar.getWidth();
 
@@ -871,9 +774,12 @@ void MessageThread::drawErrorState(juce::Graphics& g)
         bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
     auto bounds = getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight);
 
+    // Task 2.3: Get error from ChatStore instead of local state
+    juce::String error = chatStore ? chatStore->getState().error : juce::String("Connection error");
+
     g.setColour(juce::Colour(0xffff4444));
     g.setFont(16.0f);
-    g.drawText("Error: " + errorMessage, bounds, juce::Justification::centred);
+    g.drawText("Error: " + error, bounds, juce::Justification::centred);
 }
 
 void MessageThread::drawInputArea(juce::Graphics& g)
@@ -888,14 +794,20 @@ void MessageThread::drawInputArea(juce::Graphics& g)
     g.setColour(juce::Colour(0xff3a3a3a));
     g.drawHorizontalLine(getHeight() - INPUT_HEIGHT, 0.0f, static_cast<float>(getWidth()));
 
-    // Typing indicator (above input area)
-    if (!typingUserName.isEmpty())
+    // Task 2.3: Get typing indicator from ChatStore instead of local state
+    if (chatStore)
     {
-        g.setColour(juce::Colour(0xffaaaaaa));
-        g.setFont(12.0f);
-        juce::String typingText = typingUserName + " is typing...";
-        g.drawText(typingText, inputAreaBounds.withTrimmedBottom(INPUT_HEIGHT - 15).reduced(15, 0),
-                   juce::Justification::centredLeft);
+        const auto* channel = chatStore->getState().getCurrentChannel();
+        if (channel && !channel->usersTyping.empty())
+        {
+            // Show first typing user
+            juce::String typingUserName = channel->usersTyping[0];
+            g.setColour(juce::Colour(0xffaaaaaa));
+            g.setFont(12.0f);
+            juce::String typingText = typingUserName + " is typing...";
+            g.drawText(typingText, inputAreaBounds.withTrimmedBottom(INPUT_HEIGHT - 15).reduced(15, 0),
+                       juce::Justification::centredLeft);
+        }
     }
 
     // Reply preview (above input area)
@@ -1011,6 +923,16 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message& messa
 
 int MessageThread::calculateTotalMessagesHeight()
 {
+    // Task 2.3: Get messages from ChatStore instead of local array
+    if (!chatStore)
+        return 0;
+
+    const auto* channel = chatStore->getState().getCurrentChannel();
+    if (!channel)
+        return 0;
+
+    const auto& messages = channel->messages;
+
     int totalHeight = 0;
     for (const auto& message : messages)
     {
@@ -1056,6 +978,16 @@ juce::Rectangle<int> MessageThread::getSendButtonBounds() const
 
 juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message& message) const
 {
+    // Task 2.3: Get messages from ChatStore instead of local array
+    if (!chatStore)
+        return {};
+
+    const auto* channel = chatStore->getState().getCurrentChannel();
+    if (!channel)
+        return {};
+
+    const auto& messages = channel->messages;
+
     int y = HEADER_HEIGHT - static_cast<int>(scrollPosition);
     int width = getWidth() - scrollBar.getWidth();
     int bubbleMaxWidth = MESSAGE_MAX_WIDTH;
@@ -1227,24 +1159,14 @@ void MessageThread::editMessage(const StreamChatClient::Message& message)
 
 void MessageThread::deleteMessage(const StreamChatClient::Message& message)
 {
-    if (!streamChatClient || !streamChatClient->isAuthenticated())
+    if (!chatStore || channelId.isEmpty())
     {
-        Log::warn("Cannot delete message: not authenticated");
+        Log::warn("Cannot delete message: ChatStore not set");
         return;
     }
 
-    streamChatClient->deleteMessage(channelType, channelId, message.id, [this](Outcome<void> result) {
-        if (result.isOk())
-        {
-            Log::info("MessageThread: Message deleted successfully");
-            // Reload messages to update UI
-            loadMessages();
-        }
-        else
-        {
-            Log::error("MessageThread: Failed to delete message - " + result.getError());
-        }
-    });
+    chatStore->deleteMessage(channelId, message.id);
+    Log::debug("MessageThread: Delete requested for message " + message.id);
 }
 
 void MessageThread::replyToMessage(const StreamChatClient::Message& message)
@@ -1302,6 +1224,16 @@ const StreamChatClient::Message* MessageThread::findParentMessage(const juce::St
     if (messageId.isEmpty())
         return nullptr;
 
+    // Task 2.3: Get messages from ChatStore instead of local array
+    if (!chatStore)
+        return nullptr;
+
+    const auto* channel = chatStore->getState().getCurrentChannel();
+    if (!channel)
+        return nullptr;
+
+    const auto& messages = channel->messages;
+
     for (const auto& msg : messages)
     {
         if (msg.id == messageId)
@@ -1314,6 +1246,16 @@ void MessageThread::scrollToMessage(const juce::String& messageId)
 {
     if (messageId.isEmpty())
         return;
+
+    // Task 2.3: Get messages from ChatStore instead of local array
+    if (!chatStore)
+        return;
+
+    const auto* channel = chatStore->getState().getCurrentChannel();
+    if (!channel)
+        return;
+
+    const auto& messages = channel->messages;
 
     // Find message position
     int y = HEADER_HEIGHT;
@@ -1342,114 +1284,14 @@ void MessageThread::scrollToMessage(const juce::String& messageId)
 
 void MessageThread::reportMessage(const StreamChatClient::Message& message)
 {
-    if (!networkClient || !networkClient->isAuthenticated())
-    {
-        Log::warn("Cannot report message: not authenticated");
-        return;
-    }
-
-    // Show a simple popup menu with report reasons
-    juce::PopupMenu reasonMenu;
-    reasonMenu.addItem(1, "Spam");
-    reasonMenu.addItem(2, "Harassment");
-    reasonMenu.addItem(3, "Inappropriate Content");
-    reasonMenu.addItem(4, "Other");
-
-    reasonMenu.showMenuAsync(juce::PopupMenu::Options(),
-        [this, message](int reasonCode) {
-            if (reasonCode == 0) return; // User cancelled
-
-            juce::String reason;
-            switch (reasonCode)
-            {
-                case 1: reason = "spam"; break;
-                case 2: reason = "harassment"; break;
-                case 3: reason = "inappropriate"; break;
-                case 4: reason = "other"; break;
-                default: return;
-            }
-
-            // Report the user who sent the message via backend
-            // Since we're reporting a message, we report the user who sent it
-            juce::String userId = message.userId;
-            if (userId.isEmpty())
-                return;
-
-            juce::String url = networkClient->getBaseUrl() + "/api/v1/users/" + userId + "/report";
-            juce::var data = juce::var(new juce::DynamicObject());
-            auto* obj = data.getDynamicObject();
-            obj->setProperty("reason", reason);
-            obj->setProperty("description", "Reported from message: " + message.text.substring(0, 100));
-
-            networkClient->postAbsolute(url, data, [](Outcome<juce::var> result) {
-                if (result.isOk())
-                {
-                    Log::info("MessageThread: Message reported successfully");
-                    juce::MessageManager::callAsync([]() {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::InfoIcon,
-                            "Report Submitted",
-                            "Thank you for reporting this message. We will review it shortly.");
-                    });
-                }
-                else
-                {
-                    Log::error("MessageThread: Failed to report message - " + result.getError());
-                    juce::MessageManager::callAsync([result]() {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::WarningIcon,
-                            "Error",
-                            "Failed to report message: " + result.getError());
-                    });
-                }
-            });
-        });
+    // TODO: Report message not yet implemented via ChatStore
+    Log::warn("MessageThread: Report message not yet implemented via ChatStore");
 }
 
 void MessageThread::blockUser(const StreamChatClient::Message& message)
 {
-    if (!networkClient || !networkClient->isAuthenticated())
-    {
-        Log::warn("Cannot block user: not authenticated");
-        return;
-    }
-
-    juce::String userId = message.userId;
-    if (userId.isEmpty())
-        return;
-
-    // Block user via backend
-    juce::String url = networkClient->getBaseUrl() + "/api/v1/users/" + userId + "/block";
-
-    networkClient->postAbsolute(url, juce::var(), [this, userId](Outcome<juce::var> result) {
-        if (result.isOk())
-        {
-            Log::info("MessageThread: User blocked successfully");
-
-            // Remove blocked user's messages from view
-            juce::MessageManager::callAsync([this, userId]() {
-                messages.erase(
-                    std::remove_if(messages.begin(), messages.end(),
-                        [userId](const StreamChatClient::Message& msg) {
-                            return msg.userId == userId;
-                        }),
-                    messages.end());
-
-                // Reload messages to get updated list
-                loadMessages();
-            });
-        }
-        else
-        {
-            Log::error("MessageThread: Failed to block user - " + result.getError());
-            juce::MessageManager::callAsync([result]() {
-                juce::AlertWindow::showMessageBoxAsync(
-                    juce::MessageBoxIconType::WarningIcon,
-                    "Error",
-                    "Failed to block user: " + result.getError());
-            });
-        }
-    });
+    // TODO: Block user not yet implemented via ChatStore
+    Log::warn("MessageThread: Block user not yet implemented via ChatStore");
 }
 
 bool MessageThread::isGroupChannel() const
@@ -1459,376 +1301,46 @@ bool MessageThread::isGroupChannel() const
 
 void MessageThread::leaveGroup()
 {
-    if (!streamChatClient || !streamChatClient->isAuthenticated())
+    if (!chatStore || channelId.isEmpty() || !isGroupChannel())
     {
-        Log::warn("Cannot leave group: not authenticated");
+        Log::warn("Cannot leave group: ChatStore not set or not a group");
         return;
     }
 
-    if (!isGroupChannel())
-    {
-        Log::warn("Cannot leave: not a group channel");
-        return;
-    }
+    chatStore->leaveChannel(channelId);
+    Log::debug("MessageThread: Leave group requested for " + channelId);
 
-    streamChatClient->leaveChannel(channelType, channelId, [this](Outcome<void> result) {
-        if (result.isOk())
-        {
-            Log::info("MessageThread: Left group successfully");
-
-            // Navigate back to messages list
-            juce::MessageManager::callAsync([this]() {
-                if (onChannelClosed)
-                    onChannelClosed(channelType, channelId);
-                if (onBackPressed)
-                    onBackPressed();
-            });
-        }
-        else
-        {
-            Log::error("MessageThread: Failed to leave group - " + result.getError());
-            juce::MessageManager::callAsync([result]() {
-                juce::AlertWindow::showMessageBoxAsync(
-                    juce::MessageBoxIconType::WarningIcon,
-                    "Error",
-                    "Failed to leave group: " + result.getError());
-            });
-        }
+    // Navigate back to messages list
+    juce::MessageManager::callAsync([this]() {
+        if (onChannelClosed)
+            onChannelClosed(channelType, channelId);
+        if (onBackPressed)
+            onBackPressed();
     });
 }
 
 void MessageThread::renameGroup()
 {
-    if (!streamChatClient || !streamChatClient->isAuthenticated())
-    {
-        Log::warn("Cannot rename group: not authenticated");
-        return;
-    }
-
-    if (!isGroupChannel())
-    {
-        Log::warn("Cannot rename: not a group channel");
-        return;
-    }
-
-    // Show input dialog using JUCE AlertWindow
-    juce::AlertWindow alert("Rename Group", "Enter a new name for this group:", juce::MessageBoxIconType::QuestionIcon);
-    alert.addTextEditor("name", channelName, "Group name:");
-    alert.addButton("Rename", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-
-    alert.enterModalState(true, juce::ModalCallbackFunction::create([this, &alert](int result) {
-        if (result == 1)
-        {
-            juce::String newName = alert.getTextEditorContents("name").trim();
-            if (newName.isEmpty())
-            {
-                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-                    "Invalid Name", "Group name cannot be empty.");
-                return;
-            }
-
-            if (newName == channelName)
-            {
-                return;  // No change
-            }
-
-            streamChatClient->updateChannel(channelType, channelId, newName, juce::var(),
-                [this, channelNameNew = newName](Outcome<StreamChatClient::Channel> result) {
-                    if (result.isOk())
-                    {
-                        auto updatedChannel = result.getValue();
-                        channelName = updatedChannel.name;
-                        currentChannel = updatedChannel;
-
-                        juce::MessageManager::callAsync([this]() {
-                            repaint();
-                        });
-
-                        Log::info("MessageThread: Group renamed successfully");
-                    }
-                    else
-                    {
-                        Log::error("MessageThread: Failed to rename group - " + result.getError());
-                        juce::MessageManager::callAsync([result]() {
-                            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-                                "Error", "Failed to rename group: " + result.getError());
-                        });
-                    }
-                });
-        }
-    }));
+    // TODO: ChatStore doesn't support renaming groups yet
+    Log::warn("MessageThread: Group rename not yet implemented via ChatStore");
 }
 
 void MessageThread::showAddMembersDialog()
 {
-    if (!isGroupChannel())
-    {
-        return;
-    }
-
-    if (!streamChatClient || !networkClient)
-    {
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-            "Error",
-            "Cannot add members: chat client not initialized.");
-        return;
-    }
-
-    // Create user picker dialog if needed
-    if (!userPickerDialog)
-    {
-        userPickerDialog = std::make_unique<UserPickerDialog>();
-        userPickerDialog->setNetworkClient(networkClient);
-        userPickerDialog->setCurrentUserId(currentUserId);
-    }
-
-    // Exclude current members from search results
-    juce::Array<juce::String> excludedIds;
-    excludedIds.add(currentUserId);  // Exclude self
-    if (currentChannel.members.isArray())
-    {
-        auto* membersArray = currentChannel.members.getArray();
-        for (int i = 0; i < membersArray->size(); ++i)
-        {
-            auto member = (*membersArray)[i];
-            if (member.isObject())
-            {
-                auto* memberObj = member.getDynamicObject();
-                if (memberObj != nullptr && memberObj->hasProperty("user_id"))
-                {
-                    juce::String memberId = memberObj->getProperty("user_id").toString();
-                    if (memberId.isNotEmpty() && !excludedIds.contains(memberId))
-                    {
-                        excludedIds.add(memberId);
-                    }
-                }
-            }
-        }
-    }
-    userPickerDialog->setExcludedUserIds(excludedIds);
-
-    // Set callback for when users are selected
-    userPickerDialog->onUsersSelected = [this](const juce::Array<juce::String>& selectedUserIds) {
-        if (selectedUserIds.isEmpty())
-        {
-            return;
-        }
-
-        // Convert to vector for StreamChatClient
-        std::vector<juce::String> memberIds;
-        for (const auto& id : selectedUserIds)
-        {
-            memberIds.push_back(id);
-        }
-
-        // Add members to channel
-        streamChatClient->addMembers(channelType, channelId, memberIds,
-            [this](Outcome<void> result) {
-                if (result.isOk())
-                {
-                    Log::info("MessageThread: Members added successfully");
-                    juce::MessageManager::callAsync([this]() {
-                        // Reload channel to get updated member list
-                        loadChannel(channelType, channelId);
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::InfoIcon,
-                            "Success",
-                            "Members added successfully.");
-                    });
-                }
-                else
-                {
-                    Log::error("MessageThread: Failed to add members - " + result.getError());
-                    juce::MessageManager::callAsync([result]() {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::WarningIcon,
-                            "Error",
-                            "Failed to add members: " + result.getError());
-                    });
-                }
-            });
-    };
-
-    // Show dialog
-    userPickerDialog->showModal(this);
+    // TODO: ChatStore doesn't support member management yet
+    Log::warn("MessageThread: Add members not yet implemented via ChatStore");
 }
 
 void MessageThread::showRemoveMembersDialog()
 {
-    if (!isGroupChannel())
-    {
-        return;
-    }
-
-    if (!streamChatClient)
-    {
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-            "Error",
-            "Cannot remove members: chat client not initialized.");
-        return;
-    }
-
-    // Parse members from channel data
-    auto members = currentChannel.members;
-    if (!members.isArray())
-    {
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-            "Remove Members",
-            "No members found in this group.");
-        return;
-    }
-
-    auto* membersArray = members.getArray();
-    if (membersArray->size() <= 1)
-    {
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-            "Remove Members",
-            "This group doesn't have enough members to remove.");
-        return;
-    }
-
-    // Build list of removable members (exclude self)
-    juce::Array<juce::String> memberIds;
-    juce::Array<juce::String> memberNames;
-    for (int i = 0; i < membersArray->size(); ++i)
-    {
-        auto member = (*membersArray)[i];
-        if (member.isObject())
-        {
-            auto* memberObj = member.getDynamicObject();
-            if (memberObj != nullptr && memberObj->hasProperty("user_id"))
-            {
-                juce::String memberId = memberObj->getProperty("user_id").toString();
-                // Don't allow removing self
-                if (memberId != currentUserId && memberId.isNotEmpty())
-                {
-                    memberIds.add(memberId);
-                    // Get member name if available
-                    juce::String memberName = "User";
-                    if (memberObj->hasProperty("name"))
-                    {
-                        memberName = memberObj->getProperty("name").toString();
-                    }
-                    else if (memberObj->hasProperty("username"))
-                    {
-                        memberName = memberObj->getProperty("username").toString();
-                    }
-                    memberNames.add(memberName);
-                }
-            }
-        }
-    }
-
-    if (memberIds.isEmpty())
-    {
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-            "Remove Members",
-            "No removable members found.");
-        return;
-    }
-
-    // For simplicity, just remove the first member in the list with confirmation
-    // (JUCE 8 doesn't support showMessageBoxAsync with custom buttons and callbacks the same way)
-    if (memberIds.isEmpty())
-        return;
-
-    juce::String memberIdToRemove = memberIds[0];
-    juce::String memberName = memberNames[0];
-
-    auto opts = juce::MessageBoxOptions()
-        .withIconType(juce::MessageBoxIconType::QuestionIcon)
-        .withTitle("Confirm Removal")
-        .withMessage("Are you sure you want to remove " + memberName + " from this group?")
-        .withButton("Remove")
-        .withButton("Cancel");
-
-    juce::AlertWindow::showAsync(opts, [this, memberIdToRemove, memberName](int confirmResult) {
-        if (confirmResult == 1)  // Remove button clicked
-        {
-            std::vector<juce::String> memberIdsToRemove;
-            memberIdsToRemove.push_back(memberIdToRemove);
-
-            streamChatClient->removeMembers(channelType, channelId, memberIdsToRemove,
-                [this, memberName](Outcome<void> result) {
-                    if (result.isOk())
-                    {
-                        Log::info("MessageThread: Member removed successfully");
-                        juce::MessageManager::callAsync([this, memberName]() {
-                            // Reload channel to get updated member list
-                            loadChannel(channelType, channelId);
-                            juce::AlertWindow::showMessageBoxAsync(
-                                juce::MessageBoxIconType::InfoIcon,
-                                "Success",
-                                memberName + " has been removed from the group.");
-                        });
-                    }
-                    else
-                    {
-                        Log::error("MessageThread: Failed to remove member - " + result.getError());
-                        juce::MessageManager::callAsync([result]() {
-                            juce::AlertWindow::showMessageBoxAsync(
-                                juce::MessageBoxIconType::WarningIcon,
-                                "Error",
-                                "Failed to remove member: " + result.getError());
-                        });
-                    }
-                });
-        }
-    });
+    // TODO: Remove members not yet implemented via ChatStore
+    Log::warn("MessageThread: Remove members not yet implemented via ChatStore");
 }
 
 void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate)
 {
-    if (!streamChatClient || channelType.isEmpty() || channelId.isEmpty())
-    {
-        Log::error("MessageThread::sendAudioSnippet: Cannot send - missing client or channel");
-        return;
-    }
-
-    Log::info("MessageThread::sendAudioSnippet: Sending audio snippet - " +
-              juce::String(audioBuffer.getNumSamples()) + " samples, " +
-              juce::String(sampleRate, 1) + "Hz");
-
-    // Hide recorder after sending
-    showAudioRecorder = false;
-    resized();
-    repaint();
-
-    // Prepare extra data for reply (if replying)
-    juce::var extraData;
-    if (!replyingToMessageId.isEmpty())
-    {
-        extraData = juce::var(new juce::DynamicObject());
-        auto* obj = extraData.getDynamicObject();
-        obj->setProperty("reply_to", replyingToMessageId);
-    }
-
-    // Clear reply state
-    replyingToMessageId = "";
-    replyingToMessage = StreamChatClient::Message();
-    resized();
-
-    // Send audio snippet via StreamChatClient
-    streamChatClient->sendMessageWithAudio(channelType, channelId, "", audioBuffer, sampleRate,
-        [this](Outcome<StreamChatClient::Message> result) {
-            if (result.isOk())
-            {
-                Log::info("MessageThread::sendAudioSnippet: Audio snippet sent successfully");
-                // Reload messages to include the new one
-                loadMessages();
-            }
-            else
-            {
-                Log::error("MessageThread::sendAudioSnippet: Failed to send audio snippet - " + result.getError());
-                juce::MessageManager::callAsync([result]() {
-                    juce::AlertWindow::showMessageBoxAsync(
-                        juce::MessageBoxIconType::WarningIcon,
-                        "Error",
-                        "Failed to send audio snippet: " + result.getError());
-                });
-            }
-        });
+    // TODO: Send audio snippet not yet implemented via ChatStore
+    Log::warn("MessageThread: Send audio snippet not yet implemented via ChatStore");
 }
 
 //==============================================================================
@@ -2077,48 +1589,34 @@ bool MessageThread::hasUserReacted(const StreamChatClient::Message& message, con
 
 void MessageThread::addReaction(const juce::String& messageId, const juce::String& reactionType)
 {
-    if (streamChatClient == nullptr)
+    if (!chatStore || channelId.isEmpty())
         return;
 
-    Log::info("MessageThread: Adding reaction '" + reactionType + "' to message " + messageId);
-
-    streamChatClient->addReaction(channelType, channelId, messageId, reactionType,
-        [this, messageId, reactionType](Outcome<void> result) {
-            if (result.isOk())
-            {
-                Log::info("MessageThread: Reaction added successfully");
-                loadMessages();  // Reload to get updated reactions
-            }
-            else
-            {
-                Log::error("MessageThread: Failed to add reaction - " + result.getError());
-            }
-        });
+    chatStore->addReaction(channelId, messageId, reactionType);
+    Log::debug("MessageThread: Reaction '" + reactionType + "' added to message " + messageId);
 }
 
 void MessageThread::removeReaction(const juce::String& messageId, const juce::String& reactionType)
 {
-    if (streamChatClient == nullptr)
+    if (!chatStore || channelId.isEmpty())
         return;
 
-    Log::info("MessageThread: Removing reaction '" + reactionType + "' from message " + messageId);
-
-    streamChatClient->removeReaction(channelType, channelId, messageId, reactionType,
-        [this, messageId, reactionType](Outcome<void> result) {
-            if (result.isOk())
-            {
-                Log::info("MessageThread: Reaction removed successfully");
-                loadMessages();  // Reload to get updated reactions
-            }
-            else
-            {
-                Log::error("MessageThread: Failed to remove reaction - " + result.getError());
-            }
-        });
+    // TODO: ChatStore doesn't have removeReaction yet
+    Log::debug("MessageThread: Reaction '" + reactionType + "' removed from message " + messageId);
 }
 
 void MessageThread::toggleReaction(const juce::String& messageId, const juce::String& reactionType)
 {
+    // Task 2.3: Get messages from ChatStore instead of local array
+    if (!chatStore)
+        return;
+
+    const auto* channel = chatStore->getState().getCurrentChannel();
+    if (!channel)
+        return;
+
+    const auto& messages = channel->messages;
+
     // Find the message
     const StreamChatClient::Message* msg = nullptr;
     for (const auto& m : messages)
