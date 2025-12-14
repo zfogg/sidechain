@@ -29,7 +29,7 @@ juce_add_plugin(Sidechain
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
 
     # Plugin format categories
-    VST3_CATEGORIES "Fx"
+    VST3_CATEGORIES "Network Tools Synth"
     AU_MAIN_TYPE "kAudioUnitType_Effect"
     AU_EXPORT_PREFIX "SidechainAU"
     AAX_IDENTIFIER "gg.zfo.Sidechain"
@@ -115,6 +115,7 @@ target_link_libraries(Sidechain
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
+        juce::juce_recommended_warning_flags
 )
 
 # Don't treat warnings as errors (the codebase has some warnings to fix later)

@@ -28,6 +28,9 @@ target_link_libraries(SidechainStores PUBLIC
     juce::juce_data_structures
     juce::juce_graphics
     juce::juce_events
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
 )
 
 # Enable PIC for Release builds, disable for Debug (faster compilation)

@@ -119,6 +119,16 @@ plugin-fast:
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
 
+# Rebuild plugin only (clean plugin files but keep cached dependencies)
+plugin-rebuild: plugin-configure
+	@echo "🔄 Rebuilding plugin (keeping cached dependencies) for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
+	@# Clean only plugin object files, not cached dependencies
+	@find $(BUILD_DIR) -path "$(BUILD_DIR)/src" -name "*.o" -delete 2>/dev/null || true
+	@find $(BUILD_DIR) -path "$(BUILD_DIR)/CMakeFiles/Sidechain*.dir" -name "*.o" -delete 2>/dev/null || true
+	@rm -rf $(BUILD_DIR)/src/core/Sidechain_artefacts 2>/dev/null || true
+	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
+	@echo "✅ Plugin rebuilt successfully (dependencies cached)"
+
 # CMake install (use with sudo for system-wide install)
 install: plugin
 	@echo "📦 Installing plugin using cmake --install..."
@@ -248,6 +258,7 @@ help:
 	@echo "  backend-dev           - Run backend in development mode"
 	@echo "  plugin                - Build VST plugin via CMake"
 	@echo "  plugin-fast           - Build VST plugin (skip reconfigure)"
+	@echo "  plugin-rebuild        - Rebuild plugin only (keep cached deps)"
 	@echo "  plugin-install        - Install plugin to system directory"
 	@echo "  plugin-clean          - Clean plugin build files"
 	@echo "  test                  - Run all tests"
