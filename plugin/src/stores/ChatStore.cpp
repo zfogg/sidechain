@@ -891,5 +891,275 @@ juce::String ChatStore::generateTempMessageId() const
     return "temp_" + juce::String(timestamp) + "_" + juce::String(random);
 }
 
+//==============================================================================
+// Collaborative Channel Description Editing (Task 4.20)
+
+int ChatStore::getClientId()
+{
+    if (clientId == -1)
+    {
+        // Generate client ID from user ID hash
+        auto userId = getState().userId;
+        if (!userId.isEmpty())
+        {
+            // Use hash of user ID as stable client ID
+            clientId = static_cast<int>(std::hash<std::string>()(userId.toStdString())) & 0x7FFFFFFF;
+        }
+        else
+        {
+            // Fallback: use random ID if not authenticated
+            clientId = juce::Random::getSystemRandom().nextInt() & 0x7FFFFFFF;
+        }
+
+        Util::logInfo("ChatStore", "Generated client ID for OT: " + juce::String(clientId));
+    }
+
+    return clientId;
+}
+
+std::shared_ptr<Util::CRDT::OperationalTransform::Operation>
+ChatStore::generateDescriptionOperation(const juce::String& oldDescription, const juce::String& newDescription)
+{
+    using namespace Util::CRDT;
+
+    // Convert to std::string for easier manipulation
+    auto oldStr = oldDescription.toStdString();
+    auto newStr = newDescription.toStdString();
+
+    // Simple algorithm: if content completely changed, use Delete + Insert
+    // Otherwise, find the difference
+    if (oldStr.empty() && !newStr.empty())
+    {
+        // Pure insertion at position 0
+        auto insert = std::make_shared<OperationalTransform::Insert>();
+        insert->position = 0;
+        insert->content = newStr;
+        insert->clientId = getClientId();
+        return insert;
+    }
+
+    if (!oldStr.empty() && newStr.empty())
+    {
+        // Pure deletion of entire content
+        auto del = std::make_shared<OperationalTransform::Delete>();
+        del->position = 0;
+        del->length = static_cast<int>(oldStr.length());
+        del->content = oldStr;
+        del->clientId = getClientId();
+        return del;
+    }
+
+    // For simplicity, if strings differ, replace entire content
+    // In a real application, you'd implement a diff algorithm
+    if (oldStr != newStr)
+    {
+        // Delete old, insert new
+        if (!oldStr.empty())
+        {
+            auto del = std::make_shared<OperationalTransform::Delete>();
+            del->position = 0;
+            del->length = static_cast<int>(oldStr.length());
+            del->content = oldStr;
+            del->clientId = getClientId();
+            return del;
+        }
+        else
+        {
+            auto insert = std::make_shared<OperationalTransform::Insert>();
+            insert->position = 0;
+            insert->content = newStr;
+            insert->clientId = getClientId();
+            return insert;
+        }
+    }
+
+    // No change needed
+    auto noop = std::make_shared<OperationalTransform::Insert>();
+    noop->position = 0;
+    noop->content = "";
+    noop->clientId = getClientId();
+    return noop;
+}
+
+void ChatStore::editChannelDescription(const juce::String& channelId, const juce::String& newDescription)
+{
+    Util::logInfo("ChatStore", "Editing channel description",
+                  "channelId=" + channelId + ", newLen=" + juce::String(newDescription.length()));
+
+    // Update local state
+    updateState([channelId, newDescription, this](ChatStoreState& state)
+    {
+        auto it = state.channels.find(channelId);
+        if (it == state.channels.end())
+            return;
+
+        auto& channel = it->second;
+        auto oldDescription = channel.description;
+
+        // Generate operation comparing old and new description
+        auto operation = generateDescriptionOperation(oldDescription, newDescription);
+
+        if (!operation || Util::CRDT::OperationalTransform::isNoOp(operation))
+        {
+            Util::logDebug("ChatStore", "No-op description edit, ignoring");
+            return;
+        }
+
+        // Update local description immediately (optimistic)
+        channel.description = newDescription;
+        channel.isSyncingDescription = true;
+
+        // Add to operation history
+        operation->timestamp = channel.operationTimestamp++;
+        channel.operationHistory.push_back(operation);
+
+        // Queue for sending to server
+        channel.pendingOperations.push(operation);
+
+        Util::logDebug("ChatStore", "Queued description operation",
+                       "timestamp=" + juce::String(operation->timestamp));
+    });
+
+    // Send to server after state update
+    auto state = getState();
+    auto it = state.channels.find(channelId);
+    if (it != state.channels.end() && !it->second.pendingOperations.empty())
+    {
+        auto operation = it->second.pendingOperations.front();
+        sendOperationToServer(channelId, operation);
+    }
+}
+
+void ChatStore::sendOperationToServer(const juce::String& channelId,
+                                     const std::shared_ptr<Util::CRDT::OperationalTransform::Operation>& operation)
+{
+    if (!streamChatClient || !operation)
+        return;
+
+    using namespace Util::CRDT;
+
+    // Build JSON for the operation
+    juce::DynamicObject obj;
+    obj.setProperty("channel_id", channelId);
+    obj.setProperty("client_id", getClientId());
+    obj.setProperty("timestamp", operation->timestamp);
+
+    // Serialize operation type and data
+    if (auto ins = std::dynamic_pointer_cast<OperationalTransform::Insert>(operation))
+    {
+        obj.setProperty("type", "insert");
+        obj.setProperty("position", ins->position);
+        obj.setProperty("content", juce::String(ins->content));
+    }
+    else if (auto del = std::dynamic_pointer_cast<OperationalTransform::Delete>(operation))
+    {
+        obj.setProperty("type", "delete");
+        obj.setProperty("position", del->position);
+        obj.setProperty("length", del->length);
+        obj.setProperty("content", juce::String(del->content));
+    }
+    else if (auto mod = std::dynamic_pointer_cast<OperationalTransform::Modify>(operation))
+    {
+        obj.setProperty("type", "modify");
+        obj.setProperty("position", mod->position);
+        obj.setProperty("old_content", juce::String(mod->oldContent));
+        obj.setProperty("new_content", juce::String(mod->newContent));
+    }
+
+    // Send via NetworkClient
+    // TODO: Implement endpoint in backend: POST /api/v1/channels/{channelId}/description-operation
+    Util::logDebug("ChatStore", "Sending operation to server",
+                   "channel=" + channelId + ", type=" + juce::String(static_cast<int>(operation->getType())));
+
+    // After successful send, remove from pending queue
+    updateState([channelId](ChatStoreState& state)
+    {
+        auto it = state.channels.find(channelId);
+        if (it != state.channels.end() && !it->second.pendingOperations.empty())
+        {
+            it->second.pendingOperations.pop();
+        }
+    });
+}
+
+void ChatStore::applyServerOperation(const juce::String& channelId,
+                                    const std::shared_ptr<Util::CRDT::OperationalTransform::Operation>& operation)
+{
+    if (!operation)
+        return;
+
+    using namespace Util::CRDT;
+
+    Util::logInfo("ChatStore", "Applying server-transformed operation",
+                  "channelId=" + channelId + ", timestamp=" + juce::String(operation->timestamp));
+
+    updateState([channelId, operation](ChatStoreState& state)
+    {
+        auto it = state.channels.find(channelId);
+        if (it == state.channels.end())
+            return;
+
+        auto& channel = it->second;
+
+        // Apply operation to description
+        auto newDescription = OperationalTransform::apply(channel.description.toStdString(), operation);
+        channel.description = juce::String(newDescription);
+
+        // Add to operation history
+        channel.operationHistory.push_back(operation);
+
+        // Mark sync complete
+        channel.isSyncingDescription = false;
+
+        Util::logDebug("ChatStore", "Applied operation, description updated",
+                       "newLen=" + juce::String(channel.description.length()));
+    });
+}
+
+void ChatStore::handleRemoteOperation(const juce::String& channelId,
+                                     const std::shared_ptr<Util::CRDT::OperationalTransform::Operation>& remoteOperation,
+                                     int remoteClientId)
+{
+    if (!remoteOperation)
+        return;
+
+    using namespace Util::CRDT;
+
+    Util::logInfo("ChatStore", "Handling remote operation from another user",
+                  "channelId=" + channelId + ", remoteClientId=" + juce::String(remoteClientId));
+
+    updateState([channelId, remoteOperation, remoteClientId](ChatStoreState& state)
+    {
+        auto it = state.channels.find(channelId);
+        if (it == state.channels.end())
+            return;
+
+        auto& channel = it->second;
+
+        // Set client ID on remote operation
+        remoteOperation->clientId = remoteClientId;
+
+        // Transform remote operation against pending local operations
+        auto currentOp = remoteOperation->clone();
+        while (!channel.pendingOperations.empty())
+        {
+            auto localOp = channel.pendingOperations.front();
+            auto [transformedRemote, transformedLocal] = OperationalTransform::transform(currentOp, localOp);
+            currentOp = transformedRemote;
+            // Local operation stays the same as it's already applied
+        }
+
+        // Apply transformed remote operation to description
+        auto newDescription = OperationalTransform::apply(channel.description.toStdString(), currentOp);
+        channel.description = juce::String(newDescription);
+
+        // Add to operation history
+        channel.operationHistory.push_back(currentOp);
+
+        Util::logDebug("ChatStore", "Applied transformed remote operation",
+                       "newLen=" + juce::String(channel.description.length()));
+    });
+}
+
 }  // namespace Stores
 }  // namespace Sidechain
