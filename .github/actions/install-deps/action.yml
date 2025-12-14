@@ -33,6 +33,7 @@ runs:
           mesa-common-dev
           ninja-build
           lld
+          ccache
           libfftw3-dev
           libnotify-dev
         )
@@ -45,13 +46,13 @@ runs:
       if: runner.os == 'macOS'
       shell: bash
       run: |
-        brew install ninja openssl@3 fftw
+        brew install ninja ccache openssl@3 fftw
 
     - name: Install Windows Dependencies
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        choco install ninja openssl -y
+        choco install ninja ccache openssl -y
         # Set OpenSSL path for CMake
         echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL" >> $env:GITHUB_ENV
 
