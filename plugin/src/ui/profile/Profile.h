@@ -6,6 +6,8 @@
 #include "../stories/StoryHighlights.h"
 #include "../common/ErrorState.h"
 #include "../../stores/FeedStore.h"
+#include "../../stores/UserStore.h"
+#include "../../util/reactive/ReactiveBoundComponent.h"
 
 class NetworkClient;
 class StreamChatClient;
@@ -64,7 +66,7 @@ struct UserProfile
  * - Member since date
  * - Profile sharing
  */
-class Profile : public juce::Component,
+class Profile : public Sidechain::Util::ReactiveBoundComponent,
                          public juce::ScrollBar::Listener,
                          public juce::TooltipClient
 {
@@ -77,6 +79,7 @@ public:
     void setNetworkClient(NetworkClient* client);
     void setStreamChatClient(StreamChatClient* client);
     void setFeedStore(Sidechain::Stores::FeedStore* store);  // Task 2.4: Use FeedStore for follow/mute
+    void setUserStore(Sidechain::Stores::UserStore* store);  // Task 2.4.2: Use UserStore for own profile
     void setCurrentUserId(const juce::String& userId);
     void loadProfile(const juce::String& userId);
     void loadOwnProfile();
@@ -131,14 +134,16 @@ public:
 private:
     //==============================================================================
     // Data
-    UserProfile profile;
+    UserProfile profile;  // Task 2.4.2: For other users OR populated from UserStore for own profile
     juce::String currentUserId;
     juce::Array<FeedPost> userPosts;
     NetworkClient* networkClient = nullptr;
     StreamChatClient* streamChatClient = nullptr;
     Sidechain::Stores::FeedStore* feedStore = nullptr;  // Task 2.4: For follow/mute operations
+    Sidechain::Stores::UserStore* userStore = nullptr;  // Task 2.4.2: For own profile data
+    std::function<void()> userStoreUnsubscribe;  // Task 2.4.2: Unsubscribe from UserStore
 
-    // Loading/error states
+    // Loading/error states (Task 2.4.2: For other users; own profile uses UserStore state)
     bool isLoading = false;
     bool hasError = false;
     juce::String errorMessage;
@@ -213,6 +218,7 @@ private:
     // Helpers
     void updatePostCards();
     int calculateContentHeight() const;
+    bool isOwnProfile() const;  // Task 2.4.2: Check if viewing own profile (use UserStore)
 
     //==============================================================================
     // Layout constants
