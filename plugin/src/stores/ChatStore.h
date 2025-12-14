@@ -1,0 +1,389 @@
+#pragma once
+
+#include <JuceHeader.h>
+#include "Store.h"
+#include "../network/StreamChatClient.h"
+#include "../util/logging/Logger.h"
+#include <map>
+#include <vector>
+
+namespace Sidechain {
+namespace Stores {
+
+/**
+ * ChannelState - State for a single chat channel
+ */
+struct ChannelState
+{
+    juce::String id;
+    juce::String type;
+    juce::String name;
+    juce::Array<juce::String> memberIds;
+    std::vector<StreamChatClient::Message> messages;
+    int unreadCount = 0;
+    juce::String lastMessageAt;
+    bool isLoadingMessages = false;
+    bool hasMoreMessages = true;
+    juce::var extraData;
+
+    // Typing indicators
+    std::vector<juce::String> usersTyping;
+
+    // Drafts
+    juce::String draftText;
+
+    bool operator==(const ChannelState& other) const
+    {
+        return id == other.id &&
+               name == other.name &&
+               messages.size() == other.messages.size() &&
+               unreadCount == other.unreadCount &&
+               isLoadingMessages == other.isLoadingMessages &&
+               draftText == other.draftText;
+    }
+};
+
+/**
+ * ChatStoreState - Combined state for all chat channels and metadata
+ */
+struct ChatStoreState
+{
+    // Channels mapped by ID
+    std::map<juce::String, ChannelState> channels;
+
+    // Ordered list of channel IDs (for display order)
+    std::vector<juce::String> channelOrder;
+
+    // Currently selected channel
+    juce::String currentChannelId;
+
+    // Loading states
+    bool isLoadingChannels = false;
+    bool isConnecting = false;
+    StreamChatClient::ConnectionStatus connectionStatus = StreamChatClient::ConnectionStatus::Disconnected;
+
+    // Authentication
+    bool isAuthenticated = false;
+    juce::String userId;
+    juce::String chatToken;
+    juce::String apiKey;
+
+    // User presence (userId -> presence info)
+    std::map<juce::String, StreamChatClient::UserPresence> userPresence;
+
+    // Errors
+    juce::String error;
+
+    // Convenience accessors
+    const ChannelState* getCurrentChannel() const
+    {
+        auto it = channels.find(currentChannelId);
+        return it != channels.end() ? &it->second : nullptr;
+    }
+
+    ChannelState* getCurrentChannelMutable()
+    {
+        auto it = channels.find(currentChannelId);
+        return it != channels.end() ? &it->second : nullptr;
+    }
+
+    bool operator==(const ChatStoreState& other) const
+    {
+        return channels.size() == other.channels.size() &&
+               currentChannelId == other.currentChannelId &&
+               isLoadingChannels == other.isLoadingChannels &&
+               isConnecting == other.isConnecting &&
+               connectionStatus == other.connectionStatus &&
+               isAuthenticated == other.isAuthenticated &&
+               userId == other.userId;
+    }
+};
+
+/**
+ * ChatStore - Reactive store for managing chat/messaging state
+ *
+ * Wraps StreamChatClient functionality with reactive subscriptions.
+ *
+ * Features:
+ * - Reactive channel list management
+ * - Real-time message updates via WebSocket
+ * - Typing indicators
+ * - Presence tracking
+ * - Message drafts
+ * - Optimistic message sending
+ * - Read receipts
+ *
+ * Usage:
+ *   // Get singleton instance
+ *   auto& chatStore = ChatStore::getInstance();
+ *   chatStore.setStreamChatClient(streamChatClient);
+ *
+ *   // Subscribe to state changes
+ *   auto unsubscribe = chatStore.subscribe([](const ChatStoreState& state) {
+ *       if (state.isAuthenticated) {
+ *           displayChannels(state.channels);
+ *           if (auto* channel = state.getCurrentChannel()) {
+ *               displayMessages(channel->messages);
+ *           }
+ *       }
+ *   });
+ *
+ *   // Load channels
+ *   chatStore.loadChannels();
+ *
+ *   // Send message (optimistic)
+ *   chatStore.sendMessage(channelId, "Hello!");
+ */
+class ChatStore : public Store<ChatStoreState>
+{
+public:
+    /**
+     * Get singleton instance
+     */
+    static ChatStore& getInstance()
+    {
+        static ChatStore instance;
+        return instance;
+    }
+
+    /**
+     * Set the Stream Chat client
+     */
+    void setStreamChatClient(StreamChatClient* client);
+
+    /**
+     * Get the Stream Chat client
+     */
+    StreamChatClient* getStreamChatClient() const { return streamChatClient; }
+
+    //==========================================================================
+    // Authentication
+
+    /**
+     * Set authentication token and connect to Stream Chat
+     * @param token Chat token from getstream.io
+     * @param apiKey API key for getstream.io
+     * @param userId Current user ID
+     */
+    void setAuthentication(const juce::String& token, const juce::String& apiKey, const juce::String& userId);
+
+    /**
+     * Clear authentication and disconnect
+     */
+    void clearAuthentication();
+
+    /**
+     * Check if authenticated
+     */
+    bool isAuthenticated() const
+    {
+        return getState().isAuthenticated;
+    }
+
+    //==========================================================================
+    // Channel Management
+
+    /**
+     * Load list of channels for current user
+     * @param forceRefresh If true, bypass cache
+     */
+    void loadChannels(bool forceRefresh = false);
+
+    /**
+     * Create a direct message channel with another user
+     * @param targetUserId User ID to message
+     */
+    void createDirectChannel(const juce::String& targetUserId);
+
+    /**
+     * Create a group channel
+     * @param channelId Unique channel ID
+     * @param name Channel display name
+     * @param memberIds List of user IDs to add
+     */
+    void createGroupChannel(const juce::String& channelId, const juce::String& name,
+                           const std::vector<juce::String>& memberIds);
+
+    /**
+     * Delete a channel
+     * @param channelId Channel to delete
+     */
+    void deleteChannel(const juce::String& channelId);
+
+    /**
+     * Leave a channel
+     * @param channelId Channel to leave
+     */
+    void leaveChannel(const juce::String& channelId);
+
+    /**
+     * Select a channel to view
+     * @param channelId Channel to select
+     */
+    void selectChannel(const juce::String& channelId);
+
+    /**
+     * Get currently selected channel ID
+     */
+    juce::String getCurrentChannelId() const
+    {
+        return getState().currentChannelId;
+    }
+
+    //==========================================================================
+    // Message Management
+
+    /**
+     * Load messages for a channel
+     * @param channelId Channel to load messages for
+     * @param limit Number of messages to load
+     */
+    void loadMessages(const juce::String& channelId, int limit = 50);
+
+    /**
+     * Load more (older) messages for pagination
+     * @param channelId Channel to load more messages for
+     */
+    void loadMoreMessages(const juce::String& channelId);
+
+    /**
+     * Send a text message (optimistic update)
+     * @param channelId Channel to send message to
+     * @param text Message text
+     */
+    void sendMessage(const juce::String& channelId, const juce::String& text);
+
+    /**
+     * Send a message with audio snippet
+     * @param channelId Channel to send to
+     * @param text Message text
+     * @param audioBuffer Audio data to attach
+     * @param sampleRate Sample rate of audio
+     */
+    void sendMessageWithAudio(const juce::String& channelId, const juce::String& text,
+                              const juce::AudioBuffer<float>& audioBuffer, double sampleRate);
+
+    /**
+     * Delete a message
+     * @param channelId Channel containing the message
+     * @param messageId Message to delete
+     */
+    void deleteMessage(const juce::String& channelId, const juce::String& messageId);
+
+    /**
+     * Add reaction to a message
+     * @param channelId Channel containing the message
+     * @param messageId Message to react to
+     * @param reaction Reaction emoji/type
+     */
+    void addReaction(const juce::String& channelId, const juce::String& messageId,
+                    const juce::String& reaction);
+
+    //==========================================================================
+    // Typing Indicators
+
+    /**
+     * Send typing indicator
+     * @param channelId Channel user is typing in
+     */
+    void startTyping(const juce::String& channelId);
+
+    /**
+     * Stop typing indicator
+     * @param channelId Channel to stop typing in
+     */
+    void stopTyping(const juce::String& channelId);
+
+    //==========================================================================
+    // Drafts
+
+    /**
+     * Update draft text for a channel
+     * @param channelId Channel to update draft for
+     * @param text Draft text
+     */
+    void updateDraft(const juce::String& channelId, const juce::String& text);
+
+    /**
+     * Clear draft for a channel
+     * @param channelId Channel to clear draft for
+     */
+    void clearDraft(const juce::String& channelId);
+
+    //==========================================================================
+    // Read Receipts
+
+    /**
+     * Mark messages as read in a channel
+     * @param channelId Channel to mark as read
+     */
+    void markAsRead(const juce::String& channelId);
+
+    //==========================================================================
+    // Presence
+
+    /**
+     * Update user presence information
+     * @param userId User ID
+     * @param presence Presence info
+     */
+    void updateUserPresence(const juce::String& userId, const StreamChatClient::UserPresence& presence);
+
+    /**
+     * Query presence for a list of users
+     * @param userIds List of user IDs to query
+     */
+    void queryPresence(const std::vector<juce::String>& userIds);
+
+    //==========================================================================
+    // Real-time Events
+
+    /**
+     * Handle incoming message from WebSocket
+     * @param message Message received
+     * @param channelId Channel message was sent to
+     */
+    void handleMessageReceived(const StreamChatClient::Message& message, const juce::String& channelId);
+
+    /**
+     * Handle typing event
+     * @param channelId Channel where user is typing
+     * @param userId User who is typing
+     * @param isTyping Whether user is typing
+     */
+    void handleTypingEvent(const juce::String& channelId, const juce::String& userId, bool isTyping);
+
+    /**
+     * Handle connection status change
+     * @param status New connection status
+     */
+    void handleConnectionStatusChanged(StreamChatClient::ConnectionStatus status);
+
+private:
+    ChatStore();
+    ~ChatStore() override = default;
+
+    // Stream Chat client (not owned)
+    StreamChatClient* streamChatClient = nullptr;
+
+    // Internal helpers
+    void setupEventHandlers();
+    void handleChannelsLoaded(const std::vector<StreamChatClient::Channel>& channels);
+    void handleChannelsError(const juce::String& error);
+    void handleMessagesLoaded(const juce::String& channelId,
+                              const std::vector<StreamChatClient::Message>& messages);
+    void handleMessagesError(const juce::String& channelId, const juce::String& error);
+    void handleMessageSent(const juce::String& channelId, const StreamChatClient::Message& message);
+    void handleMessageSendError(const juce::String& channelId, const juce::String& tempId,
+                                const juce::String& error);
+
+    // Generate temporary message ID for optimistic updates
+    juce::String generateTempMessageId() const;
+
+    // Singleton enforcement
+    ChatStore(const ChatStore&) = delete;
+    ChatStore& operator=(const ChatStore&) = delete;
+};
+
+}  // namespace Stores
+}  // namespace Sidechain
