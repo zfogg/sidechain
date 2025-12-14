@@ -4,6 +4,7 @@
 #==============================================================================
 
 add_library(SidechainStores STATIC
+    # Legacy stores (to be deprecated)
     ${CMAKE_CURRENT_SOURCE_DIR}/UserDataStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UserDataStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.cpp
@@ -12,6 +13,13 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.h
+
+    # Reactive stores (Phase 2)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.h
 )
 
 # Include directories
