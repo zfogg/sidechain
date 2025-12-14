@@ -58,6 +58,9 @@ target_link_libraries(SidechainUI PUBLIC
     juce::juce_graphics
     juce::juce_gui_basics
     juce::juce_gui_extra
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
 )
 
 # GTK and WebKit include directories (required by juce_gui_extra on Linux)

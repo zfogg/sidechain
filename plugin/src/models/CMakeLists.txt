@@ -27,6 +27,9 @@ target_include_directories(SidechainModels PUBLIC
 target_link_libraries(SidechainModels PUBLIC
     SidechainUtil
     juce::juce_core
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
 )
 
 # Enable PIC for Release builds, disable for Debug (faster compilation)

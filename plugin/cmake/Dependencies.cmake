@@ -2,10 +2,29 @@
 # External Dependencies
 #==============================================================================
 
-# JUCE is added as a subdirectory from the deps folder
-# EXCLUDE_FROM_ALL prevents JUCE from being installed with cmake --install
+#==============================================================================
+# Dependencies Cache Directory
+# Dependencies are built to a separate cache directory so they survive
+# `cmake --build --clean-first` rebuilds. Only plugin code rebuilds.
+#==============================================================================
+set(SIDECHAIN_DEPS_CACHE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../.cache/cmake/${CMAKE_BUILD_TYPE}"
+    CACHE PATH "Cache directory for dependency builds")
+file(MAKE_DIRECTORY "${SIDECHAIN_DEPS_CACHE_DIR}")
+message(STATUS "Dependencies cache: ${SIDECHAIN_DEPS_CACHE_DIR}")
+
+# Set FetchContent base directory to use our cache (for any FetchContent dependencies)
+set(FETCHCONTENT_BASE_DIR "${SIDECHAIN_DEPS_CACHE_DIR}/_deps" CACHE PATH "" FORCE)
+
+#==============================================================================
+# JUCE - Build to cache directory
+#==============================================================================
+# Dependencies are built to .cache/cmake/${CMAKE_BUILD_TYPE}/ so they persist
+# when you delete plugin/build/. Ninja will skip rebuilding if already built.
+
+set(JUCE_CACHE_DIR "${SIDECHAIN_DEPS_CACHE_DIR}/JUCE")
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/CMakeLists.txt")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE" "${CMAKE_BINARY_DIR}/JUCE" EXCLUDE_FROM_ALL)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE" "${JUCE_CACHE_DIR}" EXCLUDE_FROM_ALL)
 else()
     # Fetch JUCE if not present
     include(FetchContent)
@@ -22,7 +41,7 @@ endif()
 # Build AudioPluginHost manually (without JUCE_BUILD_EXTRAS which builds everything)
 # EXCLUDE_FROM_ALL prevents it from being installed
 if(SIDECHAIN_BUILD_PLUGIN_HOST AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost/CMakeLists.txt")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost" "${CMAKE_BINARY_DIR}/AudioPluginHost" EXCLUDE_FROM_ALL)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost" "${SIDECHAIN_DEPS_CACHE_DIR}/AudioPluginHost" EXCLUDE_FROM_ALL)
 endif()
 
 #==============================================================================
@@ -38,13 +57,15 @@ if(SIDECHAIN_ENABLE_KEY_DETECTION)
 
         # Build libkeyfinder as a static library
         set(LIBKEYFINDER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/libkeyfinder")
+        set(LIBKEYFINDER_CACHE_DIR "${SIDECHAIN_DEPS_CACHE_DIR}/libkeyfinder")
+
         if(EXISTS "${LIBKEYFINDER_DIR}/CMakeLists.txt")
             # Configure libkeyfinder build options
             set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
             set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
-            # Add libkeyfinder subdirectory
-            add_subdirectory("${LIBKEYFINDER_DIR}" "${CMAKE_BINARY_DIR}/libkeyfinder" EXCLUDE_FROM_ALL)
+            # Add libkeyfinder subdirectory - use cache dir for binary output
+            add_subdirectory("${LIBKEYFINDER_DIR}" "${LIBKEYFINDER_CACHE_DIR}" EXCLUDE_FROM_ALL)
 
             # Create an alias for cleaner usage
             if(TARGET keyfinder)

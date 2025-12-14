@@ -35,6 +35,7 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/DAWProjectFolder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/OSNotification.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/OSNotification.h
+    $<$<PLATFORM_ID:Darwin>:${CMAKE_CURRENT_SOURCE_DIR}/OSNotification_mac.mm>
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.h
 )
@@ -55,6 +56,9 @@ target_link_libraries(SidechainUtil PUBLIC
     juce::juce_graphics
     juce::juce_gui_basics
     juce::juce_audio_formats  # For WaveformGenerator audio decoding
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
 )
 
 # Set visibility to hidden by default (faster linking, smaller binaries)
@@ -83,8 +87,8 @@ endif()
 
 # Platform-specific dependencies for OSNotification
 if(APPLE)
-    # macOS: UserNotifications framework (automatically available)
-    # No additional linking needed
+    # macOS: UserNotifications framework for native notifications
+    target_link_libraries(SidechainUtil PUBLIC "-framework UserNotifications")
 elseif(UNIX AND NOT APPLE)
     # Linux: Prefer libnotify over raw D-Bus for notifications
     find_package(PkgConfig)
