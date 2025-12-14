@@ -3,6 +3,7 @@
 #include "../util/Constants.h"
 #include "../util/Log.h"
 #include "../network/NetworkClient.h"
+#include "../util/profiling/PerformanceMonitor.h"
 #include <set>
 
 namespace ImageLoader
@@ -98,6 +99,7 @@ namespace
         Async::run<juce::Image>(
             // Background work: download and decode image
             [url, targetWidth, targetHeight]() -> juce::Image {
+                SCOPED_TIMER_THRESHOLD("cache::image_download", 3000.0);
                 juce::Image loadedImage;
 
                 try
@@ -238,6 +240,7 @@ namespace
 
 void load(const juce::String& url, ImageLoader::ImageCallback callback, int width, int height)
 {
+    SCOPED_TIMER("cache::image_load");
     if (url.isEmpty())
     {
         if (callback)

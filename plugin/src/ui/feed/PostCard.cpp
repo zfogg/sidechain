@@ -8,6 +8,7 @@
 #include "../../util/Log.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../ui/animations/Easing.h"
+#include "../../util/profiling/PerformanceMonitor.h"
 #include <algorithm>
 
 using namespace Sidechain::UI::Animations;
@@ -168,6 +169,7 @@ void PostCard::setDownloadProgress(float progress)
 //==============================================================================
 void PostCard::paint(juce::Graphics& g)
 {
+    SCOPED_TIMER_THRESHOLD("ui::render_post", 16.0);
     // Apply fade-in opacity
     g.setOpacity(currentOpacity);
 
@@ -334,6 +336,7 @@ void PostCard::drawFollowButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 
 void PostCard::drawWaveform(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
+    SCOPED_TIMER("ui::draw_waveform");
     // If we have a waveform URL, the WaveformImageView component will handle rendering
     if (post.waveformUrl.isNotEmpty())
     {

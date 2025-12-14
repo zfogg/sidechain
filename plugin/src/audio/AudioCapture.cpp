@@ -1,6 +1,7 @@
 #include "AudioCapture.h"
 #include "../util/Log.h"
 #include "../util/Constants.h"
+#include "../util/error/ErrorTracking.h"
 
 //==============================================================================
 AudioCapture::AudioCapture()
@@ -319,6 +320,19 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     if (sampleRate <= 0)
     {
         Log::error("saveBufferToWavFile: Invalid sample rate: " + juce::String(sampleRate));
+
+        // Track audio parameter error (Task 4.19)
+        using namespace Sidechain::Util::Error;
+        auto errorTracker = ErrorTracker::getInstance();
+        errorTracker->recordError(
+            ErrorSource::Audio,
+            "Invalid sample rate for audio export",
+            ErrorSeverity::Error,
+            {
+                {"sample_rate", juce::String(sampleRate)},
+                {"file", file.getFullPathName()}
+            });
+
         return false;
     }
 
@@ -348,6 +362,19 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     if (!outputStream->openedOk())
     {
         Log::error("saveBufferToWavFile: Could not open file for writing: " + file.getFullPathName());
+
+        // Track file I/O error (Task 4.19)
+        using namespace Sidechain::Util::Error;
+        auto errorTracker = ErrorTracker::getInstance();
+        errorTracker->recordError(
+            ErrorSource::FileSystem,
+            "Failed to open audio file for writing",
+            ErrorSeverity::Error,
+            {
+                {"file", file.getFullPathName()},
+                {"parent_exists", file.getParentDirectory().exists() ? "true" : "false"}
+            });
+
         return false;
     }
 
@@ -377,6 +404,21 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     if (writer == nullptr)
     {
         Log::error("saveBufferToWavFile: Could not create WAV writer");
+
+        // Track audio encoding error (Task 4.19)
+        using namespace Sidechain::Util::Error;
+        auto errorTracker = ErrorTracker::getInstance();
+        errorTracker->recordError(
+            ErrorSource::Audio,
+            "Failed to create WAV audio writer",
+            ErrorSeverity::Critical,  // Critical because encoding completely failed
+            {
+                {"file", file.getFullPathName()},
+                {"sample_rate", juce::String(sampleRate)},
+                {"channels", juce::String(buffer.getNumChannels())},
+                {"bit_depth", juce::String(bitsPerSample)}
+            });
+
         return false;
     }
 
@@ -396,6 +438,19 @@ bool AudioCapture::saveBufferToWavFile(const juce::File& file,
     else
     {
         Log::error("saveBufferToWavFile: Failed to write audio data");
+
+        // Track write failure (Task 4.19)
+        using namespace Sidechain::Util::Error;
+        auto errorTracker = ErrorTracker::getInstance();
+        errorTracker->recordError(
+            ErrorSource::Audio,
+            "Failed to write audio data to WAV file",
+            ErrorSeverity::Error,
+            {
+                {"file", file.getFullPathName()},
+                {"num_samples", juce::String(buffer.getNumSamples())},
+                {"channels", juce::String(buffer.getNumChannels())}
+            });
     }
 
     return success;

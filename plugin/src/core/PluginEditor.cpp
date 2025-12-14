@@ -12,6 +12,7 @@
 #include "util/Result.h"
 #include "util/OSNotification.h"
 #include "security/SecureTokenStore.h"
+#include "util/error/ErrorTracking.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -82,6 +83,25 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Add ToastManager to component hierarchy (for transient error notifications)
     auto& toastManager = ToastManager::getInstance();
     addAndMakeVisible(&toastManager);
+
+    // Set up critical error alerts (Task 4.19)
+    using namespace Sidechain::Util::Error;
+    auto errorTracker = ErrorTracker::getInstance();
+    errorTracker->setOnCriticalError([](const ErrorInfo& error) {
+        // Show critical error as toast notification on main thread
+        juce::MessageManager::callAsync([error]() {
+            auto& toastMgr = ToastManager::getInstance();
+            toastMgr.showToast(
+                "Critical Error: " + error.message,
+                ToastNotification::ToastType::Error,
+                5000  // Show for 5 seconds
+            );
+
+            // Also log to system log
+            Log::error("CRITICAL ERROR: " + error.message +
+                      " (Source: " + ErrorInfo::sourceToString(error.source) + ")");
+        });
+    });
 
     //==========================================================================
     // Create AuthComponent
