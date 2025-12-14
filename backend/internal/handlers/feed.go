@@ -814,6 +814,15 @@ func (h *Handlers) DownloadPost(c *gin.Context) {
 	// Reload post to get updated download count
 	database.DB.First(&post, "id = ?", postID)
 
+	// Real-time Gorse feedback sync (Task 1.4)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFeedback(userID, postID, "download"); err != nil {
+				fmt.Printf("Warning: Failed to sync download to Gorse: %v\n", err)
+			}
+		}()
+	}
+
 	// Generate filename: {username}_{title}_{bpm}bpm.mp3
 	// For now, use a simple format since we don't have title field
 	var user models.User
@@ -898,5 +907,122 @@ func (h *Handlers) UpdateCommentAudience(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":          "comment_audience_updated",
 		"comment_audience": req.CommentAudience,
+	})
+}
+
+// TrackPlay tracks a play event for analytics and recommendations (Task 1.2)
+// POST /api/v1/posts/:id/play
+func (h *Handlers) TrackPlay(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		util.RespondUnauthorized(c, "user_not_authenticated")
+		return
+	}
+	currentUser := user.(*models.User)
+
+	postID := c.Param("id")
+
+	// Request body
+	var req struct {
+		Duration  float64 `json:"duration" binding:"required"` // Seconds listened
+		Completed bool    `json:"completed"`                   // Did user listen to the full track?
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.RespondBadRequest(c, "invalid_request", "Duration is required")
+		return
+	}
+
+	// Verify post exists
+	var post models.AudioPost
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			util.RespondNotFound(c, "post_not_found")
+			return
+		}
+		util.RespondInternalError(c, "query_failed", "Failed to fetch post")
+		return
+	}
+
+	// Create play history record
+	playHistory := models.PlayHistory{
+		UserID:    currentUser.ID,
+		PostID:    postID,
+		Duration:  req.Duration,
+		Completed: req.Completed,
+	}
+
+	if err := database.DB.Create(&playHistory).Error; err != nil {
+		util.RespondInternalError(c, "failed_to_track_play", "Failed to save play history")
+		return
+	}
+
+	// Real-time Gorse feedback sync (Task 1.2)
+	// Completed plays are stronger signals (like), partial plays are weaker (view)
+	if h.gorse != nil {
+		go func() {
+			feedbackType := "view"
+			if req.Completed {
+				feedbackType = "like" // Completed play = stronger signal
+			}
+			if err := h.gorse.SyncFeedback(currentUser.ID, postID, feedbackType); err != nil {
+				fmt.Printf("Warning: Failed to sync play to Gorse: %v\n", err)
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":    "play_tracked",
+		"post_id":   postID,
+		"duration":  req.Duration,
+		"completed": req.Completed,
+	})
+}
+
+// ViewPost tracks when a user views a post in their feed (Task 1.5)
+// POST /api/v1/posts/:id/view
+func (h *Handlers) ViewPost(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		util.RespondUnauthorized(c, "user_not_authenticated")
+		return
+	}
+	currentUser := user.(*models.User)
+
+	postID := c.Param("id")
+
+	// Verify post exists
+	var post models.AudioPost
+	if err := database.DB.First(&post, "id = ?", postID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			util.RespondNotFound(c, "post_not_found")
+			return
+		}
+		util.RespondInternalError(c, "query_failed", "Failed to fetch post")
+		return
+	}
+
+	// Don't track viewing your own post
+	if post.UserID == currentUser.ID {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "own_post",
+			"post_id": postID,
+		})
+		return
+	}
+
+	// Real-time Gorse feedback sync (Task 1.5)
+	// View events are important for understanding user behavior even if they don't play
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFeedback(currentUser.ID, postID, "view"); err != nil {
+				fmt.Printf("Warning: Failed to sync view to Gorse: %v\n", err)
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "view_tracked",
+		"post_id": postID,
 	})
 }

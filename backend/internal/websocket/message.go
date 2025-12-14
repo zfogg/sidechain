@@ -78,6 +78,10 @@ const (
 	// Real-time updates
 	MessageTypeLikeCountUpdate     = "like_count_update"
 	MessageTypeFollowerCountUpdate = "follower_count_update"
+
+	// Collaborative editing (Task 4.20)
+	MessageTypeOperation    = "operation"
+	MessageTypeOperationAck = "operation_ack"
 )
 
 // Message represents a WebSocket message
@@ -249,4 +253,28 @@ func (m *Message) ParsePayload(target interface{}) error {
 		return err
 	}
 	return json.Unmarshal(data, target)
+}
+
+// OperationPayload represents a collaborative edit operation
+type OperationPayload struct {
+	DocumentID string `json:"document_id"` // Format: "channel:channelId:field" e.g., "channel:abc123:description"
+	Operation  struct {
+		Type      string `json:"type"`       // "Insert" or "Delete"
+		ClientID  int    `json:"client_id"`
+		Timestamp int64  `json:"timestamp"` // Client timestamp
+		Position  int    `json:"position"`
+		Content   string `json:"content,omitempty"` // Text being inserted (empty for Delete)
+	} `json:"operation"`
+}
+
+// OperationAckPayload is sent back to clients after server transformation
+type OperationAckPayload struct {
+	DocumentID       string                 `json:"document_id"`
+	ClientID         int                    `json:"client_id"`
+	ServerTimestamp  int64                  `json:"server_timestamp"`
+	NewPosition      int                    `json:"new_position"`
+	CurrentContent   string                 `json:"current_content"` // Full document state after operation
+	TransformedOp    *OperationPayload      `json:"transformed_operation"`
+	Success          bool                   `json:"success"`
+	Error            string                 `json:"error,omitempty"`
 }

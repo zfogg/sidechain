@@ -84,3 +84,13 @@ See Also
 * :doc:`data-flow` - Data flow patterns and examples
 * :doc:`threading` - Threading model and safety
 * :doc:`services` - Business logic layer
+
+Backend Integration
+~~~~~~~~~~~~~~~~~~~
+
+For information about backend support and requirements:
+* `Backend Investigation Notes <../BACKEND_INVESTIGATION_NOTES.md>`_ - Assessment of backend support for real-time collaboration (OT, error tracking, rate limiting)
+* Known Issues:
+  - Operational Transform: Not implemented on backend (required for Task 4.20)
+  - Error Tracking API: Not implemented (required for Task 4.19)
+  - Rate Limiting: Implemented with minor header bug in Retry-After header

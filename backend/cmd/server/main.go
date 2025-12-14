@@ -196,6 +196,16 @@ func main() {
 	gorseClient := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
 	log.Printf("Gorse recommendation client initialized (URL: %s)", gorseURL)
 
+	// Set up post completion callback to sync to Gorse (Task 2.1)
+	audioProcessor.SetPostCompleteCallback(func(postID string) {
+		log.Printf("Post %s completed processing, syncing to Gorse...", postID)
+		if err := gorseClient.SyncItem(postID); err != nil {
+			log.Printf("Warning: Failed to sync post %s to Gorse: %v", postID, err)
+		} else {
+			log.Printf("Successfully synced post %s to Gorse", postID)
+		}
+	})
+
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
@@ -433,6 +443,8 @@ func main() {
 			posts.DELETE("/:id", h.DeletePost)
 			posts.POST("/:id/report", h.ReportPost)
 			posts.POST("/:id/download", h.DownloadPost)
+			posts.POST("/:id/play", h.TrackPlay)   // Play tracking for analytics and recommendations
+			posts.POST("/:id/view", h.ViewPost)    // View tracking for analytics and recommendations
 			// Save/Bookmark routes (P0 Social Feature)
 			posts.POST("/:id/save", h.SavePost)
 			posts.DELETE("/:id/save", h.UnsavePost)
@@ -465,6 +477,17 @@ func main() {
 			comments.POST("/:id/like", h.LikeComment)
 			comments.DELETE("/:id/like", h.UnlikeComment)
 			comments.POST("/:id/report", h.ReportComment)
+		}
+
+		// Error tracking routes (Task 4.19: Error tracking and reporting)
+		errorTrackingHandler := handlers.NewErrorTrackingHandler()
+		errors := api.Group("/errors")
+		{
+			errors.Use(authHandlers.AuthMiddleware())
+			errors.POST("/batch", errorTrackingHandler.RecordErrors)
+			errors.GET("/stats", errorTrackingHandler.GetErrorStats)
+			errors.GET("/:error_id", errorTrackingHandler.GetErrorDetails)
+			errors.PUT("/:error_id/resolve", errorTrackingHandler.ResolveError)
 		}
 
 		// Story routes (7.5) - with upload rate limiting for creation

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -56,6 +57,15 @@ func (h *Handlers) ArchivePost(c *gin.Context) {
 		return
 	}
 
+	// Re-sync to Gorse to hide archived post (Task 2.2)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncItem(postID); err != nil {
+				fmt.Printf("Warning: Failed to sync archived post to Gorse: %v\n", err)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":     "Post archived successfully",
 		"is_archived": true,
@@ -106,6 +116,15 @@ func (h *Handlers) UnarchivePost(c *gin.Context) {
 	if err := database.DB.Model(&post).Update("is_archived", false).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unarchive post"})
 		return
+	}
+
+	// Re-sync to Gorse to show unarchived post (Task 2.2)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncItem(postID); err != nil {
+				fmt.Printf("Warning: Failed to sync unarchived post to Gorse: %v\n", err)
+			}
+		}()
 	}
 
 	c.JSON(http.StatusOK, gin.H{
