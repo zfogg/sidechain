@@ -22,6 +22,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Apply system DPI scaling for HiDPI displays
     applySystemDpiScaling();
 
+    // Initialize view transition manager for smooth view transitions
+    viewTransitionManager = ViewTransitionManager::create(this);
+    viewTransitionManager->setDefaultDuration(300);  // < 350ms requirement
+
     // Initialize centralized user data store
     userDataStore = std::make_unique<UserDataStore>();
     userDataStore->addChangeListener(this);
@@ -1196,17 +1200,14 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     {
         Log::info("showView: starting slide animation, direction=" + juce::String(direction == NavigationDirection::Forward ? "Forward" : "Backward"));
 
-        // Cancel any ongoing animations first
-        viewAnimator.cancelAllAnimations(false);
-
-        // Hide the previously animating-out component if any
-        if (animatingOutComponent != nullptr && animatingOutComponent != componentToShow && animatingOutComponent != componentToHide)
-        {
-            animatingOutComponent->setVisible(false);
-        }
-
         // Use content bounds (below header) for post-login views
         auto bounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
+
+        // Set bounds for both components involved in transition
+        if (componentToShow)
+            componentToShow->setBounds(bounds);
+        if (componentToHide)
+            componentToHide->setBounds(bounds);
 
         // Hide all other components immediately (not involved in animation)
         for (auto appView : { AppView::Authentication, AppView::ProfileSetup, AppView::PostsFeed, AppView::Recording,
@@ -1220,34 +1221,27 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
                 comp->setVisible(false);
         }
 
-        // Determine animation direction
-        // Forward: new slides in from right, old slides out to left
-        // Backward: new slides in from left, old slides out to right
-        int slideInFromX, slideOutToX;
+        // Use ViewTransitionManager for smooth transitions
+        // Forward navigation: slide left (new from right, old to left)
+        // Backward navigation: slide right (new from left, old to right)
+
+        // Track timing for performance metrics (< 350ms requirement)
+        auto startTime = juce::Time::getMillisecondCounterHiRes();
+        auto onTransitionComplete = [startTime]() {
+            auto elapsed = juce::Time::getMillisecondCounterHiRes() - startTime;
+            Log::info("View transition completed in " + juce::String(elapsed, 1) + "ms");
+            jassert(elapsed < 350);  // Verify < 350ms requirement
+        };
+
         if (direction == NavigationDirection::Forward)
         {
-            slideInFromX = bounds.getRight();           // New component starts off-screen right
-            slideOutToX = -bounds.getWidth();           // Old component slides to off-screen left
+            viewTransitionManager->slideLeft(componentToHide, componentToShow, 300, onTransitionComplete);
         }
         else // Backward
         {
-            slideInFromX = -bounds.getWidth();          // New component starts off-screen left
-            slideOutToX = bounds.getRight();            // Old component slides to off-screen right
+            viewTransitionManager->slideRight(componentToHide, componentToShow, 300, onTransitionComplete);
         }
 
-        // Position new component off-screen
-        componentToShow->setBounds(bounds.withX(slideInFromX));
-        componentToShow->setVisible(true);
-        componentToShow->toFront(false);
-
-        // Track component being animated out for cleanup
-        animatingOutComponent = componentToHide;
-
-        // Animate both components
-        // Duration: 200ms for snappy feel, uses default linear interpolation
-        constexpr int animationDurationMs = 200;
-        viewAnimator.animateComponent(componentToHide, bounds.withX(slideOutToX), 1.0f, animationDurationMs, false, 1.0, 1.0);
-        viewAnimator.animateComponent(componentToShow, bounds, 1.0f, animationDurationMs, false, 1.0, 1.0);
         Log::info("showView: animation started");
     }
     else
