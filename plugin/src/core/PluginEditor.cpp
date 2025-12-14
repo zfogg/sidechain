@@ -8,8 +8,10 @@
 #include "util/Json.h"
 #include "stores/ImageCache.h"
 #include "util/Log.h"
+#include "util/logging/Logger.h"
 #include "util/Result.h"
 #include "util/OSNotification.h"
+#include "security/SecureTokenStore.h"
 
 //==============================================================================
 SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor& p)
@@ -1497,7 +1499,9 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
             if (userDiscoveryComponent)
             {
                 Log::info("showView: calling setCurrentUserId");
-                userDiscoveryComponent->setCurrentUserId(authToken);  // Use auth token or actual user ID
+                // Get user ID from UserDataStore instead of deprecated authToken
+                juce::String currentUserId = userDataStore ? userDataStore->getUserId() : "";
+                userDiscoveryComponent->setCurrentUserId(currentUserId);
                 Log::info("showView: calling loadDiscoveryData");
                 userDiscoveryComponent->loadDiscoveryData();
                 Log::info("showView: Discovery initialization complete");
@@ -2038,19 +2042,47 @@ void SidechainAudioProcessorEditor::showSharePostToMessage(const FeedPost& post)
     // Set the post to share
     shareToMessageDialog->setPost(post);
 
-    // Load recent conversations
-    shareToMessageDialog->loadRecentConversations();
+    // Show the dialog
+    shareToMessageDialog->showModal(this);
 
-    // TODO: Show the dialog as a modal overlay
-    // ShareToMessageDialog needs a showModal() method or should be shown as an overlay
-    Log::info("PluginEditor: Share post to message - dialog not yet fully implemented");
+    Log::info("PluginEditor: Showing share post to message dialog");
 }
 
-void SidechainAudioProcessorEditor::showShareStoryToMessage([[maybe_unused]] const StoryData& story)
+void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData& story)
 {
-    // TODO: ShareToMessageDialog currently only supports posts, not stories
-    // Need to extend ShareToMessageDialog to support Story sharing
-    Log::info("PluginEditor: Share story to message - not yet implemented");
+    if (!shareToMessageDialog)
+        return;
+
+    // Set up the dialog with required clients
+    shareToMessageDialog->setNetworkClient(networkClient.get());
+    shareToMessageDialog->setStreamChatClient(streamChatClient.get());
+    if (userDataStore)
+        shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
+
+    // Convert StoryData to Story
+    Story storyModel;
+    storyModel.id = story.id;
+    storyModel.userId = story.userId;
+    storyModel.username = story.username;
+    storyModel.userAvatarUrl = story.userAvatarUrl;
+    storyModel.audioUrl = story.audioUrl;
+    storyModel.filename = story.filename;
+    storyModel.midiFilename = story.midiFilename;
+    storyModel.audioDuration = story.audioDuration;
+    storyModel.midiData = story.midiData;
+    storyModel.midiPatternId = story.midiPatternId;
+    storyModel.viewCount = story.viewCount;
+    storyModel.viewed = story.viewed;
+    storyModel.expiresAt = story.expiresAt;
+    storyModel.createdAt = story.createdAt;
+
+    // Set the story to share
+    shareToMessageDialog->setStoryToShare(storyModel);
+
+    // Show the dialog
+    shareToMessageDialog->showModal(this);
+
+    Log::info("PluginEditor: Showing share story to message dialog");
 }
 
 void SidechainAudioProcessorEditor::showNotificationSettings()
@@ -2126,19 +2158,59 @@ void SidechainAudioProcessorEditor::navigateBack()
 
 void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, const juce::String& mail, const juce::String& token)
 {
+    using namespace Sidechain::Util;
+    using namespace Sidechain::Security;
+
+    // Log authentication success
+    Logger::getInstance().log(
+        LogLevel::Info,
+        "Security",
+        "User authentication successful: " + user
+    );
+
+    // Store token securely using platform-specific secure storage
+    auto* secureStore = SecureTokenStore::getInstance();
+    if (secureStore && secureStore->isAvailable())
+    {
+        if (secureStore->saveToken("auth_token", token))
+        {
+            Logger::getInstance().log(
+                LogLevel::Info,
+                "Security",
+                "Auth token stored securely in " + secureStore->getBackendType()
+            );
+        }
+        else
+        {
+            Logger::getInstance().log(
+                LogLevel::Error,
+                "Security",
+                "Failed to save auth token to secure storage"
+            );
+        }
+    }
+    else
+    {
+        Logger::getInstance().log(
+            LogLevel::Warning,
+            "Security",
+            "Secure storage not available, token not persisted"
+        );
+    }
+
     // Update legacy state (for backwards compatibility during migration)
     username = user;
     email = mail;
-    authToken = token;
+    authToken = "";  // Deprecated - token now stored securely, not in plain text
 
     // Update centralized UserDataStore
     if (userDataStore)
     {
-        userDataStore->setAuthToken(token);
+        userDataStore->setAuthToken(token);  // TODO: Update UserDataStore to use SecureTokenStore
         userDataStore->setBasicUserInfo(user, mail);
     }
 
-    // Set auth token on network client
+    // Set auth token on network client (NetworkClient needs token in memory for API requests)
     if (networkClient && !token.isEmpty())
         networkClient->setAuthToken(token);
 
@@ -2222,6 +2294,20 @@ void SidechainAudioProcessorEditor::logout()
     profilePicUrl = "";
     authToken = "";
 
+    // Clear auth token from secure storage
+    auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+    if (secureStore && secureStore->isAvailable())
+    {
+        if (secureStore->deleteToken("auth_token"))
+        {
+            Sidechain::Util::Logger::getInstance().log(
+                Sidechain::Util::LogLevel::Info,
+                "Security",
+                "Auth token cleared from secure storage"
+            );
+        }
+    }
+
     // Clear network client auth
     if (networkClient)
         networkClient->setAuthToken("");
@@ -2254,6 +2340,10 @@ void SidechainAudioProcessorEditor::confirmAndLogout()
 //==============================================================================
 void SidechainAudioProcessorEditor::saveLoginState()
 {
+    // DEPRECATED: This method is no longer used as token storage is handled by SecureTokenStore
+    // and other user data is persisted by UserDataStore.
+    // Keeping method for backwards compatibility, but it no longer saves the auth token.
+
     auto properties = juce::PropertiesFile::Options();
     properties.applicationName = "Sidechain";
     properties.filenameSuffix = ".settings";
@@ -2267,7 +2357,7 @@ void SidechainAudioProcessorEditor::saveLoginState()
         appProperties->setValue("username", username);
         appProperties->setValue("email", email);
         appProperties->setValue("profilePicUrl", profilePicUrl);
-        appProperties->setValue("authToken", authToken);
+        // authToken is NO LONGER saved here - it's stored securely via SecureTokenStore
     }
     else
     {
@@ -2290,22 +2380,47 @@ void SidechainAudioProcessorEditor::loadLoginState()
 
         if (userDataStore->isLoggedIn())
         {
+            // Load auth token from secure storage
+            auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+            juce::String loadedToken;
+
+            if (secureStore && secureStore->isAvailable())
+            {
+                if (auto tokenOpt = secureStore->loadToken("auth_token"))
+                {
+                    loadedToken = tokenOpt.value();
+                    Sidechain::Util::Logger::getInstance().log(
+                        Sidechain::Util::LogLevel::Info,
+                        "Security",
+                        "Auth token loaded from " + secureStore->getBackendType()
+                    );
+                }
+                else
+                {
+                    Sidechain::Util::Logger::getInstance().log(
+                        Sidechain::Util::LogLevel::Warning,
+                        "Security",
+                        "No auth token found in secure storage"
+                    );
+                }
+            }
+
             // Sync legacy state from UserDataStore
-            authToken = userDataStore->getAuthToken();
+            authToken = "";  // Deprecated - using SecureTokenStore
             username = userDataStore->getUsername();
             email = userDataStore->getEmail();
             profilePicUrl = userDataStore->getProfilePictureUrl();
 
-            Log::debug("loadLoginState: authToken loaded, length=" + juce::String(authToken.length()));
+            Log::debug("loadLoginState: authToken loaded from secure storage, length=" + juce::String(loadedToken.length()));
 
             // Set auth token on network client
-            if (!authToken.isEmpty() && networkClient)
-                networkClient->setAuthToken(authToken);
+            if (!loadedToken.isEmpty() && networkClient)
+                networkClient->setAuthToken(loadedToken);
 
             // Fetch getstream.io chat token for messaging
-            if (streamChatClient && !authToken.isEmpty())
+            if (streamChatClient && !loadedToken.isEmpty())
             {
-                streamChatClient->fetchToken(authToken, [](Outcome<StreamChatClient::TokenResult> result) {
+                streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
                     if (result.isOk())
                     {
                         Log::info("Stream chat token fetched successfully for user: " + result.getValue().userId);
@@ -2456,13 +2571,25 @@ void SidechainAudioProcessorEditor::connectWebSocket()
     if (!webSocketClient)
         return;
 
-    if (authToken.isEmpty())
+    // Load auth token from secure storage
+    auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+    juce::String token;
+
+    if (secureStore && secureStore->isAvailable())
     {
-        Log::warn("Cannot connect WebSocket: no auth token");
+        if (auto tokenOpt = secureStore->loadToken("auth_token"))
+        {
+            token = tokenOpt.value();
+        }
+    }
+
+    if (token.isEmpty())
+    {
+        Log::warn("Cannot connect WebSocket: no auth token in secure storage");
         return;
     }
 
-    webSocketClient->setAuthToken(authToken);
+    webSocketClient->setAuthToken(token);
     webSocketClient->connect();
     Log::info("WebSocket connection initiated");
 }

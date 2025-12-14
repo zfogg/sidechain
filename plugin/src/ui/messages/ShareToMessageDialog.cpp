@@ -185,7 +185,19 @@ void ShareToMessageDialog::setNetworkClient(NetworkClient* client)
 
 void ShareToMessageDialog::setPost(const FeedPost& postToShare)
 {
+    shareType = ShareType::Post;
     post = postToShare;
+    story = Story();  // Clear story data
+    dialogState = DialogState::Ready;
+    repaint();
+}
+
+void ShareToMessageDialog::setStoryToShare(const Story& storyToShare)
+{
+    shareType = ShareType::Story;
+    story = storyToShare;
+    post = FeedPost();  // Clear post data
+    dialogState = DialogState::Ready;
     repaint();
 }
 
@@ -203,15 +215,13 @@ void ShareToMessageDialog::showModal(juce::Component* parent)
     parent->addAndMakeVisible(this);
     toFront(true);
     searchInput.grabKeyboardFocus();
+
+    // Load recent conversations when showing
+    loadRecentConversations();
 }
 
 void ShareToMessageDialog::loadRecentConversations()
 {
-    // TODO: Implement loading recent conversations
-}
-
-void ShareToMessageDialog::setStoryToShare(const Story& story)
-{
-    // TODO: Implement setStoryToShare (not currently used)
-    (void)story;
+    // TODO: Implement loading recent conversations from StreamChatClient
+    // For now, this is a stub - would query recent channels from StreamChatClient
 }
