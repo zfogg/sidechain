@@ -596,12 +596,76 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     //==========================================================================
     // Create ShareToMessageDialog for sharing posts/stories to DMs
     shareToMessageDialog = std::make_unique<ShareToMessageDialog>();
-    shareToMessageDialog->onShareComplete = []() {
-        Log::info("PluginEditor: Content shared to DM successfully");
+    shareToMessageDialog->onShared = [](int conversationCount) {
+        Log::info("PluginEditor: Content shared to " + juce::String(conversationCount) + " conversation(s)");
         // Optionally show success message
     };
-    shareToMessageDialog->onCancelled = []() {
-        Log::debug("PluginEditor: Share to DM cancelled");
+    shareToMessageDialog->onClosed = []() {
+        Log::debug("PluginEditor: Share to DM closed");
+    };
+    // Not added as child - shown as modal overlay when needed
+
+    //==========================================================================
+    // Create UserPickerDialog for creating new conversations
+    userPickerDialog = std::make_unique<UserPickerDialog>();
+    userPickerDialog->setNetworkClient(networkClient.get());
+    userPickerDialog->setStreamChatClient(streamChatClient.get());
+    if (userDataStore)
+        userPickerDialog->setCurrentUserId(userDataStore->getUserId());
+
+    userPickerDialog->onUserSelected = [this](const juce::String& userId) {
+        // Create direct channel with selected user
+        if (streamChatClient && streamChatClient->isAuthenticated())
+        {
+            streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
+                juce::MessageManager::callAsync([this, result]() {
+                    if (result.isOk())
+                    {
+                        auto channel = result.getValue();
+                        showMessageThread(channel.type, channel.id);
+                    }
+                    else
+                    {
+                        Log::error("PluginEditor: Failed to create direct channel - " + result.getError());
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::WarningIcon,
+                            "Error",
+                            "Failed to create conversation: " + result.getError());
+                    }
+                });
+            });
+        }
+    };
+
+    userPickerDialog->onGroupCreated = [this](const std::vector<juce::String>& userIds, const juce::String& groupName) {
+        // Create group channel with selected users
+        if (streamChatClient && streamChatClient->isAuthenticated())
+        {
+            // Generate unique channel ID
+            juce::String channelId = "group_" + juce::String(juce::Time::currentTimeMillis());
+
+            streamChatClient->createGroupChannel(channelId, groupName, userIds, [this](Outcome<StreamChatClient::Channel> result) {
+                juce::MessageManager::callAsync([this, result]() {
+                    if (result.isOk())
+                    {
+                        auto channel = result.getValue();
+                        showMessageThread(channel.type, channel.id);
+                    }
+                    else
+                    {
+                        Log::error("PluginEditor: Failed to create group channel - " + result.getError());
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::MessageBoxIconType::WarningIcon,
+                            "Error",
+                            "Failed to create group: " + result.getError());
+                    }
+                });
+            });
+        }
+    };
+
+    userPickerDialog->onCancelled = []() {
+        Log::debug("PluginEditor: User picker cancelled");
     };
     // Not added as child - shown as modal overlay when needed
 
@@ -729,22 +793,41 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         showMessageThread(channelType, channelId);
     };
     messagesListComponent->onNewMessage = [this]() {
-        // Handle new message action - navigate to discovery to select user
-        Log::info("MessagesList: onNewMessage - about to show Discovery view");
-        showView(AppView::Discovery);
-        Log::info("MessagesList: onNewMessage - showView returned");
+        // Show user picker dialog to create new conversation
+        if (userPickerDialog)
+        {
+            userPickerDialog->setNetworkClient(networkClient.get());
+            userPickerDialog->setStreamChatClient(streamChatClient.get());
+            if (userDataStore)
+                userPickerDialog->setCurrentUserId(userDataStore->getUserId());
+
+            // Load recent conversations and suggested users
+            userPickerDialog->loadRecentConversations();
+            userPickerDialog->loadSuggestedUsers();
+
+            userPickerDialog->showModal(this);
+            Log::info("MessagesList: onNewMessage - showing UserPickerDialog");
+        }
     };
     messagesListComponent->onGoToDiscovery = [this]() {
         showView(AppView::Discovery);
     };
     messagesListComponent->onCreateGroup = [this]() {
-        // Handle create group action from header.
-        // NOT YET IMPLEMENTED - See notes/PLAN.md Phase 7 for group messaging.
-        // Should open dialog with user picker to create new group channel.
-        // TODO: Open group creation dialog with user picker - see PLAN.md Phase 7
-        // For now, navigate to discovery to select users
-        showView(AppView::Discovery);
-        Log::info("PluginEditor: Create Group clicked - navigating to Discovery (full UI pending)");
+        // Show user picker dialog to create new group
+        if (userPickerDialog)
+        {
+            userPickerDialog->setNetworkClient(networkClient.get());
+            userPickerDialog->setStreamChatClient(streamChatClient.get());
+            if (userDataStore)
+                userPickerDialog->setCurrentUserId(userDataStore->getUserId());
+
+            // Load recent conversations and suggested users
+            userPickerDialog->loadRecentConversations();
+            userPickerDialog->loadSuggestedUsers();
+
+            userPickerDialog->showModal(this);
+            Log::info("PluginEditor: Create Group clicked - showing UserPickerDialog");
+        }
     };
     addChildComponent(messagesListComponent.get());
 
@@ -756,6 +839,18 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     messageThreadComponent->setAudioProcessor(&audioProcessor);
     messageThreadComponent->onBackPressed = [this]() {
         showView(AppView::Messages);
+    };
+    messageThreadComponent->onSharedPostClicked = [this](const juce::String& postId) {
+        // Navigate to feed and show the post (would need to add scrollToPost functionality)
+        Log::info("MessageThread: Shared post clicked - " + postId);
+        showView(AppView::PostsFeed);
+        // TODO: Implement scrollToPost(postId) in PostsFeed to jump to specific post
+    };
+    messageThreadComponent->onSharedStoryClicked = [this](const juce::String& storyId) {
+        // Extract user ID from story ID (format: userId_timestamp)
+        juce::String userId = storyId.upToFirstOccurrenceOf("_", false, false);
+        if (userId.isNotEmpty())
+            showUserStory(userId);
     };
     addChildComponent(messageThreadComponent.get());
 
@@ -1941,28 +2036,21 @@ void SidechainAudioProcessorEditor::showSharePostToMessage(const FeedPost& post)
         shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
 
     // Set the post to share
-    shareToMessageDialog->setPostToShare(post);
+    shareToMessageDialog->setPost(post);
 
-    // Show the dialog
-    shareToMessageDialog->showModal(this);
+    // Load recent conversations
+    shareToMessageDialog->loadRecentConversations();
+
+    // TODO: Show the dialog as a modal overlay
+    // ShareToMessageDialog needs a showModal() method or should be shown as an overlay
+    Log::info("PluginEditor: Share post to message - dialog not yet fully implemented");
 }
 
-void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData& story)
+void SidechainAudioProcessorEditor::showShareStoryToMessage([[maybe_unused]] const StoryData& story)
 {
-    if (!shareToMessageDialog)
-        return;
-
-    // Set up the dialog with required clients
-    shareToMessageDialog->setNetworkClient(networkClient.get());
-    shareToMessageDialog->setStreamChatClient(streamChatClient.get());
-    if (userDataStore)
-        shareToMessageDialog->setCurrentUserId(userDataStore->getUserId());
-
-    // Set the story to share
-    shareToMessageDialog->setStoryToShare(story);
-
-    // Show the dialog
-    shareToMessageDialog->showModal(this);
+    // TODO: ShareToMessageDialog currently only supports posts, not stories
+    // Need to extend ShareToMessageDialog to support Story sharing
+    Log::info("PluginEditor: Share story to message - not yet implemented");
 }
 
 void SidechainAudioProcessorEditor::showNotificationSettings()
