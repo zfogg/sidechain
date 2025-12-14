@@ -43,6 +43,9 @@
 #include "network/StreamChatClient.h"
 #include "ui/animations/ViewTransitionManager.h"
 
+// Using declarations for animations
+using Sidechain::UI::Animations::ViewTransitionManager;
+
 //==============================================================================
 /**
  * Sidechain Audio Plugin Editor
