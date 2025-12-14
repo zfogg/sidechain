@@ -115,6 +115,37 @@ void NetworkClient::uploadStory(const juce::AudioBuffer<float>& audioBuffer,
         return;
     }
 
+    // Upload rate limiting check (Task 4.18)
+    if (uploadRateLimiter)
+    {
+        juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
+        auto rateLimitStatus = uploadRateLimiter->tryConsume(identifier, 1);
+
+        if (!rateLimitStatus.allowed)
+        {
+            int retrySeconds = rateLimitStatus.retryAfterSeconds > 0
+                ? rateLimitStatus.retryAfterSeconds
+                : rateLimitStatus.resetInSeconds;
+
+            juce::String retryMsg = retrySeconds > 0
+                ? " You can upload again in " + juce::String(retrySeconds) + " seconds."
+                : " Please try again later.";
+
+            juce::String errorMsg = "Upload limit exceeded." + retryMsg;
+            Log::warn("Story upload rate limit exceeded for " + identifier + ": " + errorMsg);
+
+            if (callback)
+            {
+                juce::MessageManager::callAsync([callback, errorMsg]() {
+                    callback(Outcome<juce::var>::error(errorMsg));
+                });
+            }
+            return;
+        }
+
+        Log::debug("Story upload rate limit OK for " + identifier + " - remaining: " + juce::String(rateLimitStatus.remaining) + "/" + juce::String(rateLimitStatus.limit));
+    }
+
     Async::runVoid([this, audioBuffer, sampleRate, midiData, bpm, key, genres, callback]() {
         // Encode audio to MP3
         juce::MemoryBlock mp3Data = encodeAudioToMP3(audioBuffer, sampleRate);

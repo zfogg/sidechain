@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "../util/Constants.h"
 #include "../util/Result.h"
+#include "../security/RateLimiter.h"
 #include <functional>
 #include <atomic>
 #include <memory>
@@ -1271,6 +1272,10 @@ private:
     std::atomic<ConnectionStatus> connectionStatus { ConnectionStatus::Disconnected };
     std::atomic<bool> shuttingDown { false };
     std::atomic<int> activeRequestCount { 0 };
+
+    // Rate limiting (Task 4.18)
+    std::shared_ptr<Sidechain::Security::RateLimiter> apiRateLimiter;      // 100 requests per 60 seconds
+    std::shared_ptr<Sidechain::Security::RateLimiter> uploadRateLimiter;   // 10 uploads per hour
 
     //==========================================================================
     RequestResult makeRequestWithRetry(const juce::String& endpoint,

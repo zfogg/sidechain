@@ -108,6 +108,25 @@ NetworkClient::NetworkClient(const Config& cfg)
 {
     Log::info("NetworkClient initialized with base URL: " + config.baseUrl);
     Log::debug("  Timeout: " + juce::String(config.timeoutMs) + "ms, Max retries: " + juce::String(config.maxRetries));
+
+    // Initialize rate limiters (Task 4.18)
+    using namespace Sidechain::Security;
+
+    // API rate limiter: 100 requests per 60 seconds with 20 burst allowance
+    apiRateLimiter = RateLimiter::create()
+        ->setRate(100)
+        ->setWindow(60)
+        ->setBurstSize(20)
+        ->setAlgorithm(RateLimiter::Algorithm::TokenBucket);
+
+    // Upload rate limiter: 10 uploads per hour (3600 seconds) with 3 burst allowance
+    uploadRateLimiter = RateLimiter::create()
+        ->setRate(10)
+        ->setWindow(3600)
+        ->setBurstSize(3)
+        ->setAlgorithm(RateLimiter::Algorithm::TokenBucket);
+
+    Log::info("Rate limiters initialized: API (100/60s), Uploads (10/hour)");
 }
 
 NetworkClient::~NetworkClient()
@@ -192,6 +211,52 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
                                                                   bool requireAuth)
 {
     RequestResult result;
+
+    // Rate limiting check (Task 4.18)
+    if (apiRateLimiter)
+    {
+        // Use user ID as identifier, or "anonymous" if not authenticated
+        juce::String identifier = currentUserId.isEmpty() ? "anonymous" : currentUserId;
+        auto rateLimitStatus = apiRateLimiter->tryConsume(identifier, 1);
+
+        if (!rateLimitStatus.allowed)
+        {
+            result.success = false;
+            result.httpStatus = 429;  // HTTP 429 Too Many Requests
+
+            // Calculate retry time
+            int retrySeconds = rateLimitStatus.retryAfterSeconds > 0
+                ? rateLimitStatus.retryAfterSeconds
+                : rateLimitStatus.resetInSeconds;
+
+            juce::String retryMsg = retrySeconds > 0
+                ? " Please try again in " + juce::String(retrySeconds) + " seconds."
+                : " Please try again later.";
+
+            result.errorMessage = "Too many requests" + retryMsg;
+
+            // Create error response JSON
+            auto* errorObj = new juce::DynamicObject();
+            errorObj->setProperty("error", "rate_limit_exceeded");
+            errorObj->setProperty("message", result.errorMessage);
+            errorObj->setProperty("retry_after", retrySeconds);
+            errorObj->setProperty("limit", rateLimitStatus.limit);
+            errorObj->setProperty("remaining", rateLimitStatus.remaining);
+            result.data = juce::var(errorObj);
+
+            Log::warn("Rate limit exceeded for " + identifier + ": " + result.errorMessage);
+
+            // Report rate limit error
+            HttpErrorHandler::getInstance().reportError(
+                endpoint, method, 429, result.errorMessage,
+                juce::JSON::toString(result.data));
+
+            return result;
+        }
+
+        Log::debug("Rate limit OK for " + identifier + " - remaining: " + juce::String(rateLimitStatus.remaining) + "/" + juce::String(rateLimitStatus.limit));
+    }
+
     int attempts = 0;
 
     while (attempts < config.maxRetries && !shuttingDown.load())
