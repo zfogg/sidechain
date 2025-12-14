@@ -283,3 +283,29 @@ else()
     set(SIDECHAIN_HAS_WEBSOCKETPP FALSE CACHE INTERNAL "")
 endif()
 
+#==============================================================================
+# RxCpp - Reactive Extensions for C++ (Header-Only)
+#==============================================================================
+set(RXCPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/RxCpp")
+if(EXISTS "${RXCPP_DIR}/Rx/v2/src/rxcpp/rx.hpp")
+    message(STATUS "RxCpp found at: ${RXCPP_DIR}")
+
+    # Create an interface library for RxCpp (header-only)
+    # Use SYSTEM to suppress warnings from RxCpp headers
+    add_library(rxcpp INTERFACE)
+    target_include_directories(rxcpp SYSTEM INTERFACE "${RXCPP_DIR}/Rx/v2/src")
+
+    # RxCpp requires C++14 or later (we're using C++20+)
+    target_compile_features(rxcpp INTERFACE cxx_std_14)
+
+    # RxCpp uses std threading instead of Boost
+    set_target_properties(rxcpp PROPERTIES INTERFACE_SYSTEM TRUE)
+
+    set(SIDECHAIN_HAS_RXCPP TRUE CACHE INTERNAL "")
+    message(STATUS "RxCpp will be available as an interface library (header-only)")
+else()
+    message(WARNING "RxCpp not found at ${RXCPP_DIR}")
+    message(STATUS "Run: git clone --depth=1 --branch v4.1.1 https://github.com/ReactiveX/RxCpp.git ${RXCPP_DIR}")
+    set(SIDECHAIN_HAS_RXCPP FALSE CACHE INTERNAL "")
+endif()
+

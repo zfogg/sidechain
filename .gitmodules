@@ -7,3 +7,6 @@
 [submodule "deps/asio"]
 	path = deps/asio
 	url = git@github.com:chriskohlhoff/asio.git
+[submodule "deps/RxCpp"]
+	path = deps/RxCpp
+	url = https://github.com/ReactiveX/RxCpp.git
