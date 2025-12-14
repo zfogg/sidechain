@@ -3,6 +3,45 @@
 #==============================================================================
 
 #==============================================================================
+# Helper function to suppress warnings on dependency targets
+# This prevents noisy warnings from third-party code cluttering our build output
+#==============================================================================
+function(suppress_warnings_for_target target_name)
+    if(NOT TARGET ${target_name})
+        return()
+    endif()
+
+    get_target_property(target_type ${target_name} TYPE)
+
+    # For interface libraries, mark includes as SYSTEM
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+        get_target_property(include_dirs ${target_name} INTERFACE_INCLUDE_DIRECTORIES)
+        if(include_dirs)
+            set_target_properties(${target_name} PROPERTIES
+                INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${include_dirs}"
+            )
+        endif()
+    else()
+        # For compiled libraries, add warning suppression flags
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            target_compile_options(${target_name} PRIVATE -w)
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            target_compile_options(${target_name} PRIVATE -w)
+        elseif(MSVC)
+            target_compile_options(${target_name} PRIVATE /w)
+        endif()
+
+        # Also mark include directories as SYSTEM
+        get_target_property(include_dirs ${target_name} INTERFACE_INCLUDE_DIRECTORIES)
+        if(include_dirs)
+            set_target_properties(${target_name} PROPERTIES
+                INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${include_dirs}"
+            )
+        endif()
+    endif()
+endfunction()
+
+#==============================================================================
 # Dependencies Cache Directory
 # Dependencies are built to a separate cache directory so they survive
 # `cmake --build --clean-first` rebuilds. Only plugin code rebuilds.
@@ -44,6 +83,34 @@ if(SIDECHAIN_BUILD_PLUGIN_HOST AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../deps/J
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../deps/JUCE/extras/AudioPluginHost" "${SIDECHAIN_DEPS_CACHE_DIR}/AudioPluginHost" EXCLUDE_FROM_ALL)
 endif()
 
+# Suppress warnings for all JUCE modules
+set(JUCE_MODULES
+    juce_analytics
+    juce_audio_basics
+    juce_audio_devices
+    juce_audio_formats
+    juce_audio_plugin_client
+    juce_audio_processors
+    juce_audio_utils
+    juce_box2d
+    juce_core
+    juce_cryptography
+    juce_data_structures
+    juce_dsp
+    juce_events
+    juce_graphics
+    juce_gui_basics
+    juce_gui_extra
+    juce_midi_ci
+    juce_opengl
+    juce_osc
+    juce_product_unlocking
+    juce_video
+)
+foreach(module ${JUCE_MODULES})
+    suppress_warnings_for_target(${module})
+endforeach()
+
 #==============================================================================
 # libkeyfinder - Musical Key Detection Library
 #==============================================================================
@@ -70,6 +137,7 @@ if(SIDECHAIN_ENABLE_KEY_DETECTION)
                 set_target_properties(keyfinder PROPERTIES
                     IMPORTED_LOCATION "${LIBKEYFINDER_LIB}"
                     INTERFACE_INCLUDE_DIRECTORIES "${LIBKEYFINDER_DIR}/src"
+                    INTERFACE_LINK_LIBRARIES "${FFTW3_LIBRARIES}"
                     POSITION_INDEPENDENT_CODE ON
                 )
 
@@ -89,6 +157,8 @@ if(SIDECHAIN_ENABLE_KEY_DETECTION)
                     set(SIDECHAIN_HAS_KEYFINDER TRUE CACHE INTERNAL "")
                     # Enable position independent code for shared library linking
                     set_target_properties(keyfinder PROPERTIES POSITION_INDEPENDENT_CODE ON)
+                    # Suppress warnings from libkeyfinder
+                    suppress_warnings_for_target(keyfinder)
                 endif()
             endif()
         else()
@@ -120,8 +190,9 @@ if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp" OR EXISTS "${ASIO_DIR}/include/asi
     # Create an interface library for ASIO (header-only)
     add_library(asio INTERFACE)
     # Try nested path first (ASIO 1.14.1), then flat path (newer versions)
+    # Use SYSTEM to suppress warnings from ASIO headers
     if(EXISTS "${ASIO_DIR}/asio/include/asio.hpp")
-        target_include_directories(asio INTERFACE "${ASIO_DIR}/asio/include")
+        target_include_directories(asio SYSTEM INTERFACE "${ASIO_DIR}/asio/include")
     endif()
 
     # Define ASIO_STANDALONE so ASIO doesn't require Boost
@@ -167,8 +238,9 @@ if(EXISTS "${WEBSOCKETPP_DIR}/websocketpp")
     message(STATUS "websocketpp found at: ${WEBSOCKETPP_DIR}")
 
     # Create an interface library for websocketpp (header-only)
+    # Use SYSTEM to suppress warnings from websocketpp headers
     add_library(websocketpp INTERFACE)
-    target_include_directories(websocketpp INTERFACE "${WEBSOCKETPP_DIR}")
+    target_include_directories(websocketpp SYSTEM INTERFACE "${WEBSOCKETPP_DIR}")
 
     # Tell websocketpp to use C++11 features instead of Boost
     target_compile_definitions(websocketpp INTERFACE
