@@ -217,14 +217,18 @@ void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     int yOffset = bounds.getY();
 
+    // For reposts, show original post info; otherwise show current post info
+    juce::String displayFilename = post.isARepost ? post.originalFilename : post.filename;
+    juce::String displayUsername = post.isARepost ? post.originalUsername : post.username;
+
     // Primary header: filename if available, otherwise username
     g.setColour(SidechainColors::textPrimary());
     g.setFont(16.0f);
 
-    if (post.filename.isNotEmpty())
+    if (displayFilename.isNotEmpty())
     {
         // Show filename as main header
-        g.drawText(post.filename,
+        g.drawText(displayFilename,
                    bounds.getX(), yOffset, bounds.getWidth(), 22,
                    juce::Justification::centredLeft);
         yOffset += 22;
@@ -232,7 +236,7 @@ void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
         // Show "by username" below
         g.setColour(SidechainColors::textSecondary());
         g.setFont(14.0f);
-        g.drawText("by " + (post.username.isEmpty() ? "Unknown" : post.username),
+        g.drawText("by " + (displayUsername.isEmpty() ? "Unknown" : displayUsername),
                    bounds.getX(), yOffset, bounds.getWidth(), 20,
                    juce::Justification::centredLeft);
         yOffset += 20;
@@ -240,7 +244,7 @@ void PostCard::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
     else
     {
         // Fallback: show username as main header
-        g.drawText(post.username.isEmpty() ? "Unknown" : post.username,
+        g.drawText(displayUsername.isEmpty() ? "Unknown" : displayUsername,
                    bounds.getX(), yOffset, bounds.getWidth(), 22,
                    juce::Justification::centredLeft);
         yOffset += 24;
