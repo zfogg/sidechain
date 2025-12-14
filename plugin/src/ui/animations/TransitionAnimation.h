@@ -13,6 +13,25 @@ namespace UI {
 namespace Animations {
 
 /**
+ * IAnimation - Common interface for all animations
+ *
+ * Provides basic control methods that all animation types must implement.
+ */
+class IAnimation
+{
+public:
+    virtual ~IAnimation() = default;
+
+    virtual bool isRunning() const = 0;
+    virtual bool isPaused() const = 0;
+    virtual bool isSettled() const = 0;
+
+    virtual void pause() = 0;
+    virtual void resume() = 0;
+    virtual void cancel() = 0;
+};
+
+/**
  * TransitionAnimation - Smooth value transitions with easing curves
  *
  * Animates a value from start to end over a specified duration with an easing function.
@@ -29,7 +48,7 @@ namespace Animations {
  * @tparam T The animated value type (float, int, juce::Colour, etc)
  */
 template<typename T>
-class TransitionAnimation : public std::enable_shared_from_this<TransitionAnimation<T>>
+class TransitionAnimation : public IAnimation, public std::enable_shared_from_this<TransitionAnimation<T>>
 {
 public:
     using ProgressCallback = std::function<void(const T&)>;
@@ -166,20 +185,19 @@ public:
     /**
      * Pause the animation
      */
-    std::shared_ptr<TransitionAnimation> pause()
+    void pause() override
     {
         if (isRunning_ && !isPaused_)
         {
             isPaused_ = true;
             pauseTime_ = std::chrono::steady_clock::now();
         }
-        return this->shared_from_this();
     }
 
     /**
      * Resume a paused animation
      */
-    std::shared_ptr<TransitionAnimation> resume()
+    void resume() override
     {
         if (isRunning_ && isPaused_)
         {
@@ -187,13 +205,12 @@ public:
             auto pauseDuration = std::chrono::steady_clock::now() - pauseTime_;
             pausedElapsed_ += std::chrono::duration_cast<std::chrono::milliseconds>(pauseDuration).count();
         }
-        return this->shared_from_this();
     }
 
     /**
      * Cancel the animation
      */
-    std::shared_ptr<TransitionAnimation> cancel()
+    void cancel() override
     {
         if (isRunning_)
         {
@@ -203,7 +220,6 @@ public:
             if (cancellationCallback_)
                 cancellationCallback_();
         }
-        return this->shared_from_this();
     }
 
     // ========== State Queries ==========
@@ -211,17 +227,17 @@ public:
     /**
      * Check if animation is currently running
      */
-    bool isRunning() const { return isRunning_; }
+    bool isRunning() const override { return isRunning_; }
 
     /**
      * Check if animation is paused
      */
-    bool isPaused() const { return isPaused_; }
+    bool isPaused() const override { return isPaused_; }
 
     /**
      * Check if animation is settled (completed)
      */
-    bool isSettled() const { return !isRunning_; }
+    bool isSettled() const override { return !isRunning_; }
 
     /**
      * Get current progress [0, 1]
