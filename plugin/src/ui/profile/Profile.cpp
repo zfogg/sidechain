@@ -453,7 +453,7 @@ void Profile::drawUserInfo(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Display name with optional lock icon for private accounts
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(22.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(22.0f).withStyle("Bold"));
     juce::String name = profile.displayName.isEmpty() ? profile.username : profile.displayName;
 
     if (profile.isPrivate)
@@ -520,7 +520,7 @@ void Profile::drawStats(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Posts count
     auto postsBounds = juce::Rectangle<int>(bounds.getX(), bounds.getY(), statSpacing, bounds.getHeight());
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
     g.drawText(StringFormatter::formatCount(profile.postCount), postsBounds.withHeight(22), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(12.0f);
@@ -529,7 +529,7 @@ void Profile::drawStats(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Followers count (tappable)
     auto followersBounds = juce::Rectangle<int>(bounds.getX() + statSpacing, bounds.getY(), statSpacing, bounds.getHeight());
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
     g.drawText(StringFormatter::formatCount(profile.followerCount), followersBounds.withHeight(22), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(12.0f);
@@ -538,14 +538,14 @@ void Profile::drawStats(juce::Graphics& g, juce::Rectangle<int> bounds)
     // Following count (tappable)
     auto followingBounds = juce::Rectangle<int>(bounds.getX() + statSpacing * 2, bounds.getY(), statSpacing, bounds.getHeight());
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
     g.drawText(StringFormatter::formatCount(profile.followingCount), followingBounds.withHeight(22), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(12.0f);
     g.drawText("Following", followingBounds.withY(followingBounds.getY() + 22).withHeight(20), juce::Justification::centred);
 }
 
-void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
+void Profile::drawActionButtons(juce::Graphics& g, [[maybe_unused]] juce::Rectangle<int> bounds)
 {
     bool isOwnProfile = profile.isOwnProfile(currentUserId);
 

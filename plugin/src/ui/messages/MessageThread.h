@@ -105,6 +105,7 @@ private:
     void drawHeader(juce::Graphics& g);
     void drawMessages(juce::Graphics& g);
     void drawMessageBubble(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int width);
+    void drawMessageReactions(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int x, int maxWidth);
     void drawEmptyState(juce::Graphics& g);
     void drawErrorState(juce::Graphics& g);
     void drawInputArea(juce::Graphics& g);
@@ -151,6 +152,16 @@ private:
     void reportMessage(const StreamChatClient::Message& message);
     void blockUser(const StreamChatClient::Message& message);
 
+    // Reaction actions
+    void showQuickReactionPicker(const StreamChatClient::Message& message, const juce::Point<int>& screenPos);
+    void addReaction(const juce::String& messageId, const juce::String& reactionType);
+    void removeReaction(const juce::String& messageId, const juce::String& reactionType);
+    void toggleReaction(const juce::String& messageId, const juce::String& reactionType);
+    bool hasUserReacted(const StreamChatClient::Message& message, const juce::String& reactionType) const;
+    int getReactionCount(const StreamChatClient::Message& message, const juce::String& reactionType) const;
+    std::vector<juce::String> getReactionTypes(const StreamChatClient::Message& message) const;
+    juce::Rectangle<int> getReactionBounds(const StreamChatClient::Message& message, const juce::String& reactionType) const;
+
     // Helper to get reply preview bounds
     juce::Rectangle<int> getReplyPreviewBounds() const;
     juce::Rectangle<int> getCancelReplyButtonBounds() const;
@@ -169,6 +180,17 @@ private:
     StreamChatClient::Message replyingToMessage;  // Full message being replied to
     juce::String editingMessageId;
     juce::String editingMessageText;
+
+    // Reaction state
+    struct ReactionPill
+    {
+        juce::String messageId;
+        juce::String reactionType;
+        juce::Rectangle<int> bounds;
+        int count;
+        bool userReacted;
+    };
+    std::vector<ReactionPill> reactionPills;  // Cached reaction pill bounds for hit testing
 
     // Audio snippet sending
     void sendAudioSnippet(const juce::AudioBuffer<float>& audioBuffer, double sampleRate);

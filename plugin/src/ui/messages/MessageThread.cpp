@@ -8,6 +8,7 @@
 #include "../../util/StringFormatter.h"
 #include "../../util/Colors.h"
 #include <algorithm>
+#include <map>
 
 //==============================================================================
 MessageThread::MessageThread()
@@ -84,6 +85,9 @@ MessageThread::~MessageThread()
 void MessageThread::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colour(0xff1a1a1a));
+
+    // Clear reaction pills cache for this paint cycle
+    reactionPills.clear();
 
     drawHeader(g);
 
@@ -234,6 +238,16 @@ void MessageThread::mouseUp(const juce::MouseEvent& event)
         }
     }
 
+    // Check for clicks on reaction pills
+    for (const auto& pill : reactionPills)
+    {
+        if (pill.bounds.contains(pos))
+        {
+            toggleReaction(pill.messageId, pill.reactionType);
+            return;
+        }
+    }
+
     // Check for clicks on parent message preview (to scroll to parent)
     for (const auto& message : messages)
     {
@@ -270,7 +284,7 @@ void MessageThread::mouseUp(const juce::MouseEvent& event)
     }
 }
 
-void MessageThread::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+void MessageThread::mouseWheelMove([[maybe_unused]] const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
     scrollPosition -= wheel.deltaY * 30.0;
     scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
@@ -769,6 +783,9 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
     }
 
     y += bubbleHeight + MESSAGE_BUBBLE_PADDING;
+
+    // Draw reactions below the bubble
+    drawMessageReactions(g, message, y, bubbleX, bubbleWidth);
 }
 
 void MessageThread::drawEmptyState(juce::Graphics& g)
@@ -888,7 +905,7 @@ void MessageThread::drawInputArea(juce::Graphics& g)
 }
 
 //==============================================================================
-void MessageThread::scrollBarMoved(juce::ScrollBar* bar, double newRangeStart)
+void MessageThread::scrollBarMoved([[maybe_unused]] juce::ScrollBar* bar, double newRangeStart)
 {
     scrollPosition = newRangeStart;
     repaint();
@@ -1023,49 +1040,57 @@ void MessageThread::showMessageActionsMenu(const StreamChatClient::Message& mess
     juce::PopupMenu menu;
     bool ownMessage = isOwnMessage(message);
 
+    // React is always available
+    menu.addItem(1, "React...");
+    menu.addSeparator();
+
     // Copy is always available
-    menu.addItem(1, "Copy");
+    menu.addItem(2, "Copy");
 
     if (ownMessage)
     {
         // Only allow editing/deleting own messages
         // Edit only if message is less than 5 minutes old (getstream.io limit)
         // For now, we'll allow edit for all own messages - getstream.io will enforce the limit
-        menu.addItem(2, "Edit");
-        menu.addItem(3, "Delete");
+        menu.addItem(3, "Edit");
+        menu.addItem(4, "Delete");
     }
     else
     {
         // Reply to others' messages
-        menu.addItem(4, "Reply");
+        menu.addItem(5, "Reply");
         menu.addSeparator();
-        menu.addItem(5, "Report");
-        menu.addItem(6, "Block User");
+        menu.addItem(6, "Report");
+        menu.addItem(7, "Block User");
     }
 
     menu.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea(juce::Rectangle<int>(screenPos, juce::Point<int>(1, 1))),
-        [this, message, ownMessage](int result) {
+        [this, message, ownMessage, screenPos](int result) {
             if (result == 1)
+            {
+                showQuickReactionPicker(message, screenPos);
+            }
+            else if (result == 2)
             {
                 copyMessageText(message.text);
             }
-            else if (result == 2 && ownMessage)
+            else if (result == 3 && ownMessage)
             {
                 editMessage(message);
             }
-            else if (result == 3 && ownMessage)
+            else if (result == 4 && ownMessage)
             {
                 deleteMessage(message);
             }
-            else if (result == 4 && !ownMessage)
+            else if (result == 5 && !ownMessage)
             {
                 replyToMessage(message);
             }
-            else if (result == 5 && !ownMessage)
+            else if (result == 6 && !ownMessage)
             {
                 reportMessage(message);
             }
-            else if (result == 6 && !ownMessage)
+            else if (result == 7 && !ownMessage)
             {
                 blockUser(message);
             }
@@ -1401,7 +1426,7 @@ void MessageThread::renameGroup()
             }
 
             streamChatClient->updateChannel(channelType, channelId, newName, juce::var(),
-                [this, newName](Outcome<StreamChatClient::Channel> result) {
+                [this, channelNameNew = newName](Outcome<StreamChatClient::Channel> result) {
                     if (result.isOk())
                     {
                         auto updatedChannel = result.getValue();
@@ -1833,8 +1858,8 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics& g, const StreamChatCl
     // Left accent border (gradient for stories)
     auto gradientBounds = bounds.removeFromLeft(4);
     juce::ColourGradient gradient(
-        juce::Colour(0xFFFF6B6B), gradientBounds.getX(), gradientBounds.getY(),
-        juce::Colour(0xFF9B59B6), gradientBounds.getX(), gradientBounds.getBottom(),
+        juce::Colour(0xFFFF6B6B), static_cast<float>(gradientBounds.getX()), static_cast<float>(gradientBounds.getY()),
+        juce::Colour(0xFF9B59B6), static_cast<float>(gradientBounds.getX()), static_cast<float>(gradientBounds.getBottom()),
         false);
     g.setGradientFill(gradient);
     g.fillRoundedRectangle(gradientBounds.toFloat(), 8.0f);
@@ -1870,4 +1895,280 @@ void MessageThread::drawSharedStoryPreview(juce::Graphics& g, const StreamChatCl
     g.setColour(SidechainColors::textMuted());
     g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
     g.drawText("Tap to view", contentBounds, juce::Justification::centredLeft);
+}
+
+//==============================================================================
+// Reaction Methods
+//==============================================================================
+
+std::vector<juce::String> MessageThread::getReactionTypes(const StreamChatClient::Message& message) const
+{
+    std::vector<juce::String> types;
+
+    if (!message.reactions.isObject())
+        return types;
+
+    // getstream.io stores reactions in reaction_groups: { "like": { count: 5, sum_scores: 5 }, ... }
+    auto reactionGroups = message.reactions.getProperty("reaction_groups", juce::var());
+    if (!reactionGroups.isObject())
+        return types;
+
+    auto* obj = reactionGroups.getDynamicObject();
+    if (obj == nullptr)
+        return types;
+
+    for (auto& prop : obj->getProperties())
+        types.push_back(prop.name.toString());
+
+    return types;
+}
+
+int MessageThread::getReactionCount(const StreamChatClient::Message& message, const juce::String& reactionType) const
+{
+    if (!message.reactions.isObject())
+        return 0;
+
+    auto reactionGroups = message.reactions.getProperty("reaction_groups", juce::var());
+    if (!reactionGroups.isObject())
+        return 0;
+
+    auto group = reactionGroups.getProperty(reactionType, juce::var());
+    if (!group.isObject())
+        return 0;
+
+    return static_cast<int>(group.getProperty("count", 0));
+}
+
+bool MessageThread::hasUserReacted(const StreamChatClient::Message& message, const juce::String& reactionType) const
+{
+    if (!message.reactions.isObject())
+        return false;
+
+    // Check own_reactions array
+    auto ownReactions = message.reactions.getProperty("own_reactions", juce::var());
+    if (!ownReactions.isArray())
+        return false;
+
+    auto* arr = ownReactions.getArray();
+    if (arr == nullptr)
+        return false;
+
+    for (int i = 0; i < arr->size(); ++i)
+    {
+        auto reaction = (*arr)[i];
+        if (reaction.isObject())
+        {
+            auto type = reaction.getProperty("type", "").toString();
+            if (type == reactionType)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void MessageThread::addReaction(const juce::String& messageId, const juce::String& reactionType)
+{
+    if (streamChatClient == nullptr)
+        return;
+
+    Log::info("MessageThread: Adding reaction '" + reactionType + "' to message " + messageId);
+
+    streamChatClient->addReaction(channelType, channelId, messageId, reactionType,
+        [this, messageId, reactionType](Outcome<void> result) {
+            if (result.isOk())
+            {
+                Log::info("MessageThread: Reaction added successfully");
+                loadMessages();  // Reload to get updated reactions
+            }
+            else
+            {
+                Log::error("MessageThread: Failed to add reaction - " + result.getError());
+            }
+        });
+}
+
+void MessageThread::removeReaction(const juce::String& messageId, const juce::String& reactionType)
+{
+    if (streamChatClient == nullptr)
+        return;
+
+    Log::info("MessageThread: Removing reaction '" + reactionType + "' from message " + messageId);
+
+    streamChatClient->removeReaction(channelType, channelId, messageId, reactionType,
+        [this, messageId, reactionType](Outcome<void> result) {
+            if (result.isOk())
+            {
+                Log::info("MessageThread: Reaction removed successfully");
+                loadMessages();  // Reload to get updated reactions
+            }
+            else
+            {
+                Log::error("MessageThread: Failed to remove reaction - " + result.getError());
+            }
+        });
+}
+
+void MessageThread::toggleReaction(const juce::String& messageId, const juce::String& reactionType)
+{
+    // Find the message
+    const StreamChatClient::Message* msg = nullptr;
+    for (const auto& m : messages)
+    {
+        if (m.id == messageId)
+        {
+            msg = &m;
+            break;
+        }
+    }
+
+    if (msg == nullptr)
+        return;
+
+    if (hasUserReacted(*msg, reactionType))
+        removeReaction(messageId, reactionType);
+    else
+        addReaction(messageId, reactionType);
+}
+
+void MessageThread::drawMessageReactions(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int x, int maxWidth)
+{
+    auto reactionTypes = getReactionTypes(message);
+    if (reactionTypes.empty())
+        return;
+
+    // Map reaction types to emojis
+    static const std::map<juce::String, juce::String> emojiMap = {
+        {"like", "❤️"},
+        {"love", "❤️"},
+        {"fire", "🔥"},
+        {"laugh", "😂"},
+        {"wow", "😮"},
+        {"sad", "😢"},
+        {"pray", "🙏"},
+        {"thumbsup", "👍"},
+        {"thumbsdown", "👎"},
+        {"clap", "👏"}
+    };
+
+    int pillHeight = 28;
+    int pillPadding = 6;
+    int pillSpacing = 6;
+    int currentX = x;
+    int currentY = y + 4;  // Small gap below message bubble
+
+    for (const auto& type : reactionTypes)
+    {
+        int count = getReactionCount(message, type);
+        if (count == 0)
+            continue;
+
+        bool userReacted = hasUserReacted(message, type);
+
+        // Get emoji for this reaction type
+        juce::String emoji = type;  // Default to type name
+        auto it = emojiMap.find(type);
+        if (it != emojiMap.end())
+            emoji = it->second;
+
+        // Calculate pill text and width
+        juce::String pillText = emoji + " " + juce::String(count);
+        juce::Font font(juce::FontOptions().withHeight(13.0f));
+
+        // Use TextLayout instead of deprecated getStringWidth
+        juce::AttributedString attrStr;
+        attrStr.setText(pillText);
+        attrStr.setFont(font);
+        juce::TextLayout layout;
+        layout.createLayout(attrStr, 1000.0f);
+        int textWidth = static_cast<int>(layout.getWidth());
+
+        int pillWidth = textWidth + 2 * pillPadding;
+
+        // Wrap to next line if needed
+        if (currentX + pillWidth > x + maxWidth)
+        {
+            currentX = x;
+            currentY += pillHeight + pillSpacing;
+        }
+
+        // Draw pill background
+        juce::Rectangle<int> pillBounds(currentX, currentY, pillWidth, pillHeight);
+
+        if (userReacted)
+        {
+            // Highlighted state - filled with accent color
+            g.setColour(SidechainColors::coralPink());
+            g.fillRoundedRectangle(pillBounds.toFloat(), 14.0f);
+        }
+        else
+        {
+            // Normal state - border only
+            g.setColour(SidechainColors::borderActive());
+            g.drawRoundedRectangle(pillBounds.toFloat(), 14.0f, 1.5f);
+        }
+
+        // Draw pill text
+        g.setColour(userReacted ? juce::Colours::white : SidechainColors::textPrimary());
+        g.setFont(font);
+        g.drawText(pillText, pillBounds, juce::Justification::centred);
+
+        // Cache this pill for hit testing
+        ReactionPill pill;
+        pill.messageId = message.id;
+        pill.reactionType = type;
+        pill.bounds = pillBounds;
+        pill.count = count;
+        pill.userReacted = userReacted;
+        reactionPills.push_back(pill);
+
+        currentX += pillWidth + pillSpacing;
+    }
+
+    // Update y to below the reactions
+    int reactionsHeight = (currentY - y) + pillHeight + 4;
+    y += reactionsHeight;
+}
+
+void MessageThread::showQuickReactionPicker(const StreamChatClient::Message& message, const juce::Point<int>& screenPos)
+{
+    // Quick reaction picker with common emojis
+    juce::PopupMenu menu;
+
+    // Map menu item IDs to reaction types
+    struct ReactionOption
+    {
+        juce::String display;
+        juce::String type;
+    };
+
+    std::vector<ReactionOption> reactions = {
+        {"❤️ Love", "like"},
+        {"🔥 Fire", "fire"},
+        {"😂 Laugh", "laugh"},
+        {"😮 Wow", "wow"},
+        {"😢 Sad", "sad"},
+        {"🙏 Pray", "pray"},
+        {"👍 Like", "thumbsup"},
+        {"👏 Clap", "clap"}
+    };
+
+    int itemId = 1;
+    for (const auto& reaction : reactions)
+    {
+        juce::String displayText = reaction.display;
+        if (hasUserReacted(message, reaction.type))
+            displayText += " ✓";  // Checkmark for already reacted
+
+        menu.addItem(itemId++, displayText);
+    }
+
+    menu.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea(juce::Rectangle<int>(screenPos.x, screenPos.y, 1, 1)),
+        [this, message, reactions](int result) {
+            if (result > 0 && result <= static_cast<int>(reactions.size()))
+            {
+                const auto& reactionType = reactions[static_cast<size_t>(result - 1)].type;
+                toggleReaction(message.id, reactionType);
+            }
+        });
 }
