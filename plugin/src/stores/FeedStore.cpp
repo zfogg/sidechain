@@ -6,9 +6,25 @@ namespace Stores {
 
 FeedStore::FeedStore()
 {
+    // Initialize multi-tier cache (Task 4.13)
+    // Memory tier: 100MB, Disk tier: 1GB
+    auto cacheDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                        .getChildFile("Sidechain")
+                        .getChildFile("feed_cache");
+
+    feedCache = std::make_unique<Util::Cache::MultiTierCache<juce::String, juce::Array<FeedPost>>>(
+        100 * 1024 * 1024,  // 100MB memory cache
+        cacheDir,            // Disk cache directory
+        1024                 // 1GB disk cache
+    );
+
+    // Initialize cache warmer (Task 4.14)
+    cacheWarmer = CacheWarmer::create();
+    cacheWarmer->setDefaultTTL(86400);  // 24 hours for offline support
+
     // Start timer for periodic cache cleanup (every 60 seconds)
     startTimer(60000);
-    Util::logInfo("FeedStore", "Initialized reactive feed store");
+    Util::logInfo("FeedStore", "Initialized reactive feed store with multi-tier cache and cache warmer");
 }
 
 FeedStore::~FeedStore()
@@ -33,49 +49,36 @@ void FeedStore::loadFeed(FeedType feedType, bool forceRefresh)
         feed.error = "";
     });
 
-    // Check cache if not forcing refresh
-    if (!forceRefresh)
+    // Check multi-tier cache first (Task 4.13)
+    if (!forceRefresh && feedCache)
     {
-        auto it = diskCache.find(feedType);
-        if (it != diskCache.end() && it->second.isValid(cacheTTLSeconds))
+        auto cacheKey = feedTypeToCacheKey(feedType);
+        auto cachedPosts = feedCache->get(cacheKey);
+
+        if (cachedPosts.has_value())
         {
-            Util::logInfo("FeedStore", "Using cached feed: " + feedTypeToString(feedType),
-                          "posts=" + juce::String(it->second.response.posts.size()));
+            Util::logInfo("FeedStore", "Using multi-tier cached feed: " + feedTypeToString(feedType),
+                          "posts=" + juce::String(cachedPosts->size()) + " [Task 4.13 cache hit]");
+
+            // Mark as from cache for "cached" badge (Task 4.14)
+            currentFeedIsFromCache_ = true;
 
             // Use cached data
-            updateState([feedType, cached = it->second.response](FeedStoreState& state)
+            updateState([feedType, posts = cachedPosts.value()](FeedStoreState& state)
             {
                 auto& feed = state.feeds[feedType];
-                feed.posts = cached.posts;
+                feed.posts = posts;
                 feed.isLoading = false;
-                feed.hasMore = cached.hasMore;
+                feed.hasMore = true;  // Assume more available
                 feed.offset = 0;
-                feed.total = cached.total;
+                feed.total = posts.size();
                 feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             });
             return;
         }
 
-        // Try loading from disk
-        loadCacheFromDisk(feedType);
-        auto diskIt = diskCache.find(feedType);
-        if (diskIt != diskCache.end() && diskIt->second.isValid(cacheTTLSeconds))
-        {
-            Util::logInfo("FeedStore", "Using disk cached feed: " + feedTypeToString(feedType),
-                          "posts=" + juce::String(diskIt->second.response.posts.size()));
-
-            updateState([feedType, cached = diskIt->second.response](FeedStoreState& state)
-            {
-                auto& feed = state.feeds[feedType];
-                feed.posts = cached.posts;
-                feed.isLoading = false;
-                feed.hasMore = cached.hasMore;
-                feed.offset = 0;
-                feed.total = cached.total;
-                feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-            });
-            return;
-        }
+        Util::logDebug("FeedStore", "Cache miss for feed: " + feedTypeToString(feedType),
+                       "[Task 4.13 - will fetch from network]");
     }
 
     // Perform network fetch
@@ -430,11 +433,19 @@ void FeedStore::updateUserPresence(const juce::String& userId, bool isOnline, co
 
 void FeedStore::clearCache()
 {
-    Util::logInfo("FeedStore", "Clearing all cache");
+    Util::logInfo("FeedStore", "Clearing all cache [Task 4.13]");
 
+    // Clear multi-tier cache (Task 4.13)
+    if (feedCache)
+    {
+        feedCache->clear();
+        Util::logDebug("FeedStore", "Cleared multi-tier cache");
+    }
+
+    // Legacy: also clear old disk cache
     diskCache.clear();
 
-    // Delete cache files
+    // Delete legacy cache files
     for (auto feedType : { FeedType::Timeline, FeedType::Global, FeedType::Trending, FeedType::ForYou })
     {
         auto cacheFile = getCacheFile(feedType);
@@ -445,8 +456,17 @@ void FeedStore::clearCache()
 
 void FeedStore::clearCache(FeedType feedType)
 {
-    Util::logInfo("FeedStore", "Clearing cache for: " + feedTypeToString(feedType));
+    Util::logInfo("FeedStore", "Clearing cache for: " + feedTypeToString(feedType) + " [Task 4.13]");
 
+    // Clear from multi-tier cache (Task 4.13)
+    if (feedCache)
+    {
+        auto cacheKey = feedTypeToCacheKey(feedType);
+        feedCache->remove(cacheKey);
+        Util::logDebug("FeedStore", "Removed from multi-tier cache: " + cacheKey);
+    }
+
+    // Legacy: also clear from old disk cache
     diskCache.erase(feedType);
 
     auto cacheFile = getCacheFile(feedType);
@@ -511,6 +531,9 @@ void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var& data, int
                   " posts=" + juce::String(response.posts.size()) +
                   " hasMore=" + juce::String(response.hasMore ? "true" : "false"));
 
+    // Mark as NOT from cache since we just fetched from network (Task 4.14)
+    currentFeedIsFromCache_ = false;
+
     // Update state
     updateState([feedType, response, offset](FeedStoreState& state)
     {
@@ -538,14 +561,13 @@ void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var& data, int
         feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
     });
 
-    // Save to cache (only first page)
-    if (offset == 0)
+    // Save to multi-tier cache (Task 4.13 - only first page)
+    if (offset == 0 && feedCache)
     {
-        CacheEntry entry;
-        entry.response = response;
-        entry.timestamp = juce::Time::getCurrentTime();
-        diskCache[feedType] = entry;
-        saveCacheToDisk(feedType, entry);
+        auto cacheKey = feedTypeToCacheKey(feedType);
+        feedCache->put(cacheKey, response.posts, cacheTTLSeconds, true);
+        Util::logDebug("FeedStore", "Stored feed in multi-tier cache: " + feedTypeToString(feedType),
+                       "posts=" + juce::String(response.posts.size()) + " ttl=" + juce::String(cacheTTLSeconds) + "s");
     }
 }
 
@@ -616,7 +638,16 @@ FeedResponse FeedStore::parseJsonResponse(const juce::var& json)
 }
 
 //==============================================================================
-// Disk Cache
+// Cache Helpers (Task 4.13)
+
+juce::String FeedStore::feedTypeToCacheKey(FeedType feedType) const
+{
+    // Convert FeedType to string key for cache
+    return feedTypeToString(feedType);
+}
+
+//==============================================================================
+// Disk Cache (Legacy)
 
 juce::File FeedStore::getCacheFile(FeedType feedType) const
 {
@@ -766,6 +797,174 @@ void FeedStore::timerCallback()
             it = diskCache.erase(it);
         else
             ++it;
+    }
+}
+
+//==============================================================================
+// Cache Warming & Offline Support (Task 4.14)
+
+void FeedStore::startCacheWarming()
+{
+    if (!cacheWarmer)
+    {
+        Util::logWarning("FeedStore", "Cannot start cache warming: CacheWarmer not initialized");
+        return;
+    }
+
+    Util::logInfo("FeedStore", "Starting cache warming for popular feeds [Task 4.14]");
+
+    // Clear any pending operations
+    cacheWarmer->clearPendingOperations();
+
+    // Schedule popular feed warmup
+    schedulePopularFeedWarmup();
+
+    // Start the cache warmer
+    cacheWarmer->start();
+}
+
+void FeedStore::stopCacheWarming()
+{
+    if (!cacheWarmer)
+        return;
+
+    Util::logInfo("FeedStore", "Stopping cache warming [Task 4.14]");
+    cacheWarmer->stop();
+}
+
+void FeedStore::setOnlineStatus(bool isOnline)
+{
+    if (isOnlineStatus_ == isOnline)
+        return;
+
+    isOnlineStatus_ = isOnline;
+    Util::logInfo("FeedStore", "Online status changed: " + juce::String(isOnline ? "ONLINE" : "OFFLINE") + " [Task 4.14]");
+
+    // Update cache warmer online status
+    if (cacheWarmer)
+        cacheWarmer->setOnlineStatus(isOnline);
+
+    // When coming back online, refresh current feed and restart cache warming
+    if (isOnline)
+    {
+        Util::logInfo("FeedStore", "Auto-syncing after coming back online [Task 4.14]");
+        refreshCurrentFeed();
+        startCacheWarming();
+    }
+}
+
+bool FeedStore::isCurrentFeedCached() const
+{
+    return currentFeedIsFromCache_;
+}
+
+void FeedStore::schedulePopularFeedWarmup()
+{
+    if (!cacheWarmer)
+        return;
+
+    // Schedule warmup for popular feeds (Task 4.14)
+    // Priority: Timeline (highest), Trending, User Posts
+
+    cacheWarmer->scheduleWarmup(
+        "timeline",
+        [this]() { warmTimeline(); },
+        10  // High priority
+    );
+
+    cacheWarmer->scheduleWarmup(
+        "trending",
+        [this]() { warmTrending(); },
+        20  // Medium priority
+    );
+
+    cacheWarmer->scheduleWarmup(
+        "user_posts",
+        [this]() { warmUserPosts(); },
+        30  // Lower priority
+    );
+
+    Util::logInfo("FeedStore", "Scheduled warmup for 3 popular feeds [Task 4.14]");
+}
+
+void FeedStore::warmTimeline()
+{
+    Util::logInfo("FeedStore", "Warming Timeline feed (top 50 posts) [Task 4.14]");
+
+    // Perform fetch directly with larger limit for cache warming
+    if (networkClient)
+    {
+        networkClient->getTimelineFeed(50, 0, [this](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                auto response = parseJsonResponse(result.getValue());
+                if (feedCache && !response.posts.isEmpty())
+                {
+                    auto cacheKey = feedTypeToCacheKey(FeedType::Timeline);
+                    feedCache->put(cacheKey, response.posts, 86400, true);  // 24h TTL
+                    Util::logInfo("FeedStore", "Timeline feed warmed successfully: " + juce::String(response.posts.size()) + " posts");
+                }
+            }
+            else
+            {
+                Util::logWarning("FeedStore", "Failed to warm Timeline: " + result.getError());
+            }
+        });
+    }
+}
+
+void FeedStore::warmTrending()
+{
+    Util::logInfo("FeedStore", "Warming Trending feed [Task 4.14]");
+
+    if (networkClient)
+    {
+        networkClient->getTrendingFeed(50, 0, [this](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                auto response = parseJsonResponse(result.getValue());
+                if (feedCache && !response.posts.isEmpty())
+                {
+                    auto cacheKey = feedTypeToCacheKey(FeedType::Trending);
+                    feedCache->put(cacheKey, response.posts, 86400, true);  // 24h TTL
+                    Util::logInfo("FeedStore", "Trending feed warmed successfully: " + juce::String(response.posts.size()) + " posts");
+                }
+            }
+            else
+            {
+                Util::logWarning("FeedStore", "Failed to warm Trending: " + result.getError());
+            }
+        });
+    }
+}
+
+void FeedStore::warmUserPosts()
+{
+    Util::logInfo("FeedStore", "Warming user's own posts [Task 4.14]");
+
+    // For user's own posts, we could use the ForYou feed or a user-specific feed
+    // Using ForYou as a proxy for personalized content
+    if (networkClient)
+    {
+        networkClient->getForYouFeed(50, 0, [this](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                auto response = parseJsonResponse(result.getValue());
+                if (feedCache && !response.posts.isEmpty())
+                {
+                    auto cacheKey = feedTypeToCacheKey(FeedType::ForYou);
+                    feedCache->put(cacheKey, response.posts, 86400, true);  // 24h TTL
+                    Util::logInfo("FeedStore", "User posts warmed successfully: " + juce::String(response.posts.size()) + " posts");
+                }
+            }
+            else
+            {
+                Util::logWarning("FeedStore", "Failed to warm user posts: " + result.getError());
+            }
+        });
     }
 }
 

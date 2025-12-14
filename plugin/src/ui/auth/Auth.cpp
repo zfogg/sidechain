@@ -5,6 +5,7 @@
 #include "../../util/TextEditorStyler.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../security/InputValidation.h"
 
 //==============================================================================
 Auth::Auth()
@@ -979,42 +980,70 @@ void Auth::textEditorTextChanged(juce::TextEditor& editor)
 //==============================================================================
 void Auth::handleLogin()
 {
+    using namespace Sidechain::Security;
+
     Log::info("Auth: Handling login request");
     auto email = loginEmailEditor->getText().trim();
     auto password = loginPasswordEditor->getText();
 
     Log::debug("Auth: Login attempt for email: " + email);
 
-    // Validation
-    if (Validate::isBlank(email))
+    // Comprehensive validation with InputValidation framework
+    auto passwordRule = InputValidator::string();
+    passwordRule->minLength(1);
+
+    auto validator = InputValidator::create()
+        ->addRule("email", InputValidator::email())
+        ->addRule("password", passwordRule);
+
+    juce::StringPairArray loginData;
+    loginData.set("email", email);
+    loginData.set("password", password);
+
+    auto validationResult = validator->validate(loginData);
+
+    if (!validationResult.isValid())
     {
-        Log::warn("Auth: Login validation failed - blank email");
-        showError("Please enter your email address");
-        loginEmailEditor->grabKeyboardFocus();
+        // Show first validation error
+        auto errors = validationResult.getErrors();
+        if (errors.size() > 0)
+        {
+            auto firstKey = errors.getAllKeys()[0];
+            auto firstError = errors.getAllValues()[0];
+
+            Log::warn("Auth: Login validation failed - " + firstKey + ": " + firstError);
+
+            if (firstKey == "email")
+            {
+                showError("Invalid email: " + firstError);
+                loginEmailEditor->grabKeyboardFocus();
+            }
+            else if (firstKey == "password")
+            {
+                showError("Invalid password: " + firstError);
+                loginPasswordEditor->grabKeyboardFocus();
+            }
+            else
+            {
+                showError(firstError);
+            }
+        }
         return;
     }
 
-    if (!Validate::isEmail(email))
-    {
-        Log::warn("Auth: Login validation failed - invalid email format: " + email);
-        showError("Please enter a valid email address");
-        loginEmailEditor->grabKeyboardFocus();
-        return;
-    }
-
-    if (Validate::isBlank(password))
-    {
-        Log::warn("Auth: Login validation failed - blank password");
-        showError("Please enter your password");
-        loginPasswordEditor->grabKeyboardFocus();
-        return;
-    }
+    // Use sanitized values from validation result
+    auto sanitizedEmail = validationResult.getValue("email").value_or(email);
+    auto sanitizedPassword = validationResult.getValue("password").value_or(password);
 
     // Note: "Remember me" checkbox is now implemented - UI added, secure storage TODO for OS keychain integration
     // Note: Password strength indicator is now implemented - shows visual feedback during signup
     // Note: Email verification prompt is now implemented - checks status after login and shows warning if not verified
 
     Log::debug("Auth: Login validation passed, initiating API call");
+
+    // Update email with sanitized version for API call
+    email = sanitizedEmail;
+    password = sanitizedPassword;
 
     // Show loading state
     isLoading = true;
@@ -1198,6 +1227,8 @@ void Auth::handleForgotPassword()
 
 void Auth::handleSignup()
 {
+    using namespace Sidechain::Security;
+
     Log::info("Auth: Handling signup request");
     auto email = signupEmailEditor->getText().trim();
     auto username = signupUsernameEditor->getText().trim();
@@ -1207,63 +1238,34 @@ void Auth::handleSignup()
 
     Log::debug("Auth: Signup attempt - email: " + email + ", username: " + username + ", displayName: " + displayName);
 
-    // Validation
-    if (Validate::isBlank(email))
-    {
-        Log::warn("Auth: Signup validation failed - blank email");
-        showError("Please enter your email address");
-        signupEmailEditor->grabKeyboardFocus();
-        return;
-    }
+    // Comprehensive validation with InputValidation framework
+    auto usernameRule = InputValidator::alphanumeric();
+    usernameRule->minLength(3);
+    usernameRule->maxLength(30);
 
-    if (!Validate::isEmail(email))
-    {
-        Log::warn("Auth: Signup validation failed - invalid email format: " + email);
-        showError("Please enter a valid email address");
-        signupEmailEditor->grabKeyboardFocus();
-        return;
-    }
+    auto displayNameRule = InputValidator::string();
+    displayNameRule->minLength(1);
+    displayNameRule->maxLength(50);
 
-    if (Validate::isBlank(username))
-    {
-        Log::warn("Auth: Signup validation failed - blank username");
-        showError("Please choose a username");
-        signupUsernameEditor->grabKeyboardFocus();
-        return;
-    }
+    auto passwordRule = InputValidator::string();
+    passwordRule->minLength(8);
+    passwordRule->maxLength(128);
 
-    if (!Validate::isUsername(username))
-    {
-        Log::warn("Auth: Signup validation failed - invalid username format: " + username);
-        showError("Username must be 3-30 characters, letters/numbers/underscores only");
-        signupUsernameEditor->grabKeyboardFocus();
-        return;
-    }
+    auto validator = InputValidator::create()
+        ->addRule("email", InputValidator::email())
+        ->addRule("username", usernameRule)
+        ->addRule("displayName", displayNameRule)
+        ->addRule("password", passwordRule);
 
-    if (Validate::isBlank(displayName))
-    {
-        Log::warn("Auth: Signup validation failed - blank display name");
-        showError("Please enter your display name");
-        signupDisplayNameEditor->grabKeyboardFocus();
-        return;
-    }
+    juce::StringPairArray signupData;
+    signupData.set("email", email);
+    signupData.set("username", username);
+    signupData.set("displayName", displayName);
+    signupData.set("password", password);
 
-    if (Validate::isBlank(password))
-    {
-        Log::warn("Auth: Signup validation failed - blank password");
-        showError("Please create a password");
-        signupPasswordEditor->grabKeyboardFocus();
-        return;
-    }
+    auto validationResult = validator->validate(signupData);
 
-    if (!Validate::lengthInRange(password, 8, 128))
-    {
-        Log::warn("Auth: Signup validation failed - password too short (length: " + juce::String(password.length()) + ")");
-        showError("Password must be at least 8 characters");
-        signupPasswordEditor->grabKeyboardFocus();
-        return;
-    }
-
+    // Check password confirmation match
     if (password != confirmPassword)
     {
         Log::warn("Auth: Signup validation failed - passwords do not match");
@@ -1271,6 +1273,51 @@ void Auth::handleSignup()
         signupConfirmPasswordEditor->grabKeyboardFocus();
         return;
     }
+
+    if (!validationResult.isValid())
+    {
+        // Show first validation error
+        auto errors = validationResult.getErrors();
+        if (errors.size() > 0)
+        {
+            auto firstKey = errors.getAllKeys()[0];
+            auto firstError = errors.getAllValues()[0];
+
+            Log::warn("Auth: Signup validation failed - " + firstKey + ": " + firstError);
+
+            if (firstKey == "email")
+            {
+                showError("Invalid email: " + firstError);
+                signupEmailEditor->grabKeyboardFocus();
+            }
+            else if (firstKey == "username")
+            {
+                showError("Invalid username: " + firstError);
+                signupUsernameEditor->grabKeyboardFocus();
+            }
+            else if (firstKey == "displayName")
+            {
+                showError("Invalid display name: " + firstError);
+                signupDisplayNameEditor->grabKeyboardFocus();
+            }
+            else if (firstKey == "password")
+            {
+                showError("Invalid password: " + firstError);
+                signupPasswordEditor->grabKeyboardFocus();
+            }
+            else
+            {
+                showError(firstError);
+            }
+        }
+        return;
+    }
+
+    // Use sanitized values from validation result
+    email = validationResult.getValue("email").value_or(email);
+    username = validationResult.getValue("username").value_or(username);
+    displayName = validationResult.getValue("displayName").value_or(displayName);
+    password = validationResult.getValue("password").value_or(password);
 
     Log::debug("Auth: Signup validation passed, initiating API call");
 

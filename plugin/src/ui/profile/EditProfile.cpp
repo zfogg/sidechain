@@ -4,6 +4,7 @@
 #include "../../util/Validate.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
+#include "../../security/InputValidation.h"
 
 //==============================================================================
 EditProfile::EditProfile()
@@ -205,21 +206,91 @@ void EditProfile::setUploadedProfilePictureUrl(const juce::String& s3Url)
 
 void EditProfile::collectToProfile()
 {
-    profile.username = usernameEditor->getText().trim().toLowerCase();
-    profile.displayName = displayNameEditor->getText().trim();
-    profile.bio = bioEditor->getText().trim();
-    profile.location = locationEditor->getText().trim();
-    profile.genre = genreEditor->getText().trim();
-    profile.dawPreference = dawEditor->getText().trim();
+    using namespace Sidechain::Security;
+
+    // Sanitize and validate basic profile fields
+    auto usernameRule = InputValidator::alphanumeric();
+    usernameRule->minLength(3);
+    usernameRule->maxLength(30);
+
+    auto displayNameRule = InputValidator::string();
+    displayNameRule->minLength(1);
+    displayNameRule->maxLength(50);
+
+    auto bioRule = InputValidator::string();
+    bioRule->maxLength(500);
+
+    auto locationRule = InputValidator::string();
+    locationRule->maxLength(100);
+
+    auto genreRule = InputValidator::string();
+    genreRule->maxLength(50);
+
+    auto dawRule = InputValidator::string();
+    dawRule->maxLength(50);
+
+    auto validator = InputValidator::create()
+        ->addRule("username", usernameRule)
+        ->addRule("displayName", displayNameRule)
+        ->addRule("bio", bioRule)
+        ->addRule("location", locationRule)
+        ->addRule("genre", genreRule)
+        ->addRule("daw", dawRule);
+
+    juce::StringPairArray profileData;
+    profileData.set("username", usernameEditor->getText().trim().toLowerCase());
+    profileData.set("displayName", displayNameEditor->getText().trim());
+    profileData.set("bio", bioEditor->getText().trim());
+    profileData.set("location", locationEditor->getText().trim());
+    profileData.set("genre", genreEditor->getText().trim());
+    profileData.set("daw", dawEditor->getText().trim());
+
+    auto validationResult = validator->validate(profileData);
+
+    // Use sanitized values (XSS protection)
+    profile.username = validationResult.getValue("username").value_or(usernameEditor->getText().trim().toLowerCase());
+    profile.displayName = validationResult.getValue("displayName").value_or(displayNameEditor->getText().trim());
+    profile.bio = validationResult.getValue("bio").value_or(bioEditor->getText().trim());
+    profile.location = validationResult.getValue("location").value_or(locationEditor->getText().trim());
+    profile.genre = validationResult.getValue("genre").value_or(genreEditor->getText().trim());
+    profile.dawPreference = validationResult.getValue("daw").value_or(dawEditor->getText().trim());
     profile.isPrivate = privateAccountToggle->getToggleState();
 
-    // Build social links object
+    // Validate and sanitize social links
     auto* linksObj = new juce::DynamicObject();
 
-    juce::String instagram = instagramEditor->getText().trim();
-    juce::String soundcloud = soundcloudEditor->getText().trim();
-    juce::String spotify = spotifyEditor->getText().trim();
-    juce::String twitter = twitterEditor->getText().trim();
+    // Validate URLs for social links (allow usernames or full URLs)
+    auto instagramRule = InputValidator::string();
+    instagramRule->maxLength(100);
+
+    auto soundcloudRule = InputValidator::string();
+    soundcloudRule->maxLength(200);
+
+    auto spotifyRule = InputValidator::string();
+    spotifyRule->maxLength(200);
+
+    auto twitterRule = InputValidator::string();
+    twitterRule->maxLength(100);
+
+    auto linkValidator = InputValidator::create()
+        ->addRule("instagram", instagramRule)
+        ->addRule("soundcloud", soundcloudRule)
+        ->addRule("spotify", spotifyRule)
+        ->addRule("twitter", twitterRule);
+
+    juce::StringPairArray socialData;
+    socialData.set("instagram", instagramEditor->getText().trim());
+    socialData.set("soundcloud", soundcloudEditor->getText().trim());
+    socialData.set("spotify", spotifyEditor->getText().trim());
+    socialData.set("twitter", twitterEditor->getText().trim());
+
+    auto socialResult = linkValidator->validate(socialData);
+
+    // Use sanitized social links (XSS protection)
+    juce::String instagram = socialResult.getValue("instagram").value_or("");
+    juce::String soundcloud = socialResult.getValue("soundcloud").value_or("");
+    juce::String spotify = socialResult.getValue("spotify").value_or("");
+    juce::String twitter = socialResult.getValue("twitter").value_or("");
 
     if (instagram.isNotEmpty())
         linksObj->setProperty("instagram", instagram);

@@ -453,8 +453,8 @@ private:
         size_t totalSize = 0;
         for (const auto& f : dir.findChildFiles(juce::File::findFilesAndDirectories, true))
         {
-            if (f.isFile())
-                totalSize += f.getSize();
+            if (f.existsAsFile())
+                totalSize += static_cast<size_t>(f.getSize());
         }
         return totalSize;
     }
@@ -471,7 +471,7 @@ private:
             std::vector<std::pair<juce::int64, juce::File>> files;
             for (const auto& f : cacheDir_.findChildFiles(juce::File::findFiles, false, "*.cache"))
             {
-                files.emplace_back(f.getLastModificationTime(), f);
+                files.emplace_back(f.getLastModificationTime().toMilliseconds(), f);
             }
 
             // Sort by modification time (oldest first)
