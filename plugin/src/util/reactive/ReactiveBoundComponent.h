@@ -253,7 +253,7 @@ protected:
         ObservableProperty<T>& source,
         std::function<U(const T&)> transform)
     {
-        auto result = source.map<U>(transform);
+        auto result = source.template map<U>(transform);
         bindProperty(result);
         return result;
     }
