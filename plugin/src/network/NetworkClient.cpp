@@ -8,6 +8,8 @@
 #include "../util/Log.h"
 #include "../util/Async.h"
 #include "../util/Result.h"
+#include "../util/error/ErrorTracking.h"
+#include "../util/profiling/PerformanceMonitor.h"
 
 //==============================================================================
 // Helper to create JSON POST body from juce::var without null terminator issues
@@ -210,6 +212,7 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
                                                                   const juce::var& data,
                                                                   bool requireAuth)
 {
+    SCOPED_TIMER_THRESHOLD("network::api_call", 2000.0);
     RequestResult result;
 
     // Rate limiting check (Task 4.18)
@@ -250,6 +253,22 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
             HttpErrorHandler::getInstance().reportError(
                 endpoint, method, 429, result.errorMessage,
                 juce::JSON::toString(result.data));
+
+            // Track rate limit error (Task 4.19)
+            using namespace Sidechain::Util::Error;
+            auto errorTracker = ErrorTracker::getInstance();
+            errorTracker->recordError(
+                ErrorSource::Network,
+                "Rate limit exceeded: " + result.errorMessage,
+                ErrorSeverity::Warning,
+                {
+                    {"endpoint", endpoint},
+                    {"method", method},
+                    {"user_id", identifier},
+                    {"limit", juce::String(rateLimitStatus.limit)},
+                    {"remaining", juce::String(rateLimitStatus.remaining)},
+                    {"retry_after", juce::String(retrySeconds)}
+                });
 
             return result;
         }
@@ -331,6 +350,21 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
             HttpErrorHandler::getInstance().reportError(
                 endpoint, method, 0, result.errorMessage, "");
 
+            // Track connection error (Task 4.19)
+            using namespace Sidechain::Util::Error;
+            auto errorTracker = ErrorTracker::getInstance();
+            errorTracker->recordError(
+                ErrorSource::Network,
+                "Connection failed: " + result.errorMessage,
+                ErrorSeverity::Error,
+                {
+                    {"endpoint", endpoint},
+                    {"method", method},
+                    {"attempts", juce::String(attempts)},
+                    {"max_retries", juce::String(config.maxRetries)},
+                    {"base_url", config.baseUrl}
+                });
+
             updateConnectionStatus(ConnectionStatus::Disconnected);
             return result;
         }
@@ -367,6 +401,30 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
                 endpoint, method, result.httpStatus,
                 result.getUserFriendlyError(),
                 juce::JSON::toString(result.data));
+
+            // Track HTTP errors (Task 4.19)
+            using namespace Sidechain::Util::Error;
+            auto errorTracker = ErrorTracker::getInstance();
+
+            // Determine severity based on status code
+            ErrorSeverity severity = ErrorSeverity::Error;
+            if (result.httpStatus >= 500)
+                severity = ErrorSeverity::Critical;  // Server errors are critical
+            else if (result.httpStatus == 401 || result.httpStatus == 403)
+                severity = ErrorSeverity::Error;  // Auth errors
+            else if (result.httpStatus >= 400)
+                severity = ErrorSeverity::Warning;  // Client errors
+
+            errorTracker->recordError(
+                ErrorSource::Network,
+                "HTTP " + juce::String(result.httpStatus) + ": " + result.getUserFriendlyError(),
+                severity,
+                {
+                    {"endpoint", endpoint},
+                    {"method", method},
+                    {"status_code", juce::String(result.httpStatus)},
+                    {"response", juce::JSON::toString(result.data).substring(0, 200)}  // First 200 chars
+                });
         }
 
         // Update connection status based on result
@@ -843,6 +901,7 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
     const juce::String& mimeType,
     const std::map<juce::String, juce::String>& extraFields)
 {
+    SCOPED_TIMER_THRESHOLD("network::upload", 5000.0);
     RequestResult result;
 
     if (!isAuthenticated())

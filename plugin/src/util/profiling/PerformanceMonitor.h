@@ -70,14 +70,16 @@ public:
      */
     double getElapsedMs() const;
 
+    // Callback for recording measurements (initialized by PerformanceMonitor)
+    // Made public so PerformanceMonitor can initialize it
+    static std::function<void(const juce::String&, double, double)> recordCallback_;
+
 private:
     juce::String name_;
     std::chrono::high_resolution_clock::time_point startTime_;
     double slowThresholdMs_;
     bool hasStopped_ = false;
 
-    // Forward declaration - populated by PerformanceMonitor
-    static std::function<void(const juce::String&, double, double)> recordCallback_;
     friend class PerformanceMonitor;
 };
 
@@ -212,8 +214,8 @@ private:
 
 // ========== Inline Implementations ==========
 
-inline std::function<void(const juce::String&, double, double)> ScopedTimer::recordCallback_ =
-    nullptr;
+// recordCallback_ declaration moved to class public section above
+std::function<void(const juce::String&, double, double)> ScopedTimer::recordCallback_ = nullptr;
 
 inline ScopedTimer::ScopedTimer(const juce::String& name, double slowThresholdMs)
     : name_(name)
@@ -251,6 +253,24 @@ inline double ScopedTimer::getElapsedMs() const
 // ========== PerformanceMonitor Implementation ==========
 
 inline JUCE_IMPLEMENT_SINGLETON(PerformanceMonitor)
+
+// Initialize ScopedTimer callback to wire measurements to PerformanceMonitor
+namespace {
+    class PerformanceMonitorCallbackInitializer
+    {
+    public:
+        PerformanceMonitorCallbackInitializer()
+        {
+            // Wire ScopedTimer's callback to PerformanceMonitor's record method
+            ScopedTimer::recordCallback_ = [](const juce::String& name, double ms, double threshold) {
+                PerformanceMonitor::getInstance()->record(name, ms, threshold);
+            };
+        }
+    };
+
+    // Create single instance to initialize callback on first load
+    static PerformanceMonitorCallbackInitializer callbackInitializer;
+}
 
 inline void PerformanceMonitor::record(const juce::String& name, double durationMs,
                                        double slowThresholdMs)

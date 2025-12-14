@@ -1,5 +1,7 @@
 #include "FeedStore.h"
 #include "../util/Time.h"
+#include "../util/profiling/PerformanceMonitor.h"
+#include "../util/error/ErrorTracking.h"
 
 namespace Sidechain {
 namespace Stores {
@@ -37,6 +39,7 @@ FeedStore::~FeedStore()
 
 void FeedStore::loadFeed(FeedType feedType, bool forceRefresh)
 {
+    SCOPED_TIMER("feed::load");
     Util::logInfo("FeedStore", "Loading feed: " + feedTypeToString(feedType),
                   "forceRefresh=" + juce::String(forceRefresh ? "true" : "false"));
 
@@ -479,6 +482,7 @@ void FeedStore::clearCache(FeedType feedType)
 
 void FeedStore::performFetch(FeedType feedType, int limit, int offset)
 {
+    SCOPED_TIMER_THRESHOLD("feed::network_fetch", 1000.0);
     if (!networkClient)
     {
         handleFetchError(feedType, "Network client not configured");
@@ -522,6 +526,7 @@ void FeedStore::performFetch(FeedType feedType, int limit, int offset)
 
 void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var& data, int limit, int offset)
 {
+    SCOPED_TIMER("feed::parse_response");
     auto response = parseJsonResponse(data);
     response.limit = limit;
     response.offset = offset;
@@ -575,6 +580,18 @@ void FeedStore::handleFetchError(FeedType feedType, const juce::String& error)
 {
     Util::logError("FeedStore", "Fetch error: " + error, "feedType=" + feedTypeToString(feedType));
 
+    // Track feed sync error (Task 4.19)
+    using namespace Sidechain::Util::Error;
+    auto errorTracker = ErrorTracker::getInstance();
+    errorTracker->recordError(
+        ErrorSource::Network,
+        "Feed sync failed: " + error,
+        ErrorSeverity::Warning,  // Feed sync failures are warnings, not critical
+        {
+            {"feed_type", feedTypeToString(feedType)},
+            {"error_message", error}
+        });
+
     updateState([feedType, error](FeedStoreState& state)
     {
         auto& feed = state.feeds[feedType];
@@ -586,6 +603,7 @@ void FeedStore::handleFetchError(FeedType feedType, const juce::String& error)
 
 FeedResponse FeedStore::parseJsonResponse(const juce::var& json)
 {
+    SCOPED_TIMER("feed::parse_json");
     FeedResponse response;
 
     if (json.isVoid())

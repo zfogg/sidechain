@@ -3,6 +3,7 @@
 #include "audio/BufferAudioPlayer.h"
 #include "network/NetworkClient.h"
 #include "util/Log.h"
+#include "util/profiling/PerformanceMonitor.h"
 
 //==============================================================================
 SidechainAudioProcessor::SidechainAudioProcessor()
@@ -224,6 +225,13 @@ bool SidechainAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+
+    // Aggregated performance monitoring (Task 4.15)
+    // Record per-block timing but only report every 1000 calls to avoid audio thread blocking
+    static int processBlockCallCount = 0;
+    static double processBlockTotalMs = 0.0;
+    auto processBlockStartTime = juce::Time::getMillisecondCounterHiRes();
+
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -293,6 +301,21 @@ void SidechainAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (bufferAudioPlayer != nullptr)
     {
         bufferAudioPlayer->processBlock(buffer, buffer.getNumSamples());
+    }
+
+    // Record aggregated timing (Task 4.15)
+    // Only report every 1000 calls to minimize audio thread overhead
+    auto processBlockElapsedMs = juce::Time::getMillisecondCounterHiRes() - processBlockStartTime;
+    processBlockTotalMs += processBlockElapsedMs;
+    processBlockCallCount++;
+
+    if (processBlockCallCount >= 1000)
+    {
+        auto avgMs = processBlockTotalMs / processBlockCallCount;
+        using namespace Sidechain::Util::Profiling;
+        PerformanceMonitor::getInstance()->record("audio::process_block", avgMs, 10.0);  // Warn if > 10ms
+        processBlockCallCount = 0;
+        processBlockTotalMs = 0.0;
     }
 }
 
