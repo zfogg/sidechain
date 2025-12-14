@@ -36,6 +36,8 @@ add_library(SidechainUtil STATIC
     $<$<PLATFORM_ID:Darwin>:${CMAKE_CURRENT_SOURCE_DIR}/OSNotification_mac.mm>
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.h
 )
 
 # Include directories - use source root so includes work as "util/Log.h"
