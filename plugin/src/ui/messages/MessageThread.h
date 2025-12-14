@@ -41,6 +41,7 @@ public:
     std::function<void()> onBackPressed;
     std::function<void(const juce::String& channelType, const juce::String& channelId)> onChannelClosed;
     std::function<void(const juce::String& postId)> onSharedPostClicked;  // Navigate to full post view
+    std::function<void(const juce::String& storyId)> onSharedStoryClicked;  // Navigate to story viewer
 
     // Set clients
     void setStreamChatClient(StreamChatClient* client);
@@ -136,6 +137,7 @@ private:
     juce::Rectangle<int> getMessageBounds(const StreamChatClient::Message& message) const;
     juce::Rectangle<int> getHeaderMenuButtonBounds() const;
     juce::Rectangle<int> getSharedPostBounds(const StreamChatClient::Message& message) const;
+    juce::Rectangle<int> getSharedStoryBounds(const StreamChatClient::Message& message) const;
 
     // Group management
     void leaveGroup();
