@@ -132,13 +132,13 @@ void MessagesList::mouseUp(const juce::MouseEvent& event)
     int index = getChannelIndexAtY(static_cast<int>(event.getPosition().y + scrollPosition));
     if (index >= 0 && index < static_cast<int>(channels.size()))
     {
-        const auto& channel = channels[index];
+        const auto& channel = channels[static_cast<size_t>(index)];
         if (onChannelSelected)
             onChannelSelected(channel.type, channel.id);
     }
 }
 
-void MessagesList::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
+void MessagesList::mouseWheelMove([[maybe_unused]] const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
 {
     scrollPosition -= wheel.deltaY * 30.0;
     scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
@@ -192,6 +192,10 @@ void MessagesList::loadChannels()
             // Hide error state on success
             if (errorStateComponent != nullptr)
                 errorStateComponent->setVisible(false);
+
+            // Load presence info for channel members
+            if (!channels.empty())
+                loadPresenceForChannels();
         }
         else
         {
@@ -208,6 +212,119 @@ void MessagesList::loadChannels()
         }
         repaint();
     });
+}
+
+void MessagesList::loadPresenceForChannels()
+{
+    if (streamChatClient == nullptr)
+        return;
+
+    // Collect unique user IDs from all channels (excluding current user)
+    std::vector<juce::String> userIds;
+    for (const auto& channel : channels)
+    {
+        if (!isGroupChannel(channel))
+        {
+            auto otherId = getOtherUserId(channel);
+            if (otherId.isNotEmpty())
+            {
+                // Avoid duplicates
+                if (std::find(userIds.begin(), userIds.end(), otherId) == userIds.end())
+                    userIds.push_back(otherId);
+            }
+        }
+    }
+
+    if (userIds.empty())
+        return;
+
+    Log::debug("MessagesList: Querying presence for " + juce::String(userIds.size()) + " users");
+
+    streamChatClient->queryPresence(userIds, [this](Outcome<std::vector<StreamChatClient::UserPresence>> result) {
+        if (result.isOk())
+        {
+            const auto& presences = result.getValue();
+            for (const auto& presence : presences)
+            {
+                userPresence[presence.userId] = presence;
+            }
+            Log::debug("MessagesList: Updated presence for " + juce::String(presences.size()) + " users");
+            repaint();
+        }
+        else
+        {
+            Log::warn("MessagesList: Failed to load presence - " + result.getError());
+        }
+    });
+}
+
+juce::String MessagesList::getOtherUserId(const StreamChatClient::Channel& channel) const
+{
+    if (!channel.members.isArray())
+        return {};
+
+    auto* membersArray = channel.members.getArray();
+    if (membersArray == nullptr)
+        return {};
+
+    for (int i = 0; i < membersArray->size(); ++i)
+    {
+        auto member = (*membersArray)[i];
+        juce::String memberId;
+
+        if (member.isObject())
+        {
+            memberId = member.getProperty("user_id", "").toString();
+            if (memberId.isEmpty())
+                memberId = member.getProperty("id", "").toString();
+
+            // Also try nested user object
+            auto user = member.getProperty("user", juce::var());
+            if (user.isObject() && memberId.isEmpty())
+                memberId = user.getProperty("id", "").toString();
+        }
+        else if (member.isString())
+        {
+            memberId = member.toString();
+        }
+
+        if (memberId.isNotEmpty() && memberId != currentUserId)
+            return memberId;
+    }
+
+    return {};
+}
+
+juce::String MessagesList::formatLastActive(const juce::String& lastActiveTimestamp) const
+{
+    if (lastActiveTimestamp.isEmpty())
+        return "";
+
+    // Parse ISO 8601 timestamp and compute time ago
+    auto now = juce::Time::getCurrentTime();
+
+    // Try to parse the timestamp
+    juce::Time lastActive;
+    if (!juce::Time::fromISO8601(lastActiveTimestamp).toMilliseconds())
+    {
+        // Fallback: try parsing without timezone
+        lastActive = juce::Time::fromISO8601(lastActiveTimestamp);
+    }
+    else
+    {
+        lastActive = juce::Time::fromISO8601(lastActiveTimestamp);
+    }
+
+    auto diffSeconds = (now - lastActive).inSeconds();
+
+    if (diffSeconds < 60)
+        return "Active now";
+    else if (diffSeconds < 3600)
+        return "Active " + juce::String(diffSeconds / 60) + "m ago";
+    else if (diffSeconds < 86400)
+        return "Active " + juce::String(diffSeconds / 3600) + "h ago";
+    else
+        return "Active " + juce::String(diffSeconds / 86400) + "d ago";
 }
 
 void MessagesList::refreshChannels()
@@ -259,7 +376,7 @@ void MessagesList::drawHeader(juce::Graphics& g)
 void MessagesList::drawChannelItem(juce::Graphics& g, const StreamChatClient::Channel& channel, int y, int width)
 {
     // Background
-    g.setColour(juce::Colour(0xff252525));
+    g.setColour(SidechainColors::backgroundLight());
     g.fillRect(0, y, width, ITEM_HEIGHT);
 
     // Avatar (circular)
@@ -268,13 +385,30 @@ void MessagesList::drawChannelItem(juce::Graphics& g, const StreamChatClient::Ch
     int avatarY = y + (ITEM_HEIGHT - avatarSize) / 2;
 
     bool isGroup = isGroupChannel(channel);
+
+    // Get presence info for DM channels
+    bool isOnline = false;
+    juce::String lastActiveText;
+    if (!isGroup)
+    {
+        auto otherId = getOtherUserId(channel);
+        auto it = userPresence.find(otherId);
+        if (it != userPresence.end())
+        {
+            isOnline = it->second.online;
+            if (!isOnline)
+                lastActiveText = formatLastActive(it->second.lastActive);
+        }
+    }
+
     if (isGroup)
     {
         // Group avatar - show first letter of name or "G" for group
         juce::String channelName = getChannelName(channel);
         juce::String initial = channelName.isNotEmpty() ? channelName.substring(0, 1).toUpperCase() : "G";
-        g.setColour(juce::Colour(0xff4a9eff));  // Group color
-        g.fillEllipse(avatarX, avatarY, avatarSize, avatarSize);
+        g.setColour(SidechainColors::softBlue());
+        g.fillEllipse(static_cast<float>(avatarX), static_cast<float>(avatarY),
+                      static_cast<float>(avatarSize), static_cast<float>(avatarSize));
         g.setColour(juce::Colours::white);
         g.setFont(20.0f);
         g.drawText(initial, avatarX, avatarY, avatarSize, avatarSize, juce::Justification::centred);
@@ -283,52 +417,88 @@ void MessagesList::drawChannelItem(juce::Graphics& g, const StreamChatClient::Ch
     {
         // Direct message avatar placeholder
         g.setColour(juce::Colour(0xff4a4a4a));
-        g.fillEllipse(avatarX, avatarY, avatarSize, avatarSize);
+        g.fillEllipse(static_cast<float>(avatarX), static_cast<float>(avatarY),
+                      static_cast<float>(avatarSize), static_cast<float>(avatarSize));
+
+        // Online indicator (green dot) - bottom right of avatar
+        if (isOnline)
+        {
+            int dotSize = 14;
+            int dotX = avatarX + avatarSize - dotSize + 2;
+            int dotY = avatarY + avatarSize - dotSize + 2;
+
+            // White border
+            g.setColour(SidechainColors::backgroundLight());
+            g.fillEllipse(static_cast<float>(dotX - 2), static_cast<float>(dotY - 2),
+                          static_cast<float>(dotSize + 4), static_cast<float>(dotSize + 4));
+
+            // Green dot
+            g.setColour(SidechainColors::onlineIndicator());
+            g.fillEllipse(static_cast<float>(dotX), static_cast<float>(dotY),
+                          static_cast<float>(dotSize), static_cast<float>(dotSize));
+        }
     }
 
-    // Unread badge
+    // Unread badge (top right of avatar, overlapping online indicator)
     int unread = getUnreadCount(channel);
     if (unread > 0)
     {
-        g.setColour(juce::Colour(0xffff4444));
+        g.setColour(SidechainColors::coralPink());
         int badgeSize = 20;
-        g.fillEllipse(avatarX + avatarSize - badgeSize, avatarY, badgeSize, badgeSize);
+        int badgeX = avatarX + avatarSize - badgeSize;
+        int badgeY = avatarY;
+        g.fillEllipse(static_cast<float>(badgeX), static_cast<float>(badgeY),
+                      static_cast<float>(badgeSize), static_cast<float>(badgeSize));
         g.setColour(juce::Colours::white);
         g.setFont(10.0f);
         juce::String badgeText = unread > 99 ? "99+" : juce::String(unread);
-        g.drawText(badgeText, avatarX + avatarSize - badgeSize, avatarY, badgeSize, badgeSize, juce::Justification::centred);
+        g.drawText(badgeText, badgeX, badgeY, badgeSize, badgeSize, juce::Justification::centred);
     }
 
     // Channel name
-    int textX = avatarX + avatarSize + 10;
-    int textWidth = width - textX - 100;
-    g.setColour(juce::Colours::white);
-    g.setFont(16.0f);
+    int textX = avatarX + avatarSize + 12;
+    int textWidth = width - textX - 90;
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(juce::FontOptions(15.0f).withStyle("Bold"));
     juce::String channelName = getChannelName(channel);
-    g.drawText(channelName, textX, y + 10, textWidth, 20, juce::Justification::topLeft);
+    g.drawText(channelName, textX, y + 12, textWidth, 20, juce::Justification::topLeft);
 
-    // Member count for groups
+    // Online status or member count (second line)
+    g.setFont(juce::FontOptions(12.0f));
     if (isGroup)
     {
         int memberCount = getMemberCount(channel);
         juce::String memberText = juce::String(memberCount) + (memberCount == 1 ? " member" : " members");
-        g.setColour(juce::Colour(0xff888888));
-        g.setFont(12.0f);
+        g.setColour(SidechainColors::textMuted());
         g.drawText(memberText, textX, y + 32, textWidth, 16, juce::Justification::topLeft);
     }
+    else if (isOnline)
+    {
+        g.setColour(SidechainColors::onlineIndicator());
+        g.drawText("Active now", textX, y + 32, textWidth, 16, juce::Justification::topLeft);
+    }
+    else if (lastActiveText.isNotEmpty())
+    {
+        g.setColour(SidechainColors::textMuted());
+        g.drawText(lastActiveText, textX, y + 32, textWidth, 16, juce::Justification::topLeft);
+    }
 
-    // Last message preview (below member count for groups, or at y+30 for DMs)
-    int previewY = isGroup ? y + 48 : y + 30;
-    g.setColour(juce::Colour(0xffaaaaaa));
-    g.setFont(14.0f);
+    // Last message preview
+    int previewY = y + 50;
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(juce::FontOptions(13.0f));
     juce::String preview = getLastMessagePreview(channel);
     g.drawText(preview, textX, previewY, textWidth, 20, juce::Justification::topLeft, true);
 
-    // Timestamp
+    // Timestamp (top right)
     juce::String timestamp = formatTimestamp(channel.lastMessageAt);
-    g.setColour(juce::Colour(0xff888888));
-    g.setFont(12.0f);
-    g.drawText(timestamp, width - 100, y + 10, 90, 20, juce::Justification::topRight);
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(juce::FontOptions(11.0f));
+    g.drawText(timestamp, width - 85, y + 14, 75, 16, juce::Justification::topRight);
+
+    // Bottom border
+    g.setColour(SidechainColors::borderSubtle());
+    g.drawHorizontalLine(y + ITEM_HEIGHT - 1, static_cast<float>(textX), static_cast<float>(width));
 }
 
 void MessagesList::drawEmptyState(juce::Graphics& g)
@@ -572,7 +742,7 @@ juce::Rectangle<int> MessagesList::getChannelItemBounds(int index) const
     return juce::Rectangle<int>(0, HEADER_HEIGHT + index * ITEM_HEIGHT, getWidth() - scrollBar.getWidth(), ITEM_HEIGHT);
 }
 
-void MessagesList::scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart)
+void MessagesList::scrollBarMoved([[maybe_unused]] juce::ScrollBar* scrollBarPtr, double newRangeStart)
 {
     scrollPosition = newRangeStart;
     repaint();
