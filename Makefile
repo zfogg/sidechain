@@ -116,6 +116,13 @@ plugin-configure:
 # Fast build - skip configuration if already done
 plugin-fast:
 	@echo "🔄 Building VST plugin (fast - no reconfigure) for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
+	@# Check for corrupted ninja cache and auto-fix by reconfiguring
+	@if [ -f "$(BUILD_DIR)/.ninja_deps" ]; then \
+		if ! ninja -C $(BUILD_DIR) -t cleandead >/dev/null 2>&1; then \
+			echo "⚠️  Detected corrupted ninja cache, reconfiguring..."; \
+			$(MAKE) plugin-configure > /dev/null; \
+		fi \
+	fi
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
 
