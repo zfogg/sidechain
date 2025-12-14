@@ -12,7 +12,7 @@ DAW.
    getting-started
    architecture
    development
-   api/library_root
+   plugin-architecture/index
    backend/index
 
 Indices and tables

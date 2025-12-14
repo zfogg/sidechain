@@ -43,10 +43,20 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'breathe',
-    'exhale',
     'myst_parser',  # Markdown support
 ]
+
+# Only enable Breathe/Exhale if Doxygen XML exists
+_doxygen_xml_check = Path(__file__).parent / "doxygen" / "xml"
+if not _doxygen_xml_check.exists():
+    _doxygen_xml_check = Path(__file__).parent.parent / "plugin" / "build-docs" / "docs" / "doxygen" / "xml"
+
+if _doxygen_xml_check.exists():
+    extensions.extend(['breathe', 'exhale'])
+    _has_doxygen = True
+else:
+    _has_doxygen = False
+    print("WARNING: Doxygen XML not found - API documentation will not be generated")
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -106,56 +116,58 @@ html_sidebars = {
 
 # -- Breathe configuration ---------------------------------------------------
 
-# Breathe is the bridge between Doxygen and Sphinx
-# The Doxygen XML path will be set by CMake via environment variable
-# For manual builds, it should be in docs/doxygen/xml relative to this file
-doxygen_xml_path = os.environ.get('DOXYGEN_XML_DIR')
-if not doxygen_xml_path:
-    # Default to source directory for manual builds
-    doxygen_xml_path = str(Path(__file__).parent / "doxygen" / "xml")
-    # If that doesn't exist, try build directory (common when using CMake)
-    if not os.path.exists(doxygen_xml_path):
-        # Try to find it relative to common build locations
-        build_xml = Path(__file__).parent.parent / "plugin" / "build-docs" / "docs" / "doxygen" / "xml"
-        if build_xml.exists():
-            doxygen_xml_path = str(build_xml)
+if _has_doxygen:
+    # Breathe is the bridge between Doxygen and Sphinx
+    # The Doxygen XML path will be set by CMake via environment variable
+    # For manual builds, it should be in docs/doxygen/xml relative to this file
+    doxygen_xml_path = os.environ.get('DOXYGEN_XML_DIR')
+    if not doxygen_xml_path:
+        # Default to source directory for manual builds
+        doxygen_xml_path = str(Path(__file__).parent / "doxygen" / "xml")
+        # If that doesn't exist, try build directory (common when using CMake)
+        if not os.path.exists(doxygen_xml_path):
+            # Try to find it relative to common build locations
+            build_xml = Path(__file__).parent.parent / "plugin" / "build-docs" / "docs" / "doxygen" / "xml"
+            if build_xml.exists():
+                doxygen_xml_path = str(build_xml)
 
-breathe_projects = {
-    "Sidechain": doxygen_xml_path
-}
+    breathe_projects = {
+        "Sidechain": doxygen_xml_path
+    }
 
-breathe_default_project = "Sidechain"
+    breathe_default_project = "Sidechain"
 
-# Tell Breathe where to find the Doxygen XML output
-# Show all members, including documented ones with their comments
-breathe_default_members = ('members', 'undoc-members')
-breathe_show_define_initializer = True
-breathe_show_enumvalues_initializer = True
-# Ensure detailed descriptions are shown
-breathe_default_domain = 'cpp'
+    # Tell Breathe where to find the Doxygen XML output
+    # Show all members, including documented ones with their comments
+    breathe_default_members = ('members', 'undoc-members')
+    breathe_show_define_initializer = True
+    breathe_show_enumvalues_initializer = True
+    # Ensure detailed descriptions are shown
+    breathe_default_domain = 'cpp'
 
 # -- Exhale configuration ----------------------------------------------------
 
-# Setup the exhale extension
-# Exhale needs to know where the Doxygen XML is
-exhale_args = {
-    # Required arguments
-    "containmentFolder":     "./api",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":          "API Reference",
-    "doxygenStripFromPath":  "..",
-    # Suggested optional arguments
-    "createTreeView":        True,
-    "exhaleExecutesDoxygen": False,  # We'll run Doxygen separately via CMake
-    "exhaleDoxygenStdin":    "",  # Not needed since we run Doxygen separately
-    # Optional arguments
-    "verboseBuild":          False,
-    "generateBreatheFileDirectives": True,
-    # Show full documentation including comments
-    "fullToctreeMaxDepth":   4,
-    # Exhale uses breathe_projects to find the Doxygen XML
-    # We'll ensure this is built before Sphinx runs
-}
+if _has_doxygen:
+    # Setup the exhale extension
+    # Exhale needs to know where the Doxygen XML is
+    exhale_args = {
+        # Required arguments
+        "containmentFolder":     "./api",
+        "rootFileName":          "library_root.rst",
+        "rootFileTitle":          "API Reference",
+        "doxygenStripFromPath":  "..",
+        # Suggested optional arguments
+        "createTreeView":        True,
+        "exhaleExecutesDoxygen": False,  # We'll run Doxygen separately via CMake
+        "exhaleDoxygenStdin":    "",  # Not needed since we run Doxygen separately
+        # Optional arguments
+        "verboseBuild":          False,
+        "generateBreatheFileDirectives": True,
+        # Show full documentation including comments
+        "fullToctreeMaxDepth":   4,
+        # Exhale uses breathe_projects to find the Doxygen XML
+        # We'll ensure this is built before Sphinx runs
+    }
 
 # -- Intersphinx configuration -----------------------------------------------
 
