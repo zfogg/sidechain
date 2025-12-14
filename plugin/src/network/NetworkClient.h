@@ -78,6 +78,7 @@ public:
     using AuthenticationCallback = std::function<void(Outcome<std::pair<juce::String, juce::String>>)>;
     using UploadCallback = std::function<void(Outcome<juce::String> audioUrl)>;
     using FeedCallback = std::function<void(Outcome<juce::var> feedData)>;
+    using AggregatedFeedCallback = std::function<void(Outcome<juce::var> aggregatedData)>;
     using ProfilePictureCallback = std::function<void(Outcome<juce::String> pictureUrl)>;
     using ConnectionStatusCallback = std::function<void(ConnectionStatus status)>;
     using ResponseCallback = std::function<void(Outcome<juce::var> response)>;
@@ -300,6 +301,41 @@ public:
      * @param callback Called with feed data or error
      */
     void getTrendingFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    /** Get aggregated timeline (activities grouped by user+day)
+     * Returns groups like "User X and 3 others posted today"
+     * @param limit Maximum number of groups to return
+     * @param offset Pagination offset
+     * @param callback Called with aggregated groups or error
+     */
+    void getAggregatedTimeline(int limit = 20, int offset = 0, AggregatedFeedCallback callback = nullptr);
+
+    /** Get trending feed as aggregated groups (grouped by genre/time)
+     * Returns groups like "5 new electronic loops this week"
+     * Format: {{ genre }}_{{ time.strftime('%Y-%m-%d') }}
+     * @param limit Maximum number of groups to return
+     * @param offset Pagination offset
+     * @param callback Called with aggregated groups or error
+     */
+    void getTrendingFeedGrouped(int limit = 20, int offset = 0, AggregatedFeedCallback callback = nullptr);
+
+    /** Get notifications as aggregated groups (grouped by verb/action+day)
+     * Returns groups like "3 people liked your post today"
+     * Format: {{ verb }}_{{ time.strftime('%Y-%m-%d') }}
+     * @param limit Maximum number of groups to return
+     * @param offset Pagination offset
+     * @param callback Called with aggregated notification groups or error
+     */
+    void getNotificationsAggregated(int limit = 20, int offset = 0, AggregatedFeedCallback callback = nullptr);
+
+    /** Get user activity summary as aggregated groups (grouped by verb+day)
+     * Returns groups showing what a user did each day
+     * Format: {{ verb }}_{{ time.strftime('%Y-%m-%d') }}
+     * @param userId The user ID to get activity for
+     * @param limit Maximum number of groups to return
+     * @param callback Called with aggregated activity groups or error
+     */
+    void getUserActivityAggregated(const juce::String& userId, int limit = 10, AggregatedFeedCallback callback = nullptr);
 
     /** Get "For You" personalized recommendations feed
      * @param limit Maximum number of posts to return
@@ -584,6 +620,18 @@ public:
      * @param callback Called with result or error
      */
     void unfollowUser(const juce::String& userId, ResponseCallback callback = nullptr);
+
+    /** Block a user
+     * @param userId The user ID to block
+     * @param callback Called with result or error
+     */
+    void blockUser(const juce::String& userId, ResponseCallback callback = nullptr);
+
+    /** Unblock a user
+     * @param userId The user ID to unblock
+     * @param callback Called with result or error
+     */
+    void unblockUser(const juce::String& userId, ResponseCallback callback = nullptr);
 
     //==========================================================================
     // Mute operations

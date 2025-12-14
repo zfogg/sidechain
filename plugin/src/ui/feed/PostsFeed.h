@@ -7,6 +7,7 @@
 #include "../../ui/animations/Easing.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "PostCard.h"
+#include "AggregatedFeedCard.h"
 #include "Comment.h"
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/Playlist.h"
@@ -158,6 +159,7 @@ private:
     // UI Components
     juce::ScrollBar scrollBar { true }; // vertical
     juce::OwnedArray<PostCard> postCards;
+    juce::OwnedArray<AggregatedFeedCard> aggregatedCards;
 
     // Comments panel (slide-in overlay)
     std::unique_ptr<CommentsPanel> commentsPanel;

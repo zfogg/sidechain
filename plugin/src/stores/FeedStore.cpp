@@ -43,13 +43,23 @@ void FeedStore::loadFeed(FeedType feedType, bool forceRefresh)
     Util::logInfo("FeedStore", "Loading feed: " + feedTypeToString(feedType),
                   "forceRefresh=" + juce::String(forceRefresh ? "true" : "false"));
 
-    // Update state to loading
+    // Update state to loading (handle both aggregated and regular feeds)
     updateState([feedType](FeedStoreState& state)
     {
         state.currentFeedType = feedType;
-        auto& feed = state.feeds[feedType];
-        feed.isLoading = true;
-        feed.error = "";
+
+        if (isAggregatedFeedType(feedType))
+        {
+            auto& feed = state.aggregatedFeeds[feedType];
+            feed.isLoading = true;
+            feed.error = "";
+        }
+        else
+        {
+            auto& feed = state.feeds[feedType];
+            feed.isLoading = true;
+            feed.error = "";
+        }
     });
 
     // Check multi-tier cache first (Task 4.13)
@@ -430,12 +440,287 @@ void FeedStore::addReaction(const juce::String& postId, const juce::String& emoj
     );
 }
 
+void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
+{
+    Util::logDebug("FeedStore", "Toggle follow", "postId=" + postId + " follow=" + (willFollow ? "true" : "false"));
+
+    optimisticUpdate(
+        [postId, willFollow](FeedStoreState& state)
+        {
+            // Update follow state in current feed
+            auto& currentFeed = state.getCurrentFeedMutable();
+            for (auto& post : currentFeed.posts)
+            {
+                if (post.id == postId)
+                {
+                    post.isFollowing = willFollow;
+                    break;
+                }
+            }
+        },
+        [this, postId, willFollow](auto callback)
+        {
+            if (!networkClient)
+            {
+                callback(false, "Network client not configured");
+                return;
+            }
+
+            // Find the post to get the user ID
+            const auto* post = findPost(postId);
+            if (!post)
+            {
+                callback(false, "Post not found");
+                return;
+            }
+
+            if (willFollow)
+            {
+                networkClient->followUser(post->userId, [this, postId, callback](Outcome<juce::var> result)
+                {
+                    if (result.isOk())
+                    {
+                        Util::logDebug("FeedStore", "Follow succeeded", "postId=" + postId);
+                    }
+                    else
+                    {
+                        Util::logError("FeedStore", "Follow failed: " + result.getError(), "postId=" + postId);
+                    }
+                    callback(result.isOk(), result.isOk() ? "" : result.getError());
+                });
+            }
+            else
+            {
+                networkClient->unfollowUser(post->userId, [this, postId, callback](Outcome<juce::var> result)
+                {
+                    if (result.isOk())
+                    {
+                        Util::logDebug("FeedStore", "Unfollow succeeded", "postId=" + postId);
+                    }
+                    else
+                    {
+                        Util::logError("FeedStore", "Unfollow failed: " + result.getError(), "postId=" + postId);
+                    }
+                    callback(result.isOk(), result.isOk() ? "" : result.getError());
+                });
+            }
+        },
+        [postId, willFollow](const juce::String& error)
+        {
+            Util::logError("FeedStore", "Failed to toggle follow: " + error,
+                           "postId=" + postId + " willFollow=" + (willFollow ? "true" : "false"));
+        }
+    );
+}
+
+void FeedStore::toggleArchive(const juce::String& postId, bool archived)
+{
+    Util::logDebug("FeedStore", "Toggle archive", "postId=" + postId + " archived=" + (archived ? "true" : "false"));
+
+    // Note: Archive functionality (Task 2.2) - currently FeedPost doesn't have isArchived field
+    // and archive operations need further implementation. This is a placeholder.
+
+    if (!networkClient)
+    {
+        Util::logError("FeedStore", "Cannot archive - networkClient not configured", "postId=" + postId);
+        return;
+    }
+
+    // Call appropriate archive/unarchive API based on archived flag
+    if (archived)
+    {
+        networkClient->archivePost(postId, [this, postId](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                Util::logDebug("FeedStore", "Archive succeeded", "postId=" + postId);
+            }
+            else
+            {
+                Util::logError("FeedStore", "Archive failed: " + result.getError(), "postId=" + postId);
+            }
+        });
+    }
+    else
+    {
+        networkClient->unarchivePost(postId, [this, postId](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                Util::logDebug("FeedStore", "Unarchive succeeded", "postId=" + postId);
+            }
+            else
+            {
+                Util::logError("FeedStore", "Unarchive failed: " + result.getError(), "postId=" + postId);
+            }
+        });
+    }
+}
+
+void FeedStore::togglePin(const juce::String& postId, bool pinned)
+{
+    Util::logDebug("FeedStore", "Toggle pin", "postId=" + postId + " pinned=" + (pinned ? "true" : "false"));
+
+    optimisticUpdate(
+        [postId, pinned](FeedStoreState& state)
+        {
+            // Update pin state in current feed
+            auto& currentFeed = state.getCurrentFeedMutable();
+            for (auto& post : currentFeed.posts)
+            {
+                if (post.id == postId)
+                {
+                    post.isPinned = pinned;
+                    break;
+                }
+            }
+        },
+        [this, postId, pinned](auto callback)
+        {
+            if (!networkClient)
+            {
+                callback(false, "Network client not configured");
+                return;
+            }
+
+            // Call appropriate pin/unpin API based on pinned flag
+            if (pinned)
+            {
+                networkClient->pinPost(postId, [this, postId, callback](Outcome<juce::var> result)
+                {
+                    if (result.isOk())
+                    {
+                        Util::logDebug("FeedStore", "Pin succeeded", "postId=" + postId);
+                    }
+                    else
+                    {
+                        Util::logError("FeedStore", "Pin failed: " + result.getError(), "postId=" + postId);
+                    }
+                    callback(result.isOk(), result.isOk() ? "" : result.getError());
+                });
+            }
+            else
+            {
+                networkClient->unpinPost(postId, [this, postId, callback](Outcome<juce::var> result)
+                {
+                    if (result.isOk())
+                    {
+                        Util::logDebug("FeedStore", "Unpin succeeded", "postId=" + postId);
+                    }
+                    else
+                    {
+                        Util::logError("FeedStore", "Unpin failed: " + result.getError(), "postId=" + postId);
+                    }
+                    callback(result.isOk(), result.isOk() ? "" : result.getError());
+                });
+            }
+        },
+        [postId, pinned](const juce::String& error)
+        {
+            Util::logError("FeedStore", "Failed to toggle pin: " + error,
+                           "postId=" + postId + " pinned=" + (pinned ? "true" : "false"));
+        }
+    );
+}
+
 void FeedStore::updatePlayCount(const juce::String& postId, int newCount)
 {
     updatePostInAllFeeds(postId, [newCount](FeedPost& post)
     {
         post.playCount = newCount;
     });
+}
+
+void FeedStore::toggleMute(const juce::String& userId, bool willMute)
+{
+    Util::logDebug("FeedStore", "Toggle mute", "userId=" + userId + " mute=" + (willMute ? "true" : "false"));
+
+    if (!networkClient)
+    {
+        Util::logError("FeedStore", "Cannot toggle mute - network client not configured");
+        return;
+    }
+
+    if (userId.isEmpty())
+    {
+        Util::logError("FeedStore", "Cannot toggle mute - userId is empty");
+        return;
+    }
+
+    if (willMute)
+    {
+        networkClient->muteUser(userId, [this, userId](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                Util::logDebug("FeedStore", "Mute succeeded", "userId=" + userId);
+            }
+            else
+            {
+                Util::logError("FeedStore", "Mute failed: " + result.getError(), "userId=" + userId);
+            }
+        });
+    }
+    else
+    {
+        networkClient->unmuteUser(userId, [this, userId](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                Util::logDebug("FeedStore", "Unmute succeeded", "userId=" + userId);
+            }
+            else
+            {
+                Util::logError("FeedStore", "Unmute failed: " + result.getError(), "userId=" + userId);
+            }
+        });
+    }
+}
+
+void FeedStore::toggleBlock(const juce::String& userId, bool willBlock)
+{
+    Util::logDebug("FeedStore", "Toggle block", "userId=" + userId + " block=" + (willBlock ? "true" : "false"));
+
+    if (!networkClient)
+    {
+        Util::logError("FeedStore", "Cannot toggle block - network client not configured");
+        return;
+    }
+
+    if (userId.isEmpty())
+    {
+        Util::logError("FeedStore", "Cannot toggle block - userId is empty");
+        return;
+    }
+
+    if (willBlock)
+    {
+        networkClient->blockUser(userId, [this, userId](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                Util::logDebug("FeedStore", "Block succeeded", "userId=" + userId);
+            }
+            else
+            {
+                Util::logError("FeedStore", "Block failed: " + result.getError(), "userId=" + userId);
+            }
+        });
+    }
+    else
+    {
+        networkClient->unblockUser(userId, [this, userId](Outcome<juce::var> result)
+        {
+            if (result.isOk())
+            {
+                Util::logDebug("FeedStore", "Unblock succeeded", "userId=" + userId);
+            }
+            else
+            {
+                Util::logError("FeedStore", "Unblock failed: " + result.getError(), "userId=" + userId);
+            }
+        });
+    }
 }
 
 //==============================================================================
@@ -696,58 +981,117 @@ void FeedStore::performFetch(FeedType feedType, int limit, int offset)
         case FeedType::ForYou:
             networkClient->getForYouFeed(limit, offset, callback);
             break;
+        case FeedType::TimelineAggregated:
+            networkClient->getAggregatedTimeline(limit, offset, callback);
+            break;
+        case FeedType::TrendingAggregated:
+            networkClient->getTrendingFeedGrouped(limit, offset, callback);
+            break;
+        case FeedType::NotificationAggregated:
+            networkClient->getNotificationsAggregated(limit, offset, callback);
+            break;
+        case FeedType::UserActivityAggregated:
+            // Note: UserActivity needs a userId parameter
+            // For now, use the current user's ID from the store
+            // This will need to be extended if we want to view other users' activity
+            networkClient->getUserActivityAggregated("", limit, callback);  // Empty userId means current user
+            break;
     }
 }
 
 void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var& data, int limit, int offset)
 {
     SCOPED_TIMER("feed::parse_response");
-    auto response = parseJsonResponse(data);
-    response.limit = limit;
-    response.offset = offset;
-
-    Util::logInfo("FeedStore", "Fetch success",
-                  "feedType=" + feedTypeToString(feedType) +
-                  " posts=" + juce::String(response.posts.size()) +
-                  " hasMore=" + juce::String(response.hasMore ? "true" : "false"));
 
     // Mark as NOT from cache since we just fetched from network (Task 4.14)
     currentFeedIsFromCache_ = false;
 
-    // Update state
-    updateState([feedType, response, offset](FeedStoreState& state)
+    // Handle aggregated feeds differently
+    if (isAggregatedFeedType(feedType))
     {
-        auto& feed = state.feeds[feedType];
+        auto response = parseAggregatedJsonResponse(data);
+        response.limit = limit;
+        response.offset = offset;
 
-        if (offset == 0)
+        Util::logInfo("FeedStore", "Aggregated fetch success",
+                      "feedType=" + feedTypeToString(feedType) +
+                      " groups=" + juce::String(response.groups.size()) +
+                      " hasMore=" + juce::String(response.hasMore ? "true" : "false"));
+
+        // Update state with aggregated groups
+        updateState([feedType, response, offset](FeedStoreState& state)
         {
-            // First page - replace posts
-            feed.posts = response.posts;
-        }
-        else
-        {
-            // Subsequent page - append posts
-            for (const auto& post : response.posts)
-                feed.posts.add(post);
-        }
+            auto& feed = state.aggregatedFeeds[feedType];
 
-        feed.isLoading = false;
-        feed.isRefreshing = false;
-        feed.hasMore = response.hasMore;
-        feed.offset = offset;
-        feed.limit = response.limit;
-        feed.total = response.total;
-        feed.error = "";
-        feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-    });
+            if (offset == 0)
+            {
+                // First page - replace groups
+                feed.groups = response.groups;
+            }
+            else
+            {
+                // Subsequent page - append groups
+                for (const auto& group : response.groups)
+                    feed.groups.add(group);
+            }
 
-    // Save to multi-tier cache (Task 4.13 - only first page)
-    if (offset == 0 && feedCache)
+            feed.isLoading = false;
+            feed.isRefreshing = false;
+            feed.hasMore = response.hasMore;
+            feed.offset = offset;
+            feed.limit = response.limit;
+            feed.total = response.total;
+            feed.error = "";
+            feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+        });
+    }
+    else
     {
-        auto cacheKey = feedTypeToCacheKey(feedType);
-        feedCache->put(cacheKey, response.posts, cacheTTLSeconds, true);
-        Util::logDebug("FeedStore", "Stored feed in multi-tier cache: " + feedTypeToString(feedType),
-                       "posts=" + juce::String(response.posts.size()) + " ttl=" + juce::String(cacheTTLSeconds) + "s");
+        // Handle regular flat feeds
+        auto response = parseJsonResponse(data);
+        response.limit = limit;
+        response.offset = offset;
+
+        Util::logInfo("FeedStore", "Fetch success",
+                      "feedType=" + feedTypeToString(feedType) +
+                      " posts=" + juce::String(response.posts.size()) +
+                      " hasMore=" + juce::String(response.hasMore ? "true" : "false"));
+
+        // Update state
+        updateState([feedType, response, offset](FeedStoreState& state)
+        {
+            auto& feed = state.feeds[feedType];
+
+            if (offset == 0)
+            {
+                // First page - replace posts
+                feed.posts = response.posts;
+            }
+            else
+            {
+                // Subsequent page - append posts
+                for (const auto& post : response.posts)
+                    feed.posts.add(post);
+            }
+
+            feed.isLoading = false;
+            feed.isRefreshing = false;
+            feed.hasMore = response.hasMore;
+            feed.offset = offset;
+            feed.limit = response.limit;
+            feed.total = response.total;
+            feed.error = "";
+            feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+        });
+
+        // Save to multi-tier cache (Task 4.13 - only first page)
+        if (offset == 0 && feedCache)
+        {
+            auto cacheKey = feedTypeToCacheKey(feedType);
+            feedCache->put(cacheKey, response.posts, cacheTTLSeconds, true);
+            Util::logDebug("FeedStore", "Stored feed in multi-tier cache: " + feedTypeToString(feedType),
+                           "posts=" + juce::String(response.posts.size()) + " ttl=" + juce::String(cacheTTLSeconds) + "s");
+        }
     }
 }
 
@@ -769,10 +1113,20 @@ void FeedStore::handleFetchError(FeedType feedType, const juce::String& error)
 
     updateState([feedType, error](FeedStoreState& state)
     {
-        auto& feed = state.feeds[feedType];
-        feed.isLoading = false;
-        feed.isRefreshing = false;
-        feed.error = error;
+        if (isAggregatedFeedType(feedType))
+        {
+            auto& feed = state.aggregatedFeeds[feedType];
+            feed.isLoading = false;
+            feed.isRefreshing = false;
+            feed.error = error;
+        }
+        else
+        {
+            auto& feed = state.feeds[feedType];
+            feed.isLoading = false;
+            feed.isRefreshing = false;
+            feed.error = error;
+        }
     });
 }
 
@@ -825,6 +1179,53 @@ FeedResponse FeedStore::parseJsonResponse(const juce::var& json)
             response.hasMore = static_cast<bool>(json.getProperty("has_more", false));
         else
             response.hasMore = (response.offset + response.posts.size()) < response.total;
+    }
+
+    return response;
+}
+
+AggregatedFeedResponse FeedStore::parseAggregatedJsonResponse(const juce::var& json)
+{
+    SCOPED_TIMER("feed::parse_aggregated_json");
+    AggregatedFeedResponse response;
+
+    if (json.isVoid())
+    {
+        response.error = "Invalid JSON response";
+        return response;
+    }
+
+    // Parse groups array
+    auto groups = json.getProperty("groups", juce::var());
+    if (!groups.isArray())
+    {
+        return response; // Empty response
+    }
+
+    // Parse each group into an AggregatedFeedGroup
+    for (int i = 0; i < groups.size(); ++i)
+    {
+        auto group = AggregatedFeedGroup::fromJson(groups[i]);
+        if (group.isValid())
+            response.groups.add(group);
+    }
+
+    // Parse pagination info
+    auto meta = json.getProperty("meta", juce::var());
+    if (meta.isObject())
+    {
+        response.total = static_cast<int>(meta.getProperty("count", 0));
+        response.limit = static_cast<int>(meta.getProperty("limit", 20));
+        response.offset = static_cast<int>(meta.getProperty("offset", 0));
+        response.hasMore = static_cast<bool>(meta.getProperty("has_more", false));
+    }
+    else
+    {
+        // Fallback
+        response.total = static_cast<int>(json.getProperty("total", 0));
+        response.limit = static_cast<int>(json.getProperty("limit", 20));
+        response.offset = static_cast<int>(json.getProperty("offset", 0));
+        response.hasMore = (response.offset + response.groups.size()) < response.total;
     }
 
     return response;

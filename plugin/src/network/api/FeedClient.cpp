@@ -379,3 +379,117 @@ void NetworkClient::createRemixPost(const juce::String& sourcePostId, const juce
         }
     });
 }
+
+//==============================================================================
+// Aggregated Feeds - Activities grouped by user+day or genre+time
+
+void NetworkClient::getAggregatedTimeline(int limit, int offset, AggregatedFeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // Use aggregated endpoint which groups activities by user+day
+        juce::String endpoint = buildApiPath("/feed/timeline/aggregated") +
+                                "?limit=" + juce::String(limit) +
+                                "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid aggregated feed response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::getTrendingFeedGrouped(int limit, int offset, AggregatedFeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // Use grouped trending endpoint which returns aggregated groups
+        juce::String endpoint = buildApiPath("/feed/trending/grouped") +
+                                "?limit=" + juce::String(limit) +
+                                "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid aggregated trending response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::getNotificationsAggregated(int limit, int offset, AggregatedFeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // Notifications endpoint returns aggregated groups by default
+        juce::String endpoint = buildApiPath("/notifications") +
+                                "?limit=" + juce::String(limit) +
+                                "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid notifications response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::getUserActivityAggregated(const juce::String& userId, int limit, AggregatedFeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, userId, limit, callback]() {
+        // User activity endpoint returns aggregated groups
+        juce::String endpoint = buildApiPath(("/users/" + userId + "/activity").toRawUTF8()) +
+                                "?limit=" + juce::String(limit);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid user activity response"));
+            });
+        }
+    });
+}

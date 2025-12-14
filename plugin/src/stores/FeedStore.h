@@ -5,6 +5,8 @@
 #include "CacheWarmer.h"
 #include "../models/FeedPost.h"
 #include "../models/FeedResponse.h"
+#include "../models/AggregatedFeedGroup.h"
+#include "../models/AggregatedFeedResponse.h"
 #include "../network/NetworkClient.h"
 #include "../network/RealtimeSync.h"
 #include "../util/logging/Logger.h"
@@ -16,13 +18,26 @@ namespace Stores {
 
 /**
  * FeedType - Types of feeds available in the application
+ *
+ * Aggregation formats from getstream.io:
+ * - TrendingAggregated: {{ genre }}_{{ time.strftime('%Y-%m-%d') }}
+ * - TimelineAggregated: {{ actor }}_{{ verb }}_{{ time.strftime('%Y-%m-%d') }}
+ * - NotificationAggregated: {{ verb }}_{{ time.strftime('%Y-%m-%d') }}
+ * - UserActivityAggregated: {{ verb }}_{{ time.strftime('%Y-%m-%d') }}
  */
 enum class FeedType
 {
-    Timeline,   // User's following feed (posts from people they follow)
-    Global,     // Global discover feed (all public posts)
-    Trending,   // Trending feed (posts sorted by engagement score)
-    ForYou      // Personalized recommendations based on listening history
+    // Flat feeds (individual activities)
+    Timeline,                  // User's following feed (posts from people they follow)
+    Global,                    // Global discover feed (all public posts)
+    Trending,                  // Trending feed (posts sorted by engagement score)
+    ForYou,                    // Personalized recommendations based on listening history
+
+    // Aggregated feeds (grouped activities)
+    TimelineAggregated,        // Timeline grouped by actor+verb+day
+    TrendingAggregated,        // Trending grouped by genre+day
+    NotificationAggregated,    // Notifications grouped by verb+day
+    UserActivityAggregated     // User activity grouped by verb+day
 };
 
 /**
@@ -32,12 +47,27 @@ inline juce::String feedTypeToString(FeedType type)
 {
     switch (type)
     {
-        case FeedType::Timeline: return "Timeline";
-        case FeedType::Global:   return "Global";
-        case FeedType::Trending: return "Trending";
-        case FeedType::ForYou:   return "ForYou";
-        default:                 return "Unknown";
+        case FeedType::Timeline:               return "Timeline";
+        case FeedType::Global:                 return "Global";
+        case FeedType::Trending:               return "Trending";
+        case FeedType::ForYou:                 return "ForYou";
+        case FeedType::TimelineAggregated:     return "TimelineAggregated";
+        case FeedType::TrendingAggregated:     return "TrendingAggregated";
+        case FeedType::NotificationAggregated: return "NotificationAggregated";
+        case FeedType::UserActivityAggregated: return "UserActivityAggregated";
+        default:                               return "Unknown";
     }
+}
+
+/**
+ * Check if a FeedType is aggregated
+ */
+inline bool isAggregatedFeedType(FeedType type)
+{
+    return type == FeedType::TimelineAggregated ||
+           type == FeedType::TrendingAggregated ||
+           type == FeedType::NotificationAggregated ||
+           type == FeedType::UserActivityAggregated;
 }
 
 /**
@@ -70,11 +100,41 @@ struct SingleFeedState
 };
 
 /**
+ * AggregatedFeedState - State for aggregated feeds (groups instead of flat posts)
+ */
+struct AggregatedFeedState
+{
+    juce::Array<AggregatedFeedGroup> groups;
+    bool isLoading = false;
+    bool isRefreshing = false;
+    bool hasMore = true;
+    int offset = 0;
+    int limit = 20;
+    int total = 0;
+    juce::String error;
+    int64_t lastUpdated = 0;
+    bool isSynced = true;
+
+    bool operator==(const AggregatedFeedState& other) const
+    {
+        return groups.size() == other.groups.size() &&
+               isLoading == other.isLoading &&
+               isRefreshing == other.isRefreshing &&
+               hasMore == other.hasMore &&
+               offset == other.offset &&
+               error == other.error &&
+               lastUpdated == other.lastUpdated &&
+               isSynced == other.isSynced;
+    }
+};
+
+/**
  * FeedStoreState - Combined state for all feed types
  */
 struct FeedStoreState
 {
     std::map<FeedType, SingleFeedState> feeds;
+    std::map<FeedType, AggregatedFeedState> aggregatedFeeds;
     FeedType currentFeedType = FeedType::Timeline;
 
     // Convenience accessors
@@ -90,9 +150,23 @@ struct FeedStoreState
         return feeds[currentFeedType];
     }
 
+    const AggregatedFeedState& getCurrentAggregatedFeed() const
+    {
+        static AggregatedFeedState empty;
+        auto it = aggregatedFeeds.find(currentFeedType);
+        return it != aggregatedFeeds.end() ? it->second : empty;
+    }
+
+    AggregatedFeedState& getCurrentAggregatedFeedMutable()
+    {
+        return aggregatedFeeds[currentFeedType];
+    }
+
     bool operator==(const FeedStoreState& other) const
     {
-        return feeds == other.feeds && currentFeedType == other.currentFeedType;
+        return feeds == other.feeds &&
+               aggregatedFeeds == other.aggregatedFeeds &&
+               currentFeedType == other.currentFeedType;
     }
 };
 
@@ -217,6 +291,41 @@ public:
      * @param emoji The emoji to add (empty string to remove reaction)
      */
     void addReaction(const juce::String& postId, const juce::String& emoji);
+
+    /**
+     * Toggle follow/unfollow on a post author (optimistic update)
+     * @param postId The post ID (to find the author)
+     * @param willFollow true to follow, false to unfollow
+     */
+    void toggleFollow(const juce::String& postId, bool willFollow);
+
+    /**
+     * Toggle mute/unmute on a user by ID (optimistic update, Task 2.4)
+     * @param userId The user ID to mute/unmute
+     * @param willMute true to mute, false to unmute
+     */
+    void toggleMute(const juce::String& userId, bool willMute);
+
+    /**
+     * Toggle block/unblock on a user by ID (optimistic update)
+     * @param userId The user ID to block/unblock
+     * @param willBlock true to block, false to unblock
+     */
+    void toggleBlock(const juce::String& userId, bool willBlock);
+
+    /**
+     * Toggle archive state on a post (optimistic update)
+     * @param postId The post ID to archive/unarchive
+     * @param archived true to archive, false to unarchive
+     */
+    void toggleArchive(const juce::String& postId, bool archived);
+
+    /**
+     * Toggle pin state on a post (optimistic update, own posts only)
+     * @param postId The post ID to pin/unpin
+     * @param pinned true to pin, false to unpin
+     */
+    void togglePin(const juce::String& postId, bool pinned);
 
     /**
      * Update play count for a post
@@ -392,6 +501,7 @@ private:
     void handleFetchSuccess(FeedType feedType, const juce::var& data, int limit, int offset);
     void handleFetchError(FeedType feedType, const juce::String& error);
     FeedResponse parseJsonResponse(const juce::var& json);
+    AggregatedFeedResponse parseAggregatedJsonResponse(const juce::var& json);
 
     // Cache helpers (Task 4.13)
     juce::String feedTypeToCacheKey(FeedType feedType) const;
