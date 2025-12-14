@@ -258,9 +258,24 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 		// Generate a filename for this post
 		generatedFilename := fmt.Sprintf("loop_%s.wav", gofakeit.Word())
 
+		// Use real, publicly available test audio URLs for demonstration
+		// These are royalty-free music loops from freesound.org and similar sources
+		testAudioURLs := []string{
+			"https://cdn.freesound.org/previews/171/171497_2437358-lq.mp3",   // Electronic loop
+			"https://cdn.freesound.org/previews/350/350876_5121236-lq.mp3",   // Drum loop
+			"https://cdn.freesound.org/previews/380/380468_7138151-lq.mp3",   // Bass loop
+			"https://cdn.freesound.org/previews/344/344310_5121236-lq.mp3",   // Synth loop
+			"https://cdn.freesound.org/previews/541/541445_11861866-lq.mp3",  // Guitar loop
+			"https://cdn.freesound.org/previews/380/380480_7138151-lq.mp3",   // Piano loop
+			"https://cdn.freesound.org/previews/380/380477_7138151-lq.mp3",   // Ambient loop
+			"https://www.kozco.com/tech/organfinale.mp3",                      // Organ sample
+			"https://www.kozco.com/tech/piano2.mp3",                           // Piano sample
+			"https://www.kozco.com/tech/LRMonoPhase4.mp3",                     // Electronic sample
+		}
+
 		post := models.AudioPost{
 			UserID:           user.ID,
-			AudioURL:         fmt.Sprintf("https://cdn.sidechain.app/audio/%s.mp3", gofakeit.UUID()),
+			AudioURL:         testAudioURLs[rand.Intn(len(testAudioURLs))], // Use real test audio
 			OriginalFilename: generatedFilename,
 			Filename:         generatedFilename, // User-editable display filename (required)
 			FileSize:         int64(rand.Intn(5000000) + 1000000), // 1-6 MB

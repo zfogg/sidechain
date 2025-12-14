@@ -403,4 +403,38 @@ func runManualMigrations() {
 			log.Printf("✅ Populated %d filenames in stories", emptyStoryFilenameCount)
 		}
 	}
+
+	// Migration: Replace fake CDN URLs with real test audio URLs
+	// Check if there are any posts with fake sidechain.app CDN URLs
+	var fakeCdnCount int64
+	DB.Model(&models.AudioPost{}).Where("audio_url LIKE 'https://cdn.sidechain.app/%'").Count(&fakeCdnCount)
+
+	if fakeCdnCount > 0 {
+		log.Printf("📦 Running migration: Replacing %d fake CDN URLs with real test audio", fakeCdnCount)
+
+		// Real test audio URLs (same as seeder)
+		testAudioURLs := []string{
+			"https://cdn.freesound.org/previews/171/171497_2437358-lq.mp3",
+			"https://cdn.freesound.org/previews/350/350876_5121236-lq.mp3",
+			"https://cdn.freesound.org/previews/380/380468_7138151-lq.mp3",
+			"https://cdn.freesound.org/previews/344/344310_5121236-lq.mp3",
+			"https://cdn.freesound.org/previews/541/541445_11861866-lq.mp3",
+			"https://cdn.freesound.org/previews/380/380480_7138151-lq.mp3",
+			"https://cdn.freesound.org/previews/380/380477_7138151-lq.mp3",
+			"https://www.kozco.com/tech/organfinale.mp3",
+			"https://www.kozco.com/tech/piano2.mp3",
+			"https://www.kozco.com/tech/LRMonoPhase4.mp3",
+		}
+
+		// Update all posts with fake URLs to use real ones (distributed randomly)
+		var posts []models.AudioPost
+		DB.Where("audio_url LIKE 'https://cdn.sidechain.app/%'").Find(&posts)
+
+		for i, post := range posts {
+			audioURL := testAudioURLs[i%len(testAudioURLs)]
+			DB.Model(&post).Update("audio_url", audioURL)
+		}
+
+		log.Printf("✅ Replaced %d fake CDN URLs with real test audio", fakeCdnCount)
+	}
 }
