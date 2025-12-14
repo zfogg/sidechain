@@ -323,17 +323,84 @@ void UserPickerDialog::setNetworkClient(NetworkClient* client)
 
 void UserPickerDialog::loadRecentConversations()
 {
-    if (!streamChatClient)
+    if (!streamChatClient || !streamChatClient->isAuthenticated())
     {
-        Log::error("UserPickerDialog: Cannot load recent conversations - no StreamChatClient");
+        Log::error("UserPickerDialog: Cannot load recent conversations - not authenticated");
+        dialogState = DialogState::Showing;
+        repaint();
         return;
     }
-    
-    // TODO: Implement loading recent conversation users from StreamChatClient
-    // For now, leave empty - will be implemented when StreamChatClient has the method
+
     Log::info("UserPickerDialog: Loading recent conversations");
-    dialogState = DialogState::Showing;
+    dialogState = DialogState::Loading;
     repaint();
+
+    juce::Component::SafePointer<UserPickerDialog> safeThis(this);
+
+    // Query recent channels to get recent conversation partners
+    streamChatClient->queryChannels([safeThis](Outcome<std::vector<StreamChatClient::Channel>> result) {
+        if (safeThis == nullptr) return;
+
+        safeThis->dialogState = DialogState::Showing;
+
+        if (result.isError())
+        {
+            Log::error("UserPickerDialog: Failed to load channels - " + result.getError());
+            safeThis->repaint();
+            return;
+        }
+
+        auto channels = result.getValue();
+        safeThis->recentUsers.clear();
+
+        // Extract unique users from channels
+        std::set<juce::String> seenUserIds;
+
+        for (const auto& channel : channels)
+        {
+            // Skip group channels for "recent" section (use members array size)
+            if (channel.members.isArray() && channel.members.size() > 2)
+                continue;
+
+            // Get the other user from the channel
+            if (channel.members.isArray())
+            {
+                for (int i = 0; i < channel.members.size(); ++i)
+                {
+                    auto member = channel.members[i];
+                    juce::String userId = member.getProperty("user_id", "").toString();
+
+                    // Skip self and duplicates
+                    if (userId == safeThis->currentUserId || userId.isEmpty())
+                        continue;
+                    if (seenUserIds.find(userId) != seenUserIds.end())
+                        continue;
+
+                    seenUserIds.insert(userId);
+
+                    // Create UserItem from member data
+                    UserItem user;
+                    user.userId = userId;
+                    user.username = member.getProperty("username", "").toString();
+                    user.displayName = member.getProperty("display_name", "").toString();
+                    user.profilePictureUrl = member.getProperty("avatar_url", "").toString();
+
+                    safeThis->recentUsers.push_back(user);
+
+                    // Limit to 5 recent users
+                    if (safeThis->recentUsers.size() >= 5)
+                        break;
+                }
+
+                if (safeThis->recentUsers.size() >= 5)
+                    break;
+            }
+        }
+
+        Log::info("UserPickerDialog: Loaded " + juce::String(safeThis->recentUsers.size()) + " recent users");
+        safeThis->resized();
+        safeThis->repaint();
+    }, 20, 0);
 }
 
 void UserPickerDialog::loadSuggestedUsers()
@@ -343,10 +410,52 @@ void UserPickerDialog::loadSuggestedUsers()
         Log::error("UserPickerDialog: Cannot load suggested users - no NetworkClient");
         return;
     }
-    
-    // TODO: Implement loading suggested users from NetworkClient
-    // For now, leave empty - will be implemented when NetworkClient has the method
+
     Log::info("UserPickerDialog: Loading suggested users");
+
+    juce::Component::SafePointer<UserPickerDialog> safeThis(this);
+
+    // Get suggested users based on shared interests
+    networkClient->getSuggestedUsers(10, [safeThis](Outcome<juce::var> result) {
+        if (safeThis == nullptr) return;
+
+        if (result.isError())
+        {
+            Log::error("UserPickerDialog: Failed to load suggested users - " + result.getError());
+            return;
+        }
+
+        auto data = result.getValue();
+        safeThis->suggestedUsers.clear();
+
+        if (data.isArray())
+        {
+            for (int i = 0; i < data.size(); ++i)
+            {
+                auto userObj = data[i];
+
+                // Skip excluded users
+                juce::String userId = userObj.getProperty("id", "").toString();
+                if (userId.isEmpty() || safeThis->excludedUserIds.contains(userId))
+                    continue;
+
+                UserItem user;
+                user.userId = userId;
+                user.username = userObj.getProperty("username", "").toString();
+                user.displayName = userObj.getProperty("display_name", "").toString();
+                user.profilePictureUrl = userObj.getProperty("profile_picture_url", "").toString();
+                user.isFollowing = userObj.getProperty("is_following", false);
+                user.followsMe = userObj.getProperty("follows_me", false);
+                user.isOnline = userObj.getProperty("is_online", false);
+
+                safeThis->suggestedUsers.push_back(user);
+            }
+        }
+
+        Log::info("UserPickerDialog: Loaded " + juce::String(safeThis->suggestedUsers.size()) + " suggested users");
+        safeThis->resized();
+        safeThis->repaint();
+    });
 }
 
 //==============================================================================
@@ -518,12 +627,12 @@ void UserPickerDialog::drawLoadingState(juce::Graphics& g)
     g.drawText("Loading...", 0, 0, getWidth(), getHeight(), juce::Justification::centred);
 }
 
-void UserPickerDialog::drawErrorState(juce::Graphics& g)
+void UserPickerDialog::drawErrorState([[maybe_unused]] juce::Graphics& g)
 {
     if (errorStateComponent)
     {
         errorStateComponent->setVisible(true);
-        errorStateComponent->setErrorMessage(errorMessage);
+        // ErrorState component will show the error message from its own state
     }
 }
 
@@ -567,7 +676,7 @@ int UserPickerDialog::calculateContentHeight()
 void UserPickerDialog::performSearch(const juce::String& query)
 {
     currentSearchQuery = query.trim();
-    
+
     if (currentSearchQuery.isEmpty())
     {
         searchResults.clear();
@@ -575,25 +684,64 @@ void UserPickerDialog::performSearch(const juce::String& query)
         repaint();
         return;
     }
-    
+
     if (!networkClient)
     {
         Log::error("UserPickerDialog: Cannot search - no NetworkClient");
         return;
     }
-    
+
+    Log::info("UserPickerDialog: Searching for: " + currentSearchQuery);
     isSearching = true;
     repaint();
-    
-    // TODO: Implement actual search via NetworkClient
-    // For now, just clear results after a delay to show the searching state
-    juce::MessageManager::callAsync([this]() {
-        isSearching = false;
-        searchResults.clear();
-        repaint();
+
+    juce::Component::SafePointer<UserPickerDialog> safeThis(this);
+
+    // Search users by username or display name
+    networkClient->searchUsers(currentSearchQuery, 20, 0, [safeThis](Outcome<juce::var> result) {
+        if (safeThis == nullptr) return;
+
+        safeThis->isSearching = false;
+
+        if (result.isError())
+        {
+            Log::error("UserPickerDialog: Search failed - " + result.getError());
+            safeThis->searchResults.clear();
+            safeThis->repaint();
+            return;
+        }
+
+        auto data = result.getValue();
+        safeThis->searchResults.clear();
+
+        if (data.isArray())
+        {
+            for (int i = 0; i < data.size(); ++i)
+            {
+                auto userObj = data[i];
+
+                // Skip excluded users
+                juce::String userId = userObj.getProperty("id", "").toString();
+                if (userId.isEmpty() || safeThis->excludedUserIds.contains(userId))
+                    continue;
+
+                UserItem user;
+                user.userId = userId;
+                user.username = userObj.getProperty("username", "").toString();
+                user.displayName = userObj.getProperty("display_name", "").toString();
+                user.profilePictureUrl = userObj.getProperty("profile_picture_url", "").toString();
+                user.isFollowing = userObj.getProperty("is_following", false);
+                user.followsMe = userObj.getProperty("follows_me", false);
+                user.isOnline = userObj.getProperty("is_online", false);
+
+                safeThis->searchResults.push_back(user);
+            }
+        }
+
+        Log::info("UserPickerDialog: Found " + juce::String(safeThis->searchResults.size()) + " users");
+        safeThis->resized();
+        safeThis->repaint();
     });
-    
-    Log::info("UserPickerDialog: Searching for: " + currentSearchQuery);
 }
 
 void UserPickerDialog::toggleUserSelection(const juce::String& userId)
@@ -631,7 +779,7 @@ void UserPickerDialog::createConversation()
 {
     if (selectedUserIds.empty())
     {
-        Log::warning("UserPickerDialog: No users selected");
+        Log::info("UserPickerDialog: No users selected");
         return;
     }
     
@@ -691,11 +839,6 @@ juce::Rectangle<int> UserPickerDialog::getCancelButtonBounds() const
 juce::Rectangle<int> UserPickerDialog::getCloseButtonBounds() const
 {
     return juce::Rectangle<int>(getWidth() - 50, 0, 50, HEADER_HEIGHT);
-}
-
-juce::Rectangle<int> UserPickerDialog::getDoneButtonBounds() const
-{
-    return getCreateButtonBounds();
 }
 
 //==============================================================================

@@ -30,6 +30,7 @@
 #include "ui/search/Search.h"
 #include "ui/messages/MessagesList.h"
 #include "ui/messages/MessageThread.h"
+#include "ui/messages/UserPickerDialog.h"
 #include "ui/stories/StoryRecording.h"
 #include "ui/stories/StoryViewer.h"
 #include "ui/stories/CreateHighlightDialog.h"
@@ -264,6 +265,9 @@ private:
 
     // Share to message dialog
     std::unique_ptr<ShareToMessageDialog> shareToMessageDialog;
+
+    // User picker dialog for creating new conversations
+    std::unique_ptr<class UserPickerDialog> userPickerDialog;
 
     // Settings dialogs
     std::unique_ptr<NotificationSettings> notificationSettingsDialog;
