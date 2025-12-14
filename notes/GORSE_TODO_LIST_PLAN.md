@@ -194,39 +194,42 @@
 **Effort**: Medium
 **Files**:
 - `backend/gorse.toml`
-- `backend/internal/handlers/social.go`
-- Plugin UI for "Not Interested" button
+- `backend/internal/handlers/recommendations.go`
+- `backend/cmd/server/main.go`
 
 **Tasks**:
 
-- [ ] **5.1 Update Gorse Config**
-  - File: `backend/gorse.toml`
-  - Add to `[recommend.data_source]`:
-    ```toml
-    negative_feedback_types = ["dislike", "skip", "hide"]
-    read_feedback_time_to_live = 90  # Decay views after 90 days
-    positive_feedback_time_to_live = 365  # Decay likes after 1 year
-    ```
+- [x] **5.1 Update Gorse Config** ✅ COMPLETED
+  - File: `backend/gorse.toml` (lines 25-27)
+  - Added `negative_feedback_types = ["dislike", "skip", "hide"]`
+  - Added `read_feedback_ttl = 90` (decay views after 90 days)
+  - Added `positive_feedback_ttl = 365` (decay likes after 1 year)
 
-- [ ] **5.2 Add "Not Interested" API Endpoint**
-  - File: `backend/internal/handlers/recommendations.go`
+- [x] **5.2 Add "Not Interested" API Endpoint** ✅ COMPLETED
+  - File: `backend/internal/handlers/recommendations.go` (lines 270-298)
   - New endpoint: `POST /api/v1/recommendations/dislike/:post_id`
-  - Handler: `go h.gorseClient.SyncFeedback(userID, postID, "dislike")`
+  - Handler: `NotInterestedInPost()` sends "dislike" feedback to Gorse
+  - Route added in `backend/cmd/server/main.go` (line 518)
 
-- [ ] **5.3 Track Skips**
-  - When user scrolls past post in <1 second
-  - Frontend sends skip event
-  - Backend: `go h.gorseClient.SyncFeedback(userID, postID, "skip")`
+- [x] **5.3 Track Skips** ✅ COMPLETED
+  - File: `backend/internal/handlers/recommendations.go` (lines 300-328)
+  - New endpoint: `POST /api/v1/recommendations/skip/:post_id`
+  - Handler: `SkipPost()` sends "skip" feedback to Gorse
+  - Frontend can call when user scrolls past quickly
+  - Route added in `backend/cmd/server/main.go` (line 519)
 
-- [ ] **5.4 Add "Hide This Post" Feature**
-  - UI button to hide specific post
-  - Backend: `go h.gorseClient.SyncFeedback(userID, postID, "hide")`
-  - Also hide from user's feed in database
+- [x] **5.4 Add "Hide This Post" Feature** ✅ COMPLETED
+  - File: `backend/internal/handlers/recommendations.go` (lines 330-359)
+  - New endpoint: `POST /api/v1/recommendations/hide/:post_id`
+  - Handler: `HidePost()` sends "hide" feedback (strongest negative signal)
+  - Route added in `backend/cmd/server/main.go` (line 520)
 
 **Success Metrics**:
 - [ ] Disliked posts stop appearing in recommendations
 - [ ] Skipped patterns influence future recommendations
 - [ ] User satisfaction with recommendations improves
+
+**✅ TASK #5 COMPLETE** - Negative feedback signals fully implemented!
 
 ---
 

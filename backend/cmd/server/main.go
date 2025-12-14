@@ -514,6 +514,10 @@ func main() {
 			recommendations.GET("/for-you", h.GetForYouFeed)
 			recommendations.GET("/similar-posts/:post_id", h.GetSimilarPosts)
 			recommendations.GET("/similar-users/:user_id", h.GetRecommendedUsers)
+			// Negative feedback endpoints (Task 5)
+			recommendations.POST("/dislike/:post_id", h.NotInterestedInPost) // "Not interested" button
+			recommendations.POST("/skip/:post_id", h.SkipPost)               // Track when user scrolls past quickly
+			recommendations.POST("/hide/:post_id", h.HidePost)               // "Hide this post" button
 		}
 
 		// Post routes (for comments, deletion, reporting, saving, reposting)

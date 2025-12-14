@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
+	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // GetForYouFeed returns personalized recommendations for the current user
@@ -262,5 +264,96 @@ func (h *Handlers) GetRecommendedUsers(c *gin.Context) {
 			"limit": limit,
 			"count": len(userList),
 		},
+	})
+}
+
+// NotInterestedInPost marks a post as "not interested" (negative feedback)
+// POST /api/v1/recommendations/dislike/:post_id
+// Task 5.2
+func (h *Handlers) NotInterestedInPost(c *gin.Context) {
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+
+	postID := c.Param("post_id")
+	if postID == "" {
+		util.RespondBadRequest(c, "post_id_required")
+		return
+	}
+
+	// Send negative feedback to Gorse (Task 5.2)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFeedback(userID, postID, "dislike"); err != nil {
+				fmt.Printf("Warning: Failed to sync dislike to Gorse: %v\n", err)
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "not_interested_recorded",
+		"post_id": postID,
+	})
+}
+
+// SkipPost records when a user skips past a post (negative signal)
+// POST /api/v1/recommendations/skip/:post_id
+// Task 5.3
+func (h *Handlers) SkipPost(c *gin.Context) {
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+
+	postID := c.Param("post_id")
+	if postID == "" {
+		util.RespondBadRequest(c, "post_id_required")
+		return
+	}
+
+	// Send skip feedback to Gorse (Task 5.3)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFeedback(userID, postID, "skip"); err != nil {
+				fmt.Printf("Warning: Failed to sync skip to Gorse: %v\n", err)
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "skip_recorded",
+		"post_id": postID,
+	})
+}
+
+// HidePost hides a post from the user's feed (strongest negative signal)
+// POST /api/v1/recommendations/hide/:post_id
+// Task 5.4
+func (h *Handlers) HidePost(c *gin.Context) {
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+
+	postID := c.Param("post_id")
+	if postID == "" {
+		util.RespondBadRequest(c, "post_id_required")
+		return
+	}
+
+	// Send hide feedback to Gorse (Task 5.4)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFeedback(userID, postID, "hide"); err != nil {
+				fmt.Printf("Warning: Failed to sync hide to Gorse: %v\n", err)
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "post_hidden",
+		"post_id": postID,
+		"message": "This post will no longer appear in your recommendations",
 	})
 }

@@ -447,16 +447,86 @@ void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
     optimisticUpdate(
         [postId, willFollow](FeedStoreState& state)
         {
-            // Update follow state in current feed
-            auto& currentFeed = state.getCurrentFeedMutable();
-            for (auto& post : currentFeed.posts)
+            // First, find the post to get the userId
+            juce::String targetUserId;
+            for (const auto& feedPair : state.feeds)
             {
-                if (post.id == postId)
+                for (const auto& post : feedPair.second.posts)
                 {
-                    post.isFollowing = willFollow;
+                    if (post.id == postId)
+                    {
+                        targetUserId = post.userId;
+                        break;
+                    }
+                }
+                if (!targetUserId.isEmpty())
                     break;
+            }
+
+            // If not found in regular feeds, check aggregated feeds
+            if (targetUserId.isEmpty())
+            {
+                for (const auto& aggFeedPair : state.aggregatedFeeds)
+                {
+                    for (const auto& group : aggFeedPair.second.groups)
+                    {
+                        for (const auto& activity : group.activities)
+                        {
+                            if (activity.id == postId)
+                            {
+                                targetUserId = activity.userId;
+                                break;
+                            }
+                        }
+                        if (!targetUserId.isEmpty())
+                            break;
+                    }
+                    if (!targetUserId.isEmpty())
+                        break;
                 }
             }
+
+            if (targetUserId.isEmpty())
+            {
+                Util::logError("FeedStore", "Could not find post to get userId", "postId=" + postId);
+                return;
+            }
+
+            Util::logDebug("FeedStore", "Updating follow state for all posts by user",
+                          "userId=" + targetUserId + " willFollow=" + (willFollow ? "true" : "false"));
+
+            // Update follow state for ALL posts by this user across ALL feeds
+            int updatedCount = 0;
+            for (auto& feedPair : state.feeds)
+            {
+                for (auto& post : feedPair.second.posts)
+                {
+                    if (post.userId == targetUserId)
+                    {
+                        post.isFollowing = willFollow;
+                        updatedCount++;
+                    }
+                }
+            }
+
+            // Also update in aggregated feeds
+            for (auto& aggFeedPair : state.aggregatedFeeds)
+            {
+                for (auto& group : aggFeedPair.second.groups)
+                {
+                    for (auto& activity : group.activities)
+                    {
+                        if (activity.userId == targetUserId)
+                        {
+                            activity.isFollowing = willFollow;
+                            updatedCount++;
+                        }
+                    }
+                }
+            }
+
+            Util::logDebug("FeedStore", "Updated follow state across all feeds",
+                          "updatedPostCount=" + juce::String(updatedCount));
         },
         [this, postId, willFollow](auto callback)
         {
@@ -511,6 +581,54 @@ void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
                            "postId=" + postId + " willFollow=" + (willFollow ? "true" : "false"));
         }
     );
+}
+
+void FeedStore::updateFollowStateByUserId(const juce::String& userId, bool willFollow)
+{
+    if (userId.isEmpty())
+    {
+        Util::logError("FeedStore", "Cannot update follow state - userId is empty", "");
+        return;
+    }
+
+    Util::logDebug("FeedStore", "Updating follow state for all posts by user",
+                  "userId=" + userId + " willFollow=" + (willFollow ? "true" : "false"));
+
+    updateState([userId, willFollow](FeedStoreState& state)
+    {
+        // Update follow state for ALL posts by this user across ALL feeds
+        int updatedCount = 0;
+        for (auto& feedPair : state.feeds)
+        {
+            for (auto& post : feedPair.second.posts)
+            {
+                if (post.userId == userId)
+                {
+                    post.isFollowing = willFollow;
+                    updatedCount++;
+                }
+            }
+        }
+
+        // Also update in aggregated feeds
+        for (auto& aggFeedPair : state.aggregatedFeeds)
+        {
+            for (auto& group : aggFeedPair.second.groups)
+            {
+                for (auto& activity : group.activities)
+                {
+                    if (activity.userId == userId)
+                    {
+                        activity.isFollowing = willFollow;
+                        updatedCount++;
+                    }
+                }
+            }
+        }
+
+        Util::logDebug("FeedStore", "Updated follow state across all feeds",
+                      "updatedPostCount=" + juce::String(updatedCount));
+    });
 }
 
 void FeedStore::toggleArchive(const juce::String& postId, bool archived)

@@ -22,5 +22,7 @@ cache_size = 100
 [recommend.data_source]
 positive_feedback_types = ["like", "follow", "download"]
 read_feedback_types = ["view", "play"]
-positive_feedback_ttl = 0
+negative_feedback_types = ["dislike", "skip", "hide"]  # Task 5.1
+positive_feedback_ttl = 365  # Decay likes after 1 year (Task 5.1)
+read_feedback_ttl = 90  # Decay views after 90 days (Task 5.1)
 item_ttl = 0
