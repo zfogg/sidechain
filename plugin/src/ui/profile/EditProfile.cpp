@@ -34,7 +34,7 @@ void EditProfile::setupEditors()
         editor.setColour(juce::TextEditor::focusedOutlineColourId, Colors::inputBorderFocused);
         editor.setColour(juce::TextEditor::textColourId, Colors::textPrimary);
         editor.setColour(juce::CaretComponent::caretColourId, Colors::accent);
-        editor.setFont(14.0f);
+        editor.setFont(juce::FontOptions(14.0f));
         editor.setIndents(12, multiLine ? 8 : 0);
         editor.addListener(this);
     };
@@ -345,7 +345,7 @@ void EditProfile::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds)
 
     // Title
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
     g.drawText("Edit Profile", bounds, juce::Justification::centred);
 
     // Bottom border
@@ -383,7 +383,7 @@ void EditProfile::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 
         // Initial
         g.setColour(Colors::textPrimary);
-        g.setFont(juce::Font(32.0f, juce::Font::bold));
+        g.setFont(juce::FontOptions(32.0f).withStyle("Bold"));
         juce::String initial = profile.displayName.isEmpty()
             ? (profile.username.isEmpty() ? "?" : profile.username.substring(0, 1).toUpperCase())
             : profile.displayName.substring(0, 1).toUpperCase();
@@ -400,7 +400,7 @@ void EditProfile::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
 void EditProfile::drawFormSection(juce::Graphics& g, const juce::String& title, juce::Rectangle<int> bounds)
 {
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(12.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(12.0f).withStyle("Bold"));
     g.drawText(title.toUpperCase(), bounds, juce::Justification::centredLeft);
 }
 

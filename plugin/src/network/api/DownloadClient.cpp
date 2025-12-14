@@ -111,7 +111,7 @@ void NetworkClient::downloadFile(const juce::String& url, const juce::File& targ
                 int bytesReadThisChunk;
                 while ((bytesReadThisChunk = stream->read(buffer.getData(), bufferSize)) > 0)
                 {
-                    output.write(buffer.getData(), bytesReadThisChunk);
+                    output.write(buffer.getData(), static_cast<size_t>(bytesReadThisChunk));
                     bytesRead += bytesReadThisChunk;
 
                     // Throttled progress reporting
