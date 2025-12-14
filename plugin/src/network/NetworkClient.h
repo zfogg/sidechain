@@ -1156,6 +1156,56 @@ public:
     bool isCurrentUserEmailVerified() const { return currentUserEmailVerified; }
 
     //==========================================================================
+    // User profile operations (for UserStore)
+
+    /** Get the current user's profile data
+     * @param callback Called with user profile data or error
+     */
+    void getCurrentUser(ResponseCallback callback = nullptr);
+
+    /** Update the current user's profile
+     * @param username New username (empty to keep current)
+     * @param displayName New display name (empty to keep current)
+     * @param bio New bio (empty to keep current)
+     * @param callback Called with result or error
+     */
+    void updateUserProfile(const juce::String& username,
+                          const juce::String& displayName,
+                          const juce::String& bio,
+                          ResponseCallback callback = nullptr);
+
+    //==========================================================================
+    // Toggle convenience methods (for FeedStore optimistic updates)
+
+    /** Toggle like on a post (convenience wrapper around likePost/unlikePost)
+     * @param postId The post ID
+     * @param shouldLike true to like, false to unlike
+     * @param callback Called with result or error
+     */
+    void toggleLike(const juce::String& postId, bool shouldLike, ResponseCallback callback = nullptr);
+
+    /** Toggle save on a post (convenience wrapper around savePost/unsavePost)
+     * @param postId The post ID
+     * @param shouldSave true to save, false to unsave
+     * @param callback Called with result or error
+     */
+    void toggleSave(const juce::String& postId, bool shouldSave, ResponseCallback callback = nullptr);
+
+    /** Toggle repost on a post (convenience wrapper around repostPost/undoRepost)
+     * @param postId The post ID
+     * @param shouldRepost true to repost, false to undo repost
+     * @param callback Called with result or error
+     */
+    void toggleRepost(const juce::String& postId, bool shouldRepost, ResponseCallback callback = nullptr);
+
+    /** Add emoji reaction to a post (replaces previous reaction if any)
+     * @param postId The post ID
+     * @param emoji Emoji to react with (empty to remove reaction)
+     * @param callback Called with result or error
+     */
+    void addEmojiReaction(const juce::String& postId, const juce::String& emoji, ResponseCallback callback = nullptr);
+
+    //==========================================================================
     // Connection status and management
     ConnectionStatus getConnectionStatus() const { return connectionStatus.load(); }
     void setConnectionStatusCallback(ConnectionStatusCallback callback);

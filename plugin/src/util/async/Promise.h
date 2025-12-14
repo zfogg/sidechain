@@ -75,12 +75,12 @@ public:
     /**
      * Check if operation was successful
      */
-    bool isSuccess() const { return success; }
+    bool isSuccess() const { return isSuccess_; }
 
     /**
      * Check if operation failed
      */
-    bool isError() const { return !success; }
+    bool isError() const { return !isSuccess_; }
 
     /**
      * Get the value (only valid if isSuccess())
@@ -98,7 +98,7 @@ public:
     template<typename U>
     Outcome<U, E> then(std::function<U(const T&)> transform) const
     {
-        if (!success)
+        if (!isSuccess_)
             return Outcome<U, E>::failure(error);
 
         try
@@ -117,7 +117,7 @@ public:
     template<typename U>
     Outcome<U, E> flatMap(std::function<Outcome<U, E>(const T&)> transform) const
     {
-        if (!success)
+        if (!isSuccess_)
             return Outcome<U, E>::failure(error);
 
         try
@@ -135,7 +135,7 @@ public:
      */
     Outcome& onSuccess(SuccessCallback callback)
     {
-        if (success && callback)
+        if (isSuccess_ && callback)
             callback(value);
         return *this;
     }
@@ -145,7 +145,7 @@ public:
      */
     Outcome& onError(ErrorCallback callback)
     {
-        if (!success && callback)
+        if (!isSuccess_ && callback)
             callback(error);
         return *this;
     }
@@ -155,7 +155,7 @@ public:
      */
     T getOrElse(const T& defaultValue) const
     {
-        return success ? value : defaultValue;
+        return isSuccess_ ? value : defaultValue;
     }
 
     // Copy/Move constructors
@@ -167,10 +167,10 @@ public:
 private:
     T value{};
     E error{};
-    bool success = false;
+    bool isSuccess_ = false;
 
-    Outcome(const T& v, bool s) : value(v), success(s) { }
-    Outcome(const E& e, bool s) : error(e), success(s) { }
+    Outcome(const T& v, bool s) : value(v), isSuccess_(s) { }
+    Outcome(const E& e, bool s) : error(e), isSuccess_(s) { }
 };
 
 /**
