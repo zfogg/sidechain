@@ -374,4 +374,33 @@ func runManualMigrations() {
 			log.Println("✅ Renamed avatar_url to oauth_profile_picture_url in oauth_providers")
 		}
 	}
+
+	// Migration: Populate empty filename fields with original_filename
+	// Check if there are any posts with empty filenames
+	var emptyFilenameCount int64
+	DB.Model(&models.AudioPost{}).Where("filename IS NULL OR filename = ''").Count(&emptyFilenameCount)
+
+	if emptyFilenameCount > 0 {
+		log.Printf("📦 Running migration: Populating %d empty filenames in audio_posts", emptyFilenameCount)
+		err := DB.Exec("UPDATE audio_posts SET filename = original_filename WHERE filename IS NULL OR filename = ''").Error
+		if err != nil {
+			log.Printf("Warning: Could not populate filenames in audio_posts: %v", err)
+		} else {
+			log.Printf("✅ Populated %d filenames in audio_posts", emptyFilenameCount)
+		}
+	}
+
+	// Migration: Populate empty filename fields in stories
+	var emptyStoryFilenameCount int64
+	DB.Model(&models.Story{}).Where("(filename IS NULL OR filename = '') AND audio_url IS NOT NULL AND audio_url != ''").Count(&emptyStoryFilenameCount)
+
+	if emptyStoryFilenameCount > 0 {
+		log.Printf("📦 Running migration: Populating %d empty filenames in stories", emptyStoryFilenameCount)
+		err := DB.Exec("UPDATE stories SET filename = 'story_audio.mp3' WHERE (filename IS NULL OR filename = '') AND audio_url IS NOT NULL AND audio_url != ''").Error
+		if err != nil {
+			log.Printf("Warning: Could not populate filenames in stories: %v", err)
+		} else {
+			log.Printf("✅ Populated %d filenames in stories", emptyStoryFilenameCount)
+		}
+	}
 }
