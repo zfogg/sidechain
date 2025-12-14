@@ -140,7 +140,7 @@ bool WebSocketClient::send(const juce::String& type, const juce::var& data)
 {
     juce::var message = juce::var(new juce::DynamicObject());
     message.getDynamicObject()->setProperty("type", type);
-    message.getDynamicObject()->setProperty("data", data);
+    message.getDynamicObject()->setProperty("payload", data);  // Server expects "payload", not "data"
     message.getDynamicObject()->setProperty("timestamp", juce::Time::currentTimeMillis());
     return send(message);
 }
