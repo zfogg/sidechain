@@ -2231,7 +2231,7 @@ public:
 | 4.11 | Animation Framework | HIGH | PostCard.h, PostsFeed.h, Recording.h, StoryRecording.h | 6 | ✅ DONE |
 | 4.12 | View Transitions | MEDIUM | PluginEditor.cpp | 3 | ✅ DONE |
 | 4.13 | MultiTierCache | HIGH | FeedStore.h/cpp | 4 | ✅ DONE |
-| 4.14 | CacheWarmer | MEDIUM | CacheWarmer integration | 3 | ⏳ PENDING |
+| 4.14 | CacheWarmer | MEDIUM | CacheWarmer integration | 3 | ✅ DONE |
 | 4.15 | Performance Monitor | MEDIUM | Multiple (feed, network, audio) | 4 | ⏳ PENDING |
 | 4.16 | SecureTokenStore | HIGH | AuthComponent.cpp | 2 | ✅ DONE |
 | 4.17 | InputValidation | MEDIUM | LoginComponent.h, SignupComponent.h, ProfileEditComponent.h | 3 | ✅ DONE |
@@ -2306,18 +2306,30 @@ public:
   - clearCache() clears entire cache or specific feed type
   - Pagination-aware: Only first page cached (offset=0)
 
-**Task 4.14: Integrate CacheWarmer for Offline Support** `[MEDIUM]` `[3 hours]` ⏳ PENDING
-- [ ] Current state: No offline feed access
-- [ ] Goal: Pre-cache popular feeds when online, serve offline
-- [ ] Create background task that pre-fetches:
-  - Timeline feed (top 50 posts)
-  - Trending posts
-  - User's own posts
-- [ ] Store with 24h TTL
-- [ ] Show cached data when offline (with "cached" badge)
-- [ ] Auto-sync when back online
-- **Success Criteria**: Can view feed offline, auto-syncs when online
+**Task 4.14: Integrate CacheWarmer for Offline Support** `[MEDIUM]` `[3 hours]` ✅ COMPLETED
+- [x] Current state: FeedStore integrated CacheWarmer for offline support
+- [x] Goal: Pre-cache popular feeds when online, serve offline (COMPLETE)
+- [x] Background task pre-fetches 3 popular feeds:
+  - Timeline feed (top 50 posts, priority 10)
+  - Trending posts (priority 20)
+  - User's own posts (priority 30)
+- [x] Store with 24h TTL (86400s) via `setDefaultTTL()`
+- [x] Show cached data when offline (via `currentFeedIsFromCache_` flag for "cached" badge)
+- [x] Auto-sync when back online via `setOnlineStatus()` callback
+- **Success Criteria Met**:
+  - ✅ Can view feed offline (cached data available)
+  - ✅ Auto-syncs when coming back online (refreshes + restarts cache warming)
+  - ✅ Background prefetch working with priority queue
+  - ✅ Online/offline status tracked and handled
 - **Owner**: Data Team
+- **Completed**: December 14, 2024
+- **Implementation Details**:
+  - FeedStore constructor: `cacheWarmer = CacheWarmer::create()`
+  - `startCacheWarming()`: Schedules Timeline, Trending, User Posts warmup
+  - `schedulePopularFeedWarmup()`: Schedules 3 feeds with priorities (10, 20, 30)
+  - `warmTimeline()`, `warmTrending()`, `warmUserPosts()`: Fetch and cache with 24h TTL
+  - `setOnlineStatus()`: Handles offline/online transitions with auto-sync
+  - Cache hit detection: `isCurrentFeedCached()` and `currentFeedIsFromCache_` flag
 
 #### Performance Monitoring Integration (Phase 3)
 
