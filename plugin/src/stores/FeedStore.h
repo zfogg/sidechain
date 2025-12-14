@@ -300,6 +300,13 @@ public:
     void toggleFollow(const juce::String& postId, bool willFollow);
 
     /**
+     * Update follow state for all posts by a specific user (optimistic update)
+     * @param userId The user ID to update follow state for
+     * @param willFollow true to follow, false to unfollow
+     */
+    void updateFollowStateByUserId(const juce::String& userId, bool willFollow);
+
+    /**
      * Toggle mute/unmute on a user by ID (optimistic update, Task 2.4)
      * @param userId The user ID to mute/unmute
      * @param willMute true to mute, false to unmute
