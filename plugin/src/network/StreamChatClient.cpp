@@ -253,7 +253,7 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
             inObj.getDynamicObject()->setProperty("$in", inArray);
             filterObj->setProperty("members", inObj);
 
-            endpoint += "?filter=" + juce::URL::addEscapeChars(juce::JSON::toString(filter), true);
+            endpoint += "?filter=" + juce::URL::addEscapeChars(juce::JSON::toString(filter, true), true);
             endpoint += "&sort=" + juce::URL::addEscapeChars("[{\"field\":\"last_message_at\",\"direction\":-1}]", true);
             endpoint += "&limit=" + juce::String(limit);
             endpoint += "&offset=" + juce::String(offset);
@@ -464,7 +464,7 @@ void StreamChatClient::queryPresence(const std::vector<juce::String>& userIds, P
             inObj.getDynamicObject()->setProperty("$in", inArray);
             filterObj->setProperty("id", inObj);
 
-            endpoint += "?filter=" + juce::URL::addEscapeChars(juce::JSON::toString(filter), true);
+            endpoint += "?filter=" + juce::URL::addEscapeChars(juce::JSON::toString(filter, true), true);
             endpoint += "&presence=true";
 
             auto response = makeStreamRequest(endpoint, "GET", juce::var());
