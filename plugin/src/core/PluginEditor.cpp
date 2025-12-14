@@ -9,6 +9,7 @@
 #include "stores/ImageCache.h"
 #include "util/Log.h"
 #include "util/logging/Logger.h"
+#include "util/PropertiesFileUtils.h"
 #include "util/Result.h"
 #include "util/OSNotification.h"
 #include "security/SecureTokenStore.h"
@@ -728,19 +729,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Not added as child - shown as modal overlay when needed
 
     //==========================================================================
-    // Create EditProfile dialog (Settings page)
+    // Create EditProfile dialog (Settings page) (Task 2.4: Use UserStore)
     editProfileDialog = std::make_unique<EditProfile>();
     editProfileDialog->setNetworkClient(networkClient.get());
-    editProfileDialog->onCancel = [this]() {
-        editProfileDialog->closeDialog();
-    };
-    editProfileDialog->onSave = [this]([[maybe_unused]] const UserProfile& updatedProfile) {
-        Log::info("EditProfile: Profile saved successfully");
-        editProfileDialog->closeDialog();
-        // Refresh profile view to show updated data
-        if (profileComponent)
-            profileComponent->refresh();
-    };
+    editProfileDialog->setUserStore(&Sidechain::Stores::UserStore::getInstance());
+    // Task 2.4: Profile save is now handled via UserStore subscription in EditProfile
+    // Callbacks removed: onCancel, onSave, onProfilePicSelected
     editProfileDialog->onActivityStatusClicked = [this]() {
         showActivityStatusSettings();
     };
@@ -2231,7 +2225,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     // Fetch getstream.io chat token for messaging
     if (streamChatClient && !token.isEmpty())
     {
-        streamChatClient->fetchToken(token, [](Outcome<StreamChatClient::TokenResult> result) {
+        streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
             if (result.isOk())
             {
                 Log::info("Stream chat token fetched successfully for user: " + result.getValue().userId);
@@ -2358,12 +2352,8 @@ void SidechainAudioProcessorEditor::saveLoginState()
     // and other user data is persisted by UserDataStore.
     // Keeping method for backwards compatibility, but it no longer saves the auth token.
 
-    auto properties = juce::PropertiesFile::Options();
-    properties.applicationName = "Sidechain";
-    properties.filenameSuffix = ".settings";
-    properties.folderName = "SidechainPlugin";
-
-    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    auto appProperties = std::make_unique<juce::PropertiesFile>(
+        Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
     if (!username.isEmpty())
     {
@@ -2521,12 +2511,8 @@ void SidechainAudioProcessorEditor::loadLoginState()
 // Crash detection
 void SidechainAudioProcessorEditor::checkForPreviousCrash()
 {
-    auto properties = juce::PropertiesFile::Options();
-    properties.applicationName = "Sidechain";
-    properties.filenameSuffix = ".settings";
-    properties.folderName = "SidechainPlugin";
-
-    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    auto appProperties = std::make_unique<juce::PropertiesFile>(
+        Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
     // Check if clean shutdown flag exists (if it doesn't exist, this is first run)
     if (appProperties->containsKey("cleanShutdown"))
@@ -2564,12 +2550,8 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash()
 
 void SidechainAudioProcessorEditor::markCleanShutdown()
 {
-    auto properties = juce::PropertiesFile::Options();
-    properties.applicationName = "Sidechain";
-    properties.filenameSuffix = ".settings";
-    properties.folderName = "SidechainPlugin";
-
-    auto appProperties = std::make_unique<juce::PropertiesFile>(properties);
+    auto appProperties = std::make_unique<juce::PropertiesFile>(
+        Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
     // Set clean shutdown flag
     appProperties->setValue("cleanShutdown", true);
@@ -2818,12 +2800,12 @@ void SidechainAudioProcessorEditor::setupNotifications()
         hideNotificationPanel();
 
         // Navigate based on notification type
-        if (item.verb == "follow" && item.actorId.isNotEmpty())
+        if (item.group.verb == "follow" && item.actorId.isNotEmpty())
         {
             // Navigate to the follower's profile
             showProfile(item.actorId);
         }
-        else if ((item.verb == "like" || item.verb == "comment" || item.verb == "mention") && item.targetId.isNotEmpty())
+        else if ((item.group.verb == "like" || item.group.verb == "comment" || item.group.verb == "mention") && item.targetId.isNotEmpty())
         {
             // Navigate to posts feed and show the post (via comments panel)
             if (item.targetType == "loop" || item.targetType == "comment")

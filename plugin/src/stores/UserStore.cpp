@@ -1,5 +1,6 @@
 #include "UserStore.h"
 #include "../util/Async.h"
+#include "../util/PropertiesFileUtils.h"
 
 namespace Sidechain {
 namespace Stores {
@@ -259,6 +260,159 @@ void UserStore::updatePostCount(int count)
 }
 
 //==============================================================================
+// Username & Profile Picture Management (Task 2.4)
+
+void UserStore::changeUsername(const juce::String& newUsername)
+{
+    if (!networkClient)
+    {
+        Util::logError("UserStore", "Cannot change username - network client not configured");
+        return;
+    }
+
+    if (newUsername.isEmpty())
+    {
+        Util::logError("UserStore", "Cannot change username - empty username");
+        return;
+    }
+
+    Util::logInfo("UserStore", "Changing username to: " + newUsername);
+
+    networkClient->changeUsername(newUsername, [this, newUsername](Outcome<juce::var> result)
+    {
+        juce::MessageManager::callAsync([this, newUsername, result]()
+        {
+            if (result.isOk())
+            {
+                updateState([newUsername](UserState& state)
+                {
+                    state.username = newUsername;
+                });
+                Util::logInfo("UserStore", "Username changed successfully");
+            }
+            else
+            {
+                Util::logError("UserStore", "Failed to change username: " + result.getError());
+            }
+        });
+    });
+}
+
+void UserStore::updateProfileComplete(const juce::String& displayName,
+                                      const juce::String& bio,
+                                      const juce::String& location,
+                                      const juce::String& genre,
+                                      const juce::String& dawPreference,
+                                      const juce::var& socialLinks,
+                                      bool isPrivate,
+                                      const juce::String& profilePictureUrl)
+{
+    if (!networkClient)
+    {
+        Util::logError("UserStore", "Cannot update profile - network client not configured");
+        return;
+    }
+
+    Util::logInfo("UserStore", "Updating complete profile (Task 2.4)");
+
+    // Build update payload matching EditProfile format
+    auto* updateData = new juce::DynamicObject();
+    updateData->setProperty("display_name", displayName);
+    updateData->setProperty("bio", bio);
+    updateData->setProperty("location", location);
+    updateData->setProperty("genre", genre);
+    updateData->setProperty("daw_preference", dawPreference);
+    updateData->setProperty("social_links", socialLinks);
+    updateData->setProperty("is_private", isPrivate);
+
+    if (profilePictureUrl.isNotEmpty())
+        updateData->setProperty("profile_picture_url", profilePictureUrl);
+
+    juce::var payload(updateData);
+
+    networkClient->put("/profile", payload, [this, displayName, bio, location, genre, dawPreference, isPrivate]
+        (Outcome<juce::var> result)
+    {
+        juce::MessageManager::callAsync([this, displayName, bio, location, genre, dawPreference, isPrivate, result]()
+        {
+            if (result.isOk())
+            {
+                updateState([displayName, bio, location, genre, dawPreference, isPrivate](UserState& state)
+                {
+                    state.displayName = displayName;
+                    state.bio = bio;
+                    state.location = location;
+                    state.genre = genre;
+                    state.dawPreference = dawPreference;
+                    state.isPrivate = isPrivate;
+                });
+                Util::logInfo("UserStore", "Profile updated successfully");
+            }
+            else
+            {
+                Util::logError("UserStore", "Failed to update profile: " + result.getError());
+            }
+        });
+    });
+}
+
+void UserStore::uploadProfilePicture(const juce::File& imageFile)
+{
+    if (!networkClient)
+    {
+        Util::logError("UserStore", "Cannot upload profile picture - network client not configured");
+        return;
+    }
+
+    if (!imageFile.existsAsFile())
+    {
+        Util::logError("UserStore", "Cannot upload profile picture - file does not exist");
+        return;
+    }
+
+    Util::logInfo("UserStore", "Uploading profile picture: " + imageFile.getFileName());
+
+    // Show loading state
+    updateState([](UserState& state)
+    {
+        state.isLoadingImage = true;
+    });
+
+    networkClient->uploadProfilePicture(imageFile, [this](Outcome<juce::String> result)
+    {
+        juce::MessageManager::callAsync([this, result]()
+        {
+            if (result.isOk())
+            {
+                juce::String s3Url = result.getValue();
+
+                if (s3Url.isNotEmpty())
+                {
+                    setProfilePictureUrl(s3Url);
+                    Util::logInfo("UserStore", "Profile picture uploaded successfully");
+                }
+                else
+                {
+                    Util::logError("UserStore", "Profile picture upload returned empty URL");
+                    updateState([](UserState& state)
+                    {
+                        state.isLoadingImage = false;
+                    });
+                }
+            }
+            else
+            {
+                Util::logError("UserStore", "Profile picture upload failed: " + result.getError());
+                updateState([](UserState& state)
+                {
+                    state.isLoadingImage = false;
+                });
+            }
+        });
+    });
+}
+
+//==============================================================================
 // Persistence
 
 void UserStore::saveToSettings()
@@ -441,15 +595,7 @@ void UserStore::handleProfileFetchError(const juce::String& error)
 
 juce::PropertiesFile::Options UserStore::getPropertiesOptions() const
 {
-    juce::PropertiesFile::Options options;
-    options.applicationName = "Sidechain";
-    options.filenameSuffix = ".settings";
-    options.osxLibrarySubFolder = "Application Support";
-    options.folderName = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                            .getChildFile("Sidechain")
-                            .getFullPathName();
-
-    return options;
+    return Sidechain::Util::PropertiesFileUtils::getStandardOptions();
 }
 
 }  // namespace Stores
