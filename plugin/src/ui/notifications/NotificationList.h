@@ -2,39 +2,38 @@
 
 #include <JuceHeader.h>
 #include "../../util/HoverState.h"
+#include "../../models/AggregatedFeedGroup.h"
 
 //==============================================================================
 /**
  * NotificationItem represents a single notification group from getstream.io
  *
- * getstream.io groups notifications by aggregation format, so we get things like:
+ * Now uses AggregatedFeedGroup as the underlying model for consistency.
+ * getstream.io groups notifications by aggregation format: {{ verb }}_{{ time.strftime("%Y-%m-%d") }}
+ *
+ * Examples:
  * - "Alice and 3 others liked your loop" (grouped by verb+target+day)
  * - "Bob started following you" (single follow notification)
  */
 struct NotificationItem
 {
-    juce::String id;
-    juce::String groupKey;          // The aggregation group key
-    juce::String verb;              // "like", "follow", "comment"
-    int activityCount = 1;          // Total activities in group
-    int actorCount = 1;             // Unique actors
+    AggregatedFeedGroup group;      // The underlying aggregated group
     bool isRead = false;
     bool isSeen = false;
-    juce::String createdAt;
-    juce::String updatedAt;
 
-    // First actor info (for display)
+    // Derived from first activity in group
     juce::String actorId;
     juce::String actorName;
     juce::String actorAvatarUrl;
-
-    // Target info (the object that was acted upon)
     juce::String targetId;          // e.g., "loop:123" or "user:456"
     juce::String targetType;        // "loop", "user", "comment"
     juce::String targetPreview;     // Preview text or title
 
-    // Parse from JSON response
+    // Parse from JSON response (old format for backward compatibility)
     static NotificationItem fromJson(const juce::var& json);
+
+    // Create from AggregatedFeedGroup
+    static NotificationItem fromAggregatedGroup(const AggregatedFeedGroup& group, bool read = false, bool seen = false);
 
     // Generate display text like "Alice and 3 others liked your loop"
     juce::String getDisplayText() const;

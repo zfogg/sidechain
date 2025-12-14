@@ -14,61 +14,65 @@ NotificationItem NotificationItem::fromJson(const juce::var& json)
 {
     NotificationItem item;
 
-    item.id = Json::getString(json, "id");
-    item.groupKey = Json::getString(json, "group");
-    item.verb = Json::getString(json, "verb");
-    item.activityCount = Json::getInt(json, "activity_count", 1);
-    item.actorCount = Json::getInt(json, "actor_count", 1);
+    // Parse as AggregatedFeedGroup first
+    item.group = AggregatedFeedGroup::fromJson(json);
     item.isRead = Json::getBool(json, "is_read");
     item.isSeen = Json::getBool(json, "is_seen");
-    item.createdAt = Json::getString(json, "created_at");
-    item.updatedAt = Json::getString(json, "updated_at");
 
-    // Parse activities array to get actor info
-    auto activities = Json::getArray(json, "activities");
-    if (Json::isArray(activities) && Json::arraySize(activities) > 0)
+    // Extract actor info from first activity
+    if (!item.group.activities.isEmpty())
     {
-        auto firstActivity = Json::getObjectAt(activities, 0);
-        juce::String actor = Json::getString(firstActivity, "actor");
+        const auto& firstPost = item.group.activities.getFirst();
+        item.actorId = firstPost.userId;
+        item.actorName = firstPost.username;
+        item.actorAvatarUrl = firstPost.userAvatarUrl;
 
-        // Actor format is "user:username" or just the ID
-        if (actor.startsWith("user:"))
-            item.actorId = actor.substring(5);
-        else
-            item.actorId = actor;
+        // Extract target info
+        item.targetId = firstPost.id;
+        item.targetPreview = firstPost.filename;  // Use filename as preview
 
-        // Get actor name from extra data if available
-        auto extra = Json::getObject(firstActivity, "extra");
-        if (Json::isObject(extra))
-        {
-            item.actorName = Json::getString(extra, "actor_name", item.actorId);
-            item.targetId = Json::getString(extra, "loop_id");
-            item.targetPreview = Json::getString(extra, "preview");
-
-            if (item.targetId.isEmpty())
-                item.targetId = Json::getString(extra, "target_id");
-        }
-
-        // Parse object (target)
-        juce::String object = Json::getString(firstActivity, "object");
-        if (object.startsWith("loop:"))
-        {
-            item.targetType = "loop";
-            if (item.targetId.isEmpty())
-                item.targetId = object.substring(5);
-        }
-        else if (object.startsWith("user:"))
-        {
+        // Determine target type from context
+        if (item.group.verb == "follow")
             item.targetType = "user";
-            if (item.targetId.isEmpty())
-                item.targetId = object.substring(5);
-        }
-        else if (object.startsWith("comment:"))
-        {
+        else if (item.group.verb == "comment")
             item.targetType = "comment";
-            if (item.targetId.isEmpty())
-                item.targetId = object.substring(8);
-        }
+        else
+            item.targetType = "loop";
+    }
+
+    // Use actor ID as name fallback
+    if (item.actorName.isEmpty())
+        item.actorName = item.actorId;
+
+    return item;
+}
+
+NotificationItem NotificationItem::fromAggregatedGroup(const AggregatedFeedGroup& group, bool read, bool seen)
+{
+    NotificationItem item;
+    item.group = group;
+    item.isRead = read;
+    item.isSeen = seen;
+
+    // Extract actor info from first activity
+    if (!group.activities.isEmpty())
+    {
+        const auto& firstPost = group.activities.getFirst();
+        item.actorId = firstPost.userId;
+        item.actorName = firstPost.username;
+        item.actorAvatarUrl = firstPost.userAvatarUrl;
+
+        // Extract target info
+        item.targetId = firstPost.id;
+        item.targetPreview = firstPost.filename;  // Use filename as preview
+
+        // Determine target type from context
+        if (group.verb == "follow")
+            item.targetType = "user";
+        else if (group.verb == "comment")
+            item.targetType = "comment";
+        else
+            item.targetType = "loop";
     }
 
     // Use actor ID as name fallback
@@ -86,11 +90,11 @@ juce::String NotificationItem::getDisplayText() const
 {
     juce::String text;
 
-    // Build actor text
-    if (actorCount > 1)
+    // Build actor text using group.actorCount
+    if (group.actorCount > 1)
     {
-        text = actorName + " and " + juce::String(actorCount - 1) + " other";
-        if (actorCount > 2)
+        text = actorName + " and " + juce::String(group.actorCount - 1) + " other";
+        if (group.actorCount > 2)
             text += "s";
     }
     else
@@ -98,34 +102,34 @@ juce::String NotificationItem::getDisplayText() const
         text = actorName;
     }
 
-    // Add verb description
-    if (verb == "like")
+    // Add verb description using group.verb
+    if (group.verb == "like")
     {
         text += " liked your loop";
     }
-    else if (verb == "follow")
+    else if (group.verb == "follow")
     {
         text += " started following you";
     }
-    else if (verb == "comment")
+    else if (group.verb == "comment")
     {
         text += " commented on your loop";
         if (targetPreview.isNotEmpty())
             text += ": \"" + targetPreview.substring(0, 50) + "\"";
     }
-    else if (verb == "mention")
+    else if (group.verb == "mention")
     {
         text += " mentioned you";
         if (targetPreview.isNotEmpty())
             text += ": \"" + targetPreview.substring(0, 50) + "\"";
     }
-    else if (verb == "repost")
+    else if (group.verb == "repost")
     {
         text += " reposted your loop";
     }
     else
     {
-        text += " " + verb;
+        text += " " + group.verb;
     }
 
     return text;
@@ -133,29 +137,22 @@ juce::String NotificationItem::getDisplayText() const
 
 juce::String NotificationItem::getRelativeTime() const
 {
-    // Parse ISO timestamp and calculate relative time
-    juce::String timeStr = updatedAt.isNotEmpty() ? updatedAt : createdAt;
-
-    if (timeStr.isEmpty())
-        return "";
-
-    // Parse ISO 8601 timestamp
-    juce::Time notifTime = juce::Time::fromISO8601(timeStr);
-    return TimeUtils::formatTimeAgoShort(notifTime);
+    // Use group.updatedAt
+    return TimeUtils::formatTimeAgoShort(group.updatedAt);
 }
 
 juce::String NotificationItem::getVerbIcon() const
 {
-    // Return emoji or icon identifier
-    if (verb == "like")
+    // Return emoji or icon identifier using group.verb
+    if (group.verb == "like")
         return "heart";
-    else if (verb == "follow")
+    else if (group.verb == "follow")
         return "person";
-    else if (verb == "comment")
+    else if (group.verb == "comment")
         return "comment";
-    else if (verb == "mention")
+    else if (group.verb == "mention")
         return "at";
-    else if (verb == "repost")
+    else if (group.verb == "repost")
         return "repost";
     return "bell";
 }
@@ -255,11 +252,11 @@ void NotificationRow::drawVerbIcon(juce::Graphics& g, juce::Rectangle<int> bound
 {
     // Icon background
     juce::Colour iconColor;
-    if (notification.verb == "like")
+    if (notification.group.verb == "like")
         iconColor = SidechainColors::like();
-    else if (notification.verb == "follow")
+    else if (notification.group.verb == "follow")
         iconColor = SidechainColors::follow();
-    else if (notification.verb == "comment")
+    else if (notification.group.verb == "comment")
         iconColor = SidechainColors::comment();
     else
         iconColor = SidechainColors::textMuted();
@@ -271,7 +268,7 @@ void NotificationRow::drawVerbIcon(juce::Graphics& g, juce::Rectangle<int> bound
     g.setColour(SidechainColors::textPrimary());
     auto iconInner = bounds.reduced(3).toFloat();
 
-    if (notification.verb == "like")
+    if (notification.group.verb == "like")
     {
         // Heart shape (simplified)
         juce::Path heart;
@@ -291,7 +288,7 @@ void NotificationRow::drawVerbIcon(juce::Graphics& g, juce::Rectangle<int> bound
         g.fillPath(heart);
         g.fillPath(triangle);
     }
-    else if (notification.verb == "follow")
+    else if (notification.group.verb == "follow")
     {
         // Person shape
         float cx = iconInner.getCentreX();
@@ -299,7 +296,7 @@ void NotificationRow::drawVerbIcon(juce::Graphics& g, juce::Rectangle<int> bound
         g.fillEllipse(cx - 2.5f, cy - 4.0f, 5.0f, 5.0f); // Head
         g.fillEllipse(cx - 4.0f, cy + 1.0f, 8.0f, 5.0f); // Body
     }
-    else if (notification.verb == "comment")
+    else if (notification.group.verb == "comment")
     {
         // Speech bubble
         g.fillRoundedRectangle(iconInner.reduced(1.0f), 2.0f);

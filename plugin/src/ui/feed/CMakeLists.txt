@@ -7,6 +7,8 @@ add_library(SidechainUIFeed STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/PostsFeed.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PostCard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PostCard.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AggregatedFeedCard.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AggregatedFeedCard.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Comment.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Comment.h
     ${CMAKE_CURRENT_SOURCE_DIR}/EmojiReactionsPanel.cpp

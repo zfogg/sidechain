@@ -818,24 +818,79 @@ void PostsFeed::rebuildPostCards()
         return;
     }
 
-    const auto& posts = feedStore->getState().getCurrentFeed().posts;
+    const auto currentFeedType = feedStore->getCurrentFeedType();
+    const bool isAggregated = isAggregatedFeedType(currentFeedType);
 
-    Log::info("PostsFeed::rebuildPostCards: Rebuilding post cards - current: " + juce::String(postCards.size()) + ", posts: " + juce::String(posts.size()));
-    postCards.clear();
-
-    for (const auto& post : posts)
+    if (isAggregated)
     {
-        auto* card = postCards.add(new PostCard());
-        card->setNetworkClient(networkClient);  // Pass NetworkClient for waveform downloads
-        card->setFeedStore(feedStore);  // Task 2.6: Connect PostCard to FeedStore for reactive updates
-        card->setPost(post);
-        setupPostCardCallbacks(card);
-        addAndMakeVisible(card);
-        Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post.id);
+        // Build aggregated feed cards
+        const auto& groups = feedStore->getState().getCurrentAggregatedFeed().groups;
+
+        Log::info("PostsFeed::rebuildPostCards: Rebuilding aggregated cards - current: " +
+                  juce::String(aggregatedCards.size()) + ", groups: " + juce::String(groups.size()));
+
+        postCards.clear();
+        aggregatedCards.clear();
+
+        for (const auto& group : groups)
+        {
+            auto* card = aggregatedCards.add(new AggregatedFeedCard());
+            card->setGroup(group);
+
+            // Set up callbacks
+            card->onUserClicked = [this](const juce::String& userId) {
+                if (onNavigateToProfile)
+                    onNavigateToProfile(userId);
+            };
+
+            card->onPlayClicked = [this](const juce::String& postId) {
+                // Find the post and play it
+                const auto& groups = feedStore->getState().getCurrentAggregatedFeed().groups;
+                for (const auto& g : groups)
+                {
+                    for (const auto& post : g.activities)
+                    {
+                        if (post.id == postId && audioPlayer && post.audioUrl.isNotEmpty())
+                        {
+                            audioPlayer->loadAndPlay(post.id, post.audioUrl);
+                            return;
+                        }
+                    }
+                }
+            };
+
+            addAndMakeVisible(card);
+            Log::debug("PostsFeed::rebuildPostCards: Created aggregated card for group: " + group.id);
+        }
+
+        Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(aggregatedCards.size()) + " aggregated cards");
+    }
+    else
+    {
+        // Build regular post cards
+        const auto& posts = feedStore->getState().getCurrentFeed().posts;
+
+        Log::info("PostsFeed::rebuildPostCards: Rebuilding post cards - current: " +
+                  juce::String(postCards.size()) + ", posts: " + juce::String(posts.size()));
+
+        postCards.clear();
+        aggregatedCards.clear();
+
+        for (const auto& post : posts)
+        {
+            auto* card = postCards.add(new PostCard());
+            card->setNetworkClient(networkClient);  // Pass NetworkClient for waveform downloads
+            card->setFeedStore(feedStore);  // Task 2.6: Connect PostCard to FeedStore for reactive updates
+            card->setPost(post);
+            setupPostCardCallbacks(card);
+            addAndMakeVisible(card);
+            Log::debug("PostsFeed::rebuildPostCards: Created card for post: " + post.id);
+        }
+
+        Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(postCards.size()) + " post cards");
     }
 
     updatePostCardPositions();
-    Log::debug("PostsFeed::rebuildPostCards: Rebuilt " + juce::String(postCards.size()) + " post cards");
 }
 
 void PostsFeed::updatePostCardPositions()
@@ -844,22 +899,51 @@ void PostsFeed::updatePostCardPositions()
     int cardWidth = contentBounds.getWidth() - 40; // Padding
     int visibleCount = 0;
 
-    for (int i = 0; i < postCards.size(); ++i)
+    if (!aggregatedCards.isEmpty())
     {
-        auto* card = postCards[i];
-        int cardY = contentBounds.getY() - static_cast<int>(scrollPosition) + i * (POST_CARD_HEIGHT + POST_CARD_SPACING);
+        // Layout aggregated cards (variable height)
+        int currentY = contentBounds.getY() - static_cast<int>(scrollPosition);
 
-        card->setBounds(contentBounds.getX() + 20, cardY, cardWidth, POST_CARD_HEIGHT);
+        for (auto* card : aggregatedCards)
+        {
+            int cardHeight = card->getHeight();
+            card->setBounds(contentBounds.getX() + 20, currentY, cardWidth, cardHeight);
 
-        // Show/hide based on visibility
-        bool visible = (cardY + POST_CARD_HEIGHT > contentBounds.getY()) &&
-                      (cardY < contentBounds.getBottom());
-        card->setVisible(visible);
-        if (visible)
-            visibleCount++;
+            // Show/hide based on visibility
+            bool visible = (currentY + cardHeight > contentBounds.getY()) &&
+                          (currentY < contentBounds.getBottom());
+            card->setVisible(visible);
+            if (visible)
+                visibleCount++;
+
+            currentY += cardHeight + POST_CARD_SPACING;
+        }
+
+        Log::debug("PostsFeed::updatePostCardPositions: Updated aggregated cards - total: " +
+                   juce::String(aggregatedCards.size()) + ", visible: " + juce::String(visibleCount));
     }
+    else
+    {
+        // Layout regular post cards (fixed height)
+        for (int i = 0; i < postCards.size(); ++i)
+        {
+            auto* card = postCards[i];
+            int cardY = contentBounds.getY() - static_cast<int>(scrollPosition) + i * (POST_CARD_HEIGHT + POST_CARD_SPACING);
 
-    Log::debug("PostsFeed::updatePostCardPositions: Updated positions - total: " + juce::String(postCards.size()) + ", visible: " + juce::String(visibleCount) + ", scrollPosition: " + juce::String(scrollPosition, 1));
+            card->setBounds(contentBounds.getX() + 20, cardY, cardWidth, POST_CARD_HEIGHT);
+
+            // Show/hide based on visibility
+            bool visible = (cardY + POST_CARD_HEIGHT > contentBounds.getY()) &&
+                          (cardY < contentBounds.getBottom());
+            card->setVisible(visible);
+            if (visible)
+                visibleCount++;
+        }
+
+        Log::debug("PostsFeed::updatePostCardPositions: Updated positions - total: " +
+                   juce::String(postCards.size()) + ", visible: " + juce::String(visibleCount) +
+                   ", scrollPosition: " + juce::String(scrollPosition, 1));
+    }
 }
 
 void PostsFeed::setupPostCardCallbacks(PostCard* card)

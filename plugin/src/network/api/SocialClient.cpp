@@ -84,6 +84,58 @@ void NetworkClient::unfollowUser(const juce::String& userId, ResponseCallback ca
     });
 }
 
+void NetworkClient::blockUser(const juce::String& userId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, userId, callback]() {
+        juce::var data = juce::var(new juce::DynamicObject());
+        data.getDynamicObject()->setProperty("target_user_id", userId);
+
+        auto result = makeRequestWithRetry(buildApiPath("/social/block"), "POST", data, true);
+        Log::debug("Block response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
+void NetworkClient::unblockUser(const juce::String& userId, ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, userId, callback]() {
+        juce::var data = juce::var(new juce::DynamicObject());
+        data.getDynamicObject()->setProperty("target_user_id", userId);
+
+        auto result = makeRequestWithRetry(buildApiPath("/social/unblock"), "POST", data, true);
+        Log::debug("Unblock response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
+
 void NetworkClient::trackPlay(const juce::String& activityId, ResponseCallback callback)
 {
     if (!isAuthenticated())
