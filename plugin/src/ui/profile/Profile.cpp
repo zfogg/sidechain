@@ -551,61 +551,39 @@ void Profile::drawActionButtons(juce::Graphics& g, juce::Rectangle<int> bounds)
 
     if (isOwnProfile)
     {
-        // Edit Profile button (full width)
+        // Horizontal button row: Settings | Saved | Archived | Notifications
+
+        // Settings button (opens EditProfile with all settings)
         auto editBounds = getEditButtonBounds();
         g.setColour(Colors::badge);
         g.fillRoundedRectangle(editBounds.toFloat(), 6.0f);
         g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Edit Profile", editBounds, juce::Justification::centred);
+        g.setFont(12.0f);
+        g.drawText("Settings", editBounds, juce::Justification::centred);
 
-        // Saved Posts button (below edit button)
+        // Saved Posts button
         auto savedBounds = getSavedPostsButtonBounds();
         g.setColour(Colors::badge);
         g.fillRoundedRectangle(savedBounds.toFloat(), 6.0f);
         g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Saved Posts", savedBounds, juce::Justification::centred);
+        g.setFont(12.0f);
+        g.drawText("Saved", savedBounds, juce::Justification::centred);
 
-        // Archived Posts button (below saved posts button)
+        // Archived Posts button
         auto archivedBounds = getArchivedPostsButtonBounds();
         g.setColour(Colors::badge);
         g.fillRoundedRectangle(archivedBounds.toFloat(), 6.0f);
         g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Archived Posts", archivedBounds, juce::Justification::centred);
+        g.setFont(12.0f);
+        g.drawText("Archived", archivedBounds, juce::Justification::centred);
 
-        // Notification Settings button (below archived posts button)
+        // Notifications button
         auto notifBounds = getNotificationSettingsButtonBounds();
         g.setColour(Colors::badge);
         g.fillRoundedRectangle(notifBounds.toFloat(), 6.0f);
         g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Notifications", notifBounds, juce::Justification::centred);
-
-        // Activity Status button (below notification settings button)
-        auto activityBounds = getActivityStatusButtonBounds();
-        g.setColour(Colors::badge);
-        g.fillRoundedRectangle(activityBounds.toFloat(), 6.0f);
-        g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Activity Status", activityBounds, juce::Justification::centred);
-
-        // Muted Users button (below activity status button)
-        auto mutedUsersBounds = getMutedUsersButtonBounds();
-        g.setColour(Colors::badge);
-        g.fillRoundedRectangle(mutedUsersBounds.toFloat(), 6.0f);
-        g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Muted Users", mutedUsersBounds, juce::Justification::centred);
-
-        // Two-Factor Auth button (below muted users button)
-        auto twoFactorBounds = getTwoFactorSettingsButtonBounds();
-        g.setColour(Colors::badge);
-        g.fillRoundedRectangle(twoFactorBounds.toFloat(), 6.0f);
-        g.setColour(Colors::textPrimary);
-        g.setFont(14.0f);
-        g.drawText("Two-Factor Auth", twoFactorBounds, juce::Justification::centred);
+        g.setFont(12.0f);
+        g.drawText("Notifs", notifBounds, juce::Justification::centred);
     }
     else
     {
@@ -992,37 +970,8 @@ void Profile::mouseUp(const juce::MouseEvent& event)
             return;
         }
 
-        if (getActivityStatusButtonBounds().contains(pos))
-        {
-            Log::info("Profile::mouseUp: Activity status button clicked");
-            if (onActivityStatusClicked)
-                onActivityStatusClicked();
-            else
-                Log::warn("Profile::mouseUp: Activity status clicked but callback not set");
-            return;
-        }
-
-        // Muted users button
-        if (getMutedUsersButtonBounds().contains(pos))
-        {
-            Log::info("Profile::mouseUp: Muted users button clicked");
-            if (onMutedUsersClicked)
-                onMutedUsersClicked();
-            else
-                Log::warn("Profile::mouseUp: Muted users clicked but callback not set");
-            return;
-        }
-
-        // Two-Factor Auth button
-        if (getTwoFactorSettingsButtonBounds().contains(pos))
-        {
-            Log::info("Profile::mouseUp: Two-factor auth button clicked");
-            if (onTwoFactorSettingsClicked)
-                onTwoFactorSettingsClicked();
-            else
-                Log::warn("Profile::mouseUp: Two-factor auth clicked but callback not set");
-            return;
-        }
+        // Note: Activity Status, Muted Users, and Two-Factor Auth are now in Edit Profile / Settings
+        // They are no longer shown on the main profile page
     }
     else
     {
@@ -1116,43 +1065,57 @@ juce::Rectangle<int> Profile::getMessageButtonBounds() const
 
 juce::Rectangle<int> Profile::getEditButtonBounds() const
 {
-    return getFollowButtonBounds();  // Same position
+    // For own profile: horizontal layout - 4 buttons in a row
+    int buttonsY = getAvatarBounds().getBottom() + 70;
+    int spacing = 6;
+    int totalWidth = getWidth() - PADDING * 2;
+    int buttonWidth = (totalWidth - spacing * 3) / 4;  // 4 buttons with 3 gaps
+    return juce::Rectangle<int>(PADDING, buttonsY, buttonWidth, BUTTON_HEIGHT);
 }
 
 juce::Rectangle<int> Profile::getSavedPostsButtonBounds() const
 {
+    // Second button in horizontal row
     auto editBounds = getEditButtonBounds();
-    return editBounds.translated(0, BUTTON_HEIGHT + 8);  // Below edit button with spacing
+    int spacing = 6;
+    return editBounds.translated(editBounds.getWidth() + spacing, 0);
 }
 
 juce::Rectangle<int> Profile::getArchivedPostsButtonBounds() const
 {
+    // Third button in horizontal row
     auto savedBounds = getSavedPostsButtonBounds();
-    return savedBounds.translated(0, BUTTON_HEIGHT + 8);  // Below saved posts button with spacing
+    int spacing = 6;
+    return savedBounds.translated(savedBounds.getWidth() + spacing, 0);
 }
 
 juce::Rectangle<int> Profile::getNotificationSettingsButtonBounds() const
 {
+    // Fourth button in horizontal row
     auto archivedBounds = getArchivedPostsButtonBounds();
-    return archivedBounds.translated(0, BUTTON_HEIGHT + 8);  // Below archived posts button with spacing
+    int spacing = 6;
+    return archivedBounds.translated(archivedBounds.getWidth() + spacing, 0);
 }
 
 juce::Rectangle<int> Profile::getActivityStatusButtonBounds() const
 {
-    auto notifBounds = getNotificationSettingsButtonBounds();
-    return notifBounds.translated(0, BUTTON_HEIGHT + 8);  // Below notification settings button with spacing
+    // Not shown on profile page - returns empty bounds
+    // Activity status is in Edit Profile / Settings
+    return juce::Rectangle<int>();
 }
 
 juce::Rectangle<int> Profile::getMutedUsersButtonBounds() const
 {
-    auto activityBounds = getActivityStatusButtonBounds();
-    return activityBounds.translated(0, BUTTON_HEIGHT + 8);  // Below activity status button with spacing
+    // Not shown on profile page - returns empty bounds
+    // Muted users is in Edit Profile / Settings
+    return juce::Rectangle<int>();
 }
 
 juce::Rectangle<int> Profile::getTwoFactorSettingsButtonBounds() const
 {
-    auto mutedUsersBounds = getMutedUsersButtonBounds();
-    return mutedUsersBounds.translated(0, BUTTON_HEIGHT + 8);  // Below muted users button with spacing
+    // Not shown on profile page - returns empty bounds
+    // Two-Factor Auth is in Edit Profile / Settings
+    return juce::Rectangle<int>();
 }
 
 juce::Rectangle<int> Profile::getMuteButtonBounds() const

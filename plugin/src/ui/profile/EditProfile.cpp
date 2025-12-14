@@ -11,7 +11,7 @@ EditProfile::EditProfile()
     Log::info("EditProfile: Initializing");
     setupEditors();
     // Set size last to avoid resized() being called before components are created
-    setSize(500, 870);  // Increased height for username field and privacy section
+    setSize(500, 1050);  // Height for profile editing + settings section
 }
 
 EditProfile::~EditProfile()
@@ -110,6 +110,31 @@ void EditProfile::setupEditors()
     privateAccountToggle->setColour(juce::ToggleButton::tickDisabledColourId, Colors::textSecondary);
     privateAccountToggle->onClick = [this]() { updateHasChanges(); };
     addAndMakeVisible(privateAccountToggle.get());
+
+    // Settings section buttons
+    activityStatusButton = std::make_unique<juce::TextButton>("Activity Status");
+    activityStatusButton->setColour(juce::TextButton::buttonColourId, Colors::inputBg);
+    activityStatusButton->setColour(juce::TextButton::textColourOffId, Colors::textPrimary);
+    activityStatusButton->addListener(this);
+    addAndMakeVisible(activityStatusButton.get());
+
+    mutedUsersButton = std::make_unique<juce::TextButton>("Muted Users");
+    mutedUsersButton->setColour(juce::TextButton::buttonColourId, Colors::inputBg);
+    mutedUsersButton->setColour(juce::TextButton::textColourOffId, Colors::textPrimary);
+    mutedUsersButton->addListener(this);
+    addAndMakeVisible(mutedUsersButton.get());
+
+    twoFactorButton = std::make_unique<juce::TextButton>("Two-Factor Authentication");
+    twoFactorButton->setColour(juce::TextButton::buttonColourId, Colors::inputBg);
+    twoFactorButton->setColour(juce::TextButton::textColourOffId, Colors::textPrimary);
+    twoFactorButton->addListener(this);
+    addAndMakeVisible(twoFactorButton.get());
+
+    profileSetupButton = std::make_unique<juce::TextButton>("Edit Username & Avatar");
+    profileSetupButton->setColour(juce::TextButton::buttonColourId, Colors::inputBg);
+    profileSetupButton->setColour(juce::TextButton::textColourOffId, Colors::textPrimary);
+    profileSetupButton->addListener(this);
+    addAndMakeVisible(profileSetupButton.get());
 }
 
 void EditProfile::setProfile(const UserProfile& newProfile)
@@ -299,6 +324,10 @@ void EditProfile::paint(juce::Graphics& g)
                PADDING, privacyY + FIELD_HEIGHT + 5, getWidth() - PADDING * 2, 15,
                juce::Justification::centredLeft);
 
+    // Settings section
+    int settingsY = privacyY + FIELD_HEIGHT + SECTION_SPACING + 25;
+    drawFormSection(g, "Settings", juce::Rectangle<int>(PADDING, settingsY - 25, getWidth() - PADDING * 2, 20));
+
     // Error message
     if (errorMessage.isNotEmpty())
     {
@@ -424,6 +453,19 @@ void EditProfile::resized()
 
     // Privacy section
     privateAccountToggle->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
+    y += FIELD_HEIGHT + SECTION_SPACING + 25;
+
+    // Settings section
+    activityStatusButton->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
+    y += FIELD_HEIGHT + FIELD_SPACING;
+
+    mutedUsersButton->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
+    y += FIELD_HEIGHT + FIELD_SPACING;
+
+    twoFactorButton->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
+    y += FIELD_HEIGHT + FIELD_SPACING;
+
+    profileSetupButton->setBounds(PADDING, y, fieldWidth, FIELD_HEIGHT);
 }
 
 juce::Rectangle<int> EditProfile::getAvatarBounds() const
@@ -451,6 +493,26 @@ void EditProfile::buttonClicked(juce::Button* button)
     else if (button == changePhotoButton.get())
     {
         handlePhotoSelect();
+    }
+    else if (button == activityStatusButton.get())
+    {
+        if (onActivityStatusClicked)
+            onActivityStatusClicked();
+    }
+    else if (button == mutedUsersButton.get())
+    {
+        if (onMutedUsersClicked)
+            onMutedUsersClicked();
+    }
+    else if (button == twoFactorButton.get())
+    {
+        if (onTwoFactorClicked)
+            onTwoFactorClicked();
+    }
+    else if (button == profileSetupButton.get())
+    {
+        if (onProfileSetupClicked)
+            onProfileSetupClicked();
     }
 }
 
@@ -621,4 +683,25 @@ void EditProfile::handlePhotoSelect()
             if (onProfilePicSelected)
                 onProfilePicSelected(pendingAvatarPath);
         });
+}
+
+//==============================================================================
+void EditProfile::showModal(juce::Component* parentComponent)
+{
+    if (parentComponent == nullptr)
+        return;
+
+    // Size to fill parent
+    setBounds(parentComponent->getLocalBounds());
+    parentComponent->addAndMakeVisible(this);
+    toFront(true);
+}
+
+void EditProfile::closeDialog()
+{
+    juce::MessageManager::callAsync([this]() {
+        setVisible(false);
+        if (auto* parent = getParentComponent())
+            parent->removeChildComponent(this);
+    });
 }

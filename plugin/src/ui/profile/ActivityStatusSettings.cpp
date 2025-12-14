@@ -216,7 +216,32 @@ void ActivityStatusSettings::buttonClicked(juce::Button* button)
 {
     if (button == closeButton.get())
     {
+        closeDialog();
+    }
+}
+
+//==============================================================================
+void ActivityStatusSettings::showModal(juce::Component* parentComponent)
+{
+    if (parentComponent == nullptr)
+        return;
+
+    // Load settings when shown
+    loadSettings();
+
+    // Size to fill parent
+    setBounds(parentComponent->getLocalBounds());
+    parentComponent->addAndMakeVisible(this);
+    toFront(true);
+}
+
+void ActivityStatusSettings::closeDialog()
+{
+    juce::MessageManager::callAsync([this]() {
+        setVisible(false);
+        if (auto* parent = getParentComponent())
+            parent->removeChildComponent(this);
         if (onClose)
             onClose();
-    }
+    });
 }

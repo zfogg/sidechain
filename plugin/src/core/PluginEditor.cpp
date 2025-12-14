@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "audio/NotificationSound.h"
+#include <cstdlib>  // for std::getenv (DPI detection on Linux)
 #include "util/Async.h"
 #include "util/Colors.h"
 #include "util/Constants.h"
@@ -15,6 +16,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
     setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
+
+    // Apply system DPI scaling for HiDPI displays
+    applySystemDpiScaling();
 
     // Initialize centralized user data store
     userDataStore = std::make_unique<UserDataStore>();
@@ -229,7 +233,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
             if (audioBuffer.getNumSamples() > 0)
             {
                 uploadComponent->setAudioToUpload(audioBuffer, loadedDraft.sampleRate, loadedDraft.midiData);
-                uploadComponent->loadFromDraft(loadedDraft.title, loadedDraft.bpm, loadedDraft.keyIndex, loadedDraft.genreIndex, loadedDraft.commentAudienceIndex);
+                uploadComponent->loadFromDraft(loadedDraft.filename, loadedDraft.bpm, loadedDraft.keyIndex, loadedDraft.genreIndex, loadedDraft.commentAudienceIndex);
                 showView(AppView::Upload);
             }
         }
@@ -607,9 +611,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     notificationSettingsDialog->setNetworkClient(networkClient.get());
     if (userDataStore)
         notificationSettingsDialog->setUserDataStore(userDataStore.get());
-    notificationSettingsDialog->onClose = [this]() {
-        if (notificationSettingsDialog)
-            notificationSettingsDialog->closeDialog();
+    notificationSettingsDialog->onClose = []() {
+        // Dialog handles its own cleanup - callback is just a notification
+        Log::debug("NotificationSettings dialog closed");
     };
     // Not added as child - shown as modal overlay when needed
 
@@ -617,9 +621,49 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create TwoFactorSettings dialog
     twoFactorSettingsDialog = std::make_unique<TwoFactorSettings>();
     twoFactorSettingsDialog->setNetworkClient(networkClient.get());
-    twoFactorSettingsDialog->onClose = [this]() {
-        if (twoFactorSettingsDialog)
-            twoFactorSettingsDialog->closeDialog();
+    twoFactorSettingsDialog->onClose = []() {
+        // Dialog handles its own cleanup - callback is just a notification
+        // DO NOT call closeDialog() here - it causes recursive crash!
+        Log::debug("TwoFactorSettings dialog closed");
+    };
+    // Not added as child - shown as modal overlay when needed
+
+    //==========================================================================
+    // Create ActivityStatusSettings dialog
+    activityStatusDialog = std::make_unique<ActivityStatusSettings>();
+    activityStatusDialog->setNetworkClient(networkClient.get());
+    activityStatusDialog->onClose = []() {
+        Log::debug("ActivityStatusSettings dialog closed");
+    };
+    // Not added as child - shown as modal overlay when needed
+
+    //==========================================================================
+    // Create EditProfile dialog (Settings page)
+    editProfileDialog = std::make_unique<EditProfile>();
+    editProfileDialog->setNetworkClient(networkClient.get());
+    editProfileDialog->onCancel = [this]() {
+        editProfileDialog->closeDialog();
+    };
+    editProfileDialog->onSave = [this](const UserProfile& updatedProfile) {
+        Log::info("EditProfile: Profile saved successfully");
+        editProfileDialog->closeDialog();
+        // Refresh profile view to show updated data
+        if (profileComponent)
+            profileComponent->refresh();
+    };
+    editProfileDialog->onActivityStatusClicked = [this]() {
+        showActivityStatusSettings();
+    };
+    editProfileDialog->onMutedUsersClicked = [this]() {
+        // TODO: Implement MutedUsers component
+        Log::info("EditProfile: Muted users clicked - not yet implemented");
+    };
+    editProfileDialog->onTwoFactorClicked = [this]() {
+        showTwoFactorSettings();
+    };
+    editProfileDialog->onProfileSetupClicked = [this]() {
+        editProfileDialog->closeDialog();
+        showView(AppView::ProfileSetup);
     };
     // Not added as child - shown as modal overlay when needed
 
@@ -724,8 +768,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         navigateBack();
     };
     profileComponent->onEditProfile = [this]() {
-        // Switch to profile setup for editing
-        showView(AppView::ProfileSetup);
+        // Show the Settings/Edit Profile dialog
+        showEditProfile();
     };
     profileComponent->onSavedPostsClicked = [this]() {
         // Navigate to saved posts view
@@ -861,7 +905,7 @@ SidechainAudioProcessorEditor::~SidechainAudioProcessorEditor()
             // Create auto-recovery draft
             Draft draft;
             draft.id = "_auto_recovery";
-            draft.title = uploadComponent->getTitle();
+            draft.filename = uploadComponent->getFilename();
             draft.bpm = uploadComponent->getBpm();
             draft.keyIndex = uploadComponent->getKeyIndex();
             draft.genreIndex = uploadComponent->getGenreIndex();
@@ -1511,7 +1555,7 @@ void SidechainAudioProcessorEditor::saveCurrentUploadAsDraft()
     // Create draft from current upload state
     Draft draft;
     draft.id = juce::Uuid().toString();
-    draft.title = uploadComponent->getTitle();
+    draft.filename = uploadComponent->getFilename();
     draft.bpm = uploadComponent->getBpm();
     draft.keyIndex = uploadComponent->getKeyIndex();
     draft.genreIndex = uploadComponent->getGenreIndex();
@@ -1580,6 +1624,122 @@ void SidechainAudioProcessorEditor::checkForActiveStories()
             }
         });
     });
+}
+
+//==============================================================================
+// DPI Scaling
+
+void SidechainAudioProcessorEditor::applySystemDpiScaling()
+{
+    double systemScale = 1.0;
+    juce::String scaleSource = "default";
+
+    // First, try JUCE's display API
+    if (auto* display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+    {
+        if (display->scale > 1.0)
+        {
+            systemScale = display->scale;
+            scaleSource = "JUCE Display API";
+        }
+    }
+
+    // On Linux, JUCE often doesn't detect the scale correctly.
+    // Check common environment variables as fallback.
+#if JUCE_LINUX
+    if (systemScale <= 1.0)
+    {
+        // Check GDK_SCALE (GTK apps, GNOME)
+        if (const char* gdkScale = std::getenv("GDK_SCALE"))
+        {
+            double scale = juce::String(gdkScale).getDoubleValue();
+            if (scale > 1.0)
+            {
+                systemScale = scale;
+                scaleSource = "GDK_SCALE";
+            }
+        }
+    }
+
+    if (systemScale <= 1.0)
+    {
+        // Check QT_SCALE_FACTOR (Qt apps, KDE)
+        if (const char* qtScale = std::getenv("QT_SCALE_FACTOR"))
+        {
+            double scale = juce::String(qtScale).getDoubleValue();
+            if (scale > 1.0)
+            {
+                systemScale = scale;
+                scaleSource = "QT_SCALE_FACTOR";
+            }
+        }
+    }
+
+    if (systemScale <= 1.0)
+    {
+        // Check QT_AUTO_SCREEN_SCALE_FACTOR for fractional scaling
+        if (const char* qtAutoScale = std::getenv("QT_AUTO_SCREEN_SCALE_FACTOR"))
+        {
+            if (juce::String(qtAutoScale) == "1")
+            {
+                // Qt auto-scaling is enabled - try to detect from DPI
+                if (auto* display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+                {
+                    // Standard DPI is 96 on Linux
+                    double dpiScale = display->dpi / 96.0;
+                    if (dpiScale > 1.0)
+                    {
+                        systemScale = dpiScale;
+                        scaleSource = "DPI-based (Qt auto-scale)";
+                    }
+                }
+            }
+        }
+    }
+
+    if (systemScale <= 1.0)
+    {
+        // Check PLASMA_SCALE_FACTOR (KDE Plasma specific)
+        if (const char* plasmaScale = std::getenv("PLASMA_SCALE_FACTOR"))
+        {
+            double scale = juce::String(plasmaScale).getDoubleValue();
+            if (scale > 1.0)
+            {
+                systemScale = scale;
+                scaleSource = "PLASMA_SCALE_FACTOR";
+            }
+        }
+    }
+
+    if (systemScale <= 1.0)
+    {
+        // Try DPI-based detection as final fallback
+        if (auto* display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+        {
+            // Standard DPI is 96 on Linux, 72 on macOS
+            double standardDpi = 96.0;
+            double dpiScale = display->dpi / standardDpi;
+            Log::debug("DPI detection: display->dpi = " + juce::String(display->dpi, 1) +
+                      ", calculated scale = " + juce::String(dpiScale, 2));
+            if (dpiScale > 1.1)  // Use 1.1 threshold to avoid false positives
+            {
+                systemScale = dpiScale;
+                scaleSource = "DPI-based";
+            }
+        }
+    }
+#endif
+
+    // Apply the scale factor if above 1.0
+    if (systemScale > 1.0)
+    {
+        setScaleFactor(static_cast<float>(systemScale));
+        Log::info("Applied DPI scale factor: " + juce::String(systemScale, 2) + " (source: " + scaleSource + ")");
+    }
+    else
+    {
+        Log::debug("Standard DPI display detected (scale = 1.00)");
+    }
 }
 
 void SidechainAudioProcessorEditor::showUserStory(const juce::String& userId)
@@ -1826,6 +1986,36 @@ void SidechainAudioProcessorEditor::showTwoFactorSettings()
     // Load current 2FA status and show the dialog
     twoFactorSettingsDialog->loadStatus();
     twoFactorSettingsDialog->showModal(this);
+}
+
+void SidechainAudioProcessorEditor::showActivityStatusSettings()
+{
+    if (!activityStatusDialog)
+        return;
+
+    // Show the dialog (loadSettings is called by showModal)
+    activityStatusDialog->showModal(this);
+}
+
+void SidechainAudioProcessorEditor::showEditProfile()
+{
+    if (!editProfileDialog)
+        return;
+
+    // Set the current user's profile data before showing
+    if (userDataStore)
+    {
+        UserProfile profile;
+        profile.id = userDataStore->getUserId();
+        profile.username = userDataStore->getUsername();
+        profile.displayName = userDataStore->getDisplayName();
+        profile.bio = userDataStore->getBio();
+        profile.profilePictureUrl = userDataStore->getProfilePictureUrl();
+        editProfileDialog->setProfile(profile);
+    }
+
+    // Show the dialog
+    editProfileDialog->showModal(this);
 }
 
 void SidechainAudioProcessorEditor::navigateBack()

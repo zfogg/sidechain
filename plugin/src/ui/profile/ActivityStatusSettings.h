@@ -27,6 +27,11 @@ public:
     void loadSettings();
 
     //==============================================================================
+    // Modal dialog methods
+    void showModal(juce::Component* parentComponent);
+    void closeDialog();
+
+    //==============================================================================
     // Callbacks
     std::function<void()> onClose;
 

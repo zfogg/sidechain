@@ -39,10 +39,21 @@ public:
     const juce::String& getPendingAvatarPath() const { return pendingAvatarPath; }
 
     //==============================================================================
+    // Modal dialog methods
+    void showModal(juce::Component* parentComponent);
+    void closeDialog();
+
+    //==============================================================================
     // Callbacks
     std::function<void()> onCancel;
     std::function<void(const UserProfile& updatedProfile)> onSave;
     std::function<void(const juce::String& localPath)> onProfilePicSelected;
+
+    // Settings section callbacks (navigate to respective dialogs)
+    std::function<void()> onActivityStatusClicked;
+    std::function<void()> onMutedUsersClicked;
+    std::function<void()> onTwoFactorClicked;
+    std::function<void()> onProfileSetupClicked;  // Go to initial profile setup (username/avatar)
 
     //==============================================================================
     // Component overrides
@@ -89,6 +100,12 @@ private:
 
     // Privacy toggle
     std::unique_ptr<juce::ToggleButton> privateAccountToggle;
+
+    // Settings section buttons
+    std::unique_ptr<juce::TextButton> activityStatusButton;
+    std::unique_ptr<juce::TextButton> mutedUsersButton;
+    std::unique_ptr<juce::TextButton> twoFactorButton;
+    std::unique_ptr<juce::TextButton> profileSetupButton;
 
     // Avatar
     juce::Image avatarImage;
