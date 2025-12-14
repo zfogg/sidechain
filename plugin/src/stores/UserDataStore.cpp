@@ -5,6 +5,7 @@
 #include "../util/Json.h"
 #include "../util/Async.h"
 #include "../util/Validate.h"
+#include "../util/PropertiesFileUtils.h"
 
 //==============================================================================
 /** Construct UserDataStore
@@ -321,11 +322,7 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
  */
 juce::PropertiesFile::Options UserDataStore::getPropertiesOptions() const
 {
-    juce::PropertiesFile::Options options;
-    options.applicationName = "Sidechain";
-    options.filenameSuffix = ".settings";
-    options.folderName = "SidechainPlugin";
-    return options;
+    return Sidechain::Util::PropertiesFileUtils::getStandardOptions();
 }
 
 /** Save user data to persistent storage
