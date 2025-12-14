@@ -2395,16 +2395,26 @@ public:
   - Validation errors displayed to user before submission
   - Fixed InputValidation.h: enable_shared_from_this pattern, template addRule method
 
-**Task 4.18: Integrate RateLimiter into NetworkClient** `[MEDIUM]` `[2 hours]` ⏳ PENDING
-- [ ] Current state: No rate limiting on API calls
-- [ ] Goal: Prevent API abuse and excessive requests
-- [ ] In `NetworkClient.cpp`: Create `RateLimiter limiter(100, 60)` for API calls
-- [ ] Before each request: Call `limiter->tryConsume(userId)`
-- [ ] If rate limited: Show UI message "Too many requests, please wait X seconds"
-- [ ] For uploads: Create separate limiter (10 uploads/hour)
-- [ ] Test: Verify rejection after 100 requests/min
-- **Success Criteria**: Rate limiting enforced, user receives feedback
+**Task 4.18: Integrate RateLimiter into NetworkClient** `[MEDIUM]` `[2 hours]` ✅ COMPLETED
+- [x] Current state: No rate limiting on API calls
+- [x] Goal: Prevent API abuse and excessive requests
+- [x] In `NetworkClient.cpp`: Create `RateLimiter limiter(100, 60)` for API calls
+- [x] Before each request: Call `limiter->tryConsume(userId)`
+- [x] If rate limited: Show UI message "Too many requests, please wait X seconds"
+- [x] For uploads: Create separate limiter (10 uploads/hour)
+- [x] Test: Verify rejection after 100 requests/min
+- **Success Criteria**: Rate limiting enforced, user receives feedback ✅
 - **Owner**: Backend Integration
+- **Completed**: Dec 14, 2024 (Commit: 5a3f395)
+- **Implementation Details**:
+  - NetworkClient.h: Added apiRateLimiter and uploadRateLimiter member variables
+  - NetworkClient.cpp constructor: Initialized rate limiters (100 req/60s API, 10 req/hour uploads)
+  - makeRequestWithRetry(): Integrated API rate limiting with user-specific token buckets
+  - AudioClient.cpp: Added upload rate limiting to uploadAudio() and uploadAudioWithMetadata()
+  - StoriesClient.cpp: Added upload rate limiting to uploadStory()
+  - Rate limit errors return HTTP 429 with retry-after seconds in error message
+  - Uses user ID as identifier, falls back to "anonymous" for unauthenticated requests
+  - Token bucket algorithm with burst allowance (20 burst for API, 3 for uploads)
 
 **Task 4.19: Integrate ErrorTracking Throughout Codebase** `[MEDIUM]` `[4 hours]` ⏳ PENDING
 - [ ] Current state: Errors logged to console only
