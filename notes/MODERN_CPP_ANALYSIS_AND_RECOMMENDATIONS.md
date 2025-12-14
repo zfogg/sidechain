@@ -2220,6 +2220,182 @@ public:
 
 ---
 
+### 10.4.4 Integration Tasks (Newly Built Systems Need to be Used!)
+
+**CRITICAL**: Phase 3 & 4 systems have been **built and tested**, but NOT yet **integrated** into existing components. These integration tasks are essential:
+
+#### Status Overview
+
+| Task | System | Priority | Files to Update | Est. Hours |
+|------|--------|----------|-----------------|-----------|
+| 4.11 | Animation Framework | HIGH | PostCard.h, PostsFeed.h, Recording.h, StoryRecording.h | 6 |
+| 4.12 | View Transitions | MEDIUM | PluginEditor.cpp | 3 |
+| 4.13 | MultiTierCache | HIGH | FeedStore.h/cpp | 4 |
+| 4.14 | CacheWarmer | MEDIUM | CacheWarmer integration | 3 |
+| 4.15 | Performance Monitor | MEDIUM | Multiple (feed, network, audio) | 4 |
+| 4.16 | SecureTokenStore | HIGH | AuthComponent.cpp | 2 |
+| 4.17 | InputValidation | MEDIUM | LoginComponent.h, SignupComponent.h, ProfileEditComponent.h | 3 |
+| 4.18 | RateLimiter | MEDIUM | NetworkClient.cpp | 2 |
+| 4.19 | ErrorTracking | MEDIUM | NetworkClient.cpp, AudioService.cpp, FeedStore.cpp, ChatComponent.cpp | 4 |
+| 4.20 | OperationalTransform | MEDIUM | ChatComponent.cpp | 3 |
+| 4.21 | RealtimeSync | MEDIUM | FeedView.cpp | 2 |
+
+**Total Integration Effort**: ~36 hours | **Critical Path**: 4.11 → 4.12, 4.16 → 4.17, 4.13 → 4.14
+
+---
+
+#### Animation Framework Integration (Phase 3)
+
+**Task 4.11: Replace Old Animation System with New Framework** `[HIGH]` `[6 hours]` ⏳ PENDING
+- [ ] Current state: Old `Animation` class used in PostCard, PostsFeed, Recording.h
+- [ ] Goal: Replace with new `TransitionAnimation<T>` + `Easing` system
+- [ ] Replace all `Animation likeAnimation{...}` with `TransitionAnimation<float>`
+- [ ] Replace `AnimationValue<float>` with new framework
+- [ ] Update `Recording.h` (line 70) - use new animations
+- [ ] Update `StoryRecording.h` (lines 115-116) - use new animations
+- [ ] Update `PostsFeed.h` (line 133, 170) - replace AnimationValue
+- [ ] Update `PostCard.h` (lines 332, 335) - replace animations
+- [ ] Delete old Animation class from codebase
+- [ ] Verify all animations still work (fade, slide, scale)
+- **Files to refactor**: PostCard.h, PostsFeed.h, Recording.h, StoryRecording.h
+- **Success Criteria**: All animations use new framework, 30% less code, same visual behavior
+- **Owner**: UI Team
+
+**Task 4.12: Integrate ViewTransitionManager into PluginEditor** `[MEDIUM]` `[3 hours]` ⏳ PENDING
+- [ ] Current state: View transitions don't have animations
+- [ ] Goal: Use ViewTransitionManager for all view changes
+- [ ] Create member: `ViewTransitionManager transitionManager;`
+- [ ] When showing new view: Use `transitionManager->slideLeft(oldView, newView, 300)`
+- [ ] When going back: Use `transitionManager->slideRight(oldView, newView, 300)`
+- [ ] Test transitions between: Feed, Chat, Profile, Recording views (4+ combinations)
+- [ ] Add timing metrics to verify < 350ms transitions
+- **Success Criteria**: All view changes animated smoothly, no jank, < 350ms
+- **Owner**: UI Team
+
+#### Caching Integration (Phase 3)
+
+**Task 4.13: Integrate MultiTierCache into FeedStore** `[HIGH]` `[4 hours]` ⏳ PENDING
+- [ ] Current state: FeedStore doesn't cache post data
+- [ ] Goal: Use MultiTierCache for feed posts
+- [ ] Add member: `MultiTierCache<String, Array<FeedPost>> feedCache`
+- [ ] In `loadFeed()`: Check cache first before network request
+- [ ] On network response: Store in cache with TTL (3600s)
+- [ ] Add `clearCache()` method for cache invalidation
+- [ ] Test: Verify < 100ms cache hits
+- [ ] Test: Verify network request if cache miss
+- **Success Criteria**: First load 500ms, cached load < 100ms, 80%+ hit rate
+- **Owner**: Data Team
+
+**Task 4.14: Integrate CacheWarmer for Offline Support** `[MEDIUM]` `[3 hours]` ⏳ PENDING
+- [ ] Current state: No offline feed access
+- [ ] Goal: Pre-cache popular feeds when online, serve offline
+- [ ] Create background task that pre-fetches:
+  - Timeline feed (top 50 posts)
+  - Trending posts
+  - User's own posts
+- [ ] Store with 24h TTL
+- [ ] Show cached data when offline (with "cached" badge)
+- [ ] Auto-sync when back online
+- **Success Criteria**: Can view feed offline, auto-syncs when online
+- **Owner**: Data Team
+
+#### Performance Monitoring Integration (Phase 3)
+
+**Task 4.15: Add Performance Tracking Throughout Codebase** `[MEDIUM]` `[4 hours]` ⏳ PENDING
+- [ ] Current state: No performance monitoring in place
+- [ ] Goal: Track critical operations for profiling
+- [ ] Add `ScopedTimer` to:
+  - Feed loading: `{ ScopedTimer t("feed::load"); ...}`
+  - Post rendering: `{ ScopedTimer t("ui::render_post"); ...}`
+  - Network requests: `{ ScopedTimer t("network::api_call"); ...}`
+  - Image loading: `{ ScopedTimer t("cache::image_load"); ...}`
+  - Audio capture: `{ ScopedTimer t("audio::capture"); ...}`
+- [ ] Verify p95 < benchmark thresholds (from Phase 3 benchmarks)
+- [ ] Set up CI to fail if any operation > 10% slower than baseline
+- [ ] Add UI dashboard to show performance metrics
+- **Success Criteria**: Key operations tracked, CI regression detection working
+- **Owner**: Infrastructure Team
+
+#### Security Integration (Phase 4)
+
+**Task 4.16: Integrate SecureTokenStore into Auth Flow** `[HIGH]` `[2 hours]` ⏳ PENDING
+- [ ] Current state: Auth tokens stored in memory
+- [ ] Goal: Store auth tokens securely using platform APIs
+- [ ] In `AuthComponent::loginSuccess()`: Use `SecureTokenStore::getInstance()->saveToken("jwt", token)`
+- [ ] In `AuthComponent::getAuthToken()`: Use `TokenGuard` to load token
+- [ ] Remove any plain-text token storage
+- [ ] Test on macOS, Windows, Linux (if available)
+- **Success Criteria**: Tokens never exposed in memory, survives app restart
+- **Owner**: Auth Team
+
+**Task 4.17: Integrate InputValidation into Auth & Forms** `[MEDIUM]` `[3 hours]` ⏳ PENDING
+- [ ] Current state: No input validation on signup/login forms
+- [ ] Goal: Validate all user input before sending to server
+- [ ] In `LoginComponent::tryLogin()`:
+  - Validate email with `InputValidator::email()`
+  - Validate password with length constraints
+- [ ] In `SignupComponent::trySignup()`:
+  - Validate email, username, password
+  - Sanitize all inputs
+- [ ] In `ProfileEditComponent`:
+  - Validate bio (max 500 chars)
+  - Validate username (3-20 alphanumeric)
+- [ ] Show validation errors next to fields
+- [ ] Prevent submission if validation fails
+- **Success Criteria**: No invalid data sent to server, no XSS possible
+- **Owner**: UI Team
+
+**Task 4.18: Integrate RateLimiter into NetworkClient** `[MEDIUM]` `[2 hours]` ⏳ PENDING
+- [ ] Current state: No rate limiting on API calls
+- [ ] Goal: Prevent API abuse and excessive requests
+- [ ] In `NetworkClient.cpp`: Create `RateLimiter limiter(100, 60)` for API calls
+- [ ] Before each request: Call `limiter->tryConsume(userId)`
+- [ ] If rate limited: Show UI message "Too many requests, please wait X seconds"
+- [ ] For uploads: Create separate limiter (10 uploads/hour)
+- [ ] Test: Verify rejection after 100 requests/min
+- **Success Criteria**: Rate limiting enforced, user receives feedback
+- **Owner**: Backend Integration
+
+**Task 4.19: Integrate ErrorTracking Throughout Codebase** `[MEDIUM]` `[4 hours]` ⏳ PENDING
+- [ ] Current state: Errors logged to console only
+- [ ] Goal: Track all errors for analytics and debugging
+- [ ] In `NetworkClient`: Wrap requests in try-catch, record network errors
+- [ ] In `AudioService`: Record audio errors (capture failures, encoding)
+- [ ] In `FeedStore`: Record sync errors
+- [ ] In `ChatComponent`: Record messaging errors
+- [ ] Add critical error alerts for severe issues
+- [ ] Export errors to analytics endpoint (or local dashboard)
+- [ ] Test: Verify error deduplication (same error counted as occurrence)
+- **Success Criteria**: All errors tracked, duplicate errors deduplicated, analytics visible
+- **Owner**: DevOps/Monitoring
+
+#### Real-Time Collaboration Integration (Phase 3)
+
+**Task 4.20: Integrate OperationalTransform into Chat** `[MEDIUM]` `[3 hours]` ⏳ PENDING
+- [ ] Current state: Chat messages sent as-is, no conflict resolution
+- [ ] Goal: Enable simultaneous editing of group chat descriptions
+- [ ] When user edits channel description: Create Insert/Delete/Modify operation
+- [ ] Send to server with timestamp
+- [ ] Server applies OT transform on concurrent edits
+- [ ] Client receives transformed operation
+- [ ] Apply local operation with transformation for consistency
+- [ ] Test: Simulate 2 users editing simultaneously, verify convergence
+- **Success Criteria**: Concurrent edits converge to same state on both clients
+- **Owner**: Chat Team
+
+**Task 4.21: Integrate RealtimeSync into Feed** `[MEDIUM]` `[2 hours]` ⏳ PENDING
+- [ ] Current state: Feed updates require manual refresh
+- [ ] Goal: Real-time updates via WebSocket + OT sync
+- [ ] Create `RealtimeSync` instance for each feed view
+- [ ] Subscribe to remote operations: `sync->onRemoteOperation([this](op) { applyOp(op); })`
+- [ ] On local changes: `sync->sendLocalOperation(operation)`
+- [ ] Handle sync state changes: Show "syncing..." indicator when out of sync
+- [ ] Test: Verify < 500ms update latency
+- **Success Criteria**: New likes/comments appear in real-time, no data loss
+- **Owner**: Real-Time Team
+
+---
+
 ### 10.5 Full Task Matrix & Dependencies
 
 ```
