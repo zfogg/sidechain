@@ -2,10 +2,13 @@
 
 #include <JuceHeader.h>
 #include "../../network/StreamChatClient.h"
+#include "../../stores/ChatStore.h"
+#include "../../util/reactive/ReactiveBoundComponent.h"
 #include "../common/ErrorState.h"
 
 class NetworkClient;
 class SidechainAudioProcessor;
+namespace Sidechain { namespace Stores { class ChatStore; } }
 
 //==============================================================================
 /**
@@ -16,10 +19,15 @@ class SidechainAudioProcessor;
  * - Scrollable list of messages (newest at bottom)
  * - Message input field with send button
  * - Message bubbles with different styling for sent/received
- * - Typing indicators (future)
+ * - Typing indicators (reactive via ChatStore)
  * - Read receipts (future)
+ *
+ * Thread Safety:
+ * - Inherits from ReactiveBoundComponent for automatic reactive updates
+ * - All UI operations must be on the message thread
+ * - ChatStore subscription automatically triggers repaint()
  */
-class MessageThread : public juce::Component,
+class MessageThread : public Sidechain::Util::ReactiveBoundComponent,
                                 public juce::Timer,
                                 public juce::ScrollBar::Listener,
                                 public juce::TextEditor::Listener
@@ -47,6 +55,7 @@ public:
     void setStreamChatClient(StreamChatClient* client);
     void setNetworkClient(NetworkClient* client);
     void setAudioProcessor(SidechainAudioProcessor* processor);
+    void setChatStore(Sidechain::Stores::ChatStore* store);
 
     // Load a specific channel
     void loadChannel(const juce::String& channelType, const juce::String& channelId);
@@ -57,20 +66,16 @@ public:
 
 private:
     //==============================================================================
-    enum class ThreadState
-    {
-        Loading,
-        Loaded,
-        Empty,
-        Error
-    };
-
-    ThreadState threadState = ThreadState::Loading;
-    juce::String errorMessage;
-    std::vector<StreamChatClient::Message> messages;
+    // Task 2.3: All state now comes from ChatStore - no duplicate state!
+    // - Messages: chatStore->getState().getCurrentChannel()->messages
+    // - Loading: chatStore->getState().getCurrentChannel()->isLoadingMessages
+    // - Error: chatStore->getState().error
+    // - Typing: chatStore->getState().getCurrentChannel()->usersTyping
 
     StreamChatClient* streamChatClient = nullptr;
     NetworkClient* networkClient = nullptr;
+    Sidechain::Stores::ChatStore* chatStore = nullptr;
+    std::function<void()> chatStoreUnsubscribe;  // Unsubscribe function for ChatStore
 
     juce::String channelType;
     juce::String channelId;
@@ -78,10 +83,10 @@ private:
     juce::String currentUserId;
     StreamChatClient::Channel currentChannel;  // Store full channel data for group management
 
-    // Typing indicator state
-    bool isTyping = false;
-    int64_t lastTypingTime = 0;
-    juce::String typingUserName;  // Name of user who is typing
+    // Typing indicator state (Task 2.3: local state for current user's typing)
+    bool isTyping = false;  // Is current user typing?
+    int64_t lastTypingTime = 0;  // When current user last typed
+    // Note: Typing indicators from other users come from ChatStore.usersTyping
 
     // UI elements
     juce::ScrollBar scrollBar;
