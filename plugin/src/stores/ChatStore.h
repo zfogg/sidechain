@@ -4,14 +4,18 @@
 #include "Store.h"
 #include "../network/StreamChatClient.h"
 #include "../util/logging/Logger.h"
+#include "../util/crdt/OperationalTransform.h"
 #include <map>
 #include <vector>
+#include <queue>
 
 namespace Sidechain {
 namespace Stores {
 
 /**
  * ChannelState - State for a single chat channel
+ *
+ * Supports collaborative editing of channel description using OperationalTransform
  */
 struct ChannelState
 {
@@ -31,6 +35,23 @@ struct ChannelState
 
     // Drafts
     juce::String draftText;
+
+    // ========== Collaborative Channel Description Editing (Task 4.20) ==========
+
+    // Channel description text
+    juce::String description;
+
+    // Operation history for collaborative editing
+    std::vector<std::shared_ptr<Util::CRDT::OperationalTransform::Operation>> operationHistory;
+
+    // Pending local operations waiting for server transform
+    std::queue<std::shared_ptr<Util::CRDT::OperationalTransform::Operation>> pendingOperations;
+
+    // Timestamp counter for operation ordering
+    int operationTimestamp = 0;
+
+    // Whether description is currently syncing
+    bool isSyncingDescription = false;
 
     bool operator==(const ChannelState& other) const
     {
@@ -336,6 +357,44 @@ public:
     void queryPresence(const std::vector<juce::String>& userIds);
 
     //==========================================================================
+    // Collaborative Channel Description Editing (Task 4.20)
+
+    /**
+     * Edit channel description with OperationalTransform conflict resolution
+     *
+     * When user edits the description, this creates an Insert/Delete operation
+     * and sends it to the server. The server applies OT transformations to
+     * handle concurrent edits from multiple users.
+     *
+     * @param channelId Channel to edit description for
+     * @param newDescription New description text
+     */
+    void editChannelDescription(const juce::String& channelId, const juce::String& newDescription);
+
+    /**
+     * Apply server-transformed operation to local description
+     *
+     * Called when server sends back a transformed operation after handling
+     * concurrent edits. This ensures all clients converge to the same state.
+     *
+     * @param channelId Channel to apply operation to
+     * @param operation Transformed operation from server
+     */
+    void applyServerOperation(const juce::String& channelId,
+                             const std::shared_ptr<Util::CRDT::OperationalTransform::Operation>& operation);
+
+    /**
+     * Handle concurrent edit from another user
+     *
+     * @param channelId Channel where edit occurred
+     * @param operation Remote operation from other user
+     * @param clientId ID of client that sent the operation
+     */
+    void handleRemoteOperation(const juce::String& channelId,
+                              const std::shared_ptr<Util::CRDT::OperationalTransform::Operation>& operation,
+                              int clientId);
+
+    //==========================================================================
     // Real-time Events
 
     /**
@@ -366,6 +425,10 @@ private:
     // Stream Chat client (not owned)
     StreamChatClient* streamChatClient = nullptr;
 
+    // Client ID for this plugin instance (used for OT conflict resolution)
+    // Generated on first use using hash of user ID
+    int clientId = -1;
+
     // Internal helpers
     void setupEventHandlers();
     void handleChannelsLoaded(const std::vector<StreamChatClient::Channel>& channels);
@@ -379,6 +442,29 @@ private:
 
     // Generate temporary message ID for optimistic updates
     juce::String generateTempMessageId() const;
+
+    // ========== Collaborative Editing Helpers (Task 4.20) ==========
+
+    /**
+     * Get or initialize client ID for OT operations
+     * Uses hash of user ID to generate stable client ID
+     */
+    int getClientId();
+
+    /**
+     * Generate operation comparing old and new description text
+     * Creates Insert/Delete operations as needed
+     */
+    std::shared_ptr<Util::CRDT::OperationalTransform::Operation>
+    generateDescriptionOperation(const juce::String& oldDescription, const juce::String& newDescription);
+
+    /**
+     * Send operation to server for OT transformation
+     * @param channelId Channel ID
+     * @param operation Operation to send
+     */
+    void sendOperationToServer(const juce::String& channelId,
+                               const std::shared_ptr<Util::CRDT::OperationalTransform::Operation>& operation);
 
     // Singleton enforcement
     ChatStore(const ChatStore&) = delete;
