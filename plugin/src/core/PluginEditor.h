@@ -415,8 +415,9 @@ private:
     void applySystemDpiScaling();
 
     //==============================================================================
-    static constexpr int PLUGIN_WIDTH = 1920;
-    static constexpr int PLUGIN_HEIGHT = 1080;
+    // Plugin dimensions optimized for MacBook Pro displays (~75% of screen)
+    static constexpr int PLUGIN_WIDTH = 1400;
+    static constexpr int PLUGIN_HEIGHT = 900;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SidechainAudioProcessorEditor)
 };
