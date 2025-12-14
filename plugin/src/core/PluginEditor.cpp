@@ -2176,7 +2176,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     using namespace Sidechain::Security;
 
     // Log authentication success
-    Logger::getInstance().log(
+    Sidechain::Util::Logger::getInstance().log(
         LogLevel::Info,
         "Security",
         "User authentication successful: " + user
@@ -2188,7 +2188,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     {
         if (secureStore->saveToken("auth_token", token))
         {
-            Logger::getInstance().log(
+            Sidechain::Util::Logger::getInstance().log(
                 LogLevel::Info,
                 "Security",
                 "Auth token stored securely in " + secureStore->getBackendType()
@@ -2196,7 +2196,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
         }
         else
         {
-            Logger::getInstance().log(
+            Sidechain::Util::Logger::getInstance().log(
                 LogLevel::Error,
                 "Security",
                 "Failed to save auth token to secure storage"
@@ -2205,7 +2205,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
     }
     else
     {
-        Logger::getInstance().log(
+        Sidechain::Util::Logger::getInstance().log(
             LogLevel::Warning,
             "Security",
             "Secure storage not available, token not persisted"
