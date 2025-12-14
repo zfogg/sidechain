@@ -2,7 +2,8 @@
 
 #include <JuceHeader.h>
 #include "../../models/FeedPost.h"
-#include "../../util/Animation.h"
+#include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/animations/Easing.h"
 #include "../../util/HoverState.h"
 #include "../../util/LongPressDetector.h"
 #include "../common/WaveformImageView.h"
@@ -328,11 +329,13 @@ private:
     bool isDownloading = false;
     float downloadProgress = 0.0f;
 
-    // Like animation
-    Animation likeAnimation{400, Animation::Easing::EaseOutCubic};
+    // Like animation - hearts bursting outward
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> likeAnimation;
+    float likeAnimationProgress = 0.0f;
 
     // Fade-in animation for new posts
-    AnimationValue<float> fadeInOpacity{0.0f, 300, Animation::Easing::EaseOutCubic};
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> fadeInAnimation;
+    float currentOpacity = 0.0f;
 
     // Long-press detector for emoji reactions panel
     LongPressDetector longPressDetector{400};  // 400ms threshold

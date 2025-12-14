@@ -5,19 +5,13 @@
 #include "../../util/StringFormatter.h"
 #include "../../util/Constants.h"
 
+using namespace Sidechain::UI::Animations;
+
 //==============================================================================
 Recording::Recording(SidechainAudioProcessor& processor)
     : audioProcessor(processor)
 {
     Log::info("Recording: Initializing recording component");
-
-    // Set up recording dot animation (ping-pong for pulsing effect)
-    recordingDotAnimation.setPingPong(true);
-    recordingDotAnimation.setRepeatCount(-1);  // Infinite repeat
-    recordingDotAnimation.onUpdate = [this](float progress) {
-        if (currentState == State::Recording)
-            repaint();
-    };
 
     // Start timer for UI updates (~30fps)
     startTimerHz(30);
@@ -33,6 +27,52 @@ Recording::~Recording()
 {
     Log::debug("Recording: Destroying recording component");
     stopTimer();
+}
+
+//==============================================================================
+void Recording::startRecordingDotAnimation()
+{
+    // Helper lambda to create the ping-pong animation
+    auto createPingPongAnimation = [this]() {
+        // Fade in (0.0 to 1.0 over 1 second)
+        recordingDotAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 1000)
+            ->withEasing(Easing::easeInOutCubic)
+            ->onProgress([this](float progress) {
+                recordingDotOpacity = progress;
+                if (currentState == State::Recording)
+                    repaint();
+            })
+            ->onComplete([this]() {
+                // Fade out (1.0 to 0.0 over 1 second)
+                recordingDotAnimation = TransitionAnimation<float>::create(1.0f, 0.0f, 1000)
+                    ->withEasing(Easing::easeInOutCubic)
+                    ->onProgress([this](float progress) {
+                        recordingDotOpacity = progress;
+                        if (currentState == State::Recording)
+                            repaint();
+                    })
+                    ->onComplete([this]() {
+                        // Loop: start the animation again if still recording
+                        if (currentState == State::Recording)
+                            startRecordingDotAnimation();
+                    })
+                    ->start();
+            })
+            ->start();
+    };
+
+    createPingPongAnimation();
+}
+
+void Recording::stopRecordingDotAnimation()
+{
+    // Stop the animation and reset opacity
+    if (recordingDotAnimation)
+    {
+        recordingDotAnimation = nullptr;
+    }
+    recordingDotOpacity = 0.0f;
+    repaint();
 }
 
 //==============================================================================
@@ -270,7 +310,7 @@ void Recording::drawRecordButton(juce::Graphics& g)
     {
         // Pulsing red with square shape (stop indicator)
         // Use animation progress for smooth pulsing (0.5 to 1.0 opacity)
-        float opacity = 0.5f + 0.5f * recordingDotAnimation.getProgress();
+        float opacity = 0.5f + 0.5f * recordingDotOpacity;
         g.setColour(SidechainColors::recording().withAlpha(opacity));
         auto innerRect = recordButtonArea.reduced(recordButtonArea.getWidth() / 4);
         g.fillRoundedRectangle(innerRect.toFloat(), 4.0f);
@@ -302,7 +342,7 @@ void Recording::drawTimeDisplay(juce::Graphics& g)
                juce::Justification::centredLeft);
 
     // Recording indicator text
-    float opacity = 0.5f + 0.5f * recordingDotAnimation.getProgress();
+    float opacity = 0.5f + 0.5f * recordingDotOpacity;
     g.setColour(SidechainColors::recording().withAlpha(opacity));
     g.setFont(14.0f);
     g.drawText("RECORDING", timeDisplayArea.removeFromTop(20),
@@ -558,7 +598,7 @@ void Recording::startRecording()
     currentState = State::Recording;
 
     // Start pulsing animation
-    recordingDotAnimation.start();
+    startRecordingDotAnimation();
 
     // Start progressive key detection if available
     if (ProgressiveKeyDetector::isAvailable())
@@ -586,7 +626,7 @@ void Recording::stopRecording()
     Log::info("Recording::stopRecording: Stopping recording");
 
     // Stop pulsing animation
-    recordingDotAnimation.stop();
+    stopRecordingDotAnimation();
 
     // Finalize progressive key detection
     if (progressiveKeyDetector.isActive())

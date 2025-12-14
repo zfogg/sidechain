@@ -196,6 +196,7 @@ add_dependencies(SidechainJuceHeader SidechainJuceHeaderHelper)
 # 7. Core plugin (depends on all libraries)
 
 add_subdirectory(src/util)
+add_subdirectory(src/security)
 add_subdirectory(src/models)
 add_subdirectory(src/network)
 add_subdirectory(src/audio)

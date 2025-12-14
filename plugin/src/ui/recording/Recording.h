@@ -1,7 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../util/Animation.h"
+#include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/animations/Easing.h"
 #include "../../audio/ProgressiveKeyDetector.h"
 
 // Forward declaration to avoid circular includes
@@ -67,7 +68,12 @@ private:
     double recordedSampleRate = 44100.0;
 
     // Animation state
-    Animation recordingDotAnimation{2000, Animation::Easing::EaseInOut};  // 2 second ping-pong
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> recordingDotAnimation;
+    float recordingDotOpacity = 0.0f;
+
+    // Helper to start/stop the looping pulse animation
+    void startRecordingDotAnimation();
+    void stopRecordingDotAnimation();
 
     // Progressive key detection
     ProgressiveKeyDetector progressiveKeyDetector;

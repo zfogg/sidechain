@@ -6,12 +6,15 @@
 #include "../../util/UIHelpers.h"
 #include "../../util/Log.h"
 #include "../../util/Async.h"
-#include "../../util/Animation.h"
+#include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/animations/Easing.h"
 #include "../../util/Result.h"
 #include "../../util/DAWProjectFolder.h"
 #include "../common/ToastNotification.h"
 #include <set>
 #include <vector>
+
+using namespace Sidechain::UI::Animations;
 
 //==============================================================================
 PostsFeed::PostsFeed()
@@ -39,20 +42,7 @@ PostsFeed::PostsFeed()
     };
 
     // Set up comments panel slide animation
-    commentsPanelSlide.onValueChanged = [this](float slide) {
-        if (commentsPanel != nullptr)
-        {
-            int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
-            int targetX = static_cast<int>(getWidth() - panelWidth * slide);
-            commentsPanel->setBounds(targetX, 0, panelWidth, getHeight());
-        }
-        repaint();
-    };
-
-    // Set up toast fade animation
-    toastOpacity.onValueChanged = [this](float opacity) {
-        repaint();
-    };
+    // Animations will be created when needed (not in constructor)
     commentsPanel->onUserClicked = [this](const juce::String& userId) {
         Log::debug("PostsFeedComponent: User clicked in comments panel: " + userId);
         hideCommentsPanel();
@@ -769,7 +759,7 @@ void PostsFeed::drawNewPostsToast(juce::Graphics& g)
     auto contentBounds = getFeedContentBounds();
     auto toastBounds = contentBounds.withHeight(40).withY(contentBounds.getY() + 10);
 
-    float opacity = toastOpacity.getValue();
+    float opacity = currentToastOpacity;
     if (opacity <= 0.0f)
         return;
 
@@ -2031,7 +2021,7 @@ void PostsFeed::resized()
     if (commentsPanel != nullptr && commentsPanelVisible)
     {
         // Animation callback will update position, but ensure initial position is set
-        if (!commentsPanelSlide.isAnimating())
+        if (!commentsPanelAnimation || currentCommentsPanelSlide >= 1.0f)
         {
             int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
             commentsPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
@@ -2366,7 +2356,21 @@ void PostsFeed::showCommentsForPost(const FeedPost& post)
     // Show with slide animation
     commentsPanel->setVisible(true);
     commentsPanelVisible = true;
-    commentsPanelSlide.animateTo(1.0f);  // Slide in from right
+
+    // Create and start slide-in animation
+    currentCommentsPanelSlide = 0.0f;
+    commentsPanelAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 250)
+        ->withEasing(Easing::easeOutCubic)
+        ->onProgress([this](float slide) {
+            if (commentsPanel != nullptr)
+            {
+                int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
+                int targetX = static_cast<int>(getWidth() - panelWidth * slide);
+                commentsPanel->setBounds(targetX, 0, panelWidth, getHeight());
+            }
+            repaint();
+        })
+        ->start();
 
     // Bring to front
     commentsPanel->toFront(true);
@@ -2477,15 +2481,33 @@ void PostsFeed::showNewPostsToast(int count)
 {
     // Show toast notification with fade-in animation (5.5.2)
     showingNewPostsToast = true;
-    toastOpacity.animateTo(1.0f);  // Fade in
 
-    // Hide toast after 3 seconds with fade-out
-    juce::Timer::callAfterDelay(3000, [this]() {
-        toastOpacity.animateTo(0.0f);
-        toastOpacity.onAnimationComplete = [this]() {
-            showingNewPostsToast = false;
+    // Fade in toast (0.0 to 1.0 opacity over 200ms)
+    toastAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 200)
+        ->withEasing(Easing::easeOutCubic)
+        ->onProgress([this](float opacity) {
+            currentToastOpacity = opacity;
             repaint();
-        };
+        })
+        ->start();
+
+    // Schedule fade-out after 3 seconds
+    juce::Timer::callAfterDelay(3000, [this]() {
+        if (!showingNewPostsToast)
+            return;  // Toast was manually hidden
+
+        // Fade out toast (1.0 to 0.0 opacity over 200ms)
+        toastAnimation = TransitionAnimation<float>::create(1.0f, 0.0f, 200)
+            ->withEasing(Easing::easeOutCubic)
+            ->onProgress([this](float opacity) {
+                currentToastOpacity = opacity;
+                repaint();
+            })
+            ->onComplete([this]() {
+                showingNewPostsToast = false;
+                repaint();
+            })
+            ->start();
     });
 }
 

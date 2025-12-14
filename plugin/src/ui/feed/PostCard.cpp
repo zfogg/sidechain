@@ -6,8 +6,11 @@
 #include "../../util/HoverState.h"
 #include "../../util/LongPressDetector.h"
 #include "../../util/Log.h"
-#include "../../util/Animation.h"
+#include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/animations/Easing.h"
 #include <algorithm>
+
+using namespace Sidechain::UI::Animations;
 
 //==============================================================================
 PostCard::PostCard()
@@ -24,13 +27,8 @@ PostCard::PostCard()
         showEmojiReactionsPanel();
     };
 
-    // Set up fade-in animation
-    fadeInOpacity.onValueChanged = [this](float opacity) {
-        repaint();
-    };
-    fadeInOpacity.onAnimationComplete = []() {
-        // Animation complete, opacity is now 1.0
-    };
+    // Fade-in animation will be created when setPost() is called
+    // No setup needed here anymore
 
     // Add waveform image view as child component
     addAndMakeVisible(waveformView);
@@ -53,9 +51,15 @@ void PostCard::setPost(const FeedPost& newPost)
     avatarImage = juce::Image();
     Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username);
 
-    // Start fade-in animation
-    fadeInOpacity.setImmediate(0.0f);
-    fadeInOpacity.animateTo(1.0f);
+    // Create and start fade-in animation
+    currentOpacity = 0.0f;
+    fadeInAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 300)
+        ->withEasing(Easing::easeOutCubic)
+        ->onProgress([this](float opacity) {
+            currentOpacity = opacity;
+            repaint();
+        })
+        ->start();
 
     // Load avatar via backend proxy to work around JUCE SSL/redirect issues on Linux
     if (post.userId.isNotEmpty())
@@ -165,7 +169,7 @@ void PostCard::setDownloadProgress(float progress)
 void PostCard::paint(juce::Graphics& g)
 {
     // Apply fade-in opacity
-    g.setOpacity(fadeInOpacity.getValue());
+    g.setOpacity(currentOpacity);
 
     drawBackground(g);
 
@@ -1447,24 +1451,31 @@ juce::Rectangle<int> PostCard::getSoundBadgeBounds() const
 
 void PostCard::startLikeAnimation()
 {
-    likeAnimation.start();
+    // Create and start the like animation
+    likeAnimationProgress = 0.0f;
+    likeAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 400)
+        ->withEasing(Easing::easeOutCubic)
+        ->onProgress([this](float progress) {
+            likeAnimationProgress = progress;
+            repaint();
+        })
+        ->start();
 }
 
 void PostCard::timerCallback()
 {
     // Long-press detection is handled by LongPressDetector
-    // Only need to manage animation timer here
-
-    // Stop timer if animation is not running
-    if (!likeAnimation.isRunning())
-    {
-        stopTimer();
-    }
+    // TransitionAnimation handles its own timer, so we don't need to do anything here
 }
 
 void PostCard::drawLikeAnimation(juce::Graphics& g)
 {
-    if (!likeAnimation.isRunning())
+    // Only draw if animation is active (not null and progress > 0)
+    if (!likeAnimation || likeAnimationProgress <= 0.0f)
+        return;
+
+    // Only draw while animation is running (progress < 1.0)
+    if (likeAnimationProgress >= 1.0f)
         return;
 
     auto likeBounds = getLikeButtonBounds();
@@ -1472,7 +1483,7 @@ void PostCard::drawLikeAnimation(juce::Graphics& g)
     float cy = static_cast<float>(likeBounds.getCentreY());
 
     // Get eased progress from animation
-    float easedT = likeAnimation.getProgress();
+    float easedT = likeAnimationProgress;
 
     // Scale animation (pop in then settle)
     float scalePhase = easedT < 0.5f ? easedT * 2.0f : 1.0f;

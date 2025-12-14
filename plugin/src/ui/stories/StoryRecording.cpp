@@ -5,6 +5,8 @@
 #include "../../util/WaveformGenerator.h"
 #include "../../util/Constants.h"
 
+using namespace Sidechain::UI::Animations;
+
 // Colors for Stories UI (matching app theme)
 namespace StoryColors
 {
@@ -84,6 +86,72 @@ StoryRecording::~StoryRecording()
     }
 
     Log::info("StoryRecording destroyed");
+}
+
+//==============================================================================
+void StoryRecording::startRecordingDotAnimation()
+{
+    // Fade in (0.0 to 1.0 over 1 second)
+    recordingDotAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 1000)
+        ->withEasing(Easing::easeInOutCubic)
+        ->onProgress([this](float progress) {
+            recordingDotOpacity = progress;
+            if (currentState == State::Recording)
+                repaint();
+        })
+        ->onComplete([this]() {
+            // Fade out (1.0 to 0.0 over 1 second)
+            recordingDotAnimation = TransitionAnimation<float>::create(1.0f, 0.0f, 1000)
+                ->withEasing(Easing::easeInOutCubic)
+                ->onProgress([this](float progress) {
+                    recordingDotOpacity = progress;
+                    if (currentState == State::Recording)
+                        repaint();
+                })
+                ->onComplete([this]() {
+                    // Loop: start the animation again if still recording
+                    if (currentState == State::Recording)
+                        startRecordingDotAnimation();
+                })
+                ->start();
+        })
+        ->start();
+}
+
+void StoryRecording::stopRecordingDotAnimation()
+{
+    // Stop the animation and reset opacity
+    if (recordingDotAnimation)
+    {
+        recordingDotAnimation = nullptr;
+    }
+    recordingDotOpacity = 0.0f;
+    repaint();
+}
+
+void StoryRecording::triggerMIDIActivityAnimation()
+{
+    // Create a pulsing animation when MIDI activity is detected
+    // Animation: pulse out from 0 to 1 over 500ms, then back to 0
+    midiActivityAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 500)
+        ->withEasing(Easing::easeOutCubic)
+        ->onProgress([this](float progress) {
+            midiActivityOpacity = progress;
+            if (currentState == State::Recording)
+                repaint();
+        })
+        ->onComplete([this]() {
+            // Fade out
+            midiActivityAnimation = TransitionAnimation<float>::create(1.0f, 0.0f, 500)
+                ->withEasing(Easing::easeOutCubic)
+                ->onProgress([this](float progress) {
+                    midiActivityOpacity = progress;
+                    if (currentState == State::Recording)
+                        repaint();
+                })
+                ->start();
+        })
+        ->start();
 }
 
 //==============================================================================
@@ -250,16 +318,13 @@ void StoryRecording::mouseUp(const juce::MouseEvent& event)
 //==============================================================================
 void StoryRecording::timerCallback()
 {
-    // Note: Animation class is timer-based and auto-updates internally,
-    // no need to call update() - just query getProgress() when drawing
-
     if (currentState == State::Recording)
     {
         // Update recording duration based on source
         if (currentRecordingSource == RecordingSource::DAW)
         {
             currentRecordingDuration = audioProcessor.getRecordingLengthSeconds();
-            
+
             // Check for MIDI activity (only for DAW)
             hasMIDIActivity = midiCapture.isCapturing() && midiCapture.getTotalTime() > 0;
         }
@@ -268,6 +333,13 @@ void StoryRecording::timerCallback()
             currentRecordingDuration = microphone.getRecordingLengthSeconds();
             hasMIDIActivity = false; // No MIDI for microphone
         }
+
+        // Trigger MIDI activity animation when activity is detected
+        if (hasMIDIActivity && !lastMIDIActivityState)
+        {
+            triggerMIDIActivityAnimation();
+        }
+        lastMIDIActivityState = hasMIDIActivity;
 
         // Check for auto-stop at max duration
         if (currentRecordingDuration >= MAX_DURATION_SECONDS)
@@ -398,7 +470,7 @@ void StoryRecording::drawRecordButton(juce::Graphics& g)
     if (currentState == State::Recording)
     {
         // Pulsing stop square
-        float pulseAmount = recordingDotAnimation.getProgress() * 0.1f;
+        float pulseAmount = recordingDotOpacity * 0.1f;
         float adjustedRadius = radius * (0.9f + pulseAmount);
 
         g.setColour(StoryColors::recordRed);
@@ -500,7 +572,7 @@ void StoryRecording::drawMIDIIndicator(juce::Graphics& g)
     if (hasMIDIActivity)
     {
         float dotSize = 10.0f;
-        float pulseAmount = midiActivityAnimation.getProgress();
+        float pulseAmount = midiActivityOpacity;
         float adjustedSize = dotSize * (1.0f + pulseAmount * 0.3f);
 
         g.setColour(StoryColors::midiActive.withAlpha(1.0f - pulseAmount * 0.5f));
@@ -759,9 +831,10 @@ void StoryRecording::startRecording()
     recordingStartTime = juce::Time::getMillisecondCounterHiRes() / 1000.0;
     currentRecordingDuration = 0.0;
     hasMIDIActivity = false;
+    lastMIDIActivityState = false;
 
-    // Reset animations
-    recordingDotAnimation.start();
+    // Start recording dot animation
+    startRecordingDotAnimation();
 
     resized();
     repaint();
@@ -773,6 +846,9 @@ void StoryRecording::stopRecording()
         return;
 
     Log::info("StoryRecording: Stopping recording");
+
+    // Stop recording dot animation
+    stopRecordingDotAnimation();
 
     if (currentRecordingSource == RecordingSource::DAW)
     {

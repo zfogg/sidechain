@@ -26,8 +26,6 @@ add_library(SidechainUtil STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/StringFormatter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TextEditorStyler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TextEditorStyler.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Animation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Animation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/HoverState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/LongPressDetector.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Emoji.h

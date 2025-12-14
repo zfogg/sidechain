@@ -1,7 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../util/Animation.h"
+#include "../../ui/animations/TransitionAnimation.h"
+#include "../../ui/animations/Easing.h"
 #include "../../audio/MIDICapture.h"
 #include "../../audio/BufferAudioPlayer.h"
 #include "../../audio/Microphone.h"
@@ -90,6 +91,7 @@ private:
     // MIDI capture
     MIDICapture midiCapture;
     bool hasMIDIActivity = false;
+    bool lastMIDIActivityState = false;  // For detecting transitions
     int lastMIDIEventCount = 0;
 
     // Cached recording data for preview
@@ -112,8 +114,16 @@ private:
     juce::StringArray storyGenres;
 
     // Animation state
-    Animation recordingDotAnimation{1000, Animation::Easing::EaseInOut};
-    Animation midiActivityAnimation{500, Animation::Easing::EaseOut};
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> recordingDotAnimation;
+    float recordingDotOpacity = 0.0f;
+
+    std::shared_ptr<Sidechain::UI::Animations::TransitionAnimation<float>> midiActivityAnimation;
+    float midiActivityOpacity = 0.0f;
+
+    // Helper to start/stop the looping animations
+    void startRecordingDotAnimation();
+    void stopRecordingDotAnimation();
+    void triggerMIDIActivityAnimation();
 
     // UI areas (calculated in resized())
     juce::Rectangle<int> headerArea;
