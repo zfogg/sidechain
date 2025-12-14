@@ -163,8 +163,7 @@ public:
             startParallelAnimations();
 
         // Start progress update timer
-        timer_.reset(new juce::Timer);
-        timer_->onTimerCallback = [this]() { updateProgress(); };
+        timer_ = std::make_unique<TimelineTimer>(this);
         timer_->startTimer(16);  // ~60fps @ 16ms per frame
 
         return this->shared_from_this();
@@ -308,7 +307,7 @@ private:
     // Animation entry in timeline
     struct AnimationEntry
     {
-        std::shared_ptr<void> animation;  // Stored as void* to avoid template issues
+        std::shared_ptr<IAnimation> animation;  // Polymorphic animation interface
         int duration;
     };
 
@@ -317,11 +316,27 @@ private:
     bool isRunning_;
     size_t currentAnimationIndex_;
     int stageerDelay_;
+    // Inner timer class that inherits from juce::Timer
+    class TimelineTimer : public juce::Timer
+    {
+    public:
+        TimelineTimer(AnimationTimeline* parent) : parent_(parent) {}
+
+        void timerCallback() override
+        {
+            if (parent_)
+                parent_->updateProgress();
+        }
+
+    private:
+        AnimationTimeline* parent_;
+    };
+
     std::chrono::steady_clock::time_point startTime_;
     CompletionCallback completionCallback_;
     CancellationCallback cancellationCallback_;
     ProgressCallback progressCallback_;
-    std::unique_ptr<juce::Timer> timer_;
+    std::unique_ptr<TimelineTimer> timer_;
 
     /**
      * Start animations in sequential mode (one after another)
