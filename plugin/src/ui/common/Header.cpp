@@ -12,7 +12,8 @@
 Header::Header()
 {
     Log::info("Header: Initializing header component");
-    setSize(1000, HEADER_HEIGHT);
+    // Don't set width - let parent component size us dynamically
+    setSize(100, HEADER_HEIGHT);  // Minimum width, will be resized by parent
     Log::info("Header: Initialization complete");
 }
 
@@ -420,31 +421,32 @@ juce::Rectangle<int> Header::getRecordButtonBounds() const
     return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
 }
 
-juce::Rectangle<int> Header::getMessagesButtonBounds() const
+juce::Rectangle<int> Header::getProfileBounds() const
 {
-    // Position the messages button between record and story
-    auto recordBounds = getRecordButtonBounds();
-    int buttonWidth = 36;
-    int buttonHeight = 36;
-    int x = recordBounds.getRight() + 12;  // 12px gap after record
-    int y = (getHeight() - buttonHeight) / 2;
-    return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
+    // Anchor profile section to the right edge
+    return juce::Rectangle<int>(getWidth() - 160, 0, 140, getHeight());
 }
 
 juce::Rectangle<int> Header::getStoryButtonBounds() const
 {
-    // Position the story button between messages and profile
-    auto messagesBounds = getMessagesButtonBounds();
+    // Position story button to the left of profile
+    auto profileBounds = getProfileBounds();
     int buttonWidth = 36;
     int buttonHeight = 36;
-    int x = messagesBounds.getRight() + 12;  // 12px gap after messages
+    int x = profileBounds.getX() - buttonWidth - 12;  // 12px gap before profile
     int y = (getHeight() - buttonHeight) / 2;
     return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
 }
 
-juce::Rectangle<int> Header::getProfileBounds() const
+juce::Rectangle<int> Header::getMessagesButtonBounds() const
 {
-    return juce::Rectangle<int>(getWidth() - 160, 0, 140, getHeight());
+    // Position messages button to the left of story
+    auto storyBounds = getStoryButtonBounds();
+    int buttonWidth = 36;
+    int buttonHeight = 36;
+    int x = storyBounds.getX() - buttonWidth - 12;  // 12px gap before story
+    int y = (getHeight() - buttonHeight) / 2;
+    return juce::Rectangle<int>(x, y, buttonWidth, buttonHeight);
 }
 
 void Header::setUnreadMessageCount(int count)
