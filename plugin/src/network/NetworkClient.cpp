@@ -1116,3 +1116,125 @@ void NetworkClient::getBinaryAbsolute(const juce::String& absoluteUrl, BinaryDat
         });
     });
 }
+
+//==============================================================================
+// User profile operations (for UserStore)
+
+void NetworkClient::getCurrentUser(ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    Async::runVoid([this, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/users/me", "GET", juce::var(), true);
+        auto outcome = requestResultToOutcome(result);
+
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
+        });
+    });
+}
+
+void NetworkClient::updateUserProfile(const juce::String& username,
+                                      const juce::String& displayName,
+                                      const juce::String& bio,
+                                      ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::var data(new juce::DynamicObject());
+    if (!username.isEmpty())
+        data.getDynamicObject()->setProperty("username", username);
+    if (!displayName.isEmpty())
+        data.getDynamicObject()->setProperty("display_name", displayName);
+    if (!bio.isEmpty())
+        data.getDynamicObject()->setProperty("bio", bio);
+
+    Async::runVoid([this, data, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/users/me", "PUT", data, true);
+        auto outcome = requestResultToOutcome(result);
+
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
+        });
+    });
+}
+
+//==============================================================================
+// Toggle convenience methods (for FeedStore optimistic updates)
+
+void NetworkClient::toggleLike(const juce::String& postId, bool shouldLike, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::var data(new juce::DynamicObject());
+    data.getDynamicObject()->setProperty("activity_id", postId);
+
+    juce::String method = shouldLike ? "POST" : "DELETE";
+
+    Async::runVoid([this, method, data, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/social/like", method, data, true);
+        auto outcome = requestResultToOutcome(result);
+
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
+        });
+    });
+}
+
+void NetworkClient::toggleSave(const juce::String& postId, bool shouldSave, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/posts/" + postId + "/save";
+    juce::String method = shouldSave ? "POST" : "DELETE";
+
+    Async::runVoid([this, endpoint, method, callback]() {
+        auto result = makeRequestWithRetry(endpoint, method, juce::var(), true);
+        auto outcome = requestResultToOutcome(result);
+
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
+        });
+    });
+}
+
+void NetworkClient::toggleRepost(const juce::String& postId, bool shouldRepost, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::String endpoint = "/api/v1/posts/" + postId + "/repost";
+    juce::String method = shouldRepost ? "POST" : "DELETE";
+
+    Async::runVoid([this, endpoint, method, callback]() {
+        auto result = makeRequestWithRetry(endpoint, method, juce::var(), true);
+        auto outcome = requestResultToOutcome(result);
+
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
+        });
+    });
+}
+
+void NetworkClient::addEmojiReaction(const juce::String& postId, const juce::String& emoji, ResponseCallback callback)
+{
+    if (callback == nullptr)
+        return;
+
+    juce::var data(new juce::DynamicObject());
+    data.getDynamicObject()->setProperty("activity_id", postId);
+    data.getDynamicObject()->setProperty("emoji", emoji);
+
+    Async::runVoid([this, data, callback]() {
+        auto result = makeRequestWithRetry("/api/v1/social/react", "POST", data, true);
+        auto outcome = requestResultToOutcome(result);
+
+        juce::MessageManager::callAsync([callback, outcome]() {
+            callback(outcome);
+        });
+    });
+}
