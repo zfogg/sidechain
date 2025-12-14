@@ -31,7 +31,7 @@ endif()
 
 # Install VST3 plugin using cmake --install
 # Use the JUCE artefacts output directory structure
-set(ARTEFACTS_DIR "${CMAKE_BINARY_DIR}/Sidechain_artefacts")
+set(ARTEFACTS_DIR "${CMAKE_BINARY_DIR}/src/core/Sidechain_artefacts")
 
 install(
     DIRECTORY "${ARTEFACTS_DIR}/$<CONFIG>/VST3/Sidechain.vst3"
