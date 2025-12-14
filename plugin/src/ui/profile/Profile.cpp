@@ -1389,17 +1389,22 @@ void Profile::handleFollowToggle()
     profile.followerCount += willFollow ? 1 : -1;
     repaint();
 
-    // Task 2.4: Use FeedStore method (though we need to pass userId, not postId)
-    // For now, call networkClient directly through feedStore's internal client
-    // In future, FeedStore could have a toggleFollowUser(userId) method
+    // Update FeedStore optimistically to sync all posts by this user
+    if (feedStore)
+    {
+        Log::debug("Profile::handleFollowToggle: Optimistically updating FeedStore follow state for userId: " + profile.id);
+        feedStore->updateFollowStateByUserId(profile.id, willFollow);
+    }
+
+    // Task 2.4: Use FeedStore method - now implemented via updateFollowStateByUserId
     if (!networkClient)
     {
         Log::error("Profile::handleFollowToggle: NetworkClient not set!");
         return;
     }
 
-    auto callback = [this, wasFollowing](Outcome<juce::var> result) {
-        juce::MessageManager::callAsync([this, result, wasFollowing]() {
+    auto callback = [this, wasFollowing, willFollow](Outcome<juce::var> result) {
+        juce::MessageManager::callAsync([this, result, wasFollowing, willFollow]() {
             if (result.isError())
             {
                 Log::error("Profile::handleFollowToggle: Follow toggle failed, reverting optimistic update");
@@ -1407,10 +1412,18 @@ void Profile::handleFollowToggle()
                 profile.isFollowing = wasFollowing;
                 profile.followerCount += wasFollowing ? 1 : -1;
                 repaint();
+
+                // Also revert in FeedStore
+                if (feedStore)
+                {
+                    feedStore->updateFollowStateByUserId(profile.id, wasFollowing);
+                }
             }
             else
             {
                 Log::info("Profile::handleFollowToggle: Follow toggle successful - isFollowing: " + juce::String(profile.isFollowing ? "true" : "false"));
+                // FeedStore was already updated optimistically, no need to update again
+
                 if (onFollowToggled)
                 {
                     Log::debug("Profile::handleFollowToggle: Calling onFollowToggled callback");
