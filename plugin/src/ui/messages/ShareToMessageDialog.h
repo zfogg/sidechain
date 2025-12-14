@@ -5,6 +5,7 @@
 #include "../../network/StreamChatClient.h"
 
 class NetworkClient;
+struct Story;
 
 //==============================================================================
 /**
@@ -42,7 +43,9 @@ public:
 
     // Callbacks
     std::function<void()> onClosed;  // Dialog closed/cancelled
+    std::function<void()> onCancelled;  // Alias for onClosed (for compatibility)
     std::function<void(int conversationCount)> onShared;  // Successfully shared to N conversations
+    std::function<void()> onShareComplete;  // Alias for onShared (for compatibility)
 
     // Set clients
     void setStreamChatClient(StreamChatClient* client);
@@ -51,6 +54,10 @@ public:
 
     // Set the post to share
     void setPost(const FeedPost& postToShare);
+    void setStoryToShare(const Story& story);
+
+    // Show modal dialog
+    void showModal(juce::Component* parent);
 
     // Load data
     void loadRecentConversations();
