@@ -278,6 +278,36 @@ void MessageThread::mouseUp(const juce::MouseEvent& event)
         }
     }
 
+    // Check for clicks on shared stories
+    for (const auto& message : messages)
+    {
+        if (hasSharedStory(message))
+        {
+            auto sharedStoryBounds = getSharedStoryBounds(message);
+            if (!sharedStoryBounds.isEmpty() && sharedStoryBounds.contains(pos))
+            {
+                // Extract story ID from message extra data
+                if (message.extraData.isObject())
+                {
+                    auto* obj = message.extraData.getDynamicObject();
+                    if (obj != nullptr)
+                    {
+                        auto sharedStory = obj->getProperty("shared_story");
+                        if (sharedStory.isObject())
+                        {
+                            juce::String storyId = sharedStory.getProperty("story_id", "").toString();
+                            if (storyId.isNotEmpty() && onSharedStoryClicked)
+                            {
+                                onSharedStoryClicked(storyId);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Check for clicks on parent message preview (to scroll to parent)
     for (const auto& message : messages)
     {
@@ -1075,6 +1105,30 @@ juce::Rectangle<int> MessageThread::getSharedPostBounds(const StreamChatClient::
         return juce::Rectangle<int>();
 
     // Shared post preview appears below the message text
+    // Use the same logic as in drawMessageBubble where we draw the shared content
+    int sharedContentHeight = getSharedContentHeight(message);
+    if (sharedContentHeight == 0)
+        return juce::Rectangle<int>();
+
+    // Position shared content at bottom of message bubble
+    return juce::Rectangle<int>(
+        messageBounds.getX() + MESSAGE_BUBBLE_PADDING,
+        messageBounds.getBottom() - sharedContentHeight - MESSAGE_BUBBLE_PADDING,
+        messageBounds.getWidth() - 2 * MESSAGE_BUBBLE_PADDING,
+        sharedContentHeight
+    );
+}
+
+juce::Rectangle<int> MessageThread::getSharedStoryBounds(const StreamChatClient::Message& message) const
+{
+    if (!hasSharedStory(message))
+        return juce::Rectangle<int>();
+
+    auto messageBounds = getMessageBounds(message);
+    if (messageBounds.isEmpty())
+        return juce::Rectangle<int>();
+
+    // Shared story preview appears below the message text
     // Use the same logic as in drawMessageBubble where we draw the shared content
     int sharedContentHeight = getSharedContentHeight(message);
     if (sharedContentHeight == 0)
