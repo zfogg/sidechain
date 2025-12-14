@@ -878,6 +878,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create Profile
     profileComponent = std::make_unique<Profile>();
     profileComponent->setNetworkClient(networkClient.get());
+    profileComponent->setFeedStore(&Sidechain::Stores::FeedStore::getInstance());  // Task 2.4: Set FeedStore for follow/mute
     // Note: StreamChatClient will be set after it's created (below)
     profileComponent->onBackPressed = [this]() {
         navigateBack();
@@ -1738,6 +1739,10 @@ void SidechainAudioProcessorEditor::checkForActiveStories()
 
 void SidechainAudioProcessorEditor::applySystemDpiScaling()
 {
+    // IMPORTANT: Only apply manual DPI scaling on Linux.
+    // On macOS and Windows, JUCE handles DPI/Retina scaling automatically.
+    // Manually calling setScaleFactor() on these platforms causes double-scaling.
+#if JUCE_LINUX
     double systemScale = 1.0;
     juce::String scaleSource = "default";
 
@@ -1753,7 +1758,6 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling()
 
     // On Linux, JUCE often doesn't detect the scale correctly.
     // Check common environment variables as fallback.
-#if JUCE_LINUX
     if (systemScale <= 1.0)
     {
         // Check GDK_SCALE (GTK apps, GNOME)
@@ -1835,7 +1839,6 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling()
             }
         }
     }
-#endif
 
     // Apply the scale factor if above 1.0
     if (systemScale > 1.0)
@@ -1847,6 +1850,10 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling()
     {
         Log::debug("Standard DPI display detected (scale = 1.00)");
     }
+#else
+    // macOS and Windows: JUCE handles DPI/Retina scaling automatically
+    Log::debug("Using JUCE automatic DPI handling (macOS/Windows)");
+#endif
 }
 
 void SidechainAudioProcessorEditor::showUserStory(const juce::String& userId)
