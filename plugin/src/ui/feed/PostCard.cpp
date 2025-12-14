@@ -1058,15 +1058,30 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
     // Check play button
     if (getPlayButtonBounds().contains(pos))
     {
+        Log::info("PostCard: Play button clicked for post: " + post.id + ", audioUrl: " + post.audioUrl);
         if (isPlaying)
         {
             if (onPauseClicked)
+            {
+                Log::debug("PostCard: Calling onPauseClicked callback");
                 onPauseClicked(post);
+            }
+            else
+            {
+                Log::warn("PostCard: onPauseClicked callback not set!");
+            }
         }
         else
         {
             if (onPlayClicked)
+            {
+                Log::debug("PostCard: Calling onPlayClicked callback");
                 onPlayClicked(post);
+            }
+            else
+            {
+                Log::warn("PostCard: onPlayClicked callback not set!");
+            }
         }
         return;
     }
