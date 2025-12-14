@@ -152,6 +152,10 @@ Profile::~Profile()
 {
     Log::debug("Profile: Destroying profile component");
     scrollBar->removeListener(this);
+
+    // Task 2.4.2: Unsubscribe from UserStore
+    if (userStoreUnsubscribe)
+        userStoreUnsubscribe();
 }
 
 //==============================================================================
@@ -173,6 +177,51 @@ void Profile::setFeedStore(Sidechain::Stores::FeedStore* store)
 {
     feedStore = store;
     Log::info("Profile::setFeedStore: FeedStore set " + juce::String(store != nullptr ? "(valid)" : "(null)") + " (Task 2.4)");
+}
+
+void Profile::setUserStore(Sidechain::Stores::UserStore* store)
+{
+    userStore = store;
+    if (userStore)
+    {
+        Log::info("Profile::setUserStore: UserStore set - subscribing to state changes (Task 2.4.2)");
+        // Task 2.4.2: Subscribe to UserStore for reactive updates (own profile only)
+        userStoreUnsubscribe = userStore->subscribe([this](const Sidechain::Stores::UserState& state) {
+            Log::debug("Profile: UserStore state updated");
+
+            // ReactiveBoundComponent will call repaint() automatically
+            // If showing own profile, update local profile from UserStore
+            if (isOwnProfile())
+            {
+                juce::MessageManager::callAsync([this, state]() {
+                    // Sync profile from UserStore
+                    profile.id = state.userId;
+                    profile.username = state.username;
+                    profile.displayName = state.displayName;
+                    profile.bio = state.bio;
+                    profile.location = state.location;
+                    profile.genre = state.genre;
+                    profile.dawPreference = state.dawPreference;
+                    profile.isPrivate = state.isPrivate;
+                    profile.socialLinks = state.socialLinks;
+                    profile.profilePictureUrl = state.profilePictureUrl;
+                    profile.followerCount = state.followerCount;
+                    profile.followingCount = state.followingCount;
+                    profile.postCount = state.postCount;
+
+                    // Update avatar from UserStore cache
+                    if (state.profileImage.isValid())
+                        avatarImage = state.profileImage;
+
+                    repaint();
+                });
+            }
+        });
+    }
+    else
+    {
+        Log::warn("Profile::setUserStore: UserStore is nullptr!");
+    }
 }
 
 void Profile::setCurrentUserId(const juce::String& userId)
@@ -211,7 +260,50 @@ void Profile::loadOwnProfile()
     }
 
     Log::info("Profile::loadOwnProfile: Loading own profile - userId: " + currentUserId);
-    loadProfile(currentUserId);
+
+    // Task 2.4.2: For own profile, populate from UserStore instead of fetching
+    if (userStore && userStore->getState().userId == currentUserId)
+    {
+        Log::info("Profile::loadOwnProfile: Populating from UserStore (Task 2.4.2)");
+        const auto& state = userStore->getState();
+
+        profile.id = state.userId;
+        profile.username = state.username;
+        profile.displayName = state.displayName;
+        profile.bio = state.bio;
+        profile.location = state.location;
+        profile.genre = state.genre;
+        profile.dawPreference = state.dawPreference;
+        profile.isPrivate = state.isPrivate;
+        profile.socialLinks = state.socialLinks;
+        profile.profilePictureUrl = state.profilePictureUrl;
+        profile.followerCount = state.followerCount;
+        profile.followingCount = state.followingCount;
+        profile.postCount = state.postCount;
+
+        // Use cached avatar from UserStore
+        if (state.profileImage.isValid())
+            avatarImage = state.profileImage;
+
+        isLoading = false;
+        hasError = false;
+        errorMessage = "";
+
+        // Hide error state component
+        if (errorStateComponent != nullptr)
+            errorStateComponent->setVisible(false);
+
+        repaint();
+
+        // Still fetch posts
+        fetchUserPosts(currentUserId);
+    }
+    else
+    {
+        // Fallback: fetch from API if UserStore not ready
+        Log::warn("Profile::loadOwnProfile: UserStore not ready, falling back to API fetch");
+        loadProfile(currentUserId);
+    }
 }
 
 void Profile::setProfile(const UserProfile& newProfile)
@@ -1468,6 +1560,15 @@ void Profile::updatePostCards()
 int Profile::calculateContentHeight() const
 {
     return static_cast<int>(userPosts.size()) * (POST_CARD_HEIGHT + 10);
+}
+
+// Task 2.4.2: Check if viewing own profile
+bool Profile::isOwnProfile() const
+{
+    if (!userStore)
+        return false;
+
+    return profile.id == userStore->getState().userId;
 }
 
 //==============================================================================

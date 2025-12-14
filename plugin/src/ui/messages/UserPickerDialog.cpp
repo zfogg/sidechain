@@ -107,7 +107,7 @@ void UserPickerDialog::paint(juce::Graphics& g)
     {
         drawSectionHeader(g, "Suggested", y);
         y += SECTION_HEADER_HEIGHT;
-        
+
         for (size_t i = 0; i < suggestedUsers.size(); ++i)
         {
             bool isSelected = selectedUserIds.find(suggestedUsers[i].userId) != selectedUserIds.end();
@@ -115,7 +115,15 @@ void UserPickerDialog::paint(juce::Graphics& g)
             y += USER_ITEM_HEIGHT;
         }
     }
-    
+
+    // Empty state - show helpful text if no data loaded yet
+    if (recentUsers.empty() && suggestedUsers.empty() && currentSearchQuery.isEmpty())
+    {
+        g.setColour(SidechainColors::textMuted());
+        g.setFont(juce::FontOptions(14.0f));
+        g.drawText("Search for people to start a conversation", 10, y + 40, getWidth() - 20, 60, juce::Justification::centredLeft);
+    }
+
     // Search results section
     if (!currentSearchQuery.isEmpty())
     {
@@ -880,6 +888,7 @@ void UserPickerDialog::showModal(juce::Component* parent)
     toFront(true);
     searchInput.grabKeyboardFocus();
 
-    // Load initial data
+    // Load initial data - both recent conversations and suggested users
     loadRecentConversations();
+    loadSuggestedUsers();
 }
