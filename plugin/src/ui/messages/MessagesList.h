@@ -98,4 +98,7 @@ private:
     juce::Rectangle<int> getNewMessageButtonBounds() const;
     juce::Rectangle<int> getCreateGroupButtonBounds() const;
     juce::Rectangle<int> getChannelItemBounds(int index) const;
+
+    // Empty state button bounds (set during paint)
+    mutable juce::Rectangle<int> emptyStateButtonBounds;
 };

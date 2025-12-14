@@ -3,6 +3,7 @@
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/StringFormatter.h"
+#include "../../util/Colors.h"
 
 //==============================================================================
 MessagesList::MessagesList()
@@ -116,6 +117,15 @@ void MessagesList::mouseUp(const juce::MouseEvent& event)
     {
         if (onCreateGroup)
             onCreateGroup();
+        return;
+    }
+
+    // Empty state CTA button
+    if (listState == ListState::Empty && emptyStateButtonBounds.contains(event.getPosition()))
+    {
+        Log::info("MessagesList: Empty state CTA clicked");
+        if (onNewMessage)
+            onNewMessage();
         return;
     }
 
@@ -323,13 +333,120 @@ void MessagesList::drawChannelItem(juce::Graphics& g, const StreamChatClient::Ch
 
 void MessagesList::drawEmptyState(juce::Graphics& g)
 {
-    g.setColour(juce::Colours::white);
-    g.setFont(18.0f);
-    g.drawText("No messages yet", getLocalBounds().withTrimmedTop(100), juce::Justification::centred);
+    auto contentArea = getLocalBounds().withTrimmedTop(HEADER_HEIGHT);
+    auto centerX = contentArea.getCentreX();
+    auto startY = contentArea.getY() + 40;
 
-    g.setColour(juce::Colour(0xffaaaaaa));
-    g.setFont(14.0f);
-    g.drawText("Start a conversation to get started", getLocalBounds().withTrimmedTop(130), juce::Justification::centred);
+    // ============================================================
+    // Music collaboration illustration - two headphones with a connection
+    // ============================================================
+    auto illustrationSize = 120;
+    auto illustrationCenterY = startY + illustrationSize / 2;
+
+    // Draw a subtle background circle
+    g.setColour(SidechainColors::backgroundLight());
+    g.fillEllipse(static_cast<float>(centerX - illustrationSize/2 - 10),
+                  static_cast<float>(illustrationCenterY - illustrationSize/2 - 10),
+                  static_cast<float>(illustrationSize + 20),
+                  static_cast<float>(illustrationSize + 20));
+
+    // Left headphone
+    auto leftHeadphoneX = centerX - 45;
+    auto headphoneY = illustrationCenterY - 15;
+
+    // Headphone arc (headband)
+    juce::Path leftArc;
+    leftArc.addCentredArc(static_cast<float>(leftHeadphoneX), static_cast<float>(headphoneY),
+                          25.0f, 25.0f, 0.0f,
+                          juce::MathConstants<float>::pi * 1.2f,
+                          juce::MathConstants<float>::pi * 1.8f, true);
+    g.setColour(SidechainColors::softBlue());
+    g.strokePath(leftArc, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+    // Left ear cup
+    g.setColour(SidechainColors::softBlue());
+    g.fillRoundedRectangle(static_cast<float>(leftHeadphoneX - 35), static_cast<float>(headphoneY - 5), 16.0f, 30.0f, 5.0f);
+    g.fillRoundedRectangle(static_cast<float>(leftHeadphoneX + 19), static_cast<float>(headphoneY - 5), 16.0f, 30.0f, 5.0f);
+
+    // Right headphone
+    auto rightHeadphoneX = centerX + 45;
+
+    // Headphone arc (headband)
+    juce::Path rightArc;
+    rightArc.addCentredArc(static_cast<float>(rightHeadphoneX), static_cast<float>(headphoneY),
+                           25.0f, 25.0f, 0.0f,
+                           juce::MathConstants<float>::pi * 1.2f,
+                           juce::MathConstants<float>::pi * 1.8f, true);
+    g.setColour(SidechainColors::coralPink());
+    g.strokePath(rightArc, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+    // Right ear cups
+    g.setColour(SidechainColors::coralPink());
+    g.fillRoundedRectangle(static_cast<float>(rightHeadphoneX - 35), static_cast<float>(headphoneY - 5), 16.0f, 30.0f, 5.0f);
+    g.fillRoundedRectangle(static_cast<float>(rightHeadphoneX + 19), static_cast<float>(headphoneY - 5), 16.0f, 30.0f, 5.0f);
+
+    // Connection line between headphones (music waves)
+    g.setColour(SidechainColors::lavender().withAlpha(0.7f));
+    auto waveY = static_cast<float>(headphoneY + 10);
+    for (int i = 0; i < 3; i++)
+    {
+        float offsetY = static_cast<float>(i - 1) * 8.0f;
+        juce::Path wave;
+        wave.startNewSubPath(static_cast<float>(leftHeadphoneX + 25), waveY + offsetY);
+        wave.cubicTo(static_cast<float>(centerX - 15), waveY + offsetY - 8.0f,
+                     static_cast<float>(centerX + 15), waveY + offsetY + 8.0f,
+                     static_cast<float>(rightHeadphoneX - 25), waveY + offsetY);
+        g.strokePath(wave, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    }
+
+    // Small music notes floating around
+    g.setColour(SidechainColors::creamYellow().withAlpha(0.6f));
+    g.setFont(juce::FontOptions(16.0f));
+    g.drawText(juce::String::charToString(0x266B), centerX - 60, illustrationCenterY - 40, 20, 20, juce::Justification::centred); // ♫
+    g.drawText(juce::String::charToString(0x266A), centerX + 50, illustrationCenterY - 30, 20, 20, juce::Justification::centred); // ♪
+
+    // ============================================================
+    // Text content
+    // ============================================================
+    auto textStartY = startY + illustrationSize + 30;
+
+    // Main heading
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(juce::FontOptions(22.0f).withStyle("Bold"));
+    g.drawText("Connect with Producers", contentArea.withY(textStartY).withHeight(30), juce::Justification::centred);
+
+    // Subheading
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(juce::FontOptions(15.0f));
+    g.drawText("Share loops, give feedback, and collaborate", contentArea.withY(textStartY + 35).withHeight(24), juce::Justification::centred);
+    g.drawText("with other music makers.", contentArea.withY(textStartY + 55).withHeight(24), juce::Justification::centred);
+
+    // ============================================================
+    // CTA Button - "Start a Conversation"
+    // ============================================================
+    auto buttonWidth = 200;
+    auto buttonHeight = 44;
+    auto buttonX = centerX - buttonWidth / 2;
+    auto buttonY = textStartY + 100;
+    emptyStateButtonBounds = juce::Rectangle<int>(buttonX, buttonY, buttonWidth, buttonHeight);
+
+    // Button background with gradient effect
+    g.setColour(SidechainColors::coralPink());
+    g.fillRoundedRectangle(emptyStateButtonBounds.toFloat(), 22.0f);
+
+    // Button text
+    g.setColour(juce::Colours::white);
+    g.setFont(juce::FontOptions(15.0f).withStyle("Bold"));
+    g.drawText("Start a Conversation", emptyStateButtonBounds, juce::Justification::centred);
+
+    // ============================================================
+    // Tip at the bottom
+    // ============================================================
+    auto tipY = buttonY + buttonHeight + 30;
+    g.setColour(SidechainColors::textMuted());
+    g.setFont(juce::FontOptions(12.0f));
+    g.drawText(juce::String::charToString(0x1F4A1) + " Tip: You can also message people from their profile",
+               contentArea.withY(tipY).withHeight(20), juce::Justification::centred);
 }
 
 void MessagesList::drawErrorState(juce::Graphics& g)

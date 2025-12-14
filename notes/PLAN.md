@@ -4535,3 +4535,447 @@ streamActivity.To = []string{
 ---
 
 *This plan is a living document. Update as you make progress.*
+
+---
+
+## Phase 6.6: Competitive Messaging Upgrade (Instagram/Snapchat/TikTok Parity)
+
+> **Goal**: Transform basic messaging into a competitive social messaging experience on par with Instagram DMs, Snapchat, and TikTok messages.
+>
+> **Research Sources**: 
+> - [getstream.io Chat API Documentation](https://getstream.io/chat/docs/)
+> - [getstream.io Reactions API](https://getstream.io/chat/docs/react/send_reaction/)
+> - [getstream.io Threads & Replies](https://getstream.io/chat/docs/react/threads/)
+> - [getstream.io 2025 Roadmap](https://getstream.io/blog/product-roadmap-2025/)
+>
+> **getstream.io Features Available**:
+> - Custom reactions (any emoji, custom data up to 1KB per reaction)
+> - Reaction scores (cumulative like Medium claps)
+> - Custom message data (up to 5KB per message for embedding posts/stories)
+> - Attachments (up to 30 per message, 5KB combined metadata)
+> - Message types: regular, ephemeral, system, reply, deleted
+> - Threads with parent_id for reply chains
+> - URL enrichment with Open Graph scraping
+> - Message search, edit, delete (soft/hard)
+> - Channel custom data (up to 5KB for settings)
+
+### Current State Analysis
+
+| Feature | Instagram | Snapchat | TikTok | Sidechain Current | Gap |
+|---------|-----------|----------|--------|-------------------|-----|
+| **Message List** | ✅ Rich | ✅ Rich | ✅ Rich | ⚠️ Basic | Empty state polish, online indicators |
+| **New Message** | ✅ Dedicated search | ✅ Dedicated search | ✅ Dedicated search | ⚠️ Redirects to Discovery | Need dedicated picker UI |
+| **Conversation View** | ✅ Full featured | ✅ Full featured | ✅ Full featured | ⚠️ Basic | Reactions UI, link previews |
+| **Conversation Settings** | ✅ Full dialog | ✅ Full settings | ✅ Settings | ❌ Menu only | Need settings dialog |
+| **Emoji Reactions** | ✅ Double-tap + picker | ✅ Long-press | ✅ Long-press | ❌ API only | Need UI |
+| **Share Posts** | ✅ Native share sheet | ✅ Share to chat | ✅ Share to chat | ❌ None | Need share flow + embed UI |
+| **Share Stories** | ✅ Native share | ✅ Share to chat | ✅ Share clips | ❌ None | Need share flow + embed UI |
+| **Read Receipts** | ✅ Seen indicator | ✅ Opened indicator | ✅ Read status | ⚠️ API only | Need visual UI |
+| **Typing Indicators** | ✅ "typing..." | ✅ Bitmoji typing | ✅ "typing..." | ✅ Works | ✓ Complete |
+| **Message Search** | ✅ Full search | ⚠️ Limited | ✅ Search | ⚠️ API only | Need search UI |
+
+---
+
+### 6.6.1 Messages List Improvements
+
+#### 6.6.1.1 Enhanced Empty State
+- [ ] Design compelling empty state illustration (music/collaboration themed)
+- [ ] Add "Start a conversation" CTA button prominently
+- [ ] Show suggested users to message (mutual follows, recent profile visits)
+- [ ] Add onboarding tip: "Message other producers to collaborate"
+
+#### 6.6.1.2 Enhanced Messages State (Has Conversations)
+- [ ] Add online indicator (green dot) on conversation avatars
+  - Query presence via `StreamChatClient::queryPresence()` for channel members
+  - Update in real-time via WebSocket presence events
+- [ ] Add "Active now" / "Active 2h ago" text under conversation name
+- [ ] Show message delivery status icons (sent ✓, delivered ✓✓, read with blue ✓✓)
+- [ ] Add swipe actions: Archive, Mute, Delete (mobile-style UX)
+- [ ] Add search bar at top to filter conversations
+- [ ] Add "Requests" section for messages from non-followers (like Instagram)
+- [ ] Show typing indicator preview in conversation list ("typing...")
+
+#### 6.6.1.3 Conversation List Filtering
+- [ ] Add filter tabs: All | Primary | Requests
+- [ ] Primary = conversations with people you follow
+- [ ] Requests = conversations from people you don't follow (requires approval)
+- [ ] Store filter preference in user settings
+
+---
+
+### 6.6.2 New Message Flow (User Picker)
+
+#### 6.6.2.1 Dedicated User Picker Dialog
+- [ ] Create `NewMessageDialog` component (modal overlay)
+- [ ] Search input with real-time search as you type
+- [ ] Show recent conversations section at top
+- [ ] Show "Suggested" section (mutual follows, frequent interactions)
+- [ ] User search results with:
+  - Avatar, display name, username
+  - Follow status indicator (Following, Follows you, Mutual)
+  - Online status indicator
+- [ ] Multi-select support for creating group chats
+- [ ] "Create Group" option when multiple users selected
+- [ ] Group name input field (appears when 2+ users selected)
+
+#### 6.6.2.2 User Search API Integration
+- [ ] Reuse `NetworkClient::searchUsers()` for search
+- [ ] Add `NetworkClient::getSuggestedMessageRecipients()` endpoint
+  - Returns: mutual follows, recent interactions, followers
+- [ ] Add `NetworkClient::getRecentConversationUsers()` 
+  - Returns: users from recent DM channels
+- [ ] Debounce search input (300ms delay)
+- [ ] Show loading state during search
+- [ ] Handle empty search results gracefully
+
+#### 6.6.2.3 Shared Code with User Discovery
+- [ ] Extract `UserSearchResultItem` component (shared)
+- [ ] Extract `UserAvatarWithStatus` component (shared)
+- [ ] Create `UserListBase` base class for scrollable user lists
+- [ ] Share search logic between Discovery and NewMessageDialog
+
+---
+
+### 6.6.3 Conversation Settings Dialog
+
+#### 6.6.3.1 Create Conversation Settings Dialog
+- [ ] Create `ConversationSettingsDialog` component (modal)
+- [ ] Trigger: Three-dot menu → "Settings" or swipe on conversation
+
+#### 6.6.3.2 Settings Options (DM Channels)
+- [ ] **Mute Notifications**: Toggle (stores in channel custom data)
+  - Use `StreamChatClient::updateChannel()` with `{ muted: true }`
+- [ ] **Block User**: Block and leave conversation
+  - Confirmation dialog before blocking
+  - Calls `NetworkClient::blockUser()` then leaves channel
+- [ ] **Report Conversation**: Report for spam/harassment
+  - Shows reason picker (spam, harassment, inappropriate, other)
+  - Calls `NetworkClient::reportUser()` with conversation context
+- [ ] **Delete Conversation**: Soft delete (archive) or hard delete
+  - Confirmation dialog with clear warning
+  - Option: "Delete for me" vs "Delete for everyone" (if supported)
+- [ ] **View Profile**: Navigate to user's profile
+
+#### 6.6.3.3 Settings Options (Group Channels)
+- [ ] All DM options plus:
+- [ ] **Group Name**: Edit group name
+- [ ] **Group Members**: View/manage members list
+- [ ] **Add Members**: Opens user picker to add
+- [ ] **Leave Group**: Leave without deleting
+- [ ] **Admin Controls** (if creator):
+  - Remove members
+  - Transfer admin role
+  - Delete group for everyone
+
+#### 6.6.3.4 Channel Custom Data for Settings
+- [ ] Store settings in getstream.io channel custom data:
+```json
+{
+  "settings": {
+    "muted_by": ["user_id_1", "user_id_2"],
+    "archived_by": ["user_id_1"],
+    "created_by": "user_id",
+    "admins": ["user_id"]
+  }
+}
+```
+
+---
+
+### 6.6.4 Emoji Reactions on Messages
+
+> **getstream.io Reactions API**:
+> - Add reaction: `POST /channels/{type}/{id}/message/{msg_id}/reaction`
+> - Remove reaction: `DELETE /channels/{type}/{id}/message/{msg_id}/reaction/{type}`
+> - Custom data per reaction (up to 1KB)
+> - Reaction scores for cumulative reactions
+> - Query reactions with pagination
+
+#### 6.6.4.1 Quick Reactions (Double-tap / Long-press)
+- [ ] Implement double-tap on message → Quick react with ❤️ (like Instagram)
+- [ ] Implement long-press on message → Show reaction picker
+- [ ] Quick reaction bar: ❤️ 🔥 😂 😮 😢 🙏 (6 most common)
+- [ ] "+" button to open full emoji picker
+
+#### 6.6.4.2 Full Emoji Picker
+- [ ] Create `EmojiPickerComponent` (popup panel)
+- [ ] Categories: Recent, Smileys, Music 🎵🎸🎹🎤, Gestures, Hearts, Objects
+- [ ] Search emoji by name
+- [ ] Track recently used emojis per user (local storage)
+- [ ] Show 6 columns × 5 rows of emojis per page
+- [ ] Smooth scrolling between categories
+
+#### 6.6.4.3 Reaction Display on Messages
+- [ ] Show reaction pills below message bubble
+- [ ] Format: [😂 3] [❤️ 2] [🔥 1]
+- [ ] Highlight own reactions with accent color
+- [ ] Click reaction pill to toggle own reaction
+- [ ] Long-press reaction pill to see who reacted
+- [ ] Maximum 20 unique reaction types per message (getstream.io limit)
+
+#### 6.6.4.4 Reaction Animations
+- [ ] Pop animation when adding reaction
+- [ ] Float animation for quick reactions (heart floats up)
+- [ ] Haptic feedback on mobile (future)
+
+#### 6.6.4.5 API Integration
+- [ ] Wire `StreamChatClient::addReaction(messageId, type, customData)`
+- [ ] Wire `StreamChatClient::removeReaction(messageId, type)`
+- [ ] Parse reactions from message response:
+```json
+{
+  "latest_reactions": [...],
+  "own_reactions": [...],
+  "reaction_groups": {
+    "❤️": { "count": 5, "sum_scores": 5 },
+    "🔥": { "count": 3, "sum_scores": 3 }
+  }
+}
+```
+- [ ] Real-time reaction updates via WebSocket `reaction.new` / `reaction.deleted` events
+
+---
+
+### 6.6.5 Share Posts to Messages
+
+> **getstream.io Custom Data**: Messages support up to 5KB of custom data for embedding rich content.
+
+#### 6.6.5.1 Share Button on Posts
+- [ ] Add "Share" icon to post action bar (paper airplane icon)
+- [ ] Share icon position: After like, comment icons
+- [ ] Click opens `ShareToMessageDialog`
+
+#### 6.6.5.2 Share Dialog Flow
+- [ ] `ShareToMessageDialog` shows:
+  - Preview of post being shared (thumbnail, caption preview)
+  - Recent conversations list
+  - User search for new conversations
+  - "Add message" optional text field
+  - "Send" button
+- [ ] Multi-select: Share to multiple conversations at once
+- [ ] Show send progress for each conversation
+- [ ] Success confirmation with "View Conversation" option
+
+#### 6.6.5.3 Post Embed in Messages
+- [ ] Create `PostEmbedComponent` for rendering shared posts in chat
+- [ ] Post embed shows:
+  - Author avatar + name
+  - Post thumbnail/waveform preview
+  - Caption preview (first 2 lines)
+  - "View Post" tap action
+  - Play button overlay for audio
+- [ ] Store post data in message `extra_data`:
+```json
+{
+  "shared_post": {
+    "post_id": "abc123",
+    "author_id": "user123",
+    "author_name": "Producer Name",
+    "author_avatar": "https://...",
+    "thumbnail_url": "https://...",
+    "audio_url": "https://...",
+    "caption": "Check out this beat!",
+    "created_at": "2025-01-15T..."
+  }
+}
+```
+
+#### 6.6.5.4 Post Embed Interactions
+- [ ] Tap post embed → Navigate to full post view
+- [ ] Play button on embed → Play audio inline (mini player)
+- [ ] Like button on embed → Like the original post
+- [ ] Show if post was deleted: "This post is no longer available"
+
+---
+
+### 6.6.6 Share Stories to Messages
+
+#### 6.6.6.1 Share Button on Stories
+- [ ] Add share icon to story viewer (during playback)
+- [ ] Position: Bottom right, next to like button
+- [ ] Same `ShareToMessageDialog` as posts
+
+#### 6.6.6.2 Story Embed in Messages
+- [ ] Create `StoryEmbedComponent` for rendering shared stories
+- [ ] Story embed shows:
+  - Author avatar + name
+  - Story thumbnail (first frame or cover image)
+  - "Story" label with timer icon
+  - Expiration indicator: "Expires in 12h" or "Expired"
+  - MIDI visualization preview (if applicable)
+- [ ] Store story data in message `extra_data`:
+```json
+{
+  "shared_story": {
+    "story_id": "story123",
+    "author_id": "user123",
+    "author_name": "Producer Name",
+    "author_avatar": "https://...",
+    "thumbnail_url": "https://...",
+    "audio_url": "https://...",
+    "midi_data": {...},
+    "expires_at": "2025-01-16T...",
+    "created_at": "2025-01-15T..."
+  }
+}
+```
+
+#### 6.6.6.3 Story Embed Interactions
+- [ ] Tap story embed → Open story viewer (if not expired)
+- [ ] Show expired state: Grayed out, "Story expired" message
+- [ ] Option to re-share own stories as posts (if about to expire)
+
+#### 6.6.6.4 Story Reply Flow
+- [ ] When viewing someone's story, add "Send Message" button
+- [ ] Clicking sends a message with story context:
+```json
+{
+  "text": "User's reply text",
+  "extra_data": {
+    "story_reply": {
+      "story_id": "story123",
+      "story_author_id": "user123"
+    }
+  }
+}
+```
+- [ ] Display in chat: "Replied to your story" with story preview
+
+---
+
+### 6.6.7 Message Edit & Delete UX
+
+#### 6.6.7.1 Edit Message Flow
+- [ ] Long-press → "Edit" option (own messages only, within 15 min)
+- [ ] Inline edit mode: Message text becomes editable
+- [ ] Show "Editing" label above input
+- [ ] Cancel button to discard changes
+- [ ] Save button to submit edit
+- [ ] Show "Edited" label on edited messages
+- [ ] Edit history: Long-press edited message → "View edit history"
+
+#### 6.6.7.2 Delete Message Flow
+- [ ] Long-press → "Delete" option
+- [ ] Confirmation dialog: "Delete for me" vs "Delete for everyone"
+- [ ] "Delete for me" = soft delete (marks as deleted for user)
+- [ ] "Delete for everyone" = removes message (shows "Message deleted")
+- [ ] Time limit for "delete for everyone": 1 hour (configurable)
+- [ ] Deleted message placeholder: "[Message deleted]" in gray
+
+#### 6.6.7.3 Unsend Feature (Instagram-style)
+- [ ] "Unsend" option removes message completely (hard delete)
+- [ ] Only available within 10 minutes of sending
+- [ ] No "Message deleted" placeholder shown
+- [ ] Both parties see message disappear
+
+---
+
+### 6.6.8 Read Receipts & Delivery Status
+
+#### 6.6.8.1 Message Status Icons
+- [ ] Design status icon set:
+  - ⏳ Sending (clock icon)
+  - ✓ Sent (single checkmark)
+  - ✓✓ Delivered (double checkmark)
+  - ✓✓ Read (double checkmark, blue/accent color)
+- [ ] Position: Bottom right of own message bubbles
+
+#### 6.6.8.2 Read Receipt Logic
+- [ ] Track last read message per user via `markChannelRead()`
+- [ ] Parse `read` field from channel state:
+```json
+{
+  "read": [
+    { "user": {...}, "last_read": "2025-01-15T..." }
+  ]
+}
+```
+- [ ] Message is "read" if `last_read` > message `created_at`
+- [ ] Real-time updates via `message.read` WebSocket event
+
+#### 6.6.8.3 "Seen by" for Group Chats
+- [ ] Show "Seen by X, Y, and 3 others" below last message
+- [ ] Tap to see full list of who has read
+- [ ] Only show for messages you sent
+
+---
+
+### 6.6.9 Link Previews & Rich Content
+
+#### 6.6.9.1 Automatic Link Preview
+- [ ] getstream.io auto-enriches first URL in message
+- [ ] Display preview card below message:
+  - Title (from Open Graph)
+  - Description (truncated)
+  - Thumbnail image
+  - Domain name
+- [ ] Parse from message `attachments` array:
+```json
+{
+  "attachments": [{
+    "type": "link",
+    "title": "Page Title",
+    "text": "Description",
+    "image_url": "https://...",
+    "thumb_url": "https://...",
+    "title_link": "https://..."
+  }]
+}
+```
+
+#### 6.6.9.2 Link Preview Rendering
+- [ ] Create `LinkPreviewComponent`
+- [ ] Compact card design with image on left
+- [ ] Tap → Open link in browser
+- [ ] Handle missing fields gracefully (no image, no description)
+
+---
+
+### 6.6.10 Message Search UI
+
+#### 6.6.10.1 Search Within Conversation
+- [ ] Add search icon to conversation header
+- [ ] Opens search bar overlay
+- [ ] Real-time search as you type (debounced)
+- [ ] Results: List of messages matching query
+- [ ] Click result → Scroll to that message in thread
+
+#### 6.6.10.2 Global Message Search
+- [ ] Add search bar to Messages List view
+- [ ] Search across all conversations
+- [ ] Results grouped by conversation
+- [ ] Show matching message snippet with query highlighted
+- [ ] Uses `StreamChatClient::searchMessages()` API
+
+---
+
+### 6.6.11 Implementation Priority
+
+> **Phase 1 - Foundation (High Impact)**
+> 1. ⭐ Emoji Reactions UI (6.6.4) - Most visible missing feature
+> 2. ⭐ Share Posts to Messages (6.6.5) - Core social feature
+> 3. ⭐ New Message User Picker (6.6.2) - Fixes awkward UX
+
+> **Phase 2 - Polish**
+> 4. Read Receipts UI (6.6.8) - Expected by users
+> 5. Conversation Settings Dialog (6.6.3) - Needed for mute/block
+> 6. Messages List Enhancements (6.6.1) - Online indicators, etc.
+
+> **Phase 3 - Advanced**
+> 7. Share Stories to Messages (6.6.6) - After Stories v2
+> 8. Link Previews (6.6.9) - Nice to have
+> 9. Message Search UI (6.6.10) - Power user feature
+> 10. Edit/Delete UX Polish (6.6.7) - Already functional
+
+---
+
+### 6.6.12 Technical Debt & Prerequisites
+
+- [ ] **WebSocket Stability**: Ensure WebSocket reconnection is robust for real-time reactions
+- [ ] **Offline Support**: Queue reactions/messages when offline, sync when back online
+- [ ] **Performance**: Lazy load message history, virtualize long conversation lists
+- [ ] **Image Caching**: Cache post/story thumbnails for embed previews
+- [ ] **Deep Links**: Support deep linking to specific conversations/messages
+
+---
+
