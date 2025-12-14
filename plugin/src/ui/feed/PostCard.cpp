@@ -1196,16 +1196,30 @@ void PostCard::mouseUp(const juce::MouseEvent& event)
     // Check pin button (only for own posts)
     if (post.isOwnPost && getPinButtonBounds().contains(pos))
     {
-        if (onPinToggled)
+        if (feedStore)
+        {
+            feedStore->togglePin(post.id, !post.isPinned);
+        }
+        else if (onPinToggled)
+        {
+            // Fallback for when FeedStore is not set
             onPinToggled(post, !post.isPinned);
+        }
         return;
     }
 
     // Check follow button
     if (getFollowButtonBounds().contains(pos))
     {
-        if (onFollowToggled)
+        if (feedStore)
+        {
+            feedStore->toggleFollow(post.id, !post.isFollowing);
+        }
+        else if (onFollowToggled)
+        {
+            // Fallback for when FeedStore is not set
             onFollowToggled(post, !post.isFollowing);
+        }
         return;
     }
 

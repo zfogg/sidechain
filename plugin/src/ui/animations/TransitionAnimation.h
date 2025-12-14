@@ -71,7 +71,7 @@ public:
         const T& endValue,
         int durationMs)
     {
-        auto anim = std::make_shared<TransitionAnimation>(startValue, endValue, durationMs);
+        auto anim = std::shared_ptr<TransitionAnimation>(new TransitionAnimation(startValue, endValue, durationMs));
         return anim;
     }
 

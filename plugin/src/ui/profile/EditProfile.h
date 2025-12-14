@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "Profile.h"
+#include "../../stores/UserStore.h"
 
 class NetworkClient;
 
@@ -29,11 +30,9 @@ public:
     //==============================================================================
     // Data binding
     void setNetworkClient(NetworkClient* client) { networkClient = client; }
+    void setUserStore(Sidechain::Stores::UserStore* store);  // Task 2.4: Use UserStore for profile management
     void setProfile(const UserProfile& profile);
     const UserProfile& getProfile() const { return profile; }
-
-    // Set the uploaded profile picture URL (called by parent after upload completes)
-    void setUploadedProfilePictureUrl(const juce::String& s3Url);
 
     // Get pending local path for upload
     const juce::String& getPendingAvatarPath() const { return pendingAvatarPath; }
@@ -44,16 +43,12 @@ public:
     void closeDialog();
 
     //==============================================================================
-    // Callbacks
-    std::function<void()> onCancel;
-    std::function<void(const UserProfile& updatedProfile)> onSave;
-    std::function<void(const juce::String& localPath)> onProfilePicSelected;
-
-    // Settings section callbacks (navigate to respective dialogs)
+    // Navigation callbacks (Task 2.4 - settings section navigation)
+    // Note: Profile save is now handled via UserStore subscription
     std::function<void()> onActivityStatusClicked;
     std::function<void()> onMutedUsersClicked;
     std::function<void()> onTwoFactorClicked;
-    std::function<void()> onProfileSetupClicked;  // Go to initial profile setup (username/avatar)
+    std::function<void()> onProfileSetupClicked;
 
     //==============================================================================
     // Component overrides
@@ -67,6 +62,8 @@ private:
     UserProfile profile;
     UserProfile originalProfile;
     NetworkClient* networkClient = nullptr;
+    Sidechain::Stores::UserStore* userStore = nullptr;
+    std::function<void()> userStoreUnsubscribe;  // Unsubscribe function for UserStore (Task 2.4)
 
     // Form state
     bool isSaving = false;

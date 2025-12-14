@@ -301,6 +301,37 @@ public:
                     const juce::String& reaction);
 
     //==========================================================================
+    // Sharing Content to Channels (Task 2.5)
+
+    /**
+     * Share a feed post to one or more channels
+     * @param postId The post ID to share (used to fetch post data)
+     * @param channelIds List of channel IDs to share to
+     * @param optionalMessage Optional message to include with the share
+     */
+    void sharePostToChannels(const juce::String& postId, const std::vector<juce::String>& channelIds,
+                            const juce::String& optionalMessage = "");
+
+    /**
+     * Share a story to one or more channels
+     * @param storyId The story ID to share
+     * @param channelIds List of channel IDs to share to
+     * @param optionalMessage Optional message to include with the share
+     */
+    void shareStoryToChannels(const juce::String& storyId, const std::vector<juce::String>& channelIds,
+                             const juce::String& optionalMessage = "");
+
+    /**
+     * Send a message with embedded post/story preview
+     * This is a lower-level method used by sharePostToChannels and shareStoryToChannels
+     * @param channelId Channel to send message to
+     * @param text Message text
+     * @param sharedContent JSON object with post/story data {type: "post"|"story", id, data}
+     */
+    void sendMessageWithSharedContent(const juce::String& channelId, const juce::String& text,
+                                      const juce::var& sharedContent);
+
+    //==========================================================================
     // Typing Indicators
 
     /**

@@ -20,6 +20,10 @@ struct UserState
     juce::String displayName;
     juce::String bio;
     juce::String location;
+    juce::String genre;
+    juce::String dawPreference;
+    bool isPrivate = false;
+    juce::var socialLinks;  // JSON object with social links
     juce::String profilePictureUrl;
     juce::String authToken;
 
@@ -49,6 +53,10 @@ struct UserState
                email == other.email &&
                displayName == other.displayName &&
                bio == other.bio &&
+               location == other.location &&
+               genre == other.genre &&
+               dawPreference == other.dawPreference &&
+               isPrivate == other.isPrivate &&
                profilePictureUrl == other.profilePictureUrl &&
                authToken == other.authToken &&
                notificationSoundEnabled == other.notificationSoundEnabled &&
@@ -166,6 +174,39 @@ public:
     void updateProfile(const juce::String& username = "",
                        const juce::String& displayName = "",
                        const juce::String& bio = "");
+
+    /**
+     * Change username (separate validation)
+     * @param newUsername The new username to set
+     */
+    void changeUsername(const juce::String& newUsername);
+
+    /**
+     * Update complete profile with all fields (Task 2.4)
+     * Used by EditProfile for full profile editing
+     * @param displayName New display name
+     * @param bio New bio
+     * @param location New location
+     * @param genre New genre preference
+     * @param dawPreference New DAW preference
+     * @param socialLinks JSON object with social links {instagram, soundcloud, spotify, twitter}
+     * @param isPrivate Whether account should be private
+     * @param profilePictureUrl Optional profile picture URL
+     */
+    void updateProfileComplete(const juce::String& displayName,
+                               const juce::String& bio,
+                               const juce::String& location,
+                               const juce::String& genre,
+                               const juce::String& dawPreference,
+                               const juce::var& socialLinks,
+                               bool isPrivate,
+                               const juce::String& profilePictureUrl = "");
+
+    /**
+     * Upload profile picture from file and update profile
+     * @param imageFile The image file to upload
+     */
+    void uploadProfilePicture(const juce::File& imageFile);
 
     /**
      * Set profile picture URL and download image
