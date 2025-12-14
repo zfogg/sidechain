@@ -14,6 +14,8 @@
 #include "ui/profile/ArchivedPosts.h"
 #include "ui/profile/NotificationSettings.h"
 #include "ui/profile/TwoFactorSettings.h"
+#include "ui/profile/ActivityStatusSettings.h"
+#include "ui/profile/EditProfile.h"
 #include "ui/feed/PostsFeed.h"
 #include "ui/recording/Recording.h"
 #include "ui/recording/Upload.h"
@@ -192,6 +194,14 @@ private:
      */
     void showTwoFactorSettings();
 
+    /** Show activity status settings dialog
+     */
+    void showActivityStatusSettings();
+
+    /** Show edit profile / settings dialog
+     */
+    void showEditProfile();
+
     /** Navigate back to the previous view in the navigation stack
      */
     void navigateBack();
@@ -258,6 +268,8 @@ private:
     // Settings dialogs
     std::unique_ptr<NotificationSettings> notificationSettingsDialog;
     std::unique_ptr<TwoFactorSettings> twoFactorSettingsDialog;
+    std::unique_ptr<ActivityStatusSettings> activityStatusDialog;
+    std::unique_ptr<EditProfile> editProfileDialog;
 
     // StreamChatClient for getstream.io messaging
     std::unique_ptr<StreamChatClient> streamChatClient;
@@ -390,8 +402,16 @@ private:
     void checkForActiveStories();
 
     //==============================================================================
-    static constexpr int PLUGIN_WIDTH = 1000;
-    static constexpr int PLUGIN_HEIGHT = 800;
+    // DPI Scaling
+
+    /** Apply system DPI scaling for HiDPI displays
+     * Detects the system scale factor and applies it to the plugin window
+     */
+    void applySystemDpiScaling();
+
+    //==============================================================================
+    static constexpr int PLUGIN_WIDTH = 1920;
+    static constexpr int PLUGIN_HEIGHT = 1080;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SidechainAudioProcessorEditor)
 };
