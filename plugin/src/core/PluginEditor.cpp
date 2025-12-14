@@ -889,6 +889,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     profileComponent = std::make_unique<Profile>();
     profileComponent->setNetworkClient(networkClient.get());
     profileComponent->setFeedStore(&Sidechain::Stores::FeedStore::getInstance());  // Task 2.4: Set FeedStore for follow/mute
+    profileComponent->setUserStore(&Sidechain::Stores::UserStore::getInstance());  // Task 2.4.2: Set UserStore for own profile
     // Note: StreamChatClient will be set after it's created (below)
     profileComponent->onBackPressed = [this]() {
         navigateBack();
