@@ -39,6 +39,15 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 		return
 	}
 
+	// Real-time Gorse feedback sync (Task 1.3)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFollowEvent(userID, req.TargetUserID); err != nil {
+				fmt.Printf("Warning: Failed to sync follow to Gorse: %v\n", err)
+			}
+		}()
+	}
+
 	// Send real-time WebSocket notification to the target user
 	if h.wsHandler != nil {
 		// Fetch follower and followee info for the notification
@@ -105,6 +114,15 @@ func (h *Handlers) UnfollowUser(c *gin.Context) {
 		return
 	}
 
+	// Real-time Gorse feedback removal (Task 1.3)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.RemoveFollowEvent(userID, req.TargetUserID); err != nil {
+				fmt.Printf("Warning: Failed to remove follow from Gorse: %v\n", err)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":      "unfollowed",
 		"target_user": req.TargetUserID,
@@ -139,6 +157,15 @@ func (h *Handlers) LikePost(c *gin.Context) {
 			util.RespondInternalError(c, "like_failed", "Failed to like post")
 			return
 		}
+	}
+
+	// Real-time Gorse feedback sync (Task 1.1)
+	if h.gorse != nil {
+		go func() {
+			if err := h.gorse.SyncFeedback(userID, req.ActivityID, "like"); err != nil {
+				fmt.Printf("Warning: Failed to sync like to Gorse: %v\n", err)
+			}
+		}()
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -430,6 +457,22 @@ func (h *Handlers) UpdateMyProfile(c *gin.Context) {
 
 	// Reload user
 	database.DB.First(currentUser, "id = ?", currentUser.ID)
+
+	// Re-sync user to Gorse when profile changes (Task 2.3 & 2.4)
+	// This updates recommendation preferences and user-as-item for follow recommendations
+	if h.gorse != nil {
+		go func() {
+			userID := currentUser.ID
+			// Sync user (for recommendation preferences like genre, DAW)
+			if err := h.gorse.SyncUser(userID); err != nil {
+				fmt.Printf("Warning: Failed to sync user %s to Gorse: %v\n", userID, err)
+			}
+			// Sync user-as-item (for follow recommendations - privacy, follower count, etc.)
+			if err := h.gorse.SyncUserAsItem(userID); err != nil {
+				fmt.Printf("Warning: Failed to sync user-as-item %s to Gorse: %v\n", userID, err)
+			}
+		}()
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "profile_updated",

@@ -116,6 +116,7 @@ func Migrate() error {
 		&models.Sound{},                   // Feature #15: Sound/Sample Pages
 		&models.AudioFingerprint{},        // Feature #15: Audio fingerprinting for sound detection
 		&models.SoundUsage{},              // Feature #15: Track sound usage across posts
+		&models.ErrorLog{},                // Task 4.19: Error tracking and reporting
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -295,6 +296,14 @@ func createIndexes() error {
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_user ON sound_usages (user_id)")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_post ON sound_usages (audio_post_id) WHERE audio_post_id IS NOT NULL")
 	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sound_usages_sound_created ON sound_usages (sound_id, created_at DESC)")
+
+	// Error log indexes (Task 4.19: Error tracking)
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_user ON error_logs (user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_severity ON error_logs (severity)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_source ON error_logs (source)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_user_created ON error_logs (user_id, created_at DESC)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_user_message_source ON error_logs (user_id, message, source)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_error_logs_unresolved ON error_logs (user_id, is_resolved, created_at DESC) WHERE is_resolved = false")
 
 	return nil
 }

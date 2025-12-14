@@ -1,0 +1,655 @@
+# Gorse Optimization TODO List
+
+**Status**: Initial Plan
+**Created**: 2025-12-14
+**Last Updated**: 2025-12-14
+**Current Utilization Score**: 6/10
+**Target Score**: 9/10
+
+---
+
+## 🔥 HIGH PRIORITY (Do This Week)
+
+### 1. Add Real-Time Feedback Sync (CRITICAL)
+
+**Impact**: +40% recommendation quality
+**Effort**: Medium
+**Files**:
+- `backend/internal/handlers/social.go`
+- `backend/internal/handlers/audio.go`
+- `backend/internal/handlers/feed.go`
+
+**Tasks**:
+
+- [x] **1.1 Hook Like/Unlike Events** ✅ COMPLETED
+  - File: `backend/internal/handlers/user.go` (lines ~400)
+  - In `LikePost()`: Added `go h.gorse.SyncFeedback(userID, postID, "like")`
+  - Error logging added (doesn't fail request if Gorse sync fails)
+
+- [x] **1.2 Hook Play Tracking Events** ✅ COMPLETED
+  - File: `backend/internal/handlers/feed.go` (lines 913-980)
+  - Created new `TrackPlay()` handler: `POST /api/v1/posts/:id/play`
+  - Completed plays: `go h.gorse.SyncFeedback(userID, postID, "like")`
+  - Partial plays: `go h.gorse.SyncFeedback(userID, postID, "view")`
+  - Uses `playHistory.Completed` to determine signal strength
+
+- [x] **1.3 Hook Follow/Unfollow Events** ✅ COMPLETED
+  - File: `backend/internal/handlers/user.go` (lines ~570, ~608)
+  - In `FollowUser()`: Added `go h.gorse.SyncFollowEvent(userID, targetUserID)`
+  - In `UnfollowUser()`: Added `go h.gorse.RemoveFollowEvent(userID, targetUserID)`
+
+- [x] **1.4 Hook Download Events** ✅ COMPLETED
+  - File: `backend/internal/handlers/feed.go` (line ~821)
+  - Added `go h.gorse.SyncFeedback(userID, postID, "download")`
+  - Strongest positive signal
+
+- [x] **1.5 Hook View/Track Events** ✅ COMPLETED
+  - File: `backend/internal/handlers/feed.go` (lines 982-1028)
+  - Created new `ViewPost()` handler: `POST /api/v1/posts/:id/view`
+  - Added `go h.gorse.SyncFeedback(userID, postID, "view")`
+  - Client-side tracking for post impressions
+
+**Success Metrics**:
+- [ ] Verify feedback appears in Gorse dashboard within 1 minute
+- [ ] Check Gorse logs show feedback inserts
+- [ ] Test that recommendations improve after likes/plays
+
+**✅ TASK #1 COMPLETE** - Real-time feedback sync fully implemented!
+
+---
+
+### 2. Add Auto-Sync on Content Creation
+
+**Impact**: New content available immediately
+**Effort**: Low
+**Files**:
+- `backend/internal/handlers/posts.go` (or audio upload handler)
+- `backend/internal/handlers/users.go`
+
+**Tasks**:
+
+- [x] **2.1 Sync Post on Creation** ✅ COMPLETED
+  - File: `backend/cmd/server/main.go` (lines 199-207)
+  - Set up callback in `audioProcessor.SetPostCompleteCallback()` to sync when processing completes
+  - Posts automatically synced to Gorse when audio processing finishes
+
+- [x] **2.2 Sync Post on Update** ✅ COMPLETED
+  - Files:
+    - `backend/internal/handlers/archive.go` (lines 60-67, 121-128)
+    - `backend/internal/recommendations/gorse_rest.go` (line 165)
+  - Archive/unarchive triggers re-sync to hide/show in recommendations
+  - Updated `SyncItem()` to consider archived status: `IsHidden: !post.IsPublic || post.IsArchived`
+
+- [x] **2.3 Sync User on Profile Update** ✅ COMPLETED
+  - File: `backend/internal/handlers/user.go` (lines 461-475)
+  - In `UpdateMyProfile()`: Added `go h.gorse.SyncUser(userID)`
+  - Updates recommendation preferences when genre, DAW, etc. change
+
+- [x] **2.4 Sync User-as-Item on Profile Update** ✅ COMPLETED
+  - File: `backend/internal/handlers/user.go` (lines 461-475)
+  - In `UpdateMyProfile()`: Added `go h.gorse.SyncUserAsItem(userID)`
+  - Updates follow recommendation data when privacy, follower count, etc. change
+
+**Success Metrics**:
+- [ ] New posts appear in recommendations within 5 minutes
+- [ ] User preference changes affect recommendations immediately
+- [ ] Private posts don't appear in recommendations
+
+**✅ TASK #2 COMPLETE** - Auto-sync on content creation fully implemented!
+
+---
+
+### 3. Schedule Background Batch Sync Jobs
+
+**Impact**: Ensures consistency, recovers from failures
+**Effort**: Low
+**Files**:
+- `backend/cmd/server/main.go`
+
+**Tasks**:
+
+- [ ] **3.1 Create Batch Sync Goroutine**
+  - File: `backend/cmd/server/main.go`
+  - After Gorse client initialization, add:
+    ```go
+    // Start background sync every hour
+    go func() {
+        ticker := time.NewTicker(1 * time.Hour)
+        defer ticker.Stop()
+
+        for range ticker.C {
+            log.Println("Starting Gorse batch sync...")
+
+            // Sync users
+            if err := gorseClient.BatchSyncUsers(); err != nil {
+                log.Printf("Batch user sync failed: %v", err)
+            }
+
+            // Sync items (posts)
+            if err := gorseClient.BatchSyncItems(); err != nil {
+                log.Printf("Batch item sync failed: %v", err)
+            }
+
+            // Sync user-as-items (for follow recommendations)
+            if err := gorseClient.BatchSyncUserItems(); err != nil {
+                log.Printf("Batch user-items sync failed: %v", err)
+            }
+
+            // Sync historical feedback
+            if err := gorseClient.BatchSyncFeedback(); err != nil {
+                log.Printf("Batch feedback sync failed: %v", err)
+            }
+
+            log.Println("Gorse batch sync completed")
+        }
+    }()
+    ```
+
+- [ ] **3.2 Add Graceful Shutdown**
+  - Ensure sync goroutine stops on server shutdown
+  - Use context cancellation or shutdown channel
+
+- [ ] **3.3 Add Sync on Startup**
+  - First sync should happen on server start
+  - Don't wait 1 hour for first sync
+
+- [ ] **3.4 Make Sync Interval Configurable**
+  - Add `GORSE_SYNC_INTERVAL` env var (default: 1h)
+  - Parse and use in ticker
+
+**Success Metrics**:
+- [ ] Logs show hourly sync activity
+- [ ] Gorse dashboard shows regular data updates
+- [ ] Manual testing: stop real-time sync, verify batch recovers it
+
+---
+
+### 4. Monitor Gorse Dashboard & Metrics
+
+**Impact**: Visibility into system health
+**Effort**: Low
+**Files**:
+- `backend/docker-compose.yml` (expose dashboard port)
+- Infrastructure/monitoring
+
+**Tasks**:
+
+- [ ] **4.1 Expose Gorse Dashboard in Development**
+  - File: `backend/docker-compose.yml`
+  - Ensure Gorse dashboard port (8088) is exposed
+  - Add to docker-compose ports: `"8088:8088"`
+
+- [ ] **4.2 Access Dashboard**
+  - Navigate to `http://localhost:8088` in browser
+  - Verify it shows users, items, feedback
+
+- [ ] **4.3 Monitor Key Metrics**
+  - Active users count
+  - Active items count
+  - Feedback events per day
+  - Recommendation cache hit rate
+  - Model performance (CTR prediction accuracy)
+
+- [ ] **4.4 Set Up Alerts (Optional)**
+  - Alert if feedback events drop to zero (sync broken)
+  - Alert if recommendation API errors spike
+  - Alert if cache hit rate < 50%
+
+**Success Metrics**:
+- [ ] Dashboard accessible and showing live data
+- [ ] Metrics documented in team wiki
+- [ ] Baseline metrics captured for comparison
+
+---
+
+## 🟡 MEDIUM PRIORITY (This Month)
+
+### 5. Add Negative Feedback Signals
+
+**Impact**: +15% recommendation quality
+**Effort**: Medium
+**Files**:
+- `backend/gorse.toml`
+- `backend/internal/handlers/social.go`
+- Plugin UI for "Not Interested" button
+
+**Tasks**:
+
+- [ ] **5.1 Update Gorse Config**
+  - File: `backend/gorse.toml`
+  - Add to `[recommend.data_source]`:
+    ```toml
+    negative_feedback_types = ["dislike", "skip", "hide"]
+    read_feedback_time_to_live = 90  # Decay views after 90 days
+    positive_feedback_time_to_live = 365  # Decay likes after 1 year
+    ```
+
+- [ ] **5.2 Add "Not Interested" API Endpoint**
+  - File: `backend/internal/handlers/recommendations.go`
+  - New endpoint: `POST /api/v1/recommendations/dislike/:post_id`
+  - Handler: `go h.gorseClient.SyncFeedback(userID, postID, "dislike")`
+
+- [ ] **5.3 Track Skips**
+  - When user scrolls past post in <1 second
+  - Frontend sends skip event
+  - Backend: `go h.gorseClient.SyncFeedback(userID, postID, "skip")`
+
+- [ ] **5.4 Add "Hide This Post" Feature**
+  - UI button to hide specific post
+  - Backend: `go h.gorseClient.SyncFeedback(userID, postID, "hide")`
+  - Also hide from user's feed in database
+
+**Success Metrics**:
+- [ ] Disliked posts stop appearing in recommendations
+- [ ] Skipped patterns influence future recommendations
+- [ ] User satisfaction with recommendations improves
+
+---
+
+### 6. Implement Category-Based Filtering
+
+**Impact**: +10% user engagement
+**Effort**: Low
+**Files**:
+- `backend/internal/recommendations/gorse_rest.go`
+- `backend/internal/handlers/recommendations.go`
+
+**Tasks**:
+
+- [ ] **6.1 Add Genre Filter Method**
+  - File: `backend/internal/recommendations/gorse_rest.go`
+  - New method:
+    ```go
+    func (gc *GorseRESTClient) GetForYouFeedByGenre(userID, genre string, limit, offset int) ([]models.AudioPost, error) {
+        url := fmt.Sprintf("%s/api/recommend/%s?n=%d&category=%s",
+            gc.baseURL, userID, limit+offset, genre)
+        // ... rest of implementation similar to GetForYouFeed
+    }
+    ```
+
+- [ ] **6.2 Add Genre Filter to API Endpoint**
+  - File: `backend/internal/handlers/recommendations.go`
+  - Update `GET /api/v1/recommendations/for-you`
+  - Add query param: `?genre=electronic`
+  - If genre provided, call `GetForYouFeedByGenre()`
+
+- [ ] **6.3 Add BPM Range Filter**
+  - Similar to genre filter
+  - Category: `bpm_120-130` (for posts in that BPM range)
+
+- [ ] **6.4 Add "More Like This" Endpoint**
+  - Uses similar-posts API with category filter
+  - Finds similar posts within same genre
+  - Endpoint: `GET /api/v1/recommendations/similar-posts/:id?genre=electronic`
+
+**Success Metrics**:
+- [ ] Users can filter "For You" feed by genre
+- [ ] "More electronic like this" button works
+- [ ] CTR on filtered recommendations is higher
+
+---
+
+### 7. Expose Latest & Popular Endpoints
+
+**Impact**: Better discovery experience
+**Effort**: Low
+**Files**:
+- `backend/internal/recommendations/gorse_rest.go`
+- `backend/internal/handlers/recommendations.go`
+
+**Tasks**:
+
+- [ ] **7.1 Add GetPopular Method**
+  - File: `backend/internal/recommendations/gorse_rest.go`
+  - New method:
+    ```go
+    func (gc *GorseRESTClient) GetPopular(limit, offset int) ([]models.AudioPost, error) {
+        url := fmt.Sprintf("%s/api/popular?n=%d&offset=%d", gc.baseURL, limit, offset)
+        // ... implementation
+    }
+    ```
+
+- [ ] **7.2 Add GetLatest Method**
+  - Similar to GetPopular but uses `/api/latest` endpoint
+  - Returns recently added posts
+
+- [ ] **7.3 Create API Endpoints**
+  - File: `backend/internal/handlers/recommendations.go`
+  - New: `GET /api/v1/recommendations/popular`
+  - New: `GET /api/v1/recommendations/latest`
+
+- [ ] **7.4 Add to Discovery Feed**
+  - Mix popular/latest into discovery page
+  - Ratio: 30% popular, 20% latest, 50% personalized
+
+**Success Metrics**:
+- [ ] Discovery feed has fresh content
+- [ ] New users (cold start) see engaging content immediately
+- [ ] Popular endpoint used for trending page
+
+---
+
+### 8. Implement CTR Tracking Loop
+
+**Impact**: +20% recommendation accuracy
+**Effort**: Medium
+**Files**:
+- `backend/internal/handlers/recommendations.go`
+- `backend/internal/handlers/feed.go`
+- Database for tracking impressions
+
+**Tasks**:
+
+- [ ] **8.1 Track Recommendation Impressions**
+  - When recommendations are fetched and shown to user
+  - Store: `recommendation_impressions(user_id, post_id, timestamp, position, source)`
+  - Source: "for-you", "similar", "trending"
+
+- [ ] **8.2 Track Recommendation Clicks**
+  - When user clicks/plays a recommended item
+  - Match with impression to calculate CTR
+  - Send to Gorse as stronger signal
+
+- [ ] **8.3 Calculate CTR Metrics**
+  - Daily job to calculate CTR per recommendation source
+  - Log metrics: "for-you CTR: 12%, similar CTR: 8%"
+
+- [ ] **8.4 Use CTR to Tune Gorse**
+  - If CTR drops, investigate Gorse model performance
+  - Adjust exploration/exploitation ratio
+
+**Success Metrics**:
+- [ ] CTR baseline established
+- [ ] CTR improves over time as Gorse learns
+- [ ] Can A/B test Gorse vs other recommendation sources
+
+---
+
+### 9. Tune Recommendation Diversity
+
+**Impact**: Prevent filter bubble
+**Effort**: Low
+**Files**:
+- `backend/gorse.toml`
+
+**Tasks**:
+
+- [ ] **9.1 Add Exploration Mix**
+  - File: `backend/gorse.toml`
+  - Update `[recommend.offline]`:
+    ```toml
+    enable_popular_recommendation = true
+    enable_latest_recommendation = true
+    enable_collaborative_recommendation = true
+    enable_click_through_prediction = true
+
+    # Mix 10% popular + 20% latest into personalized
+    explore_recommend = {"popular": 0.1, "latest": 0.2}
+    ```
+
+- [ ] **9.2 Enable Diversity Metrics**
+  - Monitor genre diversity in recommendations
+  - Ensure users aren't stuck in one genre
+
+- [ ] **9.3 Test User Experience**
+  - Survey: "Do recommendations feel too similar?"
+  - Adjust mix based on feedback
+
+**Success Metrics**:
+- [ ] Recommendations include mix of familiar + new content
+- [ ] Users discover new genres they like
+- [ ] Session length increases (more exploration)
+
+---
+
+## 🟢 LOW PRIORITY (Future Enhancements)
+
+### 10. Context-Aware Recommendations
+
+**Impact**: +5-10% engagement
+**Effort**: High
+**Files**:
+- `backend/internal/recommendations/gorse_rest.go`
+- Plugin/frontend to capture context
+
+**Tasks**:
+
+- [ ] **10.1 Capture User Context**
+  - Time of day
+  - Day of week
+  - User mood/status (if explicitly set)
+  - Current DAW session vs casual browsing
+
+- [ ] **10.2 Send Context to Gorse**
+  - Modify recommendation calls to include context:
+    ```go
+    url := fmt.Sprintf("%s/api/recommend/%s?n=%d&write-back-type=read&write-back-delay=10m",
+        gc.baseURL, userID, limit)
+    // Add context as query params or body
+    ```
+
+- [ ] **10.3 Train Context-Specific Models**
+  - Gorse can learn time-of-day patterns
+  - Morning: energetic, high BPM
+  - Evening: chill, ambient
+
+**Success Metrics**:
+- [ ] Recommendations adapt to time of day
+- [ ] User engagement higher during specific contexts
+
+---
+
+### 11. A/B Testing Framework
+
+**Impact**: Data-driven optimization
+**Effort**: High
+**Files**:
+- `backend/internal/handlers/feed.go`
+- Analytics tracking
+
+**Tasks**:
+
+- [ ] **11.1 Implement A/B Test Framework**
+  - 50% users get Gorse recommendations
+  - 50% users get trending/recent fallback
+  - Track engagement metrics per cohort
+
+- [ ] **11.2 Measure Success Metrics**
+  - Click-through rate
+  - Session duration
+  - Likes per session
+  - Return rate
+
+- [ ] **11.3 Analyze Results**
+  - Compare Gorse vs baseline
+  - Justify recommendation system investment
+
+**Success Metrics**:
+- [ ] Statistically significant results
+- [ ] Gorse demonstrates clear value
+- [ ] Insights guide future optimization
+
+---
+
+### 12. Distributed Gorse Deployment
+
+**Impact**: Scale to millions of users
+**Effort**: High
+**Files**:
+- `backend/docker-compose.yml`
+- Infrastructure
+
+**Tasks**:
+
+- [ ] **12.1 Add Multiple Server Nodes**
+  - Scale Gorse server nodes horizontally
+  - Load balancer in front of servers
+
+- [ ] **12.2 Add Worker Nodes**
+  - For offline recommendation generation
+  - Parallel processing of user recommendations
+
+- [ ] **12.3 Optimize Cache Configuration**
+  - Increase cache size for high traffic
+  - Tune cache TTL based on update frequency
+
+**Success Metrics**:
+- [ ] System handles 10K+ RPS
+- [ ] Recommendation latency < 100ms at scale
+- [ ] Graceful degradation under load
+
+---
+
+### 13. Advanced Model Tuning
+
+**Impact**: Squeeze out last 5-10% quality
+**Effort**: Medium
+**Files**:
+- `backend/gorse.toml`
+
+**Tasks**:
+
+- [ ] **13.1 Tune Collaborative Filtering**
+  - File: `backend/gorse.toml`
+  - Adjust:
+    ```toml
+    [recommend.collaborative]
+    model_fit_period = 60  # Retrain every 60 minutes
+    model_search_period = 720  # Search for best model every 12 hours
+    model_search_epoch = 100
+    model_search_trials = 10
+    enable_index = true
+    index_recall = 0.9
+    index_fit_epoch = 20
+    ```
+
+- [ ] **13.2 Tune User/Item Based CF**
+  - Adjust neighbor counts
+  - Adjust similarity algorithms
+
+- [ ] **13.3 Monitor Model Performance**
+  - Check which models Gorse selects
+  - Validate CTR prediction accuracy
+
+**Success Metrics**:
+- [ ] Model retraining happens regularly
+- [ ] Best model is auto-selected
+- [ ] Recommendation quality plateaus at optimal level
+
+---
+
+## 📊 Success Metrics & KPIs
+
+### Before Optimization (Baseline):
+- [ ] Document current recommendation CTR: ____%
+- [ ] Document current session length: ____ minutes
+- [ ] Document current engagement rate: ____%
+- [ ] Document cold start performance: ____ hours to good recommendations
+
+### After Optimization (Target):
+- [ ] Recommendation CTR: +30-50%
+- [ ] Session length: +20%
+- [ ] Engagement rate: +25%
+- [ ] Cold start: < 2 hours to decent recommendations
+
+### Ongoing Monitoring:
+- [ ] Weekly CTR tracking
+- [ ] Monthly model performance review
+- [ ] Quarterly user satisfaction survey
+- [ ] Real-time monitoring of Gorse health
+
+---
+
+## 🛠️ Technical Debt & Cleanup
+
+- [ ] **Remove Manual Sync Calls**
+  - Once real-time sync is working, remove manual batch-only calls
+  - Keep batch sync as backup/recovery only
+
+- [ ] **Add Integration Tests**
+  - Test real-time feedback sync
+  - Test recommendation API
+  - Test error handling when Gorse is down
+
+- [ ] **Document Gorse Architecture**
+  - How recommendations work
+  - When to sync data
+  - How to debug issues
+
+- [ ] **Add Prometheus Metrics**
+  - Gorse API latency
+  - Feedback sync success rate
+  - Recommendation cache hit rate
+
+---
+
+## 📝 Notes & Decisions
+
+### Key Decisions:
+1. **Async Feedback**: Use goroutines for all Gorse API calls to not block user requests
+2. **Error Handling**: Log errors but don't fail user requests if Gorse is down
+3. **Fallbacks**: Always have fallback to trending/recent if Gorse unavailable
+4. **Batch Sync**: Keep hourly batch as safety net for any missed real-time events
+
+### Risks:
+- Gorse downtime → recommendations degrade gracefully to fallback
+- High API load → Gorse has rate limits, need to monitor
+- Stale cache → Tuned via `refresh_recommend_period`
+
+### Dependencies:
+- Real-time sync depends on: Gorse API available, handler hooks in place
+- CTR tracking depends on: Impression tracking, analytics DB
+- A/B testing depends on: Traffic splitting, analytics
+
+---
+
+## 🎯 Estimated Timeline
+
+### Week 1:
+- Tasks 1-4 (High Priority)
+- Real-time sync, auto-sync, batch jobs, monitoring
+
+### Week 2-3:
+- Tasks 5-7 (Medium Priority)
+- Negative feedback, category filters, popular/latest
+
+### Week 4+:
+- Tasks 8-9 (Medium Priority)
+- CTR tracking, diversity tuning
+
+### Future:
+- Tasks 10-13 (Low Priority)
+- Context-aware, A/B testing, distributed, advanced tuning
+
+---
+
+## ✅ Completion Checklist
+
+When all tasks are complete:
+
+- [ ] All high priority tasks (1-4) done
+- [ ] At least 80% of medium priority tasks done
+- [ ] Recommendation CTR improved by 30%+
+- [ ] User engagement metrics improved
+- [ ] System monitoring in place
+- [ ] Documentation updated
+- [ ] Team trained on Gorse operations
+
+**Final Target**: Utilization Score 9/10 🎉
+
+---
+
+## 📚 References
+
+- [Gorse Documentation](https://docs.gorse.io/)
+- [Gorse GitHub](https://github.com/gorse-io/gorse)
+- [Gorse REST API Reference](https://docs.gorse.io/api/restful-api.html)
+- Project: `/backend/internal/recommendations/gorse_rest.go`
+- Config: `/backend/gorse.toml`
+- Research: `/notes/GORSE_INVESTIGATION_REPORT.md` (if you create one)
+
+---
+
+**Last Updated**: 2025-12-14
+**Owner**: Backend Team
+**Status**: Ready to Execute 🚀

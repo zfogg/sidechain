@@ -162,7 +162,7 @@ func (c *GorseRESTClient) SyncItem(postID string) error {
 
 	gorseItem := GorseItem{
 		ItemId:     postID,
-		IsHidden:   !post.IsPublic,
+		IsHidden:   !post.IsPublic || post.IsArchived, // Hide if private or archived
 		Categories: categories,
 		Timestamp:  post.CreatedAt.Format(time.RFC3339),
 		Labels:     labels,
