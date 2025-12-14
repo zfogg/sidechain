@@ -127,7 +127,7 @@ int SidechainAudioProcessor::getCurrentProgram()
 /** Set the current program
  * @param index Program index (not used, programs not implemented)
  */
-void SidechainAudioProcessor::setCurrentProgram (int index)
+void SidechainAudioProcessor::setCurrentProgram ([[maybe_unused]] int index)
 {
 }
 
@@ -135,7 +135,7 @@ void SidechainAudioProcessor::setCurrentProgram (int index)
  * @param index Program index (not used)
  * @return Empty string (programs not implemented)
  */
-const juce::String SidechainAudioProcessor::getProgramName (int index)
+const juce::String SidechainAudioProcessor::getProgramName ([[maybe_unused]] int index)
 {
     return {};
 }
@@ -144,7 +144,7 @@ const juce::String SidechainAudioProcessor::getProgramName (int index)
  * @param index Program index (not used)
  * @param newName New program name (not used, programs not implemented)
  */
-void SidechainAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void SidechainAudioProcessor::changeProgramName ([[maybe_unused]] int index, [[maybe_unused]] const juce::String& newName)
 {
 }
 

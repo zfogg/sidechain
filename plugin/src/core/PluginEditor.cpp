@@ -322,7 +322,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     storyViewerComponent->onClose = [this]() {
         navigateBack();
     };
-    storyViewerComponent->onDeleteClicked = [this](const juce::String& storyId) {
+    storyViewerComponent->onDeleteClicked = [this]([[maybe_unused]] const juce::String& storyId) {
         // Story was deleted, refresh story indicators
         checkForActiveStories();
         // If we're viewing the profile, refresh it too
@@ -579,7 +579,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     selectHighlightDialog = std::make_unique<SelectHighlightDialog>();
     selectHighlightDialog->setNetworkClient(networkClient.get());
-    selectHighlightDialog->onHighlightSelected = [this](const juce::String& highlightId) {
+    selectHighlightDialog->onHighlightSelected = [](const juce::String& highlightId) {
         Log::info("PluginEditor: Story added to highlight: " + highlightId);
         // Show success message
         juce::AlertWindow::showMessageBoxAsync(
@@ -596,11 +596,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     //==========================================================================
     // Create ShareToMessageDialog for sharing posts/stories to DMs
     shareToMessageDialog = std::make_unique<ShareToMessageDialog>();
-    shareToMessageDialog->onShareComplete = [this]() {
+    shareToMessageDialog->onShareComplete = []() {
         Log::info("PluginEditor: Content shared to DM successfully");
         // Optionally show success message
     };
-    shareToMessageDialog->onCancelled = [this]() {
+    shareToMessageDialog->onCancelled = []() {
         Log::debug("PluginEditor: Share to DM cancelled");
     };
     // Not added as child - shown as modal overlay when needed
@@ -644,7 +644,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     editProfileDialog->onCancel = [this]() {
         editProfileDialog->closeDialog();
     };
-    editProfileDialog->onSave = [this](const UserProfile& updatedProfile) {
+    editProfileDialog->onSave = [this]([[maybe_unused]] const UserProfile& updatedProfile) {
         Log::info("EditProfile: Profile saved successfully");
         editProfileDialog->closeDialog();
         // Refresh profile view to show updated data
@@ -654,7 +654,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     editProfileDialog->onActivityStatusClicked = [this]() {
         showActivityStatusSettings();
     };
-    editProfileDialog->onMutedUsersClicked = [this]() {
+    editProfileDialog->onMutedUsersClicked = []() {
         // TODO: Implement MutedUsers component
         Log::info("EditProfile: Muted users clicked - not yet implemented");
     };
@@ -2472,8 +2472,9 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient
             // Heartbeat response - connection is alive
             break;
 
-        default:
-            Log::warn("Unknown WebSocket message type: " + message.typeString);
+        case WebSocketClient::MessageType::Unknown:
+        case WebSocketClient::MessageType::Comment:
+            Log::warn("Unhandled WebSocket message type: " + message.typeString);
             break;
     }
 }

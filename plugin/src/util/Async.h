@@ -58,17 +58,17 @@ namespace Async
         if (isShutdownInProgress())
             return;
 
-        std::thread([work = std::move(work), onComplete = std::move(onComplete)]() {
-            T result = work();
+        std::thread([workFn = std::move(work), completeFn = std::move(onComplete)]() {
+            T result = workFn();
 
             // Only call back to message thread if not shutting down
             if (!isShutdownInProgress())
             {
                 if (auto* mm = juce::MessageManager::getInstanceWithoutCreating())
                 {
-                    mm->callAsync([result = std::move(result), onComplete]() {
-                        if (onComplete && !isShutdownInProgress())
-                            onComplete(result);
+                    mm->callAsync([res = std::move(result), cb = completeFn]() {
+                        if (cb && !isShutdownInProgress())
+                            cb(res);
                     });
                 }
             }

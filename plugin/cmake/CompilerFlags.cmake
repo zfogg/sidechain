@@ -22,8 +22,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wall
         -Wextra
         -Wpedantic
-        -Wno-unused-parameter      # JUCE has many unused params
-        -Wno-missing-field-initializers
+        # Suppress warnings from JUCE, generated code, and platform APIs
+        -Wno-unused-parameter                      # JUCE and generated code have unused params
+        -Wno-missing-field-initializers            # JUCE structures initialization
+        -Wno-missing-designated-field-initializers # JUCE AU/VST SDK initialization
+        -Wno-deprecated-declarations               # JUCE uses deprecated APIs
+        -Wno-sign-conversion                       # JUCE and size_t conversions
+        -Wno-missing-braces                        # JUCE macros generate missing braces
+        -Wno-unused-function                       # Some static functions only used conditionally
+        -Wno-unused-variable                       # Generated code may have unused vars
+        -Wno-float-equal                           # Animation comparisons need float equality
+        -Wno-switch-enum                           # Not all enum values need explicit handling
+        -Wno-implicit-int-float-conversion         # Audio processing math needs implicit conversions
+        -Wno-shadow                                # Lambda captures may shadow outer variables
+        -Wno-nullable-to-nonnull-conversion        # macOS API bridge code needs this
     )
 
     # Debug-specific flags

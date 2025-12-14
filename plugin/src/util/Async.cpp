@@ -140,19 +140,19 @@ namespace Async
         if (isShuttingDown.load())
             return;
 
-        std::thread([work = std::move(work), onComplete = std::move(onComplete)]() {
-            if (work)
-                work();
+        std::thread([workFn = std::move(work), completeFn = std::move(onComplete)]() {
+            if (workFn)
+                workFn();
 
             // Only call back to message thread if not shutting down
-            if (onComplete && !isShuttingDown.load())
+            if (completeFn && !isShuttingDown.load())
             {
                 // Check if MessageManager still exists
                 if (auto* mm = juce::MessageManager::getInstanceWithoutCreating())
                 {
-                    mm->callAsync([onComplete]() {
+                    mm->callAsync([completeFn]() {
                         if (!isShuttingDown.load())
-                            onComplete();
+                            completeFn();
                     });
                 }
             }
@@ -176,8 +176,8 @@ namespace Async
         int timerId = nextTimerId.fetch_add(1);
 
         // Must create timer on message thread
-        juce::MessageManager::callAsync([timerId, delayMs, callback = std::move(callback)]() {
-            auto* timer = new DelayTimer(timerId, callback);
+        juce::MessageManager::callAsync([timerId, delayMs, delayCallback = std::move(callback)]() {
+            auto* timer = new DelayTimer(timerId, delayCallback);
 
             {
                 std::lock_guard<std::mutex> lock(delayTimersMutex);
@@ -225,7 +225,7 @@ namespace Async
             return;
 
         // Debounce logic must run on message thread for timer safety
-        juce::MessageManager::callAsync([key, delayMs, callback = std::move(callback)]() {
+        juce::MessageManager::callAsync([key, delayMs, debounceCallback = std::move(callback)]() {
             std::lock_guard<std::mutex> lock(debounceMutex);
 
             auto it = debounceTimers.find(key);
@@ -233,13 +233,13 @@ namespace Async
             {
                 // Reset existing timer with new callback
                 it->second->stopTimer();
-                static_cast<CallbackTimer*>(it->second.get())->setCallback(callback);
+                static_cast<CallbackTimer*>(it->second.get())->setCallback(debounceCallback);
                 it->second->startTimer(delayMs);
             }
             else
             {
                 // Create new timer
-                auto timer = std::make_unique<CallbackTimer>(callback);
+                auto timer = std::make_unique<CallbackTimer>(debounceCallback);
                 timer->startTimer(delayMs);
                 debounceTimers[key] = std::move(timer);
             }
@@ -293,7 +293,7 @@ namespace Async
         if (key.isEmpty() || !callback || periodMs < 0)
             return;
 
-        juce::MessageManager::callAsync([key, periodMs, callback = std::move(callback)]() {
+        juce::MessageManager::callAsync([key, periodMs, throttleCallback = std::move(callback)]() {
             std::lock_guard<std::mutex> lock(throttleMutex);
 
             auto& state = throttleStates[key];
@@ -304,7 +304,7 @@ namespace Async
             {
                 // Enough time has passed, execute immediately
                 state.lastExecutionTime = now;
-                callback();
+                throttleCallback();
             }
             else
             {
@@ -321,14 +321,14 @@ namespace Async
                 }
 
                 // Wrap callback to update lastExecutionTime when it fires
-                auto wrappedCallback = [key, callback]() {
+                auto wrappedCallback = [key, throttleCallback]() {
                     std::lock_guard<std::mutex> innerLock(throttleMutex);
                     auto it = throttleStates.find(key);
                     if (it != throttleStates.end())
                     {
                         it->second.lastExecutionTime = juce::Time::currentTimeMillis();
                     }
-                    callback();
+                    throttleCallback();
                 };
 
                 static_cast<CallbackTimer*>(state.pendingTimer.get())->setCallback(wrappedCallback);

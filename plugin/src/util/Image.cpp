@@ -50,7 +50,7 @@ void drawCircularAvatar(juce::Graphics& g,
 
         // Draw initials
         g.setColour(textColor);
-        float actualFontSize = (fontSize > 0.0f) ? fontSize : (size * 0.4f);
+        float actualFontSize = (fontSize > 0.0f) ? fontSize : (static_cast<float>(size) * 0.4f);
         g.setFont(juce::Font(juce::FontOptions().withHeight(actualFontSize)).boldened());
 
         juce::String displayInitials = initials.isEmpty() ? "?" : initials.toUpperCase();

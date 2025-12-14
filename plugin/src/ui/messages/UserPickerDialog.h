@@ -41,13 +41,20 @@ public:
 
     // Callbacks
     std::function<void(const juce::String& userId)> onUserSelected;  // Single user selected
-    std::function<void(const std::vector<juce::String>& userIds, const juce::String& groupName)> onGroupCreated;  // Multiple users selected
+    std::function<void(const juce::Array<juce::String>& userIds)> onUsersSelected;  // Multiple users selected (for adding to existing channel)
+    std::function<void(const std::vector<juce::String>& userIds, const juce::String& groupName)> onGroupCreated;  // Multiple users selected (for creating new group)
     std::function<void()> onCancelled;
 
     // Set clients
     void setStreamChatClient(StreamChatClient* client);
     void setNetworkClient(NetworkClient* client);
     void setCurrentUserId(const juce::String& userId) { currentUserId = userId; }
+
+    // Set excluded user IDs (e.g., already in the channel)
+    void setExcludedUserIds(const juce::Array<juce::String>& userIds);
+
+    // Show dialog modally
+    void showModal(juce::Component* parent);
 
     // Load data
     void loadRecentConversations();
@@ -100,6 +107,7 @@ private:
     std::vector<UserItem> suggestedUsers;
     std::vector<UserItem> searchResults;
     std::set<juce::String> selectedUserIds;  // Multi-select support
+    juce::Array<juce::String> excludedUserIds;  // Users to exclude from results
 
     // Search state
     juce::String currentSearchQuery;

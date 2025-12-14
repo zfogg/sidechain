@@ -114,6 +114,167 @@ cp backend/.env.example backend/.env
 make deps-info
 ```
 
+## C++ Standards & Modern Features
+
+### C++26 Baseline
+The Sidechain VST plugin uses **C++26** as the baseline standard, configured in `plugin/cmake/CompilerFlags.cmake`.
+
+**C++ Version Timeline**:
+- **C++17**: Baseline prior to Phase 1
+- **C++20**: Legacy/deprecated (JUCE compatibility)
+- **C++26**: Current standard (as of Phase 1, December 2024)
+
+### Compiler Support
+
+| Platform | Compiler | Version | C++26 Support |
+|----------|----------|---------|---------------|
+| macOS    | Clang    | 16+     | ✅ Full       |
+| Linux    | GCC      | 14+     | ✅ Full       |
+| Windows  | MSVC     | 2022+   | ⚠️ Partial    |
+
+### Approved Modern C++ Features
+
+#### Smart Pointers & Memory Management
+- `std::unique_ptr<T>` - For exclusive ownership (primary pattern)
+- `std::shared_ptr<T>` - For shared ownership (caches, observers)
+- **NO** raw `new`/`delete` - Always use RAII
+- **NO** `new` in audio thread - Pre-allocate all resources
+
+**Pattern**:
+```cpp
+std::unique_ptr<AudioCapture> capture;  // Owns the resource
+std::shared_ptr<ImageCache> imageCache;  // Shared across UI components
+```
+
+#### Modern Type Features
+- `std::optional<T>` - For optional values (C++17)
+- `std::variant<Args...>` - Type-safe unions (C++17)
+- Structured bindings: `auto [x, y] = getPoint();` (C++17)
+- Concepts (C++20) - For generic constraint validation
+
+**Pattern**:
+```cpp
+std::optional<User> getUser(const juce::String& id);  // May not exist
+auto [success, data] = loadFromFile(path);  // Structured binding
+```
+
+#### Concurrency & Threading (Audio-Safe)
+- `std::atomic<T>` - Lock-free inter-thread communication (audio thread safe)
+- `std::thread` - For background operations (never on audio thread)
+- `std::mutex` / `std::shared_mutex` - For protecting shared data (not on audio thread)
+- **NO** locks on audio thread - Use lock-free or pre-computed data
+
+**Pattern**:
+```cpp
+std::atomic<bool> isRecording { false };  // Audio thread reads, UI thread writes
+std::mutex dataLock;  // Only used on UI/background threads
+```
+
+#### Functional Programming (C++17+)
+- `std::function<>` - For callbacks and async operations
+- Lambda expressions with capture: `[this, &ref](auto x) { /* ... */ }`
+- Higher-order functions: map, filter, reduce patterns
+
+**Pattern**:
+```cpp
+Async::run<juce::Image>(
+    [this]() { return downloadImage(); },  // Background work
+    [this](const auto& img) { setImage(img); }  // UI update
+);
+```
+
+#### Reactive Programming (With RxCpp - Phase 1)
+- Observable/Observer pattern: `rx::observable<T>`
+- Operators: `map()`, `filter()`, `flatMap()`, `debounce()`
+- Schedulers: Thread management with `subscribe_on()` / `observe_on()`
+
+**Pattern**:
+```cpp
+networkClient->getFeed(type)
+    .pipe(
+        rx::operators::map([](auto data) { return parseFeed(data); }),
+        rx::operators::debounce(std::chrono::milliseconds(300))
+    )
+    .subscribe([this](auto posts) { displayFeed(posts); });
+```
+
+#### Container & Algorithm Features (C++17+)
+- Range-based for loops: `for (const auto& item : container)`
+- `std::find_if()` / `std::transform()` / `std::accumulate()`
+- `juce::Array<T>` - JUCE's container (preferred for JUCE code)
+- `std::vector<T>` - Standard container (for generic code)
+- **NO** STL containers on audio thread - Use lock-free only
+
+**Pattern**:
+```cpp
+auto it = std::find_if(posts.begin(), posts.end(),
+    [id](const FeedPost& p) { return p.id == id; });
+```
+
+#### Error Handling (Custom Outcome<T> Pattern)
+- Custom `Outcome<T, E>` type - Result/error wrapper
+- Monadic operations: `.map()`, `.flatMap()`, `.onSuccess()`, `.onError()`
+- **NO** exceptions in networking layer
+- **Optional**: `std::expected<T, E>` when upgrading to C++23 fully
+
+**Pattern**:
+```cpp
+fetchUser(id)
+    .flatMap([](const User& u) { return fetchProfile(u.id); })
+    .onSuccess([this](const Profile& p) { displayProfile(p); })
+    .onError([this](const juce::String& err) { showError(err); });
+```
+
+### Features to Avoid
+
+#### C++26 Features Not Yet Adopted
+- Reflection (still experimental)
+- Pattern matching (partial in some compilers)
+- Contracts (requires compiler support)
+- Modules (ecosystem not ready for JUCE)
+
+#### Forbidden Patterns
+- **C-style casts**: Use `static_cast<>`, `dynamic_cast<>`, `const_cast<>`
+- **Global variables**: Inject via constructors
+- **Macros**: Use `constexpr` or `inline` functions instead
+- **Raw pointers**: Use `unique_ptr` or `shared_ptr`
+- **Exceptions on audio thread**: Pre-allocate, validate input before audio thread
+- **Allocation on audio thread**: Pre-allocate in constructor/setup
+
+### Compiler Flags
+
+**C++26 Configuration** (`plugin/cmake/CompilerFlags.cmake`):
+```cmake
+set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+```
+
+**Compiler-Specific Notes**:
+- **Clang**: Full C++26 support, use `-std=c++26`
+- **GCC**: Full C++26 support as of GCC 14, use `-std=c++26`
+- **MSVC**: Limited C++26, use `/std:c++latest` for experimental features
+
+### Dependencies & External Libraries
+
+| Library      | Purpose            | Standard | Status     |
+|--------------|-------------------|----------|-----------|
+| JUCE 8.0.11  | Audio/UI          | C++17    | Stable    |
+| RxCpp 4.1.1  | Reactive patterns | C++14+   | Stable    |
+| websocketpp  | WebSocket         | C++11+   | Stable    |
+| stduuid      | UUID generation   | C++20+   | Stable    |
+| ASIO 1.14.1  | Async I/O         | C++11+   | Stable    |
+
+### Learning Resources
+
+- **Modern C++**: Scott Meyers "Effective Modern C++" (20 items on C++17/20)
+- **Concurrent Code**: "C++ Concurrency in Action" (thread safety)
+- **JUCE**: https://docs.juce.com/master/index.html
+- **RxCpp**: https://github.com/ReactiveX/RxCpp
+
+### Questions?
+
+Consult the **Architecture Notes** below for threading model and safety constraints. When in doubt, prioritize safety on the audio thread over convenience.
+
 ### Deployment
 ```bash
 # Build release version

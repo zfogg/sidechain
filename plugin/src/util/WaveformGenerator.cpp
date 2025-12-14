@@ -14,10 +14,10 @@ juce::Path WaveformGenerator::generateWaveformPath(const juce::AudioBuffer<float
 
     int numSamples = buffer.getNumSamples();
     int width = bounds.getWidth();
-    float height = bounds.getHeight();
-    float centerY = bounds.getCentreY();
+    float height = static_cast<float>(bounds.getHeight());
+    float centerY = static_cast<float>(bounds.getCentreY());
 
-    path.startNewSubPath(bounds.getX(), centerY);
+    path.startNewSubPath(static_cast<float>(bounds.getX()), centerY);
 
     for (int x = 0; x < width; ++x)
     {
@@ -34,7 +34,7 @@ juce::Path WaveformGenerator::generateWaveformPath(const juce::AudioBuffer<float
         }
 
         float y = centerY - (peak * height * 0.5f);
-        path.lineTo(bounds.getX() + x, y);
+        path.lineTo(static_cast<float>(bounds.getX() + x), y);
     }
 
     return path;

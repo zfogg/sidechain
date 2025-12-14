@@ -274,7 +274,7 @@ private:
     class MentionListener : public juce::TextEditor::Listener
     {
     public:
-        MentionListener(CommentsPanel* parent) : parent(parent) {}
+        MentionListener(CommentsPanel* parentPanel) : parent(parentPanel) {}
         void textEditorTextChanged(juce::TextEditor& editor) override;
         void textEditorReturnKeyPressed(juce::TextEditor& editor) override;
     private:
