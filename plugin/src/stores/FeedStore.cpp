@@ -198,7 +198,7 @@ void FeedStore::toggleLike(const juce::String& postId)
 
             bool shouldLike = post->isLiked;
 
-            networkClient->toggleLike(postId, shouldLike, [this, postId, shouldLike](Outcome<juce::var> result)
+            networkClient->toggleLike(postId, shouldLike, [this, postId, shouldLike, callback](Outcome<juce::var> result)
             {
                 if (result.isOk())
                 {
@@ -209,7 +209,7 @@ void FeedStore::toggleLike(const juce::String& postId)
                         // Create operation: Modify post's like count
                         auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
                         op->position = postId.hashCode() % 100000;  // Unique position based on post ID
-                        op->oldContent = "likes:" + juce::String(shouldLike ? -1 : 1);
+                        op->oldContent = std::string("likes:") + (shouldLike ? "-1" : "1");
                         op->newContent = "likes:done";
 
                         realtimeSync->sendLocalOperation(op);
@@ -217,11 +217,11 @@ void FeedStore::toggleLike(const juce::String& postId)
                                        "postId=" + postId + ", synced=true");
                     }
 
-                    result.getCallback()(true, "");
+                    callback(true, "");
                 }
                 else
                 {
-                    result.getCallback()(false, result.getError());
+                    callback(false, result.getError());
                 }
             });
         },
@@ -267,8 +267,24 @@ void FeedStore::toggleSave(const juce::String& postId)
 
             bool shouldSave = post->isSaved;
 
-            networkClient->toggleSave(postId, shouldSave, [callback](Outcome<juce::var> result)
+            networkClient->toggleSave(postId, shouldSave, [this, postId, shouldSave, callback](Outcome<juce::var> result)
             {
+                if (result.isOk())
+                {
+                    // Broadcast save operation to real-time sync (Task 4.21)
+                    if (realtimeSync)
+                    {
+                        auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+                        op->position = (postId.hashCode() + 1) % 100000;
+                        op->oldContent = std::string("saves:") + (shouldSave ? "-1" : "1");
+                        op->newContent = "saves:done";
+
+                        realtimeSync->sendLocalOperation(op);
+                        Util::logDebug("FeedStore", "Broadcasted save operation",
+                                       "postId=" + postId);
+                    }
+                }
+
                 callback(result.isOk(), result.isOk() ? "" : result.getError());
             });
         },
@@ -314,8 +330,24 @@ void FeedStore::toggleRepost(const juce::String& postId)
 
             bool shouldRepost = post->isReposted;
 
-            networkClient->toggleRepost(postId, shouldRepost, [callback](Outcome<juce::var> result)
+            networkClient->toggleRepost(postId, shouldRepost, [this, postId, shouldRepost, callback](Outcome<juce::var> result)
             {
+                if (result.isOk())
+                {
+                    // Broadcast repost operation to real-time sync (Task 4.21)
+                    if (realtimeSync)
+                    {
+                        auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+                        op->position = (postId.hashCode() + 2) % 100000;
+                        op->oldContent = std::string("reposts:") + (shouldRepost ? "-1" : "1");
+                        op->newContent = "reposts:done";
+
+                        realtimeSync->sendLocalOperation(op);
+                        Util::logDebug("FeedStore", "Broadcasted repost operation",
+                                       "postId=" + postId);
+                    }
+                }
+
                 callback(result.isOk(), result.isOk() ? "" : result.getError());
             });
         },
@@ -368,8 +400,25 @@ void FeedStore::addReaction(const juce::String& postId, const juce::String& emoj
                 return;
             }
 
-            networkClient->addEmojiReaction(postId, emoji, [callback](Outcome<juce::var> result)
+            networkClient->addEmojiReaction(postId, emoji, [this, postId, emoji, callback](Outcome<juce::var> result)
             {
+                if (result.isOk())
+                {
+                    // Broadcast reaction operation to real-time sync (Task 4.21)
+                    // Allows other clients to see emoji reactions in < 500ms
+                    if (realtimeSync)
+                    {
+                        auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+                        op->position = (postId.hashCode() + 3) % 100000;
+                        op->oldContent = std::string("reaction:") + emoji.toStdString();
+                        op->newContent = "reaction:applied";
+
+                        realtimeSync->sendLocalOperation(op);
+                        Util::logDebug("FeedStore", "Broadcasted reaction operation",
+                                       "postId=" + postId + ", emoji=" + emoji);
+                    }
+                }
+
                 callback(result.isOk(), result.isOk() ? "" : result.getError());
             });
         },
