@@ -119,6 +119,12 @@ plugin-fast:
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
 
+# Clean ninja cache (useful if builds keep recompiling everything)
+plugin-clean-cache:
+	@echo "🧹 Cleaning ninja dependency cache..."
+	@rm -f $(BUILD_DIR)/.ninja_deps $(BUILD_DIR)/.ninja_log
+	@echo "✅ Ninja cache cleared (next build will rebuild dependency info)"
+
 # Rebuild plugin only (clean plugin files but keep cached dependencies)
 plugin-rebuild: plugin-configure
 	@echo "🔄 Rebuilding plugin (keeping cached dependencies) for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
@@ -261,6 +267,7 @@ help:
 	@echo "  plugin-rebuild        - Rebuild plugin only (keep cached deps)"
 	@echo "  plugin-install        - Install plugin to system directory"
 	@echo "  plugin-clean          - Clean plugin build files"
+	@echo "  plugin-clean-cache    - Clear ninja cache (if rebuilding everything)"
 	@echo "  test                  - Run all tests"
 	@echo "  test-plugin-unit      - Run plugin C++ unit tests"
 	@echo "  test-plugin-coverage  - Run tests with coverage report"
@@ -277,6 +284,10 @@ help:
 	@echo "  make              # Build everything"
 	@echo "  make plugin       # Build just the plugin"
 	@echo "  make backend-dev  # Start backend server"
+	@echo ""
+	@echo "Troubleshooting:"
+	@echo "  If builds keep recompiling everything:"
+	@echo "    make plugin-clean-cache && make plugin-fast"
 
 cloc:
 	@printf $(Purple)"documentation:\n"$(Reset)
