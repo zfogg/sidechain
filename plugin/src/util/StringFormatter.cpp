@@ -49,12 +49,12 @@ juce::String formatLargeNumber(int64_t value)
         return juce::String(value);
 
     if (value < 1000000)
-        return juce::String(value / 1000.0, 1) + "K";
+        return juce::String(static_cast<double>(value) / 1000.0, 1) + "K";
 
     if (value < 1000000000)
-        return juce::String(value / 1000000.0, 1) + "M";
+        return juce::String(static_cast<double>(value) / 1000000.0, 1) + "M";
 
-    return juce::String(value / 1000000000.0, 1) + "B";
+    return juce::String(static_cast<double>(value) / 1000000000.0, 1) + "B";
 }
 
 //==============================================================================

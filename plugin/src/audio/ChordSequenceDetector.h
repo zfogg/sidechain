@@ -55,6 +55,7 @@ public:
 
             switch (type)
             {
+                case ChordType::Unknown: name += "?"; break;
                 case ChordType::Major: break; // No suffix for major
                 case ChordType::Minor: name += "m"; break;
                 case ChordType::Diminished: name += "dim"; break;
@@ -64,7 +65,6 @@ public:
                 case ChordType::Major7: name += "maj7"; break;
                 case ChordType::Minor7: name += "m7"; break;
                 case ChordType::Dominant7: name += "7"; break;
-                default: name += "?"; break;
             }
             return name;
         }

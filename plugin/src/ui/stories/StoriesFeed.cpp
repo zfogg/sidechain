@@ -51,7 +51,7 @@ void StoriesFeed::paint(juce::Graphics& g)
         auto bounds = getCircleBounds(i + 1);
         if (bounds.getX() + bounds.getWidth() > 0 && bounds.getX() < getWidth())
         {
-            drawStoryCircle(g, bounds, userStoriesGroups[i], i);
+            drawStoryCircle(g, bounds, userStoriesGroups[static_cast<size_t>(i)], i);
         }
     }
 
@@ -68,8 +68,8 @@ void StoriesFeed::paint(juce::Graphics& g)
     if (scrollOffset < maxScrollOffset)
     {
         // Right fade
-        juce::ColourGradient rightFade(StoryFeedColors::background.withAlpha(0.0f), getWidth() - 20, 0,
-                                       StoryFeedColors::background, getWidth(), 0, false);
+        juce::ColourGradient rightFade(StoryFeedColors::background.withAlpha(0.0f), static_cast<float>(getWidth() - 20), 0.0f,
+                                       StoryFeedColors::background, static_cast<float>(getWidth()), 0.0f, false);
         g.setGradientFill(rightFade);
         g.fillRect(getWidth() - 20, 0, 20, getHeight());
     }
@@ -102,7 +102,7 @@ void StoriesFeed::mouseUp(const juce::MouseEvent& event)
         if (bounds.contains(pos))
         {
             if (onStoryTapped)
-                onStoryTapped(userStoriesGroups[i].userId, 0);
+                onStoryTapped(userStoriesGroups[static_cast<size_t>(i)].userId, 0);
             return;
         }
     }
@@ -112,7 +112,7 @@ void StoriesFeed::mouseWheelMove(const juce::MouseEvent& /*event*/,
                                            const juce::MouseWheelDetails& wheel)
 {
     // Horizontal scroll
-    float delta = wheel.deltaX != 0 ? wheel.deltaX : wheel.deltaY;
+    float delta = (std::abs(wheel.deltaX) > 0.0001f) ? wheel.deltaX : wheel.deltaY;
     targetScrollOffset = juce::jlimit(0.0f, maxScrollOffset,
                                        targetScrollOffset - delta * 50.0f);
 }
@@ -126,7 +126,7 @@ void StoriesFeed::timerCallback()
         scrollOffset += (targetScrollOffset - scrollOffset) * 0.2f;
         repaint();
     }
-    else if (scrollOffset != targetScrollOffset)
+    else if (std::abs(scrollOffset - targetScrollOffset) > 0.0001f)
     {
         scrollOffset = targetScrollOffset;
         repaint();
@@ -294,7 +294,7 @@ void StoriesFeed::drawCreateStoryCircle(juce::Graphics& g, juce::Rectangle<int> 
     g.fillEllipse(plusBounds);
 
     g.setColour(StoryFeedColors::textPrimary);
-    g.setFont(juce::Font(16.0f, juce::Font::bold));
+    g.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
     g.drawText("+", plusBounds.toNearestInt(), juce::Justification::centred);
 
     // "Your Story" label
@@ -353,7 +353,7 @@ void StoriesFeed::drawStoryCircle(juce::Graphics& g, juce::Rectangle<int> bounds
 
         // Initials
         g.setColour(StoryFeedColors::textPrimary);
-        g.setFont(juce::Font(18.0f, juce::Font::bold));
+        g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
         juce::String initial = userStories.username.isNotEmpty() ?
                                userStories.username.substring(0, 1).toUpperCase() : "?";
         g.drawText(initial, circleBounds, juce::Justification::centred);

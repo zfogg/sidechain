@@ -367,8 +367,8 @@ juce::var FeedPost::toJson() const
     if (!reactionCounts.empty())
     {
         auto reactionCountsObj = new juce::DynamicObject();
-        for (const auto& [key, count] : reactionCounts)
-            reactionCountsObj->setProperty(key, count);
+        for (const auto& [reactType, count] : reactionCounts)
+            reactionCountsObj->setProperty(reactType, count);
         obj->setProperty("reaction_counts", juce::var(reactionCountsObj));
     }
 
@@ -399,7 +399,7 @@ juce::var FeedPost::toJson() const
         case Status::Ready:      statusStr = "ready"; break;
         case Status::Processing: statusStr = "processing"; break;
         case Status::Failed:     statusStr = "failed"; break;
-        default:                 statusStr = "unknown"; break;
+        case Status::Unknown:    statusStr = "unknown"; break;
     }
     obj->setProperty("status", statusStr);
 

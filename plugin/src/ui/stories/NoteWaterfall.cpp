@@ -159,17 +159,17 @@ void NoteWaterfall::drawBackground(juce::Graphics& g)
 
     // Subtle vertical grid lines for each note position
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float noteWidth = static_cast<float>(bounds.getWidth()) / numNotes;
+    float noteWidth = static_cast<float>(bounds.getWidth()) / static_cast<float>(numNotes);
 
     g.setColour(WaterfallColors::gridLine);
     for (int i = 0; i <= numNotes; ++i)
     {
-        float x = i * noteWidth;
+        float x = static_cast<float>(i) * noteWidth;
         g.drawVerticalLine(static_cast<int>(x), 0, bounds.getBottom());
     }
 
     // Horizontal "catch line" near bottom where notes land
-    float catchLineY = bounds.getHeight() * 0.9f;
+    float catchLineY = static_cast<float>(bounds.getHeight()) * 0.9f;
     g.setColour(WaterfallColors::noteDefault.withAlpha(0.3f));
     g.drawHorizontalLine(static_cast<int>(catchLineY), 0, bounds.getRight());
 }
@@ -178,14 +178,14 @@ void NoteWaterfall::drawKeyIndicators(juce::Graphics& g)
 {
     auto bounds = getLocalBounds();
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float noteWidth = static_cast<float>(bounds.getWidth()) / numNotes;
-    float indicatorHeight = bounds.getHeight() * 0.1f;
-    float indicatorY = bounds.getHeight() - indicatorHeight;
+    float noteWidth = static_cast<float>(bounds.getWidth()) / static_cast<float>(numNotes);
+    float indicatorHeight = static_cast<float>(bounds.getHeight()) * 0.1f;
+    float indicatorY = static_cast<float>(bounds.getHeight()) - indicatorHeight;
 
     for (int i = 0; i < numNotes; ++i)
     {
         int noteNum = lowNoteNumber + i;
-        float x = i * noteWidth;
+        float x = static_cast<float>(i) * noteWidth;
 
         auto keyBounds = juce::Rectangle<float>(x, indicatorY, noteWidth, indicatorHeight);
 
@@ -218,10 +218,10 @@ void NoteWaterfall::drawNotes(juce::Graphics& g)
 {
     auto bounds = getLocalBounds();
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float noteWidth = static_cast<float>(bounds.getWidth()) / numNotes;
+    float noteWidth = static_cast<float>(bounds.getWidth()) / static_cast<float>(numNotes);
 
     // Waterfall area (above key indicators)
-    float waterfallHeight = bounds.getHeight() * 0.9f;
+    float waterfallHeight = static_cast<float>(bounds.getHeight()) * 0.9f;
     float catchLineY = waterfallHeight;
 
     for (const auto& note : notes)
@@ -280,7 +280,7 @@ void NoteWaterfall::drawNotes(juce::Graphics& g)
         // Velocity gradient (brighter at top)
         if (showVelocity && noteHeight > 10)
         {
-            float velocityBrightness = note.velocity / 127.0f * 0.3f;
+            float velocityBrightness = static_cast<float>(note.velocity) / 127.0f * 0.3f;
             juce::ColourGradient velGradient(
                 noteColor.brighter(velocityBrightness), noteBounds.getX(), noteBounds.getY(),
                 noteColor, noteBounds.getX(), noteBounds.getBottom(),
@@ -295,8 +295,8 @@ void NoteWaterfall::drawActiveNotesGlow(juce::Graphics& g)
 {
     auto bounds = getLocalBounds();
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float noteWidth = static_cast<float>(bounds.getWidth()) / numNotes;
-    float catchLineY = bounds.getHeight() * 0.9f;
+    float noteWidth = static_cast<float>(bounds.getWidth()) / static_cast<float>(numNotes);
+    float catchLineY = static_cast<float>(bounds.getHeight()) * 0.9f;
 
     for (const auto& note : notes)
     {
@@ -352,10 +352,10 @@ juce::String NoteWaterfall::getNoteName(int noteNumber) const
 float NoteWaterfall::noteToX(int noteNumber) const
 {
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float noteWidth = static_cast<float>(getWidth()) / numNotes;
+    float noteWidth = static_cast<float>(getWidth()) / static_cast<float>(numNotes);
 
     int noteIndex = noteNumber - lowNoteNumber;
-    return noteIndex * noteWidth;
+    return static_cast<float>(noteIndex) * noteWidth;
 }
 
 float NoteWaterfall::timeToY(double time) const
@@ -364,7 +364,7 @@ float NoteWaterfall::timeToY(double time) const
     // At playbackPosition, Y = catchLineY (90% of height)
     // At playbackPosition + lookaheadTime, Y = 0 (top)
 
-    float catchLineY = getHeight() * 0.9f;
+    float catchLineY = static_cast<float>(getHeight()) * 0.9f;
 
     if (lookaheadTime <= 0)
         return catchLineY;
@@ -389,7 +389,7 @@ juce::Colour NoteWaterfall::getNoteColor(const Note& note) const
     if (showVelocity)
     {
         // Interpolate color based on velocity (brighter = louder)
-        float velocityNorm = note.velocity / 127.0f;
+        float velocityNorm = static_cast<float>(note.velocity) / 127.0f;
         return WaterfallColors::noteDefault.interpolatedWith(
             WaterfallColors::noteActive, velocityNorm);
     }

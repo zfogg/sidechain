@@ -159,15 +159,15 @@ void PianoRoll::setNoteRange(int lowNote, int highNote)
 void PianoRoll::drawPianoKeys(juce::Graphics& g)
 {
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float keyHeight = static_cast<float>(pianoKeyArea.getHeight()) / numNotes;
+    float keyHeight = static_cast<float>(pianoKeyArea.getHeight()) / static_cast<float>(numNotes);
 
     for (int note = highNoteNumber; note >= lowNoteNumber; --note)
     {
         int index = highNoteNumber - note;
-        float y = pianoKeyArea.getY() + index * keyHeight;
+        float y = static_cast<float>(pianoKeyArea.getY()) + static_cast<float>(index) * keyHeight;
 
-        auto keyBounds = juce::Rectangle<float>(pianoKeyArea.getX(), y,
-                                                 pianoKeyArea.getWidth(), keyHeight);
+        auto keyBounds = juce::Rectangle<float>(static_cast<float>(pianoKeyArea.getX()), y,
+                                                 static_cast<float>(pianoKeyArea.getWidth()), keyHeight);
 
         if (isBlackKey(note))
         {
@@ -228,12 +228,12 @@ void PianoRoll::drawGridLines(juce::Graphics& g)
 
     // Horizontal grid lines for each note
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / numNotes;
+    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / static_cast<float>(numNotes);
 
     g.setColour(PianoRollColors::gridLine);
     for (int i = 0; i <= numNotes; ++i)
     {
-        float y = noteGridArea.getY() + i * keyHeight;
+        float y = static_cast<float>(noteGridArea.getY()) + static_cast<float>(i) * keyHeight;
         g.drawHorizontalLine(static_cast<int>(y), noteGridArea.getX(), noteGridArea.getRight());
     }
 }
@@ -241,7 +241,7 @@ void PianoRoll::drawGridLines(juce::Graphics& g)
 void PianoRoll::drawNotes(juce::Graphics& g)
 {
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / numNotes;
+    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / static_cast<float>(numNotes);
 
     for (size_t i = 0; i < notes.size(); ++i)
     {
@@ -296,7 +296,7 @@ void PianoRoll::drawNotes(juce::Graphics& g)
         // Velocity indicator (darker left edge)
         if (showVelocity && noteBounds.getWidth() > 8)
         {
-            float velocityHeight = (note.velocity / 127.0f) * noteBounds.getHeight();
+            float velocityHeight = (static_cast<float>(note.velocity) / 127.0f) * noteBounds.getHeight();
             auto velocityBounds = noteBounds.withHeight(velocityHeight).withY(
                 noteBounds.getBottom() - velocityHeight);
             g.setColour(noteColor.brighter(0.2f));
@@ -307,7 +307,7 @@ void PianoRoll::drawNotes(juce::Graphics& g)
     // Draw tooltip for hovered note
     if (hoveredNoteIndex >= 0 && hoveredNoteIndex < static_cast<int>(notes.size()))
     {
-        const auto& note = notes[hoveredNoteIndex];
+        const auto& note = notes[static_cast<size_t>(hoveredNoteIndex)];
         float x = timeToX(note.startTime);
         float y = noteToY(note.noteNumber);
 
@@ -339,7 +339,7 @@ void PianoRoll::drawPlayhead(juce::Graphics& g)
 
         // Playhead top marker
         juce::Path triangle;
-        triangle.addTriangle(x - 5, 0, x + 5, 0, x, 8);
+        triangle.addTriangle(x - 5.0f, 0.0f, x + 5.0f, 0.0f, x, 8.0f);
         g.fillPath(triangle);
     }
 }
@@ -363,11 +363,11 @@ juce::String PianoRoll::getNoteName(int noteNumber) const
 float PianoRoll::noteToY(int noteNumber) const
 {
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / numNotes;
+    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / static_cast<float>(numNotes);
 
     // High notes at top, low notes at bottom
     int noteIndex = highNoteNumber - noteNumber;
-    return noteGridArea.getY() + noteIndex * keyHeight + 1;
+    return static_cast<float>(noteGridArea.getY()) + static_cast<float>(noteIndex) * keyHeight + 1.0f;
 }
 
 float PianoRoll::timeToX(double time) const
@@ -404,7 +404,7 @@ int PianoRoll::findNoteAt(juce::Point<int> position) const
         return -1;
 
     int numNotes = highNoteNumber - lowNoteNumber + 1;
-    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / numNotes;
+    float keyHeight = static_cast<float>(noteGridArea.getHeight()) / static_cast<float>(numNotes);
     float relativeY = static_cast<float>(position.y - noteGridArea.getY());
     int noteIndex = static_cast<int>(relativeY / keyHeight);
     int noteNumber = highNoteNumber - noteIndex;
@@ -438,7 +438,7 @@ juce::Colour PianoRoll::getNoteColor(const Note& note) const
     if (showVelocity)
     {
         // Interpolate color based on velocity
-        float velocityNorm = note.velocity / 127.0f;
+        float velocityNorm = static_cast<float>(note.velocity) / 127.0f;
         return PianoRollColors::noteDefault.interpolatedWith(
             PianoRollColors::noteActive, velocityNorm);
     }

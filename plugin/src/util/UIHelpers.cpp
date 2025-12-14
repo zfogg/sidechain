@@ -92,7 +92,7 @@ juce::Rectangle<int> drawPillBadge(juce::Graphics& g,
 
     // Background pill
     g.setColour(bgColor);
-    g.fillRoundedRectangle(bounds.toFloat(), height / 2.0f);
+    g.fillRoundedRectangle(bounds.toFloat(), static_cast<float>(height) / 2.0f);
 
     // Text
     g.setColour(textColor);
@@ -191,7 +191,7 @@ void drawProgressBar(juce::Graphics& g,
     // Progress fill
     if (progress > 0.0f)
     {
-        auto fillWidth = static_cast<int>(bounds.getWidth() * progress);
+        auto fillWidth = static_cast<int>(static_cast<float>(bounds.getWidth()) * progress);
         auto fillBounds = bounds.withWidth(juce::jmax(1, fillWidth));
 
         g.setColour(fillColor);
@@ -205,7 +205,7 @@ void drawLoadingSpinner(juce::Graphics& g,
                         float rotation)
 {
     auto center = bounds.getCentre().toFloat();
-    float radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f - 2.0f;
+    float radius = static_cast<float>(juce::jmin(bounds.getWidth(), bounds.getHeight())) / 2.0f - 2.0f;
 
     // Draw spinning arc
     juce::Path arc;
@@ -255,7 +255,7 @@ juce::String truncateWithEllipsis(const juce::String& text,
     juce::TextLayout layout;
     layout.createLayout(attrStr, 10000.0f);  // Large width for single-line text
     float textWidth = layout.getWidth();
-    if (textWidth <= maxWidth)
+    if (textWidth <= static_cast<float>(maxWidth))
         return text;
 
     // Binary search for the right length
@@ -267,7 +267,7 @@ juce::String truncateWithEllipsis(const juce::String& text,
     ellipsisLayout.createLayout(ellipsisAttrStr, 10000.0f);
     float ellipsisWidth = ellipsisLayout.getWidth();
 
-    if (ellipsisWidth >= maxWidth)
+    if (ellipsisWidth >= static_cast<float>(maxWidth))
         return ellipsis;
 
     int availableWidth = maxWidth - static_cast<int>(ellipsisWidth);
@@ -281,7 +281,7 @@ juce::String truncateWithEllipsis(const juce::String& text,
         truncatedAttrStr.setFont(font);
         juce::TextLayout truncatedLayout;
         truncatedLayout.createLayout(truncatedAttrStr, 10000.0f);
-        if (truncatedLayout.getWidth() <= availableWidth)
+        if (truncatedLayout.getWidth() <= static_cast<float>(availableWidth))
             return truncated.trimEnd() + ellipsis;
     }
 
@@ -333,9 +333,9 @@ void drawDropShadow(juce::Graphics& g,
     // Draw multiple layers with decreasing alpha for soft shadow
     for (int i = radius; i > 0; --i)
     {
-        float alpha = shadowColor.getFloatAlpha() * (1.0f - (static_cast<float>(i) / radius));
+        float alpha = shadowColor.getFloatAlpha() * (1.0f - (static_cast<float>(i) / static_cast<float>(radius)));
         g.setColour(shadowColor.withAlpha(alpha * 0.3f));
-        g.fillRoundedRectangle(shadowBounds.expanded(i).toFloat(), 8.0f + i);
+        g.fillRoundedRectangle(shadowBounds.expanded(i).toFloat(), 8.0f + static_cast<float>(i));
     }
 }
 

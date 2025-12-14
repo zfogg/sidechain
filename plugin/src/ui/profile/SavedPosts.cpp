@@ -199,8 +199,8 @@ void SavedPosts::drawHeader(juce::Graphics& g)
 
     // Bottom border
     g.setColour(Colors::border());
-    g.drawLine(bounds.getX(), bounds.getBottom() - 1,
-               bounds.getRight(), bounds.getBottom() - 1, 1.0f);
+    g.drawLine(static_cast<float>(bounds.getX()), static_cast<float>(bounds.getBottom() - 1),
+               static_cast<float>(bounds.getRight()), static_cast<float>(bounds.getBottom() - 1), 1.0f);
 }
 
 void SavedPosts::drawLoadingState(juce::Graphics& g, juce::Rectangle<int> bounds)

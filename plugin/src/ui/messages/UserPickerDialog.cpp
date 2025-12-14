@@ -7,39 +7,40 @@
 
 //==============================================================================
 UserPickerDialog::UserPickerDialog()
+    : scrollBar(true)  // Initialize scrollbar as vertical
 {
-    // Create search input
-    searchInput = std::make_unique<juce::TextEditor>();
-    searchInput->setMultiLine(false);
-    searchInput->setReturnKeyStartsNewLine(false);
-    searchInput->setScrollbarsShown(false);
-    searchInput->setCaretVisible(true);
-    searchInput->setPopupMenuEnabled(true);
-    searchInput->setTextToShowWhenEmpty("Search users...", SidechainColors::textMuted());
-    searchInput->setFont(juce::Font(juce::FontOptions().withHeight(16.0f)));
-    searchInput->addListener(this);
-    addAndMakeVisible(searchInput.get());
+    // Setup search input
+    searchInput.setMultiLine(false);
+    searchInput.setReturnKeyStartsNewLine(false);
+    searchInput.setScrollbarsShown(false);
+    searchInput.setCaretVisible(true);
+    searchInput.setPopupMenuEnabled(true);
+    searchInput.setTextToShowWhenEmpty("Search users...", SidechainColors::textMuted());
+    searchInput.setFont(juce::Font(juce::FontOptions().withHeight(16.0f)));
+    searchInput.addListener(this);
+    addAndMakeVisible(searchInput);
 
-    // Create buttons
-    addButton = std::make_unique<juce::TextButton>("Add");
-    addButton->addListener(this);
-    addButton->setEnabled(false);
-    addAndMakeVisible(addButton.get());
+    // Setup group name input
+    groupNameInput.setMultiLine(false);
+    groupNameInput.setReturnKeyStartsNewLine(false);
+    groupNameInput.setScrollbarsShown(false);
+    groupNameInput.setCaretVisible(true);
+    groupNameInput.setPopupMenuEnabled(true);
+    groupNameInput.setTextToShowWhenEmpty("Group name (optional)", SidechainColors::textMuted());
+    groupNameInput.setFont(juce::Font(juce::FontOptions().withHeight(16.0f)));
+    addChildComponent(groupNameInput);  // Hidden by default
 
-    cancelButton = std::make_unique<juce::TextButton>("Cancel");
-    cancelButton->addListener(this);
-    addAndMakeVisible(cancelButton.get());
+    // Setup scrollbar
+    scrollBar.setRangeLimits(0.0, 0.0);
+    scrollBar.addListener(this);
+    addAndMakeVisible(scrollBar);
 
-    // Create scrollbar
-    scrollBar = std::make_unique<juce::ScrollBar>(true);
-    scrollBar->setRangeLimits(0.0, 0.0);
-    addAndMakeVisible(scrollBar.get());
-
-    // Set size last to avoid resized() being called before components are created
-    setSize(DIALOG_WIDTH, DIALOG_HEIGHT);
+    // Create error state component
+    errorStateComponent = std::make_unique<ErrorState>();
+    addChildComponent(errorStateComponent.get());
 
     // Start timer for debouncing search
-    startTimer(300);
+    startTimer(SEARCH_DEBOUNCE_MS);
 }
 
 UserPickerDialog::~UserPickerDialog()
@@ -61,22 +62,31 @@ void UserPickerDialog::resized()
 {
     auto bounds = getLocalBounds();
 
-    // Header
+    // Header with search input
     auto headerBounds = bounds.removeFromTop(HEADER_HEIGHT);
-    searchInput->setBounds(headerBounds.reduced(10, 10));
+    searchInput.setBounds(headerBounds.reduced(10, 10));
 
-    // Buttons at bottom
-    auto buttonBounds = bounds.removeFromBottom(BUTTON_HEIGHT + 20);
-    cancelButton->setBounds(buttonBounds.removeFromRight(100).reduced(10, 10));
-    addButton->setBounds(buttonBounds.removeFromRight(100).reduced(10, 10));
+    // Group name input (if visible)
+    if (showGroupNameInput)
+    {
+        auto groupNameBounds = bounds.removeFromTop(GROUP_NAME_INPUT_HEIGHT);
+        groupNameInput.setBounds(groupNameBounds.reduced(10, 5));
+    }
 
-    // Scrollbar
-    scrollBar->setBounds(bounds.removeFromRight(12));
+    // Scrollbar on right
+    scrollBar.setBounds(bounds.removeFromRight(12));
 
-    // Update scrollbar range
-    int totalHeight = static_cast<int>(searchResults.size() * ITEM_HEIGHT);
-    scrollBar->setRangeLimits(0.0, static_cast<double>(juce::jmax(0, totalHeight - bounds.getHeight())));
-    scrollBar->setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+    // Update scrollbar range based on content height
+    int contentHeight = calculateContentHeight();
+    int visibleHeight = bounds.getHeight() - BOTTOM_PADDING;
+    scrollBar.setRangeLimits(0.0, static_cast<double>(juce::jmax(0, contentHeight - visibleHeight)));
+    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+
+    // Error state component
+    if (errorStateComponent)
+    {
+        errorStateComponent->setBounds(getLocalBounds());
+    }
 }
 
 void UserPickerDialog::mouseUp(const juce::MouseEvent& event)
@@ -90,7 +100,7 @@ void UserPickerDialog::mouseUp(const juce::MouseEvent& event)
     if (bounds.contains(pos))
     {
         int adjustedY = pos.y - bounds.getY() + static_cast<int>(scrollPosition);
-        int index = adjustedY / ITEM_HEIGHT;
+        int index = adjustedY / USER_ITEM_HEIGHT;
         if (index >= 0 && index < searchResults.size())
         {
             toggleUserSelection(searchResults[index].id);
@@ -120,7 +130,7 @@ void UserPickerDialog::drawResults(juce::Graphics& g)
 
     for (int i = 0; i < searchResults.size(); ++i)
     {
-        juce::Rectangle<int> itemBounds(0, yPos + i * ITEM_HEIGHT, bounds.getWidth(), ITEM_HEIGHT);
+        juce::Rectangle<int> itemBounds(0, yPos + i * USER_ITEM_HEIGHT, bounds.getWidth(), USER_ITEM_HEIGHT);
         if (itemBounds.getBottom() < bounds.getY() || itemBounds.getY() > bounds.getBottom())
             continue;  // Off screen
 
@@ -130,7 +140,7 @@ void UserPickerDialog::drawResults(juce::Graphics& g)
 
 void UserPickerDialog::drawUserItem(juce::Graphics& g, const DiscoveredUser& user, int y, int width, bool isSelected)
 {
-    auto bounds = juce::Rectangle<int>(0, y, width, ITEM_HEIGHT);
+    auto bounds = juce::Rectangle<int>(0, y, width, USER_ITEM_HEIGHT);
 
     // Background
     if (isSelected)
@@ -175,52 +185,34 @@ void UserPickerDialog::drawUserItem(juce::Graphics& g, const DiscoveredUser& use
 //==============================================================================
 void UserPickerDialog::textEditorTextChanged(juce::TextEditor& editor)
 {
-    if (&editor == searchInput.get())
+    if (&editor == &searchInput)
     {
-        currentQuery = editor.getText().trim();
+        currentSearchQuery = editor.getText().trim();
+        lastSearchTime = juce::Time::getCurrentTime().toMilliseconds();
         // Timer will trigger search after debounce
     }
 }
 
 void UserPickerDialog::textEditorReturnKeyPressed(juce::TextEditor& editor)
 {
-    if (&editor == searchInput.get())
+    if (&editor == &searchInput)
     {
-        performSearch();
+        performSearch(currentSearchQuery);
     }
 }
 
-void UserPickerDialog::buttonClicked(juce::Button* button)
-{
-    if (button == addButton.get())
-    {
-        if (onUsersSelected && selectedUserIds.size() > 0)
-        {
-            onUsersSelected(selectedUserIds);
-        }
-        // Close dialog
-        juce::MessageManager::callAsync([this]() {
-            setVisible(false);
-            if (auto* parent = getParentComponent())
-                parent->removeChildComponent(this);
-        });
-    }
-    else if (button == cancelButton.get())
-    {
-        // Close dialog
-        juce::MessageManager::callAsync([this]() {
-            setVisible(false);
-            if (auto* parent = getParentComponent())
-                parent->removeChildComponent(this);
-        });
-    }
-}
+// Button clicks are handled in mouseUp() since we draw buttons manually
 
 void UserPickerDialog::timerCallback()
 {
-    if (currentQuery.isNotEmpty() && !isSearching)
+    // Debounced search
+    if (currentSearchQuery.isNotEmpty() && !isSearching)
     {
-        performSearch();
+        int64_t currentTime = juce::Time::getCurrentTime().toMilliseconds();
+        if (currentTime - lastSearchTime >= SEARCH_DEBOUNCE_MS)
+        {
+            performSearch(currentSearchQuery);
+        }
     }
 }
 
@@ -230,9 +222,9 @@ void UserPickerDialog::setNetworkClient(NetworkClient* client)
     networkClient = client;
 }
 
-void UserPickerDialog::performSearch()
+void UserPickerDialog::performSearch(const juce::String& query)
 {
-    if (networkClient == nullptr || currentQuery.isEmpty())
+    if (networkClient == nullptr || query.isEmpty())
     {
         searchResults.clear();
         repaint();
@@ -240,7 +232,7 @@ void UserPickerDialog::performSearch()
     }
 
     isSearching = true;
-    networkClient->searchUsers(currentQuery, 20, 0, [this](Outcome<juce::var> result) {
+    networkClient->searchUsers(query, 20, 0, [this](Outcome<juce::var> result) {
         isSearching = false;
 
         if (result.isOk() && result.getValue().isObject())
@@ -273,23 +265,22 @@ void UserPickerDialog::performSearch()
 
 void UserPickerDialog::toggleUserSelection(const juce::String& userId)
 {
-    int index = selectedUserIds.indexOf(userId);
-    if (index >= 0)
+    if (selectedUserIds.count(userId) > 0)
     {
-        selectedUserIds.remove(index);
+        selectedUserIds.erase(userId);
     }
     else
     {
-        selectedUserIds.add(userId);
+        selectedUserIds.insert(userId);
     }
 
-    addButton->setEnabled(selectedUserIds.size() > 0);
+    updateGroupNameInputVisibility();
     repaint();
 }
 
 bool UserPickerDialog::isUserSelected(const juce::String& userId) const
 {
-    return selectedUserIds.contains(userId);
+    return selectedUserIds.count(userId) > 0;
 }
 
 juce::Rectangle<int> UserPickerDialog::getUserItemBounds(int index) const
@@ -298,7 +289,7 @@ juce::Rectangle<int> UserPickerDialog::getUserItemBounds(int index) const
     bounds.removeFromTop(HEADER_HEIGHT);
     bounds.removeFromBottom(BUTTON_HEIGHT + 20);
     bounds.removeFromRight(12);
-    return juce::Rectangle<int>(0, bounds.getY() - static_cast<int>(scrollPosition) + index * ITEM_HEIGHT, bounds.getWidth(), ITEM_HEIGHT);
+    return juce::Rectangle<int>(0, bounds.getY() - static_cast<int>(scrollPosition) + index * USER_ITEM_HEIGHT, bounds.getWidth(), USER_ITEM_HEIGHT);
 }
 
 int UserPickerDialog::getItemIndexAtY(int y) const
@@ -309,7 +300,7 @@ int UserPickerDialog::getItemIndexAtY(int y) const
     bounds.removeFromRight(12);
 
     int adjustedY = y + static_cast<int>(scrollPosition) - bounds.getY();
-    int index = adjustedY / ITEM_HEIGHT;
+    int index = adjustedY / USER_ITEM_HEIGHT;
     if (index >= 0 && index < searchResults.size())
         return index;
     return -1;
@@ -320,19 +311,23 @@ void UserPickerDialog::showModal(juce::Component* parentComponent)
     if (parentComponent == nullptr)
         return;
 
+    // Default dialog size
+    static constexpr int DIALOG_WIDTH = 500;
+    static constexpr int DIALOG_HEIGHT = 600;
+
     // Center dialog
-    auto parentBounds = parentComponent->getBounds();
-    int x = parentBounds.getX() + (parentBounds.getWidth() - DIALOG_WIDTH) / 2;
-    int y = parentBounds.getY() + (parentBounds.getHeight() - DIALOG_HEIGHT) / 2;
+    auto parentBounds = parentComponent->getLocalBounds();
+    int x = (parentBounds.getWidth() - DIALOG_WIDTH) / 2;
+    int y = (parentBounds.getHeight() - DIALOG_HEIGHT) / 2;
     setBounds(x, y, DIALOG_WIDTH, DIALOG_HEIGHT);
 
     parentComponent->addAndMakeVisible(this);
     toFront(true);
-    searchInput->grabKeyboardFocus();
+    searchInput.grabKeyboardFocus();
 
     // Perform initial search if there's a query
-    if (currentQuery.isNotEmpty())
+    if (currentSearchQuery.isNotEmpty())
     {
-        performSearch();
+        performSearch(currentSearchQuery);
     }
 }

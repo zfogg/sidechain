@@ -164,21 +164,21 @@ void CircularVisualization::drawBackground(juce::Graphics& g)
 void CircularVisualization::drawRings(juce::Graphics& g)
 {
     // Draw concentric rings for pitch reference
-    int numRings = 5;
+    constexpr float numRings = 5.0f;
     float radiusStep = (outerRadius - innerRadius) / numRings;
 
     g.setColour(CircularColors::ringLine);
 
-    for (int i = 0; i <= numRings; ++i)
+    for (int i = 0; i <= static_cast<int>(numRings); ++i)
     {
-        float radius = innerRadius + i * radiusStep;
+        float radius = innerRadius + static_cast<float>(i) * radiusStep;
         g.drawEllipse(center.x - radius, center.y - radius, radius * 2, radius * 2, 1.0f);
     }
 
     // Draw radial lines every 30 degrees
     for (int i = 0; i < 12; ++i)
     {
-        float angle = i * juce::MathConstants<float>::twoPi / 12.0f - juce::MathConstants<float>::halfPi;
+        float angle = static_cast<float>(i) * juce::MathConstants<float>::twoPi / 12.0f - juce::MathConstants<float>::halfPi;
         auto innerPoint = polarToCartesian(angle, innerRadius);
         auto outerPoint = polarToCartesian(angle, outerRadius);
         g.drawLine(innerPoint.x, innerPoint.y, outerPoint.x, outerPoint.y, 1.0f);
@@ -209,14 +209,14 @@ void CircularVisualization::drawNotes(juce::Graphics& g)
         {
             // Draw dot at note position
             auto pos = polarToCartesian(startAngle, radius);
-            float dotSize = showVelocity ? (note.velocity / 127.0f * 8.0f + 4.0f) : 6.0f;
+            float dotSize = showVelocity ? (static_cast<float>(note.velocity) / 127.0f * 8.0f + 4.0f) : 6.0f;
             g.setColour(noteColor);
             g.fillEllipse(pos.x - dotSize / 2, pos.y - dotSize / 2, dotSize, dotSize);
         }
         else if (visualStyle == Style::Arcs)
         {
             // Draw arc for note duration
-            float arcThickness = showVelocity ? (note.velocity / 127.0f * 6.0f + 3.0f) : 5.0f;
+            float arcThickness = showVelocity ? (static_cast<float>(note.velocity) / 127.0f * 6.0f + 3.0f) : 5.0f;
 
             juce::Path arcPath;
             arcPath.addCentredArc(center.x, center.y, radius, radius,
@@ -230,12 +230,12 @@ void CircularVisualization::drawNotes(juce::Graphics& g)
         {
             // Draw multiple small dots along the note duration
             int numParticles = juce::jmax(3, static_cast<int>((endAngle - startAngle) * 10));
-            float particleSize = showVelocity ? (note.velocity / 127.0f * 4.0f + 2.0f) : 3.0f;
+            float particleSize = showVelocity ? (static_cast<float>(note.velocity) / 127.0f * 4.0f + 2.0f) : 3.0f;
 
             g.setColour(noteColor.withAlpha(0.5f));
             for (int i = 0; i < numParticles; ++i)
             {
-                float t = static_cast<float>(i) / (numParticles - 1);
+                float t = static_cast<float>(i) / static_cast<float>(numParticles - 1);
                 float angle = startAngle + t * (endAngle - startAngle);
                 auto pos = polarToCartesian(angle, radius);
                 g.fillEllipse(pos.x - particleSize / 2, pos.y - particleSize / 2,
@@ -255,8 +255,8 @@ void CircularVisualization::drawSweepLine(juce::Graphics& g)
     // Draw glow
     for (int i = 10; i >= 0; --i)
     {
-        float alpha = 0.05f * (10 - i);
-        float glowAngle = angle - i * 0.02f;
+        float alpha = 0.05f * static_cast<float>(10 - i);
+        float glowAngle = angle - static_cast<float>(i) * 0.02f;
         auto innerPoint = polarToCartesian(glowAngle, innerRadius);
         auto outerPoint = polarToCartesian(glowAngle, outerRadius + 10);
 
@@ -286,7 +286,7 @@ void CircularVisualization::drawActiveNotes(juce::Graphics& g)
             continue;
 
         float startAngle = timeToAngle(note.startTime);
-        float endAngle = timeToAngle(note.endTime);
+        [[maybe_unused]] float endAngle = timeToAngle(note.endTime);
         float currentAngle = timeToAngle(playbackPosition);
         float radius = noteToRadius(note.noteNumber);
 
@@ -309,7 +309,7 @@ void CircularVisualization::drawActiveNotes(juce::Graphics& g)
         // Draw the arc up to current position
         if (visualStyle == Style::Arcs || visualStyle == Style::Particles)
         {
-            float arcThickness = showVelocity ? (note.velocity / 127.0f * 8.0f + 4.0f) : 6.0f;
+            float arcThickness = showVelocity ? (static_cast<float>(note.velocity) / 127.0f * 8.0f + 4.0f) : 6.0f;
 
             juce::Path arcPath;
             arcPath.addCentredArc(center.x, center.y, radius, radius,
@@ -321,7 +321,7 @@ void CircularVisualization::drawActiveNotes(juce::Graphics& g)
         }
 
         // Draw bright dot at current position
-        float dotSize = showVelocity ? (note.velocity / 127.0f * 12.0f + 8.0f) : 10.0f;
+        float dotSize = showVelocity ? (static_cast<float>(note.velocity) / 127.0f * 12.0f + 8.0f) : 10.0f;
         g.setColour(noteColor.brighter(0.5f));
         g.fillEllipse(pos.x - dotSize / 2, pos.y - dotSize / 2, dotSize, dotSize);
 
@@ -382,7 +382,7 @@ float CircularVisualization::noteToRadius(int noteNumber) const
     if (noteRange <= 0)
         return innerRadius;
 
-    float normalizedNote = static_cast<float>(noteNumber - lowNoteNumber) / noteRange;
+    float normalizedNote = static_cast<float>(noteNumber - lowNoteNumber) / static_cast<float>(noteRange);
     return innerRadius + normalizedNote * (outerRadius - innerRadius);
 }
 
@@ -403,7 +403,7 @@ juce::Colour CircularVisualization::getNoteColor(const Note& note) const
     if (showVelocity)
     {
         // Interpolate color based on velocity
-        float velocityNorm = note.velocity / 127.0f;
+        float velocityNorm = static_cast<float>(note.velocity) / 127.0f;
         return CircularColors::noteDefault.interpolatedWith(
             CircularColors::noteActive, velocityNorm);
     }

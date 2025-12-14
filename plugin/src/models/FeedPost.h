@@ -16,6 +16,8 @@ class FeedPost
 public:
     FeedPost() = default;
     ~FeedPost() = default;
+    FeedPost(const FeedPost&) = default;
+    FeedPost& operator=(const FeedPost&) = default;
 
     //==============================================================================
     // Core identifiers
