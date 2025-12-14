@@ -248,6 +248,36 @@ void MessageThread::mouseUp(const juce::MouseEvent& event)
         }
     }
 
+    // Check for clicks on shared posts
+    for (const auto& message : messages)
+    {
+        if (hasSharedPost(message))
+        {
+            auto sharedPostBounds = getSharedPostBounds(message);
+            if (!sharedPostBounds.isEmpty() && sharedPostBounds.contains(pos))
+            {
+                // Extract post ID from message extra data
+                if (message.extraData.isObject())
+                {
+                    auto* obj = message.extraData.getDynamicObject();
+                    if (obj != nullptr)
+                    {
+                        auto sharedPost = obj->getProperty("shared_post");
+                        if (sharedPost.isObject())
+                        {
+                            juce::String postId = sharedPost.getProperty("post_id", "").toString();
+                            if (postId.isNotEmpty() && onSharedPostClicked)
+                            {
+                                onSharedPostClicked(postId);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Check for clicks on parent message preview (to scroll to parent)
     for (const auto& message : messages)
     {
@@ -1033,6 +1063,30 @@ juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Mes
         y += calculateMessageHeight(msg, MESSAGE_MAX_WIDTH) + MESSAGE_BUBBLE_PADDING;
     }
     return juce::Rectangle<int>();
+}
+
+juce::Rectangle<int> MessageThread::getSharedPostBounds(const StreamChatClient::Message& message) const
+{
+    if (!hasSharedPost(message))
+        return juce::Rectangle<int>();
+
+    auto messageBounds = getMessageBounds(message);
+    if (messageBounds.isEmpty())
+        return juce::Rectangle<int>();
+
+    // Shared post preview appears below the message text
+    // Use the same logic as in drawMessageBubble where we draw the shared content
+    int sharedContentHeight = getSharedContentHeight(message);
+    if (sharedContentHeight == 0)
+        return juce::Rectangle<int>();
+
+    // Position shared content at bottom of message bubble
+    return juce::Rectangle<int>(
+        messageBounds.getX() + MESSAGE_BUBBLE_PADDING,
+        messageBounds.getBottom() - sharedContentHeight - MESSAGE_BUBBLE_PADDING,
+        messageBounds.getWidth() - 2 * MESSAGE_BUBBLE_PADDING,
+        sharedContentHeight
+    );
 }
 
 void MessageThread::showMessageActionsMenu(const StreamChatClient::Message& message, const juce::Point<int>& screenPos)
