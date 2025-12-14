@@ -141,32 +141,25 @@ void EditProfile::setupEditors()
     addAndMakeVisible(profileSetupButton.get());
 }
 
-void EditProfile::setProfile(const UserProfile& newProfile)
+// Task 2.4: Show modal with current profile from UserStore
+void EditProfile::showWithCurrentProfile(juce::Component* parentComponent)
 {
-    profile = newProfile;
-    originalProfile = newProfile;
-    hasChanges = false;
-    errorMessage = "";
-    pendingAvatarPath = "";
-    avatarImage = juce::Image();
-
-    // Load existing avatar from URL via ImageCache
-    juce::String avatarUrl = profile.getAvatarUrl();
-    if (avatarUrl.isNotEmpty())
+    if (!userStore)
     {
-        ImageLoader::load(avatarUrl, [this](const juce::Image& img) {
-            // Only update if no local file has been selected
-            if (pendingAvatarPath.isEmpty())
-            {
-                avatarImage = img;
-                repaint();
-            }
-        });
+        Log::error("EditProfile: Cannot show modal - UserStore not set!");
+        return;
     }
 
-    populateFromProfile();
-    updateHasChanges();
-    repaint();
+    // Reset local form state
+    pendingAvatarPath = "";
+    avatarImage = juce::Image();
+    hasUnsavedChanges = false;
+
+    // Populate from UserStore
+    populateFromUserStore();
+
+    // Show the modal
+    showModal(parentComponent);
 }
 
 void EditProfile::setUserStore(Sidechain::Stores::UserStore* store)
@@ -175,9 +168,19 @@ void EditProfile::setUserStore(Sidechain::Stores::UserStore* store)
     if (userStore)
     {
         Log::debug("EditProfile: UserStore set, subscribing to state changes");
+        // Task 2.4: Subscribe to UserStore for reactive updates
         userStoreUnsubscribe = userStore->subscribe([this](const Sidechain::Stores::UserState& state) {
             Log::debug("EditProfile: UserStore state updated");
-            // Subscription triggers automatic repaint/resized
+
+            // ReactiveBoundComponent will call repaint() automatically
+            // Update form if there are saved changes (e.g., username change completed)
+            if (!hasUnsavedChanges && isVisible())
+            {
+                // Refresh UI from updated UserStore state
+                juce::MessageManager::callAsync([this]() {
+                    populateFromUserStore();
+                });
+            }
         });
     }
     else
@@ -186,24 +189,37 @@ void EditProfile::setUserStore(Sidechain::Stores::UserStore* store)
     }
 }
 
-void EditProfile::populateFromProfile()
+// Task 2.4: Populate form from UserStore (not local state)
+void EditProfile::populateFromUserStore()
 {
-    usernameEditor->setText(profile.username, false);
-    displayNameEditor->setText(profile.displayName, false);
-    bioEditor->setText(profile.bio, false);
-    locationEditor->setText(profile.location, false);
-    genreEditor->setText(profile.genre, false);
-    dawEditor->setText(profile.dawPreference, false);
-    privateAccountToggle->setToggleState(profile.isPrivate, juce::dontSendNotification);
+    if (!userStore)
+    {
+        Log::error("EditProfile: Cannot populate - UserStore not set!");
+        return;
+    }
+
+    const auto& state = userStore->getState();
+
+    // Populate basic fields from UserStore
+    usernameEditor->setText(state.username, false);
+    displayNameEditor->setText(state.displayName, false);
+    bioEditor->setText(state.bio, false);
+    locationEditor->setText(state.location, false);
+    genreEditor->setText(state.genre, false);
+    dawEditor->setText(state.dawPreference, false);
+    privateAccountToggle->setToggleState(state.isPrivate, juce::dontSendNotification);
+
+    // Store original username for change detection
+    originalUsername = state.username;
 
     // Reset username validation state
     isUsernameValid = true;
     usernameError = "";
 
-    // Parse social links
-    if (profile.socialLinks.isObject())
+    // Parse social links from UserStore
+    if (state.socialLinks.isObject())
     {
-        auto* obj = profile.socialLinks.getDynamicObject();
+        auto* obj = state.socialLinks.getDynamicObject();
         if (obj != nullptr)
         {
             instagramEditor->setText(obj->getProperty("instagram").toString(), false);
@@ -212,64 +228,36 @@ void EditProfile::populateFromProfile()
             twitterEditor->setText(obj->getProperty("twitter").toString(), false);
         }
     }
+
+    // Load avatar from UserStore
+    if (state.profileImage.isValid())
+    {
+        avatarImage = state.profileImage;
+    }
+    else if (state.profilePictureUrl.isNotEmpty() && pendingAvatarPath.isEmpty())
+    {
+        // Load from URL if not already cached
+        ImageLoader::load(state.profilePictureUrl, [this](const juce::Image& img) {
+            if (pendingAvatarPath.isEmpty())
+            {
+                avatarImage = img;
+                repaint();
+            }
+        });
+    }
+
+    updateHasChanges();
+    repaint();
 }
 
-void EditProfile::collectToProfile()
+// Task 2.4: Build social links JSON from editors
+juce::var EditProfile::getSocialLinksFromEditors() const
 {
     using namespace Sidechain::Security;
 
-    // Sanitize and validate basic profile fields
-    auto usernameRule = InputValidator::alphanumeric();
-    usernameRule->minLength(3);
-    usernameRule->maxLength(30);
-
-    auto displayNameRule = InputValidator::string();
-    displayNameRule->minLength(1);
-    displayNameRule->maxLength(50);
-
-    auto bioRule = InputValidator::string();
-    bioRule->maxLength(500);
-
-    auto locationRule = InputValidator::string();
-    locationRule->maxLength(100);
-
-    auto genreRule = InputValidator::string();
-    genreRule->maxLength(50);
-
-    auto dawRule = InputValidator::string();
-    dawRule->maxLength(50);
-
-    auto validator = InputValidator::create()
-        ->addRule("username", usernameRule)
-        ->addRule("displayName", displayNameRule)
-        ->addRule("bio", bioRule)
-        ->addRule("location", locationRule)
-        ->addRule("genre", genreRule)
-        ->addRule("daw", dawRule);
-
-    juce::StringPairArray profileData;
-    profileData.set("username", usernameEditor->getText().trim().toLowerCase());
-    profileData.set("displayName", displayNameEditor->getText().trim());
-    profileData.set("bio", bioEditor->getText().trim());
-    profileData.set("location", locationEditor->getText().trim());
-    profileData.set("genre", genreEditor->getText().trim());
-    profileData.set("daw", dawEditor->getText().trim());
-
-    auto validationResult = validator->validate(profileData);
-
-    // Use sanitized values (XSS protection)
-    profile.username = validationResult.getValue("username").value_or(usernameEditor->getText().trim().toLowerCase());
-    profile.displayName = validationResult.getValue("displayName").value_or(displayNameEditor->getText().trim());
-    profile.bio = validationResult.getValue("bio").value_or(bioEditor->getText().trim());
-    profile.location = validationResult.getValue("location").value_or(locationEditor->getText().trim());
-    profile.genre = validationResult.getValue("genre").value_or(genreEditor->getText().trim());
-    profile.dawPreference = validationResult.getValue("daw").value_or(dawEditor->getText().trim());
-    profile.isPrivate = privateAccountToggle->getToggleState();
-
-    // Validate and sanitize social links
     auto* linksObj = new juce::DynamicObject();
 
-    // Validate URLs for social links (allow usernames or full URLs)
+    // Validate and sanitize social links
     auto instagramRule = InputValidator::string();
     instagramRule->maxLength(100);
 
@@ -311,30 +299,48 @@ void EditProfile::collectToProfile()
     if (twitter.isNotEmpty())
         linksObj->setProperty("twitter", twitter);
 
-    profile.socialLinks = juce::var(linksObj);
-
-    if (pendingAvatarPath.isNotEmpty())
-        profile.profilePictureUrl = pendingAvatarPath;
+    return juce::var(linksObj);
 }
 
+// Task 2.4: Compare editors to UserStore to detect changes
 void EditProfile::updateHasChanges()
 {
-    collectToProfile();
+    if (!userStore)
+    {
+        hasUnsavedChanges = false;
+        saveButton->setEnabled(false);
+        return;
+    }
 
-    bool usernameChanged = profile.username != originalProfile.username;
+    const auto& state = userStore->getState();
 
-    hasChanges = (usernameChanged ||
-                  profile.displayName != originalProfile.displayName ||
-                  profile.bio != originalProfile.bio ||
-                  profile.location != originalProfile.location ||
-                  profile.genre != originalProfile.genre ||
-                  profile.dawPreference != originalProfile.dawPreference ||
-                  profile.isPrivate != originalProfile.isPrivate ||
-                  pendingAvatarPath.isNotEmpty() ||
-                  juce::JSON::toString(profile.socialLinks) != juce::JSON::toString(originalProfile.socialLinks));
+    // Get current editor values
+    juce::String currentUsername = usernameEditor->getText().trim().toLowerCase();
+    juce::String currentDisplayName = displayNameEditor->getText().trim();
+    juce::String currentBio = bioEditor->getText().trim();
+    juce::String currentLocation = locationEditor->getText().trim();
+    juce::String currentGenre = genreEditor->getText().trim();
+    juce::String currentDaw = dawEditor->getText().trim();
+    bool currentPrivate = privateAccountToggle->getToggleState();
+    juce::var currentSocialLinks = getSocialLinksFromEditors();
 
-    // Can only save if there are changes AND username is valid (if changed)
-    bool canSave = hasChanges && !isSaving && (!usernameChanged || isUsernameValid);
+    // Check if username changed
+    bool usernameChanged = currentUsername != originalUsername;
+
+    // Compare all fields to UserStore state
+    hasUnsavedChanges = (usernameChanged ||
+                         currentDisplayName != state.displayName ||
+                         currentBio != state.bio ||
+                         currentLocation != state.location ||
+                         currentGenre != state.genre ||
+                         currentDaw != state.dawPreference ||
+                         currentPrivate != state.isPrivate ||
+                         pendingAvatarPath.isNotEmpty() ||
+                         juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.socialLinks));
+
+    // Can only save if there are changes AND username is valid (if changed) AND not currently saving
+    bool isSaving = state.isFetchingProfile;
+    bool canSave = hasUnsavedChanges && !isSaving && (!usernameChanged || isUsernameValid);
 
     saveButton->setEnabled(canSave);
     saveButton->setColour(juce::TextButton::buttonColourId,
@@ -409,12 +415,12 @@ void EditProfile::paint(juce::Graphics& g)
     int settingsY = privacyY + FIELD_HEIGHT + SECTION_SPACING + 25;
     drawFormSection(g, "Settings", juce::Rectangle<int>(PADDING, settingsY - 25, getWidth() - PADDING * 2, 20));
 
-    // Error message
-    if (errorMessage.isNotEmpty())
+    // Task 2.4: Error message from UserStore
+    if (userStore && userStore->getState().error.isNotEmpty())
     {
         g.setColour(Colors::errorRed);
         g.setFont(12.0f);
-        g.drawText(errorMessage, PADDING, getHeight() - 80, getWidth() - PADDING * 2, 20,
+        g.drawText(userStore->getState().error, PADDING, getHeight() - 80, getWidth() - PADDING * 2, 20,
                    juce::Justification::centred);
     }
 }
@@ -462,12 +468,17 @@ void EditProfile::drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds)
         ));
         g.fillEllipse(bounds.toFloat());
 
-        // Initial
+        // Task 2.4: Display initial from UserStore
         g.setColour(Colors::textPrimary);
         g.setFont(juce::FontOptions(32.0f).withStyle("Bold"));
-        juce::String initial = profile.displayName.isEmpty()
-            ? (profile.username.isEmpty() ? "?" : profile.username.substring(0, 1).toUpperCase())
-            : profile.displayName.substring(0, 1).toUpperCase();
+        juce::String initial = "?";
+        if (userStore)
+        {
+            const auto& state = userStore->getState();
+            initial = state.displayName.isEmpty()
+                ? (state.username.isEmpty() ? "?" : state.username.substring(0, 1).toUpperCase())
+                : state.displayName.substring(0, 1).toUpperCase();
+        }
         g.drawText(initial, bounds, juce::Justification::centred);
     }
 
@@ -609,95 +620,66 @@ void EditProfile::textEditorTextChanged(juce::TextEditor& editor)
 }
 
 //==============================================================================
+// Task 2.4: Save editor values to UserStore
 void EditProfile::handleSave()
 {
-    // Task 2.4: Use UserStore instead of NetworkClient
-    if (userStore == nullptr || !hasChanges)
-        return;
-
-    collectToProfile();
-    isSaving = true;
-    saveButton->setEnabled(false);
-    errorMessage = "";
-    repaint();
-
-    bool usernameChanged = profile.username != originalProfile.username;
-
-    // If username changed, handle it first
-    if (usernameChanged)
+    if (!userStore || !hasUnsavedChanges)
     {
-        handleUsernameChange();
-    }
-    else
-    {
-        // Just save other profile changes
-        saveProfileData();
-    }
-}
-
-void EditProfile::saveProfileData()
-{
-    Log::info("EditProfile: Saving profile data (Task 2.4 - using UserStore)");
-
-    if (userStore == nullptr)
-    {
-        Log::error("EditProfile: UserStore not set!");
-        isSaving = false;
-        saveButton->setEnabled(true);
-        repaint();
+        Log::warn("EditProfile: Cannot save - UserStore not set or no changes");
         return;
     }
 
-    // Task 2.4: Use UserStore to update profile (all fields except username)
+    Log::info("EditProfile: Saving profile changes to UserStore");
+
+    // Get values from editors
+    juce::String newUsername = usernameEditor->getText().trim().toLowerCase();
+    juce::String newDisplayName = displayNameEditor->getText().trim();
+    juce::String newBio = bioEditor->getText().trim();
+    juce::String newLocation = locationEditor->getText().trim();
+    juce::String newGenre = genreEditor->getText().trim();
+    juce::String newDaw = dawEditor->getText().trim();
+    bool newPrivate = privateAccountToggle->getToggleState();
+    juce::var newSocialLinks = getSocialLinksFromEditors();
+
+    bool usernameChanged = newUsername != originalUsername;
+
+    // If username changed, update it first
+    if (usernameChanged && isUsernameValid)
+    {
+        Log::info("EditProfile: Username changed to: " + newUsername);
+        userStore->changeUsername(newUsername);
+        originalUsername = newUsername;  // Update for next comparison
+    }
+
+    // Update profile data (all fields except username)
+    juce::String avatarUrl = pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : userStore->getState().profilePictureUrl;
     userStore->updateProfileComplete(
-        profile.displayName,
-        profile.bio,
-        profile.location,
-        profile.genre,
-        profile.dawPreference,
-        profile.socialLinks,
-        profile.isPrivate,
-        profile.profilePictureUrl.isNotEmpty() ? profile.profilePictureUrl : ""
+        newDisplayName,
+        newBio,
+        newLocation,
+        newGenre,
+        newDaw,
+        newSocialLinks,
+        newPrivate,
+        avatarUrl
     );
 
-    // Mark as saved immediately (optimistic update)
+    // Reset form state
+    hasUnsavedChanges = false;
+    pendingAvatarPath = "";
+    updateHasChanges();
+
+    // Close dialog after short delay (allow UserStore to process)
     juce::MessageManager::callAsync([this]() {
-        isSaving = false;
-        originalProfile = profile;
-        hasChanges = false;
-        updateHasChanges();
         Log::info("EditProfile: Profile saved successfully");
         closeDialog();
-        repaint();
-    });
-}
-
-void EditProfile::handleUsernameChange()
-{
-    // Task 2.4: Use UserStore to change username
-    if (userStore == nullptr)
-    {
-        Log::error("EditProfile: UserStore not set for username change!");
-        isSaving = false;
-        saveButton->setEnabled(true);
-        repaint();
-        return;
-    }
-
-    // Change username via UserStore
-    userStore->changeUsername(profile.username);
-
-    // Username changed, now save other profile data
-    juce::MessageManager::callAsync([this]() {
-        originalProfile.username = profile.username;
-        saveProfileData();
     });
 }
 
 void EditProfile::validateUsername(const juce::String& username)
 {
-    // If same as original, always valid
-    if (username == originalProfile.username)
+    // Task 2.4: Compare to originalUsername (from UserStore)
+    if (username == originalUsername)
     {
         isUsernameValid = true;
         usernameError = "";
