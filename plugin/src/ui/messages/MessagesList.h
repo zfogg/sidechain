@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <map>
 #include "../../network/StreamChatClient.h"
 #include "../common/ErrorState.h"
 
@@ -66,6 +67,9 @@ private:
     NetworkClient* networkClient = nullptr;
     juce::String currentUserId;  // Current user ID for filtering members
 
+    // Presence tracking for online indicators
+    std::map<juce::String, StreamChatClient::UserPresence> userPresence;
+
     // UI elements
     juce::ScrollBar scrollBar;
     double scrollPosition = 0.0;
@@ -83,7 +87,7 @@ private:
     void drawErrorState(juce::Graphics& g);
 
     // ScrollBar::Listener
-    void scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart) override;
+    void scrollBarMoved(juce::ScrollBar* scrollBarPtr, double newRangeStart) override;
 
     // Helper methods
     juce::String formatTimestamp(const juce::String& timestamp);
@@ -92,6 +96,9 @@ private:
     int getUnreadCount(const StreamChatClient::Channel& channel);
     int getMemberCount(const StreamChatClient::Channel& channel) const;
     bool isGroupChannel(const StreamChatClient::Channel& channel) const;
+    juce::String getOtherUserId(const StreamChatClient::Channel& channel) const;
+    void loadPresenceForChannels();
+    juce::String formatLastActive(const juce::String& lastActiveTimestamp) const;
 
     // Click handling
     int getChannelIndexAtY(int y);

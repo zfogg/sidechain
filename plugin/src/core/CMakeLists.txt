@@ -119,10 +119,17 @@ target_link_libraries(Sidechain
 )
 
 # Don't treat warnings as errors (the codebase has some warnings to fix later)
+# Also suppress JUCE audio_plugin_client warnings that we can't control
 if(MSVC)
     target_compile_options(Sidechain PRIVATE /W3)
 else()
-    target_compile_options(Sidechain PRIVATE -Wall -Wno-unused-parameter -Wno-deprecated-declarations)
+    target_compile_options(Sidechain PRIVATE
+        -Wall
+        -Wno-unused-parameter
+        -Wno-deprecated-declarations
+        -Wno-missing-braces              # JUCE audio_plugin_client macros
+        -Wno-missing-field-initializers  # JUCE audio_plugin_client macros
+    )
 endif()
 
 # Platform-specific link libraries
