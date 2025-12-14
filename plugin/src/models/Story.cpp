@@ -70,6 +70,7 @@ Story Story::fromJSON(const juce::var& json)
     story.midiData = json["midi_data"];
     story.midiPatternId = json["midi_pattern_id"].toString();
     story.waveformData = json["waveform_data"].toString();
+    story.waveformUrl = json["waveform_url"].toString();
     story.bpm = static_cast<int>(json["bpm"]);
     story.key = json["key"].toString();
     story.viewCount = static_cast<int>(json["view_count"]);

@@ -140,29 +140,36 @@ void StoryRecording::resized()
     }
     else
     {
-        // Recording layout: countdown ring + record button centered
-        int ringSize = juce::jmin(contentArea.getWidth(), contentArea.getHeight() - 150);
+        // Recording layout: countdown ring + record button centered with text anchored to it
+        int ringSize = juce::jmin(contentArea.getWidth(), contentArea.getHeight() - 200);
         ringSize = juce::jmin(ringSize, 250);
 
-        int verticalOffset = (contentArea.getHeight() - ringSize - 100) / 3;
+        // Calculate total height needed for: time display + ring + MIDI indicator
+        int timeDisplayHeight = 60;
+        int midiIndicatorHeight = 40;
+        int totalHeight = timeDisplayHeight + 30 + ringSize + 30 + midiIndicatorHeight;
+
+        // Center this entire block vertically
+        int verticalOffset = (contentArea.getHeight() - totalHeight) / 2;
         contentArea.removeFromTop(verticalOffset);
 
-        countdownArea = contentArea.removeFromTop(ringSize).withSizeKeepingCentre(ringSize, ringSize);
+        // Time display ABOVE record button (anchored to it)
+        timeDisplayArea = contentArea.removeFromTop(timeDisplayHeight);
 
-        // Record button inside countdown ring
+        contentArea.removeFromTop(30);  // Whitespace between time and ring
+
+        // Countdown ring + record button
+        countdownArea = contentArea.removeFromTop(ringSize).withSizeKeepingCentre(ringSize, ringSize);
         recordButtonArea = countdownArea.reduced(30);
 
+        contentArea.removeFromTop(30);  // Whitespace between ring and MIDI
+
+        // MIDI indicator BELOW record button (anchored to it)
+        midiIndicatorArea = contentArea.removeFromTop(midiIndicatorHeight);
+
+        // Waveform preview (during recording) - use remaining space
         contentArea.removeFromTop(20);
-
-        // Time display below ring
-        timeDisplayArea = contentArea.removeFromTop(40);
-
-        // MIDI indicator
-        midiIndicatorArea = contentArea.removeFromTop(30);
-
-        // Waveform preview (during recording)
-        contentArea.removeFromTop(20);
-        waveformArea = contentArea.removeFromTop(80);
+        waveformArea = contentArea.removeFromTop(juce::jmin(80, contentArea.getHeight()));
     }
 
     // Cancel button area at bottom
@@ -354,7 +361,7 @@ void StoryRecording::drawHeader(juce::Graphics& g)
 {
     // Title
     g.setColour(StoryColors::textPrimary);
-    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
 
     juce::String title;
     switch (currentState)
@@ -376,9 +383,9 @@ void StoryRecording::drawHeader(juce::Graphics& g)
     if (currentState == State::Idle)
     {
         g.setColour(StoryColors::textSecondary);
-        g.setFont(12.0f);
-        g.drawText("5-60 seconds • Expires in 24 hours",
-                   headerArea.withY(headerArea.getY() + 30).withHeight(20).reduced(20, 0),
+        g.setFont(16.0f);
+        g.drawText("5-60 seconds - Expires in 24 hours",
+                   headerArea.withY(headerArea.getY() + 35).withHeight(25).reduced(20, 0),
                    juce::Justification::centred);
     }
 }
@@ -427,7 +434,7 @@ void StoryRecording::drawRecordButton(juce::Graphics& g)
 void StoryRecording::drawTimeDisplay(juce::Graphics& g)
 {
     g.setColour(StoryColors::textPrimary);
-    g.setFont(juce::Font(juce::FontOptions().withHeight(32.0f).withStyle("Bold")));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(48.0f).withStyle("Bold")));
 
     juce::String timeStr;
     if (currentState == State::Recording)
@@ -443,9 +450,9 @@ void StoryRecording::drawTimeDisplay(juce::Graphics& g)
 
     // Max duration indicator
     g.setColour(StoryColors::textSecondary);
-    g.setFont(12.0f);
+    g.setFont(18.0f);
     g.drawText("/ " + formatTime(MAX_DURATION_SECONDS),
-               timeDisplayArea.withY(timeDisplayArea.getBottom()).withHeight(20),
+               timeDisplayArea.withY(timeDisplayArea.getBottom() - 5).withHeight(25),
                juce::Justification::centred);
 }
 
@@ -484,7 +491,7 @@ void StoryRecording::drawMIDIIndicator(juce::Graphics& g)
 
     // MIDI icon
     g.setColour(hasMIDIActivity ? StoryColors::midiActive : StoryColors::midiBlue.withAlpha(0.5f));
-    g.setFont(14.0f);
+    g.setFont(28.0f);
 
     juce::String midiText = hasMIDIActivity ? "MIDI: Active" : "MIDI: Waiting...";
     g.drawText(midiText, bounds, juce::Justification::centred);
@@ -492,12 +499,12 @@ void StoryRecording::drawMIDIIndicator(juce::Graphics& g)
     // Activity indicator dot
     if (hasMIDIActivity)
     {
-        float dotSize = 8.0f;
+        float dotSize = 10.0f;
         float pulseAmount = midiActivityAnimation.getProgress();
         float adjustedSize = dotSize * (1.0f + pulseAmount * 0.3f);
 
         g.setColour(StoryColors::midiActive.withAlpha(1.0f - pulseAmount * 0.5f));
-        g.fillEllipse(bounds.getX() - 20, bounds.getCentreY() - adjustedSize / 2,
+        g.fillEllipse(bounds.getX() - 25, bounds.getCentreY() - adjustedSize / 2,
                       adjustedSize, adjustedSize);
     }
 }
@@ -545,7 +552,7 @@ void StoryRecording::drawWaveformPreview(juce::Graphics& g)
     {
         // Placeholder text
         g.setColour(StoryColors::textSecondary);
-        g.setFont(12.0f);
+        g.setFont(18.0f);
         g.drawText("Waveform will appear here", waveformArea, juce::Justification::centred);
     }
 }
@@ -621,7 +628,7 @@ void StoryRecording::drawMetadataInput(juce::Graphics& g)
 
     // Title
     g.setColour(StoryColors::textSecondary);
-    g.setFont(12.0f);
+    g.setFont(18.0f);
     g.drawText("Metadata (optional)", bounds.removeFromTop(18), juce::Justification::centredLeft);
 
     bounds.removeFromTop(5);
@@ -634,28 +641,28 @@ void StoryRecording::drawMetadataInput(juce::Graphics& g)
 
     // BPM
     g.setColour(StoryColors::textSecondary);
-    g.setFont(10.0f);
+    g.setFont(14.0f);
     g.drawText("BPM", bpmBounds.removeFromTop(14), juce::Justification::centredLeft);
     g.setColour(StoryColors::textPrimary);
-    g.setFont(14.0f);
+    g.setFont(20.0f);
     juce::String bpmText = storyBPM > 0 ? juce::String(storyBPM) : "Auto";
     g.drawText(bpmText, bpmBounds, juce::Justification::centredLeft);
 
     // Key
     g.setColour(StoryColors::textSecondary);
-    g.setFont(10.0f);
+    g.setFont(18.0f);
     g.drawText("Key", keyBounds.removeFromTop(14), juce::Justification::centredLeft);
     g.setColour(StoryColors::textPrimary);
-    g.setFont(14.0f);
+    g.setFont(22.0f);
     juce::String keyText = storyKey.isNotEmpty() ? storyKey : "None";
     g.drawText(keyText, keyBounds, juce::Justification::centredLeft);
 
     // Genre
     g.setColour(StoryColors::textSecondary);
-    g.setFont(10.0f);
+    g.setFont(20.0f);
     g.drawText("Genre", genreBounds.removeFromTop(14), juce::Justification::centredLeft);
     g.setColour(StoryColors::textPrimary);
-    g.setFont(14.0f);
+    g.setFont(24.0f);
     juce::String genreText = storyGenres.size() > 0 ? storyGenres.joinIntoString(", ") : "None";
     if (genreText.length() > 20)
         genreText = genreText.substring(0, 20) + "...";
@@ -671,7 +678,7 @@ void StoryRecording::drawActionButtons(juce::Graphics& g)
     g.setColour(StoryColors::buttonGray);
     g.fillRoundedRectangle(discardBounds.toFloat(), 8.0f);
     g.setColour(StoryColors::textPrimary);
-    g.setFont(14.0f);
+    g.setFont(24.0f);
     g.drawText("Discard", discardBounds, juce::Justification::centred);
 
     // Post button
@@ -679,7 +686,7 @@ void StoryRecording::drawActionButtons(juce::Graphics& g)
     g.setColour(StoryColors::buttonGreen);
     g.fillRoundedRectangle(postBounds.toFloat(), 8.0f);
     g.setColour(StoryColors::textPrimary);
-    g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
     g.drawText("Post Story", postBounds, juce::Justification::centred);
 }
 
@@ -714,7 +721,7 @@ void StoryRecording::drawSourceToggle(juce::Graphics& g)
     g.setColour(micSelected ? StoryColors::progressFg : StoryColors::surface);
     g.fillRoundedRectangle(micButton.toFloat(), 6.0f);
     g.setColour(micSelected ? StoryColors::textPrimary : StoryColors::textSecondary);
-    g.setFont(12.0f);
+    g.setFont(24.0f);
     g.drawText("Mic", micButton, juce::Justification::centred);
 }
 

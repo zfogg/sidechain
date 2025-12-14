@@ -808,6 +808,7 @@ void PostsFeed::rebuildPostCards()
     for (const auto& post : posts)
     {
         auto* card = postCards.add(new PostCard());
+        card->setNetworkClient(networkClient);  // Pass NetworkClient for waveform downloads
         card->setPost(post);
         setupPostCardCallbacks(card);
         addAndMakeVisible(card);
@@ -2110,6 +2111,7 @@ void PostsFeed::checkLoadMore()
                 for (const auto& post : response.posts)
                 {
                     auto* card = postCards.add(new PostCard());
+                    card->setNetworkClient(networkClient);  // Pass NetworkClient for waveform downloads
                     card->setPost(post);
                     setupPostCardCallbacks(card);
                     addAndMakeVisible(card);

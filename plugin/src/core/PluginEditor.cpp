@@ -2249,13 +2249,13 @@ void SidechainAudioProcessorEditor::loadLoginState()
 
             // Fetch fresh profile to get latest data (including profile picture)
             userDataStore->fetchUserProfile([this](bool success) {
-                Log::info("📸 fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
+                Log::info("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
                 juce::MessageManager::callAsync([this]() {
                     // Sync profile URL from UserDataStore
                     if (userDataStore)
                     {
                         profilePicUrl = userDataStore->getProfilePictureUrl();
-                        Log::info("📸 After fetchUserProfile: profilePicUrl=" + profilePicUrl +
+                        Log::info("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
                             ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
 
                         // Force update header with latest profile image
@@ -2264,12 +2264,12 @@ void SidechainAudioProcessorEditor::loadLoginState()
                             headerComponent->setUserInfo(userDataStore->getUsername(), profilePicUrl);
                             if (userDataStore->hasProfileImage())
                             {
-                                Log::info("📸 Updating header with fetched profile image");
+                                Log::info("Updating header with fetched profile image");
                                 headerComponent->setProfileImage(userDataStore->getProfileImage());
                             }
                             else
                             {
-                                Log::warn("📸 No profile image available after fetch");
+                                Log::warn("No profile image available after fetch");
                             }
                         }
                     }
@@ -2833,6 +2833,7 @@ void SidechainAudioProcessorEditor::stopNotificationPolling()
     if (notificationPollTimer)
     {
         static_cast<NotificationPollTimer*>(notificationPollTimer.get())->stopTimer();
+        notificationPollTimer.reset();
     }
 }
 

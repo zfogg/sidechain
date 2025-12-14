@@ -211,7 +211,7 @@ STORAGE_PROVIDER=r2  # r2, s3, local
 CLOUDFLARE_R2_ENDPOINT=
 CLOUDFLARE_R2_ACCESS_KEY=
 CLOUDFLARE_R2_SECRET_KEY=
-CLOUDFLARE_R2_BUCKET=sidechain-audio
+CLOUDFLARE_R2_BUCKET=sidechain-dev-media
 
 # Database (Metadata)
 DATABASE_URL=postgres://user:pass@localhost/sidechain?sslmode=disable

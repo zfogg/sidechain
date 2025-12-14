@@ -12,6 +12,8 @@ add_library(SidechainUICommon STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ToastNotification.h
     ${CMAKE_CURRENT_SOURCE_DIR}/SkeletonLoader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SkeletonLoader.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/WaveformImageView.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/WaveformImageView.h
 )
 
 target_include_directories(SidechainUICommon PUBLIC
@@ -22,6 +24,7 @@ target_link_libraries(SidechainUICommon PUBLIC
     SidechainUtil
     SidechainModels
     SidechainStores
+    SidechainNetwork
     juce::juce_core
     juce::juce_data_structures
     juce::juce_events

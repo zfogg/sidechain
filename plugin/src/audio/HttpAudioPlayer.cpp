@@ -8,8 +8,20 @@
 //==============================================================================
 HttpAudioPlayer::HttpAudioPlayer()
 {
-    // Register common audio formats
+    // Register common audio formats (WAV, AIFF, FLAC, Ogg)
     formatManager.registerBasicFormats();
+
+    // Note: JUCE doesn't support MP3 decoding out of the box
+    // All audio URLs must use WAV, AIFF, FLAC, or Ogg format
+
+    // Log registered formats
+    juce::String formats;
+    for (int i = 0; i < formatManager.getNumKnownFormats(); i++)
+    {
+        if (i > 0) formats += ", ";
+        formats += formatManager.getKnownFormat(i)->getFormatName();
+    }
+    Log::info("HttpAudioPlayer: Registered audio formats: " + formats);
 
     // Create progress timer
     progressTimer = std::make_unique<HttpAudioPlayer::ProgressTimer>(*this);
@@ -20,8 +32,16 @@ HttpAudioPlayer::HttpAudioPlayer()
 HttpAudioPlayer::~HttpAudioPlayer()
 {
     Log::debug("HttpAudioPlayer: Destroying");
-    progressTimer->stopTimer();
+
+    // CRITICAL: Stop timer BEFORE destroying anything
+    if (progressTimer)
+        progressTimer->stopTimer();
+
+    // Stop playback
     stop();
+
+    // Clear the timer to ensure callback doesn't fire during destruction
+    progressTimer.reset();
 }
 
 //==============================================================================
@@ -216,13 +236,30 @@ void HttpAudioPlayer::setMuted(bool shouldMute)
 
 void HttpAudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamples)
 {
+    static int logCounter = 0;
+    if (playing && ++logCounter % 1000 == 0)  // Log every 1000 blocks (~20 seconds at 512 samples/44.1kHz)
+    {
+        Log::debug("HttpAudioPlayer: processBlock called - playing: true, numSamples: " + juce::String(numSamples));
+    }
+
     if (!playing || muted)
         return;
 
     const juce::ScopedLock sl(audioLock);
 
     if (resamplingSource == nullptr)
+    {
+        Log::warn("HttpAudioPlayer: processBlock - resamplingSource is null!");
         return;
+    }
+
+    // Re-prepare if block size changed (rare but can happen)
+    if (numSamples != currentBlockSize)
+    {
+        currentBlockSize = numSamples;
+        resamplingSource->prepareToPlay(numSamples, currentSampleRate);
+        Log::debug("HttpAudioPlayer: Re-prepared for block size: " + juce::String(numSamples));
+    }
 
     // Create temp buffer for playback audio
     juce::AudioSourceChannelInfo info;
@@ -234,6 +271,20 @@ void HttpAudioPlayer::processBlock(juce::AudioBuffer<float>& buffer, int numSamp
 
     // Get audio from the source
     resamplingSource->getNextAudioBlock(info);
+
+    // Check if we got any audio data
+    float maxSample = 0.0f;
+    for (int channel = 0; channel < tempBuffer.getNumChannels(); ++channel)
+    {
+        maxSample = juce::jmax(maxSample, tempBuffer.getMagnitude(channel, 0, numSamples));
+    }
+
+    static int audioLogCounter = 0;
+    if (++audioLogCounter % 100 == 0)  // Log every 100 blocks
+    {
+        Log::debug("HttpAudioPlayer: Audio block - maxSample: " + juce::String(maxSample, 4) +
+                   ", volume: " + juce::String(volume.load(), 2));
+    }
 
     // Apply volume and mix into output buffer
     float vol = volume.load();
@@ -445,6 +496,8 @@ void HttpAudioPlayer::downloadAudio(const juce::String& postId, const juce::Stri
 
     Async::runVoid([this, postId, url]()
     {
+        Log::debug("HttpAudioPlayer: Download thread started - post: " + postId);
+
         bool success = false;
         auto data = std::make_unique<juce::MemoryBlock>();
 
@@ -454,9 +507,17 @@ void HttpAudioPlayer::downloadAudio(const juce::String& postId, const juce::Stri
             Log::debug("HttpAudioPlayer: Using NetworkClient for download");
             auto result = networkClient->makeAbsoluteRequestSync(url, "GET", juce::var(), false, juce::StringPairArray(), data.get());
             success = result.success && data->getSize() > 0;
+
+            Log::debug("HttpAudioPlayer: NetworkClient returned - success: " + juce::String(result.success ? "true" : "false") +
+                      ", status: " + juce::String(result.httpStatus) +
+                      ", dataSize: " + juce::String((int)data->getSize()) +
+                      ", errorMsg: " + result.errorMessage);
+
             if (!success)
             {
-                Log::warn("HttpAudioPlayer: NetworkClient download failed - " + result.errorMessage);
+                Log::warn("HttpAudioPlayer: NetworkClient download failed - status: " + juce::String(result.httpStatus) +
+                         ", error: " + result.errorMessage +
+                         ", dataSize: " + juce::String((int)data->getSize()));
             }
         }
         else
@@ -478,6 +539,8 @@ void HttpAudioPlayer::downloadAudio(const juce::String& postId, const juce::Stri
         // Back to message thread
         juce::MessageManager::callAsync([this, postId, data = std::move(data), success]() mutable
         {
+            Log::debug("HttpAudioPlayer: MessageManager callback - post: " + postId + ", success: " + juce::String(success ? "true" : "false"));
+
             loading = false;
 
             if (success && postId == currentPostId)
@@ -510,14 +573,44 @@ void HttpAudioPlayer::loadFromMemory(const juce::String& postId, juce::MemoryBlo
 {
     const juce::ScopedLock sl(audioLock);
 
-    // Create memory input stream
-    auto* memStream = new juce::MemoryInputStream(audioData, false);
+    Log::debug("HttpAudioPlayer: loadFromMemory - post: " + postId + ", size: " + juce::String((int)audioData.getSize()) + " bytes");
+
+    // Create memory input stream (copy data so it stays valid after audioData is freed)
+    auto* memStream = new juce::MemoryInputStream(audioData, true);
 
     // Create audio format reader
     auto* reader = formatManager.createReaderFor(std::unique_ptr<juce::InputStream>(memStream));
     if (reader == nullptr)
     {
-        Log::error("HttpAudioPlayer: Failed to create reader for audio data - post: " + postId);
+        // Log first few bytes to diagnose (safely, as hex)
+        juce::String hexDump;
+        if (audioData.getSize() > 0)
+        {
+            for (size_t i = 0; i < juce::jmin((size_t)16, audioData.getSize()); i++)
+            {
+                hexDump += juce::String::toHexString((int)static_cast<const uint8_t*>(audioData.getData())[i]).paddedLeft('0', 2) + " ";
+            }
+        }
+
+        // Check if it looks like MP3 (starts with FF FB or FF FA - MPEG sync word)
+        bool looksLikeMP3 = false;
+        if (audioData.getSize() >= 2)
+        {
+            const uint8_t* data = static_cast<const uint8_t*>(audioData.getData());
+            looksLikeMP3 = (data[0] == 0xFF && (data[1] & 0xE0) == 0xE0);
+        }
+
+        if (looksLikeMP3)
+        {
+            Log::error("HttpAudioPlayer: Cannot play MP3 file (JUCE doesn't support MP3 decoding) - post: " + postId);
+            Log::error("HttpAudioPlayer: Please use WAV, FLAC, AIFF, or Ogg format instead");
+        }
+        else
+        {
+            Log::error("HttpAudioPlayer: Failed to create reader for audio data - post: " + postId +
+                       ", size: " + juce::String((int)audioData.getSize()) + " bytes");
+            Log::error("HttpAudioPlayer: First 16 bytes (hex): " + hexDump);
+        }
         return;
     }
 

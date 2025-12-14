@@ -4,6 +4,7 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/audio"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/stream"
+	"github.com/zfogg/sidechain/backend/internal/waveform"
 	"github.com/zfogg/sidechain/backend/internal/websocket"
 )
 
@@ -17,10 +18,12 @@ import (
 
 // Handlers contains all HTTP handlers for the API
 type Handlers struct {
-	stream         stream.StreamClientInterface
-	audioProcessor *audio.Processor
-	wsHandler      *websocket.Handler
-	gorse          *recommendations.GorseRESTClient
+	stream            stream.StreamClientInterface
+	audioProcessor    *audio.Processor
+	wsHandler         *websocket.Handler
+	gorse             *recommendations.GorseRESTClient
+	waveformGenerator *waveform.Generator
+	waveformStorage   *waveform.Storage
 }
 
 // NewHandlers creates a new handlers instance
@@ -44,4 +47,10 @@ func (h *Handlers) SetWebSocketHandler(ws *websocket.Handler) {
 // SetGorseClient sets the Gorse recommendation client
 func (h *Handlers) SetGorseClient(gorse *recommendations.GorseRESTClient) {
 	h.gorse = gorse
+}
+
+// SetWaveformTools sets the waveform generator and storage
+func (h *Handlers) SetWaveformTools(generator *waveform.Generator, storage *waveform.Storage) {
+	h.waveformGenerator = generator
+	h.waveformStorage = storage
 }

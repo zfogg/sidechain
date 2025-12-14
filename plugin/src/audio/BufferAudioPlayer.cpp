@@ -14,8 +14,16 @@ BufferAudioPlayer::BufferAudioPlayer()
 BufferAudioPlayer::~BufferAudioPlayer()
 {
     Log::debug("BufferAudioPlayer: Destroying");
-    progressTimer->stopTimer();
+
+    // CRITICAL: Stop timer BEFORE destroying anything
+    if (progressTimer)
+        progressTimer->stopTimer();
+
+    // Stop playback
     stop();
+
+    // Clear the timer to ensure callback doesn't fire during destruction
+    progressTimer.reset();
 }
 
 //==============================================================================

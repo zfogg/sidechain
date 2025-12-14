@@ -721,6 +721,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"time":             post.CreatedAt.Format(time.RFC3339),
 				"audio_url":        post.AudioURL,
 				"waveform":         post.WaveformSVG,
+				"waveform_url":     post.WaveformURL,
 				"duration_seconds": post.Duration,
 				"duration_bars":    post.DurationBars,
 				"bpm":              post.BPM,

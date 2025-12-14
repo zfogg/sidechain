@@ -19,7 +19,8 @@ struct Story
     juce::String midiFilename;       // Display filename for MIDI
     juce::var midiData;              // MIDI events for visualization (embedded)
     juce::String midiPatternId;      // ID of standalone MIDI pattern (for download)
-    juce::String waveformData;       // SVG waveform
+    juce::String waveformData;       // SVG waveform (legacy, deprecated)
+    juce::String waveformUrl;        // CDN URL to waveform PNG image
     int bpm = 0;
     juce::String key;
     juce::StringArray genres;

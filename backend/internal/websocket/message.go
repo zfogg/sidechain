@@ -2,8 +2,42 @@ package websocket
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
+
+// FlexibleTime handles both Unix millisecond timestamps and RFC3339 strings
+type FlexibleTime struct {
+	time.Time
+}
+
+// UnmarshalJSON implements custom unmarshaling for timestamps
+func (ft *FlexibleTime) UnmarshalJSON(b []byte) error {
+	// Try to unmarshal as Unix milliseconds (integer)
+	var ms int64
+	if err := json.Unmarshal(b, &ms); err == nil {
+		ft.Time = time.UnixMilli(ms)
+		return nil
+	}
+
+	// Fall back to RFC3339 string format
+	var str string
+	if err := json.Unmarshal(b, &str); err != nil {
+		return fmt.Errorf("timestamp must be Unix milliseconds (integer) or RFC3339 string")
+	}
+
+	t, err := time.Parse(time.RFC3339, str)
+	if err != nil {
+		return err
+	}
+	ft.Time = t
+	return nil
+}
+
+// MarshalJSON implements custom marshaling (always output as RFC3339)
+func (ft FlexibleTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ft.Time)
+}
 
 // Message types for WebSocket communication
 const (
@@ -60,8 +94,8 @@ type Message struct {
 	// ReplyTo references the original message ID for responses
 	ReplyTo string `json:"reply_to,omitempty"`
 
-	// Timestamp when the message was created
-	Timestamp time.Time `json:"timestamp"`
+	// Timestamp when the message was created (accepts Unix ms or RFC3339)
+	Timestamp FlexibleTime `json:"timestamp"`
 }
 
 // NewMessage creates a new message with the current timestamp
@@ -69,7 +103,7 @@ func NewMessage(msgType string, payload interface{}) *Message {
 	return &Message{
 		Type:      msgType,
 		Payload:   payload,
-		Timestamp: time.Now().UTC(),
+		Timestamp: FlexibleTime{Time: time.Now().UTC()},
 	}
 }
 
@@ -79,7 +113,7 @@ func NewMessageWithID(msgType string, id string, payload interface{}) *Message {
 		Type:      msgType,
 		ID:        id,
 		Payload:   payload,
-		Timestamp: time.Now().UTC(),
+		Timestamp: FlexibleTime{Time: time.Now().UTC()},
 	}
 }
 
@@ -89,7 +123,7 @@ func NewReply(original *Message, msgType string, payload interface{}) *Message {
 		Type:      msgType,
 		ReplyTo:   original.ID,
 		Payload:   payload,
-		Timestamp: time.Now().UTC(),
+		Timestamp: FlexibleTime{Time: time.Now().UTC()},
 	}
 }
 
@@ -101,7 +135,7 @@ func NewErrorMessage(code string, message string) *Message {
 			Code:    code,
 			Message: message,
 		},
-		Timestamp: time.Now().UTC(),
+		Timestamp: FlexibleTime{Time: time.Now().UTC()},
 	}
 }
 

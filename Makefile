@@ -37,19 +37,19 @@ CMAKE_BUILD_TYPE ?= Debug
 # Platform-specific settings
 ifeq ($(UNAME_S),Darwin)
 	PLATFORM = macos
-	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
-	AU_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/AU/Sidechain.component
+	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
+	AU_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/AU/Sidechain.component
 	PLUGIN_INSTALL_DIR = ~/Library/Audio/Plug-Ins/VST3
 	AU_INSTALL_DIR = ~/Library/Audio/Plug-Ins/Components
 	CMAKE_GENERATOR = -G Ninja
 else ifeq ($(UNAME_S),Linux)
 	PLATFORM = linux
-	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
+	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = ~/.vst3
 	CMAKE_GENERATOR = -G Ninja
 else ifeq ($(OS),Windows_NT)
 	PLATFORM = windows
-	PLUGIN_OUTPUT = plugin/build/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
+	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = $(LOCALAPPDATA)/Programs/Common/VST3
 	CMAKE_GENERATOR = -G "Visual Studio 17 2022" -A x64
 else

@@ -171,6 +171,7 @@ func (c *Client) ReadPump() {
 		// Parse the message
 		var message Message
 		if err := json.Unmarshal(data, &message); err != nil {
+			log.Printf("WebSocket: JSON parse error from user %s: %v", c.UserID, err)
 			c.SendError("invalid_json", "Failed to parse message")
 			continue
 		}
@@ -234,12 +235,12 @@ func (c *Client) WritePump() {
 func (c *Client) handleMessage(message *Message) {
 	// Update timestamp if not set
 	if message.Timestamp.IsZero() {
-		message.Timestamp = time.Now().UTC()
+		message.Timestamp = FlexibleTime{Time: time.Now().UTC()}
 	}
 
 	// Handle built-in message types
 	switch message.Type {
-	case MessageTypePing:
+	case MessageTypePing, "heartbeat": // "heartbeat" is an alias for ping
 		c.handlePing(message)
 		return
 

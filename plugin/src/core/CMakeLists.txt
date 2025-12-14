@@ -20,7 +20,9 @@ juce_add_plugin(Sidechain
     DESCRIPTION "Social VST for Music Producers"
 
     # Plugin type configuration
-    IS_SYNTH FALSE
+    # Set to TRUE so standalone app generates audio (for feed playback)
+    # Even though we're not a traditional synth, we generate audio output
+    IS_SYNTH TRUE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
@@ -66,7 +68,7 @@ target_sources(Sidechain PRIVATE
 target_compile_definitions(Sidechain
     PUBLIC
         JUCE_WEB_BROWSER=0
-        JUCE_USE_CURL=0
+        JUCE_USE_CURL=1  # Enable curl for HTTPS audio downloads
         JUCE_VST3_CAN_REPLACE_VST2=0
         JucePlugin_PreferredChannelConfigurations=1
         JucePlugin_ChannelConfigurations="{2, 2}"
@@ -126,6 +128,10 @@ endif()
 if(APPLE)
     target_link_libraries(Sidechain PRIVATE "-framework Security")
 endif()
+
+# Link curl library for HTTPS support
+find_package(CURL REQUIRED)
+target_link_libraries(Sidechain PRIVATE CURL::libcurl)
 
 # Link libkeyfinder if available (already linked via SidechainAudio, but keep for compatibility)
 if(SIDECHAIN_HAS_KEYFINDER)

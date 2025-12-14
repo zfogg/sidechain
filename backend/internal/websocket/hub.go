@@ -379,7 +379,7 @@ func (h *Hub) shutdown() {
 	shutdownMsg := &Message{
 		Type:      MessageTypeSystem,
 		Payload:   map[string]interface{}{"event": "server_shutdown"},
-		Timestamp: time.Now().UTC(),
+		Timestamp: FlexibleTime{Time: time.Now().UTC()},
 	}
 	data, _ := json.Marshal(shutdownMsg)
 

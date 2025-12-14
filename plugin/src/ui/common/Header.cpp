@@ -271,13 +271,14 @@ void Header::mouseUp(const juce::MouseEvent& event)
 void Header::drawLogo(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(30.0f)).boldened());
     g.drawText("Sidechain", bounds, juce::Justification::centredLeft);
 }
 
 void Header::drawSearchButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Use UIHelpers::drawOutlineButton for consistent button styling
+    g.setFont(juce::Font(juce::FontOptions().withHeight(22.0f)));
     UIHelpers::drawOutlineButton(g, bounds, "Search users...",
         SidechainColors::border(), SidechainColors::textMuted(), false, 8.0f);
 }
@@ -286,6 +287,7 @@ void Header::drawRecordButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     // Record button is wired up in PluginEditor.cpp (line 355-356) - navigates to Recording screen
     // Use UIHelpers::drawButton for base button, then add custom recording dot
+    g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f)));
     UIHelpers::drawButton(g, bounds, "Record",
         SidechainColors::primary(), juce::Colours::white, false, 8.0f);
 
@@ -329,7 +331,7 @@ void Header::drawMessagesButton(juce::Graphics& g, juce::Rectangle<int> bounds)
 
         // Draw badge text
         g.setColour(juce::Colours::white);
-        g.setFont(10.0f);
+        g.setFont(15.0f);
         juce::String countText = unreadMessageCount > 99 ? "99+" : juce::String(unreadMessageCount);
         g.drawText(countText, badgeBounds, juce::Justification::centred);
     }
@@ -414,7 +416,7 @@ juce::Rectangle<int> Header::getRecordButtonBounds() const
 {
     // Position the record button between search and profile
     auto searchBounds = getSearchButtonBounds();
-    int buttonWidth = 100;
+    int buttonWidth = 140;
     int buttonHeight = 36;
     int x = searchBounds.getRight() + 16;  // 16px gap after search
     int y = (getHeight() - buttonHeight) / 2;

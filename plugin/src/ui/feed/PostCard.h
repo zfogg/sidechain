@@ -5,7 +5,11 @@
 #include "../../util/Animation.h"
 #include "../../util/HoverState.h"
 #include "../../util/LongPressDetector.h"
+#include "../common/WaveformImageView.h"
 #include "EmojiReactionsPanel.h"
+
+// Forward declarations
+class NetworkClient;
 
 //==============================================================================
 /**
@@ -49,6 +53,11 @@ public:
      * @return The unique post identifier
      */
     juce::String getPostId() const { return post.id; }
+
+    /** Set the network client for downloading waveform images
+     * @param client Pointer to the NetworkClient instance
+     */
+    void setNetworkClient(NetworkClient* client);
 
     //==============================================================================
     // Update specific fields without full refresh
@@ -330,6 +339,9 @@ private:
 
     // Cached avatar image (loaded via ImageCache)
     juce::Image avatarImage;
+
+    // Waveform image view (loads PNG from CDN)
+    WaveformImageView waveformView;
 
     //==============================================================================
     // Drawing methods

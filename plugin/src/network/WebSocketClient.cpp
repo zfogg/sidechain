@@ -112,8 +112,9 @@ bool WebSocketClient::send(const juce::var& message)
         if (con && con->get_state() == websocketpp::session::state::open)
         {
             websocketpp::lib::error_code ec;
-            auto utf8 = json.toUTF8();
-            client->send(currentConnection, utf8.getAddress(), websocketpp::frame::opcode::text, ec);
+            // Convert to std::string to ensure proper length handling
+            std::string payload = json.toStdString();
+            client->send(currentConnection, payload, websocketpp::frame::opcode::text, ec);
             
             if (ec)
             {

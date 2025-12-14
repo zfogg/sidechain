@@ -598,6 +598,13 @@ void StreamChatClient::cleanupWebSocket()
 {
     wsConnectionActive.store(false);
 
+    // Stop channel polling timer
+    if (channelPollTimer)
+    {
+        channelPollTimer->stopTimer();
+        channelPollTimer.reset();
+    }
+
     if (wsClient)
     {
         try

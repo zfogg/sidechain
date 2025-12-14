@@ -221,10 +221,12 @@ NetworkClient::RequestResult NetworkClient::makeRequestWithRetry(const juce::Str
         {
             if (!data.isVoid())
             {
+                // Log JSON string before converting to MemoryBlock (avoid UTF-8 issues)
+                juce::String jsonString = juce::JSON::toString(data, true);
+                Log::debug("POST data: " + jsonString + " (size: " + juce::String(jsonString.getNumBytesAsUTF8()) + " bytes)");
+
                 // Use helper function to avoid null terminator issues with JSON
-                auto jsonBody = createJsonPostBody(data);
-                Log::debug("POST data: " + juce::String((const char*)jsonBody.getData(), jsonBody.getSize()) +
-                          " (size: " + juce::String((int)jsonBody.getSize()) + " bytes)");
+                juce::MemoryBlock jsonBody(jsonString.toRawUTF8(), jsonString.getNumBytesAsUTF8());
                 url = url.withPOSTData(jsonBody);
             }
             else if (method == "POST")
@@ -536,6 +538,19 @@ NetworkClient::RequestResult NetworkClient::makeAbsoluteRequestSync(const juce::
     {
         stream->readIntoMemoryBlock(*binaryData);
         result.success = result.isSuccess() && binaryData->getSize() > 0;
+
+        Log::debug("NetworkClient: Binary download - URL: " + absoluteUrl +
+                   ", status: " + juce::String(result.httpStatus) +
+                   ", size: " + juce::String((int)binaryData->getSize()) + " bytes" +
+                   ", success: " + (result.success ? "true" : "false"));
+
+        if (!result.success)
+        {
+            Log::warn("NetworkClient: Binary download failed - URL: " + absoluteUrl +
+                     ", status: " + juce::String(result.httpStatus) +
+                     ", isSuccess: " + (result.isSuccess() ? "true" : "false") +
+                     ", size: " + juce::String((int)binaryData->getSize()));
+        }
     }
     else
     {

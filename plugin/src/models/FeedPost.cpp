@@ -50,6 +50,7 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     // Audio metadata
     post.audioUrl = Json::getString(json, "audio_url");
     post.waveformSvg = Json::getString(json, "waveform");
+    post.waveformUrl = Json::getString(json, "waveform_url");
     post.filename = Json::getString(json, "filename");
     post.durationSeconds = Json::getFloat(json, "duration_seconds");
     post.durationBars = Json::getInt(json, "duration_bars");
@@ -276,6 +277,8 @@ juce::var FeedPost::toJson() const
     // Audio metadata
     obj->setProperty("audio_url", audioUrl);
     obj->setProperty("waveform", waveformSvg);
+    if (waveformUrl.isNotEmpty())
+        obj->setProperty("waveform_url", waveformUrl);
     if (filename.isNotEmpty())
         obj->setProperty("filename", filename);
     obj->setProperty("duration_seconds", durationSeconds);
