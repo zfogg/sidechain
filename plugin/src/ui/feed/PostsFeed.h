@@ -135,7 +135,7 @@ private:
     // Scroll state
     double scrollPosition = 0.0;
     int totalContentHeight = 0;
-    static constexpr int POST_CARD_HEIGHT = 120;
+    static constexpr int POST_CARD_HEIGHT = PostCard::CARD_HEIGHT;  // Use PostCard's height constant
     static constexpr int POST_CARD_SPACING = 10;
 
     //==============================================================================
