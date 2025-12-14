@@ -58,21 +58,38 @@ if(SIDECHAIN_ENABLE_KEY_DETECTION)
         # Build libkeyfinder as a static library
         set(LIBKEYFINDER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/libkeyfinder")
         set(LIBKEYFINDER_CACHE_DIR "${SIDECHAIN_DEPS_CACHE_DIR}/libkeyfinder")
+        set(LIBKEYFINDER_LIB "${LIBKEYFINDER_CACHE_DIR}/libkeyfinder.a")
 
         if(EXISTS "${LIBKEYFINDER_DIR}/CMakeLists.txt")
-            # Configure libkeyfinder build options
-            set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-            set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+            # Check if libkeyfinder is already built in cache
+            if(EXISTS "${LIBKEYFINDER_LIB}")
+                message(STATUS "Using pre-built libkeyfinder from cache: ${LIBKEYFINDER_LIB}")
 
-            # Add libkeyfinder subdirectory - use cache dir for binary output
-            add_subdirectory("${LIBKEYFINDER_DIR}" "${LIBKEYFINDER_CACHE_DIR}" EXCLUDE_FROM_ALL)
+                # Create IMPORTED target pointing to cached library
+                add_library(keyfinder STATIC IMPORTED GLOBAL)
+                set_target_properties(keyfinder PROPERTIES
+                    IMPORTED_LOCATION "${LIBKEYFINDER_LIB}"
+                    INTERFACE_INCLUDE_DIRECTORIES "${LIBKEYFINDER_DIR}/src"
+                    POSITION_INDEPENDENT_CODE ON
+                )
 
-            # Create an alias for cleaner usage
-            if(TARGET keyfinder)
                 set(SIDECHAIN_HAS_KEYFINDER TRUE CACHE INTERNAL "")
-                # Enable position independent code for shared library linking
-                set_target_properties(keyfinder PROPERTIES POSITION_INDEPENDENT_CODE ON)
-                message(STATUS "libkeyfinder will be built from: ${LIBKEYFINDER_DIR}")
+            else()
+                message(STATUS "Building libkeyfinder to cache (first time)...")
+
+                # Configure libkeyfinder build options
+                set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+                set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
+                # Add libkeyfinder subdirectory - use cache dir for binary output
+                add_subdirectory("${LIBKEYFINDER_DIR}" "${LIBKEYFINDER_CACHE_DIR}" EXCLUDE_FROM_ALL)
+
+                # Create an alias for cleaner usage
+                if(TARGET keyfinder)
+                    set(SIDECHAIN_HAS_KEYFINDER TRUE CACHE INTERNAL "")
+                    # Enable position independent code for shared library linking
+                    set_target_properties(keyfinder PROPERTIES POSITION_INDEPENDENT_CODE ON)
+                endif()
             endif()
         else()
             message(WARNING "libkeyfinder not found at ${LIBKEYFINDER_DIR}")
