@@ -845,9 +845,12 @@ void PostsFeed::updatePostCardPositions()
 void PostsFeed::setupPostCardCallbacks(PostCard* card)
 {
     card->onPlayClicked = [this](const FeedPost& post) {
-        Log::debug("Play clicked for post: " + post.id);
+        Log::info("PostsFeed: Play clicked for post: " + post.id + ", audioUrl: " + post.audioUrl);
+        Log::debug("PostsFeed: audioPlayer=" + juce::String::toHexString((juce::pointer_sized_int)audioPlayer) +
+                   ", audioUrl.isNotEmpty=" + juce::String(post.audioUrl.isNotEmpty() ? "true" : "false"));
         if (audioPlayer && post.audioUrl.isNotEmpty())
         {
+            Log::info("PostsFeed: Calling audioPlayer->loadAndPlay()");
             audioPlayer->loadAndPlay(post.id, post.audioUrl);
 
             // Pre-buffer next post for seamless playback

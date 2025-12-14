@@ -3,7 +3,7 @@
 # Sidechain Makefile
 # Builds both the VST plugin (via CMake) and Go backend
 
-.PHONY: all install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help
+.PHONY: all install install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help
 
 # Default target
 all: backend plugin plugin-install
@@ -118,6 +118,12 @@ plugin-fast:
 	@echo "🔄 Building VST plugin (fast - no reconfigure) for $(PLATFORM) ($(CMAKE_BUILD_TYPE))..."
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin built successfully"
+
+# CMake install (use with sudo for system-wide install)
+install: plugin
+	@echo "📦 Installing plugin using cmake --install..."
+	@cmake --install $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE)
+	@echo "✅ Plugin installed successfully"
 
 plugin-install: plugin
 	@echo "📦 Installing VST plugin to $(PLUGIN_INSTALL_DIR)..."
