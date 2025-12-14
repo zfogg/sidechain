@@ -29,6 +29,38 @@ elseif(NOT NINJA_EXECUTABLE)
 endif()
 
 #==============================================================================
+# ccache Support for Faster Incremental Builds
+# Caches compiled object files to speed up recompilation
+#==============================================================================
+find_program(CCACHE_EXECUTABLE ccache)
+if(CCACHE_EXECUTABLE)
+    message(STATUS "Found ccache: ${CCACHE_EXECUTABLE}")
+    message(STATUS "Enabling ccache for faster incremental builds")
+
+    # Set ccache as compiler launcher
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_EXECUTABLE}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_EXECUTABLE}")
+
+    # Optional: Set ccache options via environment variables or directly
+    # Increase cache size if needed (default is often 5GB)
+    # You can configure this with: ccache -M 10G
+
+    # Show ccache statistics after build with: ccache -s
+else()
+    message(STATUS "ccache not found. Install it for faster incremental builds:")
+    if(UNIX AND NOT APPLE)
+        message(STATUS "  sudo apt install ccache        # Ubuntu/Debian")
+        message(STATUS "  sudo pacman -S ccache          # Arch")
+        message(STATUS "  sudo dnf install ccache        # Fedora")
+    elseif(APPLE)
+        message(STATUS "  brew install ccache")
+    elseif(WIN32)
+        message(STATUS "  choco install ccache           # Chocolatey")
+        message(STATUS "  Or download from: https://ccache.dev/download.html")
+    endif()
+endif()
+
+#==============================================================================
 # Version from git tags (via scripts/version.sh)
 # NOTE: Must run BEFORE project() so we can set PROJECT_VERSION
 #==============================================================================
