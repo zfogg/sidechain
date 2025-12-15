@@ -691,6 +691,14 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 					"username":   user.Username,
 					"avatar_url": user.ProfilePictureURL,
 				}
+			} else {
+				// User not found in database (stale Stream.io data)
+				// Provide placeholder to prevent "Unknown" display
+				activityMap["user"] = gin.H{
+					"id":         userID,
+					"username":   "DeletedUser",
+					"avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=deleted",
+				}
 			}
 		}
 

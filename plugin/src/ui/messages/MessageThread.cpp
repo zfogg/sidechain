@@ -98,14 +98,19 @@ void MessageThread::paint(juce::Graphics& g)
     const auto& state = chatStore->getState();
     const auto* channel = state.getCurrentChannel();
 
+    Log::debug("MessageThread::paint - channel: " + juce::String(channel != nullptr ? "SET" : "NULL") +
+               (channel ? ", messages: " + juce::String(channel->messages.size()) : ""));
+
     // Handle error state
     if (!state.error.isEmpty() || state.connectionStatus == StreamChatClient::ConnectionStatus::Disconnected)
     {
         // ErrorState component handles the error UI as a child component
+        Log::debug("MessageThread::paint - Error state");
     }
     // Handle loading state
     else if (channel && channel->isLoadingMessages)
     {
+        Log::debug("MessageThread::paint - Loading state");
         int bottomAreaHeight = INPUT_HEIGHT;
         if (!replyingToMessageId.isEmpty())
             bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
@@ -117,11 +122,13 @@ void MessageThread::paint(juce::Graphics& g)
     // Handle empty state
     else if (channel && channel->messages.empty())
     {
+        Log::debug("MessageThread::paint - Empty state");
         drawEmptyState(g);
     }
     // Handle loaded state
     else if (channel)
     {
+        Log::debug("MessageThread::paint - Drawing " + juce::String(channel->messages.size()) + " messages");
         drawMessages(g);
     }
 
@@ -422,6 +429,14 @@ void MessageThread::setChatStore(Sidechain::Stores::ChatStore* store)
         // ReactiveBoundComponent automatically triggers repaint() when state changes
         chatStoreUnsubscribe = chatStore->subscribe([this](const Sidechain::Stores::ChatStoreState& state) {
             Log::debug("MessageThread: ChatStore state updated - repaint() will be called automatically");
+            if (const auto* channel = state.getCurrentChannel())
+            {
+                Log::debug("MessageThread: Current channel has " + juce::String(channel->messages.size()) + " messages");
+            }
+            else
+            {
+                Log::debug("MessageThread: No current channel selected");
+            }
 
             // ReactiveBoundComponent will call repaint() automatically
             // paint() methods now get state directly from chatStore->getState()

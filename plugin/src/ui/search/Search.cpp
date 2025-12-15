@@ -767,7 +767,7 @@ void Search::drawHeader(juce::Graphics& g)
     backButtonBounds = bounds.removeFromLeft(50).reduced(10);
     g.setColour(SidechainColors::textPrimary());
     g.setFont(20.0f);
-    g.drawText("←", backButtonBounds, juce::Justification::centred);
+    g.drawText(juce::CharPointer_UTF8("\xe2\x86\x90"), backButtonBounds, juce::Justification::centred); // ←
 
     // Search input bounds
     auto searchBounds = bounds.removeFromLeft(bounds.getWidth() - 60).reduced(10, 5);

@@ -420,9 +420,11 @@ void ChatStore::sendMessage(const juce::String& channelId, const juce::String& t
     auto userId = getState().userId;
 
     // Optimistic update - add message immediately
+    Log::debug("ChatStore::sendMessage - Starting optimistic update with tempId: " + tempId);
     optimisticUpdate(
         [channelId, text, tempId, userId](ChatStoreState& state)
         {
+            Log::debug("ChatStore::sendMessage - Optimistic callback firing for channelId: " + channelId);
             auto& channel = state.channels[channelId];
 
             StreamChatClient::Message tempMessage;
@@ -433,6 +435,8 @@ void ChatStore::sendMessage(const juce::String& channelId, const juce::String& t
 
             channel.messages.push_back(tempMessage);
             channel.draftText = ""; // Clear draft
+
+            Log::debug("ChatStore::sendMessage - Added temp message. Channel now has " + juce::String(channel.messages.size()) + " messages");
         },
         [this, channelId, text, tempId](auto callback)
         {
@@ -952,14 +956,17 @@ void ChatStore::handleMessagesError(const juce::String& channelId, const juce::S
 
 void ChatStore::handleMessageSent(const juce::String& channelId, const StreamChatClient::Message& message)
 {
+    Log::info("ChatStore::handleMessageSent - Received message for channelId: " + channelId + " messageId: " + message.id);
     Util::logInfo("ChatStore", "Message sent successfully", "channelId=" + channelId + " messageId=" + message.id);
 
     updateState([channelId, message](ChatStoreState& state)
     {
+        Log::debug("ChatStore::handleMessageSent - updateState callback firing");
         auto it = state.channels.find(channelId);
         if (it != state.channels.end())
         {
             auto& channel = it->second;
+            Log::debug("ChatStore::handleMessageSent - Found channel. Currently has " + juce::String(channel.messages.size()) + " messages");
 
             // Find and replace temporary message with real one
             auto msgIt = std::find_if(channel.messages.begin(), channel.messages.end(),
@@ -969,13 +976,20 @@ void ChatStore::handleMessageSent(const juce::String& channelId, const StreamCha
 
             if (msgIt != channel.messages.end())
             {
+                Log::debug("ChatStore::handleMessageSent - Replacing temp message with real one");
                 *msgIt = message;
             }
             else
             {
                 // Not found, just add it
+                Log::debug("ChatStore::handleMessageSent - Temp message not found, adding new message");
                 channel.messages.push_back(message);
             }
+            Log::debug("ChatStore::handleMessageSent - Channel now has " + juce::String(channel.messages.size()) + " messages");
+        }
+        else
+        {
+            Log::error("ChatStore::handleMessageSent - Channel not found in state!");
         }
     });
 }

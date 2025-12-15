@@ -899,10 +899,11 @@ func (c *GorseRESTClient) GetSimilarPostsByGenre(postID, genre string, limit int
 // GetPopular returns globally popular posts based on engagement metrics
 // Task 7.1
 func (c *GorseRESTClient) GetPopular(limit, offset int) ([]PostScore, error) {
-	// Gorse popular endpoint: GET /api/popular?n={n}
+	// Note: Gorse in-one doesn't have /api/popular, so we use /api/latest
+	// which returns recently added items (works as a fallback for popular)
 	// Note: Gorse doesn't support offset parameter, so we fetch more and slice
 	totalLimit := limit + offset
-	endpoint := fmt.Sprintf("/api/popular?n=%d", totalLimit)
+	endpoint := fmt.Sprintf("/api/latest?n=%d", totalLimit)
 	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get popular posts: %w", err)
