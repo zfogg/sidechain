@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "stores/UserDataStore.h"
+#include "stores/ChatStore.h"
 #include "network/NetworkClient.h"
 #include "network/WebSocketClient.h"
 #include "ui/auth/Auth.h"
@@ -228,8 +229,9 @@ private:
     void handleLogout();
 
     //==============================================================================
-    // Centralized user data store
+    // Centralized stores
     std::unique_ptr<UserDataStore> userDataStore;
+    // ChatStore is a singleton, accessed via getInstance()
 
     // Legacy user state (to be removed as we migrate to UserDataStore)
     juce::String username;
