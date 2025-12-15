@@ -97,20 +97,29 @@ void PostCard::setPost(const FeedPost& newPost)
 
     // Create and start fade-in animation
     currentOpacity = 0.0f;
+    // Use SafePointer for animation callback in case PostCard is destroyed
+    juce::Component::SafePointer<PostCard> safeThis(this);
     fadeInAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 300)
         ->withEasing(Easing::easeOutCubic)
-        ->onProgress([this](float opacity) {
-            currentOpacity = opacity;
-            repaint();
+        ->onProgress([safeThis](float opacity) {
+            if (safeThis == nullptr)
+                return;
+            safeThis->currentOpacity = opacity;
+            safeThis->repaint();
         })
         ->start();
 
     // Load avatar via backend proxy to work around JUCE SSL/redirect issues on Linux
     if (post.userId.isNotEmpty())
     {
-        ImageLoader::loadAvatarForUser(post.userId, [this](const juce::Image& img) {
-            avatarImage = img;
-            repaint();
+        // Use SafePointer to handle case where PostCard is destroyed before callback executes
+        juce::Component::SafePointer<PostCard> safeThis(this);
+        ImageLoader::loadAvatarForUser(post.userId, [safeThis](const juce::Image& img) {
+            // Check if PostCard still exists before accessing members
+            if (safeThis == nullptr)
+                return;
+            safeThis->avatarImage = img;
+            safeThis->repaint();
         });
     }
 
