@@ -8,12 +8,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/models"
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
 // GetForYouFeed returns personalized recommendations for the current user
 // GET /api/v1/recommendations/for-you
+// Query params: ?genre=electronic&min_bpm=120&max_bpm=140
+// Task 6.2, 6.3
 func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
@@ -23,6 +26,9 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	genre := c.Query("genre")
+	minBPM, _ := strconv.Atoi(c.Query("min_bpm"))
+	maxBPM, _ := strconv.Atoi(c.Query("max_bpm"))
 
 	if limit > 100 {
 		limit = 100
@@ -39,8 +45,21 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	}
 	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
 
-	// Get recommendations
-	scores, err := recService.GetForYouFeed(userID, limit, offset)
+	// Get recommendations with optional filters
+	var scores []recommendations.PostScore
+	var err error
+
+	if genre != "" {
+		// Filter by genre (Task 6.1, 6.2)
+		scores, err = recService.GetForYouFeedByGenre(userID, genre, limit, offset)
+	} else if minBPM > 0 || maxBPM > 0 {
+		// Filter by BPM range (Task 6.3)
+		scores, err = recService.GetForYouFeedByBPMRange(userID, minBPM, maxBPM, limit, offset)
+	} else {
+		// No filters, get general recommendations
+		scores, err = recService.GetForYouFeed(userID, limit, offset)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_recommendations",
@@ -68,21 +87,34 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
+	meta := gin.H{
+		"limit":  limit,
+		"offset": offset,
+		"count":  len(activities),
+	}
+	if genre != "" {
+		meta["filter_genre"] = genre
+	}
+	if minBPM > 0 {
+		meta["filter_min_bpm"] = minBPM
+	}
+	if maxBPM > 0 {
+		meta["filter_max_bpm"] = maxBPM
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
-		"meta": gin.H{
-			"limit":  limit,
-			"offset": offset,
-			"count":  len(activities),
-		},
+		"meta":       meta,
 	})
 }
 
 // GetSimilarPosts returns posts similar to a given post
 // GET /api/v1/recommendations/similar-posts/:post_id
+// Query params: ?genre=electronic (Task 6.4)
 func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	postID := c.Param("post_id")
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	genre := c.Query("genre")
 
 	if limit > 50 {
 		limit = 50
@@ -99,8 +131,16 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 	}
 	recService := recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
 
-	// Get similar posts
-	posts, err := recService.GetSimilarPosts(postID, limit)
+	// Get similar posts with optional genre filter (Task 6.4)
+	var posts []models.AudioPost
+	var err error
+
+	if genre != "" {
+		posts, err = recService.GetSimilarPostsByGenre(postID, genre, limit)
+	} else {
+		posts, err = recService.GetSimilarPosts(postID, limit)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "failed_to_get_similar_posts",
@@ -127,12 +167,17 @@ func (h *Handlers) GetSimilarPosts(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
+	meta := gin.H{
+		"limit": limit,
+		"count": len(activities),
+	}
+	if genre != "" {
+		meta["filter_genre"] = genre
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
-		"meta": gin.H{
-			"limit": limit,
-			"count": len(activities),
-		},
+		"meta":       meta,
 	})
 }
 
