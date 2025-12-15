@@ -33,18 +33,17 @@ endfunction()
 
 #==============================================================================
 # clang-tidy target
-# Runs clang-tidy on all source files in parallel
+# Runs clang-tidy on all source files
 #==============================================================================
 if(CLANG_TIDY_EXECUTABLE)
     collect_source_files(TIDY_SOURCES)
 
     add_custom_target(tidy
-        COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy on ${CMAKE_CPU_CORES} cores..."
+        COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy..."
         COMMAND ${CLANG_TIDY_EXECUTABLE}
             -p ${CMAKE_BINARY_DIR}
             --fix
             --fix-errors
-            -j ${CMAKE_CPU_CORES}
             ${TIDY_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-tidy with automatic fixes"
@@ -52,11 +51,10 @@ if(CLANG_TIDY_EXECUTABLE)
     )
 
     add_custom_target(tidy-check
-        COMMAND ${CMAKE_COMMAND} -E echo "Checking code with clang-tidy on ${CMAKE_CPU_CORES} cores..."
+        COMMAND ${CMAKE_COMMAND} -E echo "Checking code with clang-tidy..."
         COMMAND ${CLANG_TIDY_EXECUTABLE}
             -p ${CMAKE_BINARY_DIR}
             --warnings-as-errors=*
-            -j ${CMAKE_CPU_CORES}
             ${TIDY_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-tidy (check mode - errors if issues found)"
