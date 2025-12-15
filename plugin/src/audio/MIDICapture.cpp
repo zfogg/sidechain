@@ -14,7 +14,7 @@ MIDICapture::~MIDICapture()
 }
 
 //==============================================================================
-void MIDICapture::prepare(double sampleRate, int /* samplesPerBlock */)
+void MIDICapture::prepare(double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
     currentBlockSize = samplesPerBlock;

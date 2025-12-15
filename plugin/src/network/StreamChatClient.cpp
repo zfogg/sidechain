@@ -767,14 +767,14 @@ void StreamChatClient::cleanupWebSocket()
 
 //==============================================================================
 // WebSocket event handlers
-void StreamChatClient::onWsOpen(connection_hdl [[maybe_unused]] hdl)
+void StreamChatClient::onWsOpen(connection_hdl /* hdl */)
 {
     wsConnected.store(true);
     updateConnectionStatus(ConnectionStatus::Connected);
     Log::info("StreamChatClient: WebSocket connected to getstream.io");
 }
 
-void StreamChatClient::onWsClose(connection_hdl [[maybe_unused]] hdl)
+void StreamChatClient::onWsClose(connection_hdl /* hdl */)
 {
     wsConnected.store(false);
     wsConnectionActive.store(false);
@@ -782,7 +782,7 @@ void StreamChatClient::onWsClose(connection_hdl [[maybe_unused]] hdl)
     Log::info("StreamChatClient: WebSocket disconnected from getstream.io");
 }
 
-void StreamChatClient::onWsMessage(connection_hdl [[maybe_unused]] hdl, message_ptr msg)
+void StreamChatClient::onWsMessage(connection_hdl /* hdl */, message_ptr msg)
 {
     try
     {

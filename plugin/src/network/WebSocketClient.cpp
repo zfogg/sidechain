@@ -387,7 +387,7 @@ void WebSocketClient::connectionLoop()
 
 //==============================================================================
 // websocketpp event handlers
-void WebSocketClient::onWsOpen(connection_hdl [[maybe_unused]] hdl)
+void WebSocketClient::onWsOpen(connection_hdl /* hdl */)
 {
     Log::info("WebSocket: Connected");
 
@@ -423,7 +423,7 @@ void WebSocketClient::onWsClose(connection_hdl hdl)
     handleDisconnect("Server closed connection");
 }
 
-void WebSocketClient::onWsMessage(connection_hdl [[maybe_unused]] hdl, message_ptr msg)
+void WebSocketClient::onWsMessage(connection_hdl /* hdl */, message_ptr msg)
 {
     try
     {
@@ -531,7 +531,7 @@ void WebSocketClient::onWsFail(connection_hdl hdl)
     handleDisconnect("Connection failed");
 }
 
-void WebSocketClient::onWsPong(connection_hdl [[maybe_unused]] hdl, std::string [[maybe_unused]] appData)
+void WebSocketClient::onWsPong(connection_hdl /* hdl */, std::string /* appData */)
 {
     lastPongReceivedTime.store(juce::Time::currentTimeMillis());
 }
