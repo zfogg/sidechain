@@ -39,7 +39,7 @@ enable_click_through_prediction = true
 
 # Exploration/exploitation mix (Task 9.1)
 # Mix in popular and latest content to prevent filter bubbles
-explore_recommend = {"popular": 0.1, "latest": 0.2}
+explore_recommend = { popular = 0.1, latest = 0.2 }
 
 # Model training settings
 model_fit_period = "60m"        # Retrain collaborative filtering every 60 minutes
