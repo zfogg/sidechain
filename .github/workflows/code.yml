@@ -23,13 +23,13 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
         with:
-          cache-version: '2'
+          cache-version: '3'
 
       - name: Restore Build Cache
         uses: ./.github/actions/restore-build-cache
         with:
           arch: x86_64
-          cache-version: '2'
+          cache-version: '3'
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build -G Ninja --preset default
@@ -42,7 +42,7 @@ jobs:
         uses: ./.github/actions/save-build-cache
         with:
           arch: x86_64
-          cache-version: '2'
+          cache-version: '3'
 
   lint:
     name: Lint Check (clang-tidy)
@@ -61,19 +61,16 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
         with:
-          cache-version: '2'
+          cache-version: '3'
 
       - name: Restore Build Cache
         uses: ./.github/actions/restore-build-cache
         with:
           arch: x86_64
-          cache-version: '2'
+          cache-version: '3'
 
-      - name: Configure CMake
+      - name: Configure CMake (generates compile_commands.json)
         run: cmake -S plugin -B plugin/build -G Ninja --preset default
-
-      - name: Build for compile_commands.json
-        run: cmake --build plugin/build --parallel
 
       - name: Lint Check (clang-tidy)
         run: cmake --build plugin/build --target tidy-check
@@ -83,4 +80,4 @@ jobs:
         uses: ./.github/actions/save-build-cache
         with:
           arch: x86_64
-          cache-version: '2'
+          cache-version: '3'
