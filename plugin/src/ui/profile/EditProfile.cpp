@@ -101,6 +101,12 @@ void EditProfile::setupEditors()
     saveButton->addListener(this);
     addAndMakeVisible(saveButton.get());
 
+    logoutButton = std::make_unique<juce::TextButton>("Logout");
+    logoutButton->setColour(juce::TextButton::buttonColourId, Colors::errorRed);
+    logoutButton->setColour(juce::TextButton::textColourOffId, Colors::textPrimary);
+    logoutButton->addListener(this);
+    addAndMakeVisible(logoutButton.get());
+
     changePhotoButton = std::make_unique<juce::TextButton>("Change Photo");
     changePhotoButton->setColour(juce::TextButton::buttonColourId, Colors::accent.withAlpha(0.2f));
     changePhotoButton->setColour(juce::TextButton::textColourOffId, Colors::accent);
@@ -501,6 +507,7 @@ void EditProfile::resized()
 {
     // Header buttons
     cancelButton->setBounds(PADDING, 15, 70, 30);
+    logoutButton->setBounds(getWidth() - PADDING - 150, 15, 70, 30);
     saveButton->setBounds(getWidth() - PADDING - 70, 15, 70, 30);
 
     // Avatar and change photo button
@@ -605,6 +612,12 @@ void EditProfile::buttonClicked(juce::Button* button)
     {
         if (onProfileSetupClicked)
             onProfileSetupClicked();
+    }
+    else if (button == logoutButton.get())
+    {
+        Log::info("EditProfile: Logout button clicked");
+        if (onLogoutClicked)
+            onLogoutClicked();
     }
 }
 
