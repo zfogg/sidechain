@@ -251,9 +251,10 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 			ExpiresAt:    time.Now().Add(5 * time.Minute),
 		}
 		h.oauthMutex.Unlock()
+	}
 
-		// Show success page to browser (plugin will poll for auth)
-		successHTML := `
+	// Always show success page to browser (plugin will poll for auth if sessionID was provided)
+	successHTML := `
 <!DOCTYPE html>
 <html>
 <head>
@@ -275,15 +276,8 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 	</div>
 </body>
 </html>`
-		c.Header("Content-Type", "text/html; charset=utf-8")
-		c.String(http.StatusOK, successHTML)
-		return
-	}
-
-	// Fallback: Try to redirect to plugin callback URL (for backwards compatibility)
-	// This will fail gracefully and browser will show blank page
-	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
-	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.String(http.StatusOK, successHTML)
 }
 
 // DiscordOAuth initiates Discord OAuth flow
@@ -362,9 +356,10 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 			ExpiresAt:    time.Now().Add(5 * time.Minute),
 		}
 		h.oauthMutex.Unlock()
+	}
 
-		// Show success page to browser (plugin will poll for auth)
-		successHTML := `
+	// Always show success page to browser (plugin will poll for auth if sessionID was provided)
+	successHTML := `
 <!DOCTYPE html>
 <html>
 <head>
@@ -386,15 +381,8 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 	</div>
 </body>
 </html>`
-		c.Header("Content-Type", "text/html; charset=utf-8")
-		c.String(http.StatusOK, successHTML)
-		return
-	}
-
-	// Fallback: Try to redirect to plugin callback URL (for backwards compatibility)
-	// This will fail gracefully and browser will show blank page
-	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
-	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.String(http.StatusOK, successHTML)
 }
 
 // OAuthPoll polls for OAuth completion (for plugin flow)
