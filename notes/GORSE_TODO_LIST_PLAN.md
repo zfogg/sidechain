@@ -306,17 +306,21 @@
   - Routes registered in `backend/cmd/server/main.go` (lines 522-523)
   - Both support limit/offset pagination
 
-- [ ] **7.4 Add to Discovery Feed** (Optional Enhancement)
-  - Mix popular/latest into discovery page
-  - Ratio: 30% popular, 20% latest, 50% personalized
-  - Deferred: Endpoints are available, blending can be added later
+- [x] **7.4 Add Discovery Feed** ✅ COMPLETED
+  - File: `backend/internal/handlers/recommendations.go` (lines 546-729)
+  - New: `GET /api/v1/recommendations/discovery-feed` (GetDiscoveryFeed handler)
+  - Blends 30% popular, 20% latest, 50% personalized content
+  - Fetches from all three sources concurrently for performance
+  - Interleaves content using intelligent algorithm
+  - Deduplicates posts across sources
+  - Returns blend metadata for transparency
 
 **Success Metrics**:
 - [ ] Discovery feed has fresh content
 - [ ] New users (cold start) see engaging content immediately
 - [ ] Popular endpoint used for trending page
 
-**✅ TASK #7 COMPLETE** - Popular and latest endpoints fully implemented!
+**✅ TASK #7 COMPLETE** - Popular, latest, and discovery feed fully implemented!
 
 ---
 
