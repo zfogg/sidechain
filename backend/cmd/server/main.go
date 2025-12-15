@@ -288,6 +288,31 @@ func main() {
 		}
 	}()
 
+	// Daily CTR metrics logging (Task 8.3)
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+
+		// Log CTR metrics immediately on startup
+		log.Println("📊 Logging initial CTR metrics...")
+		if err := recommendations.LogCTRMetrics(database.DB); err != nil {
+			log.Printf("Warning: Failed to log CTR metrics: %v", err)
+		}
+
+		for {
+			select {
+			case <-ticker.C:
+				log.Println("📊 Logging daily CTR metrics...")
+				if err := recommendations.LogCTRMetrics(database.DB); err != nil {
+					log.Printf("Warning: Failed to log CTR metrics: %v", err)
+				}
+			case <-syncCtx.Done():
+				log.Println("🛑 CTR metrics logging stopped")
+				return
+			}
+		}
+	}()
+
 	// Initialize handlers
 	h := handlers.NewHandlers(streamClient, audioProcessor)
 	h.SetWebSocketHandler(wsHandler) // Enable real-time follow notifications
@@ -519,9 +544,12 @@ func main() {
 			recommendations.POST("/skip/:post_id", h.SkipPost)               // Track when user scrolls past quickly
 			recommendations.POST("/hide/:post_id", h.HidePost)               // "Hide this post" button
 			// Discovery endpoints (Task 7)
-			recommendations.GET("/popular", h.GetPopular)           // Globally popular posts
-			recommendations.GET("/latest", h.GetLatest)             // Recently added posts
+			recommendations.GET("/popular", h.GetPopular)              // Globally popular posts
+			recommendations.GET("/latest", h.GetLatest)                // Recently added posts
 			recommendations.GET("/discovery-feed", h.GetDiscoveryFeed) // Blended discovery feed (Task 7.4)
+			// CTR tracking (Task 8)
+			recommendations.POST("/click", h.TrackRecommendationClick) // Track recommendation clicks (Task 8.2)
+			recommendations.GET("/metrics/ctr", h.GetCTRMetrics)       // Get CTR metrics (Task 8.3)
 		}
 
 		// Post routes (for comments, deletion, reporting, saving, reposting)

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zfogg/sidechain/backend/internal/database"
@@ -12,6 +13,53 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
+
+// trackImpression records that a recommendation was shown to a user
+// Task 8.1
+func trackImpression(userID, postID, source string, position int, score float64, reason string) {
+	impression := models.RecommendationImpression{
+		UserID:   userID,
+		PostID:   postID,
+		Source:   source,
+		Position: position,
+		Score:    &score,
+		Reason:   &reason,
+	}
+
+	// Async write - don't block the request
+	go func() {
+		if err := database.DB.Create(&impression).Error; err != nil {
+			fmt.Printf("Warning: Failed to track impression: %v\n", err)
+		}
+	}()
+}
+
+// trackImpressions records multiple recommendation impressions
+// Task 8.1
+func trackImpressions(userID, source string, scores []recommendations.PostScore) {
+	if len(scores) == 0 {
+		return
+	}
+
+	impressions := make([]models.RecommendationImpression, 0, len(scores))
+	for i, score := range scores {
+		impressions = append(impressions, models.RecommendationImpression{
+			UserID:   userID,
+			PostID:   score.Post.ID,
+			Source:   source,
+			Position: i,
+			Score:    &score.Score,
+			Reason:   &score.Reason,
+		})
+	}
+
+	// Async batch insert - don't block the request
+	go func() {
+		if err := database.DB.CreateInBatches(&impressions, 100).Error; err != nil {
+			fmt.Printf("Warning: Failed to track %d impressions: %v\n", len(impressions), err)
+		}
+	}()
+}
 
 // GetForYouFeed returns personalized recommendations for the current user
 // GET /api/v1/recommendations/for-you
@@ -101,6 +149,9 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 	if maxBPM > 0 {
 		meta["filter_max_bpm"] = maxBPM
 	}
+
+	// Track impressions for CTR analysis (Task 8.1)
+	trackImpressions(userID, "for-you", scores)
 
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
@@ -408,6 +459,12 @@ func (h *Handlers) HidePost(c *gin.Context) {
 // Query params: ?limit=20&offset=0
 // Task 7.3
 func (h *Handlers) GetPopular(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
@@ -462,6 +519,9 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
+	// Track impressions for CTR analysis (Task 8.1)
+	trackImpressions(userID, "popular", scores)
+
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
 		"meta": gin.H{
@@ -478,6 +538,12 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 // Query params: ?limit=20&offset=0
 // Task 7.3
 func (h *Handlers) GetLatest(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
@@ -531,6 +597,9 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 		}
 		activities = append(activities, activity)
 	}
+
+	// Track impressions for CTR analysis (Task 8.1)
+	trackImpressions(userID, "latest", scores)
 
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
@@ -711,6 +780,9 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
+	// Track impressions for CTR analysis (Task 8.1)
+	trackImpressions(userID, "discovery", blendedScores)
+
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
 		"meta": gin.H{
@@ -725,5 +797,116 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 				"blend_ratio":        "30% popular, 20% latest, 50% personalized",
 			},
 		},
+	})
+}
+
+// TrackRecommendationClick tracks when a user clicks/plays a recommended post
+// POST /api/v1/recommendations/click
+// Body: {"post_id": "uuid", "source": "for-you", "position": 0, "play_duration": 45.2, "completed": true}
+// Task 8.2
+func (h *Handlers) TrackRecommendationClick(c *gin.Context) {
+	userID, ok := util.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+
+	var req struct {
+		PostID       string   `json:"post_id" binding:"required"`
+		Source       string   `json:"source" binding:"required"` // "for-you", "popular", "latest", "discovery", "similar"
+		Position     *int     `json:"position"`
+		PlayDuration *float64 `json:"play_duration"`
+		Completed    bool     `json:"completed"`
+		SessionID    *string  `json:"session_id"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.RespondBadRequest(c, "invalid_request", err.Error())
+		return
+	}
+
+	// Create click record
+	click := models.RecommendationClick{
+		UserID:       userID,
+		PostID:       req.PostID,
+		Source:       req.Source,
+		Position:     req.Position,
+		PlayDuration: req.PlayDuration,
+		Completed:    req.Completed,
+		SessionID:    req.SessionID,
+	}
+
+	// Try to find the corresponding impression to link them
+	var impression models.RecommendationImpression
+	err := database.DB.Where("user_id = ? AND post_id = ? AND source = ? AND clicked = false",
+		userID, req.PostID, req.Source).
+		Order("created_at DESC").
+		First(&impression).Error
+
+	if err == nil {
+		// Found the impression, link them and mark as clicked
+		click.RecommendationImpressionID = &impression.ID
+
+		// Update impression as clicked
+		go func() {
+			now := time.Now()
+			database.DB.Model(&impression).Updates(map[string]interface{}{
+				"clicked":    true,
+				"clicked_at": now,
+			})
+		}()
+	}
+
+	// Save the click
+	if err := database.DB.Create(&click).Error; err != nil {
+		util.RespondInternalError(c, "failed_to_track_click", err.Error())
+		return
+	}
+
+	// Send to Gorse as stronger signal if they completed playback
+	if h.gorse != nil && req.Completed {
+		go func() {
+			if err := h.gorse.SyncFeedback(userID, req.PostID, "like"); err != nil {
+				fmt.Printf("Warning: Failed to sync completed play to Gorse: %v\n", err)
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "click_tracked",
+		"post_id": req.PostID,
+		"source":  req.Source,
+	})
+}
+
+// GetCTRMetrics returns click-through rate metrics for recommendation sources
+// GET /api/v1/recommendations/metrics/ctr
+// Query params: ?period=24h (24h, 7d, 30d)
+// Task 8.3
+func (h *Handlers) GetCTRMetrics(c *gin.Context) {
+	period := c.DefaultQuery("period", "24h")
+
+	var since time.Time
+	switch period {
+	case "24h":
+		since = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		since = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		since = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		util.RespondBadRequest(c, "invalid_period", "Period must be one of: 24h, 7d, 30d")
+		return
+	}
+
+	metrics, err := recommendations.CalculateCTR(database.DB, since)
+	if err != nil {
+		util.RespondInternalError(c, "failed_to_calculate_ctr", err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"metrics": metrics,
+		"period":  period,
+		"since":   since,
 	})
 }
