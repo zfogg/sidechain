@@ -327,7 +327,7 @@ void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
   // Use CommentStore if available (preferred - reactive pattern)
   if (commentStore != nullptr) {
     // Subscribe to comment store updates
-    storeUnsubscribeId = commentStore->subscribe([this](const CommentState &state) { onCommentStoreChanged(state); });
+    storeUnsubscriber = commentStore->subscribe([this](const CommentState &state) { onCommentStoreChanged(state); });
     // Trigger load from store
     commentStore->loadCommentsForPost(postId);
   }

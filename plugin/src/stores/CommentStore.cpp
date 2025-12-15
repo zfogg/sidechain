@@ -5,25 +5,18 @@
 namespace Sidechain {
 namespace Stores {
 
-CommentStore::CommentStore(NetworkClient *networkClient) : networkClient(networkClient) {
-  // Initialize with empty state
-  CommentState initialState;
-  initialState.postId = "";
-  initialState.comments.clear();
-  initialState.isLoading = false;
-  setInitialState(initialState);
-
-  Logger::info("CommentStore", "Initialized");
+CommentStore::CommentStore(NetworkClient *client) : Store(CommentState()), networkClient(client) {
+  Util::logInfo("CommentStore", "Initialized");
 }
 
 //==============================================================================
 void CommentStore::loadCommentsForPost(const juce::String &postId) {
   if (postId.isEmpty() || networkClient == nullptr) {
-    Logger::warn("CommentStore", "Cannot load comments - postId empty or networkClient null");
+    Util::logWarning("CommentStore", "Cannot load comments - postId empty or networkClient null");
     return;
   }
 
-  Logger::info("CommentStore", "Loading comments for post: " + postId);
+  Util::logInfo("CommentStore", "Loading comments for post: " + postId);
 
   // Update state: set loading flag
   updateState([postId](CommentState &state) {
@@ -45,7 +38,7 @@ void CommentStore::loadMoreComments() {
     return;
   }
 
-  Logger::debug("CommentStore", "Loading more comments for post: " + state.postId);
+  Util::logDebug("CommentStore", "Loading more comments for post: " + state.postId);
 
   updateState([](CommentState &s) { s.isLoading = true; });
 
@@ -98,17 +91,18 @@ void CommentStore::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> resul
     s.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
   });
 
-  Logger::debug("CommentStore", "Loaded " + juce::String(loadedComments.size()) + " comments for post");
+  Util::logDebug("CommentStore", "Loaded " + juce::String(loadedComments.size()) + " comments for post");
 }
 
 //==============================================================================
 void CommentStore::toggleCommentLike(const juce::String &commentId, bool shouldLike) {
   if (networkClient == nullptr) {
-    Logger::warn("CommentStore", "Cannot toggle comment like - networkClient null");
+    Util::logWarning("CommentStore", "Cannot toggle comment like - networkClient null");
     return;
   }
 
-  Logger::info("CommentStore", "Toggling like on comment: " + commentId + ", liked: " + juce::String(shouldLike));
+  Util::logInfo("CommentStore",
+                "Toggling like on comment: " + commentId + ", liked: " + (shouldLike ? "true" : "false"));
 
   // Optimistic update
   updateState([commentId, shouldLike](CommentState &s) {
@@ -144,53 +138,53 @@ void CommentStore::handleCommentLikeToggled(const juce::String &commentId, bool 
         }
       }
     });
-    Logger::error("CommentStore", "Failed to toggle comment like: " + result.getError());
+    Util::logError("CommentStore", "Failed to toggle comment like: " + result.getError());
   } else {
-    Logger::debug("CommentStore", "Comment like toggled successfully");
+    Util::logDebug("CommentStore", "Comment like toggled successfully");
   }
 }
 
 //==============================================================================
 void CommentStore::deleteComment(const juce::String &commentId) {
   if (networkClient == nullptr) {
-    Logger::warn("CommentStore", "Cannot delete comment - networkClient null");
+    Util::logWarning("CommentStore", "Cannot delete comment - networkClient null");
     return;
   }
 
-  Logger::info("CommentStore", "Deleting comment: " + commentId);
+  Util::logInfo("CommentStore", "Deleting comment: " + commentId);
 
   // Optimistic removal
-  updateState([commentId](CommentState &s) { removeCommentFromState(commentId); });
+  updateState([this, commentId](CommentState &) { removeCommentFromState(commentId); });
 
   // Send to server
   networkClient->deleteComment(
       commentId, [this, commentId](Outcome<juce::var> result) { handleCommentDeleted(commentId, result); });
 }
 
-void CommentStore::handleCommentDeleted(const juce::String &commentId, Outcome<juce::var> result) {
+void CommentStore::handleCommentDeleted([[maybe_unused]] const juce::String &commentId, Outcome<juce::var> result) {
   if (!result.isOk()) {
     // Restore comment on error (re-fetch it)
-    Logger::error("CommentStore", "Failed to delete comment: " + result.getError());
+    Util::logError("CommentStore", "Failed to delete comment: " + result.getError());
     refreshComments(); // Refresh to restore deleted comment
   } else {
-    Logger::debug("CommentStore", "Comment deleted successfully");
+    Util::logDebug("CommentStore", "Comment deleted successfully");
   }
 }
 
 //==============================================================================
 void CommentStore::addComment(const juce::String &content, const juce::String &parentId) {
   if (networkClient == nullptr || content.isEmpty()) {
-    Logger::warn("CommentStore", "Cannot add comment - networkClient null or content empty");
+    Util::logWarning("CommentStore", "Cannot add comment - networkClient null or content empty");
     return;
   }
 
   auto state = getState();
   if (state.postId.isEmpty()) {
-    Logger::warn("CommentStore", "Cannot add comment - no postId set");
+    Util::logWarning("CommentStore", "Cannot add comment - no postId set");
     return;
   }
 
-  Logger::info("CommentStore", "Adding comment to post: " + state.postId);
+  Util::logInfo("CommentStore", "Adding comment to post: " + state.postId);
 
   // Create temporary comment with placeholder ID
   juce::String tempId = "temp_" + juce::String(juce::Random().nextInt());
@@ -212,19 +206,19 @@ void CommentStore::addComment(const juce::String &content, const juce::String &p
 void CommentStore::handleCommentCreated(Outcome<juce::var> result, const juce::String &tempId) {
   if (!result.isOk()) {
     // Remove temporary comment on error
-    updateState([tempId](CommentState &s) { removeCommentFromState(tempId); });
-    Logger::error("CommentStore", "Failed to create comment: " + result.getError());
+    updateState([this, tempId](CommentState &) { removeCommentFromState(tempId); });
+    Util::logError("CommentStore", "Failed to create comment: " + result.getError());
   } else {
     // Replace temporary comment with actual comment from server
     auto newComment = Comment::fromJson(result.getValue());
     if (newComment.isValid()) {
-      updateState([tempId, newComment](CommentState &s) {
+      updateState([this, tempId, newComment](CommentState &s) {
         removeCommentFromState(tempId);
         if (s.comments.size() > 0) {
           s.comments.insert(0, newComment);
         }
       });
-      Logger::debug("CommentStore", "Comment created successfully");
+      Util::logDebug("CommentStore", "Comment created successfully");
     }
   }
 }
@@ -232,25 +226,25 @@ void CommentStore::handleCommentCreated(Outcome<juce::var> result, const juce::S
 //==============================================================================
 void CommentStore::updateComment(const juce::String &commentId, const juce::String &newContent) {
   if (networkClient == nullptr || newContent.isEmpty()) {
-    Logger::warn("CommentStore", "Cannot update comment - networkClient null or content empty");
+    Util::logWarning("CommentStore", "Cannot update comment - networkClient null or content empty");
     return;
   }
 
-  Logger::info("CommentStore", "Updating comment: " + commentId);
+  Util::logInfo("CommentStore", "Updating comment: " + commentId);
 
   // Send to server
   networkClient->updateComment(
       commentId, newContent, [this, commentId](Outcome<juce::var> result) { handleCommentUpdated(commentId, result); });
 }
 
-void CommentStore::handleCommentUpdated(const juce::String &commentId, Outcome<juce::var> result) {
+void CommentStore::handleCommentUpdated([[maybe_unused]] const juce::String &commentId, Outcome<juce::var> result) {
   if (!result.isOk()) {
-    Logger::error("CommentStore", "Failed to update comment: " + result.getError());
+    Util::logError("CommentStore", "Failed to update comment: " + result.getError());
   } else {
     auto updatedComment = Comment::fromJson(result.getValue());
     if (updatedComment.isValid()) {
       updateCommentInState(updatedComment);
-      Logger::debug("CommentStore", "Comment updated successfully");
+      Util::logDebug("CommentStore", "Comment updated successfully");
     }
   }
 }
@@ -267,12 +261,6 @@ std::optional<Comment> CommentStore::getCommentById(const juce::String &commentI
 }
 
 //==============================================================================
-void CommentStore::updateState(std::function<void(CommentState &)> mutator) {
-  auto state = getState();
-  mutator(state);
-  setState(state);
-}
-
 void CommentStore::removeCommentFromState(const juce::String &commentId) {
   auto state = getState();
   for (int i = 0; i < state.comments.size(); ++i) {
