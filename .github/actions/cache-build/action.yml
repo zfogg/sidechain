@@ -46,7 +46,7 @@ runs:
         path: |
           .cache
           plugin/build
-        key: sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**', 'plugin/conanfile.txt') }}
+        key: sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**') }}
         restore-keys: |
           sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-
           sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-
