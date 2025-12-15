@@ -2254,12 +2254,25 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
         );
     }
 #else
-    // Debug build - skip secure storage to avoid Keychain popups during development
-    Sidechain::Util::Logger::getInstance().log(
-        LogLevel::Info,
-        "Security",
-        "Debug build - token stored in memory only (not using Keychain)"
-    );
+    // Debug build - store token insecurely in local settings (no Keychain) for persistence
+    if (userDataStore)
+    {
+        userDataStore->setAuthToken(token);
+        userDataStore->saveToSettings();
+        Sidechain::Util::Logger::getInstance().log(
+            LogLevel::Info,
+            "Security",
+            "Debug build - token stored insecurely in local settings (not using Keychain)"
+        );
+    }
+    else
+    {
+        Sidechain::Util::Logger::getInstance().log(
+            LogLevel::Warning,
+            "Security",
+            "Debug build - UserDataStore unavailable, token not persisted"
+        );
+    }
 #endif
 
     // Update legacy state (for backwards compatibility during migration)
@@ -2449,7 +2462,7 @@ void SidechainAudioProcessorEditor::loadLoginState()
 
         if (userDataStore->isLoggedIn())
         {
-            // Load auth token from secure storage (Release builds only)
+            // Load auth token from secure storage (Release) or local settings (Debug)
             juce::String loadedToken;
 #ifdef NDEBUG
             auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
@@ -2475,12 +2488,24 @@ void SidechainAudioProcessorEditor::loadLoginState()
                 }
             }
 #else
-            // Debug build - token stored in memory only
-            Sidechain::Util::Logger::getInstance().log(
-                Sidechain::Util::LogLevel::Info,
-                "Security",
-                "Debug build - token stored in memory only (skipping Keychain)"
-            );
+            // Debug build - load token from local settings (insecure but persistent)
+            loadedToken = userDataStore->getAuthToken();
+            if (loadedToken.isNotEmpty())
+            {
+                Sidechain::Util::Logger::getInstance().log(
+                    Sidechain::Util::LogLevel::Info,
+                    "Security",
+                    "Debug build - token loaded from local settings (insecure storage)"
+                );
+            }
+            else
+            {
+                Sidechain::Util::Logger::getInstance().log(
+                    Sidechain::Util::LogLevel::Warning,
+                    "Security",
+                    "Debug build - no auth token found in local settings"
+                );
+            }
 #endif
 
             // Sync legacy state from UserDataStore
