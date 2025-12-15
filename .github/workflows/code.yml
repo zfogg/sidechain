@@ -37,6 +37,13 @@ jobs:
       - name: Format Check
         run: cmake --build plugin/build --target format-check
 
+      - name: Save Build Cache
+        if: always()
+        uses: ./.github/actions/save-build-cache
+        with:
+          arch: x86_64
+          cache-version: '2'
+
   lint:
     name: Lint Check (clang-tidy)
     runs-on: ubuntu-latest
@@ -70,3 +77,10 @@ jobs:
 
       - name: Lint Check (clang-tidy)
         run: cmake --build plugin/build --target tidy-check
+
+      - name: Save Build Cache
+        if: always()
+        uses: ./.github/actions/save-build-cache
+        with:
+          arch: x86_64
+          cache-version: '2'
