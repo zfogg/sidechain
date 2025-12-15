@@ -101,14 +101,9 @@ void MessageThread::paint(juce::Graphics& g)
     Log::debug("MessageThread::paint - channel: " + juce::String(channel != nullptr ? "SET" : "NULL") +
                (channel ? ", messages: " + juce::String(channel->messages.size()) : ""));
 
-    // Handle error state
-    if (!state.error.isEmpty() || state.connectionStatus == StreamChatClient::ConnectionStatus::Disconnected)
-    {
-        // ErrorState component handles the error UI as a child component
-        Log::debug("MessageThread::paint - Error state");
-    }
+    // Priority: Show messages if we have them, even if there's an error state
     // Handle loading state
-    else if (channel && channel->isLoadingMessages)
+    if (channel && channel->isLoadingMessages)
     {
         Log::debug("MessageThread::paint - Loading state");
         int bottomAreaHeight = INPUT_HEIGHT;
@@ -119,17 +114,27 @@ void MessageThread::paint(juce::Graphics& g)
         g.drawText("Loading messages...", getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight),
                    juce::Justification::centred);
     }
+    // Handle loaded state with messages - show even if there's an error
+    else if (channel && !channel->messages.empty())
+    {
+        Log::debug("MessageThread::paint - Drawing " + juce::String(channel->messages.size()) + " messages");
+        drawMessages(g, channel->messages);
+    }
     // Handle empty state
     else if (channel && channel->messages.empty())
     {
         Log::debug("MessageThread::paint - Empty state");
         drawEmptyState(g);
     }
-    // Handle loaded state
-    else if (channel)
+    // Only show error state if we don't have a channel or messages
+    else if (!state.error.isEmpty() || state.connectionStatus == StreamChatClient::ConnectionStatus::Disconnected)
     {
-        Log::debug("MessageThread::paint - Drawing " + juce::String(channel->messages.size()) + " messages");
-        drawMessages(g);
+        // ErrorState component handles the error UI as a child component
+        Log::debug("MessageThread::paint - Error state");
+    }
+    else
+    {
+        Log::debug("MessageThread::paint - No channel, messages, or error state");
     }
 
     drawInputArea(g);
@@ -428,7 +433,7 @@ void MessageThread::setChatStore(Sidechain::Stores::ChatStore* store)
         // Task 2.3: Subscribe to ChatStore state changes
         // ReactiveBoundComponent automatically triggers repaint() when state changes
         chatStoreUnsubscribe = chatStore->subscribe([this](const Sidechain::Stores::ChatStoreState& state) {
-            Log::debug("MessageThread: ChatStore state updated - repaint() will be called automatically");
+            Log::debug("MessageThread: ChatStore state updated");
             if (const auto* channel = state.getCurrentChannel())
             {
                 Log::debug("MessageThread: Current channel has " + juce::String(channel->messages.size()) + " messages");
@@ -438,16 +443,11 @@ void MessageThread::setChatStore(Sidechain::Stores::ChatStore* store)
                 Log::debug("MessageThread: No current channel selected");
             }
 
-            // ReactiveBoundComponent will call repaint() automatically
-            // paint() methods now get state directly from chatStore->getState()
-
-            // Trigger resized() to update scroll bounds when messages change
-            if (const auto* channel = state.getCurrentChannel())
-            {
-                juce::MessageManager::callAsync([this]() {
-                    resized();
-                });
-            }
+            // CRITICAL: Must explicitly call repaint() to bridge reactive store to JUCE event system
+            juce::MessageManager::callAsync([this]() {
+                repaint();
+                resized();  // Also update scroll bounds when messages change
+            });
         });
 
         Log::debug("MessageThread: Subscribed to ChatStore");
@@ -570,7 +570,7 @@ void MessageThread::drawHeader(juce::Graphics& g)
         auto menuBounds = getHeaderMenuButtonBounds();
         g.setColour(juce::Colour(0xff888888));
         g.setFont(20.0f);
-        g.drawText("⋯", menuBounds, juce::Justification::centred);  // Three dots
+        g.drawText(juce::String::fromUTF8("⋯"), menuBounds, juce::Justification::centred);  // Three dots
     }
 
     // Bottom border
@@ -578,17 +578,10 @@ void MessageThread::drawHeader(juce::Graphics& g)
     g.drawHorizontalLine(HEADER_HEIGHT - 1, 0.0f, static_cast<float>(getWidth()));
 }
 
-void MessageThread::drawMessages(juce::Graphics& g)
+void MessageThread::drawMessages(juce::Graphics& g, const std::vector<StreamChatClient::Message>& messages)
 {
-    // Task 2.3: Get messages from ChatStore instead of local array
-    if (!chatStore)
-        return;
-
-    const auto* channel = chatStore->getState().getCurrentChannel();
-    if (!channel)
-        return;
-
-    const auto& messages = channel->messages;
+    // Note: messages is passed in from paint() to avoid state changes between paint() and drawMessages()
+    // This ensures we're always working with the same snapshot of the message list
 
     int y = HEADER_HEIGHT - static_cast<int>(scrollPosition);
     int width = getWidth() - scrollBar.getWidth();
@@ -598,17 +591,30 @@ void MessageThread::drawMessages(juce::Graphics& g)
     if (!replyingToMessageId.isEmpty())
         bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
 
-    for (const auto& message : messages)
+    Log::debug("MessageThread::drawMessages - height: " + juce::String(getHeight()) +
+               ", bottomArea: " + juce::String(bottomAreaHeight) +
+               ", scrollPosition: " + juce::String(scrollPosition) +
+               ", y start: " + juce::String(y) +
+               ", messages.size(): " + juce::String(messages.size()));
+
+    for (size_t i = 0; i < messages.size(); ++i)
     {
+        const auto& message = messages[i];
         int messageHeight = calculateMessageHeight(message, MESSAGE_MAX_WIDTH);
+
+        Log::debug("MessageThread::drawMessages - message " + juce::String(i) + ": text='" + message.text.substring(0, 20) +
+                   "', height=" + juce::String(messageHeight) +
+                   ", y=" + juce::String(y) +
+                   ", visible=" + juce::String((y + messageHeight > HEADER_HEIGHT && y < getHeight() - bottomAreaHeight) ? "YES" : "NO"));
 
         // Only draw if visible
         if (y + messageHeight > HEADER_HEIGHT && y < getHeight() - bottomAreaHeight)
         {
-            drawMessageBubble(g, message, y, width);
+            drawMessageBubble(g, message, y, width);  // This increments y
         }
         else
         {
+            // Skip to next message position if not visible
             y += messageHeight + MESSAGE_BUBBLE_PADDING;
         }
     }
@@ -616,6 +622,10 @@ void MessageThread::drawMessages(juce::Graphics& g)
 
 void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int width)
 {
+    Log::debug("MessageThread::drawMessageBubble - Starting to draw message: " + message.text.substring(0, 20) +
+               ", y=" + juce::String(y) + ", width=" + juce::String(width) +
+               ", ownMessage=" + juce::String(isOwnMessage(message) ? "YES" : "NO"));
+
     bool ownMessage = isOwnMessage(message);
     int bubbleMaxWidth = MESSAGE_MAX_WIDTH;
     int bubblePadding = 10;
@@ -681,10 +691,17 @@ void MessageThread::drawMessageBubble(juce::Graphics& g, const StreamChatClient:
 
     auto bubbleBounds = juce::Rectangle<int>(bubbleX, y, bubbleWidth, bubbleHeight);
 
+    Log::debug("MessageThread::drawMessageBubble - bubbleBounds: x=" + juce::String(bubbleX) +
+               ", y=" + juce::String(y) + ", width=" + juce::String(bubbleWidth) +
+               ", height=" + juce::String(bubbleHeight));
+
     // Draw bubble background
     juce::Colour bubbleColor = ownMessage ? SidechainColors::primary() : juce::Colour(0xff3a3a3a);
     g.setColour(bubbleColor);
     g.fillRoundedRectangle(bubbleBounds.toFloat(), 12.0f);
+
+    Log::debug("MessageThread::drawMessageBubble - Drew bubble background with color: 0x" +
+               juce::String::toHexString(bubbleColor.getARGB()));
 
     // Draw parent message preview for replies
     if (isReply && parentMessage)

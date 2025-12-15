@@ -421,6 +421,11 @@ void ChatStore::sendMessage(const juce::String& channelId, const juce::String& t
 
     // Optimistic update - add message immediately
     Log::debug("ChatStore::sendMessage - Starting optimistic update with tempId: " + tempId);
+    Log::debug("ChatStore::sendMessage - State BEFORE optimisticUpdate: channel has " +
+               juce::String(getState().channels.count(channelId) > 0 ?
+                           juce::String(getState().channels.at(channelId).messages.size()) :
+                           juce::String(-1)) + " messages");
+
     optimisticUpdate(
         [channelId, text, tempId, userId](ChatStoreState& state)
         {
@@ -440,6 +445,11 @@ void ChatStore::sendMessage(const juce::String& channelId, const juce::String& t
         },
         [this, channelId, text, tempId](auto callback)
         {
+            Log::debug("ChatStore::sendMessage - asyncOperation callback: State NOW has " +
+                       juce::String(getState().channels.count(channelId) > 0 ?
+                                   juce::String(getState().channels.at(channelId).messages.size()) :
+                                   juce::String(-1)) + " messages");
+
             auto currentState = getState();
             auto it = currentState.channels.find(channelId);
             if (it == currentState.channels.end())
