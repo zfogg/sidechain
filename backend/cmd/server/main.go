@@ -115,7 +115,9 @@ func main() {
 		os.Getenv("CDN_BASE_URL"),
 	)
 	if err != nil {
-		log.Fatalf("Failed to initialize S3 uploader: %v", err)
+		log.Printf("Warning: Failed to initialize S3 uploader: %v", err)
+		log.Println("Continuing without S3 - audio uploads will fail")
+		s3Uploader = nil
 	}
 
 	// Initialize email service (AWS SES)
@@ -144,9 +146,11 @@ func main() {
 	}
 
 	// Check S3 access (skip for development)
-	if err := s3Uploader.CheckBucketAccess(context.Background()); err != nil {
-		log.Printf("Warning: S3 bucket access failed: %v", err)
-		log.Println("Continuing without S3 - audio uploads will fail")
+	if s3Uploader != nil {
+		if err := s3Uploader.CheckBucketAccess(context.Background()); err != nil {
+			log.Printf("Warning: S3 bucket access failed: %v", err)
+			log.Println("Continuing without S3 - audio uploads will fail")
+		}
 	}
 
 	// Check FFmpeg availability
@@ -764,7 +768,7 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("🎵 Sidechain backend starting on port %s", port)
+		log.Printf("🚀 Sidechain backend starting on port %s (hot reload enabled)", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
 		}
