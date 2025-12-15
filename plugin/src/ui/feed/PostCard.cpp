@@ -40,8 +40,14 @@ PostCard::PostCard()
 PostCard::~PostCard()
 {
     // Unsubscribe from FeedStore (Task 2.5)
+    // This removes this PostCard from receiving further state updates
+    // The callback uses SafePointer which will become nullptr if PostCard is destroyed
     if (storeUnsubscribe)
         storeUnsubscribe();
+
+    // Note: The FeedStore callback is protected using JUCE's Component::SafePointer
+    // If the callback executes after this destructor, it will detect that the PostCard
+    // is deleted and return early without accessing any members
 }
 
 //==============================================================================
@@ -1608,11 +1614,19 @@ void PostCard::subscribeToFeedStore()
     // This protects against the case where 'post' member is corrupted during rapid state changes
     juce::String postId = post.id;
 
+    // Use a SafePointer to safely access this from the callback
+    // SafePointer automatically becomes nullptr if the Component is deleted
+    juce::Component::SafePointer<PostCard> safeThis(this);
+
     // Subscribe to FeedStore for reactive updates
     // At this point we're guaranteed to have a valid post.id, making this type-safe
-    storeUnsubscribe = feedStore->subscribe([this, postId](const FeedStoreState& state) {
+    storeUnsubscribe = feedStore->subscribe([safeThis, postId](const FeedStoreState& state) {
+        // Check if PostCard still exists (SafePointer handles deleted Components)
+        // This prevents any access to members if the PostCard has been destroyed
+        if (safeThis == nullptr)
+            return;
+
         // Use captured post ID instead of accessing member variable
-        // This prevents crashes when post member is in invalid state
         if (postId.isEmpty())
             return;
 
@@ -1623,11 +1637,18 @@ void PostCard::subscribeToFeedStore()
         {
             if (feedPost.id == postId)
             {
-                // Post found - update our local copy
-                // Update unconditionally to avoid accessing potentially invalid post member
-                // (The comparison optimization is not worth the crash risk)
-                post = feedPost;
-                repaint();
+                // Re-check that PostCard still exists before accessing members
+                // This is defensive in case state changes while iterating
+                if (safeThis == nullptr)
+                    return;
+
+                // Validate the FeedPost before assignment
+                if (!feedPost.id.isEmpty())
+                {
+                    // Copy assignment - only do this if we're still valid
+                    safeThis->post = feedPost;
+                    safeThis->repaint();
+                }
                 return;
             }
         }
