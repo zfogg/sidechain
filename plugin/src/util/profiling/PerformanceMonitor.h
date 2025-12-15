@@ -216,8 +216,8 @@ private:
 
 // ========== Inline Implementations ==========
 
-// recordCallback_ declaration moved to class public section above
-std::function<void(const juce::String&, double, double)> ScopedTimer::recordCallback_ = nullptr;
+// recordCallback_ declaration moved to class public section above (inline for header-only, C++17+)
+inline std::function<void(const juce::String&, double, double)> ScopedTimer::recordCallback_ = nullptr;
 
 inline ScopedTimer::ScopedTimer(const juce::String& name, double slowThresholdMs)
     : name_(name)
