@@ -161,13 +161,12 @@ func (p *Processor) ProcessUpload(ctx context.Context, file *multipart.FileHeade
 		DurationBars:     metadata.DurationBars,
 		DAW:              metadata.DAW,
 		Genre:            metadata.Genre,
-		WaveformSVG:      waveformSVG,
 		ProcessingStatus: "complete",
 		IsPublic:         true,
 	}
 
 	if waveformResult != nil {
-		audioPost.WaveformSVG = waveformResult.URL
+		audioPost.WaveformURL = waveformResult.URL
 	}
 
 	err = database.DB.Create(audioPost).Error
