@@ -518,6 +518,7 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
+			"waveform_url":          score.Post.WaveformURL,
 			"bpm":                   score.Post.BPM,
 			"key":                   score.Post.Key,
 			"daw":                   score.Post.DAW,
@@ -606,6 +607,7 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
+			"waveform_url":          score.Post.WaveformURL,
 			"bpm":                   score.Post.BPM,
 			"key":                   score.Post.Key,
 			"daw":                   score.Post.DAW,
@@ -797,6 +799,7 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
+			"waveform_url":          score.Post.WaveformURL,
 			"bpm":                   score.Post.BPM,
 			"key":                   score.Post.Key,
 			"daw":                   score.Post.DAW,
