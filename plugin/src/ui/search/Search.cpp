@@ -64,6 +64,7 @@ Search::Search()
 Search::~Search()
 {
     stopTimer();
+    // RAII: juce::Array will clean up automatically
 }
 
 //==============================================================================
@@ -999,7 +1000,7 @@ void Search::drawNoResultsState(juce::Graphics& g)
     juce::Array<juce::String> suggestions = { "Try a different keyword", "Remove filters", "Check spelling" };
     for (int i = 0; i < suggestions.size(); ++i)
     {
-        g.drawText("• " + suggestions[i], bounds.removeFromTop(20), juce::Justification::centredLeft);
+        g.drawText(juce::String::fromUTF8("• ") + suggestions[i], bounds.removeFromTop(20), juce::Justification::centredLeft);
     }
 }
 
