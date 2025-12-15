@@ -1,7 +1,7 @@
 # Sidechain Backend Makefile
 # Production-ready Go backend with database migrations, testing, and deployment
 
-.PHONY: help install deps build run dev test test-unit test-integration clean docker docker-run migrate migrate-up migrate-down lint format
+.PHONY: help install deps build run dev test test-unit test-integration clean docker docker-run docker-dev migrate migrate-up migrate-down lint format
 
 # Default target
 help:
@@ -14,8 +14,11 @@ help:
 	@echo "Development Commands:"
 	@echo "  build       - Build production binary"
 	@echo "  run         - Run built binary"
-	@echo "  dev         - Start development server with hot reload"
+	@echo "  dev         - Start development server with hot reload (local)"
 	@echo "  dev-watch   - Start with file watching (requires air)"
+	@echo "  docker-dev  - Start all services with docker-compose + hot reload"
+	@echo "  docker-dev-stop - Stop docker-dev services"
+	@echo "  docker-dev-logs - View logs from docker-dev"
 	@echo ""
 	@echo "Database Commands:"
 	@echo "  migrate     - Run database migrations"
@@ -88,6 +91,21 @@ dev:
 dev-watch:
 	@echo "🔥 Starting development server with hot reload..."
 	@air
+
+# Docker development with hot reload (all services + auto rebuild)
+docker-dev:
+	@echo "🐳 Starting all services with hot reload..."
+	@docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+# Stop docker-dev services
+docker-dev-stop:
+	@echo "🛑 Stopping docker-dev services..."
+	@docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+# View docker-dev logs
+docker-dev-logs:
+	@echo "📋 Showing docker-dev logs..."
+	@docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f backend
 
 # Database setup
 db-setup:
