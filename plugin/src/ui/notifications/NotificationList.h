@@ -1,84 +1,85 @@
 #pragma once
 
-#include <JuceHeader.h>
-#include "../../util/HoverState.h"
 #include "../../models/AggregatedFeedGroup.h"
+#include "../../util/HoverState.h"
+#include <JuceHeader.h>
 
 //==============================================================================
 /**
  * NotificationItem represents a single notification group from getstream.io
  *
  * Now uses AggregatedFeedGroup as the underlying model for consistency.
- * getstream.io groups notifications by aggregation format: {{ verb }}_{{ time.strftime("%Y-%m-%d") }}
+ * getstream.io groups notifications by aggregation format: {{ verb }}_{{
+ * time.strftime("%Y-%m-%d") }}
  *
  * Examples:
  * - "Alice and 3 others liked your loop" (grouped by verb+target+day)
  * - "Bob started following you" (single follow notification)
  */
-struct NotificationItem
-{
-    AggregatedFeedGroup group;      // The underlying aggregated group
-    bool isRead = false;
-    bool isSeen = false;
+struct NotificationItem {
+  AggregatedFeedGroup group; // The underlying aggregated group
+  bool isRead = false;
+  bool isSeen = false;
 
-    // Derived from first activity in group
-    juce::String actorId;
-    juce::String actorName;
-    juce::String actorAvatarUrl;
-    juce::String targetId;          // e.g., "loop:123" or "user:456"
-    juce::String targetType;        // "loop", "user", "comment"
-    juce::String targetPreview;     // Preview text or title
+  // Derived from first activity in group
+  juce::String actorId;
+  juce::String actorName;
+  juce::String actorAvatarUrl;
+  juce::String targetId;      // e.g., "loop:123" or "user:456"
+  juce::String targetType;    // "loop", "user", "comment"
+  juce::String targetPreview; // Preview text or title
 
-    // Parse from JSON response (old format for backward compatibility)
-    static NotificationItem fromJson(const juce::var& json);
+  // Parse from JSON response (old format for backward compatibility)
+  static NotificationItem fromJson(const juce::var &json);
 
-    // Create from AggregatedFeedGroup
-    static NotificationItem fromAggregatedGroup(const AggregatedFeedGroup& group, bool read = false, bool seen = false);
+  // Create from AggregatedFeedGroup
+  static NotificationItem fromAggregatedGroup(const AggregatedFeedGroup &group, bool read = false, bool seen = false);
 
-    // Generate display text like "Alice and 3 others liked your loop"
-    juce::String getDisplayText() const;
+  // Generate display text like "Alice and 3 others liked your loop"
+  juce::String getDisplayText() const;
 
-    // Get relative time like "2h ago"
-    juce::String getRelativeTime() const;
+  // Get relative time like "2h ago"
+  juce::String getRelativeTime() const;
 
-    // Get icon path/type for the verb
-    juce::String getVerbIcon() const;
+  // Get icon path/type for the verb
+  juce::String getVerbIcon() const;
 };
 
 //==============================================================================
 /**
  * NotificationRow displays a single notification item
  */
-class NotificationRow : public juce::Component
-{
+class NotificationRow : public juce::Component {
 public:
-    NotificationRow();
-    ~NotificationRow() override = default;
+  NotificationRow();
+  ~NotificationRow() override = default;
 
-    void setNotification(const NotificationItem& notification);
-    const NotificationItem& getNotification() const { return notification; }
+  void setNotification(const NotificationItem &notification);
+  const NotificationItem &getNotification() const {
+    return notification;
+  }
 
-    // Callbacks
-    std::function<void(const NotificationItem&)> onClicked;
+  // Callbacks
+  std::function<void(const NotificationItem &)> onClicked;
 
-    // Component overrides
-    void paint(juce::Graphics& g) override;
-    void mouseEnter(const juce::MouseEvent& event) override;
-    void mouseExit(const juce::MouseEvent& event) override;
-    void mouseDown(const juce::MouseEvent& event) override;
+  // Component overrides
+  void paint(juce::Graphics &g) override;
+  void mouseEnter(const juce::MouseEvent &event) override;
+  void mouseExit(const juce::MouseEvent &event) override;
+  void mouseDown(const juce::MouseEvent &event) override;
 
-    static constexpr int ROW_HEIGHT = 72;
+  static constexpr int ROW_HEIGHT = 72;
 
 private:
-    NotificationItem notification;
-    HoverState hoverState;
+  NotificationItem notification;
+  HoverState hoverState;
 
-    void drawAvatar(juce::Graphics& g, juce::Rectangle<int> bounds);
-    void drawVerbIcon(juce::Graphics& g, juce::Rectangle<int> bounds);
-    void drawText(juce::Graphics& g, juce::Rectangle<int> bounds);
-    void drawUnreadIndicator(juce::Graphics& g, juce::Rectangle<int> bounds);
+  void drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds);
+  void drawVerbIcon(juce::Graphics &g, juce::Rectangle<int> bounds);
+  void drawText(juce::Graphics &g, juce::Rectangle<int> bounds);
+  void drawUnreadIndicator(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationRow)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationRow)
 };
 
 //==============================================================================
@@ -93,75 +94,73 @@ private:
  * - Empty state when no notifications
  * - Loading state while fetching
  */
-class NotificationList : public juce::Component,
-                                   public juce::ScrollBar::Listener
-{
+class NotificationList : public juce::Component, public juce::ScrollBar::Listener {
 public:
-    NotificationList();
-    ~NotificationList() override;
+  NotificationList();
+  ~NotificationList() override;
 
-    //==============================================================================
-    // Data binding
-    void setNotifications(const juce::Array<NotificationItem>& notifications);
-    void clearNotifications();
-    void setLoading(bool loading);
-    void setError(const juce::String& errorMessage);
+  //==============================================================================
+  // Data binding
+  void setNotifications(const juce::Array<NotificationItem> &notifications);
+  void clearNotifications();
+  void setLoading(bool loading);
+  void setError(const juce::String &errorMessage);
 
-    // Update counts (displayed in header)
-    void setUnseenCount(int count);
-    void setUnreadCount(int count);
+  // Update counts (displayed in header)
+  void setUnseenCount(int count);
+  void setUnreadCount(int count);
 
-    //==============================================================================
-    // Callbacks
-    std::function<void(const NotificationItem&)> onNotificationClicked;
-    std::function<void()> onMarkAllReadClicked;
-    std::function<void()> onCloseClicked;
-    std::function<void()> onRefreshRequested;
+  //==============================================================================
+  // Callbacks
+  std::function<void(const NotificationItem &)> onNotificationClicked;
+  std::function<void()> onMarkAllReadClicked;
+  std::function<void()> onCloseClicked;
+  std::function<void()> onRefreshRequested;
 
-    //==============================================================================
-    // Component overrides
-    void paint(juce::Graphics& g) override;
-    void resized() override;
-    void scrollBarMoved(juce::ScrollBar* scrollBar, double newRangeStart) override;
+  //==============================================================================
+  // Component overrides
+  void paint(juce::Graphics &g) override;
+  void resized() override;
+  void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
-    //==============================================================================
-    // Layout constants
-    static constexpr int HEADER_HEIGHT = 50;
-    static constexpr int PREFERRED_WIDTH = 360;
-    static constexpr int MAX_HEIGHT = 500;
+  //==============================================================================
+  // Layout constants
+  static constexpr int HEADER_HEIGHT = 50;
+  static constexpr int PREFERRED_WIDTH = 360;
+  static constexpr int MAX_HEIGHT = 500;
 
 private:
-    //==============================================================================
-    juce::Array<NotificationItem> notifications;
-    juce::OwnedArray<NotificationRow> rowComponents;
+  //==============================================================================
+  juce::Array<NotificationItem> notifications;
+  juce::OwnedArray<NotificationRow> rowComponents;
 
-    int unseenCount = 0;
-    int unreadCount = 0;
-    bool isLoading = false;
-    juce::String errorMessage;
+  int unseenCount = 0;
+  int unreadCount = 0;
+  bool isLoading = false;
+  juce::String errorMessage;
 
-    // Scrolling
-    juce::Viewport viewport;
-    juce::Component contentComponent;
-    int scrollOffset = 0;
+  // Scrolling
+  juce::Viewport viewport;
+  juce::Component contentComponent;
+  int scrollOffset = 0;
 
-    //==============================================================================
-    // Drawing helpers
-    void drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds);
-    void drawEmptyState(juce::Graphics& g, juce::Rectangle<int> bounds);
-    void drawLoadingState(juce::Graphics& g, juce::Rectangle<int> bounds);
-    void drawErrorState(juce::Graphics& g, juce::Rectangle<int> bounds);
+  //==============================================================================
+  // Drawing helpers
+  void drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds);
+  void drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds);
+  void drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds);
+  void drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds);
 
-    // Layout helpers
-    void rebuildRowComponents();
-    void layoutRows();
+  // Layout helpers
+  void rebuildRowComponents();
+  void layoutRows();
 
-    // Hit testing
-    juce::Rectangle<int> getMarkAllReadButtonBounds() const;
-    juce::Rectangle<int> getCloseButtonBounds() const;
+  // Hit testing
+  juce::Rectangle<int> getMarkAllReadButtonBounds() const;
+  juce::Rectangle<int> getCloseButtonBounds() const;
 
-    // Mouse handling
-    void mouseDown(const juce::MouseEvent& event) override;
+  // Mouse handling
+  void mouseDown(const juce::MouseEvent &event) override;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationList)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationList)
 };

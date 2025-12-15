@@ -8,8 +8,7 @@
 using namespace Sidechain::UI::Animations;
 
 //==============================================================================
-Recording::Recording(SidechainAudioProcessor &processor)
-    : audioProcessor(processor) {
+Recording::Recording(SidechainAudioProcessor &processor) : audioProcessor(processor) {
   Log::info("Recording: Initializing recording component");
 
   // Start timer for UI updates (~30fps)
@@ -33,32 +32,30 @@ void Recording::startRecordingDotAnimation() {
   // Helper lambda to create the ping-pong animation
   auto createPingPongAnimation = [this]() {
     // Fade in (0.0 to 1.0 over 1 second)
-    recordingDotAnimation =
-        TransitionAnimation<float>::create(0.0f, 1.0f, 1000)
-            ->withEasing(Easing::easeInOutCubic)
-            ->onProgress([this](float progress) {
-              recordingDotOpacity = progress;
-              if (currentState == State::Recording)
-                repaint();
-            })
-            ->onComplete([this]() {
-              // Fade out (1.0 to 0.0 over 1 second)
-              recordingDotAnimation =
-                  TransitionAnimation<float>::create(1.0f, 0.0f, 1000)
-                      ->withEasing(Easing::easeInOutCubic)
-                      ->onProgress([this](float progress) {
-                        recordingDotOpacity = progress;
-                        if (currentState == State::Recording)
-                          repaint();
-                      })
-                      ->onComplete([this]() {
-                        // Loop: start the animation again if still recording
-                        if (currentState == State::Recording)
-                          startRecordingDotAnimation();
-                      })
-                      ->start();
-            })
-            ->start();
+    recordingDotAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 1000)
+                                ->withEasing(Easing::easeInOutCubic)
+                                ->onProgress([this](float progress) {
+                                  recordingDotOpacity = progress;
+                                  if (currentState == State::Recording)
+                                    repaint();
+                                })
+                                ->onComplete([this]() {
+                                  // Fade out (1.0 to 0.0 over 1 second)
+                                  recordingDotAnimation = TransitionAnimation<float>::create(1.0f, 0.0f, 1000)
+                                                              ->withEasing(Easing::easeInOutCubic)
+                                                              ->onProgress([this](float progress) {
+                                                                recordingDotOpacity = progress;
+                                                                if (currentState == State::Recording)
+                                                                  repaint();
+                                                              })
+                                                              ->onComplete([this]() {
+                                                                // Loop: start the animation again if still recording
+                                                                if (currentState == State::Recording)
+                                                                  startRecordingDotAnimation();
+                                                              })
+                                                              ->start();
+                                })
+                                ->start();
   };
 
   createPingPongAnimation();
@@ -86,9 +83,7 @@ void Recording::timerCallback() {
   // Update progressive key detection periodically during recording
   // Only update if detector is active and has processed some audio
   // Calling getCurrentKey() before any audio is processed can cause crashes
-  if (currentState == State::Recording &&
-      ProgressiveKeyDetector::isAvailable() &&
-      progressiveKeyDetector.isActive() &&
+  if (currentState == State::Recording && ProgressiveKeyDetector::isAvailable() && progressiveKeyDetector.isActive() &&
       progressiveKeyDetector.getSamplesProcessed() > 0) {
     updateKeyDetection();
   }
@@ -118,15 +113,13 @@ void Recording::paint(juce::Graphics &g) {
 }
 
 void Recording::resized() {
-  Log::debug("Recording::resized: Component resized to " +
-             juce::String(getWidth()) + "x" + juce::String(getHeight()));
+  Log::debug("Recording::resized: Component resized to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
   // Account for header - component is positioned below header in PluginEditor,
   // but add extra top padding to ensure content doesn't appear too close to
   // header visually
   auto bounds = getLocalBounds();
-  bounds.removeFromTop(Constants::Ui::HEADER_HEIGHT /
-                       2);     // Add extra spacing from header
-  bounds = bounds.reduced(20); // Standard padding on all sides
+  bounds.removeFromTop(Constants::Ui::HEADER_HEIGHT / 2); // Add extra spacing from header
+  bounds = bounds.reduced(20);                            // Standard padding on all sides
 
   // Calculate areas based on component size
   int topSectionHeight = 80;
@@ -155,8 +148,7 @@ void Recording::resized() {
   // Waveform area (takes remaining space minus buttons)
   int remainingHeight = bounds.getHeight() - buttonHeight - 20;
   if (remainingHeight > 0) {
-    waveformArea =
-        bounds.removeFromTop(juce::jmin(waveformHeight, remainingHeight));
+    waveformArea = bounds.removeFromTop(juce::jmin(waveformHeight, remainingHeight));
   }
 
   bounds.removeFromTop(10); // Spacing
@@ -175,8 +167,8 @@ void Recording::resized() {
 
 void Recording::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
-  Log::debug("Recording::mouseUp: Mouse clicked at (" + juce::String(pos.x) +
-             ", " + juce::String(pos.y) + "), state: " +
+  Log::debug("Recording::mouseUp: Mouse clicked at (" + juce::String(pos.x) + ", " + juce::String(pos.y) +
+             "), state: " +
              juce::String(currentState == State::Idle        ? "Idle"
                           : currentState == State::Recording ? "Recording"
                                                              : "Preview"));
@@ -207,9 +199,7 @@ void Recording::mouseUp(const juce::MouseEvent &event) {
     // Check action buttons
     int buttonWidth = actionButtonsArea.getWidth() / 2 - 10;
     auto discardButton = actionButtonsArea.withWidth(buttonWidth);
-    auto uploadButton =
-        actionButtonsArea.withX(actionButtonsArea.getRight() - buttonWidth)
-            .withWidth(buttonWidth);
+    auto uploadButton = actionButtonsArea.withX(actionButtonsArea.getRight() - buttonWidth).withWidth(buttonWidth);
 
     if (discardButton.contains(pos)) {
       Log::info("Recording::mouseUp: Discard button clicked");
@@ -231,14 +221,12 @@ void Recording::drawIdleState(juce::Graphics &g) {
   // Instructions text
   g.setColour(SidechainColors::textSecondary());
   g.setFont(16.0f);
-  g.drawText("Press to record audio from your DAW", timeDisplayArea,
-             juce::Justification::centredLeft);
+  g.drawText("Press to record audio from your DAW", timeDisplayArea, juce::Justification::centredLeft);
 
   // Show max recording time
   g.setFont(12.0f);
   g.setColour(SidechainColors::textMuted());
-  g.drawText("Maximum recording length: 60 seconds", progressBarArea,
-             juce::Justification::centred);
+  g.drawText("Maximum recording length: 60 seconds", progressBarArea, juce::Justification::centred);
 
   // Draw import MIDI button (R.3.3.6.3)
   drawImportMidiButton(g);
@@ -270,12 +258,10 @@ void Recording::drawPreviewState(juce::Graphics &g) {
   g.fillEllipse(recordButtonArea.reduced(10).toFloat());
 
   // Show recording duration
-  double duration =
-      static_cast<double>(recordedAudio.getNumSamples()) / recordedSampleRate;
+  double duration = static_cast<double>(recordedAudio.getNumSamples()) / recordedSampleRate;
   g.setColour(SidechainColors::textPrimary());
   g.setFont(20.0f);
-  g.drawText("Recorded: " + formatTime(duration), timeDisplayArea,
-             juce::Justification::centredLeft);
+  g.drawText("Recorded: " + formatTime(duration), timeDisplayArea, juce::Justification::centredLeft);
 
   // Draw waveform preview
   drawWaveformPreview(g);
@@ -313,24 +299,20 @@ void Recording::drawTimeDisplay(juce::Graphics &g) {
   // Log periodically to avoid spam (every 5 seconds)
   static double lastLoggedTime = -1.0;
   if (seconds - lastLoggedTime >= 5.0) {
-    Log::debug("Recording::drawTimeDisplay: Recording time: " +
-               formatTime(seconds));
+    Log::debug("Recording::drawTimeDisplay: Recording time: " + formatTime(seconds));
     lastLoggedTime = seconds;
   }
 
   // Large time display
   g.setColour(SidechainColors::textPrimary());
-  g.setFont(
-      juce::Font(juce::FontOptions().withHeight(32.0f).withStyle("Bold")));
-  g.drawText(formatTime(seconds), timeDisplayArea.removeFromTop(40),
-             juce::Justification::centredLeft);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(32.0f).withStyle("Bold")));
+  g.drawText(formatTime(seconds), timeDisplayArea.removeFromTop(40), juce::Justification::centredLeft);
 
   // Recording indicator text
   float opacity = 0.5f + 0.5f * recordingDotOpacity;
   g.setColour(SidechainColors::recording().withAlpha(opacity));
   g.setFont(14.0f);
-  g.drawText("RECORDING", timeDisplayArea.removeFromTop(20),
-             juce::Justification::centredLeft);
+  g.drawText("RECORDING", timeDisplayArea.removeFromTop(20), juce::Justification::centredLeft);
 
   // Draw key detection result if available
   if (currentState == State::Recording) {
@@ -353,8 +335,7 @@ void Recording::drawKeyDisplay(juce::Graphics &g) {
   } else if (progressiveKeyDetector.isActive() && !isDetectingKey) {
     g.setColour(SidechainColors::textMuted());
     g.setFont(12.0f);
-    g.drawText("Analyzing key...", timeDisplayArea,
-               juce::Justification::centredLeft);
+    g.drawText("Analyzing key...", timeDisplayArea, juce::Justification::centredLeft);
   }
 }
 
@@ -368,12 +349,9 @@ void Recording::drawLevelMeters(juce::Graphics &g) {
   // Log peak levels periodically to avoid spam (when levels are significant)
   static float lastLoggedPeakL = -1.0f;
   static float lastLoggedPeakR = -1.0f;
-  if (std::abs(peakL - lastLoggedPeakL) > 0.1f ||
-      std::abs(peakR - lastLoggedPeakR) > 0.1f) {
-    Log::debug("Recording::drawLevelMeters: Peak levels - L: " +
-               juce::String(peakL, 2) + ", R: " + juce::String(peakR, 2) +
-               ", RMS - L: " + juce::String(rmsL, 2) +
-               ", R: " + juce::String(rmsR, 2));
+  if (std::abs(peakL - lastLoggedPeakL) > 0.1f || std::abs(peakR - lastLoggedPeakR) > 0.1f) {
+    Log::debug("Recording::drawLevelMeters: Peak levels - L: " + juce::String(peakL, 2) + ", R: " +
+               juce::String(peakR, 2) + ", RMS - L: " + juce::String(rmsL, 2) + ", R: " + juce::String(rmsR, 2));
     lastLoggedPeakL = peakL;
     lastLoggedPeakR = peakR;
   }
@@ -396,8 +374,7 @@ void Recording::drawLevelMeters(juce::Graphics &g) {
   drawSingleMeter(g, rightMeter, peakR, rmsR, "R");
 }
 
-void Recording::drawSingleMeter(juce::Graphics &g, juce::Rectangle<int> bounds,
-                                float peak, float rms,
+void Recording::drawSingleMeter(juce::Graphics &g, juce::Rectangle<int> bounds, float peak, float rms,
                                 const juce::String &label) {
   // Label
   g.setColour(SidechainColors::textMuted());
@@ -413,8 +390,7 @@ void Recording::drawSingleMeter(juce::Graphics &g, juce::Rectangle<int> bounds,
   float rmsWidth = bounds.getWidth() * juce::jlimit(0.0f, 1.0f, rms);
   if (rmsWidth > 0) {
     g.setColour(SidechainColors::success().darker(0.3f));
-    g.fillRoundedRectangle(
-        bounds.withWidth(static_cast<int>(rmsWidth)).toFloat(), 2.0f);
+    g.fillRoundedRectangle(bounds.withWidth(static_cast<int>(rmsWidth)).toFloat(), 2.0f);
   }
 
   // Peak level (bright green, yellow, red gradient)
@@ -430,8 +406,7 @@ void Recording::drawSingleMeter(juce::Graphics &g, juce::Rectangle<int> bounds,
 
     g.setColour(peakColor);
     auto peakBar = bounds.withWidth(static_cast<int>(peakWidth));
-    peakBar = peakBar.withHeight(bounds.getHeight() / 2)
-                  .withY(bounds.getY() + bounds.getHeight() / 4);
+    peakBar = peakBar.withHeight(bounds.getHeight() / 2).withY(bounds.getY() + bounds.getHeight() / 4);
     g.fillRoundedRectangle(peakBar.toFloat(), 1.0f);
   }
 }
@@ -465,10 +440,8 @@ void Recording::drawProgressBar(juce::Graphics &g) {
   // Time labels
   g.setColour(SidechainColors::textMuted());
   g.setFont(10.0f);
-  g.drawText("0:00", progressBarArea.withY(progressBarArea.getBottom() + 2),
-             juce::Justification::left);
-  g.drawText(formatTime(maxSeconds),
-             progressBarArea.withY(progressBarArea.getBottom() + 2),
+  g.drawText("0:00", progressBarArea.withY(progressBarArea.getBottom() + 2), juce::Justification::left);
+  g.drawText(formatTime(maxSeconds), progressBarArea.withY(progressBarArea.getBottom() + 2),
              juce::Justification::right);
 }
 
@@ -499,9 +472,7 @@ void Recording::drawActionButtons(juce::Graphics &g) {
   g.drawText("Discard", discardButton, juce::Justification::centred);
 
   // Upload button (right)
-  auto uploadButton =
-      actionButtonsArea.withX(actionButtonsArea.getRight() - buttonWidth)
-          .withWidth(buttonWidth);
+  auto uploadButton = actionButtonsArea.withX(actionButtonsArea.getRight() - buttonWidth).withWidth(buttonWidth);
   g.setColour(SidechainColors::primary());
   g.fillRoundedRectangle(uploadButton.toFloat(), 8.0f);
   g.setColour(SidechainColors::textPrimary());
@@ -513,14 +484,11 @@ juce::String Recording::formatTime(double seconds) {
   return StringFormatter::formatDurationMMSS(seconds);
 }
 
-juce::Path
-Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffer,
-                                juce::Rectangle<int> bounds) {
+juce::Path Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffer, juce::Rectangle<int> bounds) {
   juce::Path path;
 
   if (buffer.getNumSamples() == 0) {
-    Log::warn(
-        "Recording::generateWaveformPath: Empty buffer, returning empty path");
+    Log::warn("Recording::generateWaveformPath: Empty buffer, returning empty path");
     return path;
   }
 
@@ -529,10 +497,8 @@ Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffer,
   float height = bounds.getHeight();
   float centerY = bounds.getCentreY();
 
-  Log::debug(
-      "Recording::generateWaveformPath: Generating waveform - samples: " +
-      juce::String(numSamples) + ", width: " + juce::String(width) +
-      ", channels: " + juce::String(buffer.getNumChannels()));
+  Log::debug("Recording::generateWaveformPath: Generating waveform - samples: " + juce::String(numSamples) +
+             ", width: " + juce::String(width) + ", channels: " + juce::String(buffer.getNumChannels()));
 
   path.startNewSubPath(bounds.getX(), centerY);
 
@@ -552,8 +518,7 @@ Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffer,
     path.lineTo(bounds.getX() + x, y);
   }
 
-  Log::debug("Recording::generateWaveformPath: Waveform path generated with " +
-             juce::String(width) + " points");
+  Log::debug("Recording::generateWaveformPath: Waveform path generated with " + juce::String(width) + " points");
   return path;
 }
 
@@ -564,8 +529,7 @@ void Recording::startRecording() {
   // Safety check: ensure processor is prepared before starting
   double sampleRate = audioProcessor.getCurrentSampleRate();
   if (sampleRate <= 0.0) {
-    Log::error("Recording::startRecording: Invalid sample rate (" +
-               juce::String(sampleRate) +
+    Log::error("Recording::startRecording: Invalid sample rate (" + juce::String(sampleRate) +
                "Hz). Processor may not be prepared. Using default.");
     sampleRate = Constants::Audio::DEFAULT_SAMPLE_RATE;
   }
@@ -579,9 +543,8 @@ void Recording::startRecording() {
   // Start progressive key detection if available
   if (ProgressiveKeyDetector::isAvailable()) {
     if (progressiveKeyDetector.start(sampleRate)) {
-      Log::info(
-          "Recording::startRecording: Progressive key detection started at " +
-          juce::String(sampleRate, 1) + "Hz");
+      Log::info("Recording::startRecording: Progressive key detection started at " + juce::String(sampleRate, 1) +
+                "Hz");
       detectedKey = KeyDetector::Key(); // Reset
       keyDetectionBuffer.setSize(2, 0); // Clear buffer
       keyDetectionSamplesAccumulated = 0;
@@ -615,8 +578,8 @@ void Recording::stopRecording() {
     if (progressiveKeyDetector.finalize()) {
       detectedKey = progressiveKeyDetector.getFinalKey();
       if (detectedKey.isValid()) {
-        Log::info("Recording::stopRecording: Final key detected: " +
-                  detectedKey.name + " (Camelot: " + detectedKey.camelot + ")");
+        Log::info("Recording::stopRecording: Final key detected: " + detectedKey.name +
+                  " (Camelot: " + detectedKey.camelot + ")");
       }
     }
     progressiveKeyDetector.reset();
@@ -630,22 +593,17 @@ void Recording::stopRecording() {
   int numChannels = recordedAudio.getNumChannels();
   double duration = static_cast<double>(numSamples) / recordedSampleRate;
 
-  Log::debug("Recording::stopRecording: Recording stopped - samples: " +
-             juce::String(numSamples) +
-             ", channels: " + juce::String(numChannels) +
-             ", sampleRate: " + juce::String(recordedSampleRate, 1) +
+  Log::debug("Recording::stopRecording: Recording stopped - samples: " + juce::String(numSamples) +
+             ", channels: " + juce::String(numChannels) + ", sampleRate: " + juce::String(recordedSampleRate, 1) +
              "Hz, duration: " + juce::String(duration, 2) + "s");
 
   if (recordedAudio.getNumSamples() > 0) {
     currentState = State::Preview;
-    Log::info(
-        "Recording::stopRecording: Recording complete, showing preview - " +
-        juce::String(recordedAudio.getNumSamples()) +
-        " samples captured, duration: " + formatTime(duration));
+    Log::info("Recording::stopRecording: Recording complete, showing preview - " +
+              juce::String(recordedAudio.getNumSamples()) + " samples captured, duration: " + formatTime(duration));
   } else {
     currentState = State::Idle;
-    Log::warn(
-        "Recording::stopRecording: Recording stopped but no audio captured");
+    Log::warn("Recording::stopRecording: Recording stopped but no audio captured");
   }
 
   repaint();
@@ -656,16 +614,14 @@ void Recording::discardRecording() {
   int discardedSamples = recordedAudio.getNumSamples();
   recordedAudio.setSize(0, 0);
   currentState = State::Idle;
-  Log::debug("Recording::discardRecording: State reset to Idle, discarded " +
-             juce::String(discardedSamples) + " samples");
+  Log::debug("Recording::discardRecording: State reset to Idle, discarded " + juce::String(discardedSamples) +
+             " samples");
 
   if (onRecordingDiscarded) {
-    Log::debug(
-        "Recording::discardRecording: Calling onRecordingDiscarded callback");
+    Log::debug("Recording::discardRecording: Calling onRecordingDiscarded callback");
     onRecordingDiscarded();
   } else {
-    Log::warn(
-        "Recording::discardRecording: onRecordingDiscarded callback not set");
+    Log::warn("Recording::discardRecording: onRecordingDiscarded callback not set");
   }
 
   repaint();
@@ -678,8 +634,8 @@ void Recording::confirmRecording() {
 
   Log::info("Recording::confirmRecording: Confirming recording for upload - "
             "samples: " +
-            juce::String(numSamples) + ", channels: " +
-            juce::String(numChannels) + ", duration: " + formatTime(duration));
+            juce::String(numSamples) + ", channels: " + juce::String(numChannels) +
+            ", duration: " + formatTime(duration));
 
   if (onRecordingComplete && recordedAudio.getNumSamples() > 0) {
     // Make a copy of the audio data before any state changes
@@ -705,18 +661,15 @@ void Recording::confirmRecording() {
     currentState = State::Idle;
     importedMidiData = juce::var(); // Clear imported MIDI
     hasImportedMidi = false;
-    Log::debug(
-        "Recording::confirmRecording: State reset to Idle before callback");
+    Log::debug("Recording::confirmRecording: State reset to Idle before callback");
 
     // Now call the callback with the copy - safe even if callback
     // triggers view changes that cause repaints
-    Log::info(
-        "Recording::confirmRecording: Calling onRecordingComplete callback");
+    Log::info("Recording::confirmRecording: Calling onRecordingComplete callback");
     onRecordingComplete(audioCopy, midiData);
   } else {
     if (!onRecordingComplete) {
-      Log::warn(
-          "Recording::confirmRecording: onRecordingComplete callback not set");
+      Log::warn("Recording::confirmRecording: onRecordingComplete callback not set");
     }
     if (recordedAudio.getNumSamples() == 0) {
       Log::warn("Recording::confirmRecording: No audio to share");
@@ -734,8 +687,7 @@ void Recording::updateKeyDetection() {
   // Update key detection display from progressive detector
   // Only call getCurrentKey() if detector is active and has processed samples
   // Calling it before any audio chunks are added can cause crashes
-  if (progressiveKeyDetector.isActive() &&
-      progressiveKeyDetector.getSamplesProcessed() > 0) {
+  if (progressiveKeyDetector.isActive() && progressiveKeyDetector.getSamplesProcessed() > 0) {
     auto result = progressiveKeyDetector.getCurrentKey();
     if (result.isValid()) {
       detectedKey = result;
@@ -743,8 +695,7 @@ void Recording::updateKeyDetection() {
   }
 }
 
-void Recording::processKeyDetectionChunk(
-    const juce::AudioBuffer<float> &buffer) {
+void Recording::processKeyDetectionChunk(const juce::AudioBuffer<float> &buffer) {
   // Process a chunk of audio for key detection
   if (progressiveKeyDetector.isActive() && buffer.getNumSamples() > 0) {
     progressiveKeyDetector.addAudioChunk(buffer, buffer.getNumChannels());
@@ -756,8 +707,7 @@ void Recording::processKeyDetectionChunk(
 
 void Recording::drawImportMidiButton(juce::Graphics &g) {
   bool isHovered = importMidiButtonArea.contains(getMouseXYRelative());
-  auto bgColor =
-      isHovered ? SidechainColors::surfaceHover() : SidechainColors::surface();
+  auto bgColor = isHovered ? SidechainColors::surfaceHover() : SidechainColors::surface();
 
   g.setColour(bgColor);
   g.fillRoundedRectangle(importMidiButtonArea.toFloat(), 8.0f);
@@ -770,15 +720,13 @@ void Recording::drawImportMidiButton(juce::Graphics &g) {
   g.setColour(SidechainColors::textPrimary());
   g.setFont(14.0f);
 
-  juce::String buttonText =
-      hasImportedMidi ? "MIDI Imported ✓" : "Import MIDI File...";
+  juce::String buttonText = hasImportedMidi ? "MIDI Imported ✓" : "Import MIDI File...";
   g.drawText(buttonText, importMidiButtonArea, juce::Justification::centred);
 }
 
 void Recording::drawViewDraftsButton(juce::Graphics &g) {
   bool isHovered = viewDraftsButtonArea.contains(getMouseXYRelative());
-  auto bgColor =
-      isHovered ? SidechainColors::surfaceHover() : SidechainColors::surface();
+  auto bgColor = isHovered ? SidechainColors::surfaceHover() : SidechainColors::surface();
 
   g.setColour(bgColor);
   g.fillRoundedRectangle(viewDraftsButtonArea.toFloat(), 8.0f);
@@ -798,30 +746,23 @@ void Recording::showMidiImportDialog() {
 
   // Create file chooser for MIDI files
   auto chooser = std::make_shared<juce::FileChooser>(
-      "Select a MIDI file to import",
-      juce::File::getSpecialLocation(juce::File::userMusicDirectory),
-      "*.mid;*.midi");
+      "Select a MIDI file to import", juce::File::getSpecialLocation(juce::File::userMusicDirectory), "*.mid;*.midi");
 
-  chooser->launchAsync(
-      juce::FileBrowserComponent::openMode |
-          juce::FileBrowserComponent::canSelectFiles,
-      [this, chooser](const juce::FileChooser &fc) {
-        auto results = fc.getResults();
-        if (results.size() > 0) {
-          auto file = results[0];
-          Log::info("Recording::showMidiImportDialog: User selected file: " +
-                    file.getFullPathName());
-          importMidiFile(file);
-        } else {
-          Log::debug(
-              "Recording::showMidiImportDialog: User cancelled file selection");
-        }
-      });
+  chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                       [this, chooser](const juce::FileChooser &fc) {
+                         auto results = fc.getResults();
+                         if (results.size() > 0) {
+                           auto file = results[0];
+                           Log::info("Recording::showMidiImportDialog: User selected file: " + file.getFullPathName());
+                           importMidiFile(file);
+                         } else {
+                           Log::debug("Recording::showMidiImportDialog: User cancelled file selection");
+                         }
+                       });
 }
 
 void Recording::importMidiFile(const juce::File &file) {
-  Log::info("Recording::importMidiFile: Importing MIDI file: " +
-            file.getFileName());
+  Log::info("Recording::importMidiFile: Importing MIDI file: " + file.getFileName());
 
   // Read and parse MIDI file using JUCE
   juce::MidiFile midiFile;
@@ -860,16 +801,13 @@ void Recording::importMidiFile(const juce::File &file) {
       continue;
 
     for (int i = 0; i < sequence->getNumEvents(); ++i) {
-      const juce::MidiMessageSequence::MidiEventHolder *eventHolder =
-          sequence->getEventPointer(i);
+      const juce::MidiMessageSequence::MidiEventHolder *eventHolder = sequence->getEventPointer(i);
       const juce::MidiMessage &message = eventHolder->message;
       double timeInSeconds = message.getTimeStamp() / ticksPerSecond;
 
       // Look for tempo changes
       if (message.isTempoMetaEvent()) {
-        tempo = message.getTempoSecondsPerQuarterNote() > 0
-                    ? 60.0 / message.getTempoSecondsPerQuarterNote()
-                    : 120.0;
+        tempo = message.getTempoSecondsPerQuarterNote() > 0 ? 60.0 / message.getTempoSecondsPerQuarterNote() : 120.0;
         // Update ticks conversion
         if (timeFormat > 0) {
           ticksPerSecond = static_cast<double>(timeFormat) * (tempo / 60.0);
@@ -889,8 +827,7 @@ void Recording::importMidiFile(const juce::File &file) {
         event->setProperty("type", "note_on");
         event->setProperty("note", message.getNoteNumber());
         event->setProperty("velocity", message.getVelocity());
-        event->setProperty("channel", message.getChannel() -
-                                          1); // JUCE uses 1-based channels
+        event->setProperty("channel", message.getChannel() - 1); // JUCE uses 1-based channels
         eventsArray.add(juce::var(event.get()));
       }
       // Note off
@@ -910,14 +847,12 @@ void Recording::importMidiFile(const juce::File &file) {
   juce::DynamicObject::Ptr midiData = new juce::DynamicObject();
   midiData->setProperty("events", eventsArray);
   midiData->setProperty("tempo", tempo);
-  midiData->setProperty("time_signature", juce::String(timeSignatureNum) + "/" +
-                                              juce::String(timeSignatureDen));
+  midiData->setProperty("time_signature", juce::String(timeSignatureNum) + "/" + juce::String(timeSignatureDen));
 
   importedMidiData = juce::var(midiData.get());
   hasImportedMidi = true;
 
-  Log::info("Recording::importMidiFile: Successfully imported " +
-            juce::String(eventsArray.size()) +
+  Log::info("Recording::importMidiFile: Successfully imported " + juce::String(eventsArray.size()) +
             " MIDI events, tempo: " + juce::String(tempo, 1) + " BPM");
 
   repaint();

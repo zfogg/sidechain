@@ -9,13 +9,11 @@ namespace Stores {
 FeedStore::FeedStore() {
   // Initialize multi-tier cache (Task 4.13)
   // Memory tier: 100MB, Disk tier: 1GB
-  auto cacheDir =
-      juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-          .getChildFile("Sidechain")
-          .getChildFile("feed_cache");
+  auto cacheDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                      .getChildFile("Sidechain")
+                      .getChildFile("feed_cache");
 
-  feedCache = std::make_unique<
-      Util::Cache::MultiTierCache<juce::String, juce::Array<FeedPost>>>(
+  feedCache = std::make_unique<Util::Cache::MultiTierCache<juce::String, juce::Array<FeedPost>>>(
       100 * 1024 * 1024, // 100MB memory cache
       cacheDir,          // Disk cache directory
       1024               // 1GB disk cache
@@ -27,9 +25,7 @@ FeedStore::FeedStore() {
 
   // Start timer for periodic cache cleanup (every 60 seconds)
   startTimer(60000);
-  Util::logInfo(
-      "FeedStore",
-      "Initialized reactive feed store with multi-tier cache and cache warmer");
+  Util::logInfo("FeedStore", "Initialized reactive feed store with multi-tier cache and cache warmer");
 }
 
 FeedStore::~FeedStore() {
@@ -43,8 +39,7 @@ FeedStore::~FeedStore() {
 void FeedStore::loadFeed(FeedType feedType, bool forceRefresh) {
   SCOPED_TIMER("feed::load");
   Util::logInfo("FeedStore", "Loading feed: " + feedTypeToString(feedType),
-                "forceRefresh=" +
-                    juce::String(forceRefresh ? "true" : "false"));
+                "forceRefresh=" + juce::String(forceRefresh ? "true" : "false"));
 
   // Update state to loading (handle both aggregated and regular feeds)
   updateState([feedType](FeedStoreState &state) {
@@ -67,31 +62,26 @@ void FeedStore::loadFeed(FeedType feedType, bool forceRefresh) {
     auto cachedPosts = feedCache->get(cacheKey);
 
     if (cachedPosts.has_value()) {
-      Util::logInfo("FeedStore",
-                    "Using multi-tier cached feed: " +
-                        feedTypeToString(feedType),
-                    "posts=" + juce::String(cachedPosts->size()) +
-                        " [Task 4.13 cache hit]");
+      Util::logInfo("FeedStore", "Using multi-tier cached feed: " + feedTypeToString(feedType),
+                    "posts=" + juce::String(cachedPosts->size()) + " [Task 4.13 cache hit]");
 
       // Mark as from cache for "cached" badge (Task 4.14)
       currentFeedIsFromCache_ = true;
 
       // Use cached data
-      updateState(
-          [feedType, posts = cachedPosts.value()](FeedStoreState &state) {
-            auto &feed = state.feeds[feedType];
-            feed.posts = posts;
-            feed.isLoading = false;
-            feed.hasMore = true; // Assume more available
-            feed.offset = 0;
-            feed.total = posts.size();
-            feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-          });
+      updateState([feedType, posts = cachedPosts.value()](FeedStoreState &state) {
+        auto &feed = state.feeds[feedType];
+        feed.posts = posts;
+        feed.isLoading = false;
+        feed.hasMore = true; // Assume more available
+        feed.offset = 0;
+        feed.total = posts.size();
+        feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+      });
       return;
     }
 
-    Util::logDebug("FeedStore",
-                   "Cache miss for feed: " + feedTypeToString(feedType),
+    Util::logDebug("FeedStore", "Cache miss for feed: " + feedTypeToString(feedType),
                    "[Task 4.13 - will fetch from network]");
   }
 
@@ -102,8 +92,7 @@ void FeedStore::loadFeed(FeedType feedType, bool forceRefresh) {
 void FeedStore::refreshCurrentFeed() {
   auto currentType = getCurrentFeedType();
 
-  Util::logInfo("FeedStore",
-                "Refreshing current feed: " + feedTypeToString(currentType));
+  Util::logInfo("FeedStore", "Refreshing current feed: " + feedTypeToString(currentType));
 
   // Clear cache
   clearCache(currentType);
@@ -125,37 +114,29 @@ void FeedStore::loadMore() {
   const auto &currentFeed = currentState.getCurrentFeed();
 
   if (!currentFeed.hasMore || currentFeed.isLoading) {
-    Util::logDebug(
-        "FeedStore", "Load more skipped",
-        "hasMore=" + juce::String(currentFeed.hasMore ? "true" : "false") +
-            " isLoading=" +
-            juce::String(currentFeed.isLoading ? "true" : "false"));
+    Util::logDebug("FeedStore", "Load more skipped",
+                   "hasMore=" + juce::String(currentFeed.hasMore ? "true" : "false") +
+                       " isLoading=" + juce::String(currentFeed.isLoading ? "true" : "false"));
     return;
   }
 
-  Util::logInfo(
-      "FeedStore", "Loading more posts: " + feedTypeToString(currentType),
-      "offset=" + juce::String(currentFeed.offset + currentFeed.limit));
+  Util::logInfo("FeedStore", "Loading more posts: " + feedTypeToString(currentType),
+                "offset=" + juce::String(currentFeed.offset + currentFeed.limit));
 
   // Update loading state
-  updateState([currentType](FeedStoreState &state) {
-    state.feeds[currentType].isLoading = true;
-  });
+  updateState([currentType](FeedStoreState &state) { state.feeds[currentType].isLoading = true; });
 
   // Fetch next page
-  performFetch(currentType, currentFeed.limit,
-               currentFeed.offset + currentFeed.limit);
+  performFetch(currentType, currentFeed.limit, currentFeed.offset + currentFeed.limit);
 }
 
 void FeedStore::switchFeedType(FeedType feedType) {
   if (getCurrentFeedType() == feedType)
     return;
 
-  Util::logInfo("FeedStore",
-                "Switching feed type to: " + feedTypeToString(feedType));
+  Util::logInfo("FeedStore", "Switching feed type to: " + feedTypeToString(feedType));
 
-  updateState(
-      [feedType](FeedStoreState &state) { state.currentFeedType = feedType; });
+  updateState([feedType](FeedStoreState &state) { state.currentFeedType = feedType; });
 
   // Load feed if not already loaded
   auto currentState = getState();
@@ -182,8 +163,7 @@ void FeedStore::toggleLike(const juce::String &postId) {
             post.likeCount += post.isLiked ? 1 : -1;
 
             // Update lastUpdated timestamp to trigger state change detection
-            currentFeed.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             break;
           }
         }
@@ -203,37 +183,30 @@ void FeedStore::toggleLike(const juce::String &postId) {
 
         bool shouldLike = post->isLiked;
 
-        networkClient->toggleLike(
-            postId, shouldLike,
-            [this, postId, shouldLike, callback](Outcome<juce::var> result) {
-              if (result.isOk()) {
-                // Broadcast operation to real-time sync (Task 4.21)
-                // This ensures other connected clients see the like update
-                // immediately
-                if (realtimeSync) {
-                  // Create operation: Modify post's like count
-                  auto op = std::make_shared<
-                      Util::CRDT::OperationalTransform::Modify>();
-                  op->position = postId.hashCode() %
-                                 100000; // Unique position based on post ID
-                  op->oldContent =
-                      std::string("likes:") + (shouldLike ? "-1" : "1");
-                  op->newContent = "likes:done";
+        networkClient->toggleLike(postId, shouldLike, [this, postId, shouldLike, callback](Outcome<juce::var> result) {
+          if (result.isOk()) {
+            // Broadcast operation to real-time sync (Task 4.21)
+            // This ensures other connected clients see the like update
+            // immediately
+            if (realtimeSync) {
+              // Create operation: Modify post's like count
+              auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+              op->position = postId.hashCode() % 100000; // Unique position based on post ID
+              op->oldContent = std::string("likes:") + (shouldLike ? "-1" : "1");
+              op->newContent = "likes:done";
 
-                  realtimeSync->sendLocalOperation(op);
-                  Util::logDebug("FeedStore", "Broadcasted like operation",
-                                 "postId=" + postId + ", synced=true");
-                }
+              realtimeSync->sendLocalOperation(op);
+              Util::logDebug("FeedStore", "Broadcasted like operation", "postId=" + postId + ", synced=true");
+            }
 
-                callback(true, "");
-              } else {
-                callback(false, result.getError());
-              }
-            });
+            callback(true, "");
+          } else {
+            callback(false, result.getError());
+          }
+        });
       },
       [postId](const juce::String &error) {
-        Util::logError("FeedStore", "Failed to toggle like: " + error,
-                       "postId=" + postId);
+        Util::logError("FeedStore", "Failed to toggle like: " + error, "postId=" + postId);
       });
 }
 
@@ -249,8 +222,7 @@ void FeedStore::toggleSave(const juce::String &postId) {
             post.saveCount += post.isSaved ? 1 : -1;
 
             // Update lastUpdated timestamp to trigger state change detection
-            currentFeed.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             break;
           }
         }
@@ -269,31 +241,25 @@ void FeedStore::toggleSave(const juce::String &postId) {
 
         bool shouldSave = post->isSaved;
 
-        networkClient->toggleSave(
-            postId, shouldSave,
-            [this, postId, shouldSave, callback](Outcome<juce::var> result) {
-              if (result.isOk()) {
-                // Broadcast save operation to real-time sync (Task 4.21)
-                if (realtimeSync) {
-                  auto op = std::make_shared<
-                      Util::CRDT::OperationalTransform::Modify>();
-                  op->position = (postId.hashCode() + 1) % 100000;
-                  op->oldContent =
-                      std::string("saves:") + (shouldSave ? "-1" : "1");
-                  op->newContent = "saves:done";
+        networkClient->toggleSave(postId, shouldSave, [this, postId, shouldSave, callback](Outcome<juce::var> result) {
+          if (result.isOk()) {
+            // Broadcast save operation to real-time sync (Task 4.21)
+            if (realtimeSync) {
+              auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+              op->position = (postId.hashCode() + 1) % 100000;
+              op->oldContent = std::string("saves:") + (shouldSave ? "-1" : "1");
+              op->newContent = "saves:done";
 
-                  realtimeSync->sendLocalOperation(op);
-                  Util::logDebug("FeedStore", "Broadcasted save operation",
-                                 "postId=" + postId);
-                }
-              }
+              realtimeSync->sendLocalOperation(op);
+              Util::logDebug("FeedStore", "Broadcasted save operation", "postId=" + postId);
+            }
+          }
 
-              callback(result.isOk(), result.isOk() ? "" : result.getError());
-            });
+          callback(result.isOk(), result.isOk() ? "" : result.getError());
+        });
       },
       [postId](const juce::String &error) {
-        Util::logError("FeedStore", "Failed to toggle save: " + error,
-                       "postId=" + postId);
+        Util::logError("FeedStore", "Failed to toggle save: " + error, "postId=" + postId);
       });
 }
 
@@ -309,8 +275,7 @@ void FeedStore::toggleRepost(const juce::String &postId) {
             post.repostCount += post.isReposted ? 1 : -1;
 
             // Update lastUpdated timestamp to trigger state change detection
-            currentFeed.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             break;
           }
         }
@@ -330,21 +295,17 @@ void FeedStore::toggleRepost(const juce::String &postId) {
         bool shouldRepost = post->isReposted;
 
         networkClient->toggleRepost(
-            postId, shouldRepost,
-            [this, postId, shouldRepost, callback](Outcome<juce::var> result) {
+            postId, shouldRepost, [this, postId, shouldRepost, callback](Outcome<juce::var> result) {
               if (result.isOk()) {
                 // Broadcast repost operation to real-time sync (Task 4.21)
                 if (realtimeSync) {
-                  auto op = std::make_shared<
-                      Util::CRDT::OperationalTransform::Modify>();
+                  auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
                   op->position = (postId.hashCode() + 2) % 100000;
-                  op->oldContent =
-                      std::string("reposts:") + (shouldRepost ? "-1" : "1");
+                  op->oldContent = std::string("reposts:") + (shouldRepost ? "-1" : "1");
                   op->newContent = "reposts:done";
 
                   realtimeSync->sendLocalOperation(op);
-                  Util::logDebug("FeedStore", "Broadcasted repost operation",
-                                 "postId=" + postId);
+                  Util::logDebug("FeedStore", "Broadcasted repost operation", "postId=" + postId);
                 }
               }
 
@@ -352,15 +313,12 @@ void FeedStore::toggleRepost(const juce::String &postId) {
             });
       },
       [postId](const juce::String &error) {
-        Util::logError("FeedStore", "Failed to toggle repost: " + error,
-                       "postId=" + postId);
+        Util::logError("FeedStore", "Failed to toggle repost: " + error, "postId=" + postId);
       });
 }
 
-void FeedStore::addReaction(const juce::String &postId,
-                            const juce::String &emoji) {
-  Util::logDebug("FeedStore", "Add reaction",
-                 "postId=" + postId + " emoji=" + emoji);
+void FeedStore::addReaction(const juce::String &postId, const juce::String &emoji) {
+  Util::logDebug("FeedStore", "Add reaction", "postId=" + postId + " emoji=" + emoji);
 
   optimisticUpdate(
       [postId, emoji](FeedStoreState &state) {
@@ -369,8 +327,7 @@ void FeedStore::addReaction(const juce::String &postId,
           if (post.id == postId) {
             // Remove previous reaction if exists
             if (!post.userReaction.isEmpty()) {
-              auto it =
-                  post.reactionCounts.find(post.userReaction.toStdString());
+              auto it = post.reactionCounts.find(post.userReaction.toStdString());
               if (it != post.reactionCounts.end() && it->second > 0)
                 it->second--;
             }
@@ -384,8 +341,7 @@ void FeedStore::addReaction(const juce::String &postId,
             }
 
             // Update lastUpdated timestamp to trigger state change detection
-            currentFeed.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             break;
           }
         }
@@ -396,39 +352,31 @@ void FeedStore::addReaction(const juce::String &postId,
           return;
         }
 
-        networkClient->addEmojiReaction(
-            postId, emoji,
-            [this, postId, emoji, callback](Outcome<juce::var> result) {
-              if (result.isOk()) {
-                // Broadcast reaction operation to real-time sync (Task 4.21)
-                // Allows other clients to see emoji reactions in < 500ms
-                if (realtimeSync) {
-                  auto op = std::make_shared<
-                      Util::CRDT::OperationalTransform::Modify>();
-                  op->position = (postId.hashCode() + 3) % 100000;
-                  op->oldContent =
-                      std::string("reaction:") + emoji.toStdString();
-                  op->newContent = "reaction:applied";
+        networkClient->addEmojiReaction(postId, emoji, [this, postId, emoji, callback](Outcome<juce::var> result) {
+          if (result.isOk()) {
+            // Broadcast reaction operation to real-time sync (Task 4.21)
+            // Allows other clients to see emoji reactions in < 500ms
+            if (realtimeSync) {
+              auto op = std::make_shared<Util::CRDT::OperationalTransform::Modify>();
+              op->position = (postId.hashCode() + 3) % 100000;
+              op->oldContent = std::string("reaction:") + emoji.toStdString();
+              op->newContent = "reaction:applied";
 
-                  realtimeSync->sendLocalOperation(op);
-                  Util::logDebug("FeedStore", "Broadcasted reaction operation",
-                                 "postId=" + postId + ", emoji=" + emoji);
-                }
-              }
+              realtimeSync->sendLocalOperation(op);
+              Util::logDebug("FeedStore", "Broadcasted reaction operation", "postId=" + postId + ", emoji=" + emoji);
+            }
+          }
 
-              callback(result.isOk(), result.isOk() ? "" : result.getError());
-            });
+          callback(result.isOk(), result.isOk() ? "" : result.getError());
+        });
       },
       [postId, emoji](const juce::String &error) {
-        Util::logError("FeedStore", "Failed to add reaction: " + error,
-                       "postId=" + postId + " emoji=" + emoji);
+        Util::logError("FeedStore", "Failed to add reaction: " + error, "postId=" + postId + " emoji=" + emoji);
       });
 }
 
 void FeedStore::toggleFollow(const juce::String &postId, bool willFollow) {
-  Util::logDebug("FeedStore", "Toggle follow",
-                 "postId=" + postId +
-                     " follow=" + (willFollow ? "true" : "false"));
+  Util::logDebug("FeedStore", "Toggle follow", "postId=" + postId + " follow=" + (willFollow ? "true" : "false"));
 
   optimisticUpdate(
       [postId, willFollow](FeedStoreState &state) {
@@ -464,15 +412,12 @@ void FeedStore::toggleFollow(const juce::String &postId, bool willFollow) {
         }
 
         if (targetUserId.isEmpty()) {
-          Util::logError("FeedStore", "Could not find post to get userId",
-                         "postId=" + postId);
+          Util::logError("FeedStore", "Could not find post to get userId", "postId=" + postId);
           return;
         }
 
-        Util::logDebug("FeedStore",
-                       "Updating follow state for all posts by user",
-                       "userId=" + targetUserId +
-                           " willFollow=" + (willFollow ? "true" : "false"));
+        Util::logDebug("FeedStore", "Updating follow state for all posts by user",
+                       "userId=" + targetUserId + " willFollow=" + (willFollow ? "true" : "false"));
 
         // Update follow state for ALL posts by this user across ALL feeds
         int updatedCount = 0;
@@ -488,8 +433,7 @@ void FeedStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
           // Update lastUpdated timestamp to trigger state change detection
           if (feedModified) {
-            feedPair.second.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            feedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
           }
         }
 
@@ -508,8 +452,7 @@ void FeedStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
           // Update lastUpdated timestamp to trigger state change detection
           if (feedModified) {
-            aggFeedPair.second.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            aggFeedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
           }
         }
 
@@ -531,33 +474,25 @@ void FeedStore::toggleFollow(const juce::String &postId, bool willFollow) {
 
         if (willFollow) {
           networkClient->followUser(
-              post->userId, [this, postId, userId = post->userId,
-                             callback](Outcome<juce::var> result) {
+              post->userId, [this, postId, userId = post->userId, callback](Outcome<juce::var> result) {
                 if (result.isOk()) {
-                  Util::logDebug("FeedStore", "Follow succeeded",
-                                 "postId=" + postId);
+                  Util::logDebug("FeedStore", "Follow succeeded", "postId=" + postId);
                   // Update cache with new follow state
                   updateFollowStateByUserId(userId, true);
                 } else {
-                  Util::logError("FeedStore",
-                                 "Follow failed: " + result.getError(),
-                                 "postId=" + postId);
+                  Util::logError("FeedStore", "Follow failed: " + result.getError(), "postId=" + postId);
                 }
                 callback(result.isOk(), result.isOk() ? "" : result.getError());
               });
         } else {
           networkClient->unfollowUser(
-              post->userId, [this, postId, userId = post->userId,
-                             callback](Outcome<juce::var> result) {
+              post->userId, [this, postId, userId = post->userId, callback](Outcome<juce::var> result) {
                 if (result.isOk()) {
-                  Util::logDebug("FeedStore", "Unfollow succeeded",
-                                 "postId=" + postId);
+                  Util::logDebug("FeedStore", "Unfollow succeeded", "postId=" + postId);
                   // Update cache with new follow state
                   updateFollowStateByUserId(userId, false);
                 } else {
-                  Util::logError("FeedStore",
-                                 "Unfollow failed: " + result.getError(),
-                                 "postId=" + postId);
+                  Util::logError("FeedStore", "Unfollow failed: " + result.getError(), "postId=" + postId);
                 }
                 callback(result.isOk(), result.isOk() ? "" : result.getError());
               });
@@ -565,22 +500,18 @@ void FeedStore::toggleFollow(const juce::String &postId, bool willFollow) {
       },
       [postId, willFollow](const juce::String &error) {
         Util::logError("FeedStore", "Failed to toggle follow: " + error,
-                       "postId=" + postId +
-                           " willFollow=" + (willFollow ? "true" : "false"));
+                       "postId=" + postId + " willFollow=" + (willFollow ? "true" : "false"));
       });
 }
 
-void FeedStore::updateFollowStateByUserId(const juce::String &userId,
-                                          bool willFollow) {
+void FeedStore::updateFollowStateByUserId(const juce::String &userId, bool willFollow) {
   if (userId.isEmpty()) {
-    Util::logError("FeedStore", "Cannot update follow state - userId is empty",
-                   "");
+    Util::logError("FeedStore", "Cannot update follow state - userId is empty", "");
     return;
   }
 
   Util::logDebug("FeedStore", "Updating follow state for all posts by user",
-                 "userId=" + userId +
-                     " willFollow=" + (willFollow ? "true" : "false"));
+                 "userId=" + userId + " willFollow=" + (willFollow ? "true" : "false"));
 
   updateState([userId, willFollow](FeedStoreState &state) {
     // Update follow state for ALL posts by this user across ALL feeds
@@ -597,8 +528,7 @@ void FeedStore::updateFollowStateByUserId(const juce::String &userId,
 
       // Update lastUpdated timestamp to trigger state change detection
       if (feedModified) {
-        feedPair.second.lastUpdated =
-            juce::Time::getCurrentTime().toMilliseconds();
+        feedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
       }
     }
 
@@ -617,8 +547,7 @@ void FeedStore::updateFollowStateByUserId(const juce::String &userId,
 
       // Update lastUpdated timestamp to trigger state change detection
       if (feedModified) {
-        aggFeedPair.second.lastUpdated =
-            juce::Time::getCurrentTime().toMilliseconds();
+        aggFeedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
       }
     }
 
@@ -629,10 +558,8 @@ void FeedStore::updateFollowStateByUserId(const juce::String &userId,
   // Update cached posts with the new follow state (fixes cache staleness)
   if (feedCache) {
     int cachedFeedsUpdated = 0;
-    for (auto feedType :
-         {FeedType::Timeline, FeedType::Global, FeedType::Trending,
-          FeedType::ForYou, FeedType::Popular, FeedType::Latest,
-          FeedType::Discovery}) {
+    for (auto feedType : {FeedType::Timeline, FeedType::Global, FeedType::Trending, FeedType::ForYou, FeedType::Popular,
+                          FeedType::Latest, FeedType::Discovery}) {
       auto cacheKey = feedTypeToCacheKey(feedType);
       auto cachedPosts = feedCache->get(cacheKey);
 
@@ -656,24 +583,20 @@ void FeedStore::updateFollowStateByUserId(const juce::String &userId,
 
     if (cachedFeedsUpdated > 0) {
       Util::logDebug("FeedStore", "Updated follow state in cached feeds",
-                     "userId=" + userId + " cachedFeedsUpdated=" +
-                         juce::String(cachedFeedsUpdated));
+                     "userId=" + userId + " cachedFeedsUpdated=" + juce::String(cachedFeedsUpdated));
     }
   }
 }
 
 void FeedStore::toggleArchive(const juce::String &postId, bool archived) {
-  Util::logDebug("FeedStore", "Toggle archive",
-                 "postId=" + postId +
-                     " archived=" + (archived ? "true" : "false"));
+  Util::logDebug("FeedStore", "Toggle archive", "postId=" + postId + " archived=" + (archived ? "true" : "false"));
 
   // Note: Archive functionality (Task 2.2) - currently FeedPost doesn't have
   // isArchived field and archive operations need further implementation. This
   // is a placeholder.
 
   if (!networkClient) {
-    Util::logError("FeedStore", "Cannot archive - networkClient not configured",
-                   "postId=" + postId);
+    Util::logError("FeedStore", "Cannot archive - networkClient not configured", "postId=" + postId);
     return;
   }
 
@@ -683,8 +606,7 @@ void FeedStore::toggleArchive(const juce::String &postId, bool archived) {
       if (result.isOk()) {
         Util::logDebug("FeedStore", "Archive succeeded", "postId=" + postId);
       } else {
-        Util::logError("FeedStore", "Archive failed: " + result.getError(),
-                       "postId=" + postId);
+        Util::logError("FeedStore", "Archive failed: " + result.getError(), "postId=" + postId);
       }
     });
   } else {
@@ -692,16 +614,14 @@ void FeedStore::toggleArchive(const juce::String &postId, bool archived) {
       if (result.isOk()) {
         Util::logDebug("FeedStore", "Unarchive succeeded", "postId=" + postId);
       } else {
-        Util::logError("FeedStore", "Unarchive failed: " + result.getError(),
-                       "postId=" + postId);
+        Util::logError("FeedStore", "Unarchive failed: " + result.getError(), "postId=" + postId);
       }
     });
   }
 }
 
 void FeedStore::togglePin(const juce::String &postId, bool pinned) {
-  Util::logDebug("FeedStore", "Toggle pin",
-                 "postId=" + postId + " pinned=" + (pinned ? "true" : "false"));
+  Util::logDebug("FeedStore", "Toggle pin", "postId=" + postId + " pinned=" + (pinned ? "true" : "false"));
 
   optimisticUpdate(
       [postId, pinned](FeedStoreState &state) {
@@ -712,8 +632,7 @@ void FeedStore::togglePin(const juce::String &postId, bool pinned) {
             post.isPinned = pinned;
 
             // Update lastUpdated timestamp to trigger state change detection
-            currentFeed.lastUpdated =
-                juce::Time::getCurrentTime().toMilliseconds();
+            currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             break;
           }
         }
@@ -726,25 +645,20 @@ void FeedStore::togglePin(const juce::String &postId, bool pinned) {
 
         // Call appropriate pin/unpin API based on pinned flag
         if (pinned) {
-          networkClient->pinPost(postId, [postId,
-                                          callback](Outcome<juce::var> result) {
+          networkClient->pinPost(postId, [postId, callback](Outcome<juce::var> result) {
             if (result.isOk()) {
               Util::logDebug("FeedStore", "Pin succeeded", "postId=" + postId);
             } else {
-              Util::logError("FeedStore", "Pin failed: " + result.getError(),
-                             "postId=" + postId);
+              Util::logError("FeedStore", "Pin failed: " + result.getError(), "postId=" + postId);
             }
             callback(result.isOk(), result.isOk() ? "" : result.getError());
           });
         } else {
-          networkClient->unpinPost(postId, [postId, callback](
-                                               Outcome<juce::var> result) {
+          networkClient->unpinPost(postId, [postId, callback](Outcome<juce::var> result) {
             if (result.isOk()) {
-              Util::logDebug("FeedStore", "Unpin succeeded",
-                             "postId=" + postId);
+              Util::logDebug("FeedStore", "Unpin succeeded", "postId=" + postId);
             } else {
-              Util::logError("FeedStore", "Unpin failed: " + result.getError(),
-                             "postId=" + postId);
+              Util::logError("FeedStore", "Unpin failed: " + result.getError(), "postId=" + postId);
             }
             callback(result.isOk(), result.isOk() ? "" : result.getError());
           });
@@ -752,23 +666,19 @@ void FeedStore::togglePin(const juce::String &postId, bool pinned) {
       },
       [postId, pinned](const juce::String &error) {
         Util::logError("FeedStore", "Failed to toggle pin: " + error,
-                       "postId=" + postId +
-                           " pinned=" + (pinned ? "true" : "false"));
+                       "postId=" + postId + " pinned=" + (pinned ? "true" : "false"));
       });
 }
 
 void FeedStore::updatePlayCount(const juce::String &postId, int newCount) {
-  updatePostInAllFeeds(
-      postId, [newCount](FeedPost &post) { post.playCount = newCount; });
+  updatePostInAllFeeds(postId, [newCount](FeedPost &post) { post.playCount = newCount; });
 }
 
 void FeedStore::toggleMute(const juce::String &userId, bool willMute) {
-  Util::logDebug("FeedStore", "Toggle mute",
-                 "userId=" + userId + " mute=" + (willMute ? "true" : "false"));
+  Util::logDebug("FeedStore", "Toggle mute", "userId=" + userId + " mute=" + (willMute ? "true" : "false"));
 
   if (!networkClient) {
-    Util::logError("FeedStore",
-                   "Cannot toggle mute - network client not configured");
+    Util::logError("FeedStore", "Cannot toggle mute - network client not configured");
     return;
   }
 
@@ -782,8 +692,7 @@ void FeedStore::toggleMute(const juce::String &userId, bool willMute) {
       if (result.isOk()) {
         Util::logDebug("FeedStore", "Mute succeeded", "userId=" + userId);
       } else {
-        Util::logError("FeedStore", "Mute failed: " + result.getError(),
-                       "userId=" + userId);
+        Util::logError("FeedStore", "Mute failed: " + result.getError(), "userId=" + userId);
       }
     });
   } else {
@@ -791,21 +700,17 @@ void FeedStore::toggleMute(const juce::String &userId, bool willMute) {
       if (result.isOk()) {
         Util::logDebug("FeedStore", "Unmute succeeded", "userId=" + userId);
       } else {
-        Util::logError("FeedStore", "Unmute failed: " + result.getError(),
-                       "userId=" + userId);
+        Util::logError("FeedStore", "Unmute failed: " + result.getError(), "userId=" + userId);
       }
     });
   }
 }
 
 void FeedStore::toggleBlock(const juce::String &userId, bool willBlock) {
-  Util::logDebug("FeedStore", "Toggle block",
-                 "userId=" + userId +
-                     " block=" + (willBlock ? "true" : "false"));
+  Util::logDebug("FeedStore", "Toggle block", "userId=" + userId + " block=" + (willBlock ? "true" : "false"));
 
   if (!networkClient) {
-    Util::logError("FeedStore",
-                   "Cannot toggle block - network client not configured");
+    Util::logError("FeedStore", "Cannot toggle block - network client not configured");
     return;
   }
 
@@ -819,8 +724,7 @@ void FeedStore::toggleBlock(const juce::String &userId, bool willBlock) {
       if (result.isOk()) {
         Util::logDebug("FeedStore", "Block succeeded", "userId=" + userId);
       } else {
-        Util::logError("FeedStore", "Block failed: " + result.getError(),
-                       "userId=" + userId);
+        Util::logError("FeedStore", "Block failed: " + result.getError(), "userId=" + userId);
       }
     });
   } else {
@@ -828,8 +732,7 @@ void FeedStore::toggleBlock(const juce::String &userId, bool willBlock) {
       if (result.isOk()) {
         Util::logDebug("FeedStore", "Unblock succeeded", "userId=" + userId);
       } else {
-        Util::logError("FeedStore", "Unblock failed: " + result.getError(),
-                       "userId=" + userId);
+        Util::logError("FeedStore", "Unblock failed: " + result.getError(), "userId=" + userId);
       }
     });
   }
@@ -855,20 +758,15 @@ void FeedStore::handleNewPostNotification(const juce::var &postData) {
   });
 }
 
-void FeedStore::handleLikeCountUpdate(const juce::String &postId,
-                                      int likeCount) {
-  Util::logDebug("FeedStore", "Like count update",
-                 "postId=" + postId + " count=" + juce::String(likeCount));
+void FeedStore::handleLikeCountUpdate(const juce::String &postId, int likeCount) {
+  Util::logDebug("FeedStore", "Like count update", "postId=" + postId + " count=" + juce::String(likeCount));
 
-  updatePostInAllFeeds(
-      postId, [likeCount](FeedPost &post) { post.likeCount = likeCount; });
+  updatePostInAllFeeds(postId, [likeCount](FeedPost &post) { post.likeCount = likeCount; });
 }
 
-void FeedStore::updateUserPresence(const juce::String &userId, bool isOnline,
-                                   const juce::String &status) {
+void FeedStore::updateUserPresence(const juce::String &userId, bool isOnline, const juce::String &status) {
   Util::logDebug("FeedStore", "User presence update",
-                 "userId=" + userId +
-                     " online=" + juce::String(isOnline ? "true" : "false"));
+                 "userId=" + userId + " online=" + juce::String(isOnline ? "true" : "false"));
 
   updateState([userId, isOnline, status](FeedStoreState &state) {
     for (auto &[feedType, feed] : state.feeds) {
@@ -901,8 +799,7 @@ void FeedStore::clearCache() {
   diskCache.clear();
 
   // Delete legacy cache files
-  for (auto feedType : {FeedType::Timeline, FeedType::Global,
-                        FeedType::Trending, FeedType::ForYou}) {
+  for (auto feedType : {FeedType::Timeline, FeedType::Global, FeedType::Trending, FeedType::ForYou}) {
     auto cacheFile = getCacheFile(feedType);
     if (cacheFile.exists())
       cacheFile.deleteFile();
@@ -910,8 +807,7 @@ void FeedStore::clearCache() {
 }
 
 void FeedStore::clearCache(FeedType feedType) {
-  Util::logInfo("FeedStore", "Clearing cache for: " +
-                                 feedTypeToString(feedType) + " [Task 4.13]");
+  Util::logInfo("FeedStore", "Clearing cache for: " + feedTypeToString(feedType) + " [Task 4.13]");
 
   // Clear from multi-tier cache (Task 4.13)
   if (feedCache) {
@@ -950,60 +846,53 @@ void FeedStore::enableRealtimeSync() {
   // Set up callback for remote operations (new posts, likes, comments,
   // reactions) Handles real-time updates from other clients with < 500ms
   // latency
-  realtimeSync->onRemoteOperation(
-      [this](
-          const std::shared_ptr<Network::RealtimeSync::Operation> &operation) {
-        if (!operation)
-          return;
+  realtimeSync->onRemoteOperation([this](const std::shared_ptr<Network::RealtimeSync::Operation> &operation) {
+    if (!operation)
+      return;
 
-        using namespace Sidechain::Util::CRDT;
+    using namespace Sidechain::Util::CRDT;
 
-        logDebug("FeedStore", "Received remote operation (Task 4.21)",
-                 "timestamp=" + juce::String(operation->timestamp) +
-                     ", clientId=" + juce::String(operation->clientId));
+    logDebug("FeedStore", "Received remote operation (Task 4.21)",
+             "timestamp=" + juce::String(operation->timestamp) + ", clientId=" + juce::String(operation->clientId));
 
-        // Parse operation type and apply to local state
-        // Operations encode engagement updates: likes, saves, reposts,
-        // reactions
+    // Parse operation type and apply to local state
+    // Operations encode engagement updates: likes, saves, reposts,
+    // reactions
 
-        // For real-time engagement updates, we decode the operation metadata
-        // to understand which post was modified and how
-        juce::MessageManager::callAsync([this]() {
-          // Update state with new operation data
-          // This preserves all concurrent edits and converges to consistent
-          // state
-          updateState([]([[maybe_unused]] FeedStoreState &state) {
-            // In a real implementation, we would:
-            // 1. Deserialize operation to extract post ID and engagement delta
-            // 2. Find post in current feed
-            // 3. Apply the engagement change (like count, save count, etc.)
-            // 4. Maintain operation history for audit trail
+    // For real-time engagement updates, we decode the operation metadata
+    // to understand which post was modified and how
+    juce::MessageManager::callAsync([this]() {
+      // Update state with new operation data
+      // This preserves all concurrent edits and converges to consistent
+      // state
+      updateState([]([[maybe_unused]] FeedStoreState &state) {
+        // In a real implementation, we would:
+        // 1. Deserialize operation to extract post ID and engagement delta
+        // 2. Find post in current feed
+        // 3. Apply the engagement change (like count, save count, etc.)
+        // 4. Maintain operation history for audit trail
 
-            // For now, mark that we received an update
-            // A full refresh ensures we're in sync
-            logDebug("FeedStore", "Processing remote operation");
-          });
-
-          // Refresh feed to incorporate real-time changes
-          // In production with full OT implementation, selective updates would
-          // be faster
-          refreshCurrentFeed();
-        });
+        // For now, mark that we received an update
+        // A full refresh ensures we're in sync
+        logDebug("FeedStore", "Processing remote operation");
       });
+
+      // Refresh feed to incorporate real-time changes
+      // In production with full OT implementation, selective updates would
+      // be faster
+      refreshCurrentFeed();
+    });
+  });
 
   // Set up sync state callback to update isSynced flag
   // Indicates whether all local operations have been acknowledged by server
   realtimeSync->onSyncStateChanged([this](bool synced) {
-    logDebug("FeedStore", juce::String("Sync state changed: ") +
-                              (synced ? "synced" : "out of sync"));
+    logDebug("FeedStore", juce::String("Sync state changed: ") + (synced ? "synced" : "out of sync"));
 
-    updateState([synced](FeedStoreState &state) {
-      state.getCurrentFeedMutable().isSynced = synced;
-    });
+    updateState([synced](FeedStoreState &state) { state.getCurrentFeedMutable().isSynced = synced; });
 
     if (!synced)
-      logWarning("FeedStore",
-                 "Feed out of sync, waiting for pending operations");
+      logWarning("FeedStore", "Feed out of sync, waiting for pending operations");
     else
       logDebug("FeedStore", "Feed fully synced with all clients");
   });
@@ -1018,8 +907,7 @@ void FeedStore::enableRealtimeSync() {
     });
   });
 
-  logInfo("FeedStore", "Real-time sync enabled for: " + documentId +
-                           " (clientId=" + juce::String(clientId) +
+  logInfo("FeedStore", "Real-time sync enabled for: " + documentId + " (clientId=" + juce::String(clientId) +
                            ", < 500ms latency target)");
 }
 
@@ -1037,8 +925,7 @@ void FeedStore::disableRealtimeSync() {
 
   // Update state to reflect sync disabled
   auto newState = getState();
-  newState.getCurrentFeedMutable().isSynced =
-      true; // Not syncing, so technically "in sync"
+  newState.getCurrentFeedMutable().isSynced = true; // Not syncing, so technically "in sync"
   setState(newState);
 
   logInfo("FeedStore", "Real-time sync disabled");
@@ -1055,8 +942,8 @@ void FeedStore::performFetch(FeedType feedType, int limit, int offset) {
   }
 
   Util::logInfo("FeedStore", "Performing network fetch",
-                "feedType=" + feedTypeToString(feedType) + " limit=" +
-                    juce::String(limit) + " offset=" + juce::String(offset));
+                "feedType=" + feedTypeToString(feedType) + " limit=" + juce::String(limit) +
+                    " offset=" + juce::String(offset));
 
   auto callback = [this, feedType, limit, offset](Outcome<juce::var> result) {
     if (result.isOk()) {
@@ -1102,14 +989,12 @@ void FeedStore::performFetch(FeedType feedType, int limit, int offset) {
     // Note: UserActivity needs a userId parameter
     // For now, use the current user's ID from the store
     // This will need to be extended if we want to view other users' activity
-    networkClient->getUserActivityAggregated(
-        "", limit, callback); // Empty userId means current user
+    networkClient->getUserActivityAggregated("", limit, callback); // Empty userId means current user
     break;
   }
 }
 
-void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var &data,
-                                   int limit, int offset) {
+void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int limit, int offset) {
   SCOPED_TIMER("feed::parse_response");
 
   // Mark as NOT from cache since we just fetched from network (Task 4.14)
@@ -1122,9 +1007,8 @@ void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var &data,
     response.offset = offset;
 
     Util::logInfo("FeedStore", "Aggregated fetch success",
-                  "feedType=" + feedTypeToString(feedType) + " groups=" +
-                      juce::String(response.groups.size()) + " hasMore=" +
-                      juce::String(response.hasMore ? "true" : "false"));
+                  "feedType=" + feedTypeToString(feedType) + " groups=" + juce::String(response.groups.size()) +
+                      " hasMore=" + juce::String(response.hasMore ? "true" : "false"));
 
     // Update state with aggregated groups
     updateState([feedType, response, offset](FeedStoreState &state) {
@@ -1155,9 +1039,8 @@ void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var &data,
     response.offset = offset;
 
     Util::logInfo("FeedStore", "Fetch success",
-                  "feedType=" + feedTypeToString(feedType) + " posts=" +
-                      juce::String(response.posts.size()) + " hasMore=" +
-                      juce::String(response.hasMore ? "true" : "false"));
+                  "feedType=" + feedTypeToString(feedType) + " posts=" + juce::String(response.posts.size()) +
+                      " hasMore=" + juce::String(response.hasMore ? "true" : "false"));
 
     // Update state
     updateState([feedType, response, offset](FeedStoreState &state) {
@@ -1186,26 +1069,21 @@ void FeedStore::handleFetchSuccess(FeedType feedType, const juce::var &data,
     if (offset == 0 && feedCache) {
       auto cacheKey = feedTypeToCacheKey(feedType);
       feedCache->put(cacheKey, response.posts, cacheTTLSeconds, true);
-      Util::logDebug("FeedStore",
-                     "Stored feed in multi-tier cache: " +
-                         feedTypeToString(feedType),
-                     "posts=" + juce::String(response.posts.size()) +
-                         " ttl=" + juce::String(cacheTTLSeconds) + "s");
+      Util::logDebug("FeedStore", "Stored feed in multi-tier cache: " + feedTypeToString(feedType),
+                     "posts=" + juce::String(response.posts.size()) + " ttl=" + juce::String(cacheTTLSeconds) + "s");
     }
   }
 }
 
 void FeedStore::handleFetchError(FeedType feedType, const juce::String &error) {
-  Util::logError("FeedStore", "Fetch error: " + error,
-                 "feedType=" + feedTypeToString(feedType));
+  Util::logError("FeedStore", "Fetch error: " + error, "feedType=" + feedTypeToString(feedType));
 
   // Track feed sync error (Task 4.19)
   using namespace Sidechain::Util::Error;
   auto errorTracker = ErrorTracker::getInstance();
-  errorTracker->recordError(
-      ErrorSource::Network, "Feed sync failed: " + error,
-      ErrorSeverity::Warning, // Feed sync failures are warnings, not critical
-      {{"feed_type", feedTypeToString(feedType)}, {"error_message", error}});
+  errorTracker->recordError(ErrorSource::Network, "Feed sync failed: " + error,
+                            ErrorSeverity::Warning, // Feed sync failures are warnings, not critical
+                            {{"feed_type", feedTypeToString(feedType)}, {"error_message", error}});
 
   updateState([feedType, error](FeedStoreState &state) {
     if (isAggregatedFeedType(feedType)) {
@@ -1246,12 +1124,9 @@ FeedResponse FeedStore::parseJsonResponse(const juce::var &json) {
     if (post.isValid()) {
       // Debug: Log first post to see what we received
       if (i == 0) {
-        Util::logDebug("FeedStore",
-                       "FIRST POST FROM API: user=" + post.username +
-                           " isFollowing=" +
-                           juce::String(post.isFollowing ? "true" : "false") +
-                           " isOwnPost=" +
-                           juce::String(post.isOwnPost ? "true" : "false"));
+        Util::logDebug("FeedStore", "FIRST POST FROM API: user=" + post.username +
+                                        " isFollowing=" + juce::String(post.isFollowing ? "true" : "false") +
+                                        " isOwnPost=" + juce::String(post.isOwnPost ? "true" : "false"));
       }
       response.posts.add(post);
     }
@@ -1273,15 +1148,13 @@ FeedResponse FeedStore::parseJsonResponse(const juce::var &json) {
     if (json.hasProperty("has_more"))
       response.hasMore = static_cast<bool>(json.getProperty("has_more", false));
     else
-      response.hasMore =
-          (response.offset + response.posts.size()) < response.total;
+      response.hasMore = (response.offset + response.posts.size()) < response.total;
   }
 
   return response;
 }
 
-AggregatedFeedResponse
-FeedStore::parseAggregatedJsonResponse(const juce::var &json) {
+AggregatedFeedResponse FeedStore::parseAggregatedJsonResponse(const juce::var &json) {
   SCOPED_TIMER("feed::parse_aggregated_json");
   AggregatedFeedResponse response;
 
@@ -1315,8 +1188,7 @@ FeedStore::parseAggregatedJsonResponse(const juce::var &json) {
     response.total = static_cast<int>(json.getProperty("total", 0));
     response.limit = static_cast<int>(json.getProperty("limit", 20));
     response.offset = static_cast<int>(json.getProperty("offset", 0));
-    response.hasMore =
-        (response.offset + response.groups.size()) < response.total;
+    response.hasMore = (response.offset + response.groups.size()) < response.total;
   }
 
   return response;
@@ -1334,10 +1206,9 @@ juce::String FeedStore::feedTypeToCacheKey(FeedType feedType) const {
 // Disk Cache (Legacy)
 
 juce::File FeedStore::getCacheFile(FeedType feedType) const {
-  auto cacheDir =
-      juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-          .getChildFile("Sidechain")
-          .getChildFile("cache");
+  auto cacheDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                      .getChildFile("Sidechain")
+                      .getChildFile("cache");
 
   if (!cacheDir.exists())
     cacheDir.createDirectory();
@@ -1417,8 +1288,7 @@ void FeedStore::loadCacheFromDisk(FeedType feedType) {
   entry.response.limit = static_cast<int>(json.getProperty("limit", 20));
   entry.response.offset = static_cast<int>(json.getProperty("offset", 0));
   entry.response.total = static_cast<int>(json.getProperty("total", 0));
-  entry.response.hasMore =
-      static_cast<bool>(json.getProperty("has_more", false));
+  entry.response.hasMore = static_cast<bool>(json.getProperty("has_more", false));
 
   if (entry.isValid(cacheTTLSeconds))
     diskCache[feedType] = entry;
@@ -1461,8 +1331,7 @@ const FeedPost *FeedStore::findPost(const juce::String &postId) const {
   return nullptr;
 }
 
-std::optional<std::pair<FeedType, int>>
-FeedStore::findPostLocation(const juce::String &postId) const {
+std::optional<std::pair<FeedType, int>> FeedStore::findPostLocation(const juce::String &postId) const {
   auto state = getState();
 
   for (const auto &[feedType, feed] : state.feeds) {
@@ -1475,8 +1344,7 @@ FeedStore::findPostLocation(const juce::String &postId) const {
   return std::nullopt;
 }
 
-void FeedStore::updatePostInAllFeeds(const juce::String &postId,
-                                     std::function<void(FeedPost &)> updater) {
+void FeedStore::updatePostInAllFeeds(const juce::String &postId, std::function<void(FeedPost &)> updater) {
   updateState([postId, updater](FeedStoreState &state) {
     for (auto &[feedType, feed] : state.feeds) {
       bool feedModified = false;
@@ -1511,13 +1379,11 @@ void FeedStore::timerCallback() {
 
 void FeedStore::startCacheWarming() {
   if (!cacheWarmer) {
-    Util::logWarning("FeedStore",
-                     "Cannot start cache warming: CacheWarmer not initialized");
+    Util::logWarning("FeedStore", "Cannot start cache warming: CacheWarmer not initialized");
     return;
   }
 
-  Util::logInfo("FeedStore",
-                "Starting cache warming for popular feeds [Task 4.14]");
+  Util::logInfo("FeedStore", "Starting cache warming for popular feeds [Task 4.14]");
 
   // Clear any pending operations
   cacheWarmer->clearPendingOperations();
@@ -1542,9 +1408,8 @@ void FeedStore::setOnlineStatus(bool isOnline) {
     return;
 
   isOnlineStatus_ = isOnline;
-  Util::logInfo("FeedStore", "Online status changed: " +
-                                 juce::String(isOnline ? "ONLINE" : "OFFLINE") +
-                                 " [Task 4.14]");
+  Util::logInfo("FeedStore",
+                "Online status changed: " + juce::String(isOnline ? "ONLINE" : "OFFLINE") + " [Task 4.14]");
 
   // Update cache warmer online status
   if (cacheWarmer)
@@ -1552,14 +1417,15 @@ void FeedStore::setOnlineStatus(bool isOnline) {
 
   // When coming back online, refresh current feed and restart cache warming
   if (isOnline) {
-    Util::logInfo("FeedStore",
-                  "Auto-syncing after coming back online [Task 4.14]");
+    Util::logInfo("FeedStore", "Auto-syncing after coming back online [Task 4.14]");
     refreshCurrentFeed();
     startCacheWarming();
   }
 }
 
-bool FeedStore::isCurrentFeedCached() const { return currentFeedIsFromCache_; }
+bool FeedStore::isCurrentFeedCached() const {
+  return currentFeedIsFromCache_;
+}
 
 void FeedStore::schedulePopularFeedWarmup() {
   if (!cacheWarmer)
@@ -1583,13 +1449,11 @@ void FeedStore::schedulePopularFeedWarmup() {
       30 // Lower priority
   );
 
-  Util::logInfo("FeedStore",
-                "Scheduled warmup for 3 popular feeds [Task 4.14]");
+  Util::logInfo("FeedStore", "Scheduled warmup for 3 popular feeds [Task 4.14]");
 }
 
 void FeedStore::warmTimeline() {
-  Util::logInfo("FeedStore",
-                "Warming Timeline feed (top 50 posts) [Task 4.14]");
+  Util::logInfo("FeedStore", "Warming Timeline feed (top 50 posts) [Task 4.14]");
 
   // Perform fetch directly with larger limit for cache warming
   if (networkClient) {
@@ -1599,13 +1463,11 @@ void FeedStore::warmTimeline() {
         if (feedCache && !response.posts.isEmpty()) {
           auto cacheKey = feedTypeToCacheKey(FeedType::Timeline);
           feedCache->put(cacheKey, response.posts, 86400, true); // 24h TTL
-          Util::logInfo("FeedStore", "Timeline feed warmed successfully: " +
-                                         juce::String(response.posts.size()) +
-                                         " posts");
+          Util::logInfo("FeedStore",
+                        "Timeline feed warmed successfully: " + juce::String(response.posts.size()) + " posts");
         }
       } else {
-        Util::logWarning("FeedStore",
-                         "Failed to warm Timeline: " + result.getError());
+        Util::logWarning("FeedStore", "Failed to warm Timeline: " + result.getError());
       }
     });
   }
@@ -1621,13 +1483,11 @@ void FeedStore::warmTrending() {
         if (feedCache && !response.posts.isEmpty()) {
           auto cacheKey = feedTypeToCacheKey(FeedType::Trending);
           feedCache->put(cacheKey, response.posts, 86400, true); // 24h TTL
-          Util::logInfo("FeedStore", "Trending feed warmed successfully: " +
-                                         juce::String(response.posts.size()) +
-                                         " posts");
+          Util::logInfo("FeedStore",
+                        "Trending feed warmed successfully: " + juce::String(response.posts.size()) + " posts");
         }
       } else {
-        Util::logWarning("FeedStore",
-                         "Failed to warm Trending: " + result.getError());
+        Util::logWarning("FeedStore", "Failed to warm Trending: " + result.getError());
       }
     });
   }
@@ -1645,13 +1505,11 @@ void FeedStore::warmUserPosts() {
         if (feedCache && !response.posts.isEmpty()) {
           auto cacheKey = feedTypeToCacheKey(FeedType::ForYou);
           feedCache->put(cacheKey, response.posts, 86400, true); // 24h TTL
-          Util::logInfo("FeedStore", "User posts warmed successfully: " +
-                                         juce::String(response.posts.size()) +
-                                         " posts");
+          Util::logInfo("FeedStore",
+                        "User posts warmed successfully: " + juce::String(response.posts.size()) + " posts");
         }
       } else {
-        Util::logWarning("FeedStore",
-                         "Failed to warm user posts: " + result.getError());
+        Util::logWarning("FeedStore", "Failed to warm user posts: " + result.getError());
       }
     });
   }

@@ -18,8 +18,7 @@
 #include "util/error/ErrorTracking.h"
 
 //==============================================================================
-SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
-    SidechainAudioProcessor &p)
+SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProcessor &p)
     : AudioProcessorEditor(&p), audioProcessor(p) {
   setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
 
@@ -44,8 +43,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   draftStorage = std::make_unique<DraftStorage>();
 
   // Initialize network client with development config
-  networkClient =
-      std::make_unique<NetworkClient>(NetworkClient::Config::development());
+  networkClient = std::make_unique<NetworkClient>(NetworkClient::Config::development());
 
   // Wire up UserDataStore with NetworkClient
   userDataStore->setNetworkClient(networkClient.get());
@@ -60,18 +58,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   audioProcessor.getAudioPlayer().setNetworkClient(networkClient.get());
 
   // Initialize WebSocket client
-  webSocketClient =
-      std::make_unique<WebSocketClient>(WebSocketClient::Config::development());
-  webSocketClient->onMessage = [this](const WebSocketClient::Message &msg) {
-    handleWebSocketMessage(msg);
+  webSocketClient = std::make_unique<WebSocketClient>(WebSocketClient::Config::development());
+  webSocketClient->onMessage = [this](const WebSocketClient::Message &msg) { handleWebSocketMessage(msg); };
+  webSocketClient->onStateChanged = [this](WebSocketClient::ConnectionState wsState) {
+    handleWebSocketStateChange(wsState);
   };
-  webSocketClient->onStateChanged =
-      [this](WebSocketClient::ConnectionState wsState) {
-        handleWebSocketStateChange(wsState);
-      };
-  webSocketClient->onError = [](const juce::String &error) {
-    Log::error("WebSocket error: " + error);
-  };
+  webSocketClient->onError = [](const juce::String &error) { Log::error("WebSocket error: " + error); };
 
   // Create connection indicator
   connectionIndicator = std::make_unique<ConnectionIndicator>();
@@ -82,11 +74,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   addAndMakeVisible(connectionIndicator.get());
 
   // Set up connection status callback
-  networkClient->setConnectionStatusCallback(
-      [this](NetworkClient::ConnectionStatus status) {
-        if (connectionIndicator)
-          connectionIndicator->setStatus(status);
-      });
+  networkClient->setConnectionStatusCallback([this](NetworkClient::ConnectionStatus status) {
+    if (connectionIndicator)
+      connectionIndicator->setStatus(status);
+  });
 
   // Check connection on startup
   networkClient->checkConnection();
@@ -95,8 +86,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   // Create tooltip window for the entire plugin
   // This automatically displays tooltips for any child component that provides
   // one
-  tooltipWindow =
-      std::make_unique<juce::TooltipWindow>(this, 500); // 500ms delay
+  tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500); // 500ms delay
 
   // Add ToastManager to component hierarchy (for transient error notifications)
   auto &toastManager = ToastManager::getInstance();
@@ -109,14 +99,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     // Show critical error as toast notification on main thread
     juce::MessageManager::callAsync([error]() {
       auto &toastMgr = ToastManager::getInstance();
-      toastMgr.showToast("Critical Error: " + error.message,
-                         ToastNotification::ToastType::Error,
+      toastMgr.showToast("Critical Error: " + error.message, ToastNotification::ToastType::Error,
                          5000 // Show for 5 seconds
       );
 
       // Also log to system log
-      Log::error("CRITICAL ERROR: " + error.message +
-                 " (Source: " + ErrorInfo::sourceToString(error.source) + ")");
+      Log::error("CRITICAL ERROR: " + error.message + " (Source: " + ErrorInfo::sourceToString(error.source) + ")");
     });
   });
 
@@ -124,17 +112,15 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   // Create AuthComponent
   authComponent = std::make_unique<Auth>();
   authComponent->setNetworkClient(networkClient.get());
-  authComponent->onLoginSuccess =
-      [this](const juce::String &user, const juce::String &mail,
-             const juce::String &token) { onLoginSuccess(user, mail, token); };
+  authComponent->onLoginSuccess = [this](const juce::String &user, const juce::String &mail,
+                                         const juce::String &token) { onLoginSuccess(user, mail, token); };
   authComponent->onOAuthRequested = [this](const juce::String &provider) {
     // Generate a unique session ID for this OAuth attempt
     juce::String sessionId = juce::Uuid().toString().removeCharacters("-");
 
     // Open OAuth URL in system browser with session_id (8.3.11.12)
-    juce::String oauthUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) +
-                            Constants::Endpoints::API_VERSION + "/auth/" +
-                            provider + "?session_id=" + sessionId;
+    juce::String oauthUrl = juce::String(Constants::Endpoints::DEV_BASE_URL) + Constants::Endpoints::API_VERSION +
+                            "/auth/" + provider + "?session_id=" + sessionId;
     juce::URL(oauthUrl).launchInDefaultBrowser();
 
     // Start polling for OAuth completion
@@ -151,63 +137,54 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   //==========================================================================
   // Create ProfileSetup
   profileSetupComponent = std::make_unique<ProfileSetup>();
-  profileSetupComponent->onSkipSetup = [this]() {
-    showView(AppView::PostsFeed);
+  profileSetupComponent->onSkipSetup = [this]() { showView(AppView::PostsFeed); };
+  profileSetupComponent->onCompleteSetup = [this]() { showView(AppView::PostsFeed); };
+  profileSetupComponent->onProfilePicSelected = [this](const juce::String &localPath) {
+    juce::File imageFile(localPath);
+    if (imageFile.existsAsFile() && networkClient) {
+      // Store local path temporarily for preview
+      profileSetupComponent->setLocalPreviewPath(localPath);
+
+      // Also set local preview in UserDataStore
+      if (userDataStore)
+        userDataStore->setLocalPreviewImage(imageFile);
+
+      // Show uploading state (8.3.11.6)
+      if (profileSetupComponent)
+        profileSetupComponent->setUploadProgress(0.1f); // Start at 10%
+
+      networkClient->uploadProfilePicture(imageFile, [this](Outcome<juce::String> result) {
+        juce::MessageManager::callAsync([this, result]() {
+          if (result.isOk() && result.getValue().isNotEmpty()) {
+            auto s3Url = result.getValue();
+            // Update UserDataStore with the S3 URL (will trigger image
+            // download)
+            if (userDataStore) {
+              userDataStore->setProfilePictureUrl(s3Url);
+              userDataStore->saveToSettings();
+            }
+
+            // Update legacy state
+            profilePicUrl = s3Url;
+            saveLoginState();
+
+            // Update profile setup component with the S3 URL
+            if (profileSetupComponent) {
+              profileSetupComponent->setProfilePictureUrl(s3Url);
+              profileSetupComponent->setUploadComplete(true); // Show success (8.3.11.7)
+            }
+
+            Log::info("Profile picture uploaded successfully: " + s3Url);
+          } else {
+            // On failure, show error state
+            Log::error("Profile picture upload failed");
+            if (profileSetupComponent)
+              profileSetupComponent->setUploadComplete(false); // Show failure
+          }
+        });
+      });
+    }
   };
-  profileSetupComponent->onCompleteSetup = [this]() {
-    showView(AppView::PostsFeed);
-  };
-  profileSetupComponent->onProfilePicSelected =
-      [this](const juce::String &localPath) {
-        juce::File imageFile(localPath);
-        if (imageFile.existsAsFile() && networkClient) {
-          // Store local path temporarily for preview
-          profileSetupComponent->setLocalPreviewPath(localPath);
-
-          // Also set local preview in UserDataStore
-          if (userDataStore)
-            userDataStore->setLocalPreviewImage(imageFile);
-
-          // Show uploading state (8.3.11.6)
-          if (profileSetupComponent)
-            profileSetupComponent->setUploadProgress(0.1f); // Start at 10%
-
-          networkClient->uploadProfilePicture(
-              imageFile, [this](Outcome<juce::String> result) {
-                juce::MessageManager::callAsync([this, result]() {
-                  if (result.isOk() && result.getValue().isNotEmpty()) {
-                    auto s3Url = result.getValue();
-                    // Update UserDataStore with the S3 URL (will trigger image
-                    // download)
-                    if (userDataStore) {
-                      userDataStore->setProfilePictureUrl(s3Url);
-                      userDataStore->saveToSettings();
-                    }
-
-                    // Update legacy state
-                    profilePicUrl = s3Url;
-                    saveLoginState();
-
-                    // Update profile setup component with the S3 URL
-                    if (profileSetupComponent) {
-                      profileSetupComponent->setProfilePictureUrl(s3Url);
-                      profileSetupComponent->setUploadComplete(
-                          true); // Show success (8.3.11.7)
-                    }
-
-                    Log::info("Profile picture uploaded successfully: " +
-                              s3Url);
-                  } else {
-                    // On failure, show error state
-                    Log::error("Profile picture upload failed");
-                    if (profileSetupComponent)
-                      profileSetupComponent->setUploadComplete(
-                          false); // Show failure
-                  }
-                });
-              });
-        }
-      };
   profileSetupComponent->onLogout = [this]() { confirmAndLogout(); };
   addChildComponent(profileSetupComponent.get());
 
@@ -217,16 +194,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   postsFeedComponent->setNetworkClient(networkClient.get());
   postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
   // Note: StreamChatClient will be set after it's created (below)
-  postsFeedComponent->onGoToProfile = [this]() {
-    showView(AppView::ProfileSetup);
-  };
-  postsFeedComponent->onNavigateToProfile = [this](const juce::String &userId) {
-    showProfile(userId);
-  };
+  postsFeedComponent->onGoToProfile = [this]() { showView(AppView::ProfileSetup); };
+  postsFeedComponent->onNavigateToProfile = [this](const juce::String &userId) { showProfile(userId); };
   postsFeedComponent->onLogout = [this]() { confirmAndLogout(); };
   postsFeedComponent->onAuthenticationRequired = [this]() {
-    Log::warn(
-        "PluginEditor: Authentication required - redirecting to auth screen");
+    Log::warn("PluginEditor: Authentication required - redirecting to auth screen");
     // Clear stored credentials and redirect to auth
     if (userDataStore) {
       userDataStore->clearAll();
@@ -236,37 +208,25 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     }
     showView(AppView::Authentication);
   };
-  postsFeedComponent->onStartRecording = [this]() {
-    showView(AppView::Recording);
-  };
-  postsFeedComponent->onGoToDiscovery = [this]() {
-    showView(AppView::Discovery);
-  };
-  postsFeedComponent->onSendPostToMessage = [this](const FeedPost &post) {
-    showSharePostToMessage(post);
-  };
-  postsFeedComponent->onSoundClicked = [this](const juce::String &soundId) {
-    showSoundPage(soundId);
-  };
+  postsFeedComponent->onStartRecording = [this]() { showView(AppView::Recording); };
+  postsFeedComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
+  postsFeedComponent->onSendPostToMessage = [this](const FeedPost &post) { showSharePostToMessage(post); };
+  postsFeedComponent->onSoundClicked = [this](const juce::String &soundId) { showSoundPage(soundId); };
   addChildComponent(postsFeedComponent.get());
 
   //==========================================================================
   // Create RecordingComponent
   recordingComponent = std::make_unique<Recording>(audioProcessor);
-  recordingComponent->onRecordingComplete =
-      [this](const juce::AudioBuffer<float> &recordedAudio,
-             const juce::var &midiData) {
-        if (uploadComponent) {
-          // Use MIDI data passed from Recording (either captured or imported)
-          // (R.3.3)
-          uploadComponent->setAudioToUpload(
-              recordedAudio, audioProcessor.getCurrentSampleRate(), midiData);
-          showView(AppView::Upload);
-        }
-      };
-  recordingComponent->onRecordingDiscarded = [this]() {
-    showView(AppView::PostsFeed);
+  recordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float> &recordedAudio,
+                                                   const juce::var &midiData) {
+    if (uploadComponent) {
+      // Use MIDI data passed from Recording (either captured or imported)
+      // (R.3.3)
+      uploadComponent->setAudioToUpload(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData);
+      showView(AppView::Upload);
+    }
   };
+  recordingComponent->onRecordingDiscarded = [this]() { showView(AppView::PostsFeed); };
   recordingComponent->onViewDrafts = [this]() { showDrafts(); };
   addChildComponent(recordingComponent.get());
 
@@ -289,20 +249,16 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   draftsViewComponent = std::make_unique<DraftsView>();
   draftsViewComponent->setDraftStorage(draftStorage.get());
   draftsViewComponent->onClose = [this]() { navigateBack(); };
-  draftsViewComponent->onNewRecording = [this]() {
-    showView(AppView::Recording);
-  };
+  draftsViewComponent->onNewRecording = [this]() { showView(AppView::Recording); };
   draftsViewComponent->onDraftSelected = [this](const Draft &draft) {
     // Load draft into Upload component and navigate there
     if (uploadComponent && draftStorage) {
       juce::AudioBuffer<float> audioBuffer;
       Draft loadedDraft = draftStorage->loadDraft(draft.id, audioBuffer);
       if (audioBuffer.getNumSamples() > 0) {
-        uploadComponent->setAudioToUpload(audioBuffer, loadedDraft.sampleRate,
-                                          loadedDraft.midiData);
-        uploadComponent->loadFromDraft(
-            loadedDraft.filename, loadedDraft.bpm, loadedDraft.keyIndex,
-            loadedDraft.genreIndex, loadedDraft.commentAudienceIndex);
+        uploadComponent->setAudioToUpload(audioBuffer, loadedDraft.sampleRate, loadedDraft.midiData);
+        uploadComponent->loadFromDraft(loadedDraft.filename, loadedDraft.bpm, loadedDraft.keyIndex,
+                                       loadedDraft.genreIndex, loadedDraft.commentAudienceIndex);
         showView(AppView::Upload);
       }
     }
@@ -328,9 +284,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   if (userDataStore)
     searchComponent->setCurrentUserId(userDataStore->getUserId());
   searchComponent->onBackPressed = [this]() { navigateBack(); };
-  searchComponent->onUserSelected = [this](const juce::String &userId) {
-    showProfile(userId);
-  };
+  searchComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
   searchComponent->onPostSelected = [this](const FeedPost &post) {
     // Handle notification click action.
     // NOT YET IMPLEMENTED - Navigation to post details or playback.
@@ -343,38 +297,32 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   //==========================================================================
   // Create StoryRecording
   storyRecordingComponent = std::make_unique<StoryRecording>(audioProcessor);
-  storyRecordingComponent->onRecordingComplete =
-      [this](const juce::AudioBuffer<float> &recordedAudio,
-             const juce::var &midiData, int bpm, const juce::String &key,
-             const juce::StringArray &genres) {
-        // Upload story
-        if (networkClient && recordedAudio.getNumSamples() > 0) {
-          networkClient->uploadStory(
-              recordedAudio, audioProcessor.getCurrentSampleRate(), midiData,
-              bpm, key, genres, [this](Outcome<juce::var> result) {
-                juce::MessageManager::callAsync([this, result]() {
-                  if (result.isOk()) {
-                    Log::info("Story uploaded successfully");
-                    // Navigate back to feed
-                    showView(AppView::PostsFeed);
-                  } else {
-                    Log::error("Story upload failed: " + result.getError());
-                    juce::MessageManager::callAsync([result]() {
-                      juce::AlertWindow::showMessageBoxAsync(
-                          juce::MessageBoxIconType::WarningIcon, "Upload Error",
-                          "Failed to upload story: " + result.getError());
-                    });
-                  }
-                });
-              });
-        }
-      };
-  storyRecordingComponent->onRecordingDiscarded = [this]() {
-    showView(AppView::PostsFeed);
+  storyRecordingComponent->onRecordingComplete = [this](const juce::AudioBuffer<float> &recordedAudio,
+                                                        const juce::var &midiData, int bpm, const juce::String &key,
+                                                        const juce::StringArray &genres) {
+    // Upload story
+    if (networkClient && recordedAudio.getNumSamples() > 0) {
+      networkClient->uploadStory(recordedAudio, audioProcessor.getCurrentSampleRate(), midiData, bpm, key, genres,
+                                 [this](Outcome<juce::var> result) {
+                                   juce::MessageManager::callAsync([this, result]() {
+                                     if (result.isOk()) {
+                                       Log::info("Story uploaded successfully");
+                                       // Navigate back to feed
+                                       showView(AppView::PostsFeed);
+                                     } else {
+                                       Log::error("Story upload failed: " + result.getError());
+                                       juce::MessageManager::callAsync([result]() {
+                                         juce::AlertWindow::showMessageBoxAsync(
+                                             juce::MessageBoxIconType::WarningIcon, "Upload Error",
+                                             "Failed to upload story: " + result.getError());
+                                       });
+                                     }
+                                   });
+                                 });
+    }
   };
-  storyRecordingComponent->onCancel = [this]() {
-    showView(AppView::PostsFeed);
-  };
+  storyRecordingComponent->onRecordingDiscarded = [this]() { showView(AppView::PostsFeed); };
+  storyRecordingComponent->onCancel = [this]() { showView(AppView::PostsFeed); };
   addChildComponent(storyRecordingComponent.get());
 
   //==========================================================================
@@ -384,28 +332,23 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   if (userDataStore)
     storyViewerComponent->setCurrentUserId(userDataStore->getUserId());
   storyViewerComponent->onClose = [this]() { navigateBack(); };
-  storyViewerComponent->onDeleteClicked =
-      [this]([[maybe_unused]] const juce::String &storyId) {
-        // Story was deleted, refresh story indicators
-        checkForActiveStories();
-        // If we're viewing the profile, refresh it too
-        if (currentView == AppView::Profile && profileComponent) {
-          profileComponent->refresh();
-        }
-      };
-  storyViewerComponent->onAddToHighlightClicked =
-      [this](const juce::String &storyId) {
-        showSelectHighlightDialog(storyId);
-      };
-  storyViewerComponent->onSendStoryToMessage = [this](const StoryData &story) {
-    showShareStoryToMessage(story);
+  storyViewerComponent->onDeleteClicked = [this]([[maybe_unused]] const juce::String &storyId) {
+    // Story was deleted, refresh story indicators
+    checkForActiveStories();
+    // If we're viewing the profile, refresh it too
+    if (currentView == AppView::Profile && profileComponent) {
+      profileComponent->refresh();
+    }
   };
+  storyViewerComponent->onAddToHighlightClicked = [this](const juce::String &storyId) {
+    showSelectHighlightDialog(storyId);
+  };
+  storyViewerComponent->onSendStoryToMessage = [this](const StoryData &story) { showShareStoryToMessage(story); };
   addChildComponent(storyViewerComponent.get());
 
   //==========================================================================
   // Create HiddenSynth easter egg (R.2.1)
-  hiddenSynthComponent =
-      std::make_unique<HiddenSynth>(audioProcessor.getSynthEngine());
+  hiddenSynthComponent = std::make_unique<HiddenSynth>(audioProcessor.getSynthEngine());
   hiddenSynthComponent->onBackPressed = [this]() {
     audioProcessor.setSynthEnabled(false);
     showView(AppView::PostsFeed);
@@ -419,47 +362,39 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   if (userDataStore)
     playlistsComponent->setCurrentUserId(userDataStore->getUserId());
   playlistsComponent->onBackPressed = [this]() { navigateBack(); };
-  playlistsComponent->onPlaylistSelected =
-      [this](const juce::String &playlistId) {
-        playlistIdToView = playlistId;
-        showView(AppView::PlaylistDetail);
-      };
+  playlistsComponent->onPlaylistSelected = [this](const juce::String &playlistId) {
+    playlistIdToView = playlistId;
+    showView(AppView::PlaylistDetail);
+  };
   playlistsComponent->onCreatePlaylist = [this]() {
     // Show create playlist dialog with text input
-    auto *dialog = new juce::AlertWindow(
-        "Create Playlist",
-        "Enter playlist name:", juce::MessageBoxIconType::QuestionIcon);
+    auto *dialog =
+        new juce::AlertWindow("Create Playlist", "Enter playlist name:", juce::MessageBoxIconType::QuestionIcon);
     dialog->addTextEditor("name", "", "Playlist Name");
     dialog->addButton("Create", 1);
     dialog->addButton("Cancel", 0);
     dialog->enterModalState(
         true, juce::ModalCallbackFunction::create([this, dialog](int result) {
           if (result == 1) {
-            juce::String playlistName =
-                dialog->getTextEditorContents("name").trim();
+            juce::String playlistName = dialog->getTextEditorContents("name").trim();
             if (playlistName.isEmpty()) {
-              juce::AlertWindow::showMessageBoxAsync(
-                  juce::MessageBoxIconType::WarningIcon, "Error",
-                  "Playlist name cannot be empty.");
+              juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                     "Playlist name cannot be empty.");
               delete dialog;
               return;
             }
 
             if (networkClient) {
-              networkClient->createPlaylist(
-                  playlistName, "", false, true,
-                  [this](Outcome<juce::var> createResult) {
-                    juce::MessageManager::callAsync([this, createResult]() {
-                      if (createResult.isOk()) {
-                        playlistsComponent->refresh();
-                      } else {
-                        juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::WarningIcon, "Error",
-                            "Failed to create playlist: " +
-                                createResult.getError());
-                      }
-                    });
-                  });
+              networkClient->createPlaylist(playlistName, "", false, true, [this](Outcome<juce::var> createResult) {
+                juce::MessageManager::callAsync([this, createResult]() {
+                  if (createResult.isOk()) {
+                    playlistsComponent->refresh();
+                  } else {
+                    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                           "Failed to create playlist: " + createResult.getError());
+                  }
+                });
+              });
             }
           }
           delete dialog;
@@ -484,32 +419,28 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     // Show add track dialog - navigate to feed or show post picker
     // For now, navigate to feed
     showView(AppView::PostsFeed);
-    juce::AlertWindow::showMessageBoxAsync(
-        juce::MessageBoxIconType::InfoIcon, "Add Track",
-        "Click 'Add to Playlist' on any post to add it to this playlist.");
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Add Track",
+                                           "Click 'Add to Playlist' on any post to add it to this playlist.");
   };
   playlistDetailComponent->onPlayPlaylist = []() {
     // Play all tracks in playlist sequentially
     // TODO: Implement playlist playback
-    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-                                           "Play Playlist",
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Play Playlist",
                                            "Playlist playback coming soon!");
   };
-  playlistDetailComponent->onSharePlaylist =
-      [](const juce::String &playlistId) {
-        // Generate shareable playlist link
-        // For now, use a simple format: sidechain://playlist/{id}
-        // In production, this would be a web URL like
-        // https://sidechain.app/playlist/{id}
-        juce::String shareLink = "sidechain://playlist/" + playlistId;
+  playlistDetailComponent->onSharePlaylist = [](const juce::String &playlistId) {
+    // Generate shareable playlist link
+    // For now, use a simple format: sidechain://playlist/{id}
+    // In production, this would be a web URL like
+    // https://sidechain.app/playlist/{id}
+    juce::String shareLink = "sidechain://playlist/" + playlistId;
 
-        // Copy to clipboard
-        juce::SystemClipboard::copyTextToClipboard(shareLink);
+    // Copy to clipboard
+    juce::SystemClipboard::copyTextToClipboard(shareLink);
 
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::MessageBoxIconType::InfoIcon, "Playlist Link Copied",
-            "Playlist link copied to clipboard:\n" + shareLink);
-      };
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Playlist Link Copied",
+                                           "Playlist link copied to clipboard:\n" + shareLink);
+  };
   addChildComponent(playlistDetailComponent.get());
 
   //==========================================================================
@@ -521,9 +452,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     // TODO: Navigate to post detail view when implemented
     Log::info("Post selected from sound page: " + postId);
   };
-  soundPageComponent->onUserSelected = [this](const juce::String &userId) {
-    showProfile(userId);
-  };
+  soundPageComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(soundPageComponent.get());
 
   //==========================================================================
@@ -533,19 +462,17 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   if (userDataStore)
     midiChallengesComponent->setCurrentUserId(userDataStore->getUserId());
   midiChallengesComponent->onBackPressed = [this]() { navigateBack(); };
-  midiChallengesComponent->onChallengeSelected =
-      [this](const juce::String &challengeId) {
-        challengeIdToView = challengeId;
-        showView(AppView::MidiChallengeDetail);
-      };
+  midiChallengesComponent->onChallengeSelected = [this](const juce::String &challengeId) {
+    challengeIdToView = challengeId;
+    showView(AppView::MidiChallengeDetail);
+  };
   addChildComponent(midiChallengesComponent.get());
 
   //==========================================================================
   // Create MidiChallengeDetail component (R.2.2.4.2)
   midiChallengeDetailComponent = std::make_unique<MidiChallengeDetail>();
   midiChallengeDetailComponent->setNetworkClient(networkClient.get());
-  midiChallengeDetailComponent->setAudioPlayer(
-      &audioProcessor.getAudioPlayer());
+  midiChallengeDetailComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
   if (userDataStore)
     midiChallengeDetailComponent->setCurrentUserId(userDataStore->getUserId());
   midiChallengeDetailComponent->onBackPressed = [this]() { navigateBack(); };
@@ -554,11 +481,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     // TODO: Pass challenge ID to recording component for constraint validation
     showView(AppView::Recording);
   };
-  midiChallengeDetailComponent->onEntrySelected =
-      [](const juce::String &entryId) {
-        // TODO: Navigate to entry/post detail
-        Log::info("Entry selected: " + entryId);
-      };
+  midiChallengeDetailComponent->onEntrySelected = [](const juce::String &entryId) {
+    // TODO: Navigate to entry/post detail
+    Log::info("Entry selected: " + entryId);
+  };
   addChildComponent(midiChallengeDetailComponent.get());
 
   //==========================================================================
@@ -582,9 +508,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     audioProcessor.getAudioPlayer().stop();
     savedPostsComponent->clearPlayingState();
   };
-  savedPostsComponent->onUserClicked = [this](const juce::String &userId) {
-    showProfile(userId);
-  };
+  savedPostsComponent->onUserClicked = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(savedPostsComponent.get());
 
   //==========================================================================
@@ -608,35 +532,29 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     audioProcessor.getAudioPlayer().stop();
     archivedPostsComponent->clearPlayingState();
   };
-  archivedPostsComponent->onUserClicked = [this](const juce::String &userId) {
-    showProfile(userId);
-  };
+  archivedPostsComponent->onUserClicked = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(archivedPostsComponent.get());
 
   //==========================================================================
   // Create Story Highlight dialogs
   createHighlightDialog = std::make_unique<CreateHighlightDialog>();
   createHighlightDialog->setNetworkClient(networkClient.get());
-  createHighlightDialog->onHighlightCreated =
-      [this](const juce::String &highlightId) {
-        Log::info("PluginEditor: Highlight created: " + highlightId);
-        // Refresh profile to show new highlight
-        if (currentView == AppView::Profile && profileComponent) {
-          profileComponent->refresh();
-        }
-      };
+  createHighlightDialog->onHighlightCreated = [this](const juce::String &highlightId) {
+    Log::info("PluginEditor: Highlight created: " + highlightId);
+    // Refresh profile to show new highlight
+    if (currentView == AppView::Profile && profileComponent) {
+      profileComponent->refresh();
+    }
+  };
   // Not added as child - shown as modal overlay when needed
 
   selectHighlightDialog = std::make_unique<SelectHighlightDialog>();
   selectHighlightDialog->setNetworkClient(networkClient.get());
-  selectHighlightDialog->onHighlightSelected =
-      [](const juce::String &highlightId) {
-        Log::info("PluginEditor: Story added to highlight: " + highlightId);
-        // Show success message
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::MessageBoxIconType::InfoIcon, "Success",
-            "Story added to highlight!");
-      };
+  selectHighlightDialog->onHighlightSelected = [](const juce::String &highlightId) {
+    Log::info("PluginEditor: Story added to highlight: " + highlightId);
+    // Show success message
+    juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Success", "Story added to highlight!");
+  };
   selectHighlightDialog->onCreateNewClicked = [this]() {
     // Show create dialog, then after creation add the story
     showCreateHighlightDialog();
@@ -647,13 +565,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   // Create ShareToMessageDialog for sharing posts/stories to DMs
   shareToMessageDialog = std::make_unique<ShareToMessageDialog>();
   shareToMessageDialog->onShared = [](int conversationCount) {
-    Log::info("PluginEditor: Content shared to " +
-              juce::String(conversationCount) + " conversation(s)");
+    Log::info("PluginEditor: Content shared to " + juce::String(conversationCount) + " conversation(s)");
     // Optionally show success message
   };
-  shareToMessageDialog->onClosed = []() {
-    Log::debug("PluginEditor: Share to DM closed");
-  };
+  shareToMessageDialog->onClosed = []() { Log::debug("PluginEditor: Share to DM closed"); };
   // Not added as child - shown as modal overlay when needed
 
   //==========================================================================
@@ -671,56 +586,46 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
 
     // Create direct channel with selected user
     if (streamChatClient && streamChatClient->isAuthenticated()) {
-      streamChatClient->createDirectChannel(
-          userId, [this](Outcome<StreamChatClient::Channel> result) {
+      streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
+        juce::MessageManager::callAsync([this, result]() {
+          if (result.isOk()) {
+            auto channel = result.getValue();
+            showMessageThread(channel.type, channel.id);
+          } else {
+            Log::error("PluginEditor: Failed to create direct channel - " + result.getError());
+            juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                   "Failed to create conversation: " + result.getError());
+          }
+        });
+      });
+    }
+  };
+
+  userPickerDialog->onGroupCreated = [this](const std::vector<juce::String> &userIds, const juce::String &groupName) {
+    // Hide dialog immediately
+    if (userPickerDialog)
+      userPickerDialog->setVisible(false);
+
+    // Create group channel with selected users
+    if (streamChatClient && streamChatClient->isAuthenticated()) {
+      // Generate unique channel ID
+      juce::String channelId = "group_" + juce::String(juce::Time::currentTimeMillis());
+
+      streamChatClient->createGroupChannel(
+          channelId, groupName, userIds, [this](Outcome<StreamChatClient::Channel> result) {
             juce::MessageManager::callAsync([this, result]() {
               if (result.isOk()) {
                 auto channel = result.getValue();
                 showMessageThread(channel.type, channel.id);
               } else {
-                Log::error("PluginEditor: Failed to create direct channel - " +
-                           result.getError());
-                juce::AlertWindow::showMessageBoxAsync(
-                    juce::MessageBoxIconType::WarningIcon, "Error",
-                    "Failed to create conversation: " + result.getError());
+                Log::error("PluginEditor: Failed to create group channel - " + result.getError());
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
+                                                       "Failed to create group: " + result.getError());
               }
             });
           });
     }
   };
-
-  userPickerDialog->onGroupCreated =
-      [this](const std::vector<juce::String> &userIds,
-             const juce::String &groupName) {
-        // Hide dialog immediately
-        if (userPickerDialog)
-          userPickerDialog->setVisible(false);
-
-        // Create group channel with selected users
-        if (streamChatClient && streamChatClient->isAuthenticated()) {
-          // Generate unique channel ID
-          juce::String channelId =
-              "group_" + juce::String(juce::Time::currentTimeMillis());
-
-          streamChatClient->createGroupChannel(
-              channelId, groupName, userIds,
-              [this](Outcome<StreamChatClient::Channel> result) {
-                juce::MessageManager::callAsync([this, result]() {
-                  if (result.isOk()) {
-                    auto channel = result.getValue();
-                    showMessageThread(channel.type, channel.id);
-                  } else {
-                    Log::error(
-                        "PluginEditor: Failed to create group channel - " +
-                        result.getError());
-                    juce::AlertWindow::showMessageBoxAsync(
-                        juce::MessageBoxIconType::WarningIcon, "Error",
-                        "Failed to create group: " + result.getError());
-                  }
-                });
-              });
-        }
-      };
 
   userPickerDialog->onCancelled = [this]() {
     Log::debug("PluginEditor: User picker cancelled");
@@ -756,9 +661,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   // Create ActivityStatusSettings dialog
   activityStatusDialog = std::make_unique<ActivityStatusSettings>();
   activityStatusDialog->setNetworkClient(networkClient.get());
-  activityStatusDialog->onClose = []() {
-    Log::debug("ActivityStatusSettings dialog closed");
-  };
+  activityStatusDialog->onClose = []() { Log::debug("ActivityStatusSettings dialog closed"); };
   // Not added as child - shown as modal overlay when needed
 
   //==========================================================================
@@ -768,9 +671,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   editProfileDialog->setUserStore(&Sidechain::Stores::UserStore::getInstance());
   // Task 2.4: Profile save is now handled via UserStore subscription in
   // EditProfile Callbacks removed: onCancel, onSave, onProfilePicSelected
-  editProfileDialog->onActivityStatusClicked = [this]() {
-    showActivityStatusSettings();
-  };
+  editProfileDialog->onActivityStatusClicked = [this]() { showActivityStatusSettings(); };
   editProfileDialog->onMutedUsersClicked = []() {
     // TODO: Implement MutedUsers component
     Log::info("EditProfile: Muted users clicked - not yet implemented");
@@ -799,22 +700,18 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
 
   //==========================================================================
   // Create StreamChatClient for getstream.io messaging
-  streamChatClient = std::make_unique<StreamChatClient>(
-      networkClient.get(), StreamChatClient::Config::development());
+  streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
   // Set StreamChatClient on ChatStore so it can send/receive messages
-  Sidechain::Stores::ChatStore::getInstance().setStreamChatClient(
-      streamChatClient.get());
+  Sidechain::Stores::ChatStore::getInstance().setStreamChatClient(streamChatClient.get());
 
   // Wire up message notification callback to check OS notification setting
-  streamChatClient->setMessageNotificationCallback(
-      [this](const juce::String &title, const juce::String &message) {
-        // Check if OS notifications are enabled before showing
-        if (userDataStore && userDataStore->isOSNotificationsEnabled()) {
-          OSNotification::show(title, message, "",
-                               userDataStore->isNotificationSoundEnabled());
-        }
-      });
+  streamChatClient->setMessageNotificationCallback([this](const juce::String &title, const juce::String &message) {
+    // Check if OS notifications are enabled before showing
+    if (userDataStore && userDataStore->isOSNotificationsEnabled()) {
+      OSNotification::show(title, message, "", userDataStore->isNotificationSoundEnabled());
+    }
+  });
 
   // Wire up unread count callback to update header badge
   streamChatClient->setUnreadCountCallback([this](int totalUnread) {
@@ -823,22 +720,17 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   });
 
   // Wire up presence changed callback to update UI components in real-time
-  streamChatClient->setPresenceChangedCallback(
-      [this](const StreamChatClient::UserPresence &presence) {
-        // Update presence in all components that display user status
-        if (postsFeedComponent)
-          postsFeedComponent->updateUserPresence(
-              presence.userId, presence.online, presence.status);
-        if (profileComponent)
-          profileComponent->updateUserPresence(presence.userId, presence.online,
-                                               presence.status);
-        if (userDiscoveryComponent)
-          userDiscoveryComponent->updateUserPresence(
-              presence.userId, presence.online, presence.status);
-        if (searchComponent)
-          searchComponent->updateUserPresence(presence.userId, presence.online,
-                                              presence.status);
-      });
+  streamChatClient->setPresenceChangedCallback([this](const StreamChatClient::UserPresence &presence) {
+    // Update presence in all components that display user status
+    if (postsFeedComponent)
+      postsFeedComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+    if (profileComponent)
+      profileComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+    if (userDiscoveryComponent)
+      userDiscoveryComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+    if (searchComponent)
+      searchComponent->updateUserPresence(presence.userId, presence.online, presence.status);
+  });
 
   // Wire StreamChatClient to components that need presence queries
   if (postsFeedComponent)
@@ -855,12 +747,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   messagesListComponent = std::make_unique<MessagesList>();
   messagesListComponent->setStreamChatClient(streamChatClient.get());
   messagesListComponent->setNetworkClient(networkClient.get());
-  messagesListComponent->onChannelSelected =
-      [this](const juce::String &channelType, const juce::String &channelId) {
-        Log::info("PluginEditor: onChannelSelected callback - channelType: " +
-                  channelType + ", channelId: " + channelId);
-        showMessageThread(channelType, channelId);
-      };
+  messagesListComponent->onChannelSelected = [this](const juce::String &channelType, const juce::String &channelId) {
+    Log::info("PluginEditor: onChannelSelected callback - channelType: " + channelType + ", channelId: " + channelId);
+    showMessageThread(channelType, channelId);
+  };
   messagesListComponent->onNewMessage = [this]() {
     // Show user picker dialog to create new conversation
     if (userPickerDialog) {
@@ -877,9 +767,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
       Log::info("MessagesList: onNewMessage - showing UserPickerDialog");
     }
   };
-  messagesListComponent->onGoToDiscovery = [this]() {
-    showView(AppView::Discovery);
-  };
+  messagesListComponent->onGoToDiscovery = [this]() { showView(AppView::Discovery); };
   messagesListComponent->onCreateGroup = [this]() {
     // Show user picker dialog to create new group
     if (userPickerDialog) {
@@ -893,8 +781,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
       userPickerDialog->loadSuggestedUsers();
 
       userPickerDialog->showModal(this);
-      Log::info(
-          "PluginEditor: Create Group clicked - showing UserPickerDialog");
+      Log::info("PluginEditor: Create Group clicked - showing UserPickerDialog");
     }
   };
   addChildComponent(messagesListComponent.get());
@@ -905,38 +792,31 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   messageThreadComponent->setStreamChatClient(streamChatClient.get());
   messageThreadComponent->setNetworkClient(networkClient.get());
   messageThreadComponent->setAudioProcessor(&audioProcessor);
-  messageThreadComponent->setChatStore(
-      &Sidechain::Stores::ChatStore::getInstance());
-  messageThreadComponent->onBackPressed = [this]() {
-    showView(AppView::Messages);
+  messageThreadComponent->setChatStore(&Sidechain::Stores::ChatStore::getInstance());
+  messageThreadComponent->onBackPressed = [this]() { showView(AppView::Messages); };
+  messageThreadComponent->onSharedPostClicked = [this](const juce::String &postId) {
+    // Navigate to feed and show the post (would need to add scrollToPost
+    // functionality)
+    Log::info("MessageThread: Shared post clicked - " + postId);
+    showView(AppView::PostsFeed);
+    // TODO: Implement scrollToPost(postId) in PostsFeed to jump to specific
+    // post
   };
-  messageThreadComponent->onSharedPostClicked =
-      [this](const juce::String &postId) {
-        // Navigate to feed and show the post (would need to add scrollToPost
-        // functionality)
-        Log::info("MessageThread: Shared post clicked - " + postId);
-        showView(AppView::PostsFeed);
-        // TODO: Implement scrollToPost(postId) in PostsFeed to jump to specific
-        // post
-      };
-  messageThreadComponent->onSharedStoryClicked =
-      [this](const juce::String &storyId) {
-        // Extract user ID from story ID (format: userId_timestamp)
-        juce::String userId = storyId.upToFirstOccurrenceOf("_", false, false);
-        if (userId.isNotEmpty())
-          showUserStory(userId);
-      };
+  messageThreadComponent->onSharedStoryClicked = [this](const juce::String &storyId) {
+    // Extract user ID from story ID (format: userId_timestamp)
+    juce::String userId = storyId.upToFirstOccurrenceOf("_", false, false);
+    if (userId.isNotEmpty())
+      showUserStory(userId);
+  };
   addChildComponent(messageThreadComponent.get());
 
   //==========================================================================
   // Create Profile
   profileComponent = std::make_unique<Profile>();
   profileComponent->setNetworkClient(networkClient.get());
-  profileComponent->setFeedStore(
-      feedStore.get()); // Task 2.4: Set FeedStore for follow/mute
+  profileComponent->setFeedStore(feedStore.get()); // Task 2.4: Set FeedStore for follow/mute
   profileComponent->setUserStore(
-      &Sidechain::Stores::UserStore::
-          getInstance()); // Task 2.4.2: Set UserStore for own profile
+      &Sidechain::Stores::UserStore::getInstance()); // Task 2.4.2: Set UserStore for own profile
   // Note: StreamChatClient will be set after it's created (below)
   profileComponent->onBackPressed = [this]() { navigateBack(); };
   profileComponent->onEditProfile = [this]() {
@@ -954,48 +834,31 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
   profileComponent->onPlayClicked = [this](const FeedPost &post) {
     audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
   };
-  profileComponent->onPauseClicked = [this](const FeedPost & /*post*/) {
-    audioProcessor.getAudioPlayer().stop();
-  };
+  profileComponent->onPauseClicked = [this](const FeedPost & /*post*/) { audioProcessor.getAudioPlayer().stop(); };
   profileComponent->onMessageClicked = [this](const juce::String &userId) {
     // Create direct channel with user and navigate to message thread
     if (streamChatClient && streamChatClient->isAuthenticated()) {
-      streamChatClient->createDirectChannel(
-          userId, [this](Outcome<StreamChatClient::Channel> result) {
-            juce::MessageManager::callAsync([this, result]() {
-              if (result.isOk()) {
-                auto channel = result.getValue();
-                showMessageThread(channel.type, channel.id);
-              } else {
-                Log::error("PluginEditor: Failed to create DM channel: " +
-                           result.getError());
-              }
-            });
-          });
+      streamChatClient->createDirectChannel(userId, [this](Outcome<StreamChatClient::Channel> result) {
+        juce::MessageManager::callAsync([this, result]() {
+          if (result.isOk()) {
+            auto channel = result.getValue();
+            showMessageThread(channel.type, channel.id);
+          } else {
+            Log::error("PluginEditor: Failed to create DM channel: " + result.getError());
+          }
+        });
+      });
     } else {
       // Fall back to messages view if stream chat not ready
       showView(AppView::Messages);
     }
   };
-  profileComponent->onViewStoryClicked = [this](const juce::String &userId) {
-    showUserStory(userId);
-  };
-  profileComponent->onNavigateToProfile = [this](const juce::String &userId) {
-    showProfile(userId);
-  };
-  profileComponent->onHighlightClicked =
-      [this](const StoryHighlight &highlight) {
-        showHighlightStories(highlight);
-      };
-  profileComponent->onCreateHighlightClicked = [this]() {
-    showCreateHighlightDialog();
-  };
-  profileComponent->onNotificationSettingsClicked = [this]() {
-    showNotificationSettings();
-  };
-  profileComponent->onTwoFactorSettingsClicked = [this]() {
-    showTwoFactorSettings();
-  };
+  profileComponent->onViewStoryClicked = [this](const juce::String &userId) { showUserStory(userId); };
+  profileComponent->onNavigateToProfile = [this](const juce::String &userId) { showProfile(userId); };
+  profileComponent->onHighlightClicked = [this](const StoryHighlight &highlight) { showHighlightStories(highlight); };
+  profileComponent->onCreateHighlightClicked = [this]() { showCreateHighlightDialog(); };
+  profileComponent->onNotificationSettingsClicked = [this]() { showNotificationSettings(); };
+  profileComponent->onTwoFactorSettingsClicked = [this]() { showTwoFactorSettings(); };
   addChildComponent(profileComponent.get());
 
   //==========================================================================
@@ -1013,12 +876,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     if (userDataStore && !userDataStore->getUserId().isEmpty()) {
       juce::String userId = userDataStore->getUserId();
       if (userId.isNotEmpty()) {
-        Log::info("Header::onProfileClicked: Showing profile for user: " +
-                  userId);
+        Log::info("Header::onProfileClicked: Showing profile for user: " + userId);
         showProfile(userId);
       } else {
-        Log::warn(
-            "Header::onProfileClicked: User ID is empty, showing ProfileSetup");
+        Log::warn("Header::onProfileClicked: User ID is empty, showing ProfileSetup");
         showView(AppView::ProfileSetup);
       }
     } else {
@@ -1028,12 +889,8 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(
     }
   };
   headerComponent->onRecordClicked = [this]() { showView(AppView::Recording); };
-  headerComponent->onStoryClicked = [this]() {
-    showView(AppView::StoryRecording);
-  };
-  headerComponent->onMessagesClicked = [this]() {
-    showView(AppView::Messages);
-  };
+  headerComponent->onStoryClicked = [this]() { showView(AppView::StoryRecording); };
+  headerComponent->onMessagesClicked = [this]() { showView(AppView::Messages); };
   headerComponent->onProfileStoryClicked = [this]() {
     // Show current user's story
     if (userDataStore && !userDataStore->getUserId().isEmpty())
@@ -1113,14 +970,12 @@ void SidechainAudioProcessorEditor::resized() {
   auto bounds = getLocalBounds();
   auto headerHeight = Header::HEADER_HEIGHT;
 
-  Log::debug("PluginEditor::resized: Resizing to " + juce::String(getWidth()) +
-             "x" + juce::String(getHeight()));
+  Log::debug("PluginEditor::resized: Resizing to " + juce::String(getWidth()) + "x" + juce::String(getHeight()));
 
   // Position central header at top (for post-login views)
   if (headerComponent) {
     auto headerBounds = bounds.removeFromTop(headerHeight);
-    Log::debug("PluginEditor::resized: Setting header bounds to " +
-               juce::String(headerBounds.getWidth()) + "x" +
+    Log::debug("PluginEditor::resized: Setting header bounds to " + juce::String(headerBounds.getWidth()) + "x" +
                juce::String(headerBounds.getHeight()));
     headerComponent->setBounds(headerBounds);
   }
@@ -1130,23 +985,19 @@ void SidechainAudioProcessorEditor::resized() {
 
   // Position notification bell in header area (right side)
   if (notificationBell)
-    notificationBell->setBounds(
-        getWidth() - 70, (headerHeight - NotificationBell::PREFERRED_SIZE) / 2,
-        NotificationBell::PREFERRED_SIZE, NotificationBell::PREFERRED_SIZE);
+    notificationBell->setBounds(getWidth() - 70, (headerHeight - NotificationBell::PREFERRED_SIZE) / 2,
+                                NotificationBell::PREFERRED_SIZE, NotificationBell::PREFERRED_SIZE);
 
   // Position connection indicator in header area (far right)
   if (connectionIndicator)
-    connectionIndicator->setBounds(getWidth() - 28, (headerHeight - 16) / 2, 16,
-                                   16);
+    connectionIndicator->setBounds(getWidth() - 28, (headerHeight - 16) / 2, 16, 16);
 
   // Position notification panel as dropdown from bell
   if (notificationList) {
     int panelX = getWidth() - NotificationList::PREFERRED_WIDTH - 10;
     int panelY = headerHeight + 5;
-    int panelHeight =
-        juce::jmin(NotificationList::MAX_HEIGHT, getHeight() - panelY - 20);
-    notificationList->setBounds(panelX, panelY,
-                                NotificationList::PREFERRED_WIDTH, panelHeight);
+    int panelHeight = juce::jmin(NotificationList::MAX_HEIGHT, getHeight() - panelY - 20);
+    notificationList->setBounds(panelX, panelY, NotificationList::PREFERRED_WIDTH, panelHeight);
   }
 
   // Auth component fills entire window (no header)
@@ -1217,8 +1068,7 @@ void SidechainAudioProcessorEditor::resized() {
 }
 
 //==============================================================================
-juce::Component *
-SidechainAudioProcessorEditor::getComponentForView(AppView view) {
+juce::Component *SidechainAudioProcessorEditor::getComponentForView(AppView view) {
   switch (view) {
   case AppView::Authentication:
     return authComponent.get();
@@ -1267,8 +1117,7 @@ SidechainAudioProcessorEditor::getComponentForView(AppView view) {
   }
 }
 
-void SidechainAudioProcessorEditor::showView(AppView view,
-                                             NavigationDirection direction) {
+void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection direction) {
   Log::info("showView: entering, view=" + juce::String(static_cast<int>(view)) +
             ", currentView=" + juce::String(static_cast<int>(currentView)));
 
@@ -1282,16 +1131,13 @@ void SidechainAudioProcessorEditor::showView(AppView view,
   juce::Component *componentToShow = getComponentForView(view);
   juce::Component *componentToHide = getComponentForView(currentView);
 
-  Log::info("showView: componentToShow=" +
-            juce::String(componentToShow != nullptr ? "valid" : "null") +
-            ", componentToHide=" +
-            juce::String(componentToHide != nullptr ? "valid" : "null"));
+  Log::info("showView: componentToShow=" + juce::String(componentToShow != nullptr ? "valid" : "null") +
+            ", componentToHide=" + juce::String(componentToHide != nullptr ? "valid" : "null"));
 
   // SET UP THE VIEW FIRST (before animation) so content is ready to display
   // This ensures that when the animation starts, the view is already prepared
   if (view == AppView::PostsFeed && postsFeedComponent) {
-    Log::debug(
-        "showView: Setting up PostsFeed BEFORE animation - calling loadFeed()");
+    Log::debug("showView: Setting up PostsFeed BEFORE animation - calling loadFeed()");
     postsFeedComponent->setUserInfo(username, email, profilePicUrl);
     postsFeedComponent->loadFeed();
   }
@@ -1309,21 +1155,15 @@ void SidechainAudioProcessorEditor::showView(AppView view,
   // navigation work correctly but loses the animation smoothness. ROOT CAUSE:
   // Unknown - likely an issue in ViewTransitionManager or component lifecycle
   // during the specific Profile->PostsFeed transition.
-  bool shouldAnimate =
-      componentToShow && componentToHide &&
-      componentToShow != componentToHide &&
-      !isSameView // Don't animate if already on same view
-      && currentView != AppView::Authentication &&
-      view != AppView::Authentication &&
-      view !=
-          AppView::PostsFeed // TEMP: Skip animation to PostsFeed (TODO 4.21)
-      && direction != NavigationDirection::None;
+  bool shouldAnimate = componentToShow && componentToHide && componentToShow != componentToHide &&
+                       !isSameView // Don't animate if already on same view
+                       && currentView != AppView::Authentication && view != AppView::Authentication &&
+                       view != AppView::PostsFeed // TEMP: Skip animation to PostsFeed (TODO 4.21)
+                       && direction != NavigationDirection::None;
 
   if (shouldAnimate) {
     Log::info("showView: starting slide animation, direction=" +
-              juce::String(direction == NavigationDirection::Forward
-                               ? "Forward"
-                               : "Backward"));
+              juce::String(direction == NavigationDirection::Forward ? "Forward" : "Backward"));
 
     // Use content bounds (below header) for post-login views
     auto bounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
@@ -1340,15 +1180,12 @@ void SidechainAudioProcessorEditor::showView(AppView view,
     }
 
     // Hide all other components immediately (not involved in animation)
-    for (auto appView : {AppView::Authentication, AppView::ProfileSetup,
-                         AppView::PostsFeed,      AppView::Recording,
-                         AppView::Upload,         AppView::Drafts,
-                         AppView::Discovery,      AppView::Profile,
-                         AppView::Search,         AppView::Messages,
-                         AppView::MessageThread,  AppView::StoryRecording,
-                         AppView::StoryViewer,    AppView::HiddenSynth,
-                         AppView::Playlists,      AppView::PlaylistDetail,
-                         AppView::MidiChallenges, AppView::MidiChallengeDetail,
+    for (auto appView : {AppView::Authentication, AppView::ProfileSetup,   AppView::PostsFeed,
+                         AppView::Recording,      AppView::Upload,         AppView::Drafts,
+                         AppView::Discovery,      AppView::Profile,        AppView::Search,
+                         AppView::Messages,       AppView::MessageThread,  AppView::StoryRecording,
+                         AppView::StoryViewer,    AppView::HiddenSynth,    AppView::Playlists,
+                         AppView::PlaylistDetail, AppView::MidiChallenges, AppView::MidiChallengeDetail,
                          AppView::SavedPosts,     AppView::ArchivedPosts}) {
       auto *comp = getComponentForView(appView);
       if (comp && comp != componentToShow && comp != componentToHide)
@@ -1361,11 +1198,9 @@ void SidechainAudioProcessorEditor::showView(AppView view,
 
     // Track timing for performance metrics (< 350ms requirement)
     auto startTime = juce::Time::getMillisecondCounterHiRes();
-    auto onTransitionComplete = [componentToShow, componentToHide,
-                                 startTime]() {
+    auto onTransitionComplete = [componentToShow, componentToHide, startTime]() {
       auto elapsed = juce::Time::getMillisecondCounterHiRes() - startTime;
-      Log::info("View transition completed in " + juce::String(elapsed, 1) +
-                "ms");
+      Log::info("View transition completed in " + juce::String(elapsed, 1) + "ms");
 
       // After animation: ensure new view is visible, old view is hidden
       if (componentToShow)
@@ -1374,23 +1209,19 @@ void SidechainAudioProcessorEditor::showView(AppView view,
         componentToHide->setVisible(false);
 
 #ifdef NDEBUG
-      jassert(elapsed <
-              350); // Verify < 350ms requirement (Release builds only)
+      jassert(elapsed < 350); // Verify < 350ms requirement (Release builds only)
 #else
       // Debug builds: just log if slow, don't crash
       if (elapsed >= 350)
-        Log::warn("View transition slow: " + juce::String(elapsed, 1) +
-                  "ms (expected < 350ms)");
+        Log::warn("View transition slow: " + juce::String(elapsed, 1) + "ms (expected < 350ms)");
 #endif
     };
 
     if (direction == NavigationDirection::Forward) {
-      viewTransitionManager->slideLeft(componentToHide, componentToShow, 300,
-                                       onTransitionComplete);
+      viewTransitionManager->slideLeft(componentToHide, componentToShow, 300, onTransitionComplete);
     } else // Backward
     {
-      viewTransitionManager->slideRight(componentToHide, componentToShow, 300,
-                                        onTransitionComplete);
+      viewTransitionManager->slideRight(componentToHide, componentToShow, 300, onTransitionComplete);
     }
 
     Log::info("showView: animation started");
@@ -1468,8 +1299,7 @@ void SidechainAudioProcessorEditor::showView(AppView view,
     }
     if (midiChallengeDetailComponent) {
       midiChallengeDetailComponent->setBounds(contentBounds);
-      midiChallengeDetailComponent->setVisible(view ==
-                                               AppView::MidiChallengeDetail);
+      midiChallengeDetailComponent->setVisible(view == AppView::MidiChallengeDetail);
     }
     if (savedPostsComponent) {
       savedPostsComponent->setBounds(contentBounds);
@@ -1488,8 +1318,7 @@ void SidechainAudioProcessorEditor::showView(AppView view,
   // Push current view to navigation stack (except when going back or during
   // auth) When navigating backward, we've already popped from stack, so don't
   // push
-  if (currentView != view && currentView != AppView::Authentication &&
-      direction != NavigationDirection::Backward) {
+  if (currentView != view && currentView != AppView::Authentication && direction != NavigationDirection::Backward) {
     navigationStack.add(currentView);
     // Keep stack reasonable size
     while (navigationStack.size() > 10)
@@ -1503,8 +1332,7 @@ void SidechainAudioProcessorEditor::showView(AppView view,
   if (headerComponent) {
     headerComponent->setVisible(showHeader);
     if (showHeader && userDataStore) {
-      headerComponent->setUserInfo(userDataStore->getUsername(),
-                                   userDataStore->getProfilePictureUrl());
+      headerComponent->setUserInfo(userDataStore->getUsername(), userDataStore->getProfilePictureUrl());
 
       // Use cached image from UserDataStore if available
       if (userDataStore->hasProfileImage()) {
@@ -1533,8 +1361,7 @@ void SidechainAudioProcessorEditor::showView(AppView view,
       // Pass cached profile image from UserDataStore (downloaded via HTTP
       // proxy)
       if (userDataStore && userDataStore->hasProfileImage()) {
-        profileSetupComponent->setProfileImage(
-            userDataStore->getProfileImage());
+        profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
       }
     }
     break;
@@ -1614,8 +1441,7 @@ void SidechainAudioProcessorEditor::showView(AppView view,
     if (userDiscoveryComponent) {
       Log::info("showView: calling setCurrentUserId");
       // Get user ID from UserDataStore instead of deprecated authToken
-      juce::String currentUserId =
-          userDataStore ? userDataStore->getUserId() : "";
+      juce::String currentUserId = userDataStore ? userDataStore->getUserId() : "";
       userDiscoveryComponent->setCurrentUserId(currentUserId);
       Log::info("showView: calling loadDiscoveryData");
       userDiscoveryComponent->loadDiscoveryData();
@@ -1636,9 +1462,7 @@ void SidechainAudioProcessorEditor::showView(AppView view,
         // Fallback to current user's profile if available
         if (userDataStore && !userDataStore->getUserId().isEmpty()) {
           profileUserIdToView = userDataStore->getUserId();
-          Log::info(
-              "PluginEditor::showView: Using current user ID as fallback: " +
-              profileUserIdToView);
+          Log::info("PluginEditor::showView: Using current user ID as fallback: " + profileUserIdToView);
         } else {
           Log::error("PluginEditor::showView: No user ID available, cannot "
                      "show profile");
@@ -1691,9 +1515,7 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String &userId) {
     // Fallback to current user's profile if available
     if (userDataStore && !userDataStore->getUserId().isEmpty()) {
       profileUserIdToView = userDataStore->getUserId();
-      Log::info(
-          "PluginEditor::showProfile: Using current user ID as fallback: " +
-          profileUserIdToView);
+      Log::info("PluginEditor::showProfile: Using current user ID as fallback: " + profileUserIdToView);
     } else {
       Log::error("PluginEditor::showProfile: No user ID available, cannot show "
                  "profile");
@@ -1707,15 +1529,12 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String &userId) {
     }
   }
 
-  Log::info("PluginEditor::showProfile: Showing profile for user: " +
-            profileUserIdToView);
+  Log::info("PluginEditor::showProfile: Showing profile for user: " + profileUserIdToView);
   showView(AppView::Profile);
 }
 
-void SidechainAudioProcessorEditor::showMessageThread(
-    const juce::String &channelType, const juce::String &channelId) {
-  Log::info("PluginEditor::showMessageThread - type: " + channelType +
-            ", id: " + channelId);
+void SidechainAudioProcessorEditor::showMessageThread(const juce::String &channelType, const juce::String &channelId) {
+  Log::info("PluginEditor::showMessageThread - type: " + channelType + ", id: " + channelId);
   messageChannelType = channelType;
   messageChannelId = channelId;
   showView(AppView::MessageThread);
@@ -1725,8 +1544,7 @@ void SidechainAudioProcessorEditor::showPlaylists() {
   showView(AppView::Playlists);
 }
 
-void SidechainAudioProcessorEditor::showPlaylistDetail(
-    const juce::String &playlistId) {
+void SidechainAudioProcessorEditor::showPlaylistDetail(const juce::String &playlistId) {
   playlistIdToView = playlistId;
   showView(AppView::PlaylistDetail);
 }
@@ -1782,8 +1600,7 @@ void SidechainAudioProcessorEditor::checkForActiveStories() {
   juce::String currentUserId = userDataStore->getUserId();
 
   // Fetch stories feed and check if current user has any active stories
-  networkClient->getStoriesFeed([this,
-                                 currentUserId](Outcome<juce::var> result) {
+  networkClient->getStoriesFeed([this, currentUserId](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result, currentUserId]() {
       bool hasStory = false;
 
@@ -1800,8 +1617,7 @@ void SidechainAudioProcessorEditor::checkForActiveStories() {
                 juce::String expiresAtStr = storyVar["expires_at"].toString();
                 if (expiresAtStr.isNotEmpty()) {
                   juce::Time expiresAt = juce::Time::fromISO8601(expiresAtStr);
-                  if (expiresAt.toMilliseconds() > 0 &&
-                      juce::Time::getCurrentTime() < expiresAt) {
+                  if (expiresAt.toMilliseconds() > 0 && juce::Time::getCurrentTime() < expiresAt) {
                     hasStory = true;
                     break;
                   }
@@ -1832,8 +1648,7 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling() {
   juce::String scaleSource = "default";
 
   // First, try JUCE's display API
-  if (auto *display =
-          juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
+  if (auto *display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
     if (display->scale > 1.0) {
       systemScale = display->scale;
       scaleSource = "JUCE Display API";
@@ -1869,9 +1684,7 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling() {
     if (const char *qtAutoScale = std::getenv("QT_AUTO_SCREEN_SCALE_FACTOR")) {
       if (juce::String(qtAutoScale) == "1") {
         // Qt auto-scaling is enabled - try to detect from DPI
-        if (auto *display = juce::Desktop::getInstance()
-                                .getDisplays()
-                                .getPrimaryDisplay()) {
+        if (auto *display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
           // Standard DPI is 96 on Linux
           double dpiScale = display->dpi / 96.0;
           if (dpiScale > 1.0) {
@@ -1896,14 +1709,12 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling() {
 
   if (systemScale <= 1.0) {
     // Try DPI-based detection as final fallback
-    if (auto *display =
-            juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
+    if (auto *display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()) {
       // Standard DPI is 96 on Linux, 72 on macOS
       double standardDpi = 96.0;
       double dpiScale = display->dpi / standardDpi;
-      Log::debug(
-          "DPI detection: display->dpi = " + juce::String(display->dpi, 1) +
-          ", calculated scale = " + juce::String(dpiScale, 2));
+      Log::debug("DPI detection: display->dpi = " + juce::String(display->dpi, 1) +
+                 ", calculated scale = " + juce::String(dpiScale, 2));
       if (dpiScale > 1.1) // Use 1.1 threshold to avoid false positives
       {
         systemScale = dpiScale;
@@ -1915,8 +1726,7 @@ void SidechainAudioProcessorEditor::applySystemDpiScaling() {
   // Apply the scale factor if above 1.0
   if (systemScale > 1.0) {
     setScaleFactor(static_cast<float>(systemScale));
-    Log::info("Applied DPI scale factor: " + juce::String(systemScale, 2) +
-              " (source: " + scaleSource + ")");
+    Log::info("Applied DPI scale factor: " + juce::String(systemScale, 2) + " (source: " + scaleSource + ")");
   } else {
     Log::debug("Standard DPI display detected (scale = 1.00)");
   }
@@ -1934,8 +1744,7 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String &userId) {
   networkClient->getStoriesFeed([this, userId](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result, userId]() {
       if (!result.isOk() || !result.getValue().isObject()) {
-        Log::error("PluginEditor: Failed to fetch stories: " +
-                   result.getError());
+        Log::error("PluginEditor: Failed to fetch stories: " + result.getError());
         return;
       }
 
@@ -1962,12 +1771,8 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String &userId) {
           StoryData story;
           story.id = storyVar["id"].toString();
           story.userId = storyUserId;
-          story.username = storyVar.hasProperty("user")
-                               ? storyVar["user"]["username"].toString()
-                               : "";
-          story.userAvatarUrl = storyVar.hasProperty("user")
-                                    ? storyVar["user"]["avatar_url"].toString()
-                                    : "";
+          story.username = storyVar.hasProperty("user") ? storyVar["user"]["username"].toString() : "";
+          story.userAvatarUrl = storyVar.hasProperty("user") ? storyVar["user"]["avatar_url"].toString() : "";
           story.audioUrl = storyVar["audio_url"].toString();
           story.audioDuration = static_cast<float>(storyVar["audio_duration"]);
           story.midiData = storyVar["midi_data"];
@@ -1980,8 +1785,7 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String &userId) {
           if (expiresAtStr.isNotEmpty())
             story.expiresAt = juce::Time::fromISO8601(expiresAtStr);
           else
-            story.expiresAt =
-                juce::Time::getCurrentTime() + juce::RelativeTime::hours(24);
+            story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::hours(24);
 
           juce::String createdAtStr = storyVar["created_at"].toString();
           if (createdAtStr.isNotEmpty())
@@ -2010,19 +1814,15 @@ void SidechainAudioProcessorEditor::showUserStory(const juce::String &userId) {
   });
 }
 
-void SidechainAudioProcessorEditor::showHighlightStories(
-    const StoryHighlight &highlight) {
+void SidechainAudioProcessorEditor::showHighlightStories(const StoryHighlight &highlight) {
   if (!networkClient || highlight.id.isEmpty())
     return;
 
   // Fetch the highlight with its stories
-  networkClient->getHighlight(highlight.id, [this,
-                                             highlightName = highlight.name](
-                                                Outcome<juce::var> result) {
+  networkClient->getHighlight(highlight.id, [this, highlightName = highlight.name](Outcome<juce::var> result) {
     juce::MessageManager::callAsync([this, result, highlightName]() {
       if (!result.isOk() || !result.getValue().isObject()) {
-        Log::error("PluginEditor: Failed to fetch highlight: " +
-                   result.getError());
+        Log::error("PluginEditor: Failed to fetch highlight: " + result.getError());
         return;
       }
 
@@ -2044,18 +1844,13 @@ void SidechainAudioProcessorEditor::showHighlightStories(
           const auto &storyVar = (*storiesArray)[i];
 
           // Handle nested "story" property from highlighted_stories join table
-          juce::var storyData =
-              storyVar.hasProperty("story") ? storyVar["story"] : storyVar;
+          juce::var storyData = storyVar.hasProperty("story") ? storyVar["story"] : storyVar;
 
           StoryData story;
           story.id = storyData["id"].toString();
           story.userId = storyData["user_id"].toString();
-          story.username = storyData.hasProperty("user")
-                               ? storyData["user"]["username"].toString()
-                               : "";
-          story.userAvatarUrl = storyData.hasProperty("user")
-                                    ? storyData["user"]["avatar_url"].toString()
-                                    : "";
+          story.username = storyData.hasProperty("user") ? storyData["user"]["username"].toString() : "";
+          story.userAvatarUrl = storyData.hasProperty("user") ? storyData["user"]["avatar_url"].toString() : "";
           story.audioUrl = storyData["audio_url"].toString();
           story.audioDuration = static_cast<float>(storyData["audio_duration"]);
           story.midiData = storyData["midi_data"];
@@ -2064,8 +1859,7 @@ void SidechainAudioProcessorEditor::showHighlightStories(
           story.viewed = true; // Highlights are already "viewed" stories
 
           // Parse timestamps - highlights don't expire
-          story.expiresAt =
-              juce::Time::getCurrentTime() + juce::RelativeTime::days(365 * 10);
+          story.expiresAt = juce::Time::getCurrentTime() + juce::RelativeTime::days(365 * 10);
           juce::String createdAtStr = storyData["created_at"].toString();
           if (createdAtStr.isNotEmpty())
             story.createdAt = juce::Time::fromISO8601(createdAtStr);
@@ -2078,14 +1872,12 @@ void SidechainAudioProcessorEditor::showHighlightStories(
 
       if (highlightStories.empty()) {
         Log::info("PluginEditor: No stories in highlight: " + highlightName);
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::MessageBoxIconType::InfoIcon, "Empty Highlight",
-            "This highlight has no stories yet.");
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Empty Highlight",
+                                               "This highlight has no stories yet.");
         return;
       }
 
-      Log::info("PluginEditor: Showing " +
-                juce::String(highlightStories.size()) +
+      Log::info("PluginEditor: Showing " + juce::String(highlightStories.size()) +
                 " stories from highlight: " + highlightName);
 
       // Set stories and show viewer
@@ -2104,8 +1896,7 @@ void SidechainAudioProcessorEditor::showCreateHighlightDialog() {
   createHighlightDialog->showModal(this);
 }
 
-void SidechainAudioProcessorEditor::showSelectHighlightDialog(
-    const juce::String &storyId) {
+void SidechainAudioProcessorEditor::showSelectHighlightDialog(const juce::String &storyId) {
   if (!selectHighlightDialog || storyId.isEmpty())
     return;
 
@@ -2115,8 +1906,7 @@ void SidechainAudioProcessorEditor::showSelectHighlightDialog(
   selectHighlightDialog->showModal(this);
 }
 
-void SidechainAudioProcessorEditor::showSharePostToMessage(
-    const FeedPost &post) {
+void SidechainAudioProcessorEditor::showSharePostToMessage(const FeedPost &post) {
   if (!shareToMessageDialog)
     return;
 
@@ -2135,8 +1925,7 @@ void SidechainAudioProcessorEditor::showSharePostToMessage(
   Log::info("PluginEditor: Showing share post to message dialog");
 }
 
-void SidechainAudioProcessorEditor::showShareStoryToMessage(
-    const StoryData &story) {
+void SidechainAudioProcessorEditor::showShareStoryToMessage(const StoryData &story) {
   if (!shareToMessageDialog)
     return;
 
@@ -2232,15 +2021,13 @@ void SidechainAudioProcessorEditor::navigateBack() {
   showView(previousView, NavigationDirection::Backward);
 }
 
-void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user,
-                                                   const juce::String &mail,
+void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, const juce::String &mail,
                                                    const juce::String &token) {
   using namespace Sidechain::Util;
   using namespace Sidechain::Security;
 
   // Log authentication success
-  Sidechain::Util::Logger::getInstance().log(
-      LogLevel::Info, "Security", "User authentication successful: " + user);
+  Sidechain::Util::Logger::getInstance().log(LogLevel::Info, "Security", "User authentication successful: " + user);
 
   // Store token securely using platform-specific secure storage (Release builds
   // only)
@@ -2248,18 +2035,15 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user,
   auto *secureStore = SecureTokenStore::getInstance();
   if (secureStore && secureStore->isAvailable()) {
     if (secureStore->saveToken("auth_token", token)) {
-      Sidechain::Util::Logger::getInstance().log(
-          LogLevel::Info, "Security",
-          "Auth token stored securely in " + secureStore->getBackendType());
+      Sidechain::Util::Logger::getInstance().log(LogLevel::Info, "Security",
+                                                 "Auth token stored securely in " + secureStore->getBackendType());
     } else {
-      Sidechain::Util::Logger::getInstance().log(
-          LogLevel::Error, "Security",
-          "Failed to save auth token to secure storage");
+      Sidechain::Util::Logger::getInstance().log(LogLevel::Error, "Security",
+                                                 "Failed to save auth token to secure storage");
     }
   } else {
-    Sidechain::Util::Logger::getInstance().log(
-        LogLevel::Warning, "Security",
-        "Secure storage not available, token not persisted");
+    Sidechain::Util::Logger::getInstance().log(LogLevel::Warning, "Security",
+                                               "Secure storage not available, token not persisted");
   }
 #else
   // Debug build - store token insecurely in local settings (no Keychain) for
@@ -2267,14 +2051,12 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user,
   if (userDataStore) {
     userDataStore->setAuthToken(token);
     userDataStore->saveToSettings();
-    Sidechain::Util::Logger::getInstance().log(
-        LogLevel::Info, "Security",
-        "Debug build - token stored insecurely in local settings (not using "
-        "Keychain)");
+    Sidechain::Util::Logger::getInstance().log(LogLevel::Info, "Security",
+                                               "Debug build - token stored insecurely in local settings (not using "
+                                               "Keychain)");
   } else {
-    Sidechain::Util::Logger::getInstance().log(
-        LogLevel::Warning, "Security",
-        "Debug build - UserDataStore unavailable, token not persisted");
+    Sidechain::Util::Logger::getInstance().log(LogLevel::Warning, "Security",
+                                               "Debug build - UserDataStore unavailable, token not persisted");
   }
 #endif
 
@@ -2285,8 +2067,7 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user,
 
   // Update centralized UserDataStore
   if (userDataStore) {
-    userDataStore->setAuthToken(
-        token); // TODO: Update UserDataStore to use SecureTokenStore
+    userDataStore->setAuthToken(token); // TODO: Update UserDataStore to use SecureTokenStore
     userDataStore->setBasicUserInfo(user, mail);
   }
 
@@ -2297,22 +2078,19 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user,
 
   // Fetch getstream.io chat token for messaging
   if (streamChatClient && !token.isEmpty()) {
-    streamChatClient->fetchToken(
-        token, [](::Outcome<StreamChatClient::TokenResult> result) {
-          if (result.isOk()) {
-            auto tokenResult = result.getValue();
-            Log::info("Stream chat token fetched successfully for user: " +
-                      tokenResult.userId);
+    streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
+      if (result.isOk()) {
+        auto tokenResult = result.getValue();
+        Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
 
-            // Also set authentication on ChatStore so it can send messages
-            Sidechain::Stores::ChatStore::getInstance().setAuthentication(
-                tokenResult.token, tokenResult.apiKey, tokenResult.userId);
-            Log::debug("ChatStore authenticated with stream token");
-          } else {
-            Log::warn("Failed to fetch stream chat token: " +
-                      result.getError());
-          }
-        });
+        // Also set authentication on ChatStore so it can send messages
+        Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
+                                                                      tokenResult.userId);
+        Log::debug("ChatStore authenticated with stream token");
+      } else {
+        Log::warn("Failed to fetch stream chat token: " + result.getError());
+      }
+    });
   }
 
   // Connect WebSocket with auth token
@@ -2376,16 +2154,14 @@ void SidechainAudioProcessorEditor::logout() {
   auto *secureStore = Sidechain::Security::SecureTokenStore::getInstance();
   if (secureStore && secureStore->isAvailable()) {
     if (secureStore->deleteToken("auth_token")) {
-      Sidechain::Util::Logger::getInstance().log(
-          Sidechain::Util::LogLevel::Info, "Security",
-          "Auth token cleared from secure storage");
+      Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                                 "Auth token cleared from secure storage");
     }
   }
 #else
   // Debug build - no secure storage to clear
-  Sidechain::Util::Logger::getInstance().log(
-      Sidechain::Util::LogLevel::Info, "Security",
-      "Debug build - no Keychain token to clear");
+  Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                             "Debug build - no Keychain token to clear");
 #endif
 
   // Clear network client auth
@@ -2400,15 +2176,14 @@ void SidechainAudioProcessorEditor::logout() {
 }
 
 void SidechainAudioProcessorEditor::confirmAndLogout() {
-  juce::AlertWindow::showOkCancelBox(
-      juce::MessageBoxIconType::QuestionIcon, "Logout",
-      "Are you sure you want to logout?", "Logout", "Cancel", nullptr,
-      juce::ModalCallbackFunction::create([this](int result) {
-        if (result == 1) // OK button
-        {
-          logout();
-        }
-      }));
+  juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::QuestionIcon, "Logout",
+                                     "Are you sure you want to logout?", "Logout", "Cancel", nullptr,
+                                     juce::ModalCallbackFunction::create([this](int result) {
+                                       if (result == 1) // OK button
+                                       {
+                                         logout();
+                                       }
+                                     }));
 }
 
 //==============================================================================
@@ -2417,8 +2192,8 @@ void SidechainAudioProcessorEditor::saveLoginState() {
   // SecureTokenStore and other user data is persisted by UserDataStore. Keeping
   // method for backwards compatibility, but it no longer saves the auth token.
 
-  auto appProperties = std::make_unique<juce::PropertiesFile>(
-      Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+  auto appProperties =
+      std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
   if (!username.isEmpty()) {
     appProperties->setValue("isLoggedIn", true);
@@ -2439,8 +2214,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
   if (userDataStore) {
     userDataStore->loadFromSettings();
 
-    Log::debug("loadLoginState: isLoggedIn=" +
-               juce::String(userDataStore->isLoggedIn() ? "true" : "false") +
+    Log::debug("loadLoginState: isLoggedIn=" + juce::String(userDataStore->isLoggedIn() ? "true" : "false") +
                ", username=" + userDataStore->getUsername() +
                ", profilePicUrl=" + userDataStore->getProfilePictureUrl());
 
@@ -2453,27 +2227,23 @@ void SidechainAudioProcessorEditor::loadLoginState() {
       if (secureStore && secureStore->isAvailable()) {
         if (auto tokenOpt = secureStore->loadToken("auth_token")) {
           loadedToken = tokenOpt.value();
-          Sidechain::Util::Logger::getInstance().log(
-              Sidechain::Util::LogLevel::Info, "Security",
-              "Auth token loaded from " + secureStore->getBackendType());
+          Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                                     "Auth token loaded from " + secureStore->getBackendType());
         } else {
-          Sidechain::Util::Logger::getInstance().log(
-              Sidechain::Util::LogLevel::Warning, "Security",
-              "No auth token found in secure storage");
+          Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
+                                                     "No auth token found in secure storage");
         }
       }
 #else
       // Debug build - load token from local settings (insecure but persistent)
       loadedToken = userDataStore->getAuthToken();
       if (loadedToken.isNotEmpty()) {
-        Sidechain::Util::Logger::getInstance().log(
-            Sidechain::Util::LogLevel::Info, "Security",
-            "Debug build - token loaded from local settings (insecure "
-            "storage)");
+        Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Info, "Security",
+                                                   "Debug build - token loaded from local settings (insecure "
+                                                   "storage)");
       } else {
-        Sidechain::Util::Logger::getInstance().log(
-            Sidechain::Util::LogLevel::Warning, "Security",
-            "Debug build - no auth token found in local settings");
+        Sidechain::Util::Logger::getInstance().log(Sidechain::Util::LogLevel::Warning, "Security",
+                                                   "Debug build - no auth token found in local settings");
       }
 #endif
 
@@ -2483,9 +2253,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
       email = userDataStore->getEmail();
       profilePicUrl = userDataStore->getProfilePictureUrl();
 
-      Log::debug(
-          "loadLoginState: authToken loaded from secure storage, length=" +
-          juce::String(loadedToken.length()));
+      Log::debug("loadLoginState: authToken loaded from secure storage, length=" + juce::String(loadedToken.length()));
 
       // Set auth token on network client
       if (!loadedToken.isEmpty() && networkClient)
@@ -2493,23 +2261,20 @@ void SidechainAudioProcessorEditor::loadLoginState() {
 
       // Fetch getstream.io chat token for messaging
       if (streamChatClient && !loadedToken.isEmpty()) {
-        streamChatClient->fetchToken(
-            loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
-              if (result.isOk()) {
-                auto tokenResult = result.getValue();
-                Log::info("Stream chat token fetched successfully for user: " +
-                          tokenResult.userId);
+        streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
+          if (result.isOk()) {
+            auto tokenResult = result.getValue();
+            Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
 
-                // Also set authentication on ChatStore so it can send messages
-                Sidechain::Stores::ChatStore::getInstance().setAuthentication(
-                    tokenResult.token, tokenResult.apiKey, tokenResult.userId);
-                Log::debug("ChatStore authenticated with stream token (from "
-                           "saved state)");
-              } else {
-                Log::warn("Failed to fetch stream chat token: " +
-                          result.getError());
-              }
-            });
+            // Also set authentication on ChatStore so it can send messages
+            Sidechain::Stores::ChatStore::getInstance().setAuthentication(tokenResult.token, tokenResult.apiKey,
+                                                                          tokenResult.userId);
+            Log::debug("ChatStore authenticated with stream token (from "
+                       "saved state)");
+          } else {
+            Log::warn("Failed to fetch stream chat token: " + result.getError());
+          }
+        });
       }
 
       // Connect WebSocket with saved auth token
@@ -2531,8 +2296,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
 
       // Fetch fresh profile to get latest data (including profile picture)
       userDataStore->fetchUserProfile([this](bool success) {
-        Log::info("fetchUserProfile callback: success=" +
-                  juce::String(success ? "true" : "false"));
+        Log::info("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
         juce::MessageManager::callAsync([this, success]() {
           // If profile fetch failed (e.g., auth token expired/invalid),
           // redirect to auth
@@ -2554,18 +2318,14 @@ void SidechainAudioProcessorEditor::loadLoginState() {
           if (userDataStore) {
             profilePicUrl = userDataStore->getProfilePictureUrl();
             Log::info("After fetchUserProfile: profilePicUrl=" + profilePicUrl +
-                      ", hasImage=" +
-                      juce::String(userDataStore->hasProfileImage() ? "true"
-                                                                    : "false"));
+                      ", hasImage=" + juce::String(userDataStore->hasProfileImage() ? "true" : "false"));
 
             // Force update header with latest profile image
             if (headerComponent) {
-              headerComponent->setUserInfo(userDataStore->getUsername(),
-                                           profilePicUrl);
+              headerComponent->setUserInfo(userDataStore->getUsername(), profilePicUrl);
               if (userDataStore->hasProfileImage()) {
                 Log::info("Updating header with fetched profile image");
-                headerComponent->setProfileImage(
-                    userDataStore->getProfileImage());
+                headerComponent->setProfileImage(userDataStore->getProfileImage());
               } else {
                 Log::warn("No profile image available after fetch");
               }
@@ -2576,8 +2336,7 @@ void SidechainAudioProcessorEditor::loadLoginState() {
           checkForActiveStories();
 
           // If user has a profile picture, skip setup and go straight to feed
-          if (userDataStore &&
-              !userDataStore->getProfilePictureUrl().isEmpty()) {
+          if (userDataStore && !userDataStore->getProfilePictureUrl().isEmpty()) {
             showView(AppView::PostsFeed);
           } else {
             showView(AppView::ProfileSetup);
@@ -2595,8 +2354,8 @@ void SidechainAudioProcessorEditor::loadLoginState() {
 //==============================================================================
 // Crash detection
 void SidechainAudioProcessorEditor::checkForPreviousCrash() {
-  auto appProperties = std::make_unique<juce::PropertiesFile>(
-      Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+  auto appProperties =
+      std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
   // Check if clean shutdown flag exists (if it doesn't exist, this is first
   // run)
@@ -2610,14 +2369,13 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash() {
       // Only show popup in release builds, not in debug mode
 #if !JUCE_DEBUG
       juce::MessageManager::callAsync([]() {
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::MessageBoxIconType::WarningIcon,
-            "Previous Sidechain Session Ended Unexpectedly",
-            "The plugin did not shut down cleanly during the last session. "
-            "This may indicate a crash or unexpected termination.\n\n"
-            "If this happens frequently, please report it with details about "
-            "what you were doing.",
-            "OK");
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Previous Sidechain Session Ended Unexpectedly",
+                                               "The plugin did not shut down cleanly during the last session. "
+                                               "This may indicate a crash or unexpected termination.\n\n"
+                                               "If this happens frequently, please report it with details about "
+                                               "what you were doing.",
+                                               "OK");
       });
 #endif
 
@@ -2632,8 +2390,8 @@ void SidechainAudioProcessorEditor::checkForPreviousCrash() {
 }
 
 void SidechainAudioProcessorEditor::markCleanShutdown() {
-  auto appProperties = std::make_unique<juce::PropertiesFile>(
-      Sidechain::Util::PropertiesFileUtils::getStandardOptions());
+  auto appProperties =
+      std::make_unique<juce::PropertiesFile>(Sidechain::Util::PropertiesFileUtils::getStandardOptions());
 
   // Set clean shutdown flag
   appProperties->setValue("cleanShutdown", true);
@@ -2685,8 +2443,7 @@ void SidechainAudioProcessorEditor::disconnectWebSocket() {
   }
 }
 
-void SidechainAudioProcessorEditor::handleWebSocketMessage(
-    const WebSocketClient::Message &message) {
+void SidechainAudioProcessorEditor::handleWebSocketMessage(const WebSocketClient::Message &message) {
   Log::debug("WebSocket message received - type: " + message.typeString);
 
   switch (message.type) {
@@ -2704,8 +2461,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(
     // Update like count on the affected post (5.5.3)
     auto payload = message.getProperty("payload");
     auto postId = payload.getProperty("post_id", juce::var()).toString();
-    auto likeCount =
-        static_cast<int>(payload.getProperty("like_count", juce::var(0)));
+    auto likeCount = static_cast<int>(payload.getProperty("like_count", juce::var(0)));
 
     if (postsFeedComponent && !postId.isEmpty() && likeCount >= 0) {
       postsFeedComponent->handleLikeCountUpdate(postId, likeCount);
@@ -2718,8 +2474,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(
     // Follower count updated (5.5.4)
     auto payload = message.getProperty("payload");
     auto userId = payload.getProperty("followee_id", juce::var()).toString();
-    auto followerCount =
-        static_cast<int>(payload.getProperty("follower_count", juce::var(0)));
+    auto followerCount = static_cast<int>(payload.getProperty("follower_count", juce::var(0)));
 
     if (postsFeedComponent && !userId.isEmpty() && followerCount >= 0) {
       postsFeedComponent->handleFollowerCountUpdate(userId, followerCount);
@@ -2745,8 +2500,7 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(
     // User online/offline status changed
     auto userId = message.getProperty("user_id").toString();
     auto isOnline = message.getProperty("is_online");
-    Log::debug("Presence update - user: " + userId +
-               " online: " + (isOnline ? "yes" : "no"));
+    Log::debug("Presence update - user: " + userId + " online: " + (isOnline ? "yes" : "no"));
     break;
   }
 
@@ -2767,27 +2521,23 @@ void SidechainAudioProcessorEditor::handleWebSocketMessage(
   }
 }
 
-void SidechainAudioProcessorEditor::handleWebSocketStateChange(
-    WebSocketClient::ConnectionState wsState) {
+void SidechainAudioProcessorEditor::handleWebSocketStateChange(WebSocketClient::ConnectionState wsState) {
   // Map WebSocket state to connection indicator status
   if (connectionIndicator) {
     switch (wsState) {
     case WebSocketClient::ConnectionState::Connected:
-      connectionIndicator->setStatus(
-          NetworkClient::ConnectionStatus::Connected);
+      connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Connected);
       Log::debug("WebSocket connected - indicator green");
       break;
 
     case WebSocketClient::ConnectionState::Connecting:
     case WebSocketClient::ConnectionState::Reconnecting:
-      connectionIndicator->setStatus(
-          NetworkClient::ConnectionStatus::Connecting);
+      connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Connecting);
       Log::debug("WebSocket connecting - indicator yellow");
       break;
 
     case WebSocketClient::ConnectionState::Disconnected:
-      connectionIndicator->setStatus(
-          NetworkClient::ConnectionStatus::Disconnected);
+      connectionIndicator->setStatus(NetworkClient::ConnectionStatus::Disconnected);
       Log::debug("WebSocket disconnected - indicator red");
       break;
     }
@@ -2796,19 +2546,16 @@ void SidechainAudioProcessorEditor::handleWebSocketStateChange(
 
 //==============================================================================
 // ChangeListener - for UserDataStore updates
-void SidechainAudioProcessorEditor::changeListenerCallback(
-    juce::ChangeBroadcaster *source) {
+void SidechainAudioProcessorEditor::changeListenerCallback(juce::ChangeBroadcaster *source) {
   if (source == userDataStore.get()) {
-    Log::debug(
-        "changeListenerCallback: UserDataStore changed!"
-        " hasImage=" +
-        juce::String(userDataStore->hasProfileImage() ? "true" : "false") +
-        " profilePicUrl=" + userDataStore->getProfilePictureUrl());
+    Log::debug("changeListenerCallback: UserDataStore changed!"
+               " hasImage=" +
+               juce::String(userDataStore->hasProfileImage() ? "true" : "false") +
+               " profilePicUrl=" + userDataStore->getProfilePictureUrl());
 
     // UserDataStore changed - update components with new data
     if (headerComponent && userDataStore) {
-      headerComponent->setUserInfo(userDataStore->getUsername(),
-                                   userDataStore->getProfilePictureUrl());
+      headerComponent->setUserInfo(userDataStore->getUsername(), userDataStore->getProfilePictureUrl());
 
       // If UserDataStore has a cached image, use it directly (avoids
       // re-downloading)
@@ -2822,10 +2569,8 @@ void SidechainAudioProcessorEditor::changeListenerCallback(
     }
 
     // Update ProfileSetup with cached image
-    if (profileSetupComponent && userDataStore &&
-        userDataStore->hasProfileImage()) {
-      Log::debug(
-          "changeListenerCallback: Setting profile image on ProfileSetup");
+    if (profileSetupComponent && userDataStore && userDataStore->hasProfileImage()) {
+      Log::debug("changeListenerCallback: Setting profile image on ProfileSetup");
       profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
     }
 
@@ -2873,42 +2618,40 @@ void SidechainAudioProcessorEditor::setupNotifications() {
 
   // Create notification list component (initially hidden)
   notificationList = std::make_unique<NotificationList>();
-  notificationList->onNotificationClicked =
-      [this](const NotificationItem &item) {
-        Log::debug("Notification clicked: " + item.getDisplayText());
-        hideNotificationPanel();
+  notificationList->onNotificationClicked = [this](const NotificationItem &item) {
+    Log::debug("Notification clicked: " + item.getDisplayText());
+    hideNotificationPanel();
 
-        // Navigate based on notification type
-        if (item.group.verb == "follow" && item.actorId.isNotEmpty()) {
-          // Navigate to the follower's profile
-          showProfile(item.actorId);
-        } else if ((item.group.verb == "like" || item.group.verb == "comment" ||
-                    item.group.verb == "mention") &&
-                   item.targetId.isNotEmpty()) {
-          // Navigate to posts feed and show the post (via comments panel)
-          if (item.targetType == "loop" || item.targetType == "comment") {
-            // Navigate to posts feed first
-            showView(AppView::PostsFeed);
+    // Navigate based on notification type
+    if (item.group.verb == "follow" && item.actorId.isNotEmpty()) {
+      // Navigate to the follower's profile
+      showProfile(item.actorId);
+    } else if ((item.group.verb == "like" || item.group.verb == "comment" || item.group.verb == "mention") &&
+               item.targetId.isNotEmpty()) {
+      // Navigate to posts feed and show the post (via comments panel)
+      if (item.targetType == "loop" || item.targetType == "comment") {
+        // Navigate to posts feed first
+        showView(AppView::PostsFeed);
 
-            // After a brief delay, load the specific post and show comments
-            juce::Timer::callAfterDelay(200, [this, postId = item.targetId]() {
-              if (postsFeedComponent) {
-                // Find the post in the feed and show its comments
-                postsFeedComponent->refreshFeed();
-                // Note: Full post navigation would require loading the post by
-                // ID For now, refreshing the feed will show recent posts
-                // including this one
-                Log::debug("PluginEditor: Notification clicked - refreshing "
-                           "feed to show post: " +
-                           postId);
-              }
-            });
+        // After a brief delay, load the specific post and show comments
+        juce::Timer::callAfterDelay(200, [this, postId = item.targetId]() {
+          if (postsFeedComponent) {
+            // Find the post in the feed and show its comments
+            postsFeedComponent->refreshFeed();
+            // Note: Full post navigation would require loading the post by
+            // ID For now, refreshing the feed will show recent posts
+            // including this one
+            Log::debug("PluginEditor: Notification clicked - refreshing "
+                       "feed to show post: " +
+                       postId);
           }
-        } else if (item.targetType == "user" && item.targetId.isNotEmpty()) {
-          // Navigate to user profile
-          showProfile(item.targetId);
-        }
-      };
+        });
+      }
+    } else if (item.targetType == "user" && item.targetId.isNotEmpty()) {
+      // Navigate to user profile
+      showProfile(item.targetId);
+    }
+  };
   notificationList->onMarkAllReadClicked = [this]() {
     if (networkClient) {
       networkClient->markNotificationsRead([this](Outcome<juce::var> response) {
@@ -2924,8 +2667,7 @@ void SidechainAudioProcessorEditor::setupNotifications() {
   addChildComponent(notificationList.get()); // Initially hidden
 
   // Create polling timer (will be started on login)
-  notificationPollTimer = std::make_unique<NotificationPollTimer>(
-      [this]() { fetchNotificationCounts(); });
+  notificationPollTimer = std::make_unique<NotificationPollTimer>([this]() { fetchNotificationCounts(); });
 }
 
 void SidechainAudioProcessorEditor::showNotificationPanel() {
@@ -2971,65 +2713,60 @@ void SidechainAudioProcessorEditor::fetchNotifications() {
   if (notificationList)
     notificationList->setLoading(true);
 
-  networkClient->getNotifications(
-      20, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
-        if (result.isError()) {
-          if (notificationList)
-            notificationList->setError("Failed to load notifications");
-          return;
-        }
+  networkClient->getNotifications(20, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
+    if (result.isError()) {
+      if (notificationList)
+        notificationList->setError("Failed to load notifications");
+      return;
+    }
 
-        auto notifResult = result.getValue();
+    auto notifResult = result.getValue();
 
-        // Check if new notifications arrived (unseen count increased)
-        static int previousUnseenCount = -1;
-        bool newNotifications = notifResult.unseen > previousUnseenCount &&
-                                previousUnseenCount >= 0;
-        previousUnseenCount = notifResult.unseen;
+    // Check if new notifications arrived (unseen count increased)
+    static int previousUnseenCount = -1;
+    bool newNotifications = notifResult.unseen > previousUnseenCount && previousUnseenCount >= 0;
+    previousUnseenCount = notifResult.unseen;
 
-        // Update counts
-        if (notificationBell) {
-          notificationBell->setUnseenCount(notifResult.unseen);
-          notificationBell->setUnreadCount(notifResult.unread);
-        }
+    // Update counts
+    if (notificationBell) {
+      notificationBell->setUnseenCount(notifResult.unseen);
+      notificationBell->setUnreadCount(notifResult.unread);
+    }
 
-        // Play notification sound if enabled and new notifications arrived
-        if (newNotifications && userDataStore &&
-            userDataStore->isNotificationSoundEnabled()) {
-          NotificationSound::playBeep();
-        }
-        if (notificationList) {
-          notificationList->setUnseenCount(notifResult.unseen);
-          notificationList->setUnreadCount(notifResult.unread);
-        }
+    // Play notification sound if enabled and new notifications arrived
+    if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled()) {
+      NotificationSound::playBeep();
+    }
+    if (notificationList) {
+      notificationList->setUnseenCount(notifResult.unseen);
+      notificationList->setUnreadCount(notifResult.unread);
+    }
 
-        // Parse notification groups
-        juce::Array<NotificationItem> items;
-        if (notifResult.notifications.isArray()) {
-          for (int i = 0; i < notifResult.notifications.size(); ++i) {
-            items.add(NotificationItem::fromJson(notifResult.notifications[i]));
-          }
-        }
+    // Parse notification groups
+    juce::Array<NotificationItem> items;
+    if (notifResult.notifications.isArray()) {
+      for (int i = 0; i < notifResult.notifications.size(); ++i) {
+        items.add(NotificationItem::fromJson(notifResult.notifications[i]));
+      }
+    }
 
-        // Show OS notification for new notifications (most recent first)
-        if (newNotifications && items.size() > 0) {
-          // Check if OS notifications are enabled
-          if (userDataStore && userDataStore->isOSNotificationsEnabled()) {
-            // Get the first (most recent) notification to show
-            const auto &latestNotification = items.getFirst();
-            juce::String notificationTitle = "Sidechain";
-            juce::String notificationMessage =
-                latestNotification.getDisplayText();
+    // Show OS notification for new notifications (most recent first)
+    if (newNotifications && items.size() > 0) {
+      // Check if OS notifications are enabled
+      if (userDataStore && userDataStore->isOSNotificationsEnabled()) {
+        // Get the first (most recent) notification to show
+        const auto &latestNotification = items.getFirst();
+        juce::String notificationTitle = "Sidechain";
+        juce::String notificationMessage = latestNotification.getDisplayText();
 
-            // Show desktop notification (checks isSupported internally)
-            OSNotification::show(notificationTitle, notificationMessage, "",
-                                 userDataStore->isNotificationSoundEnabled());
-          }
-        }
+        // Show desktop notification (checks isSupported internally)
+        OSNotification::show(notificationTitle, notificationMessage, "", userDataStore->isNotificationSoundEnabled());
+      }
+    }
 
-        if (notificationList)
-          notificationList->setNotifications(items);
-      });
+    if (notificationList)
+      notificationList->setNotifications(items);
+  });
 }
 
 void SidechainAudioProcessorEditor::fetchNotificationCounts() {
@@ -3040,8 +2777,7 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts() {
   networkClient->getNotificationCounts([this](int unseen, int unread) {
     // Check if new notifications arrived (unseen count increased)
     static int previousUnseenCount = 0;
-    bool newNotifications =
-        unseen > previousUnseenCount && previousUnseenCount >= 0;
+    bool newNotifications = unseen > previousUnseenCount && previousUnseenCount >= 0;
     previousUnseenCount = unseen;
 
     if (notificationBell) {
@@ -3050,35 +2786,27 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts() {
     }
 
     // Play notification sound if enabled and new notifications arrived
-    if (newNotifications && userDataStore &&
-        userDataStore->isNotificationSoundEnabled()) {
+    if (newNotifications && userDataStore && userDataStore->isNotificationSoundEnabled()) {
       NotificationSound::playBeep();
     }
 
     // Fetch and show OS notification for new notifications
-    if (newNotifications && userDataStore &&
-        userDataStore->isOSNotificationsEnabled()) {
+    if (newNotifications && userDataStore && userDataStore->isOSNotificationsEnabled()) {
       // Fetch the most recent notification to show in OS notification
-      networkClient->getNotifications(
-          1, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
-            if (result.isOk()) {
-              auto notifResult = result.getValue();
-              if (notifResult.notifications.isArray() &&
-                  notifResult.notifications.size() > 0) {
-                auto latestNotification =
-                    NotificationItem::fromJson(notifResult.notifications[0]);
-                juce::String notificationTitle = "Sidechain";
-                juce::String notificationMessage =
-                    latestNotification.getDisplayText();
+      networkClient->getNotifications(1, 0, [this](Outcome<NetworkClient::NotificationResult> result) {
+        if (result.isOk()) {
+          auto notifResult = result.getValue();
+          if (notifResult.notifications.isArray() && notifResult.notifications.size() > 0) {
+            auto latestNotification = NotificationItem::fromJson(notifResult.notifications[0]);
+            juce::String notificationTitle = "Sidechain";
+            juce::String notificationMessage = latestNotification.getDisplayText();
 
-                // Show desktop notification (checks isSupported internally)
-                OSNotification::show(
-                    notificationTitle, notificationMessage, "",
-                    userDataStore &&
-                        userDataStore->isNotificationSoundEnabled());
-              }
-            }
-          });
+            // Show desktop notification (checks isSupported internally)
+            OSNotification::show(notificationTitle, notificationMessage, "",
+                                 userDataStore && userDataStore->isNotificationSoundEnabled());
+          }
+        }
+      });
     }
   });
 
@@ -3093,8 +2821,7 @@ void SidechainAudioProcessorEditor::fetchNotificationCounts() {
 void SidechainAudioProcessorEditor::startNotificationPolling() {
   if (notificationPollTimer) {
     // Poll every 30 seconds
-    static_cast<NotificationPollTimer *>(notificationPollTimer.get())
-        ->startTimer(Constants::Api::DEFAULT_TIMEOUT_MS);
+    static_cast<NotificationPollTimer *>(notificationPollTimer.get())->startTimer(Constants::Api::DEFAULT_TIMEOUT_MS);
 
     // Also fetch immediately
     fetchNotificationCounts();
@@ -3103,8 +2830,7 @@ void SidechainAudioProcessorEditor::startNotificationPolling() {
 
 void SidechainAudioProcessorEditor::stopNotificationPolling() {
   if (notificationPollTimer) {
-    static_cast<NotificationPollTimer *>(notificationPollTimer.get())
-        ->stopTimer();
+    static_cast<NotificationPollTimer *>(notificationPollTimer.get())->stopTimer();
     notificationPollTimer.reset();
   }
 }
@@ -3136,8 +2862,7 @@ public:
   std::function<void()> onTick;
 };
 
-void SidechainAudioProcessorEditor::startOAuthPolling(
-    const juce::String &sessionId, const juce::String &provider) {
+void SidechainAudioProcessorEditor::startOAuthPolling(const juce::String &sessionId, const juce::String &provider) {
   // Store session info
   oauthSessionId = sessionId;
   oauthProvider = provider;
@@ -3150,10 +2875,8 @@ void SidechainAudioProcessorEditor::startOAuthPolling(
   }
 
   // Create and start polling timer
-  oauthPollTimer =
-      std::make_unique<OAuthPollTimer>([this]() { pollOAuthStatus(); });
-  static_cast<OAuthPollTimer *>(oauthPollTimer.get())
-      ->startTimer(1000); // Poll every 1 second
+  oauthPollTimer = std::make_unique<OAuthPollTimer>([this]() { pollOAuthStatus(); });
+  static_cast<OAuthPollTimer *>(oauthPollTimer.get())->startTimer(1000); // Poll every 1 second
 
   Log::info("Started OAuth polling for session: " + sessionId);
 }
@@ -3198,10 +2921,8 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
     return;
   }
 
-  juce::String endpoint = juce::String(Constants::Endpoints::AUTH_OAUTH_POLL) +
-                          "?session_id=" + oauthSessionId;
-  networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](
-                                   Outcome<juce::var> responseOutcome) {
+  juce::String endpoint = juce::String(Constants::Endpoints::AUTH_OAUTH_POLL) + "?session_id=" + oauthSessionId;
+  networkClient->get(endpoint, [this, capturedSessionId = oauthSessionId](Outcome<juce::var> responseOutcome) {
     // Check if this is still the active session
     if (oauthSessionId != capturedSessionId)
       return;
@@ -3248,8 +2969,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
     } else if (status == "error") {
       // OAuth failed
       stopOAuthPolling();
-      juce::String errorMsg =
-          Json::getString(responseData, "message", "Authentication failed");
+      juce::String errorMsg = Json::getString(responseData, "message", "Authentication failed");
       if (authComponent) {
         authComponent->hideOAuthWaiting();
         authComponent->showError(errorMsg);
@@ -3259,8 +2979,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
       stopOAuthPolling();
       if (authComponent) {
         authComponent->hideOAuthWaiting();
-        authComponent->showError(
-            "Authentication session expired. Please try again.");
+        authComponent->showError("Authentication session expired. Please try again.");
       }
     }
     // status == "pending" -> keep polling

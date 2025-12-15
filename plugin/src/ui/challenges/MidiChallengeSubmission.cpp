@@ -1,581 +1,504 @@
 #include "MidiChallengeSubmission.h"
 #include "../../network/NetworkClient.h"
-#include "core/PluginProcessor.h"
+#include "../../util/Async.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
-#include "../../util/Async.h"
 #include "../recording/Upload.h"
+#include "core/PluginProcessor.h"
 
 //==============================================================================
-MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor& processor, NetworkClient& network)
-    : audioProcessor(processor), networkClient(network)
-{
-    Log::info("MidiChallengeSubmission: Initializing");
+MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network)
+    : audioProcessor(processor), networkClient(network) {
+  Log::info("MidiChallengeSubmission: Initializing");
 
-    // Create wrapped Upload component
-    uploadComponent = std::make_unique<Upload>(processor, network);
-    uploadComponent->onUploadComplete = []() {
-        // After upload completes, submit to challenge
-        // The upload component will have created a post, we need to get the post ID
-        // For now, we'll need to track the post ID from upload response
-        // This is a simplified version - in practice, we'd need to modify Upload to return post ID
-        Log::info("MidiChallengeSubmission: Upload complete, submitting to challenge");
-        // TODO: Get post ID from upload response and submit to challenge
-    };
-    uploadComponent->onCancel = [this]() {
-        if (onBackPressed)
-            onBackPressed();
-    };
-    addAndMakeVisible(uploadComponent.get());
+  // Create wrapped Upload component
+  uploadComponent = std::make_unique<Upload>(processor, network);
+  uploadComponent->onUploadComplete = []() {
+    // After upload completes, submit to challenge
+    // The upload component will have created a post, we need to get the post ID
+    // For now, we'll need to track the post ID from upload response
+    // This is a simplified version - in practice, we'd need to modify Upload to
+    // return post ID
+    Log::info("MidiChallengeSubmission: Upload complete, submitting to challenge");
+    // TODO: Get post ID from upload response and submit to challenge
+  };
+  uploadComponent->onCancel = [this]() {
+    if (onBackPressed)
+      onBackPressed();
+  };
+  addAndMakeVisible(uploadComponent.get());
 }
 
-MidiChallengeSubmission::~MidiChallengeSubmission()
-{
-    Log::debug("MidiChallengeSubmission: Destroying");
+MidiChallengeSubmission::~MidiChallengeSubmission() {
+  Log::debug("MidiChallengeSubmission: Destroying");
 }
 
 //==============================================================================
-void MidiChallengeSubmission::setChallenge(const MIDIChallenge& ch)
-{
-    challenge = ch;
-    reset();
+void MidiChallengeSubmission::setChallenge(const MIDIChallenge &ch) {
+  challenge = ch;
+  reset();
+  repaint();
+}
+
+void MidiChallengeSubmission::setAudioToUpload(const juce::AudioBuffer<float> &audio, double sampleRate,
+                                               const juce::var &midi) {
+  audioBuffer = audio;
+  audioSampleRate = sampleRate;
+  midiData = midi;
+
+  // Pass to upload component
+  if (uploadComponent)
+    uploadComponent->setAudioToUpload(audio, sampleRate, midi);
+
+  // Validate constraints with current values
+  double duration = audio.getNumSamples() / sampleRate;
+  double bpm = audioProcessor.isBPMAvailable() ? audioProcessor.getCurrentBPM() : 0.0;
+  juce::String key = ""; // Will be set from upload form
+  validateConstraints(bpm, key, midi, duration);
+
+  repaint();
+}
+
+void MidiChallengeSubmission::reset() {
+  submissionState = SubmissionState::Editing;
+  errorMessage = "";
+  bpmCheck = ConstraintCheck();
+  keyCheck = ConstraintCheck();
+  scaleCheck = ConstraintCheck();
+  noteCountCheck = ConstraintCheck();
+  durationCheck = ConstraintCheck();
+}
+
+//==============================================================================
+void MidiChallengeSubmission::paint(juce::Graphics &g) {
+  // Background
+  g.fillAll(SidechainColors::background());
+
+  // Header
+  drawHeader(g);
+
+  // Content area
+  auto contentBounds = getContentBounds();
+
+  // Challenge info
+  drawChallengeInfo(g, contentBounds);
+
+  // Constraint checklist
+  drawConstraintChecklist(g, contentBounds);
+
+  // Upload component (will draw itself)
+  // We'll position it in resized()
+
+  // Submit button
+  if (submissionState == SubmissionState::Editing || submissionState == SubmissionState::Validating) {
+    drawSubmitButton(g, contentBounds);
+  } else if (submissionState == SubmissionState::Success) {
+    drawSuccessState(g, contentBounds);
+  } else if (submissionState == SubmissionState::Error) {
+    drawErrorState(g, contentBounds);
+  }
+}
+
+void MidiChallengeSubmission::resized() {
+  auto contentBounds = getContentBounds();
+
+  // Calculate heights
+  int headerHeight = 60;
+  int challengeInfoHeight = 120;
+  int checklistHeight = 200;
+  int submitButtonHeight = 50;
+
+  int uploadHeight =
+      getHeight() - headerHeight - challengeInfoHeight - checklistHeight - submitButtonHeight - 40; // padding
+
+  // Position upload component
+  if (uploadComponent) {
+    auto uploadBounds = contentBounds.removeFromTop(uploadHeight);
+    uploadBounds.translate(0, headerHeight + challengeInfoHeight + checklistHeight + 20);
+    uploadComponent->setBounds(uploadBounds);
+  }
+}
+
+void MidiChallengeSubmission::mouseUp(const juce::MouseEvent &event) {
+  auto pos = event.getPosition();
+
+  // Back button
+  if (getBackButtonBounds().contains(pos)) {
+    if (onBackPressed)
+      onBackPressed();
+    return;
+  }
+
+  // Submit button
+  if (submissionState == SubmissionState::Editing && allConstraintsPassed() && getSubmitButtonBounds().contains(pos)) {
+    // TODO: Intercept upload flow to submit to challenge
+    // For now, this is a placeholder - would need to modify Upload component
+    // to support challenge submission flow
+    Log::info("MidiChallengeSubmission: Submit button clicked");
+    submissionState = SubmissionState::Validating;
     repaint();
-}
 
-void MidiChallengeSubmission::setAudioToUpload(const juce::AudioBuffer<float>& audio, double sampleRate, const juce::var& midi)
-{
-    audioBuffer = audio;
-    audioSampleRate = sampleRate;
-    midiData = midi;
-
-    // Pass to upload component
-    if (uploadComponent)
-        uploadComponent->setAudioToUpload(audio, sampleRate, midi);
-
-    // Validate constraints with current values
-    double duration = audio.getNumSamples() / sampleRate;
+    // Validate one more time
+    double duration = audioBuffer.getNumSamples() / audioSampleRate;
     double bpm = audioProcessor.isBPMAvailable() ? audioProcessor.getCurrentBPM() : 0.0;
-    juce::String key = "";  // Will be set from upload form
-    validateConstraints(bpm, key, midi, duration);
+    // Get key from upload component - would need to expose this
+    juce::String key = "";
+    validateConstraints(bpm, key, midiData, duration);
 
-    repaint();
-}
-
-void MidiChallengeSubmission::reset()
-{
-    submissionState = SubmissionState::Editing;
-    errorMessage = "";
-    bpmCheck = ConstraintCheck();
-    keyCheck = ConstraintCheck();
-    scaleCheck = ConstraintCheck();
-    noteCountCheck = ConstraintCheck();
-    durationCheck = ConstraintCheck();
+    if (allConstraintsPassed()) {
+      // TODO: Trigger upload, then submit to challenge
+      Log::info("MidiChallengeSubmission: All constraints passed, ready to submit");
+    }
+  }
 }
 
 //==============================================================================
-void MidiChallengeSubmission::paint(juce::Graphics& g)
-{
-    // Background
-    g.fillAll(SidechainColors::background());
+void MidiChallengeSubmission::drawHeader(juce::Graphics &g) {
+  auto bounds = juce::Rectangle<int>(0, 0, getWidth(), 60);
 
-    // Header
-    drawHeader(g);
+  // Background
+  g.setColour(SidechainColors::surface());
+  g.fillRect(bounds);
 
-    // Content area
-    auto contentBounds = getContentBounds();
+  // Title
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
+  g.drawText("Submit to Challenge", bounds.removeFromLeft(getWidth() - 100), juce::Justification::centredLeft);
 
-    // Challenge info
-    drawChallengeInfo(g, contentBounds);
-
-    // Constraint checklist
-    drawConstraintChecklist(g, contentBounds);
-
-    // Upload component (will draw itself)
-    // We'll position it in resized()
-
-    // Submit button
-    if (submissionState == SubmissionState::Editing || submissionState == SubmissionState::Validating)
-    {
-        drawSubmitButton(g, contentBounds);
-    }
-    else if (submissionState == SubmissionState::Success)
-    {
-        drawSuccessState(g, contentBounds);
-    }
-    else if (submissionState == SubmissionState::Error)
-    {
-        drawErrorState(g, contentBounds);
-    }
+  // Back button
+  auto backBounds = getBackButtonBounds();
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(16.0f);
+  g.drawText("←", backBounds, juce::Justification::centred);
 }
 
-void MidiChallengeSubmission::resized()
-{
-    auto contentBounds = getContentBounds();
-    
-    // Calculate heights
-    int headerHeight = 60;
-    int challengeInfoHeight = 120;
-    int checklistHeight = 200;
-    int submitButtonHeight = 50;
-    
-    int uploadHeight = getHeight() - headerHeight - challengeInfoHeight - checklistHeight - submitButtonHeight - 40; // padding
-    
-    // Position upload component
-    if (uploadComponent)
-    {
-        auto uploadBounds = contentBounds.removeFromTop(uploadHeight);
-        uploadBounds.translate(0, headerHeight + challengeInfoHeight + checklistHeight + 20);
-        uploadComponent->setBounds(uploadBounds);
-    }
+void MidiChallengeSubmission::drawChallengeInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  auto infoBounds = bounds.removeFromTop(120).reduced(16, 8);
+
+  // Background
+  g.setColour(SidechainColors::surface());
+  g.fillRoundedRectangle(infoBounds.toFloat(), 8.0f);
+
+  // Border
+  g.setColour(SidechainColors::border());
+  g.drawRoundedRectangle(infoBounds.toFloat(), 8.0f, 1.0f);
+
+  auto contentBounds = infoBounds.reduced(12, 12);
+
+  // Title
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)).boldened());
+  auto titleBounds = contentBounds.removeFromTop(24);
+  g.drawText(challenge.title, titleBounds, juce::Justification::centredLeft);
+
+  // Description
+  if (challenge.description.isNotEmpty()) {
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(12.0f);
+    auto descBounds = contentBounds.removeFromTop(50);
+    g.drawText(challenge.description, descBounds, juce::Justification::topLeft, true);
+  }
 }
 
-void MidiChallengeSubmission::mouseUp(const juce::MouseEvent& event)
-{
-    auto pos = event.getPosition();
+void MidiChallengeSubmission::drawConstraintChecklist(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  auto checklistBounds = bounds.removeFromTop(200).reduced(16, 8);
 
-    // Back button
-    if (getBackButtonBounds().contains(pos))
-    {
-        if (onBackPressed)
-            onBackPressed();
-        return;
-    }
+  // Background
+  g.setColour(SidechainColors::surface());
+  g.fillRoundedRectangle(checklistBounds.toFloat(), 8.0f);
 
-    // Submit button
-    if (submissionState == SubmissionState::Editing && allConstraintsPassed() && getSubmitButtonBounds().contains(pos))
-    {
-        // TODO: Intercept upload flow to submit to challenge
-        // For now, this is a placeholder - would need to modify Upload component
-        // to support challenge submission flow
-        Log::info("MidiChallengeSubmission: Submit button clicked");
-        submissionState = SubmissionState::Validating;
-        repaint();
-        
-        // Validate one more time
-        double duration = audioBuffer.getNumSamples() / audioSampleRate;
-        double bpm = audioProcessor.isBPMAvailable() ? audioProcessor.getCurrentBPM() : 0.0;
-        // Get key from upload component - would need to expose this
-        juce::String key = "";
-        validateConstraints(bpm, key, midiData, duration);
-        
-        if (allConstraintsPassed())
-        {
-            // TODO: Trigger upload, then submit to challenge
-            Log::info("MidiChallengeSubmission: All constraints passed, ready to submit");
-        }
-    }
+  // Border
+  g.setColour(SidechainColors::border());
+  g.drawRoundedRectangle(checklistBounds.toFloat(), 8.0f, 1.0f);
+
+  auto contentBounds = checklistBounds.reduced(12, 12);
+
+  // Title
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f)).boldened());
+  auto titleBounds = contentBounds.removeFromTop(24);
+  g.drawText("Constraint Checklist", titleBounds, juce::Justification::centredLeft);
+
+  contentBounds.removeFromTop(8);
+
+  // Draw each constraint check
+  int lineHeight = 24;
+  int y = contentBounds.getY();
+
+  // BPM
+  if (challenge.constraints.bpmMin > 0 || challenge.constraints.bpmMax > 0) {
+    juce::String text = "BPM: ";
+    if (challenge.constraints.bpmMin > 0 && challenge.constraints.bpmMax > 0)
+      text += juce::String(challenge.constraints.bpmMin) + "-" + juce::String(challenge.constraints.bpmMax);
+    else if (challenge.constraints.bpmMin > 0)
+      text += "≥" + juce::String(challenge.constraints.bpmMin);
+    else
+      text += "≤" + juce::String(challenge.constraints.bpmMax);
+
+    drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), text,
+                       bpmCheck);
+    y += lineHeight + 4;
+  }
+
+  // Key
+  if (challenge.constraints.key.isNotEmpty()) {
+    drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight),
+                       "Key: " + challenge.constraints.key, keyCheck);
+    y += lineHeight + 4;
+  }
+
+  // Scale
+  if (challenge.constraints.scale.isNotEmpty()) {
+    drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight),
+                       "Scale: " + challenge.constraints.scale, scaleCheck);
+    y += lineHeight + 4;
+  }
+
+  // Note count
+  if (challenge.constraints.noteCountMin > 0 || challenge.constraints.noteCountMax > 0) {
+    juce::String text = "Note Count: ";
+    if (challenge.constraints.noteCountMin > 0 && challenge.constraints.noteCountMax > 0)
+      text += juce::String(challenge.constraints.noteCountMin) + "-" + juce::String(challenge.constraints.noteCountMax);
+    else if (challenge.constraints.noteCountMin > 0)
+      text += "≥" + juce::String(challenge.constraints.noteCountMin);
+    else
+      text += "≤" + juce::String(challenge.constraints.noteCountMax);
+
+    drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), text,
+                       noteCountCheck);
+    y += lineHeight + 4;
+  }
+
+  // Duration
+  if (challenge.constraints.durationMin > 0 || challenge.constraints.durationMax > 0) {
+    juce::String text = "Duration: ";
+    if (challenge.constraints.durationMin > 0 && challenge.constraints.durationMax > 0)
+      text += juce::String(challenge.constraints.durationMin, 1) + "-" +
+              juce::String(challenge.constraints.durationMax, 1) + "s";
+    else if (challenge.constraints.durationMin > 0)
+      text += "≥" + juce::String(challenge.constraints.durationMin, 1) + "s";
+    else
+      text += "≤" + juce::String(challenge.constraints.durationMax, 1) + "s";
+
+    drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), text,
+                       durationCheck);
+  }
+}
+
+void MidiChallengeSubmission::drawConstraintItem(juce::Graphics &g, juce::Rectangle<int> bounds,
+                                                 const juce::String &text, const ConstraintCheck &check) {
+  // Checkmark or X
+  auto iconBounds = bounds.removeFromLeft(24);
+  g.setColour(check.passed ? juce::Colour(0xFF4CAF50) : juce::Colour(0xFFF44336));
+  g.setFont(14.0f);
+  g.drawText(check.passed ? "[OK]" : "[X]", iconBounds, juce::Justification::centred);
+
+  // Text
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(13.0f);
+  g.drawText(text, bounds.removeFromLeft(bounds.getWidth() - 200), juce::Justification::centredLeft);
+
+  // Message
+  if (check.message.isNotEmpty()) {
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(11.0f);
+    g.drawText(check.message, bounds, juce::Justification::centredRight);
+  }
+}
+
+void MidiChallengeSubmission::drawSubmitButton(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  auto buttonBounds = getSubmitButtonBounds();
+  bool isHovered = buttonBounds.contains(getMouseXYRelative());
+  bool isEnabled = allConstraintsPassed() && submissionState == SubmissionState::Editing;
+
+  auto bgColor = isEnabled ? (isHovered ? SidechainColors::coralPink().brighter(0.2f) : SidechainColors::coralPink())
+                           : SidechainColors::backgroundLight();
+
+  g.setColour(bgColor);
+  g.fillRoundedRectangle(buttonBounds.toFloat(), 8.0f);
+
+  // Border
+  g.setColour(SidechainColors::border());
+  g.drawRoundedRectangle(buttonBounds.toFloat(), 8.0f, 1.0f);
+
+  // Text
+  g.setColour(isEnabled ? SidechainColors::textPrimary() : SidechainColors::textMuted());
+  g.setFont(16.0f);
+  juce::String buttonText = submissionState == SubmissionState::Validating ? "Validating..." : "Submit Entry";
+  g.drawText(buttonText, buttonBounds, juce::Justification::centred);
+}
+
+void MidiChallengeSubmission::drawSuccessState(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(18.0f);
+  g.drawText("Entry submitted successfully!", bounds, juce::Justification::centred);
+}
+
+void MidiChallengeSubmission::drawErrorState(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+  g.setColour(SidechainColors::error());
+  g.setFont(14.0f);
+  g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
 //==============================================================================
-void MidiChallengeSubmission::drawHeader(juce::Graphics& g)
-{
-    auto bounds = juce::Rectangle<int>(0, 0, getWidth(), 60);
-
-    // Background
-    g.setColour(SidechainColors::surface());
-    g.fillRect(bounds);
-
-    // Title
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
-    g.drawText("Submit to Challenge", bounds.removeFromLeft(getWidth() - 100), juce::Justification::centredLeft);
-
-    // Back button
-    auto backBounds = getBackButtonBounds();
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(16.0f);
-    g.drawText("←", backBounds, juce::Justification::centred);
+juce::Rectangle<int> MidiChallengeSubmission::getBackButtonBounds() const {
+  return juce::Rectangle<int>(16, 0, 50, 60);
 }
 
-void MidiChallengeSubmission::drawChallengeInfo(juce::Graphics& g, juce::Rectangle<int>& bounds)
-{
-    auto infoBounds = bounds.removeFromTop(120).reduced(16, 8);
-
-    // Background
-    g.setColour(SidechainColors::surface());
-    g.fillRoundedRectangle(infoBounds.toFloat(), 8.0f);
-
-    // Border
-    g.setColour(SidechainColors::border());
-    g.drawRoundedRectangle(infoBounds.toFloat(), 8.0f, 1.0f);
-
-    auto contentBounds = infoBounds.reduced(12, 12);
-
-    // Title
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f)).boldened());
-    auto titleBounds = contentBounds.removeFromTop(24);
-    g.drawText(challenge.title, titleBounds, juce::Justification::centredLeft);
-
-    // Description
-    if (challenge.description.isNotEmpty())
-    {
-        g.setColour(SidechainColors::textSecondary());
-        g.setFont(12.0f);
-        auto descBounds = contentBounds.removeFromTop(50);
-        g.drawText(challenge.description, descBounds, juce::Justification::topLeft, true);
-    }
+juce::Rectangle<int> MidiChallengeSubmission::getSubmitButtonBounds() const {
+  auto contentBounds = getContentBounds();
+  return contentBounds.removeFromBottom(50).reduced(16, 8);
 }
 
-void MidiChallengeSubmission::drawConstraintChecklist(juce::Graphics& g, juce::Rectangle<int>& bounds)
-{
-    auto checklistBounds = bounds.removeFromTop(200).reduced(16, 8);
-
-    // Background
-    g.setColour(SidechainColors::surface());
-    g.fillRoundedRectangle(checklistBounds.toFloat(), 8.0f);
-
-    // Border
-    g.setColour(SidechainColors::border());
-    g.drawRoundedRectangle(checklistBounds.toFloat(), 8.0f, 1.0f);
-
-    auto contentBounds = checklistBounds.reduced(12, 12);
-
-    // Title
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f)).boldened());
-    auto titleBounds = contentBounds.removeFromTop(24);
-    g.drawText("Constraint Checklist", titleBounds, juce::Justification::centredLeft);
-
-    contentBounds.removeFromTop(8);
-
-    // Draw each constraint check
-    int lineHeight = 24;
-    int y = contentBounds.getY();
-
-    // BPM
-    if (challenge.constraints.bpmMin > 0 || challenge.constraints.bpmMax > 0)
-    {
-        juce::String text = "BPM: ";
-        if (challenge.constraints.bpmMin > 0 && challenge.constraints.bpmMax > 0)
-            text += juce::String(challenge.constraints.bpmMin) + "-" + juce::String(challenge.constraints.bpmMax);
-        else if (challenge.constraints.bpmMin > 0)
-            text += "≥" + juce::String(challenge.constraints.bpmMin);
-        else
-            text += "≤" + juce::String(challenge.constraints.bpmMax);
-        
-        drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), text, bpmCheck);
-        y += lineHeight + 4;
-    }
-
-    // Key
-    if (challenge.constraints.key.isNotEmpty())
-    {
-        drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), 
-                          "Key: " + challenge.constraints.key, keyCheck);
-        y += lineHeight + 4;
-    }
-
-    // Scale
-    if (challenge.constraints.scale.isNotEmpty())
-    {
-        drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), 
-                          "Scale: " + challenge.constraints.scale, scaleCheck);
-        y += lineHeight + 4;
-    }
-
-    // Note count
-    if (challenge.constraints.noteCountMin > 0 || challenge.constraints.noteCountMax > 0)
-    {
-        juce::String text = "Note Count: ";
-        if (challenge.constraints.noteCountMin > 0 && challenge.constraints.noteCountMax > 0)
-            text += juce::String(challenge.constraints.noteCountMin) + "-" + juce::String(challenge.constraints.noteCountMax);
-        else if (challenge.constraints.noteCountMin > 0)
-            text += "≥" + juce::String(challenge.constraints.noteCountMin);
-        else
-            text += "≤" + juce::String(challenge.constraints.noteCountMax);
-        
-        drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), text, noteCountCheck);
-        y += lineHeight + 4;
-    }
-
-    // Duration
-    if (challenge.constraints.durationMin > 0 || challenge.constraints.durationMax > 0)
-    {
-        juce::String text = "Duration: ";
-        if (challenge.constraints.durationMin > 0 && challenge.constraints.durationMax > 0)
-            text += juce::String(challenge.constraints.durationMin, 1) + "-" + juce::String(challenge.constraints.durationMax, 1) + "s";
-        else if (challenge.constraints.durationMin > 0)
-            text += "≥" + juce::String(challenge.constraints.durationMin, 1) + "s";
-        else
-            text += "≤" + juce::String(challenge.constraints.durationMax, 1) + "s";
-        
-        drawConstraintItem(g, juce::Rectangle<int>(contentBounds.getX(), y, contentBounds.getWidth(), lineHeight), text, durationCheck);
-    }
+juce::Rectangle<int> MidiChallengeSubmission::getContentBounds() const {
+  return juce::Rectangle<int>(0, 60, getWidth(), getHeight() - 60);
 }
 
-void MidiChallengeSubmission::drawConstraintItem(juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& text, const ConstraintCheck& check)
-{
-    // Checkmark or X
-    auto iconBounds = bounds.removeFromLeft(24);
-    g.setColour(check.passed ? juce::Colour(0xFF4CAF50) : juce::Colour(0xFFF44336));
-    g.setFont(14.0f);
-    g.drawText(check.passed ? "[OK]" : "[X]", iconBounds, juce::Justification::centred);
-
-    // Text
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(13.0f);
-    g.drawText(text, bounds.removeFromLeft(bounds.getWidth() - 200), juce::Justification::centredLeft);
-
-    // Message
-    if (check.message.isNotEmpty())
-    {
-        g.setColour(SidechainColors::textSecondary());
-        g.setFont(11.0f);
-        g.drawText(check.message, bounds, juce::Justification::centredRight);
-    }
-}
-
-void MidiChallengeSubmission::drawSubmitButton(juce::Graphics& g, juce::Rectangle<int>& bounds)
-{
-    auto buttonBounds = getSubmitButtonBounds();
-    bool isHovered = buttonBounds.contains(getMouseXYRelative());
-    bool isEnabled = allConstraintsPassed() && submissionState == SubmissionState::Editing;
-
-    auto bgColor = isEnabled
-        ? (isHovered ? SidechainColors::coralPink().brighter(0.2f) : SidechainColors::coralPink())
-        : SidechainColors::backgroundLight();
-
-    g.setColour(bgColor);
-    g.fillRoundedRectangle(buttonBounds.toFloat(), 8.0f);
-
-    // Border
-    g.setColour(SidechainColors::border());
-    g.drawRoundedRectangle(buttonBounds.toFloat(), 8.0f, 1.0f);
-
-    // Text
-    g.setColour(isEnabled ? SidechainColors::textPrimary() : SidechainColors::textMuted());
-    g.setFont(16.0f);
-    juce::String buttonText = submissionState == SubmissionState::Validating ? "Validating..." : "Submit Entry";
-    g.drawText(buttonText, buttonBounds, juce::Justification::centred);
-}
-
-void MidiChallengeSubmission::drawSuccessState(juce::Graphics& g, juce::Rectangle<int>& bounds)
-{
-    g.setColour(SidechainColors::textPrimary());
-    g.setFont(18.0f);
-    g.drawText("Entry submitted successfully!", bounds, juce::Justification::centred);
-}
-
-void MidiChallengeSubmission::drawErrorState(juce::Graphics& g, juce::Rectangle<int>& bounds)
-{
-    g.setColour(SidechainColors::error());
-    g.setFont(14.0f);
-    g.drawText(errorMessage, bounds, juce::Justification::centred);
+juce::Rectangle<int> MidiChallengeSubmission::getUploadComponentBounds() const {
+  return getContentBounds();
 }
 
 //==============================================================================
-juce::Rectangle<int> MidiChallengeSubmission::getBackButtonBounds() const
-{
-    return juce::Rectangle<int>(16, 0, 50, 60);
+void MidiChallengeSubmission::validateConstraints(double bpm, const juce::String &key, const juce::var &midi,
+                                                  double durationSeconds) {
+  // Reset all checks
+  bpmCheck = ConstraintCheck();
+  keyCheck = ConstraintCheck();
+  scaleCheck = ConstraintCheck();
+  noteCountCheck = ConstraintCheck();
+  durationCheck = ConstraintCheck();
+
+  // BPM check
+  if (challenge.constraints.bpmMin > 0 || challenge.constraints.bpmMax > 0) {
+    if (bpm <= 0) {
+      bpmCheck.passed = false;
+      bpmCheck.message = "BPM not set";
+    } else if (challenge.constraints.bpmMin > 0 && bpm < challenge.constraints.bpmMin) {
+      bpmCheck.passed = false;
+      bpmCheck.message = "Too slow";
+    } else if (challenge.constraints.bpmMax > 0 && bpm > challenge.constraints.bpmMax) {
+      bpmCheck.passed = false;
+      bpmCheck.message = "Too fast";
+    } else {
+      bpmCheck.passed = true;
+    }
+  } else {
+    bpmCheck.passed = true; // No constraint
+  }
+
+  // Key check
+  if (challenge.constraints.key.isNotEmpty()) {
+    if (key.isEmpty()) {
+      keyCheck.passed = false;
+      keyCheck.message = "Key not set";
+    } else {
+      // Simple key matching (could be improved)
+      juce::String normalizedKey = key.toUpperCase().trim();
+      juce::String normalizedRequired = challenge.constraints.key.toUpperCase().trim();
+      keyCheck.passed = normalizedKey == normalizedRequired || normalizedKey.startsWith(normalizedRequired);
+      if (!keyCheck.passed)
+        keyCheck.message = "Doesn't match";
+    }
+  } else {
+    keyCheck.passed = true; // No constraint
+  }
+
+  // Scale check (simplified - would need proper scale validation)
+  if (challenge.constraints.scale.isNotEmpty()) {
+    scaleCheck.passed = checkMIDIScale(midi, challenge.constraints.scale);
+    if (!scaleCheck.passed)
+      scaleCheck.message = "Notes outside scale";
+  } else {
+    scaleCheck.passed = true; // No constraint
+  }
+
+  // Note count check
+  if (challenge.constraints.noteCountMin > 0 || challenge.constraints.noteCountMax > 0) {
+    int noteCount = countMIDINotes(midi);
+    if (challenge.constraints.noteCountMin > 0 && noteCount < challenge.constraints.noteCountMin) {
+      noteCountCheck.passed = false;
+      noteCountCheck.message = "Too few notes";
+    } else if (challenge.constraints.noteCountMax > 0 && noteCount > challenge.constraints.noteCountMax) {
+      noteCountCheck.passed = false;
+      noteCountCheck.message = "Too many notes";
+    } else {
+      noteCountCheck.passed = true;
+    }
+  } else {
+    noteCountCheck.passed = true; // No constraint
+  }
+
+  // Duration check
+  if (challenge.constraints.durationMin > 0 || challenge.constraints.durationMax > 0) {
+    if (durationSeconds <= 0) {
+      durationCheck.passed = false;
+      durationCheck.message = "Duration unknown";
+    } else if (challenge.constraints.durationMin > 0 && durationSeconds < challenge.constraints.durationMin) {
+      durationCheck.passed = false;
+      durationCheck.message = "Too short";
+    } else if (challenge.constraints.durationMax > 0 && durationSeconds > challenge.constraints.durationMax) {
+      durationCheck.passed = false;
+      durationCheck.message = "Too long";
+    } else {
+      durationCheck.passed = true;
+    }
+  } else {
+    durationCheck.passed = true; // No constraint
+  }
 }
 
-juce::Rectangle<int> MidiChallengeSubmission::getSubmitButtonBounds() const
-{
-    auto contentBounds = getContentBounds();
-    return contentBounds.removeFromBottom(50).reduced(16, 8);
+bool MidiChallengeSubmission::allConstraintsPassed() const {
+  return bpmCheck.passed && keyCheck.passed && scaleCheck.passed && noteCountCheck.passed && durationCheck.passed;
 }
 
-juce::Rectangle<int> MidiChallengeSubmission::getContentBounds() const
-{
-    return juce::Rectangle<int>(0, 60, getWidth(), getHeight() - 60);
+int MidiChallengeSubmission::countMIDINotes(const juce::var &midi) const {
+  if (midi.isVoid() || !midi.hasProperty("events"))
+    return 0;
+
+  auto events = midi["events"];
+  if (!events.isArray())
+    return 0;
+
+  int noteCount = 0;
+  for (int i = 0; i < events.size(); ++i) {
+    auto event = events[i];
+    if (event.hasProperty("type")) {
+      juce::String type = Json::getString(event, "type");
+      if (type == "note_on" || type == "noteOn")
+        noteCount++;
+    }
+  }
+  return noteCount;
 }
 
-juce::Rectangle<int> MidiChallengeSubmission::getUploadComponentBounds() const
-{
-    return getContentBounds();
+bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi, const juce::String &requiredScale) const {
+  // Simplified scale check - would need proper scale validation
+  // For now, just return true if MIDI data exists
+  return !midi.isVoid() && midi.hasProperty("events");
 }
 
-//==============================================================================
-void MidiChallengeSubmission::validateConstraints(double bpm, const juce::String& key, const juce::var& midi, double durationSeconds)
-{
-    // Reset all checks
-    bpmCheck = ConstraintCheck();
-    keyCheck = ConstraintCheck();
-    scaleCheck = ConstraintCheck();
-    noteCountCheck = ConstraintCheck();
-    durationCheck = ConstraintCheck();
+void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce::String &audioUrl) {
+  submissionState = SubmissionState::Submitting;
+  repaint();
 
-    // BPM check
-    if (challenge.constraints.bpmMin > 0 || challenge.constraints.bpmMax > 0)
-    {
-        if (bpm <= 0)
-        {
-            bpmCheck.passed = false;
-            bpmCheck.message = "BPM not set";
-        }
-        else if (challenge.constraints.bpmMin > 0 && bpm < challenge.constraints.bpmMin)
-        {
-            bpmCheck.passed = false;
-            bpmCheck.message = "Too slow";
-        }
-        else if (challenge.constraints.bpmMax > 0 && bpm > challenge.constraints.bpmMax)
-        {
-            bpmCheck.passed = false;
-            bpmCheck.message = "Too fast";
-        }
-        else
-        {
-            bpmCheck.passed = true;
-        }
-    }
-    else
-    {
-        bpmCheck.passed = true;  // No constraint
-    }
+  juce::String midiPatternId = "";
+  if (!midiData.isVoid() && midiData.hasProperty("events")) {
+    // TODO: Upload MIDI pattern first, get ID
+  }
 
-    // Key check
-    if (challenge.constraints.key.isNotEmpty())
-    {
-        if (key.isEmpty())
-        {
-            keyCheck.passed = false;
-            keyCheck.message = "Key not set";
-        }
-        else
-        {
-            // Simple key matching (could be improved)
-            juce::String normalizedKey = key.toUpperCase().trim();
-            juce::String normalizedRequired = challenge.constraints.key.toUpperCase().trim();
-            keyCheck.passed = normalizedKey == normalizedRequired || normalizedKey.startsWith(normalizedRequired);
-            if (!keyCheck.passed)
-                keyCheck.message = "Doesn't match";
-        }
-    }
-    else
-    {
-        keyCheck.passed = true;  // No constraint
-    }
-
-    // Scale check (simplified - would need proper scale validation)
-    if (challenge.constraints.scale.isNotEmpty())
-    {
-        scaleCheck.passed = checkMIDIScale(midi, challenge.constraints.scale);
-        if (!scaleCheck.passed)
-            scaleCheck.message = "Notes outside scale";
-    }
-    else
-    {
-        scaleCheck.passed = true;  // No constraint
-    }
-
-    // Note count check
-    if (challenge.constraints.noteCountMin > 0 || challenge.constraints.noteCountMax > 0)
-    {
-        int noteCount = countMIDINotes(midi);
-        if (challenge.constraints.noteCountMin > 0 && noteCount < challenge.constraints.noteCountMin)
-        {
-            noteCountCheck.passed = false;
-            noteCountCheck.message = "Too few notes";
-        }
-        else if (challenge.constraints.noteCountMax > 0 && noteCount > challenge.constraints.noteCountMax)
-        {
-            noteCountCheck.passed = false;
-            noteCountCheck.message = "Too many notes";
-        }
-        else
-        {
-            noteCountCheck.passed = true;
-        }
-    }
-    else
-    {
-        noteCountCheck.passed = true;  // No constraint
-    }
-
-    // Duration check
-    if (challenge.constraints.durationMin > 0 || challenge.constraints.durationMax > 0)
-    {
-        if (durationSeconds <= 0)
-        {
-            durationCheck.passed = false;
-            durationCheck.message = "Duration unknown";
-        }
-        else if (challenge.constraints.durationMin > 0 && durationSeconds < challenge.constraints.durationMin)
-        {
-            durationCheck.passed = false;
-            durationCheck.message = "Too short";
-        }
-        else if (challenge.constraints.durationMax > 0 && durationSeconds > challenge.constraints.durationMax)
-        {
-            durationCheck.passed = false;
-            durationCheck.message = "Too long";
-        }
-        else
-        {
-            durationCheck.passed = true;
-        }
-    }
-    else
-    {
-        durationCheck.passed = true;  // No constraint
-    }
+  networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, midiData, midiPatternId,
+                                         [this](Outcome<juce::var> result) {
+                                           juce::MessageManager::callAsync([this, result]() {
+                                             if (result.isOk()) {
+                                               submissionState = SubmissionState::Success;
+                                               if (onSubmissionComplete)
+                                                 onSubmissionComplete();
+                                             } else {
+                                               submissionState = SubmissionState::Error;
+                                               errorMessage = "Submission failed: " + result.getError();
+                                             }
+                                             repaint();
+                                           });
+                                         });
 }
-
-bool MidiChallengeSubmission::allConstraintsPassed() const
-{
-    return bpmCheck.passed && keyCheck.passed && scaleCheck.passed && 
-           noteCountCheck.passed && durationCheck.passed;
-}
-
-int MidiChallengeSubmission::countMIDINotes(const juce::var& midi) const
-{
-    if (midi.isVoid() || !midi.hasProperty("events"))
-        return 0;
-
-    auto events = midi["events"];
-    if (!events.isArray())
-        return 0;
-
-    int noteCount = 0;
-    for (int i = 0; i < events.size(); ++i)
-    {
-        auto event = events[i];
-        if (event.hasProperty("type"))
-        {
-            juce::String type = Json::getString(event, "type");
-            if (type == "note_on" || type == "noteOn")
-                noteCount++;
-        }
-    }
-    return noteCount;
-}
-
-bool MidiChallengeSubmission::checkMIDIScale(const juce::var& midi, const juce::String& requiredScale) const
-{
-    // Simplified scale check - would need proper scale validation
-    // For now, just return true if MIDI data exists
-    return !midi.isVoid() && midi.hasProperty("events");
-}
-
-void MidiChallengeSubmission::submitEntry(const juce::String& postId, const juce::String& audioUrl)
-{
-    submissionState = SubmissionState::Submitting;
-    repaint();
-
-    juce::String midiPatternId = "";
-    if (!midiData.isVoid() && midiData.hasProperty("events"))
-    {
-        // TODO: Upload MIDI pattern first, get ID
-    }
-
-    networkClient.submitMIDIChallengeEntry(challenge.id, audioUrl, postId, midiData, midiPatternId,
-        [this](Outcome<juce::var> result) {
-            juce::MessageManager::callAsync([this, result]() {
-                if (result.isOk())
-                {
-                    submissionState = SubmissionState::Success;
-                    if (onSubmissionComplete)
-                        onSubmissionComplete();
-                }
-                else
-                {
-                    submissionState = SubmissionState::Error;
-                    errorMessage = "Submission failed: " + result.getError();
-                }
-                repaint();
-            });
-        });
-}
-

@@ -29,8 +29,7 @@ namespace Animations {
  *
  * The manager automatically handles component visibility, Z-order, and cleanup.
  */
-class ViewTransitionManager
-    : public std::enable_shared_from_this<ViewTransitionManager> {
+class ViewTransitionManager : public std::enable_shared_from_this<ViewTransitionManager> {
 public:
   // Transition types
   enum class TransitionType {
@@ -51,14 +50,12 @@ public:
    *
    * @param editorComponent The parent component (usually the editor)
    */
-  static std::shared_ptr<ViewTransitionManager>
-  create(juce::Component *editorComponent) {
+  static std::shared_ptr<ViewTransitionManager> create(juce::Component *editorComponent) {
     return std::make_shared<ViewTransitionManager>(editorComponent);
   }
 
   explicit ViewTransitionManager(juce::Component *parent)
-      : parentComponent_(parent), isTransitioning_(false),
-        defaultDurationMs_(300) {}
+      : parentComponent_(parent), isTransitioning_(false), defaultDurationMs_(300) {}
 
   virtual ~ViewTransitionManager() = default;
 
@@ -69,12 +66,16 @@ public:
    *
    * @param durationMs Duration in milliseconds
    */
-  void setDefaultDuration(int durationMs) { defaultDurationMs_ = durationMs; }
+  void setDefaultDuration(int durationMs) {
+    defaultDurationMs_ = durationMs;
+  }
 
   /**
    * Get the default transition duration
    */
-  int getDefaultDuration() const { return defaultDurationMs_; }
+  int getDefaultDuration() const {
+    return defaultDurationMs_;
+  }
 
   // ========== Transition Methods ==========
 
@@ -86,32 +87,32 @@ public:
    * @param durationMs Duration in milliseconds (0 = use default)
    * @param callback Invoked when transition completes
    */
-  void slideLeft(juce::Component *oldView, juce::Component *newView,
-                 int durationMs = 0, TransitionCallback callback = nullptr) {
+  void slideLeft(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
+                 TransitionCallback callback = nullptr) {
     slideTransition(oldView, newView, -1, durationMs, callback);
   }
 
   /**
    * Slide transition - view slides in from left, previous slides right
    */
-  void slideRight(juce::Component *oldView, juce::Component *newView,
-                  int durationMs = 0, TransitionCallback callback = nullptr) {
+  void slideRight(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
+                  TransitionCallback callback = nullptr) {
     slideTransition(oldView, newView, 1, durationMs, callback);
   }
 
   /**
    * Slide transition - view slides in from bottom, previous slides up
    */
-  void slideUp(juce::Component *oldView, juce::Component *newView,
-               int durationMs = 0, TransitionCallback callback = nullptr) {
+  void slideUp(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
+               TransitionCallback callback = nullptr) {
     slideVerticalTransition(oldView, newView, -1, durationMs, callback);
   }
 
   /**
    * Slide transition - view slides in from top, previous slides down
    */
-  void slideDown(juce::Component *oldView, juce::Component *newView,
-                 int durationMs = 0, TransitionCallback callback = nullptr) {
+  void slideDown(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
+                 TransitionCallback callback = nullptr) {
     slideVerticalTransition(oldView, newView, 1, durationMs, callback);
   }
 
@@ -123,8 +124,7 @@ public:
    * @param durationMs Duration in milliseconds (0 = use default)
    * @param callback Invoked when transition completes
    */
-  void fadeTransition(juce::Component *oldView, juce::Component *newView,
-                      int durationMs = 0,
+  void fadeTransition(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
                       TransitionCallback callback = nullptr) {
     int duration = durationMs > 0 ? durationMs : defaultDurationMs_;
 
@@ -156,14 +156,13 @@ public:
                           newView->setAlpha(alpha);
                       });
 
-    timeline->add(fadeOut)->add(fadeIn)->onCompletion(
-        [this, oldView, callback]() {
-          if (oldView)
-            oldView->setVisible(false);
-          isTransitioning_ = false;
-          if (callback)
-            callback();
-        });
+    timeline->add(fadeOut)->add(fadeIn)->onCompletion([this, oldView, callback]() {
+      if (oldView)
+        oldView->setVisible(false);
+      isTransitioning_ = false;
+      if (callback)
+        callback();
+    });
 
     timeline->start();
   }
@@ -176,8 +175,8 @@ public:
    * @param durationMs Duration in milliseconds (0 = use default)
    * @param callback Invoked when transition completes
    */
-  void scaleIn(juce::Component *oldView, juce::Component *newView,
-               int durationMs = 0, TransitionCallback callback = nullptr) {
+  void scaleIn(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
+               TransitionCallback callback = nullptr) {
     int duration = durationMs > 0 ? durationMs : defaultDurationMs_;
 
     if (!parentComponent_)
@@ -193,18 +192,16 @@ public:
     auto timeline = AnimationTimeline::parallel();
 
     // Scale up new view from 0.8 to 1.0 while fading in
-    auto scaleNewView =
-        TransitionAnimation<float>::create(0.8f, 1.0f, duration)
-            ->withEasing(Easing::easeOutCubic)
-            ->onProgress([newView](float scale) {
-              if (newView) {
-                auto bounds = newView->getBounds();
-                float centerX = static_cast<float>(bounds.getCentreX());
-                float centerY = static_cast<float>(bounds.getCentreY());
-                newView->setTransform(juce::AffineTransform::scale(
-                    scale, scale, centerX, centerY));
-              }
-            });
+    auto scaleNewView = TransitionAnimation<float>::create(0.8f, 1.0f, duration)
+                            ->withEasing(Easing::easeOutCubic)
+                            ->onProgress([newView](float scale) {
+                              if (newView) {
+                                auto bounds = newView->getBounds();
+                                float centerX = static_cast<float>(bounds.getCentreX());
+                                float centerY = static_cast<float>(bounds.getCentreY());
+                                newView->setTransform(juce::AffineTransform::scale(scale, scale, centerX, centerY));
+                              }
+                            });
 
     // Fade in new view
     auto fadeNewView = TransitionAnimation<float>::create(0.0f, 1.0f, duration)
@@ -222,18 +219,15 @@ public:
                                oldView->setAlpha(alpha);
                            });
 
-    timeline->add(scaleNewView)
-        ->add(fadeNewView)
-        ->add(fadeOldView)
-        ->onCompletion([this, oldView, newView, callback]() {
-          if (oldView)
-            oldView->setVisible(false);
-          if (newView)
-            newView->setTransform(juce::AffineTransform()); // Reset transform
-          isTransitioning_ = false;
-          if (callback)
-            callback();
-        });
+    timeline->add(scaleNewView)->add(fadeNewView)->add(fadeOldView)->onCompletion([this, oldView, newView, callback]() {
+      if (oldView)
+        oldView->setVisible(false);
+      if (newView)
+        newView->setTransform(juce::AffineTransform()); // Reset transform
+      isTransitioning_ = false;
+      if (callback)
+        callback();
+    });
 
     timeline->start();
   }
@@ -241,8 +235,8 @@ public:
   /**
    * Scale out transition - view scales down to center while fading
    */
-  void scaleOut(juce::Component *oldView, juce::Component *newView,
-                int durationMs = 0, TransitionCallback callback = nullptr) {
+  void scaleOut(juce::Component *oldView, juce::Component *newView, int durationMs = 0,
+                TransitionCallback callback = nullptr) {
     int duration = durationMs > 0 ? durationMs : defaultDurationMs_;
 
     if (!parentComponent_)
@@ -258,18 +252,16 @@ public:
     auto timeline = AnimationTimeline::parallel();
 
     // Scale down old view
-    auto scaleOldView =
-        TransitionAnimation<float>::create(1.0f, 0.8f, duration)
-            ->withEasing(Easing::easeInCubic)
-            ->onProgress([oldView](float scale) {
-              if (oldView) {
-                auto bounds = oldView->getBounds();
-                float centerX = static_cast<float>(bounds.getCentreX());
-                float centerY = static_cast<float>(bounds.getCentreY());
-                oldView->setTransform(juce::AffineTransform::scale(
-                    scale, scale, centerX, centerY));
-              }
-            });
+    auto scaleOldView = TransitionAnimation<float>::create(1.0f, 0.8f, duration)
+                            ->withEasing(Easing::easeInCubic)
+                            ->onProgress([oldView](float scale) {
+                              if (oldView) {
+                                auto bounds = oldView->getBounds();
+                                float centerX = static_cast<float>(bounds.getCentreX());
+                                float centerY = static_cast<float>(bounds.getCentreY());
+                                oldView->setTransform(juce::AffineTransform::scale(scale, scale, centerX, centerY));
+                              }
+                            });
 
     // Fade out old view
     auto fadeOldView = TransitionAnimation<float>::create(1.0f, 0.0f, duration)
@@ -287,18 +279,15 @@ public:
                                newView->setAlpha(alpha);
                            });
 
-    timeline->add(scaleOldView)
-        ->add(fadeOldView)
-        ->add(fadeNewView)
-        ->onCompletion([this, oldView, callback]() {
-          if (oldView) {
-            oldView->setVisible(false);
-            oldView->setTransform(juce::AffineTransform());
-          }
-          isTransitioning_ = false;
-          if (callback)
-            callback();
-        });
+    timeline->add(scaleOldView)->add(fadeOldView)->add(fadeNewView)->onCompletion([this, oldView, callback]() {
+      if (oldView) {
+        oldView->setVisible(false);
+        oldView->setTransform(juce::AffineTransform());
+      }
+      isTransitioning_ = false;
+      if (callback)
+        callback();
+    });
 
     timeline->start();
   }
@@ -308,7 +297,9 @@ public:
   /**
    * Check if a transition is currently in progress
    */
-  bool isTransitioning() const { return isTransitioning_; }
+  bool isTransitioning() const {
+    return isTransitioning_;
+  }
 
   /**
    * Cancel any active transition
@@ -328,8 +319,7 @@ private:
    *
    * @param direction -1 for left, 1 for right
    */
-  void slideTransition(juce::Component *oldView, juce::Component *newView,
-                       int direction, int durationMs,
+  void slideTransition(juce::Component *oldView, juce::Component *newView, int direction, int durationMs,
                        TransitionCallback callback) {
     int duration = durationMs > 0 ? durationMs : defaultDurationMs_;
 
@@ -354,8 +344,7 @@ private:
             ->onProgress([newView](int offset) {
               if (newView) {
                 auto bounds = newView->getBounds();
-                newView->setBounds(bounds.getX() + offset, bounds.getY(),
-                                   bounds.getWidth(), bounds.getHeight());
+                newView->setBounds(bounds.getX() + offset, bounds.getY(), bounds.getWidth(), bounds.getHeight());
               }
             });
 
@@ -366,20 +355,17 @@ private:
             ->onProgress([oldView](int offset) {
               if (oldView) {
                 auto bounds = oldView->getBounds();
-                oldView->setBounds(bounds.getX() + offset, bounds.getY(),
-                                   bounds.getWidth(), bounds.getHeight());
+                oldView->setBounds(bounds.getX() + offset, bounds.getY(), bounds.getWidth(), bounds.getHeight());
               }
             });
 
-    timeline->add(slideNewView)
-        ->add(slideOldView)
-        ->onCompletion([this, oldView, callback]() {
-          if (oldView)
-            oldView->setVisible(false);
-          isTransitioning_ = false;
-          if (callback)
-            callback();
-        });
+    timeline->add(slideNewView)->add(slideOldView)->onCompletion([this, oldView, callback]() {
+      if (oldView)
+        oldView->setVisible(false);
+      isTransitioning_ = false;
+      if (callback)
+        callback();
+    });
 
     timeline->start();
   }
@@ -389,9 +375,8 @@ private:
    *
    * @param direction -1 for up, 1 for down
    */
-  void slideVerticalTransition(juce::Component *oldView,
-                               juce::Component *newView, int direction,
-                               int durationMs, TransitionCallback callback) {
+  void slideVerticalTransition(juce::Component *oldView, juce::Component *newView, int direction, int durationMs,
+                               TransitionCallback callback) {
     int duration = durationMs > 0 ? durationMs : defaultDurationMs_;
 
     if (!parentComponent_)
@@ -415,8 +400,7 @@ private:
             ->onProgress([newView](int offset) {
               if (newView) {
                 auto bounds = newView->getBounds();
-                newView->setBounds(bounds.getX(), bounds.getY() + offset,
-                                   bounds.getWidth(), bounds.getHeight());
+                newView->setBounds(bounds.getX(), bounds.getY() + offset, bounds.getWidth(), bounds.getHeight());
               }
             });
 
@@ -427,20 +411,17 @@ private:
             ->onProgress([oldView](int offset) {
               if (oldView) {
                 auto bounds = oldView->getBounds();
-                oldView->setBounds(bounds.getX(), bounds.getY() + offset,
-                                   bounds.getWidth(), bounds.getHeight());
+                oldView->setBounds(bounds.getX(), bounds.getY() + offset, bounds.getWidth(), bounds.getHeight());
               }
             });
 
-    timeline->add(slideNewView)
-        ->add(slideOldView)
-        ->onCompletion([this, oldView, callback]() {
-          if (oldView)
-            oldView->setVisible(false);
-          isTransitioning_ = false;
-          if (callback)
-            callback();
-        });
+    timeline->add(slideNewView)->add(slideOldView)->onCompletion([this, oldView, callback]() {
+      if (oldView)
+        oldView->setVisible(false);
+      isTransitioning_ = false;
+      if (callback)
+        callback();
+    });
 
     timeline->start();
   }

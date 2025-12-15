@@ -3,685 +3,588 @@
 // Part of NetworkClient implementation split
 //==============================================================================
 
-#include "../NetworkClient.h"
+#include "../../util/Async.h"
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
-#include "../../util/Async.h"
+#include "../NetworkClient.h"
 
 //==============================================================================
 // Helper to build API endpoint paths consistently
-static juce::String buildApiPath(const char* path)
-{
-    return juce::String("/api/v1") + path;
+static juce::String buildApiPath(const char *path) {
+  return juce::String("/api/v1") + path;
 }
 
 // Helper to convert RequestResult to Outcome<juce::var>
-static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult& result)
-{
-    if (result.success && result.isSuccess())
-    {
-        return Outcome<juce::var>::ok(result.data);
-    }
-    else
-    {
-        juce::String errorMsg = result.getUserFriendlyError();
-        if (errorMsg.isEmpty())
-            errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
-        return Outcome<juce::var>::error(errorMsg);
-    }
+static Outcome<juce::var> requestResultToOutcome(const NetworkClient::RequestResult &result) {
+  if (result.success && result.isSuccess()) {
+    return Outcome<juce::var>::ok(result.data);
+  } else {
+    juce::String errorMsg = result.getUserFriendlyError();
+    if (errorMsg.isEmpty())
+      errorMsg = "Request failed (HTTP " + juce::String(result.httpStatus) + ")";
+    return Outcome<juce::var>::error(errorMsg);
+  }
 }
 
 //==============================================================================
-void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-        return;
+void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated())
+    return;
 
-    Async::runVoid([this, limit, offset, callback]() {
-        // Use enriched endpoint to get reaction counts and own reactions from getstream.io
-        juce::String endpoint = buildApiPath("/feed/global/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+  Async::runVoid([this, limit, offset, callback]() {
+    // Use enriched endpoint to get reaction counts and own reactions from
+    // getstream.io
+    juce::String endpoint =
+        buildApiPath("/feed/global/enriched") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                // Check for error field in response
-                if (response.isObject() && response.hasProperty("error"))
-                {
-                    juce::String errorMsg = response["error"].toString();
-                    juce::String fullMsg = errorMsg;
-                    if (response.hasProperty("message"))
-                        fullMsg = response["message"].toString();
-                    callback(Outcome<juce::var>::error(fullMsg));
-                }
-                else if (response.isObject() || response.isArray())
-                {
-                    callback(Outcome<juce::var>::ok(response));
-                }
-                else
-                {
-                    callback(Outcome<juce::var>::error("Invalid feed response"));
-                }
-            });
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        // Check for error field in response
+        if (response.isObject() && response.hasProperty("error")) {
+          juce::String errorMsg = response["error"].toString();
+          juce::String fullMsg = errorMsg;
+          if (response.hasProperty("message"))
+            fullMsg = response["message"].toString();
+          callback(Outcome<juce::var>::error(fullMsg));
+        } else if (response.isObject() || response.isArray()) {
+          callback(Outcome<juce::var>::ok(response));
+        } else {
+          callback(Outcome<juce::var>::error("Invalid feed response"));
         }
-    });
+      });
+    }
+  });
 }
 
-void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-        return;
+void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated())
+    return;
 
-    Async::runVoid([this, limit, offset, callback]() {
-        // Use unified endpoint which combines followed users, Gorse recommendations, trending, and recent posts
-        // This ensures users always see content even when not following anyone
-        juce::String endpoint = buildApiPath("/feed/unified") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+  Async::runVoid([this, limit, offset, callback]() {
+    // Use unified endpoint which combines followed users, Gorse
+    // recommendations, trending, and recent posts This ensures users always see
+    // content even when not following anyone
+    juce::String endpoint =
+        buildApiPath("/feed/unified") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                // Check for error field in response
-                if (response.isObject() && response.hasProperty("error"))
-                {
-                    juce::String errorMsg = response["error"].toString();
-                    juce::String fullMsg = errorMsg;
-                    if (response.hasProperty("message"))
-                        fullMsg = response["message"].toString();
-                    callback(Outcome<juce::var>::error(fullMsg));
-                }
-                else if (response.isObject() || response.isArray())
-                {
-                    callback(Outcome<juce::var>::ok(response));
-                }
-                else
-                {
-                    callback(Outcome<juce::var>::error("Invalid feed response"));
-                }
-            });
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        // Check for error field in response
+        if (response.isObject() && response.hasProperty("error")) {
+          juce::String errorMsg = response["error"].toString();
+          juce::String fullMsg = errorMsg;
+          if (response.hasProperty("message"))
+            fullMsg = response["message"].toString();
+          callback(Outcome<juce::var>::error(fullMsg));
+        } else if (response.isObject() || response.isArray()) {
+          callback(Outcome<juce::var>::ok(response));
+        } else {
+          callback(Outcome<juce::var>::error("Invalid feed response"));
         }
-    });
+      });
+    }
+  });
 }
 
-void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-        return;
+void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated())
+    return;
 
-    Async::runVoid([this, limit, offset, callback]() {
-        // Trending feed uses engagement scoring (likes, plays, comments weighted by recency)
-        juce::String endpoint = buildApiPath("/feed/trending") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+  Async::runVoid([this, limit, offset, callback]() {
+    // Trending feed uses engagement scoring (likes, plays, comments weighted by
+    // recency)
+    juce::String endpoint =
+        buildApiPath("/feed/trending") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
 
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                // Check for error field in response
-                if (response.isObject() && response.hasProperty("error"))
-                {
-                    juce::String errorMsg = response["error"].toString();
-                    juce::String fullMsg = errorMsg;
-                    if (response.hasProperty("message"))
-                        fullMsg = response["message"].toString();
-                    callback(Outcome<juce::var>::error(fullMsg));
-                }
-                else if (response.isObject() || response.isArray())
-                {
-                    callback(Outcome<juce::var>::ok(response));
-                }
-                else
-                {
-                    callback(Outcome<juce::var>::error("Invalid feed response"));
-                }
-            });
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        // Check for error field in response
+        if (response.isObject() && response.hasProperty("error")) {
+          juce::String errorMsg = response["error"].toString();
+          juce::String fullMsg = errorMsg;
+          if (response.hasProperty("message"))
+            fullMsg = response["message"].toString();
+          callback(Outcome<juce::var>::error(fullMsg));
+        } else if (response.isObject() || response.isArray()) {
+          callback(Outcome<juce::var>::ok(response));
+        } else {
+          callback(Outcome<juce::var>::error("Invalid feed response"));
         }
-    });
+      });
+    }
+  });
 }
 
-void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // For You feed uses personalized recommendations
+    juce::String endpoint =
+        buildApiPath("/recommendations/for-you") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        // Check for error field in response
+        if (response.isObject() && response.hasProperty("error")) {
+          juce::String errorMsg = response["error"].toString();
+          juce::String fullMsg = errorMsg;
+          if (response.hasProperty("message"))
+            fullMsg = response["message"].toString();
+          callback(Outcome<juce::var>::error(fullMsg));
+        } else if (response.isObject() || response.isArray()) {
+          callback(Outcome<juce::var>::ok(response));
+        } else {
+          callback(Outcome<juce::var>::error("Invalid feed response"));
+        }
+      });
+    }
+  });
+}
+
+void NetworkClient::getSimilarPosts(const juce::String &postId, int limit, FeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, limit, callback]() {
+    juce::String path = "/recommendations/similar-posts/" + postId;
+    juce::String endpoint = buildApiPath(path.toRawUTF8()) + "?limit=" + juce::String(limit);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        // Check for error field in response
+        if (response.isObject() && response.hasProperty("error")) {
+          juce::String errorMsg = response["error"].toString();
+          juce::String fullMsg = errorMsg;
+          if (response.hasProperty("message"))
+            fullMsg = response["message"].toString();
+          callback(Outcome<juce::var>::error(fullMsg));
+        } else if (response.isObject() || response.isArray()) {
+          callback(Outcome<juce::var>::ok(response));
+        } else {
+          callback(Outcome<juce::var>::error("Invalid feed response"));
+        }
+      });
+    }
+  });
+}
+
+void NetworkClient::likePost(const juce::String &activityId, const juce::String &emoji, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, activityId, emoji, callback]() {
+    juce::var data = juce::var(new juce::DynamicObject());
+    data.getDynamicObject()->setProperty("activity_id", activityId);
+
+    juce::String endpoint;
+    if (!emoji.isEmpty()) {
+      // Use emoji reaction endpoint
+      data.getDynamicObject()->setProperty("emoji", emoji);
+      endpoint = buildApiPath("/social/react");
+    } else {
+      // Use standard like endpoint
+      endpoint = buildApiPath("/social/like");
     }
 
-    Async::runVoid([this, limit, offset, callback]() {
-        // For You feed uses personalized recommendations
-        juce::String endpoint = buildApiPath("/recommendations/for-you") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+    auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+    Log::debug("Like/reaction response: " + juce::JSON::toString(result.data));
 
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                // Check for error field in response
-                if (response.isObject() && response.hasProperty("error"))
-                {
-                    juce::String errorMsg = response["error"].toString();
-                    juce::String fullMsg = errorMsg;
-                    if (response.hasProperty("message"))
-                        fullMsg = response["message"].toString();
-                    callback(Outcome<juce::var>::error(fullMsg));
-                }
-                else if (response.isObject() || response.isArray())
-                {
-                    callback(Outcome<juce::var>::ok(response));
-                }
-                else
-                {
-                    callback(Outcome<juce::var>::error("Invalid feed response"));
-                }
-            });
-        }
-    });
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
+    }
+  });
 }
 
-void NetworkClient::getSimilarPosts(const juce::String& postId, int limit, FeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::unlikePost(const juce::String &activityId, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, activityId, callback]() {
+    juce::var data = juce::var(new juce::DynamicObject());
+    data.getDynamicObject()->setProperty("activity_id", activityId);
+
+    auto result = makeRequestWithRetry(buildApiPath("/social/like"), "DELETE", data, true);
+    Log::debug("Unlike response: " + juce::JSON::toString(result.data));
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
     }
-
-    Async::runVoid([this, postId, limit, callback]() {
-        juce::String path = "/recommendations/similar-posts/" + postId;
-        juce::String endpoint = buildApiPath(path.toRawUTF8()) + "?limit=" + juce::String(limit);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                // Check for error field in response
-                if (response.isObject() && response.hasProperty("error"))
-                {
-                    juce::String errorMsg = response["error"].toString();
-                    juce::String fullMsg = errorMsg;
-                    if (response.hasProperty("message"))
-                        fullMsg = response["message"].toString();
-                    callback(Outcome<juce::var>::error(fullMsg));
-                }
-                else if (response.isObject() || response.isArray())
-                {
-                    callback(Outcome<juce::var>::ok(response));
-                }
-                else
-                {
-                    callback(Outcome<juce::var>::error("Invalid feed response"));
-                }
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::likePost(const juce::String& activityId, const juce::String& emoji, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::deletePost(const juce::String &postId, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, callback]() {
+    juce::String endpoint = buildApiPath(("/posts/" + postId).toRawUTF8());
+    auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
+    Log::debug("Delete post response: " + juce::JSON::toString(result.data));
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
     }
-
-    Async::runVoid([this, activityId, emoji, callback]() {
-        juce::var data = juce::var(new juce::DynamicObject());
-        data.getDynamicObject()->setProperty("activity_id", activityId);
-
-        juce::String endpoint;
-        if (!emoji.isEmpty())
-        {
-            // Use emoji reaction endpoint
-            data.getDynamicObject()->setProperty("emoji", emoji);
-            endpoint = buildApiPath("/social/react");
-        }
-        else
-        {
-            // Use standard like endpoint
-            endpoint = buildApiPath("/social/like");
-        }
-
-        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-        Log::debug("Like/reaction response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::unlikePost(const juce::String& activityId, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::reportPost(const juce::String &postId, const juce::String &reason, const juce::String &description,
+                               ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, reason, description, callback]() {
+    juce::String endpoint = buildApiPath(("/posts/" + postId + "/report").toRawUTF8());
+    juce::var data = juce::var(new juce::DynamicObject());
+    auto *obj = data.getDynamicObject();
+    if (obj != nullptr) {
+      obj->setProperty("reason", reason);
+      if (description.isNotEmpty())
+        obj->setProperty("description", description);
     }
 
-    Async::runVoid([this, activityId, callback]() {
-        juce::var data = juce::var(new juce::DynamicObject());
-        data.getDynamicObject()->setProperty("activity_id", activityId);
+    auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+    Log::debug("Report post response: " + juce::JSON::toString(result.data));
 
-        auto result = makeRequestWithRetry(buildApiPath("/social/like"), "DELETE", data, true);
-        Log::debug("Unlike response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
-}
-
-void NetworkClient::deletePost(const juce::String& postId, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
     }
-
-    Async::runVoid([this, postId, callback]() {
-        juce::String endpoint = buildApiPath(("/posts/" + postId).toRawUTF8());
-        auto result = makeRequestWithRetry(endpoint, "DELETE", juce::var(), true);
-        Log::debug("Delete post response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
-}
-
-void NetworkClient::reportPost(const juce::String& postId, const juce::String& reason, const juce::String& description, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
-    }
-
-    Async::runVoid([this, postId, reason, description, callback]() {
-        juce::String endpoint = buildApiPath(("/posts/" + postId + "/report").toRawUTF8());
-        juce::var data = juce::var(new juce::DynamicObject());
-        auto* obj = data.getDynamicObject();
-        if (obj != nullptr)
-        {
-            obj->setProperty("reason", reason);
-            if (description.isNotEmpty())
-                obj->setProperty("description", description);
-        }
-
-        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-        Log::debug("Report post response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+  });
 }
 
 //==============================================================================
 // R.3.2 Remix Chains
 
-void NetworkClient::getRemixChain(const juce::String& postId, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getRemixChain(const juce::String &postId, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, callback]() {
+    juce::String endpoint = buildApiPath(("/posts/" + postId + "/remix-chain").toRawUTF8());
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    Log::debug("Get remix chain response: " + juce::JSON::toString(result.data));
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
     }
-
-    Async::runVoid([this, postId, callback]() {
-        juce::String endpoint = buildApiPath(("/posts/" + postId + "/remix-chain").toRawUTF8());
-        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-        Log::debug("Get remix chain response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getPostRemixes(const juce::String& postId, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getPostRemixes(const juce::String &postId, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, callback]() {
+    juce::String endpoint = buildApiPath(("/posts/" + postId + "/remixes").toRawUTF8());
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    Log::debug("Get post remixes response: " + juce::JSON::toString(result.data));
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
     }
-
-    Async::runVoid([this, postId, callback]() {
-        juce::String endpoint = buildApiPath(("/posts/" + postId + "/remixes").toRawUTF8());
-        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-        Log::debug("Get post remixes response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getRemixSource(const juce::String& postId, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getRemixSource(const juce::String &postId, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, callback]() {
+    juce::String endpoint = buildApiPath(("/posts/" + postId + "/remix-source").toRawUTF8());
+    auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
+    Log::debug("Get remix source response: " + juce::JSON::toString(result.data));
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
     }
-
-    Async::runVoid([this, postId, callback]() {
-        juce::String endpoint = buildApiPath(("/posts/" + postId + "/remix-source").toRawUTF8());
-        auto result = makeRequestWithRetry(endpoint, "GET", juce::var(), true);
-        Log::debug("Get remix source response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::createRemixPost(const juce::String& sourcePostId, const juce::String& remixType, ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::createRemixPost(const juce::String &sourcePostId, const juce::String &remixType,
+                                    ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, sourcePostId, remixType, callback]() {
+    juce::String endpoint = buildApiPath(("/posts/" + sourcePostId + "/remix").toRawUTF8());
+
+    juce::var data = juce::var(new juce::DynamicObject());
+    auto *obj = data.getDynamicObject();
+    if (obj != nullptr) {
+      obj->setProperty("remix_type", remixType);
     }
 
-    Async::runVoid([this, sourcePostId, remixType, callback]() {
-        juce::String endpoint = buildApiPath(("/posts/" + sourcePostId + "/remix").toRawUTF8());
+    auto result = makeRequestWithRetry(endpoint, "POST", data, true);
+    Log::debug("Create remix post response: " + juce::JSON::toString(result.data));
 
-        juce::var data = juce::var(new juce::DynamicObject());
-        auto* obj = data.getDynamicObject();
-        if (obj != nullptr)
-        {
-            obj->setProperty("remix_type", remixType);
-        }
-
-        auto result = makeRequestWithRetry(endpoint, "POST", data, true);
-        Log::debug("Create remix post response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
+    }
+  });
 }
 
 //==============================================================================
 // Aggregated Feeds - Activities grouped by user+day or genre+time
 
-void NetworkClient::getAggregatedTimeline(int limit, int offset, AggregatedFeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getAggregatedTimeline(int limit, int offset, AggregatedFeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // Use aggregated endpoint which groups activities by user+day
+    juce::String endpoint =
+        buildApiPath("/feed/timeline/aggregated") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid aggregated feed response"));
+      });
     }
-
-    Async::runVoid([this, limit, offset, callback]() {
-        // Use aggregated endpoint which groups activities by user+day
-        juce::String endpoint = buildApiPath("/feed/timeline/aggregated") +
-                                "?limit=" + juce::String(limit) +
-                                "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid aggregated feed response"));
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getTrendingFeedGrouped(int limit, int offset, AggregatedFeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getTrendingFeedGrouped(int limit, int offset, AggregatedFeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // Use grouped trending endpoint which returns aggregated groups
+    juce::String endpoint =
+        buildApiPath("/feed/trending/grouped") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid aggregated trending response"));
+      });
     }
-
-    Async::runVoid([this, limit, offset, callback]() {
-        // Use grouped trending endpoint which returns aggregated groups
-        juce::String endpoint = buildApiPath("/feed/trending/grouped") +
-                                "?limit=" + juce::String(limit) +
-                                "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid aggregated trending response"));
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getNotificationsAggregated(int limit, int offset, AggregatedFeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getNotificationsAggregated(int limit, int offset, AggregatedFeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // Notifications endpoint returns aggregated groups by default
+    juce::String endpoint =
+        buildApiPath("/notifications") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid notifications response"));
+      });
     }
-
-    Async::runVoid([this, limit, offset, callback]() {
-        // Notifications endpoint returns aggregated groups by default
-        juce::String endpoint = buildApiPath("/notifications") +
-                                "?limit=" + juce::String(limit) +
-                                "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid notifications response"));
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getUserActivityAggregated(const juce::String& userId, int limit, AggregatedFeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getUserActivityAggregated(const juce::String &userId, int limit, AggregatedFeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, userId, limit, callback]() {
+    // User activity endpoint returns aggregated groups
+    juce::String endpoint =
+        buildApiPath(("/users/" + userId + "/activity").toRawUTF8()) + "?limit=" + juce::String(limit);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid user activity response"));
+      });
     }
-
-    Async::runVoid([this, userId, limit, callback]() {
-        // User activity endpoint returns aggregated groups
-        juce::String endpoint = buildApiPath(("/users/" + userId + "/activity").toRawUTF8()) +
-                                "?limit=" + juce::String(limit);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid user activity response"));
-            });
-        }
-    });
+  });
 }
 
 //==============================================================================
 // Gorse Recommendation Feeds
 
-void NetworkClient::getPopularFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getPopularFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // Popular feed uses Gorse trending content based on engagement
+    juce::String endpoint =
+        buildApiPath("/recommendations/popular") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid popular feed response"));
+      });
     }
-
-    Async::runVoid([this, limit, offset, callback]() {
-        // Popular feed uses Gorse trending content based on engagement
-        juce::String endpoint = buildApiPath("/recommendations/popular") +
-                                "?limit=" + juce::String(limit) +
-                                "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid popular feed response"));
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getLatestFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getLatestFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // Latest feed shows recently added content
+    juce::String endpoint =
+        buildApiPath("/recommendations/latest") + "?limit=" + juce::String(limit) + "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid latest feed response"));
+      });
     }
-
-    Async::runVoid([this, limit, offset, callback]() {
-        // Latest feed shows recently added content
-        juce::String endpoint = buildApiPath("/recommendations/latest") +
-                                "?limit=" + juce::String(limit) +
-                                "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid latest feed response"));
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::getDiscoveryFeed(int limit, int offset, FeedCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::getDiscoveryFeed(int limit, int offset, FeedCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, limit, offset, callback]() {
+    // Discovery feed blends popular, latest, and personalized content
+    juce::String endpoint = buildApiPath("/recommendations/discovery-feed") + "?limit=" + juce::String(limit) +
+                            "&offset=" + juce::String(offset);
+    auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+    if (callback) {
+      juce::MessageManager::callAsync([callback, response]() {
+        if (response.isObject() || response.isArray())
+          callback(Outcome<juce::var>::ok(response));
+        else
+          callback(Outcome<juce::var>::error("Invalid discovery feed response"));
+      });
     }
-
-    Async::runVoid([this, limit, offset, callback]() {
-        // Discovery feed blends popular, latest, and personalized content
-        juce::String endpoint = buildApiPath("/recommendations/discovery-feed") +
-                                "?limit=" + juce::String(limit) +
-                                "&offset=" + juce::String(offset);
-        auto response = makeRequest(endpoint, "GET", juce::var(), true);
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
-                    callback(Outcome<juce::var>::ok(response));
-                else
-                    callback(Outcome<juce::var>::error("Invalid discovery feed response"));
-            });
-        }
-    });
+  });
 }
 
-void NetworkClient::trackRecommendationClick(const juce::String& postId,
-                                              const juce::String& source,
-                                              int position,
-                                              double playDuration,
-                                              bool completed,
-                                              ResponseCallback callback)
-{
-    if (!isAuthenticated())
-    {
-        if (callback)
-            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
-        return;
+void NetworkClient::trackRecommendationClick(const juce::String &postId, const juce::String &source, int position,
+                                             double playDuration, bool completed, ResponseCallback callback) {
+  if (!isAuthenticated()) {
+    if (callback)
+      callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+    return;
+  }
+
+  Async::runVoid([this, postId, source, position, playDuration, completed, callback]() {
+    juce::var data = juce::var(new juce::DynamicObject());
+    auto *obj = data.getDynamicObject();
+    if (obj != nullptr) {
+      obj->setProperty("post_id", postId);
+      obj->setProperty("source", source);
+      obj->setProperty("position", position);
+      if (playDuration > 0.0)
+        obj->setProperty("play_duration", playDuration);
+      obj->setProperty("completed", completed);
     }
 
-    Async::runVoid([this, postId, source, position, playDuration, completed, callback]() {
-        juce::var data = juce::var(new juce::DynamicObject());
-        auto* obj = data.getDynamicObject();
-        if (obj != nullptr)
-        {
-            obj->setProperty("post_id", postId);
-            obj->setProperty("source", source);
-            obj->setProperty("position", position);
-            if (playDuration > 0.0)
-                obj->setProperty("play_duration", playDuration);
-            obj->setProperty("completed", completed);
-        }
+    auto result = makeRequestWithRetry(buildApiPath("/recommendations/click"), "POST", data, true);
+    Log::debug("Track recommendation click response: " + juce::JSON::toString(result.data));
 
-        auto result = makeRequestWithRetry(buildApiPath("/recommendations/click"), "POST", data, true);
-        Log::debug("Track recommendation click response: " + juce::JSON::toString(result.data));
-
-        if (callback)
-        {
-            juce::MessageManager::callAsync([callback, result]() {
-                auto outcome = requestResultToOutcome(result);
-                callback(outcome);
-            });
-        }
-    });
+    if (callback) {
+      juce::MessageManager::callAsync([callback, result]() {
+        auto outcome = requestResultToOutcome(result);
+        callback(outcome);
+      });
+    }
+  });
 }
