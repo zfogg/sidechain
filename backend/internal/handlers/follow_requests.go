@@ -138,8 +138,9 @@ func (h *Handlers) AcceptFollowRequest(c *gin.Context) {
 	}
 
 	// Create the follow relationship via Stream.io
+	// Use database IDs (not Stream IDs) to match CheckIsFollowing behavior
 	if h.stream != nil {
-		if err := h.stream.FollowUser(request.RequesterID, currentUser.StreamUserID); err != nil {
+		if err := h.stream.FollowUser(request.RequesterID, currentUser.ID); err != nil {
 			tx.Rollback()
 			util.RespondInternalError(c, "follow_failed", "Failed to create follow relationship")
 			return

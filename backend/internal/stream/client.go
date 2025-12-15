@@ -68,7 +68,7 @@ type Activity struct {
 	DAW          string                 `json:"daw,omitempty"`
 	DurationBars int                    `json:"duration_bars"`
 	Genre        []string               `json:"genre,omitempty"`
-	Waveform     string                 `json:"waveform,omitempty"`
+	WaveformURL  string                 `json:"waveform_url,omitempty"`
 	Extra        map[string]interface{} `json:"extra,omitempty"`
 }
 
@@ -171,8 +171,8 @@ func (c *Client) CreateLoopActivity(userID string, activity *Activity) error {
 	if len(activity.Genre) > 0 {
 		streamActivity.Extra["genre"] = activity.Genre
 	}
-	if activity.Waveform != "" {
-		streamActivity.Extra["waveform"] = activity.Waveform
+	if activity.WaveformURL != "" {
+		streamActivity.Extra["waveform_url"] = activity.WaveformURL
 	}
 	if activity.Extra != nil {
 		for k, v := range activity.Extra {
@@ -317,8 +317,12 @@ func (c *Client) GetGlobalFeed(limit int, offset int) ([]*Activity, error) {
 // FollowUser makes userID follow targetUserID
 // This connects the user's timeline feed to the target's user feed
 // Also sets up the aggregated timeline follow and sends a notification
+// IMPORTANT: userID and targetUserID MUST be database IDs, NOT Stream User IDs
 func (c *Client) FollowUser(userID, targetUserID string) error {
 	ctx := context.Background()
+
+	// Validation: Log the IDs being used to help catch misuse
+	fmt.Printf("🔗 FollowUser: userID=%s targetUserID=%s (MUST be database IDs)\n", userID, targetUserID)
 
 	// Get the follower's timeline feed
 	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
@@ -359,8 +363,12 @@ func (c *Client) FollowUser(userID, targetUserID string) error {
 
 // UnfollowUser makes userID unfollow targetUserID
 // Also removes the aggregated timeline follow
+// IMPORTANT: userID and targetUserID MUST be database IDs, NOT Stream User IDs
 func (c *Client) UnfollowUser(userID, targetUserID string) error {
 	ctx := context.Background()
+
+	// Validation: Log the IDs being used to help catch misuse
+	fmt.Printf("🔓 UnfollowUser: userID=%s targetUserID=%s (MUST be database IDs)\n", userID, targetUserID)
 
 	// Get the follower's timeline feed
 	timelineFeed, err := c.feedsClient.FlatFeed(FeedGroupTimeline, userID)
@@ -738,6 +746,8 @@ func (c *Client) GetFollowing(userID string, limit, offset int) ([]*FollowRelati
 }
 
 // CheckIsFollowing checks if userID is following targetUserID
+// CheckIsFollowing checks if userID follows targetUserID
+// IMPORTANT: userID and targetUserID MUST be database IDs, NOT Stream User IDs
 func (c *Client) CheckIsFollowing(userID, targetUserID string) (bool, error) {
 	ctx := context.Background()
 
@@ -754,7 +764,12 @@ func (c *Client) CheckIsFollowing(userID, targetUserID string) (bool, error) {
 		return false, fmt.Errorf("failed to check following: %w", err)
 	}
 
-	return len(resp.Results) > 0, nil
+	isFollowing := len(resp.Results) > 0
+	// Debug log to help track ID usage
+	if isFollowing {
+		fmt.Printf("✅ CheckIsFollowing: %s DOES follow %s (database IDs)\n", userID, targetUserID)
+	}
+	return isFollowing, nil
 }
 
 // EnrichedActivity extends Activity with reaction data
@@ -1602,8 +1617,11 @@ func convertStreamActivity(act *stream.Activity) *Activity {
 		if durationBars, ok := act.Extra["duration_bars"].(float64); ok {
 			activity.DurationBars = int(durationBars)
 		}
-		if waveform, ok := act.Extra["waveform"].(string); ok {
-			activity.Waveform = waveform
+		// Check for waveform_url (current) or waveform (legacy)
+		if waveformURL, ok := act.Extra["waveform_url"].(string); ok {
+			activity.WaveformURL = waveformURL
+		} else if waveform, ok := act.Extra["waveform"].(string); ok {
+			activity.WaveformURL = waveform // Map legacy field to WaveformURL
 		}
 		if genre, ok := act.Extra["genre"].([]interface{}); ok {
 			for _, g := range genre {
