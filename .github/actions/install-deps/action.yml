@@ -52,9 +52,13 @@ runs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        choco install ninja ccache openssl curl -y
+        choco install ninja ccache openssl -y
+        # Install libcurl development package via vcpkg
+        C:\vcpkg\vcpkg install curl:x64-windows
         # Set OpenSSL path for CMake
         echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL" >> $env:GITHUB_ENV
+        # Set CURL_ROOT for CMake FindCURL module
+        echo "CURL_ROOT=C:\vcpkg\installed\x64-windows" >> $env:GITHUB_ENV
 
     - name: Setup CMake
       uses: lukka/get-cmake@latest
