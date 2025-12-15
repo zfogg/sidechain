@@ -341,8 +341,8 @@ private:
     static std::map<juce::String, std::shared_ptr<RealtimeSync>> syncHandlers;
 };
 
-// Static member definition
-std::map<juce::String, std::shared_ptr<RealtimeSync>> WebSocketOperationHandler::syncHandlers;
+// Static member definition (inline for header-only, C++17+)
+inline std::map<juce::String, std::shared_ptr<RealtimeSync>> WebSocketOperationHandler::syncHandlers;
 
 }  // namespace Network
 }  // namespace Sidechain
