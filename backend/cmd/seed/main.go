@@ -7,6 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/zfogg/sidechain/backend/internal/database"
+	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"github.com/zfogg/sidechain/backend/internal/seed"
 )
 
@@ -49,8 +50,23 @@ func seedDev() {
 
 	log.Println("✅ Database connected")
 
-	// Run seed functions
+	// Initialize Gorse client for recommendation syncing
+	gorseAPIURL := os.Getenv("GORSE_API_URL")
+	gorseAPIKey := os.Getenv("GORSE_API_KEY")
+
 	seeder := seed.NewSeeder(database.DB)
+
+	if gorseAPIURL != "" && gorseAPIKey != "" {
+		log.Println("🔮 Initializing Gorse client for recommendation syncing...")
+		gorse := recommendations.NewGorseRESTClient(gorseAPIURL, gorseAPIKey, database.DB)
+		seeder.SetGorseClient(gorse)
+		log.Println("✅ Gorse client configured")
+	} else {
+		log.Println("⚠️  GORSE_API_URL or GORSE_API_KEY not set - skipping Gorse sync")
+		log.Println("   Set these environment variables to enable recommendation seeding")
+	}
+
+	// Run seed functions
 	if err := seeder.SeedDev(); err != nil {
 		log.Fatalf("❌ Seeding failed: %v", err)
 	}
