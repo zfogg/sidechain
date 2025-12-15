@@ -98,7 +98,13 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String& endpoint, cons
         return juce::var();
     }
 
-    juce::URL url(getStreamBaseUrl() + endpoint + "?api_key=" + apiKey);
+    // Debug authentication
+    Log::debug("StreamChatClient: Auth check - apiKey: " + juce::String(apiKey.isEmpty() ? "EMPTY" : "SET") +
+              ", chatToken: " + juce::String(chatToken.isEmpty() ? "EMPTY" : "SET") +
+              ", currentUserId: " + currentUserId);
+
+    juce::String fullUrl = getStreamBaseUrl() + endpoint + "?api_key=" + apiKey;
+    juce::URL url(fullUrl);
 
     juce::String headers = buildAuthHeaders();
 
@@ -126,7 +132,9 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String& endpoint, cons
         }
     }
 
-    Log::debug("StreamChatClient: Making " + method + " request to: " + url.toString(false));
+    Log::debug("StreamChatClient: Full URL: " + fullUrl);
+    Log::debug("StreamChatClient: Making " + method + " request");
+    Log::debug("StreamChatClient: Headers: " + headers);
 
     auto stream = url.createInputStream(options);
 
@@ -154,27 +162,20 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
     Async::run<Channel>(
         [this, targetUserId]() -> Channel {
             juce::String channelId = generateDirectChannelId(currentUserId, targetUserId);
-            juce::String endpoint = "/channels";
+
+            // Use POST /channels/messaging/{id}/query endpoint to create/get channel
+            juce::String endpoint = "/channels/messaging/" + channelId + "/query";
 
             juce::var requestData = juce::var(new juce::DynamicObject());
             auto* obj = requestData.getDynamicObject();
 
-            // Set channel type and id in request body
-            obj->setProperty("type", "messaging");
-            obj->setProperty("id", channelId);
-
-            // Build members array: each member is {"user_id": "..."} format
-            juce::var members = juce::var(juce::Array<juce::var>());
-
-            juce::var member1 = juce::var(new juce::DynamicObject());
-            member1.getDynamicObject()->setProperty("user_id", currentUserId);
-            members.getArray()->add(member1);
-
-            juce::var member2 = juce::var(new juce::DynamicObject());
-            member2.getDynamicObject()->setProperty("user_id", targetUserId);
-            members.getArray()->add(member2);
+            // Build members as an OBJECT (not array): {"user_id": {}, "user_id": {}}
+            juce::var members = juce::var(new juce::DynamicObject());
+            members.getDynamicObject()->setProperty(currentUserId, juce::var(new juce::DynamicObject()));
+            members.getDynamicObject()->setProperty(targetUserId, juce::var(new juce::DynamicObject()));
 
             obj->setProperty("members", members);
+            obj->setProperty("created_by_id", currentUserId);
 
             Log::debug("StreamChatClient: Creating direct channel with " + targetUserId +
                       ", channel ID: " + channelId);
@@ -224,28 +225,26 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
 
     Async::run<Channel>(
         [this, channelId, name, memberIds]() -> Channel {
-            juce::String endpoint = "/channels";
+            // Use POST /channels/team/{id}/query endpoint to create/get team channel
+            juce::String endpoint = "/channels/team/" + channelId + "/query";
 
             juce::var requestData = juce::var(new juce::DynamicObject());
             auto* obj = requestData.getDynamicObject();
 
-            // Set channel type and id in request body
-            obj->setProperty("type", "team");
-            obj->setProperty("id", channelId);
-
-            // Build members array: each member is {"user_id": "..."} format
-            juce::var members = juce::var(juce::Array<juce::var>());
+            // Build members as an OBJECT (not array): {"user_id": {}, "user_id": {}}
+            juce::var members = juce::var(new juce::DynamicObject());
             for (const auto& memberId : memberIds)
             {
-                juce::var member = juce::var(new juce::DynamicObject());
-                member.getDynamicObject()->setProperty("user_id", memberId);
-                members.getArray()->add(member);
+                members.getDynamicObject()->setProperty(memberId, juce::var(new juce::DynamicObject()));
             }
             obj->setProperty("members", members);
 
+            // Add channel data with name
             juce::var data = juce::var(new juce::DynamicObject());
             data.getDynamicObject()->setProperty("name", name);
             obj->setProperty("data", data);
+
+            obj->setProperty("created_by_id", currentUserId);
 
             Log::debug("StreamChatClient: Creating group channel " + channelId + " with " + juce::String(memberIds.size()) + " members");
             Log::debug("StreamChatClient: Request data - " + juce::JSON::toString(requestData));
@@ -766,7 +765,16 @@ juce::String StreamChatClient::generateDirectChannelId(const juce::String& userI
     ids.add(userId1);
     ids.add(userId2);
     ids.sort(true);
-    return ids[0] + "_" + ids[1];
+
+    // Shorten the combined ID to stay under 64 character limit for stream.io
+    // Take first 30 chars from each user ID, separated by underscore
+    juce::String id1 = ids[0].substring(0, 30);
+    juce::String id2 = ids[1].substring(0, 30);
+    juce::String channelId = id1 + "_" + id2;
+
+    Log::debug("StreamChatClient: Generated channel ID '" + channelId + "' (length: " + juce::String(channelId.length()) + ") for users " + userId1 + " and " + userId2);
+
+    return channelId;
 }
 
 //==============================================================================
