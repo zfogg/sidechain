@@ -110,13 +110,30 @@ struct ChatStoreState
 
     bool operator==(const ChatStoreState& other) const
     {
-        return channels.size() == other.channels.size() &&
-               currentChannelId == other.currentChannelId &&
-               isLoadingChannels == other.isLoadingChannels &&
-               isConnecting == other.isConnecting &&
-               connectionStatus == other.connectionStatus &&
-               isAuthenticated == other.isAuthenticated &&
-               userId == other.userId;
+        // Check top-level metadata
+        if (channels.size() != other.channels.size() ||
+            currentChannelId != other.currentChannelId ||
+            isLoadingChannels != other.isLoadingChannels ||
+            isConnecting != other.isConnecting ||
+            connectionStatus != other.connectionStatus ||
+            isAuthenticated != other.isAuthenticated ||
+            userId != other.userId)
+        {
+            return false;
+        }
+
+        // Check actual channel state (messages, typing, etc.)
+        for (const auto& [channelId, channel] : channels)
+        {
+            auto it = other.channels.find(channelId);
+            if (it == other.channels.end())
+                return false;
+
+            if (!(channel == it->second))  // Use ChannelState::operator==
+                return false;
+        }
+
+        return true;
     }
 };
 

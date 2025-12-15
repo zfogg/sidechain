@@ -438,7 +438,9 @@ void StreamChatClient::queryMessages(const juce::String& channelType, const juce
 
     Async::run<std::vector<Message>>(
         [this, channelType, channelId, limit, offset]() -> std::vector<Message> {
-            juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/query";
+            // Use "messaging" as default channel type if empty
+            juce::String actualChannelType = channelType.isEmpty() ? "messaging" : channelType;
+            juce::String endpoint = "/channels/" + actualChannelType + "/" + channelId + "/query";
 
             // Build request body with message query parameters
             juce::var requestData = juce::var(new juce::DynamicObject());
@@ -862,7 +864,6 @@ StreamChatClient::Message StreamChatClient::parseMessage(const juce::var& messag
     {
         message.id = messageData.getProperty("id", "").toString();
         message.text = messageData.getProperty("text", "").toString();
-        message.userId = messageData.getProperty("user_id", "").toString();
         message.createdAt = messageData.getProperty("created_at", "").toString();
         message.reactions = messageData.getProperty("reactions", juce::var());
         message.extraData = messageData.getProperty("extra_data", juce::var());
@@ -871,6 +872,7 @@ StreamChatClient::Message StreamChatClient::parseMessage(const juce::var& messag
         auto user = messageData.getProperty("user", juce::var());
         if (user.isObject())
         {
+            message.userId = user.getProperty("id", "").toString();
             message.userName = user.getProperty("name", "").toString();
         }
     }

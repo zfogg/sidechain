@@ -110,7 +110,7 @@ private:
 
     // Drawing helpers
     void drawHeader(juce::Graphics& g);
-    void drawMessages(juce::Graphics& g);
+    void drawMessages(juce::Graphics& g, const std::vector<StreamChatClient::Message>& messages);
     void drawMessageBubble(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int width);
     void drawMessageReactions(juce::Graphics& g, const StreamChatClient::Message& message, int& y, int x, int maxWidth);
     void drawEmptyState(juce::Graphics& g);
