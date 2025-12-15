@@ -127,7 +127,7 @@ public:
     /**
      * Get all drafts
      */
-    const juce::Array<Draft>& getDrafts() const
+    juce::Array<Draft> getDrafts() const
     {
         return getState().drafts;
     }

@@ -22,9 +22,9 @@ StreamChatClient::~StreamChatClient()
 }
 
 //==============================================================================
-void StreamChatClient::fetchToken(const juce::String& backendAuthToken, TokenCallback callback)
+void StreamChatClient::fetchToken(const juce::String& backendAuthTokenParam, TokenCallback callback)
 {
-    this->backendAuthToken = backendAuthToken;
+    this->backendAuthToken = backendAuthTokenParam;
 
     if (networkClient == nullptr)
     {
@@ -44,17 +44,17 @@ void StreamChatClient::fetchToken(const juce::String& backendAuthToken, TokenCal
                 auto response = responseOutcome.getValue();
                 if (response.isObject())
                 {
-                    auto token = response.getProperty("token", "").toString();
-                    auto apiKey = response.getProperty("api_key", "").toString();
-                    auto userId = response.getProperty("user_id", "").toString();
+                    auto authToken = response.getProperty("token", "").toString();
+                    auto streamApiKey = response.getProperty("api_key", "").toString();
+                    auto streamUserId = response.getProperty("user_id", "").toString();
 
-                    if (!token.isEmpty() && !apiKey.isEmpty() && !userId.isEmpty())
+                    if (!authToken.isEmpty() && !streamApiKey.isEmpty() && !streamUserId.isEmpty())
                     {
-                        setToken(token, apiKey, userId);
+                        setToken(authToken, streamApiKey, streamUserId);
                         TokenResult result;
-                        result.token = token;
-                        result.apiKey = apiKey;
-                        result.userId = userId;
+                        result.token = authToken;
+                        result.apiKey = streamApiKey;
+                        result.userId = streamUserId;
                         if (callback) callback(Outcome<TokenResult>::ok(result));
                         return;
                     }
@@ -767,14 +767,14 @@ void StreamChatClient::cleanupWebSocket()
 
 //==============================================================================
 // WebSocket event handlers
-void StreamChatClient::onWsOpen(connection_hdl hdl)
+void StreamChatClient::onWsOpen(connection_hdl [[maybe_unused]] hdl)
 {
     wsConnected.store(true);
     updateConnectionStatus(ConnectionStatus::Connected);
     Log::info("StreamChatClient: WebSocket connected to getstream.io");
 }
 
-void StreamChatClient::onWsClose(connection_hdl hdl)
+void StreamChatClient::onWsClose(connection_hdl [[maybe_unused]] hdl)
 {
     wsConnected.store(false);
     wsConnectionActive.store(false);
@@ -782,7 +782,7 @@ void StreamChatClient::onWsClose(connection_hdl hdl)
     Log::info("StreamChatClient: WebSocket disconnected from getstream.io");
 }
 
-void StreamChatClient::onWsMessage(connection_hdl hdl, message_ptr msg)
+void StreamChatClient::onWsMessage(connection_hdl [[maybe_unused]] hdl, message_ptr msg)
 {
     try
     {
@@ -1105,10 +1105,10 @@ void StreamChatClient::updateChannel(const juce::String& channelType, const juce
                 auto props = extraObj->getProperties();
                 for (int i = 0; i < props.size(); ++i)
                 {
-                    auto name = props.getName(i);
-                    if (name != juce::Identifier("name"))  // Don't override name if already set
+                    auto propName = props.getName(i);
+                    if (propName != juce::Identifier("name"))  // Don't override name if already set
                     {
-                        dataObj->setProperty(name, props.getValueAt(i));
+                        dataObj->setProperty(propName, props.getValueAt(i));
                     }
                 }
             }
@@ -1646,7 +1646,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
             juce::MemoryOutputStream outputStream;
             juce::WavAudioFormat wavFormat;
             std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
-                &outputStream, sampleRate, audioBuffer.getNumChannels(), 16, {}, 0));
+                &outputStream, sampleRate, static_cast<unsigned int>(audioBuffer.getNumChannels()), 16, {}, 0));
 
             if (writer == nullptr)
             {
@@ -1660,7 +1660,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
             writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
             writer.reset(); // Flush
 
-            juce::MemoryBlock audioData = outputStream.getMemoryBlock();
+            juce::MemoryBlock audioDataBlock = outputStream.getMemoryBlock();
 
             if (networkClient == nullptr)
             {
@@ -1686,7 +1686,7 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float>& audioB
             networkClient->uploadMultipartAbsolute(
                 config.backendBaseUrl + "/api/v1/audio/upload",
                 "audio",
-                audioData,
+                audioDataBlock,
                 "snippet.wav",
                 "audio/wav",
                 metadata,

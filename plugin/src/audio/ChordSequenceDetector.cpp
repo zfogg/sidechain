@@ -10,7 +10,7 @@ ChordSequenceDetector::ChordSequenceDetector()
 }
 
 //==============================================================================
-void ChordSequenceDetector::processMIDI(const juce::MidiBuffer& midiMessages, double sampleRate)
+void ChordSequenceDetector::processMIDI(const juce::MidiBuffer& midiMessages, double /* sampleRate */)
 {
     if (!detecting.load())
         return;

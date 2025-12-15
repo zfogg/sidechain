@@ -96,7 +96,7 @@ public:
         std::lock_guard<std::mutex> lock(errorMutex);
         std::vector<HttpError> result;
 
-        int startIdx = juce::jmax(0, static_cast<int>(errorHistory.size()) - count);
+        size_t startIdx = static_cast<size_t>(juce::jmax(0, static_cast<int>(errorHistory.size()) - count));
         for (size_t i = startIdx; i < errorHistory.size(); ++i)
             result.push_back(errorHistory[i]);
 

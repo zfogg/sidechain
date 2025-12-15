@@ -59,13 +59,18 @@ bool OSNotification::showMacOS(const juce::String& title,
 
         // Create notification content
         UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
-        content.title = [NSString stringWithUTF8String:title.toUTF8()];
+        NSString* titleStr = [NSString stringWithUTF8String:title.toUTF8()];
+        if (titleStr) content.title = titleStr;
 
-        if (message.isNotEmpty())
-            content.body = [NSString stringWithUTF8String:message.toUTF8()];
+        if (message.isNotEmpty()) {
+            NSString* bodyStr = [NSString stringWithUTF8String:message.toUTF8()];
+            if (bodyStr) content.body = bodyStr;
+        }
 
-        if (subtitle.isNotEmpty())
-            content.subtitle = [NSString stringWithUTF8String:subtitle.toUTF8()];
+        if (subtitle.isNotEmpty()) {
+            NSString* subtitleStr = [NSString stringWithUTF8String:subtitle.toUTF8()];
+            if (subtitleStr) content.subtitle = subtitleStr;
+        }
 
         if (sound)
             content.sound = [UNNotificationSound defaultSound];

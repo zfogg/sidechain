@@ -77,8 +77,8 @@ protected:
             case LogLevel::Warning: return "WARN";
             case LogLevel::Error:   return "ERROR";
             case LogLevel::Fatal:   return "FATAL";
-            default:                return "UNKNOWN";
         }
+        return "UNKNOWN";
     }
 
     /**
@@ -93,8 +93,8 @@ protected:
             case LogLevel::Warning: return "\033[33m";  // Yellow
             case LogLevel::Error:   return "\033[31m";  // Red
             case LogLevel::Fatal:   return "\033[35m";  // Magenta
-            default:                return "\033[0m";   // Reset
         }
+        return "\033[0m";   // Reset
     }
 
     static const char* getResetCode() { return "\033[0m"; }
@@ -217,7 +217,7 @@ private:
             return;
 
         logFile.flush();
-        if (logFile.tellp() > static_cast<std::streampos>(maxSize))
+        if (static_cast<size_t>(logFile.tellp()) > maxSize)
             rotateFile();
     }
 

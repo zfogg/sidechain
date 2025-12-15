@@ -14,7 +14,7 @@ MIDICapture::~MIDICapture()
 }
 
 //==============================================================================
-void MIDICapture::prepare(double sampleRate, int samplesPerBlock)
+void MIDICapture::prepare(double sampleRate, int /* samplesPerBlock */)
 {
     currentSampleRate = sampleRate;
     currentBlockSize = samplesPerBlock;
@@ -82,7 +82,7 @@ std::vector<MIDICapture::MIDIEvent> MIDICapture::stopCapture()
 }
 
 //==============================================================================
-void MIDICapture::captureMIDI(const juce::MidiBuffer& midiMessages, int numSamples, double sampleRate)
+void MIDICapture::captureMIDI(const juce::MidiBuffer& midiMessages, int numSamples, double /* sampleRate */)
 {
     // Fast exit if not capturing (atomic read)
     if (!capturing.load(std::memory_order_relaxed))

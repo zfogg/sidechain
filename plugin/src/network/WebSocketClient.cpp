@@ -387,7 +387,7 @@ void WebSocketClient::connectionLoop()
 
 //==============================================================================
 // websocketpp event handlers
-void WebSocketClient::onWsOpen(connection_hdl hdl)
+void WebSocketClient::onWsOpen(connection_hdl [[maybe_unused]] hdl)
 {
     Log::info("WebSocket: Connected");
 
@@ -423,20 +423,20 @@ void WebSocketClient::onWsClose(connection_hdl hdl)
     handleDisconnect("Server closed connection");
 }
 
-void WebSocketClient::onWsMessage(connection_hdl hdl, message_ptr msg)
+void WebSocketClient::onWsMessage(connection_hdl [[maybe_unused]] hdl, message_ptr msg)
 {
     try
     {
         // Get the opcode to determine message type
         auto opcode = msg->get_opcode();
         std::string payload = msg->get_payload();
-        
+
         // Log raw payload info for debugging (truncate for readability)
         if (payload.length() > 0)
         {
             juce::String payloadInfo = "WebSocket frame received - opcode: ";
             payloadInfo += juce::String(static_cast<int>(opcode));
-            payloadInfo += ", size: " + juce::String(static_cast<int>(payload.length())) + " bytes";
+            payloadInfo += ", size: " + juce::String(static_cast<size_t>(payload.length())) + " bytes";
             
             // If it's a text message, decode and show preview
             if (opcode == websocketpp::frame::opcode::text)
@@ -460,8 +460,8 @@ void WebSocketClient::onWsMessage(connection_hdl hdl, message_ptr msg)
             {
                 // Binary message - show hex representation of first bytes
                 payloadInfo += ", binary data (hex): ";
-                int bytesToShow = juce::jmin(static_cast<int>(payload.length()), 50);
-                for (int i = 0; i < bytesToShow; ++i)
+                size_t bytesToShow = juce::jmin(payload.length(), static_cast<size_t>(50));
+                for (size_t i = 0; i < bytesToShow; ++i)
                 {
                     payloadInfo += juce::String::formatted("%02X ", static_cast<unsigned char>(payload[i]));
                 }
@@ -470,7 +470,7 @@ void WebSocketClient::onWsMessage(connection_hdl hdl, message_ptr msg)
                     payloadInfo += "...";
                 }
                 Log::debug(payloadInfo);
-                
+
                 // Try to decode as UTF-8 text anyway (some servers send text as binary)
                 juce::String text = juce::String::fromUTF8(payload.c_str(), static_cast<int>(payload.length()));
                 if (text.isNotEmpty())
@@ -531,7 +531,7 @@ void WebSocketClient::onWsFail(connection_hdl hdl)
     handleDisconnect("Connection failed");
 }
 
-void WebSocketClient::onWsPong(connection_hdl hdl, std::string appData)
+void WebSocketClient::onWsPong(connection_hdl [[maybe_unused]] hdl, std::string [[maybe_unused]] appData)
 {
     lastPongReceivedTime.store(juce::Time::currentTimeMillis());
 }

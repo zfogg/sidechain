@@ -479,14 +479,15 @@ private:
 
             // Delete oldest files until size is acceptable
             size_t targetSize = maxSizeBytes_ * 9 / 10;  // 90% of max
-            for (auto& [time, file] : files)
+            for (auto& filePair : files)
             {
                 if (currentSize <= targetSize)
                     break;
 
+                auto& file = filePair.second;
                 auto metadataFile = file.withFileExtension(".meta");
                 metadataFile.deleteFile();
-                currentSize -= file.getSize();
+                currentSize -= static_cast<size_t>(file.getSize());
                 file.deleteFile();
             }
         }
@@ -512,7 +513,7 @@ public:
      * @param diskDir Directory for disk cache
      * @param diskMaxMB Maximum disk cache size in MB
      */
-    MultiTierCache(size_t memoryMaxBytes, const juce::File& diskDir, size_t diskMaxMB = 1024)
+    MultiTierCache(size_t memoryMaxBytes, const juce::File& [[maybe_unused]] diskDir, size_t [[maybe_unused]] diskMaxMB = 1024)
         : memoryCache_(memoryMaxBytes, 10000)
     {
     }
@@ -600,7 +601,7 @@ private:
     /**
      * Estimate size of a value
      */
-    size_t estimateSize(const V& value) const
+    size_t estimateSize(const V& [[maybe_unused]] value) const
     {
         // Default: estimate as 1KB
         return 1024;

@@ -234,14 +234,14 @@ public:
         if (auto ins = std::dynamic_pointer_cast<Insert>(op))
         {
             std::string result = text;
-            result.insert(ins->position, ins->content);
+            result.insert(static_cast<size_t>(ins->position), ins->content);
             return result;
         }
 
         if (auto del = std::dynamic_pointer_cast<Delete>(op))
         {
             std::string result = text;
-            result.erase(del->position, del->length);
+            result.erase(static_cast<size_t>(del->position), static_cast<size_t>(del->length));
             return result;
         }
 
