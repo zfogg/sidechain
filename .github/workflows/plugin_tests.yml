@@ -90,6 +90,12 @@ jobs:
           fi
         shell: bash
 
+      - name: Save Build Cache
+        if: always()
+        uses: ./.github/actions/save-build-cache
+        with:
+          arch: ${{ matrix.name == 'macOS-ARM64' && 'arm64' || matrix.name == 'macOS-Intel' && 'x86_64' || 'x86_64' }}
+
       - name: List Build Artifacts
         shell: bash
         run: |
@@ -155,6 +161,10 @@ jobs:
           # Create test-results directory for Catch2 JUnit output
           mkdir -p test-results
           ctest --output-on-failure -C Debug --output-junit test-results.xml
+
+      - name: Save Build Cache
+        if: always()
+        uses: ./.github/actions/save-build-cache
 
       - name: Generate Coverage Report
         run: |

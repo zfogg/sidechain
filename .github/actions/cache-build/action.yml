@@ -40,8 +40,9 @@ runs:
         echo "arch=$ARCH" >> $GITHUB_OUTPUT
         echo "Cache key: sidechain-build-${{ runner.os }}-$ARCH"
 
-    - name: Cache Build Directory
-      uses: actions/cache@v4
+    - name: Restore Build Cache
+      id: build-cache-restore
+      uses: actions/cache/restore@v4
       with:
         path: |
           .cache
