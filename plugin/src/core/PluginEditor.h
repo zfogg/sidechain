@@ -223,6 +223,10 @@ private:
      */
     void confirmAndLogout();
 
+    /** Handle logout button click from profile page
+     */
+    void handleLogout();
+
     //==============================================================================
     // Centralized user data store
     std::unique_ptr<UserDataStore> userDataStore;

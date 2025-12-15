@@ -954,6 +954,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     profileComponent->onTwoFactorSettingsClicked = [this]() {
         showTwoFactorSettings();
     };
+    profileComponent->onLogoutClicked = [this]() {
+        handleLogout();
+    };
     addChildComponent(profileComponent.get());
 
     //==========================================================================
@@ -2160,6 +2163,12 @@ void SidechainAudioProcessorEditor::showEditProfile()
 
     // Task 2.4: Use reactive pattern - showWithCurrentProfile reads from UserStore
     editProfileDialog->showWithCurrentProfile(this);
+}
+
+void SidechainAudioProcessorEditor::handleLogout()
+{
+    // Show confirmation dialog before logging out
+    confirmAndLogout();
 }
 
 void SidechainAudioProcessorEditor::navigateBack()
