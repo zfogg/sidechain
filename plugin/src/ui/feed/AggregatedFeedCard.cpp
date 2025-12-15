@@ -87,14 +87,14 @@ void AggregatedFeedCard::updateActivityCards() {
     card->setPost(post);
 
     // Forward callbacks
-    card->onUserClicked = [this](const FeedPost &post) {
+    card->onUserClicked = [this](const FeedPost &clickedPost) {
       if (onUserClicked)
-        onUserClicked(post.userId);
+        onUserClicked(clickedPost.userId);
     };
 
-    card->onPlayClicked = [this](const FeedPost &post) {
+    card->onPlayClicked = [this](const FeedPost &clickedPost) {
       if (onPlayClicked)
-        onPlayClicked(post.id);
+        onPlayClicked(clickedPost.id);
     };
 
     activityCards.add(card);

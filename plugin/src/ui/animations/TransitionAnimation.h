@@ -253,7 +253,7 @@ public:
     auto now = std::chrono::steady_clock::now();
     auto elapsed =
         std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime_);
-    int elapsedMs = elapsed.count() - pausedElapsed_;
+    int elapsedMs = static_cast<int>(elapsed.count()) - pausedElapsed_;
     return std::max(0, elapsedMs);
   }
 
