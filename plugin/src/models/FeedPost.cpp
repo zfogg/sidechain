@@ -51,6 +51,13 @@ FeedPost FeedPost::fromJson(const juce::var& json)
     post.audioUrl = Json::getString(json, "audio_url");
     post.waveformSvg = Json::getString(json, "waveform");
     post.waveformUrl = Json::getString(json, "waveform_url");
+
+    // Debug: Log waveform URL
+    if (post.waveformUrl.isNotEmpty())
+        Log::debug("FeedPost: Parsed waveform_url = " + post.waveformUrl);
+    else
+        Log::debug("FeedPost: No waveform_url in JSON for post " + post.id);
+
     post.filename = Json::getString(json, "filename");
     post.durationSeconds = Json::getFloat(json, "duration_seconds");
     post.durationBars = Json::getInt(json, "duration_bars");
