@@ -1236,6 +1236,12 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
 {
     Log::info("showView: entering, view=" + juce::String(static_cast<int>(view)) + ", currentView=" + juce::String(static_cast<int>(currentView)));
 
+    // If already on this view, still need to refresh/reload it (don't skip)
+    // This handles cases where the user clicks the same view button again
+    bool isSameView = (currentView == view);
+    if (isSameView)
+        Log::info("showView: Already on this view, will refresh it");
+
     // Get the component to show and hide using helper function
     juce::Component* componentToShow = getComponentForView(view);
     juce::Component* componentToHide = getComponentForView(currentView);
@@ -1247,6 +1253,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     // Don't animate: auth transitions, same view, missing components, or explicitly no animation
     bool shouldAnimate = componentToShow && componentToHide
                          && componentToShow != componentToHide
+                         && !isSameView  // Don't animate if already on same view
                          && currentView != AppView::Authentication
                          && view != AppView::Authentication
                          && direction != NavigationDirection::None;
@@ -1318,6 +1325,9 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
         {
             postsFeedComponent->setBounds(contentBounds);
             postsFeedComponent->setVisible(view == AppView::PostsFeed);
+            // Force repaint if on the same view (user clicked it again)
+            if (isSameView && view == AppView::PostsFeed)
+                postsFeedComponent->repaint();
         }
         if (recordingComponent)
         {

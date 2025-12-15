@@ -401,7 +401,7 @@ void Header::drawCircularProfilePic(juce::Graphics& g, juce::Rectangle<int> boun
 //==============================================================================
 juce::Rectangle<int> Header::getLogoBounds() const
 {
-    return juce::Rectangle<int>(20, 0, 120, getHeight());
+    return juce::Rectangle<int>(20, 0, 240, getHeight());
 }
 
 juce::Rectangle<int> Header::getSearchButtonBounds() const
