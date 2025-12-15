@@ -4,6 +4,7 @@
 # - Uses Dockerfile.dev with air hot reload
 # - Mounts source code for automatic rebuilds on changes
 # - Enables interactive debugging and logging
+# - Uses local storage (no AWS credentials needed)
 
 services:
   backend:
@@ -18,8 +19,153 @@ services:
       - /app/node_modules
       - /app/vendor
       - /app/tmp
+    # Override environment for development (inherits from base, overrides below)
+    environment:
+      # Server
+      PORT: "8787"
+      HOST: "0.0.0.0"
+      ENVIRONMENT: "${ENVIRONMENT:-development}"
+
+      # Database (connects to postgres container)
+      DATABASE_URL: "postgres://sidechain:sidechain_dev_password@postgres:5432/sidechain?sslmode=disable"
+
+      # Gorse recommendations (API is on dashboard port 8088)
+      GORSE_URL: "http://gorse:8088"
+      GORSE_API_KEY: "sidechain_gorse_api_key"
+
+      # Stream.io (from .env or host environment)
+      STREAM_API_KEY: "${STREAM_API_KEY}"
+      STREAM_API_SECRET: "${STREAM_API_SECRET}"
+
+      # Security
+      JWT_SECRET: "${JWT_SECRET:-dev_jwt_secret_change_in_production}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-*}"
+
+      # AWS/S3 Storage - Use local storage for development
+      STORAGE_PROVIDER: "local"
+      AWS_REGION: "${AWS_REGION:-us-west-2}"
+      AWS_BUCKET: "${AWS_BUCKET:-sidechain-dev-media}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-dev}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-dev}"
+      CDN_BASE_URL: "${CDN_BASE_URL:-http://localhost:8787}"
+
+      # OAuth
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+
+      # Email (AWS SES)
+      SES_FROM_EMAIL: "${SES_FROM_EMAIL:-hi@sidechain.live}"
+      SES_FROM_NAME: "${SES_FROM_NAME:-Sidechain}"
+      BASE_URL: "${BASE_URL:-http://localhost:8787}"
+
+      # Logging
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
     # Keep container running and show logs
     stdin_open: true
     tty: true
     # Faster restart on rebuild
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gorse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 3s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sidechain-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-sidechain}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-sidechain_dev_password}"
+      POSTGRES_DB: "${POSTGRES_DB:-sidechain}"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sidechain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: sidechain-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 3s
+
+  gorse:
+    image: zhenghaoz/gorse-in-one:nightly
+    container_name: sidechain-gorse
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./gorse.toml:/etc/gorse/config.toml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8088'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: sidechain-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  redis_data:
+    driver: local
