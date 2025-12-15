@@ -136,6 +136,7 @@ private:
     int totalContentHeight = 0;
     static constexpr int POST_CARD_HEIGHT = PostCard::CARD_HEIGHT;  // Use PostCard's height constant
     static constexpr int POST_CARD_SPACING = 10;
+    static constexpr int POSTS_TOP_PADDING = 16;  // Top padding for posts container
 
     //==============================================================================
     // User info (profile picture now displayed in central HeaderComponent)
