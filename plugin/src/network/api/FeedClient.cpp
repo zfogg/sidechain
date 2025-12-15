@@ -45,10 +45,23 @@ void NetworkClient::getGlobalFeed(int limit, int offset, FeedCallback callback)
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
+                // Check for error field in response
+                if (response.isObject() && response.hasProperty("error"))
+                {
+                    juce::String errorMsg = response["error"].toString();
+                    juce::String fullMsg = errorMsg;
+                    if (response.hasProperty("message"))
+                        fullMsg = response["message"].toString();
+                    callback(Outcome<juce::var>::error(fullMsg));
+                }
+                else if (response.isObject() || response.isArray())
+                {
                     callback(Outcome<juce::var>::ok(response));
+                }
                 else
+                {
                     callback(Outcome<juce::var>::error("Invalid feed response"));
+                }
             });
         }
     });
@@ -68,10 +81,23 @@ void NetworkClient::getTimelineFeed(int limit, int offset, FeedCallback callback
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
+                // Check for error field in response
+                if (response.isObject() && response.hasProperty("error"))
+                {
+                    juce::String errorMsg = response["error"].toString();
+                    juce::String fullMsg = errorMsg;
+                    if (response.hasProperty("message"))
+                        fullMsg = response["message"].toString();
+                    callback(Outcome<juce::var>::error(fullMsg));
+                }
+                else if (response.isObject() || response.isArray())
+                {
                     callback(Outcome<juce::var>::ok(response));
+                }
                 else
+                {
                     callback(Outcome<juce::var>::error("Invalid feed response"));
+                }
             });
         }
     });
@@ -90,10 +116,23 @@ void NetworkClient::getTrendingFeed(int limit, int offset, FeedCallback callback
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
+                // Check for error field in response
+                if (response.isObject() && response.hasProperty("error"))
+                {
+                    juce::String errorMsg = response["error"].toString();
+                    juce::String fullMsg = errorMsg;
+                    if (response.hasProperty("message"))
+                        fullMsg = response["message"].toString();
+                    callback(Outcome<juce::var>::error(fullMsg));
+                }
+                else if (response.isObject() || response.isArray())
+                {
                     callback(Outcome<juce::var>::ok(response));
+                }
                 else
+                {
                     callback(Outcome<juce::var>::error("Invalid feed response"));
+                }
             });
         }
     });
@@ -116,10 +155,23 @@ void NetworkClient::getForYouFeed(int limit, int offset, FeedCallback callback)
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
+                // Check for error field in response
+                if (response.isObject() && response.hasProperty("error"))
+                {
+                    juce::String errorMsg = response["error"].toString();
+                    juce::String fullMsg = errorMsg;
+                    if (response.hasProperty("message"))
+                        fullMsg = response["message"].toString();
+                    callback(Outcome<juce::var>::error(fullMsg));
+                }
+                else if (response.isObject() || response.isArray())
+                {
                     callback(Outcome<juce::var>::ok(response));
+                }
                 else
+                {
                     callback(Outcome<juce::var>::error("Invalid feed response"));
+                }
             });
         }
     });
@@ -142,10 +194,23 @@ void NetworkClient::getSimilarPosts(const juce::String& postId, int limit, FeedC
         if (callback)
         {
             juce::MessageManager::callAsync([callback, response]() {
-                if (response.isObject() || response.isArray())
+                // Check for error field in response
+                if (response.isObject() && response.hasProperty("error"))
+                {
+                    juce::String errorMsg = response["error"].toString();
+                    juce::String fullMsg = errorMsg;
+                    if (response.hasProperty("message"))
+                        fullMsg = response["message"].toString();
+                    callback(Outcome<juce::var>::error(fullMsg));
+                }
+                else if (response.isObject() || response.isArray())
+                {
                     callback(Outcome<juce::var>::ok(response));
+                }
                 else
+                {
                     callback(Outcome<juce::var>::error("Invalid feed response"));
+                }
             });
         }
     });
