@@ -161,8 +161,8 @@ juce::String ToastNotification::getIcon() const
 
 ToastManager& ToastManager::getInstance()
 {
-    static ToastManager instance;
-    return instance;
+    static ToastManager* instance = new ToastManager();
+    return *instance;
 }
 
 ToastManager::ToastManager()
@@ -173,8 +173,14 @@ ToastManager::ToastManager()
 
 ToastManager::~ToastManager()
 {
+    // Always stop timer first to prevent base class assertion
     stopTimer();
-    toasts.clear();
+
+    // Only clear toasts if MessageManager still exists
+    if (juce::MessageManager::getInstanceWithoutCreating() != nullptr)
+    {
+        toasts.clear();
+    }
 }
 
 void ToastManager::paint(juce::Graphics& /*g*/)
