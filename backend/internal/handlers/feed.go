@@ -571,11 +571,27 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 			cachedValue, cached := followStateCache[posterUserID]
 			if cached {
 				isFollowing = cachedValue
+				fmt.Printf("🔍 [CACHE HIT] posterUserID=%s isFollowing=%v\n", posterUserID, isFollowing)
 			} else {
 				// Not in cache - need to query
-				if item.User != nil && item.User.StreamUserID != "" {
-					// Query follow state using stream user IDs
-					isFollowing, _ = h.stream.CheckIsFollowing(currentUser.StreamUserID, item.User.StreamUserID)
+				if item.User != nil && item.User.ID != "" {
+					// Query follow state using DATABASE IDs (NOT Stream IDs!)
+					// This must match what FollowUser uses
+					isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
+					if err != nil {
+						fmt.Printf("❌ CheckIsFollowing ERROR: currentUserID=%s posterID=%s err=%v\n",
+							currentUser.ID, item.User.ID, err)
+					}
+					fmt.Printf("🔍 [CACHE MISS] posterUserID=%s currentUserID=%s isFollowing=%v err=%v\n",
+						posterUserID, currentUser.ID, isFollowing, err)
+				} else {
+					fmt.Printf("⚠️ [SKIP] posterUserID=%s User=%v UserID=%s\n",
+						posterUserID, item.User != nil, func() string {
+							if item.User != nil {
+								return item.User.ID
+							}
+							return "nil"
+						}())
 				}
 				// Cache the result
 				followStateCache[posterUserID] = isFollowing
@@ -695,10 +711,9 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 			var user models.User
 			if err := database.DB.Where("id = ?", userID).First(&user).Error; err == nil {
 				activityMap["user"] = gin.H{
-					"id":                  user.ID,
-					"username":            user.Username,
-					"display_name":        user.DisplayName,
-					"profile_picture_url": user.ProfilePictureURL,
+					"id":         user.ID,
+					"username":   user.Username,
+					"avatar_url": user.ProfilePictureURL,
 				}
 			}
 		}
