@@ -895,3 +895,143 @@ func (c *GorseRESTClient) GetSimilarPostsByGenre(postID, genre string, limit int
 
 	return posts, nil
 }
+
+// GetPopular returns globally popular posts based on engagement metrics
+// Task 7.1
+func (c *GorseRESTClient) GetPopular(limit, offset int) ([]PostScore, error) {
+	// Gorse popular endpoint: GET /api/popular?n={n}
+	// Note: Gorse doesn't support offset parameter, so we fetch more and slice
+	totalLimit := limit + offset
+	endpoint := fmt.Sprintf("/api/popular?n=%d", totalLimit)
+	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get popular posts: %w", err)
+	}
+	defer resp.Body.Close()
+
+	type Score struct {
+		Id    string  `json:"Id"`
+		Score float64 `json:"Score"`
+	}
+
+	var scores []Score
+	if err := json.NewDecoder(resp.Body).Decode(&scores); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Extract item IDs
+	itemIDs := make([]string, 0, len(scores))
+	scoreMap := make(map[string]float64)
+	for _, score := range scores {
+		itemIDs = append(itemIDs, score.Id)
+		scoreMap[score.Id] = score.Score
+	}
+
+	// Apply offset
+	if offset > 0 && offset < len(itemIDs) {
+		itemIDs = itemIDs[offset:]
+	}
+	if len(itemIDs) > limit {
+		itemIDs = itemIDs[:limit]
+	}
+
+	if len(itemIDs) == 0 {
+		return []PostScore{}, nil
+	}
+
+	// Fetch post details from database
+	var posts []models.AudioPost
+	if err := c.db.Where("id IN ? AND deleted_at IS NULL", itemIDs).Find(&posts).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch posts: %w", err)
+	}
+
+	// Create a map for quick lookup
+	postMap := make(map[string]models.AudioPost)
+	for _, post := range posts {
+		postMap[post.ID] = post
+	}
+
+	// Build PostScore list maintaining Gorse's order
+	postScores := make([]PostScore, 0, len(itemIDs))
+	for _, itemID := range itemIDs {
+		if post, ok := postMap[itemID]; ok {
+			postScores = append(postScores, PostScore{
+				Post:   post,
+				Score:  scoreMap[itemID],
+				Reason: "trending now",
+			})
+		}
+	}
+
+	return postScores, nil
+}
+
+// GetLatest returns recently added posts
+// Task 7.2
+func (c *GorseRESTClient) GetLatest(limit, offset int) ([]PostScore, error) {
+	// Gorse latest endpoint: GET /api/latest?n={n}
+	// Note: Gorse doesn't support offset parameter, so we fetch more and slice
+	totalLimit := limit + offset
+	endpoint := fmt.Sprintf("/api/latest?n=%d", totalLimit)
+	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get latest posts: %w", err)
+	}
+	defer resp.Body.Close()
+
+	type Score struct {
+		Id    string  `json:"Id"`
+		Score float64 `json:"Score"`
+	}
+
+	var scores []Score
+	if err := json.NewDecoder(resp.Body).Decode(&scores); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Extract item IDs
+	itemIDs := make([]string, 0, len(scores))
+	scoreMap := make(map[string]float64)
+	for _, score := range scores {
+		itemIDs = append(itemIDs, score.Id)
+		scoreMap[score.Id] = score.Score
+	}
+
+	// Apply offset
+	if offset > 0 && offset < len(itemIDs) {
+		itemIDs = itemIDs[offset:]
+	}
+	if len(itemIDs) > limit {
+		itemIDs = itemIDs[:limit]
+	}
+
+	if len(itemIDs) == 0 {
+		return []PostScore{}, nil
+	}
+
+	// Fetch post details from database
+	var posts []models.AudioPost
+	if err := c.db.Where("id IN ? AND deleted_at IS NULL", itemIDs).Find(&posts).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch posts: %w", err)
+	}
+
+	// Create a map for quick lookup
+	postMap := make(map[string]models.AudioPost)
+	for _, post := range posts {
+		postMap[post.ID] = post
+	}
+
+	// Build PostScore list maintaining Gorse's order
+	postScores := make([]PostScore, 0, len(itemIDs))
+	for _, itemID := range itemIDs {
+		if post, ok := postMap[itemID]; ok {
+			postScores = append(postScores, PostScore{
+				Post:   post,
+				Score:  scoreMap[itemID],
+				Reason: "recently added",
+			})
+		}
+	}
+
+	return postScores, nil
+}
