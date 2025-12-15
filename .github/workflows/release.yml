@@ -1,9 +1,9 @@
-name: Release
+name: Release Plugin
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'plugin/v*.*.*'
 
 jobs:
   build-plugin:
@@ -103,13 +103,55 @@ jobs:
       - name: List Artifacts
         run: find artifacts -type f
 
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # Get the previous plugin tag (e.g., plugin/v0.0.1)
+          CURRENT_TAG="${{ github.ref_name }}"
+          # Extract version for finding previous tag (e.g., v0.0.1 from plugin/v0.0.1)
+          COMPONENT=$(echo "$CURRENT_TAG" | cut -d'/' -f1)
+          PREV_TAG=$(git tag --list "$COMPONENT/v*" --sort=-v:refname --merged HEAD 2>/dev/null | head -2 | tail -1 || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "First release - including all commits"
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
+          else
+            echo "Generating changelog from $PREV_TAG to $CURRENT_TAG"
+            COMMITS=$(git log $PREV_TAG..$CURRENT_TAG --pretty=format:"- %s (%h)" --reverse)
+          fi
+
+          # Create changelog with categories
+          CHANGELOG="## What's Changed"$'\n\n'
+
+          # Features
+          FEATURES=$(echo "$COMMITS" | grep -E "^- (feat|feature)" || true)
+          if [ ! -z "$FEATURES" ]; then
+            CHANGELOG+="### ✨ Features"$'\n'"$FEATURES"$'\n\n'
+          fi
+
+          # Fixes
+          FIXES=$(echo "$COMMITS" | grep -E "^- (fix|bugfix)" || true)
+          if [ ! -z "$FIXES" ]; then
+            CHANGELOG+="### 🐛 Bug Fixes"$'\n'"$FIXES"$'\n\n'
+          fi
+
+          # Other changes
+          OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|feature|fix|bugfix)" || true)
+          if [ ! -z "$OTHER" ]; then
+            CHANGELOG+="### 🔧 Other Changes"$'\n'"$OTHER"$'\n\n'
+          fi
+
+          # Write to file for multiline output
+          echo "$CHANGELOG" > changelog.txt
+          cat changelog.txt
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Sidechain ${{ github.ref_name }}
+          name: Sidechain Plugin ${{ github.ref_name }}
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
-          generate_release_notes: true
+          body_path: changelog.txt
           files: |
             artifacts/Sidechain-macOS-universal-VST3/*.zip
             artifacts/Sidechain-macOS-universal-AU/*.zip
