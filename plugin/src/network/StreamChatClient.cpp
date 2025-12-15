@@ -144,10 +144,14 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
     Async::run<Channel>(
         [this, targetUserId]() -> Channel {
             juce::String channelId = generateDirectChannelId(currentUserId, targetUserId);
-            juce::String endpoint = "/channels/messaging/" + channelId;
+            juce::String endpoint = "/channels";
 
             juce::var requestData = juce::var(new juce::DynamicObject());
             auto* obj = requestData.getDynamicObject();
+
+            // Set channel type and id in request body
+            obj->setProperty("type", "messaging");
+            obj->setProperty("id", channelId);
 
             // Build members array: each member is {"user_id": "..."} format
             juce::var members = juce::var(juce::Array<juce::var>());
@@ -170,7 +174,7 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
 
             Log::debug("StreamChatClient: Create channel response - " + juce::JSON::toString(response));
 
-            // Response from stream.io might have channel wrapped in "channel" property
+            // Response from stream.io has channel wrapped in "channel" property
             juce::var channelData = response;
             if (response.isObject() && response.hasProperty("channel"))
             {
@@ -210,10 +214,14 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
 
     Async::run<Channel>(
         [this, channelId, name, memberIds]() -> Channel {
-            juce::String endpoint = "/channels/team/" + channelId;
+            juce::String endpoint = "/channels";
 
             juce::var requestData = juce::var(new juce::DynamicObject());
             auto* obj = requestData.getDynamicObject();
+
+            // Set channel type and id in request body
+            obj->setProperty("type", "team");
+            obj->setProperty("id", channelId);
 
             // Build members array: each member is {"user_id": "..."} format
             juce::var members = juce::var(juce::Array<juce::var>());
@@ -236,7 +244,7 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
 
             Log::debug("StreamChatClient: Create group channel response - " + juce::JSON::toString(response));
 
-            // Response from stream.io might have channel wrapped in "channel" property
+            // Response from stream.io has channel wrapped in "channel" property
             juce::var channelData = response;
             if (response.isObject() && response.hasProperty("channel"))
             {
