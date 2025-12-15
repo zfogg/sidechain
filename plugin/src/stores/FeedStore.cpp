@@ -773,10 +773,7 @@ void FeedStore::updateUserPresence(const juce::String &userId, bool isOnline, co
       for (auto &post : feed.posts) {
         if (post.userId == userId) {
           post.isOnline = isOnline;
-          if (status == "in_studio")
-            post.isInStudio = true;
-          else
-            post.isInStudio = false;
+          post.isInStudio = status == "in_studio";
         }
       }
     }

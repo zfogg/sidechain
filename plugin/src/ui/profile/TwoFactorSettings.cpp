@@ -278,7 +278,7 @@ void TwoFactorSettings::drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bo
     g.setColour(Colors::codeBackground);
     g.fillRoundedRectangle(qrBounds.toFloat(), 6.0f);
     g.setColour(Colors::accent);
-    g.setFont(juce::Font(juce::FontOptions(juce::Font::getDefaultMonospacedFontName()).withHeight(11.0f)));
+    g.setFont(juce::Font(juce::FontOptions().withName(juce::Font::getDefaultMonospacedFontName()).withHeight(11.0f)));
     g.drawFittedText(setupQRUrl, qrBounds.reduced(8), juce::Justification::centredLeft, 3, 0.8f);
   }
 
@@ -293,8 +293,8 @@ void TwoFactorSettings::drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bo
   g.setColour(Colors::codeBackground);
   g.fillRoundedRectangle(secretBounds.toFloat(), 6.0f);
   g.setColour(Colors::textPrimary);
-  g.setFont(
-      juce::Font(juce::FontOptions(juce::Font::getDefaultMonospacedFontName()).withHeight(16.0f).withStyle("Bold")));
+  g.setFont(juce::Font(
+      juce::FontOptions().withName(juce::Font::getDefaultMonospacedFontName()).withHeight(16.0f).withStyle("Bold")));
   g.drawText(setupSecret, secretBounds, juce::Justification::centred);
 
   bounds.removeFromTop(SPACING * 2);
@@ -321,7 +321,7 @@ void TwoFactorSettings::drawBackupCodes(juce::Graphics &g, juce::Rectangle<int> 
   g.fillRoundedRectangle(codesBounds.toFloat(), 6.0f);
 
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(juce::FontOptions(juce::Font::getDefaultMonospacedFontName()).withHeight(13.0f)));
+  g.setFont(juce::Font(juce::FontOptions().withName(juce::Font::getDefaultMonospacedFontName()).withHeight(13.0f)));
 
   int codesPerRow = 2;
   int codeHeight = 22;
