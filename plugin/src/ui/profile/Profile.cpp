@@ -1387,6 +1387,19 @@ void Profile::handleFollowToggle()
     // Optimistic UI update
     profile.isFollowing = willFollow;
     profile.followerCount += willFollow ? 1 : -1;
+
+    // Update all posts in the local userPosts array
+    // All posts on a profile page are by the same user, so update them all
+    int updatedPostCount = 0;
+    for (auto& post : userPosts)
+    {
+        post.isFollowing = willFollow;
+        updatedPostCount++;
+    }
+    Log::debug("Profile::handleFollowToggle: Updated " + juce::String(updatedPostCount) + " posts in userPosts array");
+
+    // Update post cards to reflect new follow state
+    updatePostCards();
     repaint();
 
     // Update FeedStore optimistically to sync all posts by this user
@@ -1411,6 +1424,18 @@ void Profile::handleFollowToggle()
                 // Revert on failure
                 profile.isFollowing = wasFollowing;
                 profile.followerCount += wasFollowing ? 1 : -1;
+
+                // Revert all posts in the local userPosts array
+                int revertedPostCount = 0;
+                for (auto& post : userPosts)
+                {
+                    post.isFollowing = wasFollowing;
+                    revertedPostCount++;
+                }
+                Log::debug("Profile::handleFollowToggle: Reverted " + juce::String(revertedPostCount) + " posts in userPosts array");
+
+                // Update post cards to reflect reverted state
+                updatePostCards();
                 repaint();
 
                 // Also revert in FeedStore

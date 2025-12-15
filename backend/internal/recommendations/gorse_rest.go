@@ -728,3 +728,170 @@ func (c *GorseRESTClient) BatchSyncFollowsFromList(follows []struct {
 
 	return nil
 }
+
+// =============================================================================
+// Category-Based Filtering Methods (Task 6)
+// =============================================================================
+
+// GetForYouFeedByGenre returns personalized recommendations filtered by genre
+// Task 6.1
+func (c *GorseRESTClient) GetForYouFeedByGenre(userID, genre string, limit, offset int) ([]PostScore, error) {
+	// Gorse category parameter: GET /api/recommend/{user-id}/{category}?n={n}
+	totalLimit := limit + offset
+	endpoint := fmt.Sprintf("/api/recommend/%s/%s?n=%d", userID, genre, totalLimit)
+	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recommendations by genre: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var itemIDs []string
+	if err := json.NewDecoder(resp.Body).Decode(&itemIDs); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Apply offset
+	if offset > 0 && offset < len(itemIDs) {
+		itemIDs = itemIDs[offset:]
+	}
+	if len(itemIDs) > limit {
+		itemIDs = itemIDs[:limit]
+	}
+
+	if len(itemIDs) == 0 {
+		return []PostScore{}, nil
+	}
+
+	// Fetch post details from database
+	var posts []models.AudioPost
+	if err := c.db.Where("id IN ? AND deleted_at IS NULL", itemIDs).Find(&posts).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch posts: %w", err)
+	}
+
+	// Create a map for quick lookup
+	postMap := make(map[string]models.AudioPost)
+	for _, post := range posts {
+		postMap[post.ID] = post
+	}
+
+	// Build PostScore list maintaining Gorse's order
+	scores := make([]PostScore, 0, len(itemIDs))
+	for _, itemID := range itemIDs {
+		if post, ok := postMap[itemID]; ok {
+			scores = append(scores, PostScore{
+				Post:   post,
+				Score:  1.0,
+				Reason: fmt.Sprintf("matches your %s preferences", genre),
+			})
+		}
+	}
+
+	return scores, nil
+}
+
+// GetForYouFeedByBPMRange returns personalized recommendations filtered by BPM range
+// Task 6.3
+func (c *GorseRESTClient) GetForYouFeedByBPMRange(userID string, minBPM, maxBPM, limit, offset int) ([]PostScore, error) {
+	// Get general recommendations first
+	totalLimit := (limit + offset) * 3 // Fetch extra to account for filtering
+	endpoint := fmt.Sprintf("/api/recommend/%s?n=%d", userID, totalLimit)
+	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recommendations: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var itemIDs []string
+	if err := json.NewDecoder(resp.Body).Decode(&itemIDs); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	if len(itemIDs) == 0 {
+		return []PostScore{}, nil
+	}
+
+	// Fetch post details and filter by BPM range in database
+	var posts []models.AudioPost
+	query := c.db.Where("id IN ? AND deleted_at IS NULL", itemIDs)
+	if minBPM > 0 {
+		query = query.Where("bpm >= ?", minBPM)
+	}
+	if maxBPM > 0 {
+		query = query.Where("bpm <= ?", maxBPM)
+	}
+	if err := query.Find(&posts).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch posts: %w", err)
+	}
+
+	// Create a map for quick lookup and maintain Gorse's order
+	postMap := make(map[string]models.AudioPost)
+	for _, post := range posts {
+		postMap[post.ID] = post
+	}
+
+	// Build filtered list maintaining Gorse's order
+	scores := make([]PostScore, 0, limit)
+	count := 0
+	for _, itemID := range itemIDs {
+		if post, ok := postMap[itemID]; ok {
+			if count < offset {
+				count++
+				continue
+			}
+			if len(scores) >= limit {
+				break
+			}
+			scores = append(scores, PostScore{
+				Post:   post,
+				Score:  1.0,
+				Reason: fmt.Sprintf("matches your BPM preference (%d-%d)", minBPM, maxBPM),
+			})
+		}
+	}
+
+	return scores, nil
+}
+
+// GetSimilarPostsByGenre returns similar posts filtered by genre
+// Task 6.4
+func (c *GorseRESTClient) GetSimilarPostsByGenre(postID, genre string, limit int) ([]models.AudioPost, error) {
+	// Get all similar posts first
+	fetchLimit := limit * 3 // Fetch extra to account for genre filtering
+	endpoint := fmt.Sprintf("/api/item/%s/neighbors?n=%d", postID, fetchLimit)
+	resp, err := c.makeRequest(context.Background(), "GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get similar posts: %w", err)
+	}
+	defer resp.Body.Close()
+
+	type Score struct {
+		Id    string  `json:"Id"`
+		Score float64 `json:"Score"`
+	}
+
+	var scores []Score
+	if err := json.NewDecoder(resp.Body).Decode(&scores); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	postIDs := make([]string, 0, len(scores))
+	for _, score := range scores {
+		postIDs = append(postIDs, score.Id)
+	}
+
+	if len(postIDs) == 0 {
+		return []models.AudioPost{}, nil
+	}
+
+	// Fetch posts filtered by genre
+	var posts []models.AudioPost
+	// Use JSON contains operator for genre array
+	if err := c.db.Where("id IN ? AND deleted_at IS NULL", postIDs).
+		Where("genre @> ARRAY[?]::text[]", genre).
+		Limit(limit).
+		Find(&posts).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch posts: %w", err)
+	}
+
+	return posts, nil
+}
