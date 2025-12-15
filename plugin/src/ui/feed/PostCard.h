@@ -340,6 +340,10 @@ private:
     void handleEmojiSelected(const juce::String& emoji);
 
     //==============================================================================
+    // FeedStore subscription (type-safe lazy pattern)
+    void subscribeToFeedStore();
+
+    //==============================================================================
     // Hit testing helpers
     juce::Rectangle<int> getAvatarBounds() const;
     juce::Rectangle<int> getUserInfoBounds() const;
