@@ -1260,11 +1260,21 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
 
     // Determine if we should animate the transition
     // Don't animate: auth transitions, same view, missing components, or explicitly no animation
+    //
+    // TODO (Task 4.21): Fix ViewTransitionManager.slideLeft animation for PostsFeed
+    // ISSUE: When navigating TO PostsFeed, the slideLeft animation starts but the completion
+    // callback never fires, causing the component to never appear on screen until a second click.
+    // This is specific to PostsFeed - other views animate correctly.
+    // WORKAROUND: Skip animation when navigating to PostsFeed, use immediate non-animated path.
+    // This makes first-click navigation work correctly but loses the animation smoothness.
+    // ROOT CAUSE: Unknown - likely an issue in ViewTransitionManager or component lifecycle
+    // during the specific Profile->PostsFeed transition.
     bool shouldAnimate = componentToShow && componentToHide
                          && componentToShow != componentToHide
                          && !isSameView  // Don't animate if already on same view
                          && currentView != AppView::Authentication
                          && view != AppView::Authentication
+                         && view != AppView::PostsFeed  // TEMP: Skip animation to PostsFeed (TODO 4.21)
                          && direction != NavigationDirection::None;
 
     if (shouldAnimate)
