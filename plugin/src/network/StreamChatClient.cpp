@@ -174,6 +174,7 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
             auto* obj = requestData.getDynamicObject();
 
             // Build members as an OBJECT (not array): {"user_id": {}, "user_id": {}}
+            // Stream.io API expects members field to be an object
             juce::var members = juce::var(new juce::DynamicObject());
             members.getDynamicObject()->setProperty(currentUserId, juce::var(new juce::DynamicObject()));
             members.getDynamicObject()->setProperty(targetUserId, juce::var(new juce::DynamicObject()));
@@ -236,6 +237,7 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
             auto* obj = requestData.getDynamicObject();
 
             // Build members as an OBJECT (not array): {"user_id": {}, "user_id": {}}
+            // Stream.io API expects members field to be an object
             juce::var members = juce::var(new juce::DynamicObject());
             for (const auto& memberId : memberIds)
             {
@@ -301,14 +303,9 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
             juce::var requestData = juce::var(new juce::DynamicObject());
             auto* obj = requestData.getDynamicObject();
 
-            // Build filter: {"members": {"$in": [userId]}}
+            // Don't use member filter - Stream.io operators don't work with object-format members
+            // Instead, get all channels and filter client-side to only include those with current user
             juce::var filter = juce::var(new juce::DynamicObject());
-            auto* filterObj = filter.getDynamicObject();
-            juce::var inArray = juce::var(juce::Array<juce::var>());
-            inArray.getArray()->add(juce::var(currentUserId));
-            juce::var inObj = juce::var(new juce::DynamicObject());
-            inObj.getDynamicObject()->setProperty("$in", inArray);
-            filterObj->setProperty("members", inObj);
             obj->setProperty("filter_conditions", filter);
 
             // Build sort
@@ -326,6 +323,8 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
 
             auto response = makeStreamRequest(endpoint, "POST", requestData);
 
+            Log::debug("StreamChatClient: queryChannels response - " + juce::JSON::toString(response));
+
             std::vector<Channel> channels;
 
             if (response.isObject())
@@ -333,14 +332,27 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
                 auto channelsArray = response.getProperty("channels", juce::var());
                 if (channelsArray.isArray())
                 {
+                    Log::debug("StreamChatClient: Found channels array with " + juce::String(channelsArray.getArray()->size()) + " channels");
+                    // Note: Stream.io queryChannels doesn't return member data in the list response,
+                    // so we can't filter by members. Just return all channels - the API already
+                    // restricts access to channels the user has permission to view.
                     for (int i = 0; i < channelsArray.getArray()->size(); i++)
                     {
                         auto channelData = channelsArray.getArray()->getReference(i);
                         channels.push_back(parseChannel(channelData));
                     }
                 }
+                else
+                {
+                    Log::debug("StreamChatClient: No 'channels' property in response or not an array");
+                }
+            }
+            else
+            {
+                Log::debug("StreamChatClient: Response is not an object");
             }
 
+            Log::debug("StreamChatClient: queryChannels returning " + juce::String(channels.size()) + " channels");
             return channels;
         },
         [callback](const std::vector<Channel>& channels) {

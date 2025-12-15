@@ -845,6 +845,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     messagesListComponent->setStreamChatClient(streamChatClient.get());
     messagesListComponent->setNetworkClient(networkClient.get());
     messagesListComponent->onChannelSelected = [this](const juce::String& channelType, const juce::String& channelId) {
+        Log::info("PluginEditor: onChannelSelected callback - channelType: " + channelType + ", channelId: " + channelId);
         showMessageThread(channelType, channelId);
     };
     messagesListComponent->onNewMessage = [this]() {
@@ -1709,6 +1710,7 @@ void SidechainAudioProcessorEditor::showProfile(const juce::String& userId)
 
 void SidechainAudioProcessorEditor::showMessageThread(const juce::String& channelType, const juce::String& channelId)
 {
+    Log::info("PluginEditor::showMessageThread - type: " + channelType + ", id: " + channelId);
     messageChannelType = channelType;
     messageChannelId = channelId;
     showView(AppView::MessageThread);
