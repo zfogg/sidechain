@@ -67,6 +67,9 @@ public:
     // Callback for logout
     std::function<void()> onLogout;
 
+    // Callback for authentication required (redirects to auth screen)
+    std::function<void()> onAuthenticationRequired;
+
     // Callback for starting recording
     std::function<void()> onStartRecording;
 
