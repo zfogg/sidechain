@@ -379,8 +379,8 @@ void StreamChatClient::sendMessage(const juce::String& channelType, const juce::
             juce::var message = juce::var(new juce::DynamicObject());
             auto* msgObj = message.getDynamicObject();
 
-            // Message type is required by stream.io
-            msgObj->setProperty("type", "default");
+            // Message type is required by stream.io - use "regular" for user messages
+            msgObj->setProperty("type", "regular");
             msgObj->setProperty("text", text);
 
             if (!extraData.isVoid())
