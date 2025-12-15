@@ -315,19 +315,37 @@ void ChatStore::leaveChannel(const juce::String& channelId)
 
 void ChatStore::selectChannel(const juce::String& channelId)
 {
+    Log::info("ChatStore::selectChannel - channelId=" + channelId);
     Util::logDebug("ChatStore", "Selecting channel", "channelId=" + channelId);
 
     updateState([channelId](ChatStoreState& state)
     {
         state.currentChannelId = channelId;
+        Log::debug("ChatStore::selectChannel - State updated: currentChannelId=" + channelId);
     });
 
     // Load messages if not already loaded
     auto currentState = getState();
     auto it = currentState.channels.find(channelId);
-    if (it != currentState.channels.end() && it->second.messages.empty())
+    bool channelFound = (it != currentState.channels.end());
+    Log::debug("ChatStore::selectChannel - Looking for channel in map. Found=" + juce::String(channelFound ? "YES" : "NO"));
+
+    if (it != currentState.channels.end())
     {
-        loadMessages(channelId);
+        Log::debug("ChatStore::selectChannel - Channel found. Has " + juce::String(it->second.messages.size()) + " messages");
+        if (it->second.messages.empty())
+        {
+            Log::debug("ChatStore::selectChannel - Messages empty, calling loadMessages");
+            loadMessages(channelId);
+        }
+        else
+        {
+            Log::debug("ChatStore::selectChannel - Messages not empty, skipping loadMessages");
+        }
+    }
+    else
+    {
+        Log::debug("ChatStore::selectChannel - Channel not found in map, will not auto-load messages");
     }
 
     // Mark as read
@@ -339,8 +357,12 @@ void ChatStore::selectChannel(const juce::String& channelId)
 
 void ChatStore::loadMessages(const juce::String& channelId, int limit)
 {
+    Log::info("ChatStore::loadMessages - ENTRY: channelId=" + channelId + " limit=" + juce::String(limit));
+
     if (!streamChatClient || !isAuthenticated())
     {
+        Log::error("ChatStore::loadMessages - NOT AUTHENTICATED: streamChatClient=" + juce::String(streamChatClient != nullptr ? "SET" : "NULL") +
+                   " authenticated=" + juce::String(isAuthenticated() ? "YES" : "NO"));
         Util::logError("ChatStore", "Cannot load messages - not authenticated");
         return;
     }
@@ -355,6 +377,7 @@ void ChatStore::loadMessages(const juce::String& channelId, int limit)
     if (it != currentState.channels.end())
     {
         channelType = it->second.type;
+        Log::debug("ChatStore::loadMessages - Channel found in map. type=" + channelType);
     }
     else
     {
@@ -368,27 +391,33 @@ void ChatStore::loadMessages(const juce::String& channelId, int limit)
                 newChannel.id = channelId;
                 newChannel.type = "messaging";
                 state.channels[channelId] = newChannel;
+                Log::debug("ChatStore::loadMessages - Created placeholder channel");
             }
         });
     }
 
     Util::logInfo("ChatStore", "Loading messages", "channelId=" + channelId + " limit=" + juce::String(limit));
+    Log::info("ChatStore::loadMessages - About to call queryMessages with type=" + channelType + " id=" + channelId + " limit=" + juce::String(limit));
 
     updateState([channelId](ChatStoreState& state)
     {
         auto& channel = state.channels[channelId];
         channel.isLoadingMessages = true;
+        Log::debug("ChatStore::loadMessages - Set isLoadingMessages=true for channel");
     });
 
     streamChatClient->queryMessages(channelType, channelId, limit, 0,
         [this, channelId](Outcome<std::vector<StreamChatClient::Message>> result)
         {
+            Log::info("ChatStore::loadMessages - queryMessages CALLBACK: channelId=" + channelId + " isOk=" + juce::String(result.isOk() ? "YES" : "NO"));
             if (result.isOk())
             {
+                Log::info("ChatStore::loadMessages - queryMessages succeeded, got " + juce::String(result.getValue().size()) + " messages");
                 handleMessagesLoaded(channelId, result.getValue());
             }
             else
             {
+                Log::error("ChatStore::loadMessages - queryMessages failed: " + result.getError());
                 handleMessagesError(channelId, result.getError());
             }
         }
