@@ -494,7 +494,9 @@ void Profile::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
   if (profile.isPrivate) {
     // Measure the name width to position the lock icon
-    auto nameWidth = g.getCurrentFont().getStringWidth(name);
+    juce::GlyphArrangement glyphs;
+    glyphs.addLineOfText(g.getCurrentFont(), name, 0.0f, 0.0f);
+    auto nameWidth = static_cast<int>(glyphs.getBoundingBox(0, -1, false).getWidth());
     g.drawText(name, bounds.getX(), bounds.getY() + 10, bounds.getWidth(), 28, juce::Justification::centredLeft);
 
     // Draw lock icon after the name
@@ -754,7 +756,9 @@ void Profile::drawGenreTags(juce::Graphics &g, juce::Rectangle<int> bounds) {
     if (genre.trim().isEmpty())
       continue;
 
-    int tagWidth = static_cast<int>(g.getCurrentFont().getStringWidth(genre)) + tagPadding * 2;
+    juce::GlyphArrangement glyphs;
+    glyphs.addLineOfText(g.getCurrentFont(), genre, 0.0f, 0.0f);
+    int tagWidth = static_cast<int>(glyphs.getBoundingBox(0, -1, false).getWidth()) + tagPadding * 2;
 
     if (x + tagWidth > bounds.getRight())
       break;
@@ -1265,8 +1269,8 @@ void Profile::handleFollowToggle() {
     return;
   }
 
-  auto callback = [this, wasFollowing, willFollow](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result, wasFollowing, willFollow]() {
+  auto callback = [this, wasFollowing](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result, wasFollowing]() {
       if (result.isError()) {
         Log::error("Profile::handleFollowToggle: Follow toggle failed, "
                    "reverting optimistic update");
@@ -1336,7 +1340,7 @@ void Profile::handleMuteToggle() {
   feedStore->toggleMute(profile.id, willMute);
 
   // Update our local state after the toggle
-  juce::MessageManager::callAsync([this, wasMuted]() {
+  juce::MessageManager::callAsync([this]() {
     Log::info("Profile::handleMuteToggle: Mute toggle successful - isMuted: " +
               juce::String(profile.isMuted ? "true" : "false"));
     if (onMuteToggled) {

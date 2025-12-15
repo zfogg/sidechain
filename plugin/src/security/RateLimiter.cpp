@@ -96,7 +96,7 @@ void TokenBucketLimiter::cleanup() {
     }
 
     // Stop if we're under max size
-    if (buckets_.size() < static_cast<size_t>(config_.maxTrackedIdentifiers))
+    if (buckets_.size() < config_.maxTrackedIdentifiers)
       break;
   }
 
@@ -227,7 +227,7 @@ void SlidingWindowLimiter::cleanup() {
       keysToRemove.add(it.getKey());
     }
 
-    if (windows_.size() < static_cast<size_t>(config_.maxTrackedIdentifiers))
+    if (windows_.size() < config_.maxTrackedIdentifiers)
       break;
   }
 

@@ -30,7 +30,7 @@ PostsFeed::PostsFeed(Sidechain::Stores::FeedStore *feedStore) : feedStore(feedSt
   setSize(1000, 800);
 
   // Subscribe to FeedStore (Task 2.6)
-  storeUnsubscribe = this->feedStore->subscribe([this](const FeedStoreState &state) {
+  storeUnsubscribe = this->feedStore->subscribe([this]([[maybe_unused]] const FeedStoreState &state) {
     // FeedStore state changed - rebuild UI
     handleFeedStateChanged();
   });
@@ -156,7 +156,7 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
       // Track the play in the backend
       if (networkClient != nullptr) {
         Log::debug("PostsFeedComponent: Tracking play in backend for postId: " + postId);
-        networkClient->trackPlay(postId, [this, postId](Outcome<juce::var> responseOutcome) {
+        networkClient->trackPlay(postId, [postId](Outcome<juce::var> responseOutcome) {
           if (responseOutcome.isOk()) {
             Log::debug("PostsFeedComponent: Play tracking successful for postId: " + postId);
             // Update play count in UI if returned in response
@@ -1036,7 +1036,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         Log::info("PostsFeedComponent: More like this clicked for post: " + post.id);
         if (networkClient != nullptr) {
           // Fetch similar posts and show in feed
-          networkClient->getSimilarPosts(post.id, 20, [this, post](Outcome<juce::var> result) {
+          networkClient->getSimilarPosts(post.id, 20, [post](Outcome<juce::var> result) {
             if (result.isOk()) {
               // Parse similar posts and show in feed
               auto data = result.getValue();
@@ -1084,7 +1084,7 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
         juce::AlertWindow::showAsync(options, [this, post](int deleteResult) {
           if (deleteResult == 1 && networkClient != nullptr) {
-            networkClient->deletePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
+            networkClient->deletePost(post.id, [postId = post.id](Outcome<juce::var> result) {
               if (result.isOk()) {
                 Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
                 // Task 2.6: Post deletion now handled by FeedStore subscription
@@ -2071,7 +2071,7 @@ void PostsFeed::updateAudioPlayerPlaylist() {
 // Real-time Feed Updates (5.5)
 //==============================================================================
 
-void PostsFeed::handleNewPostNotification(const juce::var &postData) {
+void PostsFeed::handleNewPostNotification([[maybe_unused]] const juce::var &postData) {
   Log::info("PostsFeed::handleNewPostNotification: New post notification received");
   // Increment pending new posts count (5.5.2)
   pendingNewPostsCount++;
@@ -2111,7 +2111,7 @@ void PostsFeed::handleFollowerCountUpdate(const juce::String &userId, int follow
   // In a full implementation, this would update the profile component
 }
 
-void PostsFeed::showNewPostsToast(int count) {
+void PostsFeed::showNewPostsToast([[maybe_unused]] int count) {
   // Show toast notification with fade-in animation (5.5.2)
   showingNewPostsToast = true;
 

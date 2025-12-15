@@ -19,7 +19,7 @@ PostCard::PostCard() {
   setSize(600, CARD_HEIGHT);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this](bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 
   // Set up long-press detector for emoji reactions
   longPressDetector.onLongPress = [this]() { showEmojiReactionsPanel(); };
@@ -450,7 +450,7 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 }
 
-void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> bounds) {
+void PostCard::drawSocialButtons(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
   // Like/Reaction button
   auto likeBounds = getLikeButtonBounds();
 

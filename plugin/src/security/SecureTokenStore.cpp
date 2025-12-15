@@ -133,6 +133,11 @@ juce::File SecureTokenStore::getTokenFilePath(const juce::String &key) {
 
 #ifdef JUCE_MAC
 
+// SecKeychain APIs are deprecated since macOS 10.10 but still work.
+// Migration to SecItem would require significant refactoring.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 bool SecureTokenStore::saveTokenMacOS(const juce::String &key, const juce::String &token) {
   const char *serviceName = "Sidechain";
   auto keyCStr = key.toRawUTF8();
@@ -215,6 +220,8 @@ bool SecureTokenStore::hasTokenMacOS(const juce::String &key) {
 
   return found;
 }
+
+#pragma clang diagnostic pop
 
 #endif // JUCE_MAC
 

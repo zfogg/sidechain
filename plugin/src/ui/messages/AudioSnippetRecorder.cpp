@@ -103,7 +103,7 @@ void AudioSnippetRecorder::mouseDown(const juce::MouseEvent &event) {
   }
 }
 
-void AudioSnippetRecorder::mouseUp(const juce::MouseEvent &event) {
+void AudioSnippetRecorder::mouseUp([[maybe_unused]] const juce::MouseEvent &event) {
   // For hold-to-record, we could implement here, but for now using toggle
 }
 

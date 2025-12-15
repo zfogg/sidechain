@@ -128,22 +128,23 @@ void ShareToMessageDialog::resized() {
   scrollBar.setBounds(dialogBounds.removeFromRight(12));
 }
 
-void ShareToMessageDialog::mouseUp(const juce::MouseEvent &event) {
+void ShareToMessageDialog::mouseUp([[maybe_unused]] const juce::MouseEvent &event) {
   // TODO: Implement mouse interaction
 }
 
-void ShareToMessageDialog::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+void ShareToMessageDialog::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event,
+                                          const juce::MouseWheelDetails &wheel) {
   scrollPosition -= wheel.deltaY * 50.0;
   scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
   scrollBar.setCurrentRangeStart(scrollPosition, juce::sendNotification);
   repaint();
 }
 
-void ShareToMessageDialog::textEditorTextChanged(juce::TextEditor &editor) {
+void ShareToMessageDialog::textEditorTextChanged([[maybe_unused]] juce::TextEditor &editor) {
   // TODO: Implement search functionality
 }
 
-void ShareToMessageDialog::textEditorReturnKeyPressed(juce::TextEditor &editor) {
+void ShareToMessageDialog::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor &editor) {
   // TODO: Handle return key
 }
 
