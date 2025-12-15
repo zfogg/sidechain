@@ -437,13 +437,13 @@ void Profile::drawHeader(juce::Graphics& g, juce::Rectangle<int> bounds)
     auto backBounds = getBackButtonBounds();
     g.setColour(Colors::textSecondary);
     g.setFont(20.0f);
-    g.drawText("←", backBounds, juce::Justification::centred);
+    g.drawText(juce::CharPointer_UTF8("←"), backBounds, juce::Justification::centred);
 
     // Share button
     auto shareBounds = getShareButtonBounds();
     g.setColour(Colors::textSecondary);
     g.setFont(16.0f);
-    g.drawText("↗", shareBounds, juce::Justification::centred);
+    g.drawText(juce::CharPointer_UTF8("↗"), shareBounds, juce::Justification::centred);
 
     // Avatar
     drawAvatar(g, getAvatarBounds());
