@@ -136,10 +136,9 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 			"play_count":            score.Post.PlayCount,
 			"recommendation_reason": score.Reason,
 			"user": gin.H{
-				"id":                  user.ID,
-				"username":            user.Username,
-				"display_name":        user.DisplayName,
-				"profile_picture_url": user.ProfilePictureURL,
+				"id":         user.ID,
+				"username":   user.Username,
+				"avatar_url": user.ProfilePictureURL,
 			},
 		}
 		activities = append(activities, activity)
@@ -530,10 +529,9 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 			"recommendation_reason": score.Reason,
 			"score":                 score.Score,
 			"user": gin.H{
-				"id":                  user.ID,
-				"username":            user.Username,
-				"display_name":        user.DisplayName,
-				"profile_picture_url": user.ProfilePictureURL,
+				"id":         user.ID,
+				"username":   user.Username,
+				"avatar_url": user.ProfilePictureURL,
 			},
 		}
 		activities = append(activities, activity)
@@ -619,10 +617,9 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 			"recommendation_reason": score.Reason,
 			"score":                 score.Score,
 			"user": gin.H{
-				"id":                  user.ID,
-				"username":            user.Username,
-				"display_name":        user.DisplayName,
-				"profile_picture_url": user.ProfilePictureURL,
+				"id":         user.ID,
+				"username":   user.Username,
+				"avatar_url": user.ProfilePictureURL,
 			},
 		}
 		activities = append(activities, activity)
@@ -811,10 +808,9 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 			"recommendation_reason": score.Reason,
 			"score":                 score.Score,
 			"user": gin.H{
-				"id":                  user.ID,
-				"username":            user.Username,
-				"display_name":        user.DisplayName,
-				"profile_picture_url": user.ProfilePictureURL,
+				"id":         user.ID,
+				"username":   user.Username,
+				"avatar_url": user.ProfilePictureURL,
 			},
 		}
 		activities = append(activities, activity)
