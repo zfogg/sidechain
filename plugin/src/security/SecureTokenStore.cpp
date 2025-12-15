@@ -348,8 +348,9 @@ std::optional<juce::String> SecureTokenStore::loadTokenWindows(const juce::Strin
     if (!filepath.exists())
         return std::nullopt;
 
-    auto fileContent = filepath.loadFileAsData();
-    juce::MemoryBlock encryptedData(fileContent.getData(), fileContent.size());
+    juce::MemoryBlock encryptedData;
+    if (!filepath.loadFileAsData(encryptedData))
+        return std::nullopt;
 
     auto decrypted = dpapi_decrypt(encryptedData);
     if (decrypted.isEmpty())
