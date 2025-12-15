@@ -1,0 +1,66 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  format-check:
+    name: Format Check (clang-format)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Cache Build Dependencies
+        uses: ./.github/actions/cache-build
+        with:
+          arch: x86_64
+
+      - name: Configure CMake
+        run: cmake -S plugin -B plugin/build --preset default
+
+      - name: Format Check
+        run: cmake --build plugin/build --target format-check
+
+  lint:
+    name: Lint Check (clang-tidy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install clang-tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tools
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Cache Build Dependencies
+        uses: ./.github/actions/cache-build
+        with:
+          arch: x86_64
+
+      - name: Configure CMake
+        run: cmake -S plugin -B plugin/build --preset default
+
+      - name: Build for compile_commands.json
+        run: cmake --build plugin/build --parallel
+
+      - name: Lint Check (clang-tidy)
+        run: cmake --build plugin/build --target tidy-check
