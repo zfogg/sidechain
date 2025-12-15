@@ -1,11 +1,15 @@
-name: 'Cache Build Dependencies'
-description: 'Cache .cache directory for faster builds (JUCE and dependencies)'
+name: 'Cache Build Directory'
+description: 'Cache .cache and plugin/build directories for faster builds (JUCE, dependencies, and build artifacts)'
 
 inputs:
   arch:
     description: 'CPU architecture (x86_64, arm64, universal)'
     required: false
     default: ''
+  cache-version:
+    description: 'Cache version - increment to invalidate cache'
+    required: false
+    default: '1'
 
 runs:
   using: 'composite'
@@ -36,11 +40,13 @@ runs:
         echo "arch=$ARCH" >> $GITHUB_OUTPUT
         echo "Cache key: sidechain-build-${{ runner.os }}-$ARCH"
 
-    - name: Cache Build Dependencies
+    - name: Cache Build Directory
       uses: actions/cache@v4
       with:
-        path: .cache
-        key: sidechain-build-${{ runner.os }}-${{ steps.arch.outputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**', 'plugin/conanfile.txt') }}
+        path: |
+          .cache
+          plugin/build
+        key: sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**', 'plugin/conanfile.txt') }}
         restore-keys: |
-          sidechain-build-${{ runner.os }}-${{ steps.arch.outputs.arch }}-
-          sidechain-build-${{ runner.os }}-
+          sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-
+          sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-
