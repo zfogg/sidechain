@@ -294,7 +294,6 @@ private:
     // FeedStore subscription for reactive updates (Task 2.5)
     Sidechain::Stores::FeedStore* feedStore = nullptr;
     std::function<void()> storeUnsubscribe;
-    std::atomic<bool> isBeingDestroyed{false};  // Prevents updates during destruction
 
     // UI state
     HoverState hoverState;
