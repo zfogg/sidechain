@@ -104,9 +104,9 @@ create_tag() {
         git tag "$tag"
         echo "Created tag: $tag"
     else
-        # Annotated tag
-        git tag -a "$tag" -m "$message"
-        echo "Created annotated tag: $tag"
+        # Annotated signed tag (requires GPG key configured)
+        git tag -a "$tag" -m "$message" -s
+        echo "Created signed annotated tag: $tag"
         echo "Message: $message"
     fi
 }
