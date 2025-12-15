@@ -330,7 +330,7 @@ void UserStore::updateProfileComplete(const juce::String& displayName,
 
     juce::var payload(updateData);
 
-    networkClient->put("/profile", payload, [this, displayName, bio, location, genre, dawPreference, isPrivate]
+    networkClient->put("/users/me", payload, [this, displayName, bio, location, genre, dawPreference, isPrivate]
         (Outcome<juce::var> result)
     {
         juce::MessageManager::callAsync([this, displayName, bio, location, genre, dawPreference, isPrivate, result]()
