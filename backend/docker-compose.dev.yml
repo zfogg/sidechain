@@ -1,0 +1,25 @@
+# Development Docker Compose configuration
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# This extends the base docker-compose.yml with development-specific settings:
+# - Uses Dockerfile.dev with air hot reload
+# - Mounts source code for automatic rebuilds on changes
+# - Enables interactive debugging and logging
+
+services:
+  backend:
+    # Override the base configuration to use development Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # Mount source code for hot reload
+    volumes:
+      - .:/app
+      # Exclude node_modules, vendor, and tmp to avoid syncing issues
+      - /app/node_modules
+      - /app/vendor
+      - /app/tmp
+    # Keep container running and show logs
+    stdin_open: true
+    tty: true
+    # Faster restart on rebuild
+    restart: unless-stopped
