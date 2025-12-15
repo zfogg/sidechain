@@ -12,7 +12,9 @@
 #include "util/PropertiesFileUtils.h"
 #include "util/Result.h"
 #include "util/OSNotification.h"
+#ifdef NDEBUG
 #include "security/SecureTokenStore.h"
+#endif
 #include "util/error/ErrorTracking.h"
 
 //==============================================================================
@@ -2202,7 +2204,8 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
         "User authentication successful: " + user
     );
 
-    // Store token securely using platform-specific secure storage
+    // Store token securely using platform-specific secure storage (Release builds only)
+#ifdef NDEBUG
     auto* secureStore = SecureTokenStore::getInstance();
     if (secureStore && secureStore->isAvailable())
     {
@@ -2231,6 +2234,14 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
             "Secure storage not available, token not persisted"
         );
     }
+#else
+    // Debug build - skip secure storage to avoid Keychain popups during development
+    Sidechain::Util::Logger::getInstance().log(
+        LogLevel::Info,
+        "Security",
+        "Debug build - token stored in memory only (not using Keychain)"
+    );
+#endif
 
     // Update legacy state (for backwards compatibility during migration)
     username = user;
@@ -2328,7 +2339,8 @@ void SidechainAudioProcessorEditor::logout()
     profilePicUrl = "";
     authToken = "";
 
-    // Clear auth token from secure storage
+    // Clear auth token from secure storage (Release builds only)
+#ifdef NDEBUG
     auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
     if (secureStore && secureStore->isAvailable())
     {
@@ -2341,6 +2353,14 @@ void SidechainAudioProcessorEditor::logout()
             );
         }
     }
+#else
+    // Debug build - no secure storage to clear
+    Sidechain::Util::Logger::getInstance().log(
+        Sidechain::Util::LogLevel::Info,
+        "Security",
+        "Debug build - no Keychain token to clear"
+    );
+#endif
 
     // Clear network client auth
     if (networkClient)
@@ -2410,9 +2430,10 @@ void SidechainAudioProcessorEditor::loadLoginState()
 
         if (userDataStore->isLoggedIn())
         {
-            // Load auth token from secure storage
-            auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+            // Load auth token from secure storage (Release builds only)
             juce::String loadedToken;
+#ifdef NDEBUG
+            auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
 
             if (secureStore && secureStore->isAvailable())
             {
@@ -2434,6 +2455,14 @@ void SidechainAudioProcessorEditor::loadLoginState()
                     );
                 }
             }
+#else
+            // Debug build - token stored in memory only
+            Sidechain::Util::Logger::getInstance().log(
+                Sidechain::Util::LogLevel::Info,
+                "Security",
+                "Debug build - token stored in memory only (skipping Keychain)"
+            );
+#endif
 
             // Sync legacy state from UserDataStore
             authToken = "";  // Deprecated - using SecureTokenStore
@@ -2593,9 +2622,11 @@ void SidechainAudioProcessorEditor::connectWebSocket()
     if (!webSocketClient)
         return;
 
-    // Load auth token from secure storage
-    auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
+    // Load auth token from secure storage (Release builds only)
     juce::String token;
+
+#ifdef NDEBUG
+    auto* secureStore = Sidechain::Security::SecureTokenStore::getInstance();
 
     if (secureStore && secureStore->isAvailable())
     {
@@ -2604,10 +2635,18 @@ void SidechainAudioProcessorEditor::connectWebSocket()
             token = tokenOpt.value();
         }
     }
+#else
+    // Debug build - try to get token from network client instead of Keychain
+    if (networkClient)
+    {
+        token = networkClient->getAuthToken();
+        Log::debug("Debug build - using in-memory token for WebSocket");
+    }
+#endif
 
     if (token.isEmpty())
     {
-        Log::warn("Cannot connect WebSocket: no auth token in secure storage");
+        Log::warn("Cannot connect WebSocket: no auth token available");
         return;
     }
 
