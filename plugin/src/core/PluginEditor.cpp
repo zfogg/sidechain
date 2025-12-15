@@ -1296,9 +1296,16 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
 
         // Track timing for performance metrics (< 350ms requirement)
         auto startTime = juce::Time::getMillisecondCounterHiRes();
-        auto onTransitionComplete = [startTime]() {
+        auto onTransitionComplete = [this, componentToShow, componentToHide, startTime]() {
             auto elapsed = juce::Time::getMillisecondCounterHiRes() - startTime;
             Log::info("View transition completed in " + juce::String(elapsed, 1) + "ms");
+
+            // After animation: ensure new view is visible, old view is hidden
+            if (componentToShow)
+                componentToShow->setVisible(true);
+            if (componentToHide)
+                componentToHide->setVisible(false);
+
 #ifdef NDEBUG
             jassert(elapsed < 350);  // Verify < 350ms requirement (Release builds only)
 #else
@@ -1462,14 +1469,15 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     if (notificationBell)
         notificationBell->setVisible(showHeader);
 
-    // Set up components (this runs regardless of animation)
+    // Set up components BEFORE animation (so they're ready when animation renders)
+    // This runs regardless of whether we animate or not
     switch (view)
     {
         case AppView::Authentication:
             if (authComponent)
             {
                 authComponent->reset();
-                
+
             }
             break;
 
@@ -1482,13 +1490,14 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
                 {
                     profileSetupComponent->setProfileImage(userDataStore->getProfileImage());
                 }
-                
+
             }
             break;
 
         case AppView::PostsFeed:
             if (postsFeedComponent)
             {
+                Log::debug("showView: Setting up PostsFeed - calling loadFeed()");
                 postsFeedComponent->setUserInfo(username, email, profilePicUrl);
                 postsFeedComponent->loadFeed();
             }
