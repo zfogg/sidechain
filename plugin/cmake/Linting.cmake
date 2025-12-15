@@ -57,6 +57,7 @@ if(CLANG_TIDY_EXECUTABLE)
                 -p ${CMAKE_BINARY_DIR}
                 -fix
                 -j ${CMAKE_CPU_CORES}
+                -config-file ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Running clang-tidy with automatic fixes"
             VERBATIM
@@ -67,6 +68,7 @@ if(CLANG_TIDY_EXECUTABLE)
             COMMAND ${RUN_CLANG_TIDY_PY}
                 -p ${CMAKE_BINARY_DIR}
                 -j ${CMAKE_CPU_CORES}
+                -config-file ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Running clang-tidy (check mode - errors if issues found)"
             VERBATIM
@@ -85,8 +87,8 @@ if(CLANG_TIDY_EXECUTABLE)
     if(CLANG_TIDY_DIFF_PY)
         add_custom_target(tidy-diff
             COMMAND ${CMAKE_COMMAND} -E echo "Checking only changed lines with clang-tidy..."
-            COMMAND bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR}/.. && git diff -U0 --no-color HEAD | ${CLANG_TIDY_DIFF_PY} -p1 -p ${CMAKE_BINARY_DIR}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND bash -c "git diff -U0 --no-color HEAD | ${CLANG_TIDY_DIFF_PY} -p1 -j ${CMAKE_CPU_CORES} -config-file ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
             COMMENT "Running clang-tidy-diff (check changed lines only)"
             VERBATIM
         )
@@ -123,7 +125,7 @@ if(CLANG_FORMAT_EXECUTABLE)
         COMMAND ${CMAKE_COMMAND} -E echo "Formatting code with clang-format..."
         COMMAND ${CLANG_FORMAT_EXECUTABLE}
             -i
-            -style=file
+            -style=file:${CMAKE_CURRENT_SOURCE_DIR}/.clang-format
             ${FORMAT_SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Formatting all source files in-place"
