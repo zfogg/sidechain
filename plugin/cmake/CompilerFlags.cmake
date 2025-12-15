@@ -2,6 +2,8 @@
 # Compiler Flags
 #==============================================================================
 
+include(CheckCXXCompilerFlag)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -17,26 +19,36 @@ endif()
 
 # Common warning flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    # GCC/Clang flags
+    # GCC/Clang flags - always supported
     add_compile_options(
         -Wall
         -Wextra
         -Wpedantic
-        # Suppress warnings from JUCE, generated code, and platform APIs
         -Wno-unused-parameter                      # JUCE and generated code have unused params
-        -Wno-missing-field-initializers            # JUCE structures initialization
-        -Wno-missing-designated-field-initializers # JUCE AU/VST SDK initialization
-        -Wno-deprecated-declarations               # JUCE uses deprecated APIs
-        -Wno-sign-conversion                       # JUCE and size_t conversions
-        -Wno-missing-braces                        # JUCE macros generate missing braces
-        -Wno-unused-function                       # Some static functions only used conditionally
-        -Wno-unused-variable                       # Generated code may have unused vars
-        -Wno-float-equal                           # Animation comparisons need float equality
-        -Wno-switch-enum                           # Not all enum values need explicit handling
-        -Wno-implicit-int-float-conversion         # Audio processing math needs implicit conversions
-        -Wno-shadow                                # Lambda captures may shadow outer variables
-        -Wno-nullable-to-nonnull-conversion        # macOS API bridge code needs this
+        -Wno-missing-field-initializers             # JUCE structures initialization
+        -Wno-deprecated-declarations                # JUCE uses deprecated APIs
+        -Wno-sign-conversion                        # JUCE and size_t conversions
+        -Wno-missing-braces                         # JUCE macros generate missing braces
+        -Wno-unused-function                        # Some static functions only used conditionally
+        -Wno-unused-variable                        # Generated code may have unused vars
+        -Wno-float-equal                            # Animation comparisons need float equality
+        -Wno-switch-enum                            # Not all enum values need explicit handling
+        -Wno-shadow                                 # Lambda captures may shadow outer variables
     )
+
+    # Conditionally supported flags (check compiler support)
+    set(CONDITIONAL_CXX_FLAGS
+        "-Wno-implicit-int-float-conversion"        # Audio processing math (GCC 7.1+, Clang 5+)
+        "-Wno-nullable-to-nonnull-conversion"       # macOS API bridge (Clang 3.8+)
+        "-Wno-missing-designated-field-initializers" # Designated field init (GCC 9.2+, Clang 10+)
+    )
+
+    foreach(flag ${CONDITIONAL_CXX_FLAGS})
+        check_cxx_compiler_flag("${flag}" CXX_FLAG_SUPPORTED_${flag})
+        if(CXX_FLAG_SUPPORTED_${flag})
+            add_compile_options("${flag}")
+        endif()
+    endforeach()
 
     # Debug-specific flags
     add_compile_options(
@@ -69,8 +81,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     elseif(UNIX AND NOT APPLE)
         # Linux-specific
         add_compile_options(-fvisibility=hidden)
-        add_compile_options("$<$<CONFIG:Release>:-flto>")
-        add_link_options("$<$<CONFIG:Release>:-flto>")
+        # Note: LTO is applied per-target later, not globally, to avoid issues with helper executables
         add_link_options("$<$<CONFIG:Release>:-s>")  # Strip symbols
 
         # Use LLD linker for faster link times (if available)
