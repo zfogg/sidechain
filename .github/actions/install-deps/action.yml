@@ -52,7 +52,7 @@ runs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        choco install ninja ccache openssl -y
+        choco install ninja ccache openssl curl -y
         # Set OpenSSL path for CMake
         echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL" >> $env:GITHUB_ENV
 
