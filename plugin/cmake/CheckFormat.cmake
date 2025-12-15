@@ -18,7 +18,7 @@ set(UNFORMATTED_FILES "")
 foreach(SOURCE_FILE ${SOURCE_FILES})
     # Get the formatted version
     execute_process(
-        COMMAND ${CLANG_FORMAT_EXECUTABLE} -style=file "${SOURCE_FILE}"
+        COMMAND ${CLANG_FORMAT_EXECUTABLE} -style=file:${CMAKE_CURRENT_SOURCE_DIR}/.clang-format "${SOURCE_FILE}"
         OUTPUT_VARIABLE FORMATTED_CONTENT
         RESULT_VARIABLE FORMAT_RESULT
     )
