@@ -153,8 +153,9 @@ private:
 class NetworkClient;
 namespace Sidechain {
 namespace Stores {
+struct CommentState;
 class CommentStore;
-}
+} // namespace Stores
 } // namespace Sidechain
 
 //==============================================================================
@@ -225,7 +226,7 @@ private:
   // Data
   NetworkClient *networkClient = nullptr;
   std::shared_ptr<Sidechain::Stores::CommentStore> commentStore;
-  juce::String storeUnsubscribeId; // Track subscription for cleanup
+  std::function<void()> storeUnsubscriber; // Track subscription for cleanup
   juce::String currentPostId;
   juce::String currentUserId;
   juce::Array<Comment> comments;

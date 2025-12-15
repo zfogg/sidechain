@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../network/NetworkClient.h"
 #include "../ui/feed/Comment.h"
 #include "../util/logging/Logger.h"
 #include "Store.h"
@@ -22,12 +23,7 @@ struct CommentState {
   int limit = 20;
   bool hasMore = true;
   int64_t lastUpdated = 0;
-
-  bool operator==(const CommentState &other) const = default;
 };
-
-// Forward declaration
-class NetworkClient;
 
 /**
  * CommentStore - Reactive store for managing comments on a post
@@ -50,7 +46,7 @@ class NetworkClient;
  */
 class CommentStore : public Store<CommentState> {
 public:
-  explicit CommentStore(NetworkClient *networkClient);
+  explicit CommentStore(NetworkClient *client);
   ~CommentStore() override = default;
 
   //==============================================================================
@@ -98,6 +94,12 @@ public:
     return getState().isLoading;
   }
 
+protected:
+  //==============================================================================
+  // Helper methods (accessible to subclasses)
+  void removeCommentFromState(const juce::String &commentId);
+  void updateCommentInState(const Comment &comment);
+
 private:
   NetworkClient *networkClient;
 
@@ -108,14 +110,6 @@ private:
   void handleCommentLikeToggled(const juce::String &commentId, bool liked, Outcome<juce::var> result);
   void handleCommentDeleted(const juce::String &commentId, Outcome<juce::var> result);
   void handleCommentUpdated(const juce::String &commentId, Outcome<juce::var> result);
-
-  //==============================================================================
-  // Helper methods
-  void updateState(std::function<void(CommentState &)> mutator);
-  void notifySubscribers();
-  Comment parseCommentFromJson(const juce::var &json) const;
-  void removeCommentFromState(const juce::String &commentId);
-  void updateCommentInState(const Comment &comment);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CommentStore)
 };
