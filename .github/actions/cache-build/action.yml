@@ -50,3 +50,23 @@ runs:
         restore-keys: |
           sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-
           sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-
+
+    - name: Cache Homebrew Packages (macOS)
+      if: runner.os == 'macOS'
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Caches/Homebrew
+        key: sidechain-brew-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+        restore-keys: |
+          sidechain-brew-v${{ inputs.cache-version }}-
+
+    - name: Cache Chocolatey Packages (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/cache@v4
+      with:
+        path: |
+          C:\ProgramData\chocolatey
+          C:\Program Files\OpenSSL
+        key: sidechain-choco-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+        restore-keys: |
+          sidechain-choco-v${{ inputs.cache-version }}-
