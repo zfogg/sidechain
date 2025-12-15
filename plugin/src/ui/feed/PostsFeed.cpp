@@ -583,10 +583,15 @@ void PostsFeed::paint(juce::Graphics& g)
     // Feed type tabs (top bar now handled by central HeaderComponent)
     drawFeedTabs(g);
 
-    // Main feed area based on state
-    switch (feedState)
+    // Clip content area so posts scroll under the tabs header
     {
-        case FeedState::Loading:
+        juce::Graphics::ScopedSaveState saveState(g);
+        g.reduceClipRegion(getFeedContentBounds());
+
+        // Main feed area based on state
+        switch (feedState)
+        {
+            case FeedState::Loading:
             // FeedSkeleton component handles the loading UI as a child component
             // Just ensure background is drawn (already done above)
             break;
@@ -605,7 +610,8 @@ void PostsFeed::paint(juce::Graphics& g)
             // ErrorState component handles the error UI as a child component
             // Just ensure background is drawn (already done above)
             break;
-    }
+        }
+    } // End clip region scope
 }
 
 void PostsFeed::drawFeedTabs(juce::Graphics& g)
@@ -968,7 +974,7 @@ void PostsFeed::updatePostCardPositions()
     if (!aggregatedCards.isEmpty())
     {
         // Layout aggregated cards (variable height)
-        int currentY = contentBounds.getY() - static_cast<int>(scrollPosition);
+        int currentY = contentBounds.getY() + POSTS_TOP_PADDING - static_cast<int>(scrollPosition);
 
         for (auto* card : aggregatedCards)
         {
@@ -994,7 +1000,7 @@ void PostsFeed::updatePostCardPositions()
         for (int i = 0; i < postCards.size(); ++i)
         {
             auto* card = postCards[i];
-            int cardY = contentBounds.getY() - static_cast<int>(scrollPosition) + i * (POST_CARD_HEIGHT + POST_CARD_SPACING);
+            int cardY = contentBounds.getY() + POSTS_TOP_PADDING - static_cast<int>(scrollPosition) + i * (POST_CARD_HEIGHT + POST_CARD_SPACING);
 
             card->setBounds(contentBounds.getX() + 20, cardY, cardWidth, POST_CARD_HEIGHT);
 
@@ -2012,7 +2018,7 @@ void PostsFeed::updateScrollBounds()
     auto contentBounds = getFeedContentBounds();
     // Task 2.6: Use FeedStore instead of local posts array
     const auto& posts = feedStore ? feedStore->getState().getCurrentFeed().posts : juce::Array<FeedPost>{};
-    totalContentHeight = static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
+    totalContentHeight = POSTS_TOP_PADDING + static_cast<int>(posts.size()) * (POST_CARD_HEIGHT + POST_CARD_SPACING);
 
     double visibleHeight = contentBounds.getHeight();
     scrollBar.setRangeLimits(0.0, juce::jmax(static_cast<double>(totalContentHeight), visibleHeight));
