@@ -1249,6 +1249,15 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
     Log::info("showView: componentToShow=" + juce::String(componentToShow != nullptr ? "valid" : "null") +
               ", componentToHide=" + juce::String(componentToHide != nullptr ? "valid" : "null"));
 
+    // SET UP THE VIEW FIRST (before animation) so content is ready to display
+    // This ensures that when the animation starts, the view is already prepared
+    if (view == AppView::PostsFeed && postsFeedComponent)
+    {
+        Log::debug("showView: Setting up PostsFeed BEFORE animation - calling loadFeed()");
+        postsFeedComponent->setUserInfo(username, email, profilePicUrl);
+        postsFeedComponent->loadFeed();
+    }
+
     // Determine if we should animate the transition
     // Don't animate: auth transitions, same view, missing components, or explicitly no animation
     bool shouldAnimate = componentToShow && componentToHide
@@ -1495,12 +1504,7 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
             break;
 
         case AppView::PostsFeed:
-            if (postsFeedComponent)
-            {
-                Log::debug("showView: Setting up PostsFeed - calling loadFeed()");
-                postsFeedComponent->setUserInfo(username, email, profilePicUrl);
-                postsFeedComponent->loadFeed();
-            }
+            // PostsFeed is set up BEFORE animation (see above) to ensure content is ready
             break;
 
         case AppView::Recording:
