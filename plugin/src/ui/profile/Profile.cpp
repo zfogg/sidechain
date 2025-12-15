@@ -1510,6 +1510,69 @@ void Profile::shareProfile()
     Log::debug("Profile::shareProfile: Profile link copied to clipboard");
 }
 
+void Profile::syncFollowStateFromFeedStore()
+{
+    if (!feedStore)
+    {
+        Log::warn("Profile::syncFollowStateFromFeedStore: FeedStore is null");
+        return;
+    }
+
+    const auto& feedState = feedStore->getState();
+    int syncedCount = 0;
+
+    // Iterate through all posts in userPosts and sync follow state from FeedStore
+    for (auto& userPost : userPosts)
+    {
+        // Check all feeds in FeedStore for this post
+        for (const auto& feedPair : feedState.feeds)
+        {
+            for (const auto& feedPost : feedPair.second.posts)
+            {
+                if (feedPost.id == userPost.id || feedPost.userId == userPost.userId)
+                {
+                    // Sync the follow state
+                    if (userPost.isFollowing != feedPost.isFollowing)
+                    {
+                        Log::debug("Profile::syncFollowStateFromFeedStore: Syncing post " + userPost.id +
+                                   " - changing isFollowing from " + juce::String(userPost.isFollowing ? "true" : "false") +
+                                   " to " + juce::String(feedPost.isFollowing ? "true" : "false"));
+                        userPost.isFollowing = feedPost.isFollowing;
+                        syncedCount++;
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Also check aggregated feeds
+        for (const auto& aggFeedPair : feedState.aggregatedFeeds)
+        {
+            for (const auto& group : aggFeedPair.second.groups)
+            {
+                for (const auto& activity : group.activities)
+                {
+                    if (activity.id == userPost.id || activity.userId == userPost.userId)
+                    {
+                        if (userPost.isFollowing != activity.isFollowing)
+                        {
+                            Log::debug("Profile::syncFollowStateFromFeedStore: Syncing post " + userPost.id +
+                                       " from aggregated feed - changing isFollowing from " +
+                                       juce::String(userPost.isFollowing ? "true" : "false") +
+                                       " to " + juce::String(activity.isFollowing ? "true" : "false"));
+                            userPost.isFollowing = activity.isFollowing;
+                            syncedCount++;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    Log::info("Profile::syncFollowStateFromFeedStore: Synced " + juce::String(syncedCount) + " posts with FeedStore");
+}
+
 //==============================================================================
 void Profile::updatePostCards()
 {
@@ -1567,6 +1630,9 @@ void Profile::updatePostCards()
     for (int i = 0; i < userPosts.size(); ++i)
     {
         auto* card = postCards[i];
+        Log::debug("Profile::updatePostCards: Setting post " + juce::String(i) +
+                   " - isFollowing: " + juce::String(userPosts[i].isFollowing ? "true" : "false") +
+                   ", userId: " + userPosts[i].userId);
         card->setPost(userPosts[i]);
         card->setBounds(PADDING, y, postsArea.getWidth() - PADDING * 2, POST_CARD_HEIGHT);
 

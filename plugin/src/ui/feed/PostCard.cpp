@@ -100,7 +100,12 @@ void PostCard::setPost(const FeedPost& newPost)
 {
     post = newPost;
     avatarImage = juce::Image();
-    Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username);
+    Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username +
+               ", isFollowing: " + juce::String(post.isFollowing ? "true" : "false") +
+               ", isOwnPost: " + juce::String(post.isOwnPost ? "true" : "false"));
+
+    // Immediately repaint to reflect updated post data (especially follow state)
+    repaint();
 
     // Create and start fade-in animation
     currentOpacity = 0.0f;

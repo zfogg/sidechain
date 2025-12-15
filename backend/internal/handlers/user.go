@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -52,8 +53,8 @@ func (h *Handlers) FollowUser(c *gin.Context) {
 	if h.wsHandler != nil {
 		// Fetch follower and followee info for the notification
 		var follower, followee models.User
-		database.DB.Select("id, username, display_name, profile_picture_url, oauth_profile_picture_url").First(&follower, "id = ?", userID)
-		database.DB.Select("id, username, display_name").First(&followee, "id = ?", req.TargetUserID)
+		database.DB.First(&follower, "id = ?", userID)
+		database.DB.First(&followee, "id = ?", req.TargetUserID)
 
 		// Get updated follower count for the target user
 		followerCount := 0
@@ -726,6 +727,16 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		}
 	}
 
+	// Check if current user is following this profile owner
+	// All posts on a user profile are by the same user, so we check once
+	isFollowingUser := false
+	if currentUserID != "" && currentUserID != user.ID && h.stream != nil {
+		isFollowingUser, _ = h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
+		log.Printf("GetUserPosts: currentUserID=%s, targetUserID=%s, isFollowing=%v", currentUserID, user.ID, isFollowingUser)
+	} else {
+		log.Printf("GetUserPosts: Skipping follow check - currentUserID=%s, targetUserID=%s, ownProfile=%v", currentUserID, user.ID, currentUserID == user.ID)
+	}
+
 	// Get enriched activities from Stream.io
 	// Note: Posts are created using user.ID, so we must query with user.ID (not StreamUserID)
 	activities, err := h.stream.GetEnrichedUserFeed(user.ID, limit, offset)
@@ -785,6 +796,8 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"status":           post.ProcessingStatus,
 				"is_pinned":        post.IsPinned,
 				"pin_order":        post.PinOrder,
+				"is_following":     isFollowingUser, // Add follow state
+				"is_own_post":      currentUserID == post.UserID,
 				"actor_data": gin.H{
 					"id":         user.ID,
 					"username":   user.Username,
@@ -817,8 +830,26 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		streamAvatarURL = user.OAuthProfilePictureURL
 	}
 
+	// Enrich activities with is_following state
+	// All posts from Stream.io are by the same user (profile owner), so apply to all
+	enrichedActivities := make([]gin.H, len(activities))
+	for i, activity := range activities {
+		// Convert EnrichedActivity to map using JSON marshal/unmarshal
+		// This preserves all fields from the enriched activity
+		var activityMap map[string]interface{}
+		activityBytes, _ := json.Marshal(activity)
+		json.Unmarshal(activityBytes, &activityMap)
+
+		// Add is_following to the activity
+		activityMap["is_following"] = isFollowingUser
+		activityMap["is_own_post"] = currentUserID == user.ID
+		enrichedActivities[i] = activityMap
+	}
+
+	log.Printf("GetUserPosts: Returning %d posts with is_following=%v", len(enrichedActivities), isFollowingUser)
+
 	c.JSON(http.StatusOK, gin.H{
-		"posts": activities,
+		"posts": enrichedActivities,
 		"user": gin.H{
 			"id":           user.ID,
 			"username":     user.Username,
@@ -828,7 +859,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
-			"count":  len(activities),
+			"count":  len(enrichedActivities),
 			"source": "stream",
 		},
 	})

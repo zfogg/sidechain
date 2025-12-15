@@ -92,7 +92,7 @@ type User struct {
 	DiscordID *string `gorm:"uniqueIndex" json:"-"`
 
 	// Profile data
-	OAuthProfilePictureURL string       `json:"oauth_profile_picture_url"` // From OAuth provider (Google/Discord)
+	OAuthProfilePictureURL string       `gorm:"column:oauth_profile_picture_url" json:"oauth_profile_picture_url"` // From OAuth provider (Google/Discord)
 	ProfilePictureURL      string       `json:"profile_picture_url"`       // S3 URL for user-uploaded profile picture
 	DAWPreference     string       `json:"daw_preference"`
 	Genre             StringArray  `gorm:"type:text[]" json:"genre"`

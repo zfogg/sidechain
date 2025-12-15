@@ -214,6 +214,9 @@ private:
     // Check if user has active stories
     void checkForActiveStories(const juce::String& userId);
 
+    // Sync follow state from FeedStore to local userPosts array
+    void syncFollowStateFromFeedStore();
+
     //==============================================================================
     // Helpers
     void updatePostCards();
