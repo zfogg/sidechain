@@ -1,0 +1,46 @@
+name: 'Cache Build Dependencies'
+description: 'Cache .cache directory for faster builds (JUCE and dependencies)'
+
+inputs:
+  arch:
+    description: 'CPU architecture (x86_64, arm64, universal)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine Architecture
+      id: arch
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.arch }}" ]; then
+          ARCH="${{ inputs.arch }}"
+        elif [ "${{ runner.os }}" = "macOS" ]; then
+          # Detect macOS architecture from matrix or system
+          if [ -f /.dockerenv ]; then
+            ARCH="x86_64"
+          else
+            ARCH=$(uname -m)
+            if [ "$ARCH" = "arm64" ] && [[ "${{ runner.name }}" == *"ARM64"* ]]; then
+              ARCH="arm64"
+            elif [[ "${{ runner.name }}" == *"Intel"* ]]; then
+              ARCH="x86_64"
+            elif [[ "${{ runner.name }}" == *"universal"* ]]; then
+              ARCH="universal"
+            fi
+          fi
+        else
+          ARCH="x86_64"
+        fi
+        echo "arch=$ARCH" >> $GITHUB_OUTPUT
+        echo "Cache key: sidechain-build-${{ runner.os }}-$ARCH"
+
+    - name: Cache Build Dependencies
+      uses: actions/cache@v4
+      with:
+        path: .cache
+        key: sidechain-build-${{ runner.os }}-${{ steps.arch.outputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**', 'plugin/conanfile.txt') }}
+        restore-keys: |
+          sidechain-build-${{ runner.os }}-${{ steps.arch.outputs.arch }}-
+          sidechain-build-${{ runner.os }}-
