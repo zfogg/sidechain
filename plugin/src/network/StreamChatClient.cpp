@@ -103,7 +103,11 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String& endpoint, cons
               ", chatToken: " + juce::String(chatToken.isEmpty() ? "EMPTY" : "SET") +
               ", currentUserId: " + currentUserId);
 
-    juce::String fullUrl = getStreamBaseUrl() + endpoint + "?api_key=" + apiKey;
+    // Build URL with API key - handle if endpoint already has query parameters
+    juce::String baseUrl = getStreamBaseUrl() + endpoint;
+    juce::String fullUrl = baseUrl.contains("?")
+        ? baseUrl + "&api_key=" + apiKey
+        : baseUrl + "?api_key=" + apiKey;
     juce::URL url(fullUrl);
 
     juce::String headers = buildAuthHeaders();
@@ -293,6 +297,10 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
         [this, limit, offset]() -> std::vector<Channel> {
             juce::String endpoint = "/channels";
 
+            // Build request body with filter, sort, limit, offset
+            juce::var requestData = juce::var(new juce::DynamicObject());
+            auto* obj = requestData.getDynamicObject();
+
             // Build filter: {"members": {"$in": [userId]}}
             juce::var filter = juce::var(new juce::DynamicObject());
             auto* filterObj = filter.getDynamicObject();
@@ -301,13 +309,22 @@ void StreamChatClient::queryChannels(ChannelsCallback callback, int limit, int o
             juce::var inObj = juce::var(new juce::DynamicObject());
             inObj.getDynamicObject()->setProperty("$in", inArray);
             filterObj->setProperty("members", inObj);
+            obj->setProperty("filter_conditions", filter);
 
-            endpoint += "?filter=" + juce::URL::addEscapeChars(juce::JSON::toString(filter, true), true);
-            endpoint += "&sort=" + juce::URL::addEscapeChars("[{\"field\":\"last_message_at\",\"direction\":-1}]", true);
-            endpoint += "&limit=" + juce::String(limit);
-            endpoint += "&offset=" + juce::String(offset);
+            // Build sort
+            juce::var sort = juce::var(juce::Array<juce::var>());
+            juce::var sortItem = juce::var(new juce::DynamicObject());
+            sortItem.getDynamicObject()->setProperty("field", "last_message_at");
+            sortItem.getDynamicObject()->setProperty("direction", -1);
+            sort.getArray()->add(sortItem);
+            obj->setProperty("sort", sort);
 
-            auto response = makeStreamRequest(endpoint, "GET", juce::var());
+            obj->setProperty("limit", limit);
+            obj->setProperty("offset", offset);
+
+            Log::debug("StreamChatClient: Querying channels with filter - " + juce::JSON::toString(requestData));
+
+            auto response = makeStreamRequest(endpoint, "POST", requestData);
 
             std::vector<Channel> channels;
 
@@ -348,13 +365,22 @@ void StreamChatClient::sendMessage(const juce::String& channelType, const juce::
 
     Async::run<Message>(
         [this, channelType, channelId, text, extraData]() -> Message {
-            juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/message";
+            // Use "messaging" as default channel type if empty
+            juce::String actualChannelType = channelType.isEmpty() ? "messaging" : channelType;
+            juce::String endpoint = "/channels/" + actualChannelType + "/" + channelId + "/message";
+
+            Log::debug("StreamChatClient::sendMessage - endpoint: " + endpoint);
+            Log::debug("StreamChatClient::sendMessage - text: " + text);
+            Log::debug("StreamChatClient::sendMessage - channelType: " + actualChannelType);
 
             juce::var requestData = juce::var(new juce::DynamicObject());
             auto* obj = requestData.getDynamicObject();
 
             juce::var message = juce::var(new juce::DynamicObject());
             auto* msgObj = message.getDynamicObject();
+
+            // Message type is required by stream.io
+            msgObj->setProperty("type", "default");
             msgObj->setProperty("text", text);
 
             if (!extraData.isVoid())
@@ -364,26 +390,38 @@ void StreamChatClient::sendMessage(const juce::String& channelType, const juce::
 
             obj->setProperty("message", message);
 
+            Log::debug("StreamChatClient::sendMessage - request data: " + juce::JSON::toString(requestData));
+
             auto response = makeStreamRequest(endpoint, "POST", requestData);
+
+            Log::debug("StreamChatClient::sendMessage - response: " + juce::JSON::toString(response));
 
             if (response.isObject())
             {
                 auto messageData = response.getProperty("message", juce::var());
                 if (messageData.isObject())
                 {
+                    Log::debug("StreamChatClient::sendMessage - message sent successfully with ID: " + messageData.getProperty("id", "").toString());
                     return parseMessage(messageData);
                 }
             }
 
+            Log::error("StreamChatClient::sendMessage - failed to parse response");
             return Message{};
         },
         [callback](const Message& msg) {
             if (callback)
             {
                 if (!msg.id.isEmpty())
+                {
+                    Log::info("StreamChatClient::sendMessage - callback with success");
                     callback(Outcome<Message>::ok(msg));
+                }
                 else
+                {
+                    Log::error("StreamChatClient::sendMessage - callback with error");
                     callback(Outcome<Message>::error("Failed to send message"));
+                }
             }
         }
     );
@@ -401,10 +439,22 @@ void StreamChatClient::queryMessages(const juce::String& channelType, const juce
     Async::run<std::vector<Message>>(
         [this, channelType, channelId, limit, offset]() -> std::vector<Message> {
             juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/query";
-            endpoint += "?messages.limit=" + juce::String(limit);
-            endpoint += "&messages.offset=" + juce::String(offset);
 
-            auto response = makeStreamRequest(endpoint, "GET", juce::var());
+            // Build request body with message query parameters
+            juce::var requestData = juce::var(new juce::DynamicObject());
+            auto* obj = requestData.getDynamicObject();
+
+            juce::var messagesObj = juce::var(new juce::DynamicObject());
+            messagesObj.getDynamicObject()->setProperty("limit", limit);
+            messagesObj.getDynamicObject()->setProperty("offset", offset);
+            obj->setProperty("messages", messagesObj);
+
+            Log::debug("StreamChatClient::queryMessages - endpoint: " + endpoint);
+            Log::debug("StreamChatClient::queryMessages - request: " + juce::JSON::toString(requestData));
+
+            auto response = makeStreamRequest(endpoint, "POST", requestData);
+
+            Log::debug("StreamChatClient::queryMessages - response: " + juce::JSON::toString(response));
 
             std::vector<Message> messages;
 
@@ -416,6 +466,7 @@ void StreamChatClient::queryMessages(const juce::String& channelType, const juce
                     auto messagesArray = channelData.getProperty("messages", juce::var());
                     if (messagesArray.isArray())
                     {
+                        Log::debug("StreamChatClient::queryMessages - found " + juce::String(messagesArray.getArray()->size()) + " messages");
                         for (int i = 0; i < messagesArray.getArray()->size(); i++)
                         {
                             auto messageData = messagesArray.getArray()->getReference(i);

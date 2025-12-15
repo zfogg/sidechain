@@ -393,15 +393,26 @@ void ChatStore::loadMoreMessages(const juce::String& channelId)
 
 void ChatStore::sendMessage(const juce::String& channelId, const juce::String& text)
 {
+    Log::debug("ChatStore::sendMessage - text: " + text + ", channelId: " + channelId);
+
     if (text.isEmpty())
+    {
+        Log::debug("ChatStore::sendMessage - text is empty, returning");
         return;
+    }
+
+    Log::debug("ChatStore::sendMessage - streamChatClient: " + juce::String(streamChatClient != nullptr ? "SET" : "NULL") +
+              ", isAuthenticated: " + juce::String(isAuthenticated() ? "YES" : "NO"));
 
     if (!streamChatClient || !isAuthenticated())
     {
+        Log::error("ChatStore::sendMessage - Cannot send message - streamChatClient=" + juce::String(streamChatClient != nullptr ? "SET" : "NULL") +
+                   ", authenticated=" + juce::String(isAuthenticated() ? "YES" : "NO"));
         Util::logError("ChatStore", "Cannot send message - not authenticated");
         return;
     }
 
+    Log::debug("ChatStore::sendMessage - Proceeding with message send");
     Util::logInfo("ChatStore", "Sending message", "channelId=" + channelId);
 
     // Generate temporary ID for optimistic update

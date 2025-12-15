@@ -34,6 +34,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     userDataStore = std::make_unique<UserDataStore>();
     userDataStore->addChangeListener(this);
 
+    // ChatStore is a singleton - no need to create it here
+    // It will be accessed via ChatStore::getInstance()
+
     // Initialize draft storage
     draftStorage = std::make_unique<DraftStorage>();
 
@@ -795,6 +798,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create StreamChatClient for getstream.io messaging
     streamChatClient = std::make_unique<StreamChatClient>(networkClient.get(), StreamChatClient::Config::development());
 
+    // Set StreamChatClient on ChatStore so it can send/receive messages
+    Sidechain::Stores::ChatStore::getInstance().setStreamChatClient(streamChatClient.get());
+
     // Wire up message notification callback to check OS notification setting
     streamChatClient->setMessageNotificationCallback([this](const juce::String& title, const juce::String& message) {
         // Check if OS notifications are enabled before showing
@@ -886,6 +892,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     messageThreadComponent->setStreamChatClient(streamChatClient.get());
     messageThreadComponent->setNetworkClient(networkClient.get());
     messageThreadComponent->setAudioProcessor(&audioProcessor);
+    messageThreadComponent->setChatStore(&Sidechain::Stores::ChatStore::getInstance());
     messageThreadComponent->onBackPressed = [this]() {
         showView(AppView::Messages);
     };
@@ -2337,7 +2344,16 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String& user, con
         streamChatClient->fetchToken(token, [](::Outcome<StreamChatClient::TokenResult> result) {
             if (result.isOk())
             {
-                Log::info("Stream chat token fetched successfully for user: " + result.getValue().userId);
+                auto tokenResult = result.getValue();
+                Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+
+                // Also set authentication on ChatStore so it can send messages
+                Sidechain::Stores::ChatStore::getInstance().setAuthentication(
+                    tokenResult.token,
+                    tokenResult.apiKey,
+                    tokenResult.userId
+                );
+                Log::debug("ChatStore authenticated with stream token");
             }
             else
             {
@@ -2566,7 +2582,16 @@ void SidechainAudioProcessorEditor::loadLoginState()
                 streamChatClient->fetchToken(loadedToken, [](Outcome<StreamChatClient::TokenResult> result) {
                     if (result.isOk())
                     {
-                        Log::info("Stream chat token fetched successfully for user: " + result.getValue().userId);
+                        auto tokenResult = result.getValue();
+                        Log::info("Stream chat token fetched successfully for user: " + tokenResult.userId);
+
+                        // Also set authentication on ChatStore so it can send messages
+                        Sidechain::Stores::ChatStore::getInstance().setAuthentication(
+                            tokenResult.token,
+                            tokenResult.apiKey,
+                            tokenResult.userId
+                        );
+                        Log::debug("ChatStore authenticated with stream token (from saved state)");
                     }
                     else
                     {
