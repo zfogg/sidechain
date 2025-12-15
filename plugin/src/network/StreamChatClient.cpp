@@ -1457,14 +1457,16 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
   // fine The callback from uploadMultipartAbsolute is already on the message
   // thread
   Async::runVoid([this, audioBuffer, sampleRate, durationSecs, callback]() {
-    // Encode audio to WAV
-    juce::MemoryOutputStream outputStream;
+    // Encode audio to WAV - use MemoryBlock that survives stream destruction
+    juce::MemoryBlock audioDataBlock;
+    std::unique_ptr<juce::OutputStream> outputStream =
+        std::make_unique<juce::MemoryOutputStream>(audioDataBlock, false);
     juce::WavAudioFormat wavFormat;
     auto writerOptions = juce::AudioFormatWriterOptions()
                              .withSampleRate(sampleRate)
                              .withNumChannels(audioBuffer.getNumChannels())
                              .withBitsPerSample(16);
-    std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterForRawPtr(&outputStream, writerOptions));
+    auto writer = wavFormat.createWriterFor(outputStream, writerOptions);
 
     if (writer == nullptr) {
       Log::error("Failed to create WAV writer");
@@ -1476,9 +1478,9 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
     }
 
     writer->writeFromAudioSampleBuffer(audioBuffer, 0, audioBuffer.getNumSamples());
-    writer.reset(); // Flush
+    writer.reset(); // Flush and release stream
 
-    juce::MemoryBlock audioDataBlock = outputStream.getMemoryBlock();
+    // audioDataBlock still has the data (MemoryOutputStream wrote to it)
 
     if (networkClient == nullptr) {
       Log::warn("StreamChatClient: NetworkClient not set");
