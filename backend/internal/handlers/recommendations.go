@@ -542,3 +542,188 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 		},
 	})
 }
+
+// GetDiscoveryFeed returns a blended feed of popular, latest, and personalized content
+// GET /api/v1/recommendations/discovery-feed
+// Query params: ?limit=20&offset=0
+// Task 7.4 - Mix 30% popular, 20% latest, 50% personalized
+func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	if limit > 100 {
+		limit = 100
+	}
+
+	// Use the injected Gorse client if available
+	var recService *recommendations.GorseRESTClient
+	if h.gorse != nil {
+		recService = h.gorse
+	} else {
+		// Fallback to creating a new client
+		gorseURL := os.Getenv("GORSE_URL")
+		if gorseURL == "" {
+			gorseURL = "http://localhost:8087"
+		}
+		gorseAPIKey := os.Getenv("GORSE_API_KEY")
+		if gorseAPIKey == "" {
+			gorseAPIKey = "sidechain_gorse_api_key"
+		}
+		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	}
+
+	// Calculate how many items to fetch from each source
+	// Ratio: 30% popular, 20% latest, 50% personalized
+	popularCount := int(float64(limit) * 0.3)
+	latestCount := int(float64(limit) * 0.2)
+	personalizedCount := limit - popularCount - latestCount // Remaining goes to personalized
+
+	// Fetch from all three sources concurrently
+	type result struct {
+		popular      []recommendations.PostScore
+		latest       []recommendations.PostScore
+		personalized []recommendations.PostScore
+		err          error
+	}
+
+	resultChan := make(chan result, 1)
+	go func() {
+		var res result
+
+		// Fetch popular posts
+		popular, err := recService.GetPopular(popularCount, offset)
+		if err != nil {
+			res.err = fmt.Errorf("failed to get popular posts: %w", err)
+			resultChan <- res
+			return
+		}
+		res.popular = popular
+
+		// Fetch latest posts
+		latest, err := recService.GetLatest(latestCount, offset)
+		if err != nil {
+			res.err = fmt.Errorf("failed to get latest posts: %w", err)
+			resultChan <- res
+			return
+		}
+		res.latest = latest
+
+		// Fetch personalized recommendations
+		personalized, err := recService.GetForYouFeed(userID, personalizedCount, offset)
+		if err != nil {
+			res.err = fmt.Errorf("failed to get personalized feed: %w", err)
+			resultChan <- res
+			return
+		}
+		res.personalized = personalized
+
+		resultChan <- res
+	}()
+
+	res := <-resultChan
+	if res.err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "failed_to_get_discovery_feed",
+			"message": res.err.Error(),
+		})
+		return
+	}
+
+	// Interleave the three sources to create a diverse feed
+	// Pattern: personalized, popular, personalized, latest, personalized, popular, etc.
+	blendedScores := make([]recommendations.PostScore, 0, limit)
+	seenIDs := make(map[string]bool)
+
+	popIdx, latIdx, persIdx := 0, 0, 0
+	for len(blendedScores) < limit {
+		added := false
+
+		// Try to add personalized (50% of total)
+		if persIdx < len(res.personalized) {
+			post := res.personalized[persIdx]
+			if !seenIDs[post.Post.ID] {
+				blendedScores = append(blendedScores, post)
+				seenIDs[post.Post.ID] = true
+				added = true
+			}
+			persIdx++
+		}
+
+		if len(blendedScores) >= limit {
+			break
+		}
+
+		// Try to add popular (30% of total)
+		if popIdx < len(res.popular) {
+			post := res.popular[popIdx]
+			if !seenIDs[post.Post.ID] {
+				blendedScores = append(blendedScores, post)
+				seenIDs[post.Post.ID] = true
+				added = true
+			}
+			popIdx++
+		}
+
+		if len(blendedScores) >= limit {
+			break
+		}
+
+		// Try to add latest (20% of total)
+		if latIdx < len(res.latest) {
+			post := res.latest[latIdx]
+			if !seenIDs[post.Post.ID] {
+				blendedScores = append(blendedScores, post)
+				seenIDs[post.Post.ID] = true
+				added = true
+			}
+			latIdx++
+		}
+
+		// If we couldn't add anything from any source, break to avoid infinite loop
+		if !added && popIdx >= len(res.popular) && latIdx >= len(res.latest) && persIdx >= len(res.personalized) {
+			break
+		}
+	}
+
+	// Convert to activities format
+	activities := make([]map[string]interface{}, 0, len(blendedScores))
+	for _, score := range blendedScores {
+		activity := map[string]interface{}{
+			"id":                    score.Post.ID,
+			"audio_url":             score.Post.AudioURL,
+			"bpm":                   score.Post.BPM,
+			"key":                   score.Post.Key,
+			"daw":                   score.Post.DAW,
+			"duration":              score.Post.Duration,
+			"genre":                 score.Post.Genre,
+			"created_at":            score.Post.CreatedAt,
+			"like_count":            score.Post.LikeCount,
+			"play_count":            score.Post.PlayCount,
+			"recommendation_reason": score.Reason,
+			"score":                 score.Score,
+		}
+		activities = append(activities, activity)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+			"source": "discovery",
+			"blend": gin.H{
+				"popular_count":      len(res.popular),
+				"latest_count":       len(res.latest),
+				"personalized_count": len(res.personalized),
+				"blend_ratio":        "30% popular, 20% latest, 50% personalized",
+			},
+		},
+	})
+}
