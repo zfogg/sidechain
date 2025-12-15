@@ -402,3 +402,143 @@ func (h *Handlers) HidePost(c *gin.Context) {
 		"message": "This post will no longer appear in your recommendations",
 	})
 }
+
+// GetPopular returns globally popular posts based on engagement metrics
+// GET /api/v1/recommendations/popular
+// Query params: ?limit=20&offset=0
+// Task 7.3
+func (h *Handlers) GetPopular(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	if limit > 100 {
+		limit = 100
+	}
+
+	// Use the injected Gorse client if available
+	var recService *recommendations.GorseRESTClient
+	if h.gorse != nil {
+		recService = h.gorse
+	} else {
+		// Fallback to creating a new client
+		gorseURL := os.Getenv("GORSE_URL")
+		if gorseURL == "" {
+			gorseURL = "http://localhost:8087"
+		}
+		gorseAPIKey := os.Getenv("GORSE_API_KEY")
+		if gorseAPIKey == "" {
+			gorseAPIKey = "sidechain_gorse_api_key"
+		}
+		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	}
+
+	// Get popular posts
+	scores, err := recService.GetPopular(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "failed_to_get_popular_posts",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Convert to activities format
+	activities := make([]map[string]interface{}, 0, len(scores))
+	for _, score := range scores {
+		activity := map[string]interface{}{
+			"id":                    score.Post.ID,
+			"audio_url":             score.Post.AudioURL,
+			"bpm":                   score.Post.BPM,
+			"key":                   score.Post.Key,
+			"daw":                   score.Post.DAW,
+			"duration":              score.Post.Duration,
+			"genre":                 score.Post.Genre,
+			"created_at":            score.Post.CreatedAt,
+			"like_count":            score.Post.LikeCount,
+			"play_count":            score.Post.PlayCount,
+			"recommendation_reason": score.Reason,
+			"score":                 score.Score,
+		}
+		activities = append(activities, activity)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+			"source": "popular",
+		},
+	})
+}
+
+// GetLatest returns recently added posts
+// GET /api/v1/recommendations/latest
+// Query params: ?limit=20&offset=0
+// Task 7.3
+func (h *Handlers) GetLatest(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	if limit > 100 {
+		limit = 100
+	}
+
+	// Use the injected Gorse client if available
+	var recService *recommendations.GorseRESTClient
+	if h.gorse != nil {
+		recService = h.gorse
+	} else {
+		// Fallback to creating a new client
+		gorseURL := os.Getenv("GORSE_URL")
+		if gorseURL == "" {
+			gorseURL = "http://localhost:8087"
+		}
+		gorseAPIKey := os.Getenv("GORSE_API_KEY")
+		if gorseAPIKey == "" {
+			gorseAPIKey = "sidechain_gorse_api_key"
+		}
+		recService = recommendations.NewGorseRESTClient(gorseURL, gorseAPIKey, database.DB)
+	}
+
+	// Get latest posts
+	scores, err := recService.GetLatest(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "failed_to_get_latest_posts",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Convert to activities format
+	activities := make([]map[string]interface{}, 0, len(scores))
+	for _, score := range scores {
+		activity := map[string]interface{}{
+			"id":                    score.Post.ID,
+			"audio_url":             score.Post.AudioURL,
+			"bpm":                   score.Post.BPM,
+			"key":                   score.Post.Key,
+			"daw":                   score.Post.DAW,
+			"duration":              score.Post.Duration,
+			"genre":                 score.Post.Genre,
+			"created_at":            score.Post.CreatedAt,
+			"like_count":            score.Post.LikeCount,
+			"play_count":            score.Post.PlayCount,
+			"recommendation_reason": score.Reason,
+			"score":                 score.Score,
+		}
+		activities = append(activities, activity)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"activities": activities,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(activities),
+			"source": "latest",
+		},
+	})
+}
