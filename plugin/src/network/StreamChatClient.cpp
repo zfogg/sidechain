@@ -102,22 +102,31 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String& endpoint, cons
 
     juce::String headers = buildAuthHeaders();
 
+    juce::StringPairArray responseHeaders;
     auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
                       .withExtraHeaders(headers)
-                      .withConnectionTimeoutMs(config.timeoutMs);
+                      .withConnectionTimeoutMs(config.timeoutMs)
+                      .withResponseHeaders(&responseHeaders);
 
+    // For POST/PUT/DELETE, include request body
     if (method == "POST" || method == "PUT" || method == "DELETE")
     {
         if (!data.isVoid())
         {
-            juce::String jsonData = juce::JSON::toString(data);
-            url = url.withPOSTData(jsonData);
+            juce::String jsonString = juce::JSON::toString(data, true);
+            Log::debug("StreamChatClient: " + method + " data: " + jsonString);
+
+            // Use MemoryBlock like NetworkClient does
+            juce::MemoryBlock jsonBody(jsonString.toRawUTF8(), jsonString.getNumBytesAsUTF8());
+            url = url.withPOSTData(jsonBody);
         }
         else if (method == "POST")
         {
-            url = url.withPOSTData("{}");
+            url = url.withPOSTData(juce::MemoryBlock());
         }
     }
+
+    Log::debug("StreamChatClient: Making " + method + " request to: " + url.toString(false));
 
     auto stream = url.createInputStream(options);
 
@@ -128,6 +137,7 @@ juce::var StreamChatClient::makeStreamRequest(const juce::String& endpoint, cons
     }
 
     auto response = stream->readEntireStreamAsString();
+    Log::debug("StreamChatClient: Response: " + response);
     return juce::JSON::parse(response);
 }
 
