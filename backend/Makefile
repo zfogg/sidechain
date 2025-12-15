@@ -95,7 +95,7 @@ dev-watch:
 # Docker development with hot reload (all services + auto rebuild)
 docker-dev:
 	@echo "🐳 Starting all services with hot reload..."
-	@docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+	@docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 # Stop docker-dev services
 docker-dev-stop:
