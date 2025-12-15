@@ -117,6 +117,8 @@ func Migrate() error {
 		&models.AudioFingerprint{},        // Feature #15: Audio fingerprinting for sound detection
 		&models.SoundUsage{},              // Feature #15: Track sound usage across posts
 		&models.ErrorLog{},                // Task 4.19: Error tracking and reporting
+		&models.RecommendationImpression{}, // Task 8.1: CTR tracking - impressions
+		&models.RecommendationClick{},      // Task 8.2: CTR tracking - clicks
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
