@@ -848,7 +848,7 @@ void MessageThread::drawInputArea(juce::Graphics& g)
             auto cancelBounds = getCancelReplyButtonBounds();
             g.setColour(juce::Colour(0xff888888));
             g.setFont(16.0f);
-            g.drawText("×", cancelBounds, juce::Justification::centred);
+            g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9C\x96")), cancelBounds, juce::Justification::centred);
         }
     }
     else if (!editingMessageId.isEmpty())
