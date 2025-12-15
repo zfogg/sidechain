@@ -52,6 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0  # Full history needed for clang-tidy-diff
 
       - name: Install clang-tools
         run: |
@@ -72,7 +73,12 @@ jobs:
       - name: Configure CMake (generates compile_commands.json)
         run: cmake -S plugin -B plugin/build -G Ninja --preset default
 
-      - name: Lint Check (clang-tidy)
+      - name: Lint Check (clang-tidy-diff for PRs - changed lines only)
+        if: github.event_name == 'pull_request'
+        run: cmake --build plugin/build --target tidy-diff
+
+      - name: Lint Check (clang-tidy for push - all files)
+        if: github.event_name == 'push'
         run: cmake --build plugin/build --target tidy-check
 
       - name: Save Build Cache

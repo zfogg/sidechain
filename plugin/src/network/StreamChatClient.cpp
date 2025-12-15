@@ -1460,8 +1460,11 @@ void StreamChatClient::uploadAudioSnippet(const juce::AudioBuffer<float> &audioB
     // Encode audio to WAV
     juce::MemoryOutputStream outputStream;
     juce::WavAudioFormat wavFormat;
-    std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
-        &outputStream, sampleRate, static_cast<unsigned int>(audioBuffer.getNumChannels()), 16, {}, 0));
+    auto writerOptions = juce::AudioFormatWriterOptions()
+                             .withSampleRate(sampleRate)
+                             .withNumChannels(audioBuffer.getNumChannels())
+                             .withBitsPerSample(16);
+    std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(&outputStream, writerOptions));
 
     if (writer == nullptr) {
       Log::error("Failed to create WAV writer");

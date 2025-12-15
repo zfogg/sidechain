@@ -3,7 +3,7 @@
 # Sidechain Makefile
 # Builds both the VST plugin (via CMake) and Go backend
 
-.PHONY: all install install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help format format-check tidy tidy-check
+.PHONY: all install install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help format format-check tidy tidy-check tidy-diff
 
 # Default target
 all: backend plugin plugin-install
@@ -255,6 +255,11 @@ tidy-check: plugin-configure
 	@cmake --build $(BUILD_DIR) --target tidy-check
 	@echo "✅ clang-tidy check passed"
 
+tidy-diff: plugin-configure
+	@echo "🔍 Checking only changed lines with clang-tidy..."
+	@cmake --build $(BUILD_DIR) --target tidy-diff
+	@echo "✅ clang-tidy-diff check passed"
+
 # Development helpers
 dev: install-deps
 	@echo "🔧 Starting development environment..."
@@ -301,8 +306,9 @@ help:
 	@echo "  test-plugin-coverage  - Run tests with coverage report"
 	@echo "  format                - Format code with clang-format (in-place)"
 	@echo "  format-check          - Check code formatting (errors if not formatted)"
-	@echo "  tidy                  - Run clang-tidy with automatic fixes"
-	@echo "  tidy-check            - Run clang-tidy checks (errors if issues found)"
+	@echo "  tidy                  - Run clang-tidy with automatic fixes (parallel)"
+	@echo "  tidy-check            - Run clang-tidy checks (errors if issues found, parallel)"
+	@echo "  tidy-diff             - Run clang-tidy on changed lines only (for PRs)"
 	@echo "  dev                   - Start development environment"
 	@echo "  clean                 - Clean all build artifacts"
 	@echo "  deps-info             - Show dependency information"

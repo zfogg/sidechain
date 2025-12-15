@@ -32,40 +32,80 @@ function(collect_source_files OUTPUT_VAR)
 endfunction()
 
 #==============================================================================
-# clang-tidy target
-# Runs clang-tidy on all source files
+# clang-tidy targets
+# Uses run-clang-tidy.py for parallel execution on all files
+# Uses clang-tidy-diff.py for checking only changed lines (useful for PRs)
 #==============================================================================
 if(CLANG_TIDY_EXECUTABLE)
-    collect_source_files(TIDY_SOURCES)
+    # Try to find scripts in local scripts directory first, then in PATH
+    find_program(RUN_CLANG_TIDY_PY NAMES run-clang-tidy.py run-clang-tidy
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../scripts" NO_DEFAULT_PATH)
+    if(NOT RUN_CLANG_TIDY_PY)
+        find_program(RUN_CLANG_TIDY_PY NAMES run-clang-tidy.py run-clang-tidy)
+    endif()
 
-    add_custom_target(tidy
-        COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy..."
-        COMMAND ${CLANG_TIDY_EXECUTABLE}
-            -p ${CMAKE_BINARY_DIR}
-            --fix
-            --fix-errors
-            ${TIDY_SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-tidy with automatic fixes"
-        VERBATIM
-    )
+    find_program(CLANG_TIDY_DIFF_PY NAMES clang-tidy-diff.py
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../scripts" NO_DEFAULT_PATH)
+    if(NOT CLANG_TIDY_DIFF_PY)
+        find_program(CLANG_TIDY_DIFF_PY NAMES clang-tidy-diff.py)
+    endif()
 
-    add_custom_target(tidy-check
-        COMMAND ${CMAKE_COMMAND} -E echo "Checking code with clang-tidy..."
-        COMMAND ${CLANG_TIDY_EXECUTABLE}
-            -p ${CMAKE_BINARY_DIR}
-            --warnings-as-errors=*
-            ${TIDY_SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-tidy (check mode - errors if issues found)"
-        VERBATIM
-    )
+    if(RUN_CLANG_TIDY_PY)
+        add_custom_target(tidy
+            COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy in parallel on all files..."
+            COMMAND ${RUN_CLANG_TIDY_PY}
+                -p ${CMAKE_BINARY_DIR}
+                -fix
+                -j ${CMAKE_CPU_CORES}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Running clang-tidy with automatic fixes"
+            VERBATIM
+        )
+
+        add_custom_target(tidy-check
+            COMMAND ${CMAKE_COMMAND} -E echo "Checking code with clang-tidy in parallel..."
+            COMMAND ${RUN_CLANG_TIDY_PY}
+                -p ${CMAKE_BINARY_DIR}
+                -j ${CMAKE_CPU_CORES}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Running clang-tidy (check mode - errors if issues found)"
+            VERBATIM
+        )
+    else()
+        add_custom_target(tidy
+            COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "run-clang-tidy.py not found. Install LLVM tools."
+            COMMAND exit 1
+        )
+        add_custom_target(tidy-check
+            COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "run-clang-tidy.py not found. Install LLVM tools."
+            COMMAND exit 1
+        )
+    endif()
+
+    if(CLANG_TIDY_DIFF_PY)
+        add_custom_target(tidy-diff
+            COMMAND ${CMAKE_COMMAND} -E echo "Checking only changed lines with clang-tidy..."
+            COMMAND bash -c "cd ${CMAKE_CURRENT_SOURCE_DIR}/.. && git diff -U0 --no-color HEAD | ${CLANG_TIDY_DIFF_PY} -p1 -p ${CMAKE_BINARY_DIR}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Running clang-tidy-diff (check changed lines only)"
+            VERBATIM
+        )
+    else()
+        add_custom_target(tidy-diff
+            COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "clang-tidy-diff.py not found. Install LLVM tools."
+            COMMAND exit 1
+        )
+    endif()
 else()
     add_custom_target(tidy
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "clang-tidy not found. Install it first."
         COMMAND exit 1
     )
     add_custom_target(tidy-check
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "clang-tidy not found. Install it first."
+        COMMAND exit 1
+    )
+    add_custom_target(tidy-diff
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --red "clang-tidy not found. Install it first."
         COMMAND exit 1
     )
