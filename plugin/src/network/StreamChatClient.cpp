@@ -162,17 +162,28 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
 
             obj->setProperty("members", members);
 
-            Log::debug("StreamChatClient: Creating direct channel with " + targetUserId);
+            Log::debug("StreamChatClient: Creating direct channel with " + targetUserId +
+                      ", channel ID: " + channelId);
+            Log::debug("StreamChatClient: Request data - " + juce::JSON::toString(requestData));
 
             auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-            if (response.isObject() && response.hasProperty("id"))
+            Log::debug("StreamChatClient: Create channel response - " + juce::JSON::toString(response));
+
+            // Response from stream.io might have channel wrapped in "channel" property
+            juce::var channelData = response;
+            if (response.isObject() && response.hasProperty("channel"))
             {
-                Log::debug("StreamChatClient: Direct channel created: " + response.getProperty("id", "").toString());
-                return parseChannel(response);
+                channelData = response.getProperty("channel", juce::var());
             }
 
-            Log::error("StreamChatClient: Failed to create channel - " + juce::JSON::toString(response));
+            if (channelData.isObject() && channelData.hasProperty("id"))
+            {
+                Log::debug("StreamChatClient: Direct channel created: " + channelData.getProperty("id", "").toString());
+                return parseChannel(channelData);
+            }
+
+            Log::error("StreamChatClient: Failed to create direct channel. Response: " + juce::JSON::toString(response));
             return Channel{};
         },
         [callback](const Channel& channel) {
@@ -219,16 +230,26 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
             obj->setProperty("data", data);
 
             Log::debug("StreamChatClient: Creating group channel " + channelId + " with " + juce::String(memberIds.size()) + " members");
+            Log::debug("StreamChatClient: Request data - " + juce::JSON::toString(requestData));
 
             auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-            if (response.isObject() && response.hasProperty("id"))
+            Log::debug("StreamChatClient: Create group channel response - " + juce::JSON::toString(response));
+
+            // Response from stream.io might have channel wrapped in "channel" property
+            juce::var channelData = response;
+            if (response.isObject() && response.hasProperty("channel"))
             {
-                Log::debug("StreamChatClient: Group channel created: " + response.getProperty("id", "").toString());
-                return parseChannel(response);
+                channelData = response.getProperty("channel", juce::var());
             }
 
-            Log::error("StreamChatClient: Failed to create channel - " + juce::JSON::toString(response));
+            if (channelData.isObject() && channelData.hasProperty("id"))
+            {
+                Log::debug("StreamChatClient: Group channel created: " + channelData.getProperty("id", "").toString());
+                return parseChannel(channelData);
+            }
+
+            Log::error("StreamChatClient: Failed to create group channel. Response: " + juce::JSON::toString(response));
             return Channel{};
         },
         [callback](const Channel& channel) {
