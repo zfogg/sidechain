@@ -44,31 +44,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Restore vcpkg cache (Windows)
-        if: runner.os == 'Windows'
-        id: vcpkg-cache-release
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            C:\vcpkg
-            C:\ProgramData\chocolatey
-            C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: sidechain-vcpkg-v1-${{ hashFiles('.github/actions/install-deps/action.yml') }}
-          restore-keys: |
-            sidechain-vcpkg-v1-
-
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
-
-      - name: Save vcpkg cache (Windows)
-        if: runner.os == 'Windows' && steps.vcpkg-cache-release.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            C:\vcpkg
-            C:\ProgramData\chocolatey
-            C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: ${{ steps.vcpkg-cache-release.outputs.cache-primary-key }}
 
       - name: Cache Build Dependencies
         uses: ./.github/actions/cache-build
