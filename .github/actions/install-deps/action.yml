@@ -78,6 +78,8 @@ runs:
           PACKAGES+=(lcov)
         fi
         sudo apt-get install -y "${PACKAGES[@]}"
+        # Make apt cache readable/writable by current user for caching
+        sudo chown -R $(id -u):$(id -g) /var/cache/apt/archives
 
     - name: Install macOS Dependencies
       if: runner.os == 'macOS'
