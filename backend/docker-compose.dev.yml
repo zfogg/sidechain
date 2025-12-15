@@ -1,25 +1,17 @@
-# Development Docker Compose configuration
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-# This extends the base docker-compose.yml with development-specific settings:
-# - Uses Dockerfile.dev with air hot reload
-# - Mounts source code for automatic rebuilds on changes
-# - Enables interactive debugging and logging
-# - Uses local storage (no AWS credentials needed)
-
 services:
   backend:
-    # Override the base configuration to use development Dockerfile
+    image: zfogg/sidechain-backend:latest
+    container_name: sidechain-backend
     build:
       context: .
       dockerfile: Dockerfile.dev
-    # Mount source code for hot reload
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
     volumes:
       - .:/app
-      # Exclude node_modules, vendor, and tmp to avoid syncing issues
-      - /app/node_modules
-      - /app/vendor
       - /app/tmp
-    # Override environment for development (inherits from base, overrides below)
+      - /app/vendor
     environment:
       # Server
       PORT: "8787"
@@ -41,12 +33,12 @@ services:
       JWT_SECRET: "${JWT_SECRET:-dev_jwt_secret_change_in_production}"
       CORS_ORIGINS: "${CORS_ORIGINS:-*}"
 
-      # AWS/S3 Storage - Use local storage for development
-      STORAGE_PROVIDER: "local"
+      # AWS/S3 Storage
+      STORAGE_PROVIDER: "${STORAGE_PROVIDER:-local}"
       AWS_REGION: "${AWS_REGION:-us-west-2}"
       AWS_BUCKET: "${AWS_BUCKET:-sidechain-dev-media}"
-      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-dev}"
-      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-dev}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       CDN_BASE_URL: "${CDN_BASE_URL:-http://localhost:8787}"
 
       # OAuth
@@ -62,11 +54,6 @@ services:
 
       # Logging
       LOG_LEVEL: "${LOG_LEVEL:-debug}"
-    # Keep container running and show logs
-    stdin_open: true
-    tty: true
-    # Faster restart on rebuild
-    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,7 +120,7 @@ services:
     container_name: sidechain-gorse
     restart: unless-stopped
     ports:
-      - "8088:8088"
+      - "8088:8088"  # API + Dashboard (combined in gorse-in-one)
     volumes:
       - ./gorse.toml:/etc/gorse/config.toml:ro
     depends_on:
