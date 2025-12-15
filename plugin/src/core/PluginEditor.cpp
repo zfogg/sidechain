@@ -759,6 +759,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
         editProfileDialog->closeDialog();
         showView(AppView::ProfileSetup);
     };
+    editProfileDialog->onLogoutClicked = [this]() {
+        editProfileDialog->closeDialog();
+        handleLogout();
+    };
     // Not added as child - shown as modal overlay when needed
 
     // Setup synth unlock callback
@@ -953,9 +957,6 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     };
     profileComponent->onTwoFactorSettingsClicked = [this]() {
         showTwoFactorSettings();
-    };
-    profileComponent->onLogoutClicked = [this]() {
-        handleLogout();
     };
     addChildComponent(profileComponent.get());
 

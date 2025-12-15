@@ -51,6 +51,7 @@ public:
     std::function<void()> onMutedUsersClicked;
     std::function<void()> onTwoFactorClicked;
     std::function<void()> onProfileSetupClicked;
+    std::function<void()> onLogoutClicked;  // Logout button in settings header
 
     //==============================================================================
     // Component overrides
@@ -93,6 +94,7 @@ private:
     // Buttons
     std::unique_ptr<juce::TextButton> cancelButton;
     std::unique_ptr<juce::TextButton> saveButton;
+    std::unique_ptr<juce::TextButton> logoutButton;
     std::unique_ptr<juce::TextButton> changePhotoButton;
 
     // Privacy toggle
