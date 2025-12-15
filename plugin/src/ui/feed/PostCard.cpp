@@ -1607,6 +1607,11 @@ void PostCard::subscribeToFeedStore()
     // Subscribe to FeedStore for reactive updates
     // At this point we're guaranteed to have a valid post.id, making this type-safe
     storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
+        // Defense-in-depth: verify post ID is valid before comparing
+        // This protects against edge cases where post might be in an invalid state
+        if (post.id.isEmpty())
+            return;
+
         // Find our post in the current feed
         const auto& currentFeed = state.getCurrentFeed();
 
