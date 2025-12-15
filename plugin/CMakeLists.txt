@@ -136,6 +136,8 @@ include(cmake/Options.cmake)
 include(cmake/CompilerFlags.cmake)
 include(cmake/Dependencies.cmake)
 include(cmake/Install.cmake)
+include(cmake/CPUCores.cmake)
+include(cmake/Linting.cmake)
 
 #==============================================================================
 # Build formats configuration

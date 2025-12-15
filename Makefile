@@ -3,7 +3,7 @@
 # Sidechain Makefile
 # Builds both the VST plugin (via CMake) and Go backend
 
-.PHONY: all install install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help
+.PHONY: all install install-deps backend plugin clean test test-plugin-unit test-plugin-coverage help format format-check tidy tidy-check
 
 # Default target
 all: backend plugin plugin-install
@@ -234,6 +234,27 @@ test-plugin-coverage-configure:
 	@echo "🔄 Configuring CMake build with tests and coverage..."
 	@cmake -S plugin -B $(BUILD_DIR) $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=Debug -DSIDECHAIN_BUILD_TESTS=ON -DSIDECHAIN_ENABLE_COVERAGE=ON
 
+# Code quality targets (linting and formatting)
+format: plugin-configure
+	@echo "🎨 Formatting source code with clang-format..."
+	@cmake --build $(BUILD_DIR) --target format
+	@echo "✅ Code formatted successfully"
+
+format-check: plugin-configure
+	@echo "🔍 Checking code formatting with clang-format..."
+	@cmake --build $(BUILD_DIR) --target format-check
+	@echo "✅ Code formatting check passed"
+
+tidy: plugin-configure
+	@echo "🔧 Running clang-tidy fixes..."
+	@cmake --build $(BUILD_DIR) --target tidy
+	@echo "✅ clang-tidy fixes applied"
+
+tidy-check: plugin-configure
+	@echo "🔍 Checking code with clang-tidy (no auto-fix)..."
+	@cmake --build $(BUILD_DIR) --target tidy-check
+	@echo "✅ clang-tidy check passed"
+
 # Development helpers
 dev: install-deps
 	@echo "🔧 Starting development environment..."
@@ -278,6 +299,10 @@ help:
 	@echo "  test                  - Run all tests"
 	@echo "  test-plugin-unit      - Run plugin C++ unit tests"
 	@echo "  test-plugin-coverage  - Run tests with coverage report"
+	@echo "  format                - Format code with clang-format (in-place)"
+	@echo "  format-check          - Check code formatting (errors if not formatted)"
+	@echo "  tidy                  - Run clang-tidy with automatic fixes"
+	@echo "  tidy-check            - Run clang-tidy checks (errors if issues found)"
 	@echo "  dev                   - Start development environment"
 	@echo "  clean                 - Clean all build artifacts"
 	@echo "  deps-info             - Show dependency information"
@@ -291,6 +316,12 @@ help:
 	@echo "  make              # Build everything"
 	@echo "  make plugin       # Build just the plugin"
 	@echo "  make backend-dev  # Start backend server"
+	@echo ""
+	@echo "Code quality:"
+	@echo "  make format       # Format code with clang-format"
+	@echo "  make format-check # Check if code is formatted"
+	@echo "  make tidy         # Run clang-tidy with auto-fixes"
+	@echo "  make tidy-check   # Run clang-tidy checks"
 	@echo ""
 	@echo "Troubleshooting:"
 	@echo "  If builds keep recompiling everything:"
