@@ -34,6 +34,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     userDataStore = std::make_unique<UserDataStore>();
     userDataStore->addChangeListener(this);
 
+    // Initialize FeedStore (no longer singleton)
+    feedStore = std::make_unique<Sidechain::Stores::FeedStore>();
+
     // ChatStore is a singleton - no need to create it here
     // It will be accessed via ChatStore::getInstance()
 
@@ -45,6 +48,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     // Wire up UserDataStore with NetworkClient
     userDataStore->setNetworkClient(networkClient.get());
+
+    // Wire up FeedStore with NetworkClient
+    feedStore->setNetworkClient(networkClient.get());
 
     // Set up ImageLoader with NetworkClient
     ImageLoader::setNetworkClient(networkClient.get());
@@ -196,7 +202,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
 
     //==========================================================================
     // Create PostsFeed
-    postsFeedComponent = std::make_unique<PostsFeed>();
+    postsFeedComponent = std::make_unique<PostsFeed>(feedStore.get());
     postsFeedComponent->setNetworkClient(networkClient.get());
     postsFeedComponent->setAudioPlayer(&audioProcessor.getAudioPlayer());
     // Note: StreamChatClient will be set after it's created (below)
@@ -915,7 +921,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
     // Create Profile
     profileComponent = std::make_unique<Profile>();
     profileComponent->setNetworkClient(networkClient.get());
-    profileComponent->setFeedStore(&Sidechain::Stores::FeedStore::getInstance());  // Task 2.4: Set FeedStore for follow/mute
+    profileComponent->setFeedStore(feedStore.get());  // Task 2.4: Set FeedStore for follow/mute
     profileComponent->setUserStore(&Sidechain::Stores::UserStore::getInstance());  // Task 2.4.2: Set UserStore for own profile
     // Note: StreamChatClient will be set after it's created (below)
     profileComponent->onBackPressed = [this]() {

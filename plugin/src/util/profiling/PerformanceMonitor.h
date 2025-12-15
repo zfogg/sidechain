@@ -108,6 +108,8 @@ class PerformanceMonitor : public juce::DeletedAtShutdown
 public:
     JUCE_DECLARE_SINGLETON(PerformanceMonitor, false)
 
+    ~PerformanceMonitor() { clearSingletonInstance(); }
+
     /**
      * Record a measurement for a named metric
      *

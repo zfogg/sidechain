@@ -81,7 +81,8 @@ private:
  *   toasts.setBounds(getLocalBounds());
  */
 class ToastManager : public juce::Component,
-                     public juce::Timer
+                     public juce::Timer,
+                     public juce::DeletedAtShutdown
 {
 public:
     //==========================================================================

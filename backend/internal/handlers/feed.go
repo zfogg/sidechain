@@ -169,6 +169,25 @@ func (h *Handlers) GetTimeline(c *gin.Context) {
 		return
 	}
 
+	// Enrich activities with waveform URLs from database (for old posts that don't have them)
+	for _, activity := range activities {
+		if activity.WaveformURL == "" && activity.Object != "" {
+			// Extract post ID from object (e.g., "loop:post-id" -> "post-id")
+			postID := activity.Object
+			if len(postID) > 5 && postID[:5] == "loop:" {
+				postID = postID[5:]
+			}
+
+			// Fetch waveform URL from database
+			var post models.AudioPost
+			if err := database.DB.Select("waveform_url").Where("id = ?", postID).First(&post).Error; err == nil {
+				if post.WaveformURL != "" {
+					activity.WaveformURL = post.WaveformURL
+				}
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"activities": activities,
 		"meta": gin.H{
@@ -188,6 +207,25 @@ func (h *Handlers) GetGlobalFeed(c *gin.Context) {
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_global_feed", "Failed to get global feed")
 		return
+	}
+
+	// Enrich activities with waveform URLs from database (for old posts that don't have them)
+	for _, activity := range activities {
+		if activity.WaveformURL == "" && activity.Object != "" {
+			// Extract post ID from object (e.g., "loop:post-id" -> "post-id")
+			postID := activity.Object
+			if len(postID) > 5 && postID[:5] == "loop:" {
+				postID = postID[5:]
+			}
+
+			// Fetch waveform URL from database
+			var post models.AudioPost
+			if err := database.DB.Select("waveform_url").Where("id = ?", postID).First(&post).Error; err == nil {
+				if post.WaveformURL != "" {
+					activity.WaveformURL = post.WaveformURL
+				}
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -698,6 +736,19 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 					"id":         userID,
 					"username":   "DeletedUser",
 					"avatar_url": "https://api.dicebear.com/7.x/avataaars/svg?seed=deleted",
+				}
+			}
+		}
+
+		// Enrich with waveform URL if missing (for old posts)
+		if waveformURL, ok := activityMap["waveform_url"].(string); !ok || waveformURL == "" {
+			if object, ok := activityMap["object"].(string); ok && len(object) > 5 && object[:5] == "loop:" {
+				postID := object[5:]
+				var post models.AudioPost
+				if err := database.DB.Select("waveform_url").Where("id = ?", postID).First(&post).Error; err == nil {
+					if post.WaveformURL != "" {
+						activityMap["waveform_url"] = post.WaveformURL
+					}
 				}
 			}
 		}

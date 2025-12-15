@@ -29,16 +29,16 @@ enum class FeedState
 static FeedState feedState = FeedState::Loading;
 
 //==============================================================================
-PostsFeed::PostsFeed()
+PostsFeed::PostsFeed(Sidechain::Stores::FeedStore* feedStore)
+    : feedStore(feedStore)
 {
     using namespace Sidechain::Stores;
 
     Log::info("PostsFeed: Initializing feed component");
     setSize(1000, 800);
 
-    // Get FeedStore instance and subscribe (Task 2.6)
-    feedStore = &FeedStore::getInstance();
-    storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
+    // Subscribe to FeedStore (Task 2.6)
+    storeUnsubscribe = this->feedStore->subscribe([this](const FeedStoreState& state) {
         // FeedStore state changed - rebuild UI
         handleFeedStateChanged();
     });
@@ -104,6 +104,7 @@ PostsFeed::~PostsFeed()
 
     removeKeyListener(this);
     scrollBar.removeListener(this);
+    // RAII: OwnedArray will clean up PostCards automatically
 }
 
 //==============================================================================

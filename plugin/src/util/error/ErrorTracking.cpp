@@ -15,6 +15,7 @@ ErrorTracker::ErrorTracker()
 
 ErrorTracker::~ErrorTracker()
 {
+    clearSingletonInstance();
 }
 
 void ErrorTracker::recordError(ErrorSource source,

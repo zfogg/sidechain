@@ -32,6 +32,7 @@ FeedStore::FeedStore()
 FeedStore::~FeedStore()
 {
     stopTimer();
+    // RAII: unique_ptr and containers will clean up automatically
 }
 
 //==============================================================================
