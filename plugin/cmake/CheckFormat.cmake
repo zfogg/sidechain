@@ -38,7 +38,8 @@ foreach(SOURCE_FILE ${SOURCE_FILES})
 endforeach()
 
 if(UNFORMATTED_FILES)
-    message(FATAL_ERROR "The following files are not properly formatted. Run 'cmake --build <build-dir> --target format':\n${UNFORMATTED_FILES}")
+    string(JOIN "\n  " FORMATTED_FILES_LIST ${UNFORMATTED_FILES})
+    message(FATAL_ERROR "The following files are not properly formatted:\n  ${FORMATTED_FILES_LIST}\n\nRun 'cmake --build <build-dir> --target format' to fix.")
 endif()
 
 message(STATUS "All source files are properly formatted ✓")
