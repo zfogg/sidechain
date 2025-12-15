@@ -289,10 +289,12 @@ void UserDataStore::fetchUserProfile(std::function<void(bool success)> callback)
                 bio = Json::getString(response, "bio");
                 location = Json::getString(response, "location");
 
-                juce::String newPicUrl = Json::getString(response, "profile_picture_url");
+                // Use avatar_url which falls back to oauth_profile_picture_url if profile_picture_url is empty
+                // This ensures users with OAuth login (Google, GitHub, etc.) see their profile picture
+                juce::String newPicUrl = Json::getString(response, "avatar_url");
 
                 Log::info("UserDataStore: Profile fetched - username: " + username +
-                    ", profilePicUrl: " + newPicUrl);
+                    ", avatarUrl: " + newPicUrl);
 
                 // Update profile picture if URL changed
                 if (newPicUrl != profilePictureUrl || !cachedProfileImage.isValid())
