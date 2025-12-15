@@ -247,11 +247,12 @@ func (h *Handlers) GetUserProfile(c *gin.Context) {
 	}
 
 	// Check if current user follows this profile
+	// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 	var isFollowing bool
 	var isFollowedBy bool
 	if currentUserID != "" && currentUserID != user.ID && h.stream != nil {
-		isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.StreamUserID)
-		isFollowedBy, _ = h.stream.CheckIsFollowing(user.StreamUserID, currentUserID)
+		isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+		isFollowedBy, _ = h.stream.CheckIsFollowing(user.ID, currentUserID)
 	}
 
 	// Check for pending follow request if account is private
@@ -775,7 +776,6 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 				"object":           "audio:" + post.ID,
 				"time":             post.CreatedAt.Format(time.RFC3339),
 				"audio_url":        post.AudioURL,
-				"waveform":         post.WaveformSVG,
 				"waveform_url":     post.WaveformURL,
 				"duration_seconds": post.Duration,
 				"duration_bars":    post.DurationBars,
@@ -948,7 +948,8 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 	}
 
 	// Public account - follow directly via Stream.io
-	if err := h.stream.FollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
+	// Use database IDs (not Stream IDs) to match CheckIsFollowing behavior
+	if err := h.stream.FollowUser(currentUser.ID, targetUser.ID); err != nil {
 		util.RespondInternalError(c, "follow_failed", err.Error())
 		return
 	}
@@ -987,7 +988,8 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 	}
 
 	// Unfollow via Stream.io
-	if err := h.stream.UnfollowUser(currentUser.StreamUserID, targetUser.StreamUserID); err != nil {
+	// Use database IDs (not Stream IDs) to match CheckIsFollowing behavior
+	if err := h.stream.UnfollowUser(currentUser.ID, targetUser.ID); err != nil {
 		util.RespondInternalError(c, "unfollow_failed", err.Error())
 		return
 	}

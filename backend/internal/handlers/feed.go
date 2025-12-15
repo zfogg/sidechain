@@ -341,7 +341,6 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 
 	// Enrich activities with is_following state for each poster
 	enrichedActivities := make([]interface{}, len(activities))
-	followStateCache := make(map[string]bool) // Cache follow states to avoid duplicate queries
 
 	for i, activity := range activities {
 		// Convert EnrichedActivity to map using JSON marshal/unmarshal
@@ -349,22 +348,20 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		activityBytes, _ := json.Marshal(activity)
 		json.Unmarshal(activityBytes, &activityMap)
 
-		// Extract poster's stream user ID from actor field (format: "user:STREAM_USER_ID")
+		// Extract poster's database user ID from actor field (format: "user:USER_ID")
+		// Note: This should now be database ID after our fixes
 		actorField := activity.Actor
-		posterStreamUserID := strings.TrimPrefix(actorField, "user:")
+		posterUserID := strings.TrimPrefix(actorField, "user:")
 
-		// Check if already cached
-		isFollowing, cached := followStateCache[posterStreamUserID]
-		if !cached && posterStreamUserID != currentUser.StreamUserID && posterStreamUserID != "" {
-			// Query follow state
-			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.StreamUserID, posterStreamUserID)
-			followStateCache[posterStreamUserID] = isFollowing
-		} else if !cached {
-			followStateCache[posterStreamUserID] = false
+		// Query follow state using database IDs - no caching for fresh data
+		isFollowing := false
+		if posterUserID != currentUser.ID && posterUserID != "" {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.ID, posterUserID)
 		}
 
 		// Add follow state to activity
-		activityMap["is_following"] = followStateCache[posterStreamUserID]
+		activityMap["is_following"] = isFollowing
+		activityMap["is_own_post"] = (posterUserID == currentUser.ID)
 		enrichedActivities[i] = activityMap
 	}
 
@@ -512,7 +509,6 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 
 	// Convert timeline items to activity format for plugin compatibility
 	activities := make([]map[string]interface{}, 0, len(resp.Items))
-	followStateCache := make(map[string]bool) // Cache follow states to avoid duplicate queries
 
 	for _, item := range resp.Items {
 		if item.Post == nil {
@@ -559,43 +555,14 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 		}
 
 		// Enrich with is_following state
+		// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 		posterUserID := item.Post.UserID
 		isFollowing := false
 
 		// Check if this post is the current user's own post
-		if posterUserID == currentUser.ID {
-			// Own posts should never show as "following"
-			isFollowing = false
-		} else if posterUserID != "" {
-			// Check cache first
-			cachedValue, cached := followStateCache[posterUserID]
-			if cached {
-				isFollowing = cachedValue
-				fmt.Printf("🔍 [CACHE HIT] posterUserID=%s isFollowing=%v\n", posterUserID, isFollowing)
-			} else {
-				// Not in cache - need to query
-				if item.User != nil && item.User.ID != "" {
-					// Query follow state using DATABASE IDs (NOT Stream IDs!)
-					// This must match what FollowUser uses
-					isFollowing, err := h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
-					if err != nil {
-						fmt.Printf("❌ CheckIsFollowing ERROR: currentUserID=%s posterID=%s err=%v\n",
-							currentUser.ID, item.User.ID, err)
-					}
-					fmt.Printf("🔍 [CACHE MISS] posterUserID=%s currentUserID=%s isFollowing=%v err=%v\n",
-						posterUserID, currentUser.ID, isFollowing, err)
-				} else {
-					fmt.Printf("⚠️ [SKIP] posterUserID=%s User=%v UserID=%s\n",
-						posterUserID, item.User != nil, func() string {
-							if item.User != nil {
-								return item.User.ID
-							}
-							return "nil"
-						}())
-				}
-				// Cache the result
-				followStateCache[posterUserID] = isFollowing
-			}
+		if posterUserID != currentUser.ID && posterUserID != "" && item.User != nil && item.User.ID != "" {
+			// Query follow state using DATABASE IDs - no caching to ensure fresh data
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.ID, item.User.ID)
 		}
 
 		activity["is_following"] = isFollowing
@@ -604,6 +571,15 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 		activity["is_own_post"] = (posterUserID == currentUser.ID)
 
 		activities = append(activities, activity)
+	}
+
+	// Debug: Log first activity to see what we're returning
+	if len(activities) > 0 {
+		firstActivity := activities[0]
+		if posterID, ok := firstActivity["actor"].(string); ok {
+			fmt.Printf("📤 RESPONSE SAMPLE: actor=%s is_following=%v is_own_post=%v\n",
+				posterID, firstActivity["is_following"], firstActivity["is_own_post"])
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
