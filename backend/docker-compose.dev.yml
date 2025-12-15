@@ -5,13 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    restart: unless-stopped
-    ports:
-      - "8787:8787"
     volumes:
       - .:/app
       - /app/tmp
       - /app/vendor
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
     environment:
       # Server
       PORT: "8787"

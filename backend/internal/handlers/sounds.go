@@ -119,7 +119,7 @@ func (h *SoundHandlers) GetSoundPosts(c *gin.Context) {
 				"duration":     usage.AudioPost.Duration,
 				"bpm":          usage.AudioPost.BPM,
 				"key":          usage.AudioPost.Key,
-				"waveform_svg": usage.AudioPost.WaveformSVG,
+				"waveform_url": usage.AudioPost.WaveformURL,
 				"like_count":   usage.AudioPost.LikeCount,
 				"play_count":   usage.AudioPost.PlayCount,
 				"created_at":   usage.AudioPost.CreatedAt,
