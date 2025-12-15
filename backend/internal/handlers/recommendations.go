@@ -116,9 +116,13 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 		return
 	}
 
-	// Convert to activities format (similar to feed endpoints)
+	// Convert to activities format with user enrichment
 	activities := make([]map[string]interface{}, 0, len(scores))
 	for _, score := range scores {
+		// Fetch user data
+		var user models.User
+		database.DB.Where("id = ?", score.Post.UserID).First(&user)
+
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
@@ -131,6 +135,12 @@ func (h *Handlers) GetForYouFeed(c *gin.Context) {
 			"like_count":            score.Post.LikeCount,
 			"play_count":            score.Post.PlayCount,
 			"recommendation_reason": score.Reason,
+			"user": gin.H{
+				"id":                  user.ID,
+				"username":            user.Username,
+				"display_name":        user.DisplayName,
+				"profile_picture_url": user.ProfilePictureURL,
+			},
 		}
 		activities = append(activities, activity)
 	}
@@ -499,9 +509,13 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 		return
 	}
 
-	// Convert to activities format
+	// Convert to activities format with user enrichment
 	activities := make([]map[string]interface{}, 0, len(scores))
 	for _, score := range scores {
+		// Fetch user data
+		var user models.User
+		database.DB.Where("id = ?", score.Post.UserID).First(&user)
+
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
@@ -515,6 +529,12 @@ func (h *Handlers) GetPopular(c *gin.Context) {
 			"play_count":            score.Post.PlayCount,
 			"recommendation_reason": score.Reason,
 			"score":                 score.Score,
+			"user": gin.H{
+				"id":                  user.ID,
+				"username":            user.Username,
+				"display_name":        user.DisplayName,
+				"profile_picture_url": user.ProfilePictureURL,
+			},
 		}
 		activities = append(activities, activity)
 	}
@@ -578,9 +598,13 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 		return
 	}
 
-	// Convert to activities format
+	// Convert to activities format with user enrichment
 	activities := make([]map[string]interface{}, 0, len(scores))
 	for _, score := range scores {
+		// Fetch user data
+		var user models.User
+		database.DB.Where("id = ?", score.Post.UserID).First(&user)
+
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
@@ -594,6 +618,12 @@ func (h *Handlers) GetLatest(c *gin.Context) {
 			"play_count":            score.Post.PlayCount,
 			"recommendation_reason": score.Reason,
 			"score":                 score.Score,
+			"user": gin.H{
+				"id":                  user.ID,
+				"username":            user.Username,
+				"display_name":        user.DisplayName,
+				"profile_picture_url": user.ProfilePictureURL,
+			},
 		}
 		activities = append(activities, activity)
 	}
@@ -760,9 +790,13 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 		}
 	}
 
-	// Convert to activities format
+	// Convert to activities format with user enrichment
 	activities := make([]map[string]interface{}, 0, len(blendedScores))
 	for _, score := range blendedScores {
+		// Fetch user data
+		var user models.User
+		database.DB.Where("id = ?", score.Post.UserID).First(&user)
+
 		activity := map[string]interface{}{
 			"id":                    score.Post.ID,
 			"audio_url":             score.Post.AudioURL,
@@ -776,6 +810,12 @@ func (h *Handlers) GetDiscoveryFeed(c *gin.Context) {
 			"play_count":            score.Post.PlayCount,
 			"recommendation_reason": score.Reason,
 			"score":                 score.Score,
+			"user": gin.H{
+				"id":                  user.ID,
+				"username":            user.Username,
+				"display_name":        user.DisplayName,
+				"profile_picture_url": user.ProfilePictureURL,
+			},
 		}
 		activities = append(activities, activity)
 	}
