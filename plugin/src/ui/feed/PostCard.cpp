@@ -1604,12 +1604,16 @@ void PostCard::subscribeToFeedStore()
     if (storeUnsubscribe)
         storeUnsubscribe();
 
+    // Capture post ID by value to avoid accessing potentially invalid member during callback
+    // This protects against the case where 'post' member is corrupted during rapid state changes
+    juce::String postId = post.id;
+
     // Subscribe to FeedStore for reactive updates
     // At this point we're guaranteed to have a valid post.id, making this type-safe
-    storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
-        // Defense-in-depth: verify post ID is valid before comparing
-        // This protects against edge cases where post might be in an invalid state
-        if (post.id.isEmpty())
+    storeUnsubscribe = feedStore->subscribe([this, postId](const FeedStoreState& state) {
+        // Use captured post ID instead of accessing member variable
+        // This prevents crashes when post member is in invalid state
+        if (postId.isEmpty())
             return;
 
         // Find our post in the current feed
@@ -1617,26 +1621,13 @@ void PostCard::subscribeToFeedStore()
 
         for (const auto& feedPost : currentFeed.posts)
         {
-            if (feedPost.id == post.id)
+            if (feedPost.id == postId)
             {
                 // Post found - update our local copy
-                // Only update if something changed to avoid unnecessary repaints
-                if (feedPost.likeCount != post.likeCount ||
-                    feedPost.isLiked != post.isLiked ||
-                    feedPost.commentCount != post.commentCount ||
-                    feedPost.playCount != post.playCount ||
-                    feedPost.isFollowing != post.isFollowing ||
-                    feedPost.userReaction != post.userReaction ||
-                    feedPost.saveCount != post.saveCount ||
-                    feedPost.isSaved != post.isSaved ||
-                    feedPost.repostCount != post.repostCount ||
-                    feedPost.isReposted != post.isReposted ||
-                    feedPost.isPinned != post.isPinned)
-                {
-                    post = feedPost;
-                    // ReactiveBoundComponent will automatically repaint
-                    repaint();
-                }
+                // Update unconditionally to avoid accessing potentially invalid post member
+                // (The comparison optimization is not worth the crash risk)
+                post = feedPost;
+                repaint();
                 return;
             }
         }
