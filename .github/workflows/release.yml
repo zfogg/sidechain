@@ -58,7 +58,7 @@ jobs:
       - name: Cache Build Dependencies
         uses: ./.github/actions/cache-build
         with:
-          arch: ${{ matrix.name == 'macOS' && 'universal' || 'x86_64' }}
+          arch: ${{ matrix.name == 'macOS-arm64' && 'arm64' || matrix.name == 'macOS-x86_64' && 'x86_64' || 'x86_64' }}
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} --preset ${{ matrix.cmake_preset }}
