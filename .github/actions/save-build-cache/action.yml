@@ -1,0 +1,24 @@
+name: 'Save Build Cache'
+description: 'Save .cache and plugin/build directories to cache after building'
+
+inputs:
+  cache-version:
+    description: 'Cache version - must match the version used in cache-build action'
+    required: false
+    default: '1'
+  arch:
+    description: 'CPU architecture (x86_64, arm64, universal)'
+    required: false
+    default: 'x86_64'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Save Build Cache
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          .cache
+          plugin/build
+          ${{ runner.os == 'Linux' && '~/.cache/ccache' || runner.os == 'macOS' && '~/Library/Caches/ccache' || runner.os == 'Windows' && '%APPDATA%\ccache' || '' }}
+        key: sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ inputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**') }}
