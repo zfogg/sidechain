@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -337,8 +339,37 @@ func (h *Handlers) GetEnrichedTimeline(c *gin.Context) {
 		}
 	}
 
+	// Enrich activities with is_following state for each poster
+	enrichedActivities := make([]interface{}, len(activities))
+	followStateCache := make(map[string]bool) // Cache follow states to avoid duplicate queries
+
+	for i, activity := range activities {
+		// Convert EnrichedActivity to map using JSON marshal/unmarshal
+		var activityMap map[string]interface{}
+		activityBytes, _ := json.Marshal(activity)
+		json.Unmarshal(activityBytes, &activityMap)
+
+		// Extract poster's stream user ID from actor field (format: "user:STREAM_USER_ID")
+		actorField := activity.Actor
+		posterStreamUserID := strings.TrimPrefix(actorField, "user:")
+
+		// Check if already cached
+		isFollowing, cached := followStateCache[posterStreamUserID]
+		if !cached && posterStreamUserID != currentUser.StreamUserID && posterStreamUserID != "" {
+			// Query follow state
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.StreamUserID, posterStreamUserID)
+			followStateCache[posterStreamUserID] = isFollowing
+		} else if !cached {
+			followStateCache[posterStreamUserID] = false
+		}
+
+		// Add follow state to activity
+		activityMap["is_following"] = followStateCache[posterStreamUserID]
+		enrichedActivities[i] = activityMap
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"activities": activities,
+		"activities": enrichedActivities,
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
