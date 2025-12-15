@@ -2512,7 +2512,24 @@ void SidechainAudioProcessorEditor::loadLoginState()
             // Fetch fresh profile to get latest data (including profile picture)
             userDataStore->fetchUserProfile([this](bool success) {
                 Log::info("fetchUserProfile callback: success=" + juce::String(success ? "true" : "false"));
-                juce::MessageManager::callAsync([this]() {
+                juce::MessageManager::callAsync([this, success]() {
+                    // If profile fetch failed (e.g., auth token expired/invalid), redirect to auth
+                    if (!success)
+                    {
+                        Log::warn("Profile fetch failed - auth token may be invalid. Redirecting to auth screen.");
+                        // Clear stored login state
+                        if (userDataStore)
+                        {
+                            userDataStore->clearAll();
+                        }
+                        if (networkClient)
+                        {
+                            networkClient->setAuthToken("");
+                        }
+                        showView(AppView::Authentication);
+                        return;
+                    }
+
                     // Sync profile URL from UserDataStore
                     if (userDataStore)
                     {
