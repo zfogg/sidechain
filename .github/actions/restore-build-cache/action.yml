@@ -1,5 +1,5 @@
-name: 'Cache Build Directory'
-description: 'Cache .cache and plugin/build directories for faster builds (JUCE, dependencies, and build artifacts)'
+name: 'Restore Build Cache'
+description: 'Restore .cache, plugin/build, and ccache directories for faster builds'
 
 inputs:
   arch:
@@ -9,7 +9,7 @@ inputs:
   cache-version:
     description: 'Cache version - increment to invalidate cache'
     required: false
-    default: '1'
+    default: '2'
 
 runs:
   using: 'composite'

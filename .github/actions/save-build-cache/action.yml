@@ -5,7 +5,7 @@ inputs:
   cache-version:
     description: 'Cache version - must match the version used in cache-build action'
     required: false
-    default: '1'
+    default: '2'
   arch:
     description: 'CPU architecture (x86_64, arm64, universal)'
     required: false
