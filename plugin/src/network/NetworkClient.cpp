@@ -688,25 +688,20 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
     return juce::MemoryBlock();
   }
 
-  // IMPORTANT: AudioFormatWriter takes ownership of the output stream and
-  // deletes it! We must allocate the stream on the heap and let the writer own
-  // it.
+  // Create memory output stream - ownership will be transferred to writer
   juce::MemoryBlock resultBlock;
-  auto *outputStream = new juce::MemoryOutputStream(resultBlock, false);
+  std::unique_ptr<juce::OutputStream> outputStream(new juce::MemoryOutputStream(resultBlock, false));
 
   juce::WavAudioFormat wavFormat;
-  juce::StringPairArray metadata; // Explicit empty metadata
 
-  // Writer takes ownership of outputStream and will delete it
+  // Create writer using the modern API
   auto writerOptions = juce::AudioFormatWriterOptions()
                            .withSampleRate(sampleRate)
                            .withNumChannels(buffer.getNumChannels())
                            .withBitsPerSample(16);
-  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outputStream, writerOptions));
+  auto writer = wavFormat.createWriterFor(outputStream, writerOptions);
 
   if (writer == nullptr) {
-    // If writer creation failed, we still own the stream
-    delete outputStream;
     Log::error("encodeAudioToWAV: Failed to create WAV writer");
     return juce::MemoryBlock();
   }

@@ -178,11 +178,11 @@ void UserDiscovery::drawHeader(juce::Graphics &g) {
   // Back button
   auto backBounds = getBackButtonBounds();
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(24.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f)));
   g.drawText("<", backBounds, juce::Justification::centred);
 
   // Title
-  g.setFont(juce::Font(18.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
   auto titleBounds = headerBounds.withTrimmedLeft(50);
   g.drawText("Discover", titleBounds, juce::Justification::centredLeft);
 
@@ -193,7 +193,7 @@ void UserDiscovery::drawHeader(juce::Graphics &g) {
 
   // Search icon (avoid emoji for Linux font compatibility)
   g.setColour(Colors::textPlaceholder);
-  g.setFont(juce::Font(14.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
   auto iconBounds = searchBounds.removeFromLeft(40);
   g.drawText("[?]", iconBounds, juce::Justification::centred);
 
@@ -201,20 +201,20 @@ void UserDiscovery::drawHeader(juce::Graphics &g) {
   if (currentSearchQuery.isNotEmpty()) {
     auto clearBounds = getClearSearchBounds();
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(16.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f)));
     g.drawText("x", clearBounds, juce::Justification::centred);
   }
 }
 
 void UserDiscovery::drawRecentSearches(juce::Graphics &g, juce::Rectangle<int> &bounds) {
-  g.setFont(juce::Font(12.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f).withStyle("Bold")));
   g.setColour(Colors::sectionHeader);
 
   auto headerBounds = bounds.removeFromTop(30);
   headerBounds.removeFromLeft(PADDING);
   g.drawText("RECENT SEARCHES", headerBounds, juce::Justification::centredLeft);
 
-  g.setFont(juce::Font(14.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
   g.setColour(Colors::textPrimary);
 
   for (int i = 0; i < recentSearches.size() && i < MAX_RECENT_SEARCHES; ++i) {
@@ -236,7 +236,7 @@ void UserDiscovery::drawSectionHeader(juce::Graphics &g, juce::Rectangle<int> bo
   bounds.removeFromLeft(PADDING);
 
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(14.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
   g.drawText(title, bounds, juce::Justification::centredLeft);
 }
 
@@ -278,7 +278,7 @@ void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &boun
   auto chipArea = bounds.removeFromTop(GENRE_CHIP_HEIGHT + 16);
   chipArea = chipArea.reduced(PADDING, 8);
 
-  g.setFont(juce::Font(12.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
 
   int x = chipArea.getX();
   int y = chipArea.getY();
@@ -286,7 +286,9 @@ void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &boun
 
   for (int i = 0; i < availableGenres.size(); ++i) {
     auto genre = availableGenres[i];
-    auto textWidth = g.getCurrentFont().getStringWidth(genre);
+    juce::GlyphArrangement glyphs;
+    glyphs.addLineOfText(g.getCurrentFont(), genre, 0, 0);
+    auto textWidth = static_cast<int>(glyphs.getBoundingBox(0, -1, true).getWidth());
     auto chipWidth = textWidth + 20;
 
     // Wrap to next line if needed
@@ -313,7 +315,7 @@ void UserDiscovery::drawGenreChips(juce::Graphics &g, juce::Rectangle<int> &boun
 void UserDiscovery::drawSearchResults(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Search results are drawn by UserCardComponents
   g.setColour(Colors::textSecondary);
-  g.setFont(juce::Font(12.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
 
   auto resultCount = bounds.removeFromTop(30).reduced(PADDING, 0);
   g.drawText(juce::String(searchResults.size()) + " results for \"" + currentSearchQuery + "\"", resultCount,
@@ -322,13 +324,13 @@ void UserDiscovery::drawSearchResults(juce::Graphics &g, juce::Rectangle<int> bo
 
 void UserDiscovery::drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(Colors::textSecondary);
-  g.setFont(juce::Font(14.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
   g.drawText("Loading...", bounds, juce::Justification::centred);
 }
 
 void UserDiscovery::drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &message) {
   g.setColour(Colors::textSecondary);
-  g.setFont(juce::Font(14.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f)));
 
   // Center the message
   auto textBounds = bounds.withSizeKeepingCentre(bounds.getWidth() - 40, 60);
@@ -1086,10 +1088,12 @@ juce::Rectangle<int> UserDiscovery::getGenreChipBounds(int index) const {
   int y = contentBounds.getY() + 8;
   int maxWidth = contentBounds.getRight() - PADDING;
 
-  juce::Font font(12.0f);
+  juce::Font font(juce::FontOptions().withHeight(12.0f));
 
   for (int i = 0; i <= index; ++i) {
-    int textWidth = font.getStringWidth(availableGenres[i]);
+    juce::GlyphArrangement glyphs;
+    glyphs.addLineOfText(font, availableGenres[i], 0, 0);
+    int textWidth = static_cast<int>(glyphs.getBoundingBox(0, -1, true).getWidth());
     int chipWidth = textWidth + 20;
 
     if (x + chipWidth > maxWidth) {

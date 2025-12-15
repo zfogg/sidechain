@@ -307,7 +307,7 @@ void MidiChallengeSubmission::drawConstraintItem(juce::Graphics &g, juce::Rectan
   }
 }
 
-void MidiChallengeSubmission::drawSubmitButton(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void MidiChallengeSubmission::drawSubmitButton(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> &bounds) {
   auto buttonBounds = getSubmitButtonBounds();
   bool isHovered = buttonBounds.contains(getMouseXYRelative());
   bool isEnabled = allConstraintsPassed() && submissionState == SubmissionState::Editing;
@@ -472,7 +472,8 @@ int MidiChallengeSubmission::countMIDINotes(const juce::var &midi) const {
   return noteCount;
 }
 
-bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi, const juce::String &requiredScale) const {
+bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi,
+                                             [[maybe_unused]] const juce::String &requiredScale) const {
   // Simplified scale check - would need proper scale validation
   // For now, just return true if MIDI data exists
   return !midi.isVoid() && midi.hasProperty("events");

@@ -103,14 +103,14 @@ void UserCard::drawUserInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
   // Display name (bold)
   auto displayName = user.getDisplayNameOrUsername();
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(15.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(15.0f).withStyle("Bold")));
 
   auto nameBounds = bounds.removeFromTop(20);
   g.drawText(displayName, nameBounds, juce::Justification::centredLeft, true);
 
   // Username (if different from display name) and follower count
   g.setColour(Colors::textSecondary);
-  g.setFont(juce::Font(12.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(12.0f)));
 
   juce::String subtitle;
   if (!user.displayName.isEmpty() && user.displayName != user.username) {
@@ -151,7 +151,7 @@ void UserCard::drawFollowButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
     UIHelpers::drawButton(g, buttonBounds, "Following", Colors::followingButton, Colors::textSecondary, false, 14.0f);
   } else {
     // "Follow" button (accent)
-    g.setFont(juce::Font(11.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f).withStyle("Bold")));
     UIHelpers::drawButton(g, buttonBounds, "Follow", Colors::followButton, juce::Colours::black, false, 14.0f);
   }
 }

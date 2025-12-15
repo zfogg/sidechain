@@ -307,8 +307,8 @@ bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::Audio
   }
 
   // Create the output stream
-  auto outputStream = std::make_unique<juce::FileOutputStream>(file);
-  if (!outputStream->openedOk()) {
+  auto fileStream = std::make_unique<juce::FileOutputStream>(file);
+  if (!fileStream->openedOk()) {
     Log::error("saveBufferToWavFile: Could not open file for writing: " + file.getFullPathName());
 
     // Track file I/O error (Task 4.19)
@@ -338,13 +338,14 @@ bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::Audio
     break;
   }
 
-  // Create WAV format writer
+  // Create WAV format writer (need unique_ptr<OutputStream> for the API)
   juce::WavAudioFormat wavFormat;
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      wavFormat.createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()),
-                                bitsPerSample, {}, // No metadata
-                                0                  // Quality parameter (unused for WAV)
-                                ));
+  std::unique_ptr<juce::OutputStream> outputStream(std::move(fileStream));
+  auto writerOptions = juce::AudioFormatWriterOptions()
+                           .withSampleRate(sampleRate)
+                           .withNumChannels(buffer.getNumChannels())
+                           .withBitsPerSample(bitsPerSample);
+  auto writer = wavFormat.createWriterFor(outputStream, writerOptions);
 
   if (writer == nullptr) {
     Log::error("saveBufferToWavFile: Could not create WAV writer");
@@ -362,8 +363,7 @@ bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::Audio
     return false;
   }
 
-  // Writer takes ownership of the stream on success
-  (void)outputStream.release();
+  // Ownership of outputStream is transferred to writer when successful
 
   // Write the audio buffer
   bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
@@ -452,8 +452,8 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File &file, const juce::Audi
   }
 
   // Create the output stream
-  auto outputStream = std::make_unique<juce::FileOutputStream>(file);
-  if (!outputStream->openedOk()) {
+  auto fileStream = std::make_unique<juce::FileOutputStream>(file);
+  if (!fileStream->openedOk()) {
     Log::error("saveBufferToFlacFile: Could not open file for writing: " + file.getFullPathName());
     return false;
   }
@@ -473,21 +473,22 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File &file, const juce::Audi
   // Clamp quality to valid range (0-8)
   quality = juce::jlimit(0, 8, quality);
 
-  // Create FLAC format writer
+  // Create FLAC format writer (need unique_ptr<OutputStream> for the API)
   juce::FlacAudioFormat flacFormat;
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      flacFormat.createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()),
-                                 bitsPerSample, {}, // No metadata
-                                 quality            // Compression quality (0-8)
-                                 ));
+  std::unique_ptr<juce::OutputStream> outputStream(std::move(fileStream));
+  auto flacWriterOptions = juce::AudioFormatWriterOptions()
+                               .withSampleRate(sampleRate)
+                               .withNumChannels(buffer.getNumChannels())
+                               .withBitsPerSample(bitsPerSample)
+                               .withQualityOptionIndex(quality);
+  auto writer = flacFormat.createWriterFor(outputStream, flacWriterOptions);
 
   if (writer == nullptr) {
     Log::error("saveBufferToFlacFile: Could not create FLAC writer");
     return false;
   }
 
-  // Writer takes ownership of the stream on success
-  (void)outputStream.release();
+  // Ownership of outputStream is transferred to writer when successful
 
   // Write the audio buffer
   bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());

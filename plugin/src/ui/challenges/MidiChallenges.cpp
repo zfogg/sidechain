@@ -290,7 +290,7 @@ juce::Rectangle<int> MidiChallenges::getChallengeCardBounds(int index) const {
 }
 
 //==============================================================================
-void MidiChallenges::fetchChallenges(FilterType filter) {
+void MidiChallenges::fetchChallenges([[maybe_unused]] FilterType filter) {
   // Already handled in loadChallenges()
 }
 

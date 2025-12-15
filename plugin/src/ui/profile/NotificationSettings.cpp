@@ -240,7 +240,7 @@ void NotificationSettings::drawHeader(juce::Graphics &g, juce::Rectangle<int> bo
 
   // Title
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(18.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
   g.drawText("Notification Settings", bounds, juce::Justification::centred);
 
   // Bottom border
@@ -251,7 +251,7 @@ void NotificationSettings::drawHeader(juce::Graphics &g, juce::Rectangle<int> bo
 
 void NotificationSettings::drawSection(juce::Graphics &g, const juce::String &title, juce::Rectangle<int> bounds) {
   g.setColour(Colors::textSecondary);
-  g.setFont(juce::Font(11.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(11.0f).withStyle("Bold")));
   g.drawText(title, bounds, juce::Justification::centredLeft);
 }
 
