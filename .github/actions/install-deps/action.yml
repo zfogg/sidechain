@@ -79,9 +79,9 @@ runs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        choco install ninja ccache openssl -y
+        choco install ninja ccache openssl -y -q
         # Install libcurl development package via vcpkg
-        C:\vcpkg\vcpkg install curl:x64-windows
+        C:\vcpkg\vcpkg install curl:x64-windows --quiet
         # Set OpenSSL path for CMake
         echo "OPENSSL_ROOT_DIR=C:\Program Files\OpenSSL" >> $env:GITHUB_ENV
         # Set CURL_ROOT for CMake FindCURL module
