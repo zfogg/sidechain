@@ -69,7 +69,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 			duration_bars INTEGER,
 			daw TEXT,
 			genre TEXT,
-			waveform_svg TEXT,
+			waveform_url TEXT,
 			like_count INTEGER DEFAULT 0,
 			play_count INTEGER DEFAULT 0,
 			comment_count INTEGER DEFAULT 0,

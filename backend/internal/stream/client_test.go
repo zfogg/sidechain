@@ -53,7 +53,7 @@ func TestActivityStruct(t *testing.T) {
 		DAW:          "FL Studio",
 		DurationBars: 16,
 		Genre:        []string{"Techno", "Electronic"},
-		Waveform:     "<svg>waveform data</svg>",
+		WaveformURL:  "https://cdn.example.com/waveforms/123.png",
 		Extra: map[string]interface{}{
 			"custom_field": "custom_value",
 		},
@@ -73,7 +73,7 @@ func TestActivityStruct(t *testing.T) {
 	assert.Equal(t, 16, activity.DurationBars)
 	assert.Contains(t, activity.Genre, "Techno")
 	assert.Contains(t, activity.Genre, "Electronic")
-	assert.Equal(t, "<svg>waveform data</svg>", activity.Waveform)
+	assert.Equal(t, "https://cdn.example.com/waveforms/123.png", activity.WaveformURL)
 	assert.Equal(t, "custom_value", activity.Extra["custom_field"])
 }
 
