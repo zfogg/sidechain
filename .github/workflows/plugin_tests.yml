@@ -94,6 +94,7 @@ jobs:
         if: always()
         uses: ./.github/actions/save-build-cache
         with:
+          cache-version: '1'
           arch: ${{ matrix.name == 'macOS-ARM64' && 'arm64' || matrix.name == 'macOS-Intel' && 'x86_64' || 'x86_64' }}
 
       - name: List Build Artifacts
@@ -165,6 +166,8 @@ jobs:
       - name: Save Build Cache
         if: always()
         uses: ./.github/actions/save-build-cache
+        with:
+          cache-version: '1'
 
       - name: Generate Coverage Report
         run: |

@@ -62,6 +62,7 @@ jobs:
         if: always()
         uses: ./.github/actions/save-build-cache
         with:
+          cache-version: '1'
           arch: ${{ matrix.name == 'macOS' && 'universal' || 'x86_64' }}
 
       - name: Package VST3 (macOS)

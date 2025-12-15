@@ -20,5 +20,5 @@ runs:
         path: |
           .cache
           plugin/build
-          ${{ runner.os == 'Linux' && '~/.cache/ccache' || runner.os == 'macOS' && '~/Library/Caches/ccache' || runner.os == 'Windows' && '%APPDATA%\ccache' || '' }}
+          ${{ runner.os == 'Linux' && '~/.cache/ccache' || runner.os == 'macOS' && '~/Library/Caches/ccache' || '' }}
         key: sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ inputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**') }}
