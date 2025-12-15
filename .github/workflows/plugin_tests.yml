@@ -72,11 +72,10 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
 
-      - name: Cache JUCE
-        uses: actions/cache@v4
+      - name: Cache Build Dependencies
+        uses: ./.github/actions/cache-build
         with:
-          path: plugin/build/_deps/juce-src
-          key: juce-8.0.11-${{ runner.os }}
+          arch: ${{ matrix.name == 'macOS-ARM64' && 'arm64' || matrix.name == 'macOS-Intel' && 'x86_64' || 'x86_64' }}
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
@@ -135,16 +134,14 @@ jobs:
         with:
           with-coverage: 'true'
 
-      - name: Cache JUCE
-        uses: actions/cache@v4
-        with:
-          path: plugin/build/_deps/juce-src
-          key: juce-8.0.11-${{ runner.os }}-tests
+      - name: Cache Build Dependencies
+        uses: ./.github/actions/cache-build
 
       - name: Configure CMake with Tests and Coverage
         run: |
           cmake -S plugin -B plugin/build \
-            --preset debug \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DSIDECHAIN_BUILD_TESTS=ON \
             -DSIDECHAIN_ENABLE_COVERAGE=ON \
             -DSIDECHAIN_BUILD_PLUGIN_HOST=OFF

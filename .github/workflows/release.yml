@@ -47,6 +47,11 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Cache Build Dependencies
+        uses: ./.github/actions/cache-build
+        with:
+          arch: ${{ matrix.name == 'macOS' && 'universal' || 'x86_64' }}
+
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} --preset ${{ matrix.cmake_preset }}
 
