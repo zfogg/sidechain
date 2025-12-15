@@ -7,13 +7,15 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/zfogg/sidechain/backend/internal/models"
+	"github.com/zfogg/sidechain/backend/internal/recommendations"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 // Seeder handles database seeding operations
 type Seeder struct {
-	db *gorm.DB
+	db    *gorm.DB
+	gorse *recommendations.GorseRESTClient
 }
 
 // NewSeeder creates a new seeder instance
@@ -23,26 +25,32 @@ func NewSeeder(db *gorm.DB) *Seeder {
 	return &Seeder{db: db}
 }
 
+// SetGorseClient sets the Gorse client for syncing recommendations
+func (s *Seeder) SetGorseClient(gorse *recommendations.GorseRESTClient) {
+	s.gorse = gorse
+}
+
 // SeedDev seeds the development database with realistic data
+// Now creates 10x more data for better recommendation testing
 func (s *Seeder) SeedDev() error {
 	log := func(msg string) {
 		fmt.Printf("  %s\n", msg)
 	}
 
 	log("Creating users...")
-	users, err := s.seedUsers(20) // Create 20 users
+	users, err := s.seedUsers(200) // 10x: 20 → 200 users
 	if err != nil {
 		return fmt.Errorf("failed to seed users: %w", err)
 	}
 
 	log("Creating audio posts...")
-	posts, err := s.seedAudioPosts(users, 50) // 50 posts across users
+	posts, err := s.seedAudioPostsWithVariedDistribution(users, 1000) // 20x: 50 → 1000 posts
 	if err != nil {
 		return fmt.Errorf("failed to seed audio posts: %w", err)
 	}
 
 	log("Creating comments...")
-	if err := s.seedComments(users, posts, 100); err != nil {
+	if err := s.seedComments(users, posts, 2000); err != nil { // 20x: 100 → 2000 comments
 		return fmt.Errorf("failed to seed comments: %w", err)
 	}
 
@@ -52,7 +60,7 @@ func (s *Seeder) SeedDev() error {
 	}
 
 	log("Creating play history...")
-	if err := s.seedPlayHistory(users, posts, 200); err != nil {
+	if err := s.seedPlayHistory(users, posts, 5000); err != nil { // 25x: 200 → 5000 plays
 		return fmt.Errorf("failed to seed play history: %w", err)
 	}
 
@@ -62,8 +70,18 @@ func (s *Seeder) SeedDev() error {
 	}
 
 	log("Creating devices...")
-	if err := s.seedDevices(users, 15); err != nil {
+	if err := s.seedDevices(users, 150); err != nil { // 10x: 15 → 150 devices
 		return fmt.Errorf("failed to seed devices: %w", err)
+	}
+
+	// Sync to Gorse if client is available
+	if s.gorse != nil {
+		log("Syncing data to Gorse...")
+		if err := s.syncToGorse(users, posts); err != nil {
+			return fmt.Errorf("failed to sync to Gorse: %w", err)
+		}
+	} else {
+		log("⚠️  Gorse client not configured - skipping recommendation sync")
 	}
 
 	return nil
@@ -284,7 +302,7 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 			DurationBars:     durationBars,
 			DAW:              daws[rand.Intn(len(daws))],
 			Genre:            postGenres,
-			WaveformSVG:      generateWaveformSVG(),
+			WaveformURL:      generateWaveformPlaceholderURL(),
 			LikeCount:        rand.Intn(100),
 			PlayCount:        rand.Intn(500),
 			CommentCount:     0,
@@ -335,6 +353,175 @@ func (s *Seeder) seedAudioPosts(users []models.User, count int) ([]models.AudioP
 	}
 
 	fmt.Printf("    Created %d audio posts across %d users\n", len(posts), len(users))
+	return posts, nil
+}
+
+// seedAudioPostsWithVariedDistribution creates audio posts with realistic varied distribution
+// Some users are very active (power users), most have moderate activity, some have minimal posts
+func (s *Seeder) seedAudioPostsWithVariedDistribution(users []models.User, totalCount int) ([]models.AudioPost, error) {
+	var posts []models.AudioPost
+
+	if len(users) == 0 {
+		return posts, nil
+	}
+
+	genres := []string{"house", "techno", "dubstep", "trance", "drum & bass", "hip-hop", "trap", "future bass"}
+	keys := []string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+	keys = append(keys, "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm")
+	daws := []string{"Ableton Live", "FL Studio", "Logic Pro", "Pro Tools", "Cubase"}
+	testAudioURLs := []string{
+		"https://www.kozco.com/tech/piano2.wav",
+		"https://www.kozco.com/tech/organfinale.wav",
+		"https://www.kozco.com/tech/LRMonoPhase4.wav",
+		"https://www.kozco.com/tech/LRMonoPhaset4.wav",
+		"https://www.kozco.com/tech/WAV-MP3.wav",
+		"https://www.kozco.com/tech/c304-2.wav",
+		"https://www.kozco.com/tech/32.mp3",
+		"https://www.kozco.com/tech/LRMonoPhase4.mp3",
+		"https://www.kozco.com/tech/organfinale.mp3",
+		"https://www.kozco.com/tech/piano2-CoolEdit.mp3",
+	}
+
+	// Helper to create a post for a user
+	createPost := func(user models.User) error {
+		duration := 4.0 + rand.Float64()*28.0
+		durationBars := int(duration / 4.0)
+		bpm := 100 + rand.Intn(81)
+
+		genreCount := rand.Intn(2) + 1
+		postGenres := make([]string, 0, genreCount)
+		genreMap := make(map[string]bool)
+		for len(postGenres) < genreCount {
+			genre := genres[rand.Intn(len(genres))]
+			if !genreMap[genre] {
+				genreMap[genre] = true
+				postGenres = append(postGenres, genre)
+			}
+		}
+
+		generatedFilename := fmt.Sprintf("loop_%s.wav", gofakeit.Word())
+
+		post := models.AudioPost{
+			UserID:           user.ID,
+			AudioURL:         testAudioURLs[rand.Intn(len(testAudioURLs))],
+			OriginalFilename: generatedFilename,
+			Filename:         generatedFilename,
+			FileSize:         int64(rand.Intn(5000000) + 1000000),
+			Duration:         duration,
+			BPM:              bpm,
+			Key:              keys[rand.Intn(len(keys))],
+			DurationBars:     durationBars,
+			DAW:              daws[rand.Intn(len(daws))],
+			Genre:            postGenres,
+			WaveformURL:      "",
+			LikeCount:        rand.Intn(100),
+			PlayCount:        rand.Intn(500),
+			CommentCount:     0,
+			StreamActivityID: gofakeit.UUID(),
+			ProcessingStatus: "complete",
+			IsPublic:         true,
+		}
+
+		createdAt := gofakeit.DateRange(time.Now().AddDate(0, 0, -30), time.Now())
+		post.CreatedAt = createdAt
+		post.UpdatedAt = createdAt
+
+		if err := s.db.Create(&post).Error; err != nil {
+			return fmt.Errorf("failed to create audio post: %w", err)
+		}
+
+		posts = append(posts, post)
+		s.db.Model(&user).Update("post_count", gorm.Expr("post_count + 1"))
+		return nil
+	}
+
+	// Realistic distribution: Power Law (80/20 rule)
+	// 10% of users are power users (20-50 posts each)
+	// 30% of users are active (5-15 posts each)
+	// 40% of users are moderate (2-5 posts each)
+	// 20% of users are lurkers (0-2 posts each)
+
+	powerUserCount := int(float64(len(users)) * 0.1)
+	activeUserCount := int(float64(len(users)) * 0.3)
+	moderateUserCount := int(float64(len(users)) * 0.4)
+	// Rest are lurkers
+
+	// Shuffle users for random assignment to categories
+	shuffledUsers := make([]models.User, len(users))
+	copy(shuffledUsers, users)
+	rand.Shuffle(len(shuffledUsers), func(i, j int) {
+		shuffledUsers[i], shuffledUsers[j] = shuffledUsers[j], shuffledUsers[i]
+	})
+
+	userIndex := 0
+	postsCreated := 0
+
+	// Power users: 20-50 posts each
+	for i := 0; i < powerUserCount && postsCreated < totalCount; i++ {
+		user := shuffledUsers[userIndex]
+		userIndex++
+		postCount := 20 + rand.Intn(31) // 20-50
+		for j := 0; j < postCount && postsCreated < totalCount; j++ {
+			if err := createPost(user); err != nil {
+				return nil, err
+			}
+			postsCreated++
+		}
+	}
+
+	// Active users: 5-15 posts each
+	for i := 0; i < activeUserCount && postsCreated < totalCount; i++ {
+		user := shuffledUsers[userIndex]
+		userIndex++
+		postCount := 5 + rand.Intn(11) // 5-15
+		for j := 0; j < postCount && postsCreated < totalCount; j++ {
+			if err := createPost(user); err != nil {
+				return nil, err
+			}
+			postsCreated++
+		}
+	}
+
+	// Moderate users: 2-5 posts each
+	for i := 0; i < moderateUserCount && postsCreated < totalCount; i++ {
+		user := shuffledUsers[userIndex]
+		userIndex++
+		postCount := 2 + rand.Intn(4) // 2-5
+		for j := 0; j < postCount && postsCreated < totalCount; j++ {
+			if err := createPost(user); err != nil {
+				return nil, err
+			}
+			postsCreated++
+		}
+	}
+
+	// Lurkers: 0-2 posts each (fill remaining posts if any)
+	for userIndex < len(shuffledUsers) && postsCreated < totalCount {
+		user := shuffledUsers[userIndex]
+		userIndex++
+		postCount := rand.Intn(3) // 0-2
+		for j := 0; j < postCount && postsCreated < totalCount; j++ {
+			if err := createPost(user); err != nil {
+				return nil, err
+			}
+			postsCreated++
+		}
+	}
+
+	// If we still need more posts, distribute randomly
+	for postsCreated < totalCount {
+		user := shuffledUsers[rand.Intn(len(shuffledUsers))]
+		if err := createPost(user); err != nil {
+			return nil, err
+		}
+		postsCreated++
+	}
+
+	fmt.Printf("    Created %d audio posts with varied distribution:\n", len(posts))
+	fmt.Printf("      - Power users (10%%): ~20-50 posts each\n")
+	fmt.Printf("      - Active users (30%%): ~5-15 posts each\n")
+	fmt.Printf("      - Moderate users (40%%): ~2-5 posts each\n")
+	fmt.Printf("      - Lurkers (20%%): ~0-2 posts each\n")
 	return posts, nil
 }
 
@@ -611,20 +798,90 @@ func (s *Seeder) seedDevices(users []models.User, count int) error {
 	return nil
 }
 
-// generateWaveformSVG generates a simple SVG waveform placeholder
-func generateWaveformSVG() string {
-	// Simple waveform with random peaks
-	points := make([]string, 100)
-	for i := 0; i < 100; i++ {
-		height := rand.Intn(50) + 10
-		points[i] = fmt.Sprintf("%d,%d", i*10, height)
+// generateWaveformPlaceholderURL generates a placeholder waveform URL for seed data
+func generateWaveformPlaceholderURL() string {
+	// Return empty string - waveforms should be generated from actual audio
+	return ""
+}
+
+// syncToGorse syncs all seed data to Gorse for recommendations
+func (s *Seeder) syncToGorse(users []models.User, posts []models.AudioPost) error {
+	if s.gorse == nil {
+		return fmt.Errorf("Gorse client not configured")
 	}
-	pointsStr := ""
-	for i, p := range points {
-		if i > 0 {
-			pointsStr += " "
+
+	// Sync users
+	fmt.Printf("      Syncing %d users to Gorse...\n", len(users))
+	for _, user := range users {
+		if err := s.gorse.SyncUser(user.ID); err != nil {
+			fmt.Printf("      ⚠️  Failed to sync user %s: %v\n", user.ID, err)
+			// Continue syncing others even if one fails
 		}
-		pointsStr += p
 	}
-	return fmt.Sprintf(`<svg viewBox="0 0 1000 100"><polyline points="%s" fill="none" stroke="#000" stroke-width="2"/></svg>`, pointsStr)
+
+	// Sync posts (items)
+	fmt.Printf("      Syncing %d posts to Gorse...\n", len(posts))
+	for _, post := range posts {
+		if err := s.gorse.SyncItem(post.ID); err != nil {
+			fmt.Printf("      ⚠️  Failed to sync post %s: %v\n", post.ID, err)
+			// Continue syncing others even if one fails
+		}
+	}
+
+	// Sync feedback (play history)
+	var playHistory []models.PlayHistory
+	if err := s.db.Find(&playHistory).Error; err != nil {
+		return fmt.Errorf("failed to fetch play history: %w", err)
+	}
+
+	fmt.Printf("      Syncing %d feedback events to Gorse...\n", len(playHistory))
+	for _, play := range playHistory {
+		feedbackType := "view"
+		if play.Completed {
+			feedbackType = "like" // Completed plays are strong positive signals
+		}
+
+		if err := s.gorse.SyncFeedback(play.UserID, play.PostID, feedbackType); err != nil {
+			fmt.Printf("      ⚠️  Failed to sync feedback for user %s, post %s: %v\n", play.UserID, play.PostID, err)
+			// Continue syncing others even if one fails
+		}
+	}
+
+	// Sync likes (additional feedback)
+	// Find all posts with like_count > 0 and create like feedback
+	// Note: In production, we'd track individual likes in a separate table
+	// For seed data, we'll create synthetic like feedback based on like_count
+	fmt.Printf("      Generating like feedback from post engagement...\n")
+	likeCount := 0
+	for _, post := range posts {
+		if post.LikeCount > 0 {
+			// Randomly assign likes to users (simplified for seed data)
+			likesNeeded := post.LikeCount
+			if likesNeeded > len(users) {
+				likesNeeded = len(users) // Can't have more likes than users
+			}
+
+			// Shuffle users and assign first N as likers
+			shuffledUsers := make([]models.User, len(users))
+			copy(shuffledUsers, users)
+			rand.Shuffle(len(shuffledUsers), func(i, j int) {
+				shuffledUsers[i], shuffledUsers[j] = shuffledUsers[j], shuffledUsers[i]
+			})
+
+			for i := 0; i < likesNeeded; i++ {
+				if err := s.gorse.SyncFeedback(shuffledUsers[i].ID, post.ID, "like"); err != nil {
+					// Silently continue on error to avoid spam
+					continue
+				}
+				likeCount++
+			}
+		}
+	}
+	fmt.Printf("      Generated %d like feedback events\n", likeCount)
+
+	fmt.Printf("    ✅ Gorse sync complete!\n")
+	fmt.Printf("    📊 Summary: %d users, %d posts, %d+ feedback events\n",
+		len(users), len(posts), len(playHistory)+likeCount)
+
+	return nil
 }
