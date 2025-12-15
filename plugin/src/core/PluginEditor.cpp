@@ -1265,11 +1265,18 @@ void SidechainAudioProcessorEditor::showView(AppView view, NavigationDirection d
         // Use content bounds (below header) for post-login views
         auto bounds = getLocalBounds().withTrimmedTop(Header::HEADER_HEIGHT);
 
-        // Set bounds for both components involved in transition
+        // Set bounds and visibility for both components involved in transition
+        // Must make both visible BEFORE animation starts so they render correctly
         if (componentToShow)
+        {
             componentToShow->setBounds(bounds);
+            componentToShow->setVisible(true);
+        }
         if (componentToHide)
+        {
             componentToHide->setBounds(bounds);
+            componentToHide->setVisible(true);
+        }
 
         // Hide all other components immediately (not involved in animation)
         for (auto appView : { AppView::Authentication, AppView::ProfileSetup, AppView::PostsFeed, AppView::Recording,
