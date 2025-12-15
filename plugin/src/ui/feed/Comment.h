@@ -149,8 +149,13 @@ private:
 };
 
 //==============================================================================
-// Forward declaration
+// Forward declarations
 class NetworkClient;
+namespace Sidechain {
+namespace Stores {
+class CommentStore;
+}
+} // namespace Sidechain
 
 //==============================================================================
 /**
@@ -162,7 +167,7 @@ class NetworkClient;
  * - Reply threading (1 level deep)
  * - Like/unlike on comments
  * - Edit/delete own comments
- * - Real-time updates
+ * - Real-time updates via CommentStore (reactive pattern)
  */
 class CommentsPanel : public juce::Component, private juce::Timer {
 public:
@@ -173,6 +178,9 @@ public:
   // Setup
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
+  }
+  void setCommentStore(std::shared_ptr<Sidechain::Stores::CommentStore> store) {
+    commentStore = store;
   }
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
@@ -210,8 +218,14 @@ private:
   void timerCallback() override;
 
   //==============================================================================
+  // Store subscription callback
+  void onCommentStoreChanged(const Sidechain::Stores::CommentState &state);
+
+  //==============================================================================
   // Data
   NetworkClient *networkClient = nullptr;
+  std::shared_ptr<Sidechain::Stores::CommentStore> commentStore;
+  juce::String storeUnsubscribeId; // Track subscription for cleanup
   juce::String currentPostId;
   juce::String currentUserId;
   juce::Array<Comment> comments;

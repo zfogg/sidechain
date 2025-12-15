@@ -168,7 +168,7 @@ void EditProfile::setUserStore(Sidechain::Stores::UserStore *store) {
   if (userStore) {
     Log::debug("EditProfile: UserStore set, subscribing to state changes");
     // Task 2.4: Subscribe to UserStore for reactive updates
-    userStoreUnsubscribe = userStore->subscribe([this](const Sidechain::Stores::UserState &state) {
+    userStoreUnsubscribe = userStore->subscribe([this]([[maybe_unused]] const Sidechain::Stores::UserState &state) {
       Log::debug("EditProfile: UserStore state updated");
 
       // ReactiveBoundComponent will call repaint() automatically

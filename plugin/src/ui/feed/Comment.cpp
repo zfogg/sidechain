@@ -1,5 +1,6 @@
 #include "Comment.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/CommentStore.h"
 #include "../../stores/ImageCache.h"
 #include "../../ui/common/ToastNotification.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
@@ -11,13 +12,15 @@
 #include "../../util/TextEditorStyler.h"
 #include "../../util/UIHelpers.h"
 
+using namespace Sidechain::Stores;
+
 //==============================================================================
 CommentRow::CommentRow() {
   Log::debug("CommentRow: Initializing comment row");
   setSize(400, ROW_HEIGHT);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this](bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 }
 
 //==============================================================================
@@ -103,7 +106,7 @@ void CommentRow::drawContent(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.drawFittedText(comment.content, bounds, juce::Justification::topLeft, 3, 1.0f);
 }
 
-void CommentRow::drawActions(juce::Graphics &g, juce::Rectangle<int> bounds) {
+void CommentRow::drawActions(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
   // Like button
   auto likeBounds = getLikeButtonBounds();
   juce::Colour likeColor = comment.isLiked ? SidechainColors::like() : SidechainColors::textMuted();
@@ -313,25 +316,37 @@ void CommentsPanel::setupUI() {
 }
 
 void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
-  if (postId.isEmpty() || networkClient == nullptr) {
-    Log::warn("CommentsPanel::loadCommentsForPost: Cannot load - postId empty "
-              "or networkClient null");
+  if (postId.isEmpty()) {
+    Log::warn("CommentsPanel::loadCommentsForPost: Cannot load - postId empty");
     return;
   }
 
   Log::info("CommentsPanel::loadCommentsForPost: Loading comments for post: " + postId);
   currentPostId = postId;
-  currentOffset = 0;
-  comments.clear();
-  commentRows.clear();
-  errorMessage = "";
-  isLoading = true;
-  Log::debug("CommentsPanel::loadCommentsForPost: State reset, loading started");
-  repaint();
 
-  networkClient->getComments(postId, 20, 0, [this](Outcome<std::pair<juce::var, int>> commentsResult) {
-    handleCommentsLoaded(commentsResult);
-  });
+  // Use CommentStore if available (preferred - reactive pattern)
+  if (commentStore != nullptr) {
+    // Subscribe to comment store updates
+    storeUnsubscribeId = commentStore->subscribe([this](const CommentState &state) { onCommentStoreChanged(state); });
+    // Trigger load from store
+    commentStore->loadCommentsForPost(postId);
+  }
+  // Fallback: Use NetworkClient directly if CommentStore not set (backward compatibility)
+  else if (networkClient != nullptr) {
+    currentOffset = 0;
+    comments.clear();
+    commentRows.clear();
+    errorMessage = "";
+    isLoading = true;
+    Log::debug("CommentsPanel::loadCommentsForPost: Using NetworkClient fallback");
+    repaint();
+
+    networkClient->getComments(postId, 20, 0, [this](Outcome<std::pair<juce::var, int>> commentsResult) {
+      handleCommentsLoaded(commentsResult);
+    });
+  } else {
+    Log::warn("CommentsPanel::loadCommentsForPost: No CommentStore or NetworkClient available");
+  }
 }
 
 void CommentsPanel::refreshComments() {
@@ -339,6 +354,22 @@ void CommentsPanel::refreshComments() {
     return;
 
   loadCommentsForPost(currentPostId);
+}
+
+void CommentsPanel::onCommentStoreChanged(const CommentState &state) {
+  Log::debug("CommentsPanel::onCommentStoreChanged: Comment store updated for post: " + state.postId);
+
+  // Update local state from store
+  comments = state.comments;
+  isLoading = state.isLoading;
+  totalCommentCount = state.totalCount;
+  hasMoreComments = state.hasMore;
+  currentOffset = state.offset;
+  errorMessage = state.error;
+
+  // Update UI
+  updateCommentsList();
+  repaint();
 }
 
 void CommentsPanel::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> commentsResult) {
@@ -464,7 +495,7 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
   // NetworkClient::reportComment()
 
   row->onDeleteClicked = [this](const Comment &comment) {
-    if (networkClient == nullptr)
+    if (commentStore == nullptr && networkClient == nullptr)
       return;
 
     // Confirm delete
@@ -475,10 +506,17 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
                        .withButton("Cancel");
 
     juce::AlertWindow::showAsync(options, [this, commentId = comment.id](int result) {
-      if (result == 1 && networkClient != nullptr) {
-        networkClient->deleteComment(commentId, [this, commentId](Outcome<juce::var> responseOutcome) {
-          handleCommentDeleted(responseOutcome.isOk(), commentId);
-        });
+      if (result == 1) {
+        // Use CommentStore if available (preferred)
+        if (commentStore != nullptr) {
+          commentStore->deleteComment(commentId);
+        }
+        // Fallback to NetworkClient
+        else if (networkClient != nullptr) {
+          networkClient->deleteComment(commentId, [this, commentId](Outcome<juce::var> responseOutcome) {
+            handleCommentDeleted(responseOutcome.isOk(), commentId);
+          });
+        }
       }
     });
   };
@@ -525,13 +563,22 @@ void CommentsPanel::setupRowCallbacks(CommentRow *row) {
 }
 
 void CommentsPanel::handleCommentLikeToggled(const Comment &comment, bool liked) {
-  if (networkClient == nullptr) {
-    Log::warn("CommentsPanel::handleCommentLikeToggled: networkClient is null");
+  Log::info("CommentsPanel::handleCommentLikeToggled: Toggling like - commentId: " + comment.id +
+            ", liked: " + juce::String(liked ? "yes" : "no"));
+
+  // Use CommentStore if available (preferred - handles optimistic updates + sync)
+  if (commentStore != nullptr) {
+    commentStore->toggleCommentLike(comment.id, liked);
     return;
   }
 
-  Log::info("CommentsPanel::handleCommentLikeToggled: Toggling like - commentId: " + comment.id +
-            ", liked: " + juce::String(liked ? "yes" : "no") + ", current count: " + juce::String(comment.likeCount));
+  // Fallback: Use NetworkClient directly if CommentStore not set
+  if (networkClient == nullptr) {
+    Log::warn("CommentsPanel::handleCommentLikeToggled: No CommentStore or networkClient available");
+    return;
+  }
+
+  Log::debug("CommentsPanel::handleCommentLikeToggled: Using NetworkClient fallback");
 
   // Optimistic update
   for (auto *row : commentRows) {
@@ -884,12 +931,12 @@ bool CommentsPanel::keyPressed(const juce::KeyPress &key) {
 //==============================================================================
 // Mention Autocomplete Implementation
 
-void CommentsPanel::MentionListener::textEditorTextChanged(juce::TextEditor &editor) {
+void CommentsPanel::MentionListener::textEditorTextChanged([[maybe_unused]] juce::TextEditor &editor) {
   if (parent != nullptr)
     parent->checkForMention();
 }
 
-void CommentsPanel::MentionListener::textEditorReturnKeyPressed(juce::TextEditor &editor) {
+void CommentsPanel::MentionListener::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor &editor) {
   // Handled in onReturnKey callback
 }
 

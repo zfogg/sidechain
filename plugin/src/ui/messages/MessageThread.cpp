@@ -1167,12 +1167,12 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
   }
 }
 
-void MessageThread::reportMessage(const StreamChatClient::Message &message) {
+void MessageThread::reportMessage([[maybe_unused]] const StreamChatClient::Message &message) {
   // TODO: Report message not yet implemented via ChatStore
   Log::warn("MessageThread: Report message not yet implemented via ChatStore");
 }
 
-void MessageThread::blockUser(const StreamChatClient::Message &message) {
+void MessageThread::blockUser([[maybe_unused]] const StreamChatClient::Message &message) {
   // TODO: Block user not yet implemented via ChatStore
   Log::warn("MessageThread: Block user not yet implemented via ChatStore");
 }
@@ -1214,7 +1214,8 @@ void MessageThread::showRemoveMembersDialog() {
   Log::warn("MessageThread: Remove members not yet implemented via ChatStore");
 }
 
-void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float> &audioBuffer, double sampleRate) {
+void MessageThread::sendAudioSnippet([[maybe_unused]] const juce::AudioBuffer<float> &audioBuffer,
+                                     [[maybe_unused]] double sampleRate) {
   // TODO: Send audio snippet not yet implemented via ChatStore
   Log::warn("MessageThread: Send audio snippet not yet implemented via ChatStore");
 }
