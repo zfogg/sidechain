@@ -134,8 +134,8 @@ juce::AudioBuffer<float> Microphone::stopRecording()
 //==============================================================================
 void Microphone::audioDeviceIOCallback(const float** inputChannelData,
                                         int numInputChannels,
-                                        float** outputChannelData,
-                                        int numOutputChannels,
+                                        float** /* outputChannelData */,
+                                        int /* numOutputChannels */,
                                         int numSamples)
 {
     // Fast exit if not recording (atomic read)

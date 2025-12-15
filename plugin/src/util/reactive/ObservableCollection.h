@@ -322,7 +322,7 @@ public:
             mapped->remove(index);
         });
 
-        observeItemChanged([mapped, transform](int index, const T& oldItem, const T& newItem)
+        observeItemChanged([mapped, transform](int index, const T& /* oldItem */, const T& newItem)
         {
             mapped->set(index, transform(newItem));
         });
@@ -347,18 +347,18 @@ public:
         }
 
         // Subscribe to changes
-        observeItemAdded([filtered, predicate](int index, const T& item)
+        observeItemAdded([filtered, predicate](int /* index */, const T& item)
         {
             if (predicate(item))
                 filtered->add(item);
         });
 
-        observeItemRemoved([filtered](int index, const T& item)
+        observeItemRemoved([filtered](int /* index */, const T& item)
         {
             filtered->removeItem(item);
         });
 
-        observeItemChanged([filtered, predicate](int index, const T& oldItem, const T& newItem)
+        observeItemChanged([filtered, predicate](int /* index */, const T& oldItem, const T& newItem)
         {
             bool oldMatches = predicate(oldItem);
             bool newMatches = predicate(newItem);
@@ -497,7 +497,7 @@ public:
     void set(const K& key, const V& value)
     {
         V oldValue;
-        bool existed = false;
+        [[maybe_unused]] bool existed = false;
 
         {
             std::lock_guard<std::mutex> lock(mutex);

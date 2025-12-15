@@ -13,7 +13,7 @@ AudioCapture::~AudioCapture()
 }
 
 //==============================================================================
-void AudioCapture::prepare(double sampleRate, int samplesPerBlock, int numChannels)
+void AudioCapture::prepare(double sampleRate, int /* samplesPerBlock */, int numChannels)
 {
     currentSampleRate = sampleRate;
     currentNumChannels = juce::jmin(numChannels, MaxChannels);

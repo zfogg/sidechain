@@ -41,7 +41,7 @@ struct PerformanceMetrics
     {
         if (sampleCount == 0)
             return 0.0f;
-        return 100.0f * slowCount / sampleCount;
+        return 100.0f * static_cast<float>(slowCount) / static_cast<float>(sampleCount);
     }
 };
 
@@ -113,19 +113,19 @@ public:
     /**
      * Record a measurement for a named metric
      *
-     * @param name Metric name
+     * @param metricName Metric name
      * @param durationMs Duration in milliseconds
      * @param slowThresholdMs Threshold for slow warning (0 = no threshold)
      */
-    void record(const juce::String& name, double durationMs, double slowThresholdMs = 0.0);
+    void record(const juce::String& metricName, double durationMs, double slowThresholdMs = 0.0);
 
     /**
      * Get metrics for a specific measurement
      *
-     * @param name Metric name
+     * @param metricName Metric name
      * @return PerformanceMetrics for this metric
      */
-    PerformanceMetrics getMetrics(const juce::String& name) const;
+    PerformanceMetrics getMetrics(const juce::String& metricName) const;
 
     /**
      * Get all metric names
@@ -140,7 +140,7 @@ public:
     /**
      * Reset metrics for a name
      */
-    void reset(const juce::String& name);
+    void reset(const juce::String& metricName);
 
     /**
      * Reset all metrics
@@ -160,10 +160,10 @@ public:
     /**
      * Set slow operation threshold for specific metric
      */
-    void setSlowThreshold(const juce::String& name, double thresholdMs)
+    void setSlowThreshold(const juce::String& metricName, double thresholdMs)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        slowThresholds_[name] = thresholdMs;
+        slowThresholds_[metricName] = thresholdMs;
     }
 
     /**
@@ -249,7 +249,7 @@ inline double ScopedTimer::getElapsedMs() const
 {
     auto now = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - startTime_);
-    return duration.count() / 1000.0;  // Convert to ms
+    return static_cast<double>(duration.count()) / 1000.0;  // Convert to ms
 }
 
 // ========== PerformanceMonitor Implementation ==========
@@ -264,8 +264,8 @@ namespace {
         PerformanceMonitorCallbackInitializer()
         {
             // Wire ScopedTimer's callback to PerformanceMonitor's record method
-            ScopedTimer::recordCallback_ = [](const juce::String& name, double ms, double threshold) {
-                PerformanceMonitor::getInstance()->record(name, ms, threshold);
+            ScopedTimer::recordCallback_ = [](const juce::String& metricName, double ms, double threshold) {
+                PerformanceMonitor::getInstance()->record(metricName, ms, threshold);
             };
         }
     };
@@ -274,19 +274,19 @@ namespace {
     static PerformanceMonitorCallbackInitializer callbackInitializer;
 }
 
-inline void PerformanceMonitor::record(const juce::String& name, double durationMs,
+inline void PerformanceMonitor::record(const juce::String& metricName, double durationMs,
                                        double slowThresholdMs)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto& measurement = measurements_[name];
+    auto& measurement = measurements_[metricName];
     measurement.durations.push_back(durationMs);
 
     // Update slow threshold
     if (slowThresholdMs > 0.0)
         measurement.slowThreshold = slowThresholdMs;
-    else if (slowThresholds_.count(name))
-        measurement.slowThreshold = slowThresholds_[name];
+    else if (slowThresholds_.count(metricName))
+        measurement.slowThreshold = slowThresholds_[metricName];
     else if (globalSlowThreshold_ > 0.0)
         measurement.slowThreshold = globalSlowThreshold_;
 
@@ -296,7 +296,7 @@ inline void PerformanceMonitor::record(const juce::String& name, double duration
         measurement.warningCount++;
 
         if (slowOperationCallback_)
-            slowOperationCallback_(name, durationMs);
+            slowOperationCallback_(metricName, durationMs);
     }
 
     // Keep only last 1000 measurements to limit memory
@@ -304,11 +304,11 @@ inline void PerformanceMonitor::record(const juce::String& name, double duration
         measurement.durations.erase(measurement.durations.begin());
 }
 
-inline PerformanceMetrics PerformanceMonitor::getMetrics(const juce::String& name) const
+inline PerformanceMetrics PerformanceMonitor::getMetrics(const juce::String& metricName) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto it = measurements_.find(name);
+    auto it = measurements_.find(metricName);
     if (it == measurements_.end())
         return PerformanceMetrics();
 
@@ -319,8 +319,8 @@ inline std::vector<juce::String> PerformanceMonitor::getMetricNames() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<juce::String> names;
-    for (const auto& [name, _] : measurements_)
-        names.push_back(name);
+    for (const auto& pair : measurements_)
+        names.push_back(pair.first);
     return names;
 }
 
@@ -328,15 +328,15 @@ inline std::map<juce::String, PerformanceMetrics> PerformanceMonitor::getAllMetr
 {
     std::lock_guard<std::mutex> lock(mutex_);
     std::map<juce::String, PerformanceMetrics> result;
-    for (const auto& [name, measurement] : measurements_)
-        result[name] = calculateMetrics(measurement.durations, measurement.slowThreshold);
+    for (const auto& [metricName, measurement] : measurements_)
+        result[metricName] = calculateMetrics(measurement.durations, measurement.slowThreshold);
     return result;
 }
 
-inline void PerformanceMonitor::reset(const juce::String& name)
+inline void PerformanceMonitor::reset(const juce::String& metricName)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    measurements_.erase(name);
+    measurements_.erase(metricName);
 }
 
 inline void PerformanceMonitor::resetAll()
@@ -353,7 +353,7 @@ inline PerformanceMetrics PerformanceMonitor::calculateMetrics(const std::vector
     if (durations.empty())
         return metrics;
 
-    metrics.sampleCount = durations.size();
+    metrics.sampleCount = static_cast<int>(durations.size());
     metrics.slowThresholdMs = slowThreshold;
 
     // Min and max
@@ -361,7 +361,7 @@ inline PerformanceMetrics PerformanceMonitor::calculateMetrics(const std::vector
     metrics.maxMs = *std::max_element(durations.begin(), durations.end());
 
     // Average
-    metrics.avgMs = std::accumulate(durations.begin(), durations.end(), 0.0) / durations.size();
+    metrics.avgMs = std::accumulate(durations.begin(), durations.end(), 0.0) / static_cast<double>(durations.size());
 
     // Sorted for percentiles
     std::vector<double> sorted = durations;
@@ -374,8 +374,8 @@ inline PerformanceMetrics PerformanceMonitor::calculateMetrics(const std::vector
     // Count slow
     if (slowThreshold > 0.0)
     {
-        metrics.slowCount = std::count_if(durations.begin(), durations.end(),
-                                          [slowThreshold](double d) { return d > slowThreshold; });
+        metrics.slowCount = static_cast<int>(std::count_if(durations.begin(), durations.end(),
+                                                            [slowThreshold](double d) { return d > slowThreshold; }));
     }
 
     return metrics;
@@ -387,7 +387,7 @@ inline double PerformanceMonitor::getPercentile(const std::vector<double>& sorte
     if (sortedValues.empty())
         return 0.0;
 
-    size_t index = static_cast<size_t>((percentile / 100.0) * sortedValues.size());
+    size_t index = static_cast<size_t>((percentile / 100.0) * static_cast<double>(sortedValues.size()));
     if (index >= sortedValues.size())
         index = sortedValues.size() - 1;
 
@@ -399,9 +399,9 @@ inline size_t PerformanceMonitor::getMemoryOverhead() const
     std::lock_guard<std::mutex> lock(mutex_);
 
     size_t total = 0;
-    for (const auto& [name, measurement] : measurements_)
+    for (const auto& [metricName, measurement] : measurements_)
     {
-        total += name.length();
+        total += static_cast<size_t>(metricName.length());
         total += measurement.durations.size() * sizeof(double);
     }
     return total;
@@ -413,11 +413,11 @@ inline void PerformanceMonitor::dumpMetrics() const
 
     juce::Logger::getCurrentLogger()->writeToLog("=== Performance Metrics ===");
 
-    for (const auto& [name, measurement] : measurements_)
+    for (const auto& [metricName, measurement] : measurements_)
     {
         auto metrics = calculateMetrics(measurement.durations, measurement.slowThreshold);
 
-        juce::String log = name + ": ";
+        juce::String log = metricName + ": ";
         log += "avg=" + juce::String(metrics.avgMs, 2) + "ms ";
         log += "min=" + juce::String(metrics.minMs, 2) + "ms ";
         log += "max=" + juce::String(metrics.maxMs, 2) + "ms ";

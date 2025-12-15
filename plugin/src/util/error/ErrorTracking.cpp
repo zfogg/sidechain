@@ -182,7 +182,7 @@ ErrorTracker::ErrorStats ErrorTracker::getStatistics() const
     std::sort(sortedErrors.begin(), sortedErrors.end(),
               [](const auto& a, const auto& b) { return a.second > b.second; });
 
-    for (int i = 0; i < std::min(10, static_cast<int>(sortedErrors.size())); ++i)
+    for (size_t i = 0; i < std::min(static_cast<size_t>(10), sortedErrors.size()); ++i)
     {
         stats.topErrors[sortedErrors[i].first] = sortedErrors[i].second;
     }
