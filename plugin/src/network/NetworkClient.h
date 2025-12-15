@@ -351,6 +351,42 @@ public:
      */
     void getSimilarPosts(const juce::String& postId, int limit = 10, FeedCallback callback = nullptr);
 
+    /** Get popular posts (trending content based on engagement)
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with feed data or error
+     */
+    void getPopularFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    /** Get latest posts (recently added content)
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with feed data or error
+     */
+    void getLatestFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    /** Get discovery feed (blended popular, latest, and personalized)
+     * @param limit Maximum number of posts to return
+     * @param offset Pagination offset
+     * @param callback Called with feed data or error
+     */
+    void getDiscoveryFeed(int limit = 20, int offset = 0, FeedCallback callback = nullptr);
+
+    /** Track a recommendation click for CTR analysis
+     * @param postId The post ID that was clicked
+     * @param source The recommendation source ("for-you", "popular", "latest", "discovery", "similar")
+     * @param position The position in the feed (0-based)
+     * @param playDuration Optional play duration in seconds
+     * @param completed Whether the post was played to completion
+     * @param callback Called with result or error
+     */
+    void trackRecommendationClick(const juce::String& postId,
+                                   const juce::String& source,
+                                   int position,
+                                   double playDuration = 0.0,
+                                   bool completed = false,
+                                   ResponseCallback callback = nullptr);
+
     /** Like a post with optional emoji reaction
      * @param activityId The post activity ID
      * @param emoji Optional emoji reaction (empty for default like)
@@ -1183,6 +1219,11 @@ public:
      * @return true if authenticated, false otherwise
      */
     bool isAuthenticated() const { return !authToken.isEmpty(); }
+
+    /** Get the current authentication token
+     * @return The JWT authentication token, or empty string if not authenticated
+     */
+    const juce::String& getAuthToken() const { return authToken; }
 
     /** Get the base URL for API requests
      * @return The configured base URL

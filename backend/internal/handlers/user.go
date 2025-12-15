@@ -747,6 +747,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 
 	// If Stream.io returns empty or errored, fall back to database
 	if len(activities) == 0 {
+		log.Printf("GetUserPosts: Using database fallback (Stream.io returned %d activities, err=%v)", len(activities), err)
 		var audioPosts []models.AudioPost
 		if err := database.DB.
 			Where("user_id = ? AND is_public = ? AND is_archived = ?", user.ID, true, false).
@@ -806,6 +807,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 			}
 		}
 
+		log.Printf("GetUserPosts: Returning %d posts from database with is_following=%v", len(dbPosts), isFollowingUser)
 		c.JSON(http.StatusOK, gin.H{
 			"posts": dbPosts,
 			"user": gin.H{
@@ -832,6 +834,7 @@ func (h *Handlers) GetUserPosts(c *gin.Context) {
 
 	// Enrich activities with is_following state
 	// All posts from Stream.io are by the same user (profile owner), so apply to all
+	log.Printf("GetUserPosts: Enriching %d activities from Stream.io with is_following=%v", len(activities), isFollowingUser)
 	enrichedActivities := make([]gin.H, len(activities))
 	for i, activity := range activities {
 		// Convert EnrichedActivity to map using JSON marshal/unmarshal
