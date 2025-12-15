@@ -239,7 +239,7 @@ void AudioSnippetRecorder::drawCancelButton(juce::Graphics& g)
     // X icon
     g.setColour(juce::Colours::white);
     g.setFont(20.0f);
-    g.drawText("×", cancelButtonArea, juce::Justification::centred);
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9C\x96")), cancelButtonArea, juce::Justification::centred);
 }
 
 void AudioSnippetRecorder::drawSendButton(juce::Graphics& g)
@@ -250,7 +250,7 @@ void AudioSnippetRecorder::drawSendButton(juce::Graphics& g)
     // Send icon (arrow)
     g.setColour(juce::Colours::white);
     g.setFont(20.0f);
-    g.drawText("→", sendButtonArea, juce::Justification::centred);
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9E\xA1")), sendButtonArea, juce::Justification::centred);
 }
 
 //==============================================================================

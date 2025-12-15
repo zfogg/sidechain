@@ -779,7 +779,7 @@ void Search::drawHeader(juce::Graphics& g)
         clearButtonBounds = bounds.removeFromLeft(40).reduced(10);
         g.setColour(SidechainColors::textMuted());
         g.setFont(18.0f);
-        g.drawText("×", clearButtonBounds, juce::Justification::centred);
+        g.drawText(juce::CharPointer_UTF8("\xc3\x97"), clearButtonBounds, juce::Justification::centred); // ×
     }
 }
 
