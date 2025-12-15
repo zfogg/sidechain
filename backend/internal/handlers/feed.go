@@ -512,6 +512,8 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 
 	// Convert timeline items to activity format for plugin compatibility
 	activities := make([]map[string]interface{}, 0, len(resp.Items))
+	followStateCache := make(map[string]bool) // Cache follow states to avoid duplicate queries
+
 	for _, item := range resp.Items {
 		if item.Post == nil {
 			continue
@@ -555,6 +557,35 @@ func (h *Handlers) GetUnifiedTimeline(c *gin.Context) {
 				"avatar_url":   item.User.GetAvatarURL(),
 			}
 		}
+
+		// Enrich with is_following state
+		posterUserID := item.Post.UserID
+		isFollowing := false
+
+		// Check if this post is the current user's own post
+		if posterUserID == currentUser.ID {
+			// Own posts should never show as "following"
+			isFollowing = false
+		} else if posterUserID != "" {
+			// Check cache first
+			cachedValue, cached := followStateCache[posterUserID]
+			if cached {
+				isFollowing = cachedValue
+			} else {
+				// Not in cache - need to query
+				if item.User != nil && item.User.StreamUserID != "" {
+					// Query follow state using stream user IDs
+					isFollowing, _ = h.stream.CheckIsFollowing(currentUser.StreamUserID, item.User.StreamUserID)
+				}
+				// Cache the result
+				followStateCache[posterUserID] = isFollowing
+			}
+		}
+
+		activity["is_following"] = isFollowing
+
+		// Mark if this is the current user's own post
+		activity["is_own_post"] = (posterUserID == currentUser.ID)
 
 		activities = append(activities, activity)
 	}
@@ -648,12 +679,39 @@ func (h *Handlers) GetTrendingFeed(c *gin.Context) {
 		activities = activities[:limit]
 	}
 
+	// Enrich activities with user data
+	enrichedActivities := make([]map[string]interface{}, len(activities))
+	for i, activity := range activities {
+		// Convert to map
+		activityMap := make(map[string]interface{})
+		activityBytes, _ := json.Marshal(activity)
+		json.Unmarshal(activityBytes, &activityMap)
+
+		// Extract user ID from actor ("user:uuid")
+		if actor, ok := activityMap["actor"].(string); ok && len(actor) > 5 {
+			userID := actor[5:] // Strip "user:" prefix
+
+			// Fetch user from database
+			var user models.User
+			if err := database.DB.Where("id = ?", userID).First(&user).Error; err == nil {
+				activityMap["user"] = gin.H{
+					"id":                  user.ID,
+					"username":            user.Username,
+					"display_name":        user.DisplayName,
+					"profile_picture_url": user.ProfilePictureURL,
+				}
+			}
+		}
+
+		enrichedActivities[i] = activityMap
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"activities": activities,
+		"activities": enrichedActivities,
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
-			"count":  len(activities),
+			"count":  len(enrichedActivities),
 		},
 	})
 }
