@@ -574,11 +574,13 @@ void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
 
             if (willFollow)
             {
-                networkClient->followUser(post->userId, [this, postId, callback](Outcome<juce::var> result)
+                networkClient->followUser(post->userId, [this, postId, userId = post->userId, callback](Outcome<juce::var> result)
                 {
                     if (result.isOk())
                     {
                         Util::logDebug("FeedStore", "Follow succeeded", "postId=" + postId);
+                        // Update cache with new follow state
+                        updateFollowStateByUserId(userId, true);
                     }
                     else
                     {
@@ -589,11 +591,13 @@ void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
             }
             else
             {
-                networkClient->unfollowUser(post->userId, [this, postId, callback](Outcome<juce::var> result)
+                networkClient->unfollowUser(post->userId, [this, postId, userId = post->userId, callback](Outcome<juce::var> result)
                 {
                     if (result.isOk())
                     {
                         Util::logDebug("FeedStore", "Unfollow succeeded", "postId=" + postId);
+                        // Update cache with new follow state
+                        updateFollowStateByUserId(userId, false);
                     }
                     else
                     {
@@ -673,6 +677,46 @@ void FeedStore::updateFollowStateByUserId(const juce::String& userId, bool willF
         Util::logDebug("FeedStore", "Updated follow state across all feeds",
                       "updatedPostCount=" + juce::String(updatedCount));
     });
+
+    // Update cached posts with the new follow state (fixes cache staleness)
+    if (feedCache)
+    {
+        int cachedFeedsUpdated = 0;
+        for (auto feedType : { FeedType::Timeline, FeedType::Global, FeedType::Trending,
+                                FeedType::ForYou, FeedType::Popular, FeedType::Latest,
+                                FeedType::Discovery })
+        {
+            auto cacheKey = feedTypeToCacheKey(feedType);
+            auto cachedPosts = feedCache->get(cacheKey);
+
+            if (cachedPosts.has_value())
+            {
+                bool modified = false;
+                auto posts = cachedPosts.value();
+
+                for (auto& post : posts)
+                {
+                    if (post.userId == userId)
+                    {
+                        post.isFollowing = willFollow;
+                        modified = true;
+                    }
+                }
+
+                if (modified)
+                {
+                    feedCache->put(cacheKey, posts, 86400, true);  // Re-cache with 24h TTL
+                    cachedFeedsUpdated++;
+                }
+            }
+        }
+
+        if (cachedFeedsUpdated > 0)
+        {
+            Util::logDebug("FeedStore", "Updated follow state in cached feeds",
+                          "userId=" + userId + " cachedFeedsUpdated=" + juce::String(cachedFeedsUpdated));
+        }
+    }
 }
 
 void FeedStore::toggleArchive(const juce::String& postId, bool archived)
@@ -1330,7 +1374,16 @@ FeedResponse FeedStore::parseJsonResponse(const juce::var& json)
     {
         auto post = FeedPost::fromJson(activities[i]);
         if (post.isValid())
+        {
+            // Debug: Log first post to see what we received
+            if (i == 0)
+            {
+                Util::logDebug("FeedStore", "FIRST POST FROM API: user=" + post.username +
+                              " isFollowing=" + juce::String(post.isFollowing ? "true" : "false") +
+                              " isOwnPost=" + juce::String(post.isOwnPost ? "true" : "false"));
+            }
             response.posts.add(post);
+        }
     }
 
     // Parse pagination info
