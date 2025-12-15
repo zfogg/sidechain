@@ -75,7 +75,12 @@ jobs:
 
       - name: Lint Check (clang-tidy-diff for PRs - changed lines only)
         if: github.event_name == 'pull_request'
-        run: cmake --build plugin/build --target tidy-diff
+        env:
+          TIDY_DIFF_BASE: origin/${{ github.base_ref }}
+        run: |
+          # Ensure we have the base branch to diff against
+          git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }} --depth=1 || true
+          cmake --build plugin/build --target tidy-diff
 
       - name: Lint Check (clang-tidy for push - all files)
         if: github.event_name == 'push'

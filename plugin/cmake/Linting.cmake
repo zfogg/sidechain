@@ -85,9 +85,13 @@ if(CLANG_TIDY_EXECUTABLE)
     endif()
 
     if(CLANG_TIDY_DIFF_PY)
+        # TIDY_DIFF_BASE controls what to diff against:
+        # - For local development: defaults to HEAD (uncommitted changes)
+        # - For PRs: set via environment variable (e.g., origin/main)
+        # Usage: TIDY_DIFF_BASE=origin/main cmake --build build --target tidy-diff
         add_custom_target(tidy-diff
             COMMAND ${CMAKE_COMMAND} -E echo "Checking only changed lines with clang-tidy..."
-            COMMAND bash -c "git diff -U0 --no-color HEAD | ${CLANG_TIDY_DIFF_PY} -p1 -j ${CMAKE_CPU_CORES} -config-file ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
+            COMMAND bash -c "DIFF_BASE=\${TIDY_DIFF_BASE:-HEAD} && echo \"Diffing against: \$DIFF_BASE\" && git diff -U0 --no-color \$DIFF_BASE | ${CLANG_TIDY_DIFF_PY} -p1 -j ${CMAKE_CPU_CORES} -config-file ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy"
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..
             COMMENT "Running clang-tidy-diff (check changed lines only)"
             VERBATIM
