@@ -1489,7 +1489,9 @@ void StreamChatClient::sendTypingIndicator(const juce::String& channelType, cons
 
     // Send typing event via REST API
     Async::runVoid([this, channelType, channelId, isTyping]() {
-        juce::String endpoint = "/channels/" + channelType + "/" + channelId + "/event";
+        // Use "messaging" as default channel type if empty
+        juce::String actualChannelType = channelType.isEmpty() ? "messaging" : channelType;
+        juce::String endpoint = "/channels/" + actualChannelType + "/" + channelId + "/event";
 
         juce::var requestData = juce::var(new juce::DynamicObject());
         auto* obj = requestData.getDynamicObject();
