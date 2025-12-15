@@ -11,7 +11,7 @@ option(SIDECHAIN_BUILD_TESTS "Build unit tests with Catch2" OFF)
 # Option to enable coverage (requires SIDECHAIN_BUILD_TESTS)
 option(SIDECHAIN_ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 
-# Option to build Standalone app (default OFF - only build VST3/AU by default)
+# Option to build Standalone app (default ON for local development, OFF for CI release builds)
 option(SIDECHAIN_BUILD_STANDALONE "Build Standalone app (in addition to VST3/AU)" ON)
 
 # Option to install standalone app alongside VST3
