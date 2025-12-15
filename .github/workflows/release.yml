@@ -12,13 +12,19 @@ jobs:
       matrix:
         include:
           # macOS Apple Silicon (arm64)
-          # Note: Building universal (x86_64+arm64) requires x86_64 dependencies
-          # which aren't available on arm64 Homebrew. Use arm64-only for releases.
-          - os: macos-15
-            name: macOS
+          - os: macos
+            name: macOS-arm64
             cmake_args: -DCMAKE_OSX_ARCHITECTURES="arm64"
             cmake_preset: release-no-vcpkg
             artifact_name: Sidechain-macOS-arm64
+            artifact_path: plugin/build/src/core/Sidechain_artefacts/Release
+
+          # macOS Intel (x86_64)
+          - os: macos
+            name: macOS-x86_64
+            cmake_args: -DCMAKE_OSX_ARCHITECTURES="x86_64"
+            cmake_preset: release-no-vcpkg
+            artifact_name: Sidechain-macOS-x86_64
             artifact_path: plugin/build/src/core/Sidechain_artefacts/Release
 
           # Linux (x86_64)
@@ -52,7 +58,7 @@ jobs:
       - name: Cache Build Dependencies
         uses: ./.github/actions/cache-build
         with:
-          arch: ${{ matrix.name == 'macOS' && 'arm64' || 'x86_64' }}
+          arch: ${{ matrix.name == 'macOS' && 'universal' || 'x86_64' }}
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} --preset ${{ matrix.cmake_preset }}
@@ -65,7 +71,7 @@ jobs:
         uses: ./.github/actions/save-build-cache
         with:
           cache-version: '1'
-          arch: ${{ matrix.name == 'macOS' && 'arm64' || 'x86_64' }}
+          arch: ${{ matrix.name == 'macOS-arm64' && 'arm64' || matrix.name == 'macOS-x86_64' && 'x86_64' || 'x86_64' }}
 
       - name: Package VST3 (macOS)
         if: runner.os == 'macOS'
@@ -172,5 +178,7 @@ jobs:
           files: |
             artifacts/Sidechain-macOS-arm64-VST3/*.zip
             artifacts/Sidechain-macOS-arm64-AU/*.zip
+            artifacts/Sidechain-macOS-x86_64-VST3/*.zip
+            artifacts/Sidechain-macOS-x86_64-AU/*.zip
             artifacts/Sidechain-Linux-x86_64-VST3/*.zip
             artifacts/Sidechain-Windows-x86_64-VST3/*.zip
