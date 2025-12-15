@@ -52,7 +52,10 @@ void PostCard::setNetworkClient(NetworkClient* client)
 
 void PostCard::setFeedStore(Sidechain::Stores::FeedStore* store)
 {
-    using namespace Sidechain::Stores;
+    // Type-safe lazy subscription pattern:
+    // Store the pointer but don't subscribe yet - subscription happens in setPost()
+    // after we have a valid post.id. This makes it impossible to have a subscription
+    // fire before the post is initialized.
 
     // Unsubscribe from previous store if any
     if (storeUnsubscribe)
@@ -60,40 +63,12 @@ void PostCard::setFeedStore(Sidechain::Stores::FeedStore* store)
 
     feedStore = store;
 
-    if (!feedStore)
-        return;
-
-    // Subscribe to FeedStore for reactive updates (Task 2.5)
-    storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
-        // Find our post in the current feed
-        const auto& currentFeed = state.getCurrentFeed();
-
-        for (const auto& feedPost : currentFeed.posts)
-        {
-            if (feedPost.id == post.id)
-            {
-                // Post found - update our local copy
-                // Only update if something changed to avoid unnecessary repaints
-                if (feedPost.likeCount != post.likeCount ||
-                    feedPost.isLiked != post.isLiked ||
-                    feedPost.commentCount != post.commentCount ||
-                    feedPost.playCount != post.playCount ||
-                    feedPost.isFollowing != post.isFollowing ||
-                    feedPost.userReaction != post.userReaction ||
-                    feedPost.saveCount != post.saveCount ||
-                    feedPost.isSaved != post.isSaved ||
-                    feedPost.repostCount != post.repostCount ||
-                    feedPost.isReposted != post.isReposted ||
-                    feedPost.isPinned != post.isPinned)
-                {
-                    post = feedPost;
-                    // ReactiveBoundComponent will automatically repaint
-                    repaint();
-                }
-                return;
-            }
-        }
-    });
+    // If we already have a valid post, subscribe now
+    // (handles the case where setPost() was called before setFeedStore())
+    if (feedStore && !post.id.isEmpty())
+    {
+        subscribeToFeedStore();
+    }
 }
 
 void PostCard::setPost(const FeedPost& newPost)
@@ -103,6 +78,13 @@ void PostCard::setPost(const FeedPost& newPost)
     Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username +
                ", isFollowing: " + juce::String(post.isFollowing ? "true" : "false") +
                ", isOwnPost: " + juce::String(post.isOwnPost ? "true" : "false"));
+
+    // Type-safe lazy subscription: Now that we have a valid post.id, subscribe to FeedStore
+    // This ensures the subscription can never fire before we have a valid post
+    if (feedStore && !post.id.isEmpty())
+    {
+        subscribeToFeedStore();
+    }
 
     // Immediately repaint to reflect updated post data (especially follow state)
     repaint();
@@ -1609,6 +1591,51 @@ void PostCard::handleEmojiSelected(const juce::String& emoji)
     }
 
     repaint();
+}
+
+//==============================================================================
+// FeedStore Subscription (Type-Safe Lazy Pattern)
+
+void PostCard::subscribeToFeedStore()
+{
+    using namespace Sidechain::Stores;
+
+    // Unsubscribe from previous subscription if any
+    if (storeUnsubscribe)
+        storeUnsubscribe();
+
+    // Subscribe to FeedStore for reactive updates
+    // At this point we're guaranteed to have a valid post.id, making this type-safe
+    storeUnsubscribe = feedStore->subscribe([this](const FeedStoreState& state) {
+        // Find our post in the current feed
+        const auto& currentFeed = state.getCurrentFeed();
+
+        for (const auto& feedPost : currentFeed.posts)
+        {
+            if (feedPost.id == post.id)
+            {
+                // Post found - update our local copy
+                // Only update if something changed to avoid unnecessary repaints
+                if (feedPost.likeCount != post.likeCount ||
+                    feedPost.isLiked != post.isLiked ||
+                    feedPost.commentCount != post.commentCount ||
+                    feedPost.playCount != post.playCount ||
+                    feedPost.isFollowing != post.isFollowing ||
+                    feedPost.userReaction != post.userReaction ||
+                    feedPost.saveCount != post.saveCount ||
+                    feedPost.isSaved != post.isSaved ||
+                    feedPost.repostCount != post.repostCount ||
+                    feedPost.isReposted != post.isReposted ||
+                    feedPost.isPinned != post.isPinned)
+                {
+                    post = feedPost;
+                    // ReactiveBoundComponent will automatically repaint
+                    repaint();
+                }
+                return;
+            }
+        }
+    });
 }
 
 //==============================================================================

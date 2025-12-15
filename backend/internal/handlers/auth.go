@@ -212,7 +212,31 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 
 	authResp, err := h.authService.HandleGoogleCallback(code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "oauth_failed", "message": err.Error()})
+		// Show error page to browser
+		errorHTML := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Authentication Failed</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+		.container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+		h1 { color: #d32f2f; margin: 0 0 10px 0; }
+		p { color: #666; margin: 5px 0; }
+		.error { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 4px; margin: 20px 0; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Authentication Failed</h1>
+		<p>There was an error logging in with Google.</p>
+		<div class="error">%s</div>
+		<p>Please try again or use a different login method.</p>
+	</div>
+</body>
+</html>`, err.Error())
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.String(http.StatusInternalServerError, errorHTML)
 		return
 	}
 
@@ -228,14 +252,36 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		}
 		h.oauthMutex.Unlock()
 
-		// Also try to redirect to sidechain:// for backwards compatibility
-		// But if that fails, polling will work
-		redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
-		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		// Show success page to browser (plugin will poll for auth)
+		successHTML := `
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Authentication Successful</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+		.container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; }
+		h1 { color: #2e7d32; margin: 0 0 10px 0; }
+		p { color: #666; margin: 5px 0; }
+		.checkmark { font-size: 48px; margin: 20px 0; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="checkmark">✓</div>
+		<h1>You're logged in!</h1>
+		<p>Return to the Sidechain plugin to continue.</p>
+		<p style="font-size: 12px; color: #999; margin-top: 20px;">You can close this window.</p>
+	</div>
+</body>
+</html>`
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.String(http.StatusOK, successHTML)
 		return
 	}
 
-	// Legacy flow: redirect to plugin callback URL with token
+	// Fallback: Try to redirect to plugin callback URL (for backwards compatibility)
+	// This will fail gracefully and browser will show blank page
 	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
@@ -277,7 +323,31 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 
 	authResp, err := h.authService.HandleDiscordCallback(code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "oauth_failed", "message": err.Error()})
+		// Show error page to browser
+		errorHTML := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Authentication Failed</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+		.container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+		h1 { color: #d32f2f; margin: 0 0 10px 0; }
+		p { color: #666; margin: 5px 0; }
+		.error { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 4px; margin: 20px 0; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Authentication Failed</h1>
+		<p>There was an error logging in with Discord.</p>
+		<div class="error">%s</div>
+		<p>Please try again or use a different login method.</p>
+	</div>
+</body>
+</html>`, err.Error())
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.String(http.StatusInternalServerError, errorHTML)
 		return
 	}
 
@@ -293,14 +363,36 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		}
 		h.oauthMutex.Unlock()
 
-		// Also try to redirect to sidechain:// for backwards compatibility
-		// But if that fails, polling will work
-		redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
-		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		// Show success page to browser (plugin will poll for auth)
+		successHTML := `
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Authentication Successful</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+		.container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; }
+		h1 { color: #2e7d32; margin: 0 0 10px 0; }
+		p { color: #666; margin: 5px 0; }
+		.checkmark { font-size: 48px; margin: 20px 0; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="checkmark">✓</div>
+		<h1>You're logged in!</h1>
+		<p>Return to the Sidechain plugin to continue.</p>
+		<p style="font-size: 12px; color: #999; margin-top: 20px;">You can close this window.</p>
+	</div>
+</body>
+</html>`
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.String(http.StatusOK, successHTML)
 		return
 	}
 
-	// Legacy flow: redirect to plugin callback URL with token
+	// Fallback: Try to redirect to plugin callback URL (for backwards compatibility)
+	// This will fail gracefully and browser will show blank page
 	redirectURL := fmt.Sprintf("sidechain://auth/callback?token=%s&user_id=%s", authResp.Token, authResp.User.ID)
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
