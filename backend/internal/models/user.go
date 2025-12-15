@@ -161,8 +161,7 @@ type AudioPost struct {
 	RemixType      string     `json:"remix_type,omitempty"`
 
 	// Visual data
-	WaveformSVG string `gorm:"type:text" json:"waveform_svg"` // Legacy SVG (deprecated)
-	WaveformURL string `json:"waveform_url"`                  // CDN URL to waveform PNG
+	WaveformURL string `json:"waveform_url"` // CDN URL to waveform PNG
 
 	// Engagement metrics (cached from getstream.io)
 	LikeCount     int `gorm:"default:0" json:"like_count"`

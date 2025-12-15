@@ -57,7 +57,7 @@ func (p *FFmpegProcessor) ProcessAudioFile(ctx context.Context, inputPath string
 
 	return &ProcessedAudio{
 		Data:        processedData,
-		WaveformSVG: waveformSVG,
+		WaveformPNG: waveformSVG,
 		Duration:    audioInfo.Duration,
 		FileSize:    int64(len(processedData)),
 		SampleRate:  audioInfo.SampleRate,
@@ -68,7 +68,7 @@ func (p *FFmpegProcessor) ProcessAudioFile(ctx context.Context, inputPath string
 // ProcessedAudio contains the result of audio processing
 type ProcessedAudio struct {
 	Data        []byte  `json:"-"`         // Raw MP3 data
-	WaveformSVG string  `json:"waveform"`  // SVG waveform
+	WaveformPNG string  `json:"waveform"`  // PNG waveform URL
 	Duration    float64 `json:"duration"`  // Duration in seconds
 	FileSize    int64   `json:"file_size"` // Processed file size
 	SampleRate  int     `json:"sample_rate"`

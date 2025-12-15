@@ -47,8 +47,8 @@ func runFFmpegNormalize(ctx context.Context, inputPath, outputPath string) error
 	return nil
 }
 
-// generateWaveformSVG creates an SVG waveform visualization from audio
-func generateWaveformSVG(ctx context.Context, audioPath string) (string, error) {
+// generateWaveformPNG creates a PNG waveform visualization from audio
+func generateWaveformPNG(ctx context.Context, audioPath string) (string, error) {
 	// Use FFmpeg to extract raw audio samples for waveform
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-i", audioPath,

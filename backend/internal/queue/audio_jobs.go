@@ -222,10 +222,10 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 		return
 	}
 
-	// 3. Upload waveform SVG to S3
+	// 3. Upload waveform PNG to S3
 	var waveformURL string
-	if processedAudio.WaveformSVG != "" {
-		waveformResult, err := q.s3Uploader.UploadWaveform(ctx, []byte(processedAudio.WaveformSVG), audioResult.Key)
+	if processedAudio.WaveformPNG != "" {
+		waveformResult, err := q.s3Uploader.UploadWaveform(ctx, []byte(processedAudio.WaveformPNG), audioResult.Key)
 		if err != nil {
 			// Non-fatal - log and continue
 			log.Printf("⚠️ Worker %d job %s: waveform upload failed: %v", workerID, job.ID, err)
@@ -272,10 +272,10 @@ func (q *AudioQueue) processJob(workerID int, job *AudioJob) {
 
 // ProcessedAudio contains the result of FFmpeg processing
 type ProcessedAudio struct {
-	Data        []byte
-	WaveformSVG string
-	Duration    float64
-	FileSize    int64
+	Data         []byte
+	WaveformPNG  string
+	Duration     float64
+	FileSize     int64
 }
 
 // processAudioWithFFmpeg runs the actual FFmpeg processing pipeline
@@ -294,11 +294,11 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 	}
 
 	// Step 2: Generate waveform
-	waveformSVG, err := generateWaveformSVG(ctx, outputPath)
+	waveformPNG, err := generateWaveformPNG(ctx, outputPath)
 	if err != nil {
 		// Non-fatal, continue without waveform
 		log.Printf("⚠️ Waveform generation failed: %v", err)
-		waveformSVG = ""
+		waveformPNG = ""
 	}
 
 	// Step 3: Extract duration
@@ -326,10 +326,10 @@ func (q *AudioQueue) processAudioWithFFmpeg(ctx context.Context, job *AudioJob) 
 	}
 
 	return &ProcessedAudio{
-		Data:        data,
-		WaveformSVG: waveformSVG,
-		Duration:    duration,
-		FileSize:    int64(len(data)),
+		Data:         data,
+		WaveformPNG:  waveformPNG,
+		Duration:     duration,
+		FileSize:     int64(len(data)),
 	}, nil
 }
 
@@ -373,7 +373,7 @@ func (q *AudioQueue) updateAudioPostComplete(postID string, result *AudioJobResu
 	updates := map[string]interface{}{
 		"processing_status": "complete",
 		"audio_url":         result.AudioURL,
-		"waveform_svg":      result.WaveformURL,
+		"waveform_url":      result.WaveformURL,
 		"duration":          result.Duration,
 		"file_size":         result.ProcessedSize,
 	}
