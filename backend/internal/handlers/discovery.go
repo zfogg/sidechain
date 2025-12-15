@@ -10,6 +10,34 @@ import (
 	"github.com/zfogg/sidechain/backend/internal/util"
 )
 
+// enrichUsersWithFollowState adds is_following field to user results
+// Use database IDs (NOT Stream IDs) to match FollowUser behavior
+func (h *Handlers) enrichUsersWithFollowState(currentUserID string, users []models.User) []gin.H {
+	userResults := make([]gin.H, 0, len(users))
+
+	for _, user := range users {
+		// Check if current user is following this user
+		// Use database IDs - no caching for fresh data
+		isFollowing := false
+		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+		}
+
+		userResults = append(userResults, gin.H{
+			"id":             user.ID,
+			"username":       user.Username,
+			"display_name":   user.DisplayName,
+			"avatar_url":     user.GetAvatarURL(),
+			"bio":            user.Bio,
+			"follower_count": user.FollowerCount,
+			"genre":          user.Genre,
+			"is_following":   isFollowing,
+		})
+	}
+
+	return userResults
+}
+
 // SearchUsers searches for users by username or display name
 // GET /api/search/users?q=query&limit=20&offset=0
 func (h *Handlers) SearchUsers(c *gin.Context) {
@@ -36,19 +64,14 @@ func (h *Handlers) SearchUsers(c *gin.Context) {
 		return
 	}
 
-	// Convert to response format
-	userResults := make([]gin.H, 0, len(users))
-	for _, user := range users {
-		userResults = append(userResults, gin.H{
-			"id":             user.ID,
-			"username":       user.Username,
-			"display_name":   user.DisplayName,
-			"avatar_url":     user.GetAvatarURL(),
-			"bio":            user.Bio,
-			"follower_count": user.FollowerCount,
-			"genre":          user.Genre,
-		})
+	// Get current user's stream ID for follow state enrichment
+	currentUserID := ""
+	if currentUser, ok := util.GetUserFromContext(c); ok {
+		currentUserID = currentUser.ID
 	}
+
+	// Enrich with is_following state
+	userResults := h.enrichUsersWithFollowState(currentUserID, users)
 
 	c.JSON(http.StatusOK, gin.H{
 		"users": userResults,
@@ -97,8 +120,23 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 		return
 	}
 
+	// Get current user's stream ID for follow state enrichment
+	currentUserID := ""
+	if currentUser, ok := util.GetUserFromContext(c); ok {
+		currentUserID = currentUser.ID
+	}
+
+	// Enrich with is_following state and add additional fields
+	// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 	userResults := make([]gin.H, 0, len(users))
+
 	for _, user := range users {
+		// Query follow state using database IDs - no caching for fresh data
+		isFollowing := false
+		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+		}
+
 		userResults = append(userResults, gin.H{
 			"id":             user.ID,
 			"username":       user.Username,
@@ -109,6 +147,7 @@ func (h *Handlers) GetTrendingUsers(c *gin.Context) {
 			"post_count":     user.PostCount,
 			"genre":          user.Genre,
 			"daw_preference": user.DAWPreference,
+			"is_following":   isFollowing,
 		})
 	}
 
@@ -151,8 +190,23 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 			Find(&users)
 	}
 
+	// Get current user's stream ID for follow state enrichment
+	currentUserID := ""
+	if currentUser, ok := util.GetUserFromContext(c); ok {
+		currentUserID = currentUser.ID
+	}
+
+	// Enrich with is_following state and add additional fields
+	// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 	userResults := make([]gin.H, 0, len(users))
+
 	for _, user := range users {
+		// Query follow state using database IDs - no caching for fresh data
+		isFollowing := false
+		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+		}
+
 		userResults = append(userResults, gin.H{
 			"id":             user.ID,
 			"username":       user.Username,
@@ -164,6 +218,7 @@ func (h *Handlers) GetFeaturedProducers(c *gin.Context) {
 			"genre":          user.Genre,
 			"daw_preference": user.DAWPreference,
 			"featured":       true,
+			"is_following":   isFollowing,
 		})
 	}
 
@@ -202,8 +257,23 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 		return
 	}
 
+	// Get current user's stream ID for follow state enrichment
+	currentUserID := ""
+	if currentUser, ok := util.GetUserFromContext(c); ok {
+		currentUserID = currentUser.ID
+	}
+
+	// Enrich with is_following state and add additional fields
+	// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 	userResults := make([]gin.H, 0, len(users))
+
 	for _, user := range users {
+		// Query follow state using database IDs - no caching for fresh data
+		isFollowing := false
+		if currentUserID != "" && user.ID != "" && user.ID != currentUserID {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, user.ID)
+		}
+
 		userResults = append(userResults, gin.H{
 			"id":             user.ID,
 			"username":       user.Username,
@@ -213,6 +283,7 @@ func (h *Handlers) GetUsersByGenre(c *gin.Context) {
 			"follower_count": user.FollowerCount,
 			"genre":          user.Genre,
 			"daw_preference": user.DAWPreference,
+			"is_following":   isFollowing,
 		})
 	}
 
@@ -238,7 +309,8 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 	limit := util.ParseInt(c.DefaultQuery("limit", "10"), 10)
 
 	// Get who the current user follows
-	following, err := h.stream.GetFollowing(currentUser.StreamUserID, 100, 0)
+	// Use database ID (NOT Stream ID) to match FollowUser behavior
+	following, err := h.stream.GetFollowing(currentUser.ID, 100, 0)
 	if err != nil {
 		util.RespondInternalError(c, "failed_to_get_following", err.Error())
 		return
@@ -286,6 +358,8 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 	}
 
 	userResults := make([]gin.H, 0, len(suggestedUsers))
+	followStateCache := make(map[string]bool)
+
 	for _, u := range suggestedUsers {
 		// Calculate shared genres
 		sharedGenres := []string{}
@@ -295,6 +369,12 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 					sharedGenres = append(sharedGenres, g1)
 				}
 			}
+		}
+
+		// Check follow state using database IDs - no caching for fresh data
+		isFollowing := false
+		if u.ID != "" && u.ID != currentUser.ID {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUser.ID, u.ID)
 		}
 
 		userResults = append(userResults, gin.H{
@@ -307,6 +387,7 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 			"genre":          u.Genre,
 			"shared_genres":  sharedGenres,
 			"daw_preference": u.DAWPreference,
+			"is_following":   isFollowing,
 		})
 	}
 
@@ -404,8 +485,23 @@ func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 		Limit(limit).
 		Find(&similarUsers)
 
+	// Get current user's stream ID for follow state enrichment
+	currentUserID := ""
+	if currentUser, ok := util.GetUserFromContext(c); ok {
+		currentUserID = currentUser.ID
+	}
+
+	// Enrich with is_following state
+	// Use database IDs (NOT Stream IDs) to match FollowUser behavior
 	userResults := make([]gin.H, 0, len(similarUsers))
+
 	for _, u := range similarUsers {
+		// Query follow state using database IDs - no caching for fresh data
+		isFollowing := false
+		if currentUserID != "" && u.ID != "" && u.ID != currentUserID {
+			isFollowing, _ = h.stream.CheckIsFollowing(currentUserID, u.ID)
+		}
+
 		userResults = append(userResults, gin.H{
 			"id":             u.ID,
 			"username":       u.Username,
@@ -415,6 +511,7 @@ func (h *Handlers) GetSimilarUsers(c *gin.Context) {
 			"follower_count": u.FollowerCount,
 			"genre":          u.Genre,
 			"daw_preference": u.DAWPreference,
+			"is_following":   isFollowing,
 		})
 	}
 
