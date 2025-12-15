@@ -50,9 +50,9 @@ func TestFFmpegIntegration(t *testing.T) {
 	assert.Greater(t, len(result.Data), 0, "Processed audio data should not be empty")
 	assert.Greater(t, result.Duration, 0.0, "Duration should be positive")
 	assert.Equal(t, 128, result.Bitrate, "Bitrate should be 128kbps")
-	assert.NotEmpty(t, result.WaveformSVG, "Waveform SVG should be generated")
-	assert.Contains(t, result.WaveformSVG, "<svg", "Should be valid SVG")
-	assert.Contains(t, result.WaveformSVG, "#00d4ff", "Should use Sidechain blue color")
+	assert.NotEmpty(t, result.WaveformPNG, "Waveform PNG should be generated")
+	assert.Contains(t, result.WaveformPNG, "<svg", "Should be valid SVG")
+	assert.Contains(t, result.WaveformPNG, "#00d4ff", "Should use Sidechain blue color")
 }
 
 // createTestAudioFile creates a simple test audio file using FFmpeg
