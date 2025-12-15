@@ -389,6 +389,19 @@ void PostsFeed::handleFeedStateChanged()
         feedState = FeedState::Error;
         Log::error("PostsFeed::handleFeedStateChanged: Feed error - " + currentFeed.error);
 
+        // Check if this is an authentication error - if so, redirect to auth screen
+        if (currentFeed.error.containsIgnoreCase("not authenticated") ||
+            currentFeed.error.containsIgnoreCase("unauthorized") ||
+            currentFeed.error.containsIgnoreCase("401"))
+        {
+            Log::warn("PostsFeed: Authentication error detected - redirecting to auth screen");
+            if (onAuthenticationRequired)
+            {
+                onAuthenticationRequired();
+            }
+            return;
+        }
+
         if (feedSkeleton != nullptr)
             feedSkeleton->setVisible(false);
 
