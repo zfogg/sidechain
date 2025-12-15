@@ -9,7 +9,7 @@ inputs:
   cache-version:
     description: 'Cache version - increment to invalidate cache'
     required: false
-    default: '1'
+    default: '2'
 
 runs:
   using: 'composite'

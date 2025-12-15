@@ -38,7 +38,7 @@ jobs:
           # Windows (x86_64)
           - os: windows-latest
             name: Windows
-            cmake_args: -G "Visual Studio 17 2022" -A x64
+            cmake_args: -G Ninja
             cmake_preset: release-no-vcpkg
             artifact_name: Sidechain-Windows-x86_64
             artifact_path: plugin/build/src/core/Sidechain_artefacts/Release
@@ -55,8 +55,8 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
 
-      - name: Cache Build Dependencies
-        uses: ./.github/actions/cache-build
+      - name: Restore Build Cache
+        uses: ./.github/actions/restore-build-cache
         with:
           arch: ${{ matrix.name == 'macOS-arm64' && 'arm64' || matrix.name == 'macOS-x86_64' && 'x86_64' || 'x86_64' }}
 
@@ -70,7 +70,7 @@ jobs:
         if: always()
         uses: ./.github/actions/save-build-cache
         with:
-          cache-version: '1'
+          cache-version: '2'
           arch: ${{ matrix.name == 'macOS-arm64' && 'arm64' || matrix.name == 'macOS-x86_64' && 'x86_64' || 'x86_64' }}
 
       - name: Package VST3 (macOS)

@@ -72,13 +72,13 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/install-deps
 
-      - name: Cache Build Dependencies
-        uses: ./.github/actions/cache-build
+      - name: Restore Build Cache
+        uses: ./.github/actions/restore-build-cache
         with:
           arch: ${{ matrix.name == 'macOS-ARM64' && 'arm64' || matrix.name == 'macOS-Intel' && 'x86_64' || 'x86_64' }}
 
       - name: Configure CMake
-        run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S plugin -B plugin/build -G Ninja ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Plugin
         run: |
@@ -94,7 +94,7 @@ jobs:
         if: always()
         uses: ./.github/actions/save-build-cache
         with:
-          cache-version: '1'
+          cache-version: '2'
           arch: ${{ matrix.name == 'macOS-ARM64' && 'arm64' || matrix.name == 'macOS-Intel' && 'x86_64' || 'x86_64' }}
 
       - name: List Build Artifacts
@@ -141,12 +141,12 @@ jobs:
         with:
           with-coverage: 'true'
 
-      - name: Cache Build Dependencies
-        uses: ./.github/actions/cache-build
+      - name: Restore Build Cache
+        uses: ./.github/actions/restore-build-cache
 
       - name: Configure CMake with Tests and Coverage
         run: |
-          cmake -S plugin -B plugin/build \
+          cmake -S plugin -B plugin/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DSIDECHAIN_BUILD_TESTS=ON \
@@ -167,7 +167,7 @@ jobs:
         if: always()
         uses: ./.github/actions/save-build-cache
         with:
-          cache-version: '1'
+          cache-version: '2'
 
       - name: Generate Coverage Report
         run: |
