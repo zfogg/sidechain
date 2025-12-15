@@ -47,6 +47,17 @@ void NetworkClient::searchUsers(const juce::String& query, int limit, int offset
 
         juce::MessageManager::callAsync([callback, result]() {
             auto outcome = requestResultToOutcome(result);
+
+            // Extract the "users" array from the response
+            if (outcome.isOk())
+            {
+                auto data = outcome.getValue();
+                if (data.isObject() && data.hasProperty("users"))
+                {
+                    outcome = Outcome<juce::var>::ok(data.getProperty("users", juce::var()));
+                }
+            }
+
             callback(outcome);
         });
     });
@@ -98,6 +109,17 @@ void NetworkClient::getSuggestedUsers(int limit, ResponseCallback callback)
 
         juce::MessageManager::callAsync([callback, result]() {
             auto outcome = requestResultToOutcome(result);
+
+            // Extract the "users" array from the response
+            if (outcome.isOk())
+            {
+                auto data = outcome.getValue();
+                if (data.isObject() && data.hasProperty("users"))
+                {
+                    outcome = Outcome<juce::var>::ok(data.getProperty("users", juce::var()));
+                }
+            }
+
             callback(outcome);
         });
     });
