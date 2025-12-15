@@ -166,32 +166,13 @@ void StreamChatClient::createDirectChannel(const juce::String& targetUserId,
 
             auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-            if (response.isObject())
+            if (response.isObject() && response.hasProperty("id"))
             {
-                // getstream.io returns the channel directly, not wrapped in "channel" property
-                // First try the wrapped format (for backward compatibility), then try direct
-                auto channelData = response.getProperty("channel", juce::var());
-                if (!channelData.isObject())
-                {
-                    // Try parsing response directly as channel data
-                    channelData = response;
-                }
-
-                if (channelData.isObject() && channelData.hasProperty("id"))
-                {
-                    Log::debug("StreamChatClient: Direct channel created: " + channelData.getProperty("id", "").toString());
-                    return parseChannel(channelData);
-                }
-                else
-                {
-                    Log::error("StreamChatClient: Invalid response format: " + juce::JSON::toString(response));
-                }
-            }
-            else
-            {
-                Log::error("StreamChatClient: Non-object response for channel creation");
+                Log::debug("StreamChatClient: Direct channel created: " + response.getProperty("id", "").toString());
+                return parseChannel(response);
             }
 
+            Log::error("StreamChatClient: Failed to create channel - " + juce::JSON::toString(response));
             return Channel{};
         },
         [callback](const Channel& channel) {
@@ -241,32 +222,13 @@ void StreamChatClient::createGroupChannel(const juce::String& channelId, const j
 
             auto response = makeStreamRequest(endpoint, "POST", requestData);
 
-            if (response.isObject())
+            if (response.isObject() && response.hasProperty("id"))
             {
-                // getstream.io returns the channel directly, not wrapped in "channel" property
-                // First try the wrapped format (for backward compatibility), then try direct
-                auto channelData = response.getProperty("channel", juce::var());
-                if (!channelData.isObject())
-                {
-                    // Try parsing response directly as channel data
-                    channelData = response;
-                }
-
-                if (channelData.isObject() && channelData.hasProperty("id"))
-                {
-                    Log::debug("StreamChatClient: Group channel created: " + channelData.getProperty("id", "").toString());
-                    return parseChannel(channelData);
-                }
-                else
-                {
-                    Log::error("StreamChatClient: Invalid response format: " + juce::JSON::toString(response));
-                }
-            }
-            else
-            {
-                Log::error("StreamChatClient: Non-object response for channel creation");
+                Log::debug("StreamChatClient: Group channel created: " + response.getProperty("id", "").toString());
+                return parseChannel(response);
             }
 
+            Log::error("StreamChatClient: Failed to create channel - " + juce::JSON::toString(response));
             return Channel{};
         },
         [callback](const Channel& channel) {
