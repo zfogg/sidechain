@@ -77,7 +77,7 @@ HiddenSynth::HiddenSynth(SynthEngine &engine) : synthEngine(engine) {
 
   // Setup title
   addAndMakeVisible(titleLabel);
-  titleLabel.setFont(juce::Font(24.0f, juce::Font::bold));
+  titleLabel.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
   titleLabel.setJustificationType(juce::Justification::centred);
   titleLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
 
@@ -103,7 +103,7 @@ void HiddenSynth::setupSlider(juce::Slider &slider, double min, double max, doub
 }
 
 void HiddenSynth::setupLabel(juce::Label &label) {
-  label.setFont(juce::Font(11.0f));
+  label.setFont(juce::Font(juce::FontOptions().withHeight(11.0f)));
   label.setJustificationType(juce::Justification::centred);
   label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
   addAndMakeVisible(label);
@@ -177,7 +177,7 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics &g) {
 
   // Text
   g.setColour(juce::Colours::cyan);
-  g.setFont(juce::Font(32.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(32.0f).withStyle("Bold")));
 
   float textAlpha = unlockAnimationProgress < 0.5f ? unlockAnimationProgress * 2.0f : 1.0f;
   g.setColour(juce::Colours::cyan.withAlpha(textAlpha));
@@ -185,7 +185,7 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics &g) {
 
   // Emoji
   if (unlockAnimationProgress > 0.3f) {
-    g.setFont(juce::Font(48.0f));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(48.0f)));
     g.drawText("SYNTH", bounds.withY(bounds.getY() + 60), juce::Justification::centred);
   }
 }
@@ -198,7 +198,7 @@ void HiddenSynth::drawSynthUI(juce::Graphics &g) {
   g.setColour(juce::Colour(0xff252540));
   g.fillRoundedRectangle(10, 50, 200, 60, 5);
   g.setColour(juce::Colours::lightgrey);
-  g.setFont(juce::Font(10.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
   g.drawText("OSCILLATOR", 10, 52, 200, 15, juce::Justification::centred);
 
   // ADSR section
@@ -224,7 +224,7 @@ void HiddenSynth::drawVoiceIndicator(juce::Graphics &g) {
   int activeVoices = synthEngine.getActiveVoiceCount();
 
   g.setColour(juce::Colours::lightgrey);
-  g.setFont(juce::Font(10.0f));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
   g.drawText("Voices: " + juce::String(activeVoices) + "/8", getWidth() - 80, 55, 70, 20, juce::Justification::right);
 
   // Voice indicator dots

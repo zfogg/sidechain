@@ -163,13 +163,13 @@ void TwoFactorSettings::paint(juce::Graphics &g) {
 
   case State::SetupType:
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
     g.drawText("Choose Authentication Method", contentBounds.removeFromTop(40), juce::Justification::centred);
     break;
 
   case State::SetupPassword:
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
     g.drawText("Enter Your Password", contentBounds.removeFromTop(40), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(14.0f);
@@ -183,7 +183,7 @@ void TwoFactorSettings::paint(juce::Graphics &g) {
 
   case State::SetupVerify:
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
     g.drawText("Verify Setup", contentBounds.removeFromTop(40), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(14.0f);
@@ -197,7 +197,7 @@ void TwoFactorSettings::paint(juce::Graphics &g) {
 
   case State::Disabling:
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f).boldened());
+    g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
     g.drawText("Disable Two-Factor Authentication", contentBounds.removeFromTop(40), juce::Justification::centred);
     g.setColour(Colors::textSecondary);
     g.setFont(14.0f);
@@ -220,7 +220,7 @@ void TwoFactorSettings::drawHeader(juce::Graphics &g, juce::Rectangle<int> bound
   g.fillRect(bounds.removeFromBottom(12));
 
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(20.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f).withStyle("Bold")));
   g.drawText("Two-Factor Authentication", bounds, juce::Justification::centred);
 }
 
@@ -232,9 +232,10 @@ void TwoFactorSettings::drawStatus(juce::Graphics &g, juce::Rectangle<int> bound
   juce::String statusText = twoFactorEnabled ? "Enabled" : "Not Enabled";
 
   g.setColour(statusColor);
-  g.fillEllipse(statusArea.getX() + PADDING, statusArea.getY() + 10, 12, 12);
+  g.fillEllipse(static_cast<float>(statusArea.getX() + PADDING), static_cast<float>(statusArea.getY() + 10), 12.0f,
+                12.0f);
 
-  g.setFont(juce::Font(18.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
   g.drawText(statusText, statusArea.withTrimmedLeft(PADDING + 20).removeFromTop(30), juce::Justification::centredLeft);
 
   if (twoFactorEnabled) {
@@ -256,7 +257,7 @@ void TwoFactorSettings::drawStatus(juce::Graphics &g, juce::Rectangle<int> bound
 
 void TwoFactorSettings::drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(16.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
 
   if (setupType == "hotp") {
     g.drawText("Configure Your YubiKey", bounds.removeFromTop(30), juce::Justification::centredLeft);
@@ -277,7 +278,7 @@ void TwoFactorSettings::drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bo
     g.setColour(Colors::codeBackground);
     g.fillRoundedRectangle(qrBounds.toFloat(), 6.0f);
     g.setColour(Colors::accent);
-    g.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 11.0f, juce::Font::plain));
+    g.setFont(juce::Font(juce::FontOptions(juce::Font::getDefaultMonospacedFontName()).withHeight(11.0f)));
     g.drawFittedText(setupQRUrl, qrBounds.reduced(8), juce::Justification::centredLeft, 3, 0.8f);
   }
 
@@ -292,7 +293,8 @@ void TwoFactorSettings::drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bo
   g.setColour(Colors::codeBackground);
   g.fillRoundedRectangle(secretBounds.toFloat(), 6.0f);
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 16.0f, juce::Font::bold));
+  g.setFont(
+      juce::Font(juce::FontOptions(juce::Font::getDefaultMonospacedFontName()).withHeight(16.0f).withStyle("Bold")));
   g.drawText(setupSecret, secretBounds, juce::Justification::centred);
 
   bounds.removeFromTop(SPACING * 2);
@@ -303,7 +305,7 @@ void TwoFactorSettings::drawSetupInfo(juce::Graphics &g, juce::Rectangle<int> bo
 
 void TwoFactorSettings::drawBackupCodes(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(Colors::warningOrange);
-  g.setFont(juce::Font(14.0f).boldened());
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
   g.drawText("Save Your Backup Codes!", bounds.removeFromTop(25), juce::Justification::centredLeft);
 
   g.setColour(Colors::textSecondary);
@@ -319,7 +321,7 @@ void TwoFactorSettings::drawBackupCodes(juce::Graphics &g, juce::Rectangle<int> 
   g.fillRoundedRectangle(codesBounds.toFloat(), 6.0f);
 
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 13.0f, juce::Font::plain));
+  g.setFont(juce::Font(juce::FontOptions(juce::Font::getDefaultMonospacedFontName()).withHeight(13.0f)));
 
   int codesPerRow = 2;
   int codeHeight = 22;
@@ -438,7 +440,9 @@ void TwoFactorSettings::resized() {
     break;
   }
 
-  default:
+  case State::Loading:
+  case State::Error:
+    // Loading and Error states don't modify component bounds
     break;
   }
 }
@@ -687,11 +691,11 @@ void TwoFactorSettings::doRegenerateBackupCodes() {
                                 isProcessing = true;
                                 repaint();
 
-                                networkClient->regenerateBackupCodes(code, [this](auto result) {
+                                networkClient->regenerateBackupCodes(code, [this](auto regenResult) {
                                   isProcessing = false;
 
-                                  if (result.isOk()) {
-                                    auto data = result.getValue();
+                                  if (regenResult.isOk()) {
+                                    auto data = regenResult.getValue();
                                     if (data.isObject()) {
                                       auto codes = data.getProperty("backup_codes", juce::var());
                                       backupCodes.clear();
@@ -709,7 +713,7 @@ void TwoFactorSettings::doRegenerateBackupCodes() {
                                     }
                                     statusMessage = "Backup codes regenerated!";
                                   } else {
-                                    errorMessage = result.getError();
+                                    errorMessage = regenResult.getError();
                                   }
                                   repaint();
                                 });

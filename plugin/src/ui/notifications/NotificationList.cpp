@@ -145,7 +145,7 @@ NotificationRow::NotificationRow() {
   setSize(NotificationList::PREFERRED_WIDTH, ROW_HEIGHT);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this](bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 }
 
 void NotificationRow::setNotification(const NotificationItem &notif) {

@@ -92,7 +92,7 @@ void DraftsView::drawHeader(juce::Graphics &g) {
 
   // Title
   g.setColour(SidechainColors::textPrimary());
-  g.setFont(juce::Font(18.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
   g.drawText("Drafts", bounds.withTrimmedLeft(50), juce::Justification::centredLeft);
 
   // Draft count
@@ -131,7 +131,7 @@ void DraftsView::drawRecoveryBanner(juce::Graphics &g) {
 
   // Text
   g.setColour(SidechainColors::textPrimary());
-  g.setFont(juce::Font(14.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
   g.drawText("Unsaved recording found",
              bounds.withTrimmedLeft(50).withTrimmedRight(180).withTrimmedBottom(bounds.getHeight() / 2),
              juce::Justification::bottomLeft);
@@ -175,7 +175,7 @@ void DraftsView::drawDraftCard(juce::Graphics &g, const Draft &draft, juce::Rect
 
   // Filename or "Untitled"
   g.setColour(SidechainColors::textPrimary());
-  g.setFont(juce::Font(16.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
   juce::String displayName = draft.filename.isEmpty() ? "Untitled Draft" : draft.filename;
   g.drawText(displayName, x, y, contentWidth, 22, juce::Justification::centredLeft);
 
@@ -256,7 +256,7 @@ void DraftsView::drawDeleteConfirmation(juce::Graphics &g) {
 
   // Title
   g.setColour(SidechainColors::textPrimary());
-  g.setFont(juce::Font(16.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
   g.drawText("Delete Draft?", dialogBounds.withHeight(50), juce::Justification::centred);
 
   // Message

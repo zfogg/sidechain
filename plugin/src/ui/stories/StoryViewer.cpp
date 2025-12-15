@@ -372,7 +372,7 @@ void StoryViewer::drawHeader(juce::Graphics &g) {
 
   // Initial
   g.setColour(StoryViewerColors::textPrimary);
-  g.setFont(juce::Font(16.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
   juce::String initial = story->username.isNotEmpty() ? story->username.substring(0, 1).toUpperCase() : "?";
   g.drawText(initial, avatarBounds, juce::Justification::centred);
 
@@ -380,7 +380,7 @@ void StoryViewer::drawHeader(juce::Graphics &g) {
 
   // Primary header: filename if available, otherwise username
   g.setColour(StoryViewerColors::textPrimary);
-  g.setFont(juce::Font(14.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(14.0f).withStyle("Bold")));
 
   if (story->filename.isNotEmpty()) {
     // Show filename as main header
@@ -404,7 +404,7 @@ void StoryViewer::drawHeader(juce::Graphics &g) {
 
   // Close button (X)
   g.setColour(StoryViewerColors::textPrimary);
-  g.setFont(juce::Font(20.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f).withStyle("Bold")));
   g.drawText(juce::CharPointer_UTF8("\xc3\x97"), closeButtonArea,
              juce::Justification::centred); // � character
 }
@@ -548,7 +548,7 @@ void StoryViewer::drawExpiredMessage(juce::Graphics &g) {
   auto center = getLocalBounds().getCentre().toFloat();
 
   g.setColour(StoryViewerColors::textSecondary);
-  g.setFont(juce::Font(24.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
   g.drawText("Story Expired", juce::Rectangle<int>(0, static_cast<int>(center.y - 40), getWidth(), 30),
              juce::Justification::centred);
 

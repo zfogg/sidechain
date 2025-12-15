@@ -318,7 +318,7 @@ juce::Rectangle<int> Playlists::getPlaylistCardBounds(int index) const {
 }
 
 //==============================================================================
-void Playlists::fetchPlaylists(FilterType filter) {
+void Playlists::fetchPlaylists([[maybe_unused]] FilterType filter) {
   // Already handled in loadPlaylists()
 }
 

@@ -159,7 +159,7 @@ void ActivityStatusSettings::drawHeader(juce::Graphics &g, juce::Rectangle<int> 
 
   // Title
   g.setColour(Colors::textPrimary);
-  g.setFont(juce::Font(18.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(18.0f).withStyle("Bold")));
   g.drawText("Activity Status", bounds, juce::Justification::centred);
 
   // Bottom border

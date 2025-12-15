@@ -116,7 +116,7 @@ bool DraftStorage::writeAudioFile(const juce::File &file, const juce::AudioBuffe
 
   // Create WAV writer
   juce::WavAudioFormat wavFormat;
-  std::unique_ptr<juce::FileOutputStream> fileStream(file.createOutputStream());
+  std::unique_ptr<juce::OutputStream> fileStream(file.createOutputStream());
 
   if (fileStream == nullptr) {
     Log::error("DraftStorage::writeAudioFile: Failed to create output stream for " + file.getFullPathName());
@@ -127,15 +127,14 @@ bool DraftStorage::writeAudioFile(const juce::File &file, const juce::AudioBuffe
                            .withSampleRate(sampleRate)
                            .withNumChannels(buffer.getNumChannels())
                            .withBitsPerSample(16);
-  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(fileStream.get(), writerOptions));
+  auto writer = wavFormat.createWriterFor(fileStream, writerOptions);
 
   if (writer == nullptr) {
     Log::error("DraftStorage::writeAudioFile: Failed to create WAV writer");
     return false;
   }
 
-  // Release ownership of fileStream since writer will manage it
-  fileStream.release();
+  // Ownership of fileStream is transferred to writer when successful
 
   bool success = writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
 

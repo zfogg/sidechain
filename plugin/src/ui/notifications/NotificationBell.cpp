@@ -6,7 +6,7 @@ NotificationBell::NotificationBell() {
   setSize(PREFERRED_SIZE, PREFERRED_SIZE);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this](bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 }
 
 //==============================================================================

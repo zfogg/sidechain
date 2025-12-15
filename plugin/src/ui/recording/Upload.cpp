@@ -352,7 +352,7 @@ void Upload::mouseUp(const juce::MouseEvent &event) {
 //==============================================================================
 void Upload::drawHeader(juce::Graphics &g) {
   g.setColour(SidechainColors::textPrimary());
-  g.setFont(juce::Font(24.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
   g.drawText("Share Your Loop", headerArea, juce::Justification::centredLeft);
 
   // Duration badge
@@ -546,7 +546,7 @@ void Upload::drawStatus(juce::Graphics &g) {
   } else if (uploadState == UploadState::Success) {
     // Success icon and title
     g.setColour(SidechainColors::success());
-    g.setFont(juce::Font(16.0f, juce::Font::bold));
+    g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
     g.drawText(juce::CharPointer_UTF8("\xE2\x9C\x93 Loop shared!"), statusArea,
                juce::Justification::centred); // checkmark
 
@@ -649,7 +649,7 @@ void Upload::drawButton(juce::Graphics &g, juce::Rectangle<int> bounds, const ju
   g.fillRoundedRectangle(bounds.toFloat(), 10.0f);
 
   g.setColour(isEnabled ? SidechainColors::textPrimary() : SidechainColors::textPrimary().withAlpha(0.5f));
-  g.setFont(juce::Font(16.0f, juce::Font::bold));
+  g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
   g.drawText(text, bounds, juce::Justification::centred);
 }
 
