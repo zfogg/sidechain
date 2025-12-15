@@ -38,11 +38,11 @@ UserPickerDialog::UserPickerDialog()
     scrollBar.setAutoHide(false);
     scrollBar.addListener(this);
     addAndMakeVisible(scrollBar);
-    
+
     // Setup error state component
     errorStateComponent = std::make_unique<ErrorState>();
     addChildComponent(errorStateComponent.get());
-    
+
     setSize(500, 700);
 }
 
@@ -55,53 +55,53 @@ void UserPickerDialog::paint(juce::Graphics& g)
 {
     // Background
     g.fillAll(SidechainColors::background());
-    
+
     if (dialogState == DialogState::Error)
     {
         drawErrorState(g);
         return;
     }
-    
+
     if (dialogState == DialogState::Loading)
     {
         drawLoadingState(g);
         return;
     }
-    
+
     // Draw UI elements
     drawHeader(g);
     drawSearchInput(g);
-    
+
     if (showGroupNameInput)
         drawGroupNameInput(g);
-    
+
     // Calculate content area
     int contentY = HEADER_HEIGHT + SEARCH_INPUT_HEIGHT;
     if (showGroupNameInput)
         contentY += GROUP_NAME_INPUT_HEIGHT;
-    
+
     int contentHeight = getHeight() - contentY - BOTTOM_PADDING;
     auto contentBounds = juce::Rectangle<int>(0, contentY, getWidth() - scrollBar.getWidth(), contentHeight);
-    
+
     // Draw sections
     int y = contentY - static_cast<int>(scrollPosition);
-    
+
     // Recent conversations section
     if (!recentUsers.empty() && currentSearchQuery.isEmpty())
     {
         drawSectionHeader(g, "Recent", y);
         y += SECTION_HEADER_HEIGHT;
-        
+
         for (size_t i = 0; i < recentUsers.size(); ++i)
         {
             bool isSelected = selectedUserIds.find(recentUsers[i].userId) != selectedUserIds.end();
             drawUserItem(g, recentUsers[i], y, isSelected);
             y += USER_ITEM_HEIGHT;
         }
-        
+
         y += 10; // Section spacing
     }
-    
+
     // Suggested users section
     if (!suggestedUsers.empty() && currentSearchQuery.isEmpty())
     {
@@ -143,7 +143,7 @@ void UserPickerDialog::paint(juce::Graphics& g)
         {
             drawSectionHeader(g, "Results", y);
             y += SECTION_HEADER_HEIGHT;
-            
+
             for (size_t i = 0; i < searchResults.size(); ++i)
             {
                 bool isSelected = selectedUserIds.find(searchResults[i].userId) != selectedUserIds.end();
@@ -152,7 +152,7 @@ void UserPickerDialog::paint(juce::Graphics& g)
             }
         }
     }
-    
+
     // Draw action buttons at bottom
     drawActionButtons(g);
 }
@@ -160,31 +160,31 @@ void UserPickerDialog::paint(juce::Graphics& g)
 void UserPickerDialog::resized()
 {
     auto bounds = getLocalBounds();
-    
+
     // Position scroll bar on right
     scrollBar.setBounds(bounds.removeFromRight(16));
-    
+
     // Position search input
     int searchY = HEADER_HEIGHT;
     searchInput.setBounds(15, searchY + 10, bounds.getWidth() - 30, SEARCH_INPUT_HEIGHT - 20);
-    
+
     // Position group name input (if visible)
     if (showGroupNameInput)
     {
         int groupY = searchY + SEARCH_INPUT_HEIGHT;
         groupNameInput.setBounds(15, groupY + 10, bounds.getWidth() - 30, GROUP_NAME_INPUT_HEIGHT - 20);
     }
-    
+
     // Position error state
     if (errorStateComponent)
         errorStateComponent->setBounds(bounds);
-    
+
     // Update scroll bounds
     int contentHeight = calculateContentHeight();
     int visibleHeight = getHeight() - HEADER_HEIGHT - SEARCH_INPUT_HEIGHT - BOTTOM_PADDING;
     if (showGroupNameInput)
         visibleHeight -= GROUP_NAME_INPUT_HEIGHT;
-    
+
     scrollBar.setRangeLimits(0.0, juce::jmax(0.0, static_cast<double>(contentHeight - visibleHeight)));
     scrollBar.setCurrentRange(scrollPosition, visibleHeight, juce::dontSendNotification);
 }
@@ -192,42 +192,42 @@ void UserPickerDialog::resized()
 void UserPickerDialog::mouseUp(const juce::MouseEvent& event)
 {
     auto pos = event.getPosition();
-    
+
     // Close button
     if (getCloseButtonBounds().contains(pos))
     {
         cancel();
         return;
     }
-    
+
     // Cancel button
     if (getCancelButtonBounds().contains(pos))
     {
         cancel();
         return;
     }
-    
+
     // Create/Send button
     if (getCreateButtonBounds().contains(pos))
     {
         createConversation();
         return;
     }
-    
+
     // Check for clicks on user items
     int contentY = HEADER_HEIGHT + SEARCH_INPUT_HEIGHT;
     if (showGroupNameInput)
         contentY += GROUP_NAME_INPUT_HEIGHT;
-    
+
     int y = contentY - static_cast<int>(scrollPosition);
-    
+
     // Recent users
     if (!recentUsers.empty() && currentSearchQuery.isEmpty())
     {
         y += SECTION_HEADER_HEIGHT;
         for (size_t i = 0; i < recentUsers.size(); ++i)
         {
-            auto itemBounds = getUserItemBounds(i, y);
+            auto itemBounds = getUserItemBounds(0, y);
             if (itemBounds.contains(pos))
             {
                 toggleUserSelection(recentUsers[i].userId);
@@ -237,14 +237,14 @@ void UserPickerDialog::mouseUp(const juce::MouseEvent& event)
         }
         y += 10;
     }
-    
+
     // Suggested users
     if (!suggestedUsers.empty() && currentSearchQuery.isEmpty())
     {
         y += SECTION_HEADER_HEIGHT;
         for (size_t i = 0; i < suggestedUsers.size(); ++i)
         {
-            auto itemBounds = getUserItemBounds(i, y);
+            auto itemBounds = getUserItemBounds(0, y);
             if (itemBounds.contains(pos))
             {
                 toggleUserSelection(suggestedUsers[i].userId);
@@ -253,14 +253,14 @@ void UserPickerDialog::mouseUp(const juce::MouseEvent& event)
             y += USER_ITEM_HEIGHT;
         }
     }
-    
+
     // Search results
     if (!currentSearchQuery.isEmpty() && !searchResults.empty())
     {
         y += SECTION_HEADER_HEIGHT;
         for (size_t i = 0; i < searchResults.size(); ++i)
         {
-            auto itemBounds = getUserItemBounds(i, y);
+            auto itemBounds = getUserItemBounds(0, y);
             if (itemBounds.contains(pos))
             {
                 toggleUserSelection(searchResults[i].userId);
@@ -271,7 +271,7 @@ void UserPickerDialog::mouseUp(const juce::MouseEvent& event)
     }
 }
 
-void UserPickerDialog::mouseWheelMove([[maybe_unused]] const juce::MouseEvent& event, 
+void UserPickerDialog::mouseWheelMove([[maybe_unused]] const juce::MouseEvent& event,
                                       const juce::MouseWheelDetails& wheel)
 {
     scrollPosition -= wheel.deltaY * 30.0;
@@ -312,7 +312,7 @@ void UserPickerDialog::timerCallback()
     performSearch(searchInput.getText());
 }
 
-void UserPickerDialog::scrollBarMoved([[maybe_unused]] juce::ScrollBar* scrollBarMoved, 
+void UserPickerDialog::scrollBarMoved([[maybe_unused]] juce::ScrollBar* scrollBarMoved,
                                       double newRangeStart)
 {
     scrollPosition = newRangeStart;
@@ -472,30 +472,30 @@ void UserPickerDialog::loadSuggestedUsers()
 void UserPickerDialog::drawHeader(juce::Graphics& g)
 {
     auto headerBounds = juce::Rectangle<int>(0, 0, getWidth(), HEADER_HEIGHT);
-    
+
     // Header background
     g.setColour(SidechainColors::surface());
     g.fillRect(headerBounds);
-    
+
     // Title
     g.setColour(SidechainColors::textPrimary());
     g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
-    
+
     juce::String title = "New Message";
     if (selectedUserIds.size() > 1)
         title = "New Group (" + juce::String(selectedUserIds.size()) + ")";
-    
+
     g.drawText(title, 15, 0, getWidth() - 30, HEADER_HEIGHT, juce::Justification::centredLeft);
-    
+
     // Close button (X)
     auto closeBounds = getCloseButtonBounds();
     g.setColour(SidechainColors::textSecondary());
     g.setFont(juce::FontOptions(20.0f));
-    g.drawText("×", closeBounds, juce::Justification::centred);
-    
+    g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9C\x96")), closeBounds, juce::Justification::centred);
+
     // Bottom border
     g.setColour(SidechainColors::border());
-    g.drawLine(0.0f, static_cast<float>(HEADER_HEIGHT), 
+    g.drawLine(0.0f, static_cast<float>(HEADER_HEIGHT),
                static_cast<float>(getWidth()), static_cast<float>(HEADER_HEIGHT), 1.0f);
 }
 
@@ -519,24 +519,24 @@ void UserPickerDialog::drawSectionHeader(juce::Graphics& g, const juce::String& 
 void UserPickerDialog::drawUserItem(juce::Graphics& g, const UserItem& user, int y, bool isSelected)
 {
     auto itemBounds = getUserItemBounds(0, y);
-    
+
     // Selection background
     if (isSelected)
     {
         g.setColour(SidechainColors::accent().withAlpha(0.1f));
         g.fillRoundedRectangle(itemBounds.reduced(5, 2).toFloat(), 8.0f);
     }
-    
+
     int x = 15;
-    
+
     // Avatar (placeholder circle)
     int avatarSize = 50;
     int avatarY = y + (USER_ITEM_HEIGHT - avatarSize) / 2;
-    
+
     g.setColour(SidechainColors::surface());
-    g.fillEllipse(static_cast<float>(x), static_cast<float>(avatarY), 
+    g.fillEllipse(static_cast<float>(x), static_cast<float>(avatarY),
                   static_cast<float>(avatarSize), static_cast<float>(avatarSize));
-    
+
     // Avatar initials
     g.setColour(SidechainColors::textSecondary());
     g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
@@ -546,44 +546,44 @@ void UserPickerDialog::drawUserItem(juce::Graphics& g, const UserItem& user, int
     else if (user.username.isNotEmpty())
         initials = user.username.substring(0, 1).toUpperCase();
     g.drawText(initials, x, avatarY, avatarSize, avatarSize, juce::Justification::centred);
-    
+
     // Online indicator
     if (user.isOnline)
     {
         int dotSize = 14;
         int dotX = x + avatarSize - dotSize + 2;
         int dotY = avatarY + avatarSize - dotSize + 2;
-        
+
         // White border
         g.setColour(SidechainColors::background());
-        g.fillEllipse(static_cast<float>(dotX - 1), static_cast<float>(dotY - 1), 
+        g.fillEllipse(static_cast<float>(dotX - 1), static_cast<float>(dotY - 1),
                       static_cast<float>(dotSize + 2), static_cast<float>(dotSize + 2));
-        
+
         // Green dot
         g.setColour(SidechainColors::onlineIndicator());
-        g.fillEllipse(static_cast<float>(dotX), static_cast<float>(dotY), 
+        g.fillEllipse(static_cast<float>(dotX), static_cast<float>(dotY),
                       static_cast<float>(dotSize), static_cast<float>(dotSize));
     }
-    
+
     x += avatarSize + 12;
-    
+
     // Display name
     g.setColour(SidechainColors::textPrimary());
     g.setFont(juce::FontOptions(15.0f).withStyle("Bold"));
     juce::String displayName = user.displayName.isNotEmpty() ? user.displayName : user.username;
     g.drawText(displayName, x, y + 12, getWidth() - x - 100, 20, juce::Justification::centredLeft);
-    
+
     // Username
     g.setColour(SidechainColors::textSecondary());
     g.setFont(juce::FontOptions(13.0f));
     g.drawText("@" + user.username, x, y + 32, getWidth() - x - 100, 18, juce::Justification::centredLeft);
-    
+
     // Follow status badge
     int badgeX = getWidth() - 90;
     if (user.isFollowing && user.followsMe)
     {
         g.setColour(SidechainColors::accent().withAlpha(0.2f));
-        g.fillRoundedRectangle(static_cast<float>(badgeX), static_cast<float>(y + 20), 
+        g.fillRoundedRectangle(static_cast<float>(badgeX), static_cast<float>(y + 20),
                                75.0f, 24.0f, 12.0f);
         g.setColour(SidechainColors::accent());
         g.setFont(juce::FontOptions(11.0f).withStyle("Bold"));
@@ -595,14 +595,14 @@ void UserPickerDialog::drawUserItem(juce::Graphics& g, const UserItem& user, int
         g.setFont(juce::FontOptions(11.0f));
         g.drawText("Follows you", badgeX, y + 25, 75, 20, juce::Justification::centredRight);
     }
-    
+
     // Selection checkmark
     if (isSelected)
     {
         int checkX = getWidth() - scrollBar.getWidth() - 40;
         g.setColour(SidechainColors::accent());
         g.setFont(juce::FontOptions(24.0f));
-        g.drawText("✓", checkX, y, 30, USER_ITEM_HEIGHT, juce::Justification::centred);
+        g.drawText(juce::String::fromUTF8("✓"), checkX, y, 30, USER_ITEM_HEIGHT, juce::Justification::centred);
     }
 }
 
@@ -610,17 +610,17 @@ void UserPickerDialog::drawActionButtons(juce::Graphics& g)
 {
     auto createBounds = getCreateButtonBounds();
     auto cancelBounds = getCancelButtonBounds();
-    
+
     // Create/Send button
     bool canCreate = !selectedUserIds.empty();
     g.setColour(canCreate ? SidechainColors::accent() : SidechainColors::accent().withAlpha(0.5f));
     g.fillRoundedRectangle(createBounds.toFloat(), 8.0f);
-    
+
     g.setColour(juce::Colours::white);
     g.setFont(juce::FontOptions(15.0f).withStyle("Bold"));
     juce::String buttonText = selectedUserIds.size() > 1 ? "Create Group" : "Send Message";
     g.drawText(buttonText, createBounds, juce::Justification::centred);
-    
+
     // Cancel button
     g.setColour(SidechainColors::textSecondary());
     g.drawRoundedRectangle(cancelBounds.toFloat(), 8.0f, 1.5f);
@@ -655,7 +655,7 @@ void UserPickerDialog::drawEmptyState([[maybe_unused]] juce::Graphics& g)
 int UserPickerDialog::calculateContentHeight()
 {
     int height = 0;
-    
+
     // Recent users
     if (!recentUsers.empty() && currentSearchQuery.isEmpty())
     {
@@ -663,21 +663,21 @@ int UserPickerDialog::calculateContentHeight()
         height += static_cast<int>(recentUsers.size()) * USER_ITEM_HEIGHT;
         height += 10; // Section spacing
     }
-    
+
     // Suggested users
     if (!suggestedUsers.empty() && currentSearchQuery.isEmpty())
     {
         height += SECTION_HEADER_HEIGHT;
         height += static_cast<int>(suggestedUsers.size()) * USER_ITEM_HEIGHT;
     }
-    
+
     // Search results
     if (!currentSearchQuery.isEmpty() && !searchResults.empty())
     {
         height += SECTION_HEADER_HEIGHT;
         height += static_cast<int>(searchResults.size()) * USER_ITEM_HEIGHT;
     }
-    
+
     return height;
 }
 
@@ -762,7 +762,7 @@ void UserPickerDialog::toggleUserSelection(const juce::String& userId)
     {
         selectedUserIds.insert(userId);
     }
-    
+
     updateGroupNameInputVisibility();
     repaint();
 }
@@ -790,13 +790,13 @@ void UserPickerDialog::createConversation()
         Log::info("UserPickerDialog: No users selected");
         return;
     }
-    
+
     if (selectedUserIds.size() == 1)
     {
         // Single user - create DM
         juce::String userId = *selectedUserIds.begin();
         Log::info("UserPickerDialog: Creating DM with user: " + userId);
-        
+
         if (onUserSelected)
             onUserSelected(userId);
     }
@@ -805,9 +805,9 @@ void UserPickerDialog::createConversation()
         // Multiple users - create group
         std::vector<juce::String> userIds(selectedUserIds.begin(), selectedUserIds.end());
         juce::String groupName = groupNameInput.getText().trim();
-        
+
         Log::info("UserPickerDialog: Creating group with " + juce::String(userIds.size()) + " users");
-        
+
         if (onGroupCreated)
             onGroupCreated(userIds, groupName);
     }
@@ -816,7 +816,7 @@ void UserPickerDialog::createConversation()
 void UserPickerDialog::cancel()
 {
     Log::info("UserPickerDialog: Cancelled");
-    
+
     if (onCancelled)
         onCancelled();
 }
@@ -826,7 +826,7 @@ void UserPickerDialog::cancel()
 
 juce::Rectangle<int> UserPickerDialog::getUserItemBounds(int index, int yOffset) const
 {
-    return juce::Rectangle<int>(0, yOffset + index * USER_ITEM_HEIGHT, 
+    return juce::Rectangle<int>(0, yOffset + index * USER_ITEM_HEIGHT,
                                 getWidth() - scrollBar.getWidth(), USER_ITEM_HEIGHT);
 }
 

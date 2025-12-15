@@ -410,7 +410,7 @@ void PlaylistDetail::drawEntryCard(juce::Graphics& g, juce::Rectangle<int> bound
         bool removeHovered = removeBounds.contains(getMouseXYRelative());
         g.setColour(removeHovered ? SidechainColors::error() : SidechainColors::textSecondary());
         g.setFont(12.0f);
-        g.drawText("×", removeBounds, juce::Justification::centred);
+        g.drawText(juce::CharPointer_UTF8("\xc3\x97"), removeBounds, juce::Justification::centred); // ×
     }
 }
 
