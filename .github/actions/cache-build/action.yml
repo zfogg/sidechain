@@ -47,7 +47,7 @@ runs:
         path: |
           .cache
           plugin/build
-          ${{ runner.os == 'Linux' && '~/.cache/ccache' || runner.os == 'macOS' && '~/Library/Caches/ccache' || runner.os == 'Windows' && '%APPDATA%\ccache' || '' }}
+          ${{ runner.os == 'Linux' && '~/.cache/ccache' || runner.os == 'macOS' && '~/Library/Caches/ccache' || '' }}
         key: sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-${{ hashFiles('plugin/CMakeLists.txt', 'plugin/cmake/**') }}
         restore-keys: |
           sidechain-build-v${{ inputs.cache-version }}-${{ runner.os }}-${{ steps.arch.outputs.arch }}-
