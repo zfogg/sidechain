@@ -583,7 +583,7 @@ void MessageThread::drawMessages(juce::Graphics& g, const std::vector<StreamChat
     // Note: messages is passed in from paint() to avoid state changes between paint() and drawMessages()
     // This ensures we're always working with the same snapshot of the message list
 
-    int y = HEADER_HEIGHT - static_cast<int>(scrollPosition);
+    int y = HEADER_HEIGHT + MESSAGE_TOP_PADDING - static_cast<int>(scrollPosition);
     int width = getWidth() - scrollBar.getWidth();
 
     // Calculate bottom area height (reply preview + input)
@@ -965,7 +965,7 @@ int MessageThread::calculateTotalMessagesHeight()
 
     const auto& messages = channel->messages;
 
-    int totalHeight = 0;
+    int totalHeight = MESSAGE_TOP_PADDING;  // Start with top padding
     for (const auto& message : messages)
     {
         totalHeight += calculateMessageHeight(message, MESSAGE_MAX_WIDTH);

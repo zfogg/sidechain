@@ -98,6 +98,7 @@ private:
     static constexpr int AUDIO_RECORDER_HEIGHT = 80;  // Height for audio snippet recorder
     static constexpr int MESSAGE_BUBBLE_MIN_HEIGHT = 50;
     static constexpr int MESSAGE_BUBBLE_PADDING = 12;
+    static constexpr int MESSAGE_TOP_PADDING = 16;  // Top padding for messages container
     static constexpr int MESSAGE_MAX_WIDTH = 400;
 
     // Audio snippet recorder
