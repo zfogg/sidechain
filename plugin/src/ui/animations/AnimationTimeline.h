@@ -36,8 +36,7 @@ namespace Animations {
  *       .onCompletion([](){ std::cout << "All done!"; })
  *       .start();
  */
-class AnimationTimeline
-    : public std::enable_shared_from_this<AnimationTimeline> {
+class AnimationTimeline : public std::enable_shared_from_this<AnimationTimeline> {
 public:
   // Timing mode for the timeline
   enum class TimingMode {
@@ -47,8 +46,7 @@ public:
 
   using CompletionCallback = std::function<void()>;
   using CancellationCallback = std::function<void()>;
-  using ProgressCallback =
-      std::function<void(float)>; // Overall progress [0, 1]
+  using ProgressCallback = std::function<void(float)>; // Overall progress [0, 1]
 
   // ========== Factory Methods ==========
 
@@ -67,8 +65,8 @@ public:
   }
 
   explicit AnimationTimeline(TimingMode mode = TimingMode::Sequential)
-      : mode_(mode), isRunning_(false), currentAnimationIndex_(0),
-        stageerDelay_(0), startTime_(std::chrono::steady_clock::now()) {}
+      : mode_(mode), isRunning_(false), currentAnimationIndex_(0), stageerDelay_(0),
+        startTime_(std::chrono::steady_clock::now()) {}
 
   virtual ~AnimationTimeline() = default;
 
@@ -81,8 +79,7 @@ public:
    * @param duration Duration in milliseconds (used for display/tracking)
    */
   template <typename T>
-  std::shared_ptr<AnimationTimeline>
-  add(std::shared_ptr<TransitionAnimation<T>> animation, int duration = 0) {
+  std::shared_ptr<AnimationTimeline> add(std::shared_ptr<TransitionAnimation<T>> animation, int duration = 0) {
     if (animation) {
       AnimationEntry entry;
       entry.animation = animation;
@@ -116,8 +113,7 @@ public:
   /**
    * Register a callback invoked if timeline is cancelled
    */
-  std::shared_ptr<AnimationTimeline>
-  onCancellation(CancellationCallback callback) {
+  std::shared_ptr<AnimationTimeline> onCancellation(CancellationCallback callback) {
     cancellationCallback_ = callback;
     return this->shared_from_this();
   }
@@ -203,12 +199,16 @@ public:
   /**
    * Check if timeline is running
    */
-  bool isRunning() const { return isRunning_; }
+  bool isRunning() const {
+    return isRunning_;
+  }
 
   /**
    * Get number of animations in timeline
    */
-  size_t getAnimationCount() const { return animations_.size(); }
+  size_t getAnimationCount() const {
+    return animations_.size();
+  }
 
   /**
    * Get total duration of all animations
@@ -222,8 +222,7 @@ public:
       int maxDuration = 0;
       for (const auto &entry : animations_)
         maxDuration = std::max(maxDuration, entry.duration);
-      return maxDuration +
-             (static_cast<int>(animations_.size()) - 1) * stageerDelay_;
+      return maxDuration + (static_cast<int>(animations_.size()) - 1) * stageerDelay_;
     } else {
       // For sequential, total is sum of durations + stagger offsets
       int total = 0;
@@ -243,8 +242,7 @@ public:
       return 0.0f;
 
     int elapsed = getElapsedTime();
-    return std::min(1.0f,
-                    static_cast<float>(elapsed) / static_cast<float>(total));
+    return std::min(1.0f, static_cast<float>(elapsed) / static_cast<float>(total));
   }
 
   /**
@@ -255,15 +253,16 @@ public:
       return 0;
 
     auto now = std::chrono::steady_clock::now();
-    auto elapsed =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime_);
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime_);
     return static_cast<int>(elapsed.count());
   }
 
   /**
    * Get timing mode
    */
-  TimingMode getTimingMode() const { return mode_; }
+  TimingMode getTimingMode() const {
+    return mode_;
+  }
 
   /**
    * Check if all animations are complete
@@ -358,8 +357,7 @@ private:
   /**
    * Schedule an animation at a given index with a delay
    */
-  void scheduleAnimationWithDelay([[maybe_unused]] size_t index,
-                                  [[maybe_unused]] int delayMs) {
+  void scheduleAnimationWithDelay([[maybe_unused]] size_t index, [[maybe_unused]] int delayMs) {
     // In a real implementation, this would use a timer
     // TODO: Implement delay before starting animation
   }
@@ -436,8 +434,7 @@ public:
     return *this;
   }
 
-  template <typename T>
-  TimelineBuilder &add(std::shared_ptr<TransitionAnimation<T>> animation) {
+  template <typename T> TimelineBuilder &add(std::shared_ptr<TransitionAnimation<T>> animation) {
     timeline_->add(animation);
     return *this;
   }
@@ -447,8 +444,7 @@ public:
     return *this;
   }
 
-  TimelineBuilder &
-  onCompletion(AnimationTimeline::CompletionCallback callback) {
+  TimelineBuilder &onCompletion(AnimationTimeline::CompletionCallback callback) {
     timeline_->onCompletion(callback);
     return *this;
   }
@@ -458,9 +454,13 @@ public:
     return *this;
   }
 
-  std::shared_ptr<AnimationTimeline> build() { return timeline_; }
+  std::shared_ptr<AnimationTimeline> build() {
+    return timeline_;
+  }
 
-  std::shared_ptr<AnimationTimeline> start() { return timeline_->start(); }
+  std::shared_ptr<AnimationTimeline> start() {
+    return timeline_->start();
+  }
 
 private:
   std::shared_ptr<AnimationTimeline> timeline_;

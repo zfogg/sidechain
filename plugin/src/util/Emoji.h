@@ -16,1524 +16,2490 @@
  *   juce::String smile = Emoji::GRINNING_FACE;
  *   button->setButtonText(Emoji::THUMBS_UP);
  */
-namespace Emoji
-{
+namespace Emoji {
 
-    inline const juce::String GRINNING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x80"));  // 😀 Grinning Face
-    inline const juce::String BEAMING_FACE_WITH_SMILING_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x81"));  // 😁 Beaming Face With Smiling Eyes
-    inline const juce::String FACE_WITH_TEARS_OF_JOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x82"));  // 😂 Face With Tears of Joy
-    inline const juce::String ROLLING_ON_THE_FLOOR_LAUGHING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA3"));  // 🤣 Rolling on the Floor Laughing
-    inline const juce::String GRINNING_FACE_WITH_BIG_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x83"));  // 😃 Grinning Face With Big Eyes
-    inline const juce::String GRINNING_FACE_WITH_SMILING_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x84"));  // 😄 Grinning Face With Smiling Eyes
-    inline const juce::String GRINNING_FACE_WITH_SWEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x85"));  // 😅 Grinning Face With Sweat
-    inline const juce::String GRINNING_SQUINTING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x86"));  // 😆 Grinning Squinting Face
-    inline const juce::String WINKING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x89"));  // 😉 Winking Face
-    inline const juce::String SMILING_FACE_WITH_SMILING_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8A"));  // 😊 Smiling Face With Smiling Eyes
-    inline const juce::String FACE_SAVORING_FOOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8B"));  // 😋 Face Savoring Food
-    inline const juce::String SMILING_FACE_WITH_SUNGLASSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8E"));  // 😎 Smiling Face With Sunglasses
-    inline const juce::String SMILING_FACE_WITH_HEART_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8D"));  // 😍 Smiling Face With Heart-Eyes
-    inline const juce::String FACE_BLOWING_A_KISS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x98"));  // 😘 Face Blowing a Kiss
-    inline const juce::String KISSING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x97"));  // 😗 Kissing Face
-    inline const juce::String KISSING_FACE_WITH_SMILING_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x99"));  // 😙 Kissing Face With Smiling Eyes
-    inline const juce::String KISSING_FACE_WITH_CLOSED_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9A"));  // 😚 Kissing Face With Closed Eyes
-    inline const juce::String SMILING_FACE = juce::String(juce::CharPointer_UTF8("\xE2\x98\xBA"));  // ☺ Smiling Face
-    inline const juce::String SLIGHTLY_SMILING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x82"));  // 🙂 Slightly Smiling Face
-    inline const juce::String HUGGING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x97"));  // 🤗 Hugging Face
-    inline const juce::String STAR_STRUCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA9"));  // 🤩 Star-Struck
-    inline const juce::String THINKING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x94"));  // 🤔 Thinking Face
-    inline const juce::String FACE_WITH_RAISED_EYEBROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA8"));  // 🤨 Face With Raised Eyebrow
-    inline const juce::String NEUTRAL_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x90"));  // 😐 Neutral Face
-    inline const juce::String EXPRESSIONLESS_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x91"));  // 😑 Expressionless Face
-    inline const juce::String FACE_WITHOUT_MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB6"));  // 😶 Face Without Mouth
-    inline const juce::String FACE_WITH_ROLLING_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x84"));  // 🙄 Face With Rolling Eyes
-    inline const juce::String SMIRKING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8F"));  // 😏 Smirking Face
-    inline const juce::String PERSEVERING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA3"));  // 😣 Persevering Face
-    inline const juce::String SAD_BUT_RELIEVED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA5"));  // 😥 Sad but Relieved Face
-    inline const juce::String FACE_WITH_OPEN_MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAE"));  // 😮 Face With Open Mouth
-    inline const juce::String ZIPPER_MOUTH_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x90"));  // 🤐 Zipper-Mouth Face
-    inline const juce::String HUSHED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAF"));  // 😯 Hushed Face
-    inline const juce::String SLEEPY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAA"));  // 😪 Sleepy Face
-    inline const juce::String TIRED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAB"));  // 😫 Tired Face
-    inline const juce::String SLEEPING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB4"));  // 😴 Sleeping Face
-    inline const juce::String RELIEVED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8C"));  // 😌 Relieved Face
-    inline const juce::String FACE_WITH_TONGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9B"));  // 😛 Face With Tongue
-    inline const juce::String WINKING_FACE_WITH_TONGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9C"));  // 😜 Winking Face With Tongue
-    inline const juce::String SQUINTING_FACE_WITH_TONGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9D"));  // 😝 Squinting Face With Tongue
-    inline const juce::String DROOLING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA4"));  // 🤤 Drooling Face
-    inline const juce::String UNAMUSED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x92"));  // 😒 Unamused Face
-    inline const juce::String DOWNCAST_FACE_WITH_SWEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x93"));  // 😓 Downcast Face With Sweat
-    inline const juce::String PENSIVE_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x94"));  // 😔 Pensive Face
-    inline const juce::String CONFUSED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x95"));  // 😕 Confused Face
-    inline const juce::String UPSIDE_DOWN_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x83"));  // 🙃 Upside-Down Face
-    inline const juce::String MONEY_MOUTH_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x91"));  // 🤑 Money-Mouth Face
-    inline const juce::String ASTONISHED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB2"));  // 😲 Astonished Face
-    inline const juce::String FROWNING_FACE = juce::String(juce::CharPointer_UTF8("\xE2\x98\xB9"));  // ☹ Frowning Face
-    inline const juce::String SLIGHTLY_FROWNING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x81"));  // 🙁 Slightly Frowning Face
-    inline const juce::String CONFOUNDED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x96"));  // 😖 Confounded Face
-    inline const juce::String DISAPPOINTED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9E"));  // 😞 Disappointed Face
-    inline const juce::String WORRIED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9F"));  // 😟 Worried Face
-    inline const juce::String FACE_WITH_STEAM_FROM_NOSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA4"));  // 😤 Face With Steam From Nose
-    inline const juce::String CRYING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA2"));  // 😢 Crying Face
-    inline const juce::String LOUDLY_CRYING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAD"));  // 😭 Loudly Crying Face
-    inline const juce::String FROWNING_FACE_WITH_OPEN_MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA6"));  // 😦 Frowning Face With Open Mouth
-    inline const juce::String ANGUISHED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA7"));  // 😧 Anguished Face
-    inline const juce::String FEARFUL_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA8"));  // 😨 Fearful Face
-    inline const juce::String WEARY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA9"));  // 😩 Weary Face
-    inline const juce::String EXPLODING_HEAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAF"));  // 🤯 Exploding Head
-    inline const juce::String GRIMACING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAC"));  // 😬 Grimacing Face
-    inline const juce::String ANXIOUS_FACE_WITH_SWEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB0"));  // 😰 Anxious Face With Sweat
-    inline const juce::String FACE_SCREAMING_IN_FEAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB1"));  // 😱 Face Screaming in Fear
-    inline const juce::String FLUSHED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB3"));  // 😳 Flushed Face
-    inline const juce::String ZANY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAA"));  // 🤪 Zany Face
-    inline const juce::String DIZZY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB5"));  // 😵 Dizzy Face
-    inline const juce::String POUTING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA1"));  // 😡 Pouting Face
-    inline const juce::String ANGRY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA0"));  // 😠 Angry Face
-    inline const juce::String FACE_WITH_SYMBOLS_ON_MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAC"));  // 🤬 Face With Symbols on Mouth
-    inline const juce::String FACE_WITH_MEDICAL_MASK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB7"));  // 😷 Face With Medical Mask
-    inline const juce::String FACE_WITH_THERMOMETER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x92"));  // 🤒 Face With Thermometer
-    inline const juce::String FACE_WITH_HEAD_BANDAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x95"));  // 🤕 Face With Head-Bandage
-    inline const juce::String NAUSEATED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA2"));  // 🤢 Nauseated Face
-    inline const juce::String FACE_VOMITING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAE"));  // 🤮 Face Vomiting
-    inline const juce::String SNEEZING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA7"));  // 🤧 Sneezing Face
-    inline const juce::String SMILING_FACE_WITH_HALO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x87"));  // 😇 Smiling Face With Halo
-    inline const juce::String COWBOY_HAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA0"));  // 🤠 Cowboy Hat Face
-    inline const juce::String CLOWN_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA1"));  // 🤡 Clown Face
-    inline const juce::String LYING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA5"));  // 🤥 Lying Face
-    inline const juce::String SHUSHING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAB"));  // 🤫 Shushing Face
-    inline const juce::String FACE_WITH_HAND_OVER_MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAD"));  // 🤭 Face With Hand Over Mouth
-    inline const juce::String FACE_WITH_MONOCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x90"));  // 🧐 Face With Monocle
-    inline const juce::String NERD_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x93"));  // 🤓 Nerd Face
-    inline const juce::String SMILING_FACE_WITH_HORNS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x88"));  // 😈 Smiling Face With Horns
-    inline const juce::String ANGRY_FACE_WITH_HORNS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBF"));  // 👿 Angry Face With Horns
-    inline const juce::String OGRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB9"));  // 👹 Ogre
-    inline const juce::String GOBLIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBA"));  // 👺 Goblin
-    inline const juce::String SKULL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x80"));  // 💀 Skull
-    inline const juce::String GHOST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBB"));  // 👻 Ghost
-    inline const juce::String ALIEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBD"));  // 👽 Alien
-    inline const juce::String ROBOT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x96"));  // 🤖 Robot Face
-    inline const juce::String PILE_OF_POO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA9"));  // 💩 Pile of Poo
-    inline const juce::String GRINNING_CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBA"));  // 😺 Grinning Cat Face
-    inline const juce::String GRINNING_CAT_FACE_WITH_SMILING_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB8"));  // 😸 Grinning Cat Face With Smiling Eyes
-    inline const juce::String CAT_FACE_WITH_TEARS_OF_JOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB9"));  // 😹 Cat Face With Tears of Joy
-    inline const juce::String SMILING_CAT_FACE_WITH_HEART_EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBB"));  // 😻 Smiling Cat Face With Heart-Eyes
-    inline const juce::String CAT_FACE_WITH_WRY_SMILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBC"));  // 😼 Cat Face With Wry Smile
-    inline const juce::String KISSING_CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBD"));  // 😽 Kissing Cat Face
-    inline const juce::String WEARY_CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x80"));  // 🙀 Weary Cat Face
-    inline const juce::String CRYING_CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBF"));  // 😿 Crying Cat Face
-    inline const juce::String POUTING_CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBE"));  // 😾 Pouting Cat Face
-    inline const juce::String BABY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB6"));  // 👶 Baby
-    inline const juce::String BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA6"));  // 👦 Boy
-    inline const juce::String GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA7"));  // 👧 Girl
-    inline const juce::String MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8"));  // 👨 Man
-    inline const juce::String WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9"));  // 👩 Woman
-    inline const juce::String OLD_MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB4"));  // 👴 Old Man
-    inline const juce::String OLD_WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB5"));  // 👵 Old Woman
-    inline const juce::String MAN_HEALTH_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9A\x95\xEF\xB8\x8F"));  // 👨‍⚕️ Man Health Worker
-    inline const juce::String WOMAN_HEALTH_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9A\x95\xEF\xB8\x8F"));  // 👩‍⚕️ Woman Health Worker
-    inline const juce::String MAN_STUDENT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8E\x93"));  // 👨‍🎓 Man Student
-    inline const juce::String WOMAN_STUDENT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8E\x93"));  // 👩‍🎓 Woman Student
-    inline const juce::String MAN_JUDGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9A\x96\xEF\xB8\x8F"));  // 👨‍⚖️ Man Judge
-    inline const juce::String WOMAN_JUDGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9A\x96\xEF\xB8\x8F"));  // 👩‍⚖️ Woman Judge
-    inline const juce::String MAN_FARMER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8C\xBE"));  // 👨‍🌾 Man Farmer
-    inline const juce::String WOMAN_FARMER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8C\xBE"));  // 👩‍🌾 Woman Farmer
-    inline const juce::String MAN_COOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8D\xB3"));  // 👨‍🍳 Man Cook
-    inline const juce::String WOMAN_COOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8D\xB3"));  // 👩‍🍳 Woman Cook
-    inline const juce::String MAN_MECHANIC = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x94\xA7"));  // 👨‍🔧 Man Mechanic
-    inline const juce::String WOMAN_MECHANIC = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x94\xA7"));  // 👩‍🔧 Woman Mechanic
-    inline const juce::String MAN_FACTORY_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8F\xAD"));  // 👨‍🏭 Man Factory Worker
-    inline const juce::String WOMAN_FACTORY_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8F\xAD"));  // 👩‍🏭 Woman Factory Worker
-    inline const juce::String MAN_OFFICE_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x92\xBC"));  // 👨‍💼 Man Office Worker
-    inline const juce::String WOMAN_OFFICE_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x92\xBC"));  // 👩‍💼 Woman Office Worker
-    inline const juce::String MAN_SCIENTIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x94\xAC"));  // 👨‍🔬 Man Scientist
-    inline const juce::String WOMAN_SCIENTIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x94\xAC"));  // 👩‍🔬 Woman Scientist
-    inline const juce::String MAN_TECHNOLOGIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x92\xBB"));  // 👨‍💻 Man Technologist
-    inline const juce::String WOMAN_TECHNOLOGIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x92\xBB"));  // 👩‍💻 Woman Technologist
-    inline const juce::String MAN_SINGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8E\xA4"));  // 👨‍🎤 Man Singer
-    inline const juce::String WOMAN_SINGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8E\xA4"));  // 👩‍🎤 Woman Singer
-    inline const juce::String MAN_ARTIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8E\xA8"));  // 👨‍🎨 Man Artist
-    inline const juce::String WOMAN_ARTIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8E\xA8"));  // 👩‍🎨 Woman Artist
-    inline const juce::String MAN_PILOT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9C\x88\xEF\xB8\x8F"));  // 👨‍✈️ Man Pilot
-    inline const juce::String WOMAN_PILOT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9C\x88\xEF\xB8\x8F"));  // 👩‍✈️ Woman Pilot
-    inline const juce::String MAN_ASTRONAUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x9A\x80"));  // 👨‍🚀 Man Astronaut
-    inline const juce::String WOMAN_ASTRONAUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x9A\x80"));  // 👩‍🚀 Woman Astronaut
-    inline const juce::String MAN_FIREFIGHTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x9A\x92"));  // 👨‍🚒 Man Firefighter
-    inline const juce::String WOMAN_FIREFIGHTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x9A\x92"));  // 👩‍🚒 Woman Firefighter
-    inline const juce::String POLICE_OFFICER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAE"));  // 👮 Police Officer
-    inline const juce::String MAN_POLICE_OFFICER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAE\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 👮‍♂️ Man Police Officer
-    inline const juce::String WOMAN_POLICE_OFFICER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAE\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 👮‍♀️ Woman Police Officer
-    inline const juce::String DETECTIVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB5"));  // 🕵 Detective
-    inline const juce::String MAN_DETECTIVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB5\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🕵️‍♂️ Man Detective
-    inline const juce::String WOMAN_DETECTIVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB5\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🕵️‍♀️ Woman Detective
-    inline const juce::String GUARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x82"));  // 💂 Guard
-    inline const juce::String MAN_GUARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x82\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 💂‍♂️ Man Guard
-    inline const juce::String WOMAN_GUARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x82\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 💂‍♀️ Woman Guard
-    inline const juce::String CONSTRUCTION_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB7"));  // 👷 Construction Worker
-    inline const juce::String MAN_CONSTRUCTION_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB7\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 👷‍♂️ Man Construction Worker
-    inline const juce::String WOMAN_CONSTRUCTION_WORKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB7\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 👷‍♀️ Woman Construction Worker
-    inline const juce::String PRINCE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB4"));  // 🤴 Prince
-    inline const juce::String PRINCESS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB8"));  // 👸 Princess
-    inline const juce::String PERSON_WEARING_TURBAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB3"));  // 👳 Person Wearing Turban
-    inline const juce::String MAN_WEARING_TURBAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB3\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 👳‍♂️ Man Wearing Turban
-    inline const juce::String WOMAN_WEARING_TURBAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB3\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 👳‍♀️ Woman Wearing Turban
-    inline const juce::String MAN_WITH_CHINESE_CAP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB2"));  // 👲 Man With Chinese Cap
-    inline const juce::String WOMAN_WITH_HEADSCARF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x95"));  // 🧕 Woman With Headscarf
-    inline const juce::String BEARDED_PERSON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x94"));  // 🧔 Bearded Person
-    inline const juce::String BLOND_HAIRED_PERSON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB1"));  // 👱 Blond-Haired Person
-    inline const juce::String BLOND_HAIRED_MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB1\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 👱‍♂️ Blond-Haired Man
-    inline const juce::String BLOND_HAIRED_WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB1\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 👱‍♀️ Blond-Haired Woman
-    inline const juce::String MAN_IN_TUXEDO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB5"));  // 🤵 Man in Tuxedo
-    inline const juce::String BRIDE_WITH_VEIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB0"));  // 👰 Bride With Veil
-    inline const juce::String PREGNANT_WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB0"));  // 🤰 Pregnant Woman
-    inline const juce::String BREAST_FEEDING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB1"));  // 🤱 Breast-Feeding
-    inline const juce::String BABY_ANGEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBC"));  // 👼 Baby Angel
-    inline const juce::String SANTA_CLAUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x85"));  // 🎅 Santa Claus
-    inline const juce::String MRS_CLAUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB6"));  // 🤶 Mrs. Claus
-    inline const juce::String WOMAN_MAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x99\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧙‍♀️ Woman Mage
-    inline const juce::String MAN_MAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x99\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧙‍♂️ Man Mage
-    inline const juce::String WOMAN_FAIRY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9A\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧚‍♀️ Woman Fairy
-    inline const juce::String MAN_FAIRY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9A\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧚‍♂️ Man Fairy
-    inline const juce::String WOMAN_VAMPIRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9B\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧛‍♀️ Woman Vampire
-    inline const juce::String MAN_VAMPIRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9B\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧛‍♂️ Man Vampire
-    inline const juce::String MERMAID = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9C\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧜‍♀️ Mermaid
-    inline const juce::String MERMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9C\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧜‍♂️ Merman
-    inline const juce::String WOMAN_ELF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9D\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧝‍♀️ Woman Elf
-    inline const juce::String MAN_ELF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9D\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧝‍♂️ Man Elf
-    inline const juce::String WOMAN_GENIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9E\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧞‍♀️ Woman Genie
-    inline const juce::String MAN_GENIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9E\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧞‍♂️ Man Genie
-    inline const juce::String WOMAN_ZOMBIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧟‍♀️ Woman Zombie
-    inline const juce::String MAN_ZOMBIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧟‍♂️ Man Zombie
-    inline const juce::String PERSON_FROWNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8D"));  // 🙍 Person Frowning
-    inline const juce::String MAN_FROWNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8D\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🙍‍♂️ Man Frowning
-    inline const juce::String WOMAN_FROWNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8D\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🙍‍♀️ Woman Frowning
-    inline const juce::String PERSON_POUTING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8E"));  // 🙎 Person Pouting
-    inline const juce::String MAN_POUTING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8E\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🙎‍♂️ Man Pouting
-    inline const juce::String WOMAN_POUTING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8E\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🙎‍♀️ Woman Pouting
-    inline const juce::String PERSON_GESTURING_NO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x85"));  // 🙅 Person Gesturing No
-    inline const juce::String MAN_GESTURING_NO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x85\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🙅‍♂️ Man Gesturing No
-    inline const juce::String WOMAN_GESTURING_NO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x85\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🙅‍♀️ Woman Gesturing No
-    inline const juce::String PERSON_GESTURING_OK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x86"));  // 🙆 Person Gesturing OK
-    inline const juce::String MAN_GESTURING_OK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x86\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🙆‍♂️ Man Gesturing OK
-    inline const juce::String WOMAN_GESTURING_OK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x86\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🙆‍♀️ Woman Gesturing OK
-    inline const juce::String PERSON_TIPPING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x81"));  // 💁 Person Tipping Hand
-    inline const juce::String MAN_TIPPING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x81\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 💁‍♂️ Man Tipping Hand
-    inline const juce::String WOMAN_TIPPING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x81\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 💁‍♀️ Woman Tipping Hand
-    inline const juce::String PERSON_RAISING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8B"));  // 🙋 Person Raising Hand
-    inline const juce::String MAN_RAISING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8B\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🙋‍♂️ Man Raising Hand
-    inline const juce::String WOMAN_RAISING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8B\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🙋‍♀️ Woman Raising Hand
-    inline const juce::String PERSON_BOWING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x87"));  // 🙇 Person Bowing
-    inline const juce::String MAN_BOWING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x87\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🙇‍♂️ Man Bowing
-    inline const juce::String WOMAN_BOWING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x87\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🙇‍♀️ Woman Bowing
-    inline const juce::String PERSON_FACEPALMING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA6"));  // 🤦 Person Facepalming
-    inline const juce::String MAN_FACEPALMING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA6\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤦‍♂️ Man Facepalming
-    inline const juce::String WOMAN_FACEPALMING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA6\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤦‍♀️ Woman Facepalming
-    inline const juce::String PERSON_SHRUGGING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB7"));  // 🤷 Person Shrugging
-    inline const juce::String MAN_SHRUGGING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB7\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤷‍♂️ Man Shrugging
-    inline const juce::String WOMAN_SHRUGGING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB7\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤷‍♀️ Woman Shrugging
-    inline const juce::String PERSON_GETTING_MASSAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x86"));  // 💆 Person Getting Massage
-    inline const juce::String MAN_GETTING_MASSAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x86\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 💆‍♂️ Man Getting Massage
-    inline const juce::String WOMAN_GETTING_MASSAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x86\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 💆‍♀️ Woman Getting Massage
-    inline const juce::String PERSON_GETTING_HAIRCUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x87"));  // 💇 Person Getting Haircut
-    inline const juce::String MAN_GETTING_HAIRCUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x87\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 💇‍♂️ Man Getting Haircut
-    inline const juce::String WOMAN_GETTING_HAIRCUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x87\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 💇‍♀️ Woman Getting Haircut
-    inline const juce::String PERSON_WALKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB6"));  // 🚶 Person Walking
-    inline const juce::String MAN_WALKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB6\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🚶‍♂️ Man Walking
-    inline const juce::String WOMAN_WALKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB6\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🚶‍♀️ Woman Walking
-    inline const juce::String PERSON_RUNNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x83"));  // 🏃 Person Running
-    inline const juce::String MAN_RUNNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x83\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🏃‍♂️ Man Running
-    inline const juce::String WOMAN_RUNNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x83\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🏃‍♀️ Woman Running
-    inline const juce::String WOMAN_DANCING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x83"));  // 💃 Woman Dancing
-    inline const juce::String MAN_DANCING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xBA"));  // 🕺 Man Dancing
-    inline const juce::String PEOPLE_WITH_BUNNY_EARS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAF"));  // 👯 People With Bunny Ears
-    inline const juce::String MEN_WITH_BUNNY_EARS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAF\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 👯‍♂️ Men With Bunny Ears
-    inline const juce::String WOMEN_WITH_BUNNY_EARS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAF\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 👯‍♀️ Women With Bunny Ears
-    inline const juce::String WOMAN_IN_STEAMY_ROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x96\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧖‍♀️ Woman in Steamy Room
-    inline const juce::String MAN_IN_STEAMY_ROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x96\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧖‍♂️ Man in Steamy Room
-    inline const juce::String MAN_IN_SUIT_LEVITATING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB4"));  // 🕴 Man in Suit Levitating
-    inline const juce::String SPEAKING_HEAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xA3"));  // 🗣 Speaking Head
-    inline const juce::String BUST_IN_SILHOUETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA4"));  // 👤 Bust in Silhouette
-    inline const juce::String BUSTS_IN_SILHOUETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA5"));  // 👥 Busts in Silhouette
-    inline const juce::String MAN_AND_WOMAN_HOLDING_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAB"));  // 👫 Man and Woman Holding Hands
-    inline const juce::String TWO_MEN_HOLDING_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAC"));  // 👬 Two Men Holding Hands
-    inline const juce::String TWO_WOMEN_HOLDING_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAD"));  // 👭 Two Women Holding Hands
-    inline const juce::String KISS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8F"));  // 💏 Kiss
-    inline const juce::String KISS_MAN_MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x92\x8B\xE2\x80\x8D\xF0\x9F\x91\xA8"));  // 👨‍❤️‍💋‍👨 Kiss: Man, Man
-    inline const juce::String KISS_WOMAN_WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x92\x8B\xE2\x80\x8D\xF0\x9F\x91\xA9"));  // 👩‍❤️‍💋‍👩 Kiss: Woman, Woman
-    inline const juce::String COUPLE_WITH_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x91"));  // 💑 Couple With Heart
-    inline const juce::String COUPLE_WITH_HEART_MAN_MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x91\xA8"));  // 👨‍❤️‍👨 Couple With Heart: Man, Man
-    inline const juce::String COUPLE_WITH_HEART_WOMAN_WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x91\xA9"));  // 👩‍❤️‍👩 Couple With Heart: Woman, Woman
-    inline const juce::String FAMILY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAA"));  // 👪 Family
-    inline const juce::String FAMILY_MAN_WOMAN_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👩‍👦 Family: Man, Woman, Boy
-    inline const juce::String FAMILY_MAN_WOMAN_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👨‍👩‍👧 Family: Man, Woman, Girl
-    inline const juce::String FAMILY_MAN_WOMAN_GIRL_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👩‍👧‍👦 Family: Man, Woman, Girl, Boy
-    inline const juce::String FAMILY_MAN_WOMAN_BOY_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👩‍👦‍👦 Family: Man, Woman, Boy, Boy
-    inline const juce::String FAMILY_MAN_WOMAN_GIRL_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👨‍👩‍👧‍👧 Family: Man, Woman, Girl, Girl
-    inline const juce::String FAMILY_MAN_MAN_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👨‍👦 Family: Man, Man, Boy
-    inline const juce::String FAMILY_MAN_MAN_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👨‍👨‍👧 Family: Man, Man, Girl
-    inline const juce::String FAMILY_MAN_MAN_GIRL_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👨‍👧‍👦 Family: Man, Man, Girl, Boy
-    inline const juce::String FAMILY_MAN_MAN_BOY_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👨‍👦‍👦 Family: Man, Man, Boy, Boy
-    inline const juce::String FAMILY_MAN_MAN_GIRL_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👨‍👨‍👧‍👧 Family: Man, Man, Girl, Girl
-    inline const juce::String FAMILY_WOMAN_WOMAN_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👩‍👩‍👦 Family: Woman, Woman, Boy
-    inline const juce::String FAMILY_WOMAN_WOMAN_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👩‍👩‍👧 Family: Woman, Woman, Girl
-    inline const juce::String FAMILY_WOMAN_WOMAN_GIRL_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👩‍👩‍👧‍👦 Family: Woman, Woman, Girl, Boy
-    inline const juce::String FAMILY_WOMAN_WOMAN_BOY_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👩‍👩‍👦‍👦 Family: Woman, Woman, Boy, Boy
-    inline const juce::String FAMILY_WOMAN_WOMAN_GIRL_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👩‍👩‍👧‍👧 Family: Woman, Woman, Girl, Girl
-    inline const juce::String FAMILY_MAN_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👦 Family: Man, Boy
-    inline const juce::String FAMILY_MAN_BOY_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👦‍👦 Family: Man, Boy, Boy
-    inline const juce::String FAMILY_MAN_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👨‍👧 Family: Man, Girl
-    inline const juce::String FAMILY_MAN_GIRL_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👨‍👧‍👦 Family: Man, Girl, Boy
-    inline const juce::String FAMILY_MAN_GIRL_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👨‍👧‍👧 Family: Man, Girl, Girl
-    inline const juce::String FAMILY_WOMAN_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👩‍👦 Family: Woman, Boy
-    inline const juce::String FAMILY_WOMAN_BOY_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👩‍👦‍👦 Family: Woman, Boy, Boy
-    inline const juce::String FAMILY_WOMAN_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👩‍👧 Family: Woman, Girl
-    inline const juce::String FAMILY_WOMAN_GIRL_BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6"));  // 👩‍👧‍👦 Family: Woman, Girl, Boy
-    inline const juce::String FAMILY_WOMAN_GIRL_GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7"));  // 👩‍👧‍👧 Family: Woman, Girl, Girl
-    inline const juce::String SELFIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB3"));  // 🤳 Selfie
-    inline const juce::String FLEXED_BICEPS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAA"));  // 💪 Flexed Biceps
-    inline const juce::String BACKHAND_INDEX_POINTING_LEFT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x88"));  // 👈 Backhand Index Pointing Left
-    inline const juce::String BACKHAND_INDEX_POINTING_RIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x89"));  // 👉 Backhand Index Pointing Right
-    inline const juce::String INDEX_POINTING_UP = juce::String(juce::CharPointer_UTF8("\xE2\x98\x9D"));  // ☝ Index Pointing Up
-    inline const juce::String BACKHAND_INDEX_POINTING_UP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x86"));  // 👆 Backhand Index Pointing Up
-    inline const juce::String MIDDLE_FINGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x95"));  // 🖕 Middle Finger
-    inline const juce::String BACKHAND_INDEX_POINTING_DOWN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x87"));  // 👇 Backhand Index Pointing Down
-    inline const juce::String VICTORY_HAND = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8C"));  // ✌ Victory Hand
-    inline const juce::String CROSSED_FINGERS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9E"));  // 🤞 Crossed Fingers
-    inline const juce::String VULCAN_SALUTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x96"));  // 🖖 Vulcan Salute
-    inline const juce::String SIGN_OF_THE_HORNS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x98"));  // 🤘 Sign of the Horns
-    inline const juce::String HAND_WITH_FINGERS_SPLAYED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x90"));  // 🖐 Hand With Fingers Splayed
-    inline const juce::String RAISED_HAND = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8B"));  // ✋ Raised Hand
-    inline const juce::String OK_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8C"));  // 👌 OK Hand
-    inline const juce::String THUMBS_UP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8D"));  // 👍 Thumbs Up
-    inline const juce::String THUMBS_DOWN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8E"));  // 👎 Thumbs Down
-    inline const juce::String RAISED_FIST = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8A"));  // ✊ Raised Fist
-    inline const juce::String ONCOMING_FIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8A"));  // 👊 Oncoming Fist
-    inline const juce::String LEFT_FACING_FIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9B"));  // 🤛 Left-Facing Fist
-    inline const juce::String RIGHT_FACING_FIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9C"));  // 🤜 Right-Facing Fist
-    inline const juce::String RAISED_BACK_OF_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9A"));  // 🤚 Raised Back of Hand
-    inline const juce::String WAVING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8B"));  // 👋 Waving Hand
-    inline const juce::String LOVE_YOU_GESTURE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9F"));  // 🤟 Love-You Gesture
-    inline const juce::String WRITING_HAND = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8D"));  // ✍ Writing Hand
-    inline const juce::String CLAPPING_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8F"));  // 👏 Clapping Hands
-    inline const juce::String OPEN_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x90"));  // 👐 Open Hands
-    inline const juce::String RAISING_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8C"));  // 🙌 Raising Hands
-    inline const juce::String PALMS_UP_TOGETHER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB2"));  // 🤲 Palms Up Together
-    inline const juce::String FOLDED_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8F"));  // 🙏 Folded Hands
-    inline const juce::String HANDSHAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9D"));  // 🤝 Handshake
-    inline const juce::String NAIL_POLISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x85"));  // 💅 Nail Polish
-    inline const juce::String EAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x82"));  // 👂 Ear
-    inline const juce::String NOSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x83"));  // 👃 Nose
-    inline const juce::String FOOTPRINTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA3"));  // 👣 Footprints
-    inline const juce::String EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x80"));  // 👀 Eyes
-    inline const juce::String EYE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x81"));  // 👁 Eye
-    inline const juce::String BRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA0"));  // 🧠 Brain
-    inline const juce::String TONGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x85"));  // 👅 Tongue
-    inline const juce::String MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x84"));  // 👄 Mouth
-    inline const juce::String KISS_MARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8B"));  // 💋 Kiss Mark
-    inline const juce::String GLASSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x93"));  // 👓 Glasses
-    inline const juce::String SUNGLASSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB6"));  // 🕶 Sunglasses
-    inline const juce::String NECKTIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x94"));  // 👔 Necktie
-    inline const juce::String T_SHIRT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x95"));  // 👕 T-Shirt
-    inline const juce::String JEANS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x96"));  // 👖 Jeans
-    inline const juce::String SCARF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA3"));  // 🧣 Scarf
-    inline const juce::String GLOVES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA4"));  // 🧤 Gloves
-    inline const juce::String COAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA5"));  // 🧥 Coat
-    inline const juce::String SOCKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA6"));  // 🧦 Socks
-    inline const juce::String DRESS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x97"));  // 👗 Dress
-    inline const juce::String KIMONO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x98"));  // 👘 Kimono
-    inline const juce::String BIKINI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x99"));  // 👙 Bikini
-    inline const juce::String WOMANS_CLOTHES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9A"));  // 👚 Woman’s Clothes
-    inline const juce::String PURSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9B"));  // 👛 Purse
-    inline const juce::String HANDBAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9C"));  // 👜 Handbag
-    inline const juce::String CLUTCH_BAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9D"));  // 👝 Clutch Bag
-    inline const juce::String SCHOOL_BACKPACK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x92"));  // 🎒 School Backpack
-    inline const juce::String MANS_SHOE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9E"));  // 👞 Man’s Shoe
-    inline const juce::String RUNNING_SHOE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9F"));  // 👟 Running Shoe
-    inline const juce::String HIGH_HEELED_SHOE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA0"));  // 👠 High-Heeled Shoe
-    inline const juce::String WOMANS_SANDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA1"));  // 👡 Woman’s Sandal
-    inline const juce::String WOMANS_BOOT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA2"));  // 👢 Woman’s Boot
-    inline const juce::String CROWN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x91"));  // 👑 Crown
-    inline const juce::String WOMANS_HAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x92"));  // 👒 Woman’s Hat
-    inline const juce::String TOP_HAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA9"));  // 🎩 Top Hat
-    inline const juce::String GRADUATION_CAP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x93"));  // 🎓 Graduation Cap
-    inline const juce::String BILLED_CAP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA2"));  // 🧢 Billed Cap
-    inline const juce::String RESCUE_WORKERS_HELMET = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x91"));  // ⛑ Rescue Worker’s Helmet
-    inline const juce::String LIPSTICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x84"));  // 💄 Lipstick
-    inline const juce::String RING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8D"));  // 💍 Ring
-    inline const juce::String CLOSED_UMBRELLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x82"));  // 🌂 Closed Umbrella
-    inline const juce::String UMBRELLA = juce::String(juce::CharPointer_UTF8("\xE2\x98\x82"));  // ☂ Umbrella
-    inline const juce::String BRIEFCASE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBC"));  // 💼 Briefcase
-    inline const juce::String SEE_NO_EVIL_MONKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x88"));  // 🙈 See-No-Evil Monkey
-    inline const juce::String HEAR_NO_EVIL_MONKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x89"));  // 🙉 Hear-No-Evil Monkey
-    inline const juce::String SPEAK_NO_EVIL_MONKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8A"));  // 🙊 Speak-No-Evil Monkey
-    inline const juce::String COLLISION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA5"));  // 💥 Collision
-    inline const juce::String SWEAT_DROPLETS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA6"));  // 💦 Sweat Droplets
-    inline const juce::String DASHING_AWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA8"));  // 💨 Dashing Away
-    inline const juce::String DIZZY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAB"));  // 💫 Dizzy
-    inline const juce::String MONKEY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB5"));  // 🐵 Monkey Face
-    inline const juce::String MONKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x92"));  // 🐒 Monkey
-    inline const juce::String GORILLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8D"));  // 🦍 Gorilla
-    inline const juce::String DOG_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB6"));  // 🐶 Dog Face
-    inline const juce::String DOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x95"));  // 🐕 Dog
-    inline const juce::String POODLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA9"));  // 🐩 Poodle
-    inline const juce::String WOLF_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBA"));  // 🐺 Wolf Face
-    inline const juce::String FOX_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8A"));  // 🦊 Fox Face
-    inline const juce::String CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB1"));  // 🐱 Cat Face
-    inline const juce::String CAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x88"));  // 🐈 Cat
-    inline const juce::String LION_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x81"));  // 🦁 Lion Face
-    inline const juce::String TIGER_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAF"));  // 🐯 Tiger Face
-    inline const juce::String TIGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x85"));  // 🐅 Tiger
-    inline const juce::String LEOPARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x86"));  // 🐆 Leopard
-    inline const juce::String HORSE_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB4"));  // 🐴 Horse Face
-    inline const juce::String HORSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8E"));  // 🐎 Horse
-    inline const juce::String UNICORN_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x84"));  // 🦄 Unicorn Face
-    inline const juce::String ZEBRA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x93"));  // 🦓 Zebra
-    inline const juce::String COW_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAE"));  // 🐮 Cow Face
-    inline const juce::String OX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x82"));  // 🐂 Ox
-    inline const juce::String WATER_BUFFALO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x83"));  // 🐃 Water Buffalo
-    inline const juce::String COW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x84"));  // 🐄 Cow
-    inline const juce::String PIG_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB7"));  // 🐷 Pig Face
-    inline const juce::String PIG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x96"));  // 🐖 Pig
-    inline const juce::String BOAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x97"));  // 🐗 Boar
-    inline const juce::String PIG_NOSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBD"));  // 🐽 Pig Nose
-    inline const juce::String RAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8F"));  // 🐏 Ram
-    inline const juce::String EWE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x91"));  // 🐑 Ewe
-    inline const juce::String GOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x90"));  // 🐐 Goat
-    inline const juce::String CAMEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAA"));  // 🐪 Camel
-    inline const juce::String TWO_HUMP_CAMEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAB"));  // 🐫 Two-Hump Camel
-    inline const juce::String GIRAFFE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x92"));  // 🦒 Giraffe
-    inline const juce::String ELEPHANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x98"));  // 🐘 Elephant
-    inline const juce::String RHINOCEROS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8F"));  // 🦏 Rhinoceros
-    inline const juce::String MOUSE_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAD"));  // 🐭 Mouse Face
-    inline const juce::String MOUSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x81"));  // 🐁 Mouse
-    inline const juce::String RAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x80"));  // 🐀 Rat
-    inline const juce::String HAMSTER_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB9"));  // 🐹 Hamster Face
-    inline const juce::String RABBIT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB0"));  // 🐰 Rabbit Face
-    inline const juce::String RABBIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x87"));  // 🐇 Rabbit
-    inline const juce::String CHIPMUNK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBF"));  // 🐿 Chipmunk
-    inline const juce::String HEDGEHOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x94"));  // 🦔 Hedgehog
-    inline const juce::String BAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x87"));  // 🦇 Bat
-    inline const juce::String BEAR_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBB"));  // 🐻 Bear Face
-    inline const juce::String KOALA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA8"));  // 🐨 Koala
-    inline const juce::String PANDA_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBC"));  // 🐼 Panda Face
-    inline const juce::String PAW_PRINTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBE"));  // 🐾 Paw Prints
-    inline const juce::String TURKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x83"));  // 🦃 Turkey
-    inline const juce::String CHICKEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x94"));  // 🐔 Chicken
-    inline const juce::String ROOSTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x93"));  // 🐓 Rooster
-    inline const juce::String HATCHING_CHICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA3"));  // 🐣 Hatching Chick
-    inline const juce::String BABY_CHICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA4"));  // 🐤 Baby Chick
-    inline const juce::String FRONT_FACING_BABY_CHICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA5"));  // 🐥 Front-Facing Baby Chick
-    inline const juce::String BIRD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA6"));  // 🐦 Bird
-    inline const juce::String PENGUIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA7"));  // 🐧 Penguin
-    inline const juce::String DOVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8A"));  // 🕊 Dove
-    inline const juce::String EAGLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x85"));  // 🦅 Eagle
-    inline const juce::String DUCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x86"));  // 🦆 Duck
-    inline const juce::String OWL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x89"));  // 🦉 Owl
-    inline const juce::String FROG_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB8"));  // 🐸 Frog Face
-    inline const juce::String CROCODILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8A"));  // 🐊 Crocodile
-    inline const juce::String TURTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA2"));  // 🐢 Turtle
-    inline const juce::String LIZARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8E"));  // 🦎 Lizard
-    inline const juce::String SNAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8D"));  // 🐍 Snake
-    inline const juce::String DRAGON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB2"));  // 🐲 Dragon Face
-    inline const juce::String DRAGON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x89"));  // 🐉 Dragon
-    inline const juce::String SAUROPOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x95"));  // 🦕 Sauropod
-    inline const juce::String T_REX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x96"));  // 🦖 T-Rex
-    inline const juce::String SPOUTING_WHALE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB3"));  // 🐳 Spouting Whale
-    inline const juce::String WHALE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8B"));  // 🐋 Whale
-    inline const juce::String DOLPHIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAC"));  // 🐬 Dolphin
-    inline const juce::String FISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9F"));  // 🐟 Fish
-    inline const juce::String TROPICAL_FISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA0"));  // 🐠 Tropical Fish
-    inline const juce::String BLOWFISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA1"));  // 🐡 Blowfish
-    inline const juce::String SHARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x88"));  // 🦈 Shark
-    inline const juce::String OCTOPUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x99"));  // 🐙 Octopus
-    inline const juce::String SPIRAL_SHELL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9A"));  // 🐚 Spiral Shell
-    inline const juce::String CRAB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x80"));  // 🦀 Crab
-    inline const juce::String SHRIMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x90"));  // 🦐 Shrimp
-    inline const juce::String SQUID = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x91"));  // 🦑 Squid
-    inline const juce::String SNAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8C"));  // 🐌 Snail
-    inline const juce::String BUTTERFLY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8B"));  // 🦋 Butterfly
-    inline const juce::String BUG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9B"));  // 🐛 Bug
-    inline const juce::String ANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9C"));  // 🐜 Ant
-    inline const juce::String HONEYBEE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9D"));  // 🐝 Honeybee
-    inline const juce::String LADY_BEETLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9E"));  // 🐞 Lady Beetle
-    inline const juce::String CRICKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x97"));  // 🦗 Cricket
-    inline const juce::String SPIDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB7"));  // 🕷 Spider
-    inline const juce::String SPIDER_WEB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB8"));  // 🕸 Spider Web
-    inline const juce::String SCORPION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x82"));  // 🦂 Scorpion
-    inline const juce::String BOUQUET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x90"));  // 💐 Bouquet
-    inline const juce::String CHERRY_BLOSSOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB8"));  // 🌸 Cherry Blossom
-    inline const juce::String WHITE_FLOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAE"));  // 💮 White Flower
-    inline const juce::String ROSETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB5"));  // 🏵 Rosette
-    inline const juce::String ROSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB9"));  // 🌹 Rose
-    inline const juce::String WILTED_FLOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x80"));  // 🥀 Wilted Flower
-    inline const juce::String HIBISCUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBA"));  // 🌺 Hibiscus
-    inline const juce::String SUNFLOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBB"));  // 🌻 Sunflower
-    inline const juce::String BLOSSOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBC"));  // 🌼 Blossom
-    inline const juce::String TULIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB7"));  // 🌷 Tulip
-    inline const juce::String SEEDLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB1"));  // 🌱 Seedling
-    inline const juce::String EVERGREEN_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB2"));  // 🌲 Evergreen Tree
-    inline const juce::String DECIDUOUS_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB3"));  // 🌳 Deciduous Tree
-    inline const juce::String PALM_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB4"));  // 🌴 Palm Tree
-    inline const juce::String CACTUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB5"));  // 🌵 Cactus
-    inline const juce::String SHEAF_OF_RICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBE"));  // 🌾 Sheaf of Rice
-    inline const juce::String HERB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBF"));  // 🌿 Herb
-    inline const juce::String SHAMROCK = juce::String(juce::CharPointer_UTF8("\xE2\x98\x98"));  // ☘ Shamrock
-    inline const juce::String FOUR_LEAF_CLOVER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x80"));  // 🍀 Four Leaf Clover
-    inline const juce::String MAPLE_LEAF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x81"));  // 🍁 Maple Leaf
-    inline const juce::String FALLEN_LEAF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x82"));  // 🍂 Fallen Leaf
-    inline const juce::String LEAF_FLUTTERING_IN_WIND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x83"));  // 🍃 Leaf Fluttering in Wind
-    inline const juce::String MUSHROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x84"));  // 🍄 Mushroom
-    inline const juce::String CHESTNUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB0"));  // 🌰 Chestnut
-    inline const juce::String GLOBE_SHOWING_EUROPE_AFRICA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8D"));  // 🌍 Globe Showing Europe-Africa
-    inline const juce::String GLOBE_SHOWING_AMERICAS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8E"));  // 🌎 Globe Showing Americas
-    inline const juce::String GLOBE_SHOWING_ASIA_AUSTRALIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8F"));  // 🌏 Globe Showing Asia-Australia
-    inline const juce::String GLOBE_WITH_MERIDIANS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x90"));  // 🌐 Globe With Meridians
-    inline const juce::String NEW_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x91"));  // 🌑 New Moon
-    inline const juce::String WAXING_CRESCENT_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x92"));  // 🌒 Waxing Crescent Moon
-    inline const juce::String FIRST_QUARTER_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x93"));  // 🌓 First Quarter Moon
-    inline const juce::String WAXING_GIBBOUS_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x94"));  // 🌔 Waxing Gibbous Moon
-    inline const juce::String FULL_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x95"));  // 🌕 Full Moon
-    inline const juce::String WANING_GIBBOUS_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x96"));  // 🌖 Waning Gibbous Moon
-    inline const juce::String LAST_QUARTER_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x97"));  // 🌗 Last Quarter Moon
-    inline const juce::String WANING_CRESCENT_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x98"));  // 🌘 Waning Crescent Moon
-    inline const juce::String CRESCENT_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x99"));  // 🌙 Crescent Moon
-    inline const juce::String NEW_MOON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9A"));  // 🌚 New Moon Face
-    inline const juce::String FIRST_QUARTER_MOON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9B"));  // 🌛 First Quarter Moon Face
-    inline const juce::String LAST_QUARTER_MOON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9C"));  // 🌜 Last Quarter Moon Face
-    inline const juce::String SUN = juce::String(juce::CharPointer_UTF8("\xE2\x98\x80"));  // ☀ Sun
-    inline const juce::String FULL_MOON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9D"));  // 🌝 Full Moon Face
-    inline const juce::String SUN_WITH_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9E"));  // 🌞 Sun With Face
-    inline const juce::String WHITE_MEDIUM_STAR = juce::String(juce::CharPointer_UTF8("\xE2\xAD\x90"));  // ⭐ White Medium Star
-    inline const juce::String GLOWING_STAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9F"));  // 🌟 Glowing Star
-    inline const juce::String SHOOTING_STAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA0"));  // 🌠 Shooting Star
-    inline const juce::String CLOUD = juce::String(juce::CharPointer_UTF8("\xE2\x98\x81"));  // ☁ Cloud
-    inline const juce::String SUN_BEHIND_CLOUD = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x85"));  // ⛅ Sun Behind Cloud
-    inline const juce::String CLOUD_WITH_LIGHTNING_AND_RAIN = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x88"));  // ⛈ Cloud With Lightning and Rain
-    inline const juce::String SUN_BEHIND_SMALL_CLOUD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA4"));  // 🌤 Sun Behind Small Cloud
-    inline const juce::String SUN_BEHIND_LARGE_CLOUD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA5"));  // 🌥 Sun Behind Large Cloud
-    inline const juce::String SUN_BEHIND_RAIN_CLOUD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA6"));  // 🌦 Sun Behind Rain Cloud
-    inline const juce::String CLOUD_WITH_RAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA7"));  // 🌧 Cloud With Rain
-    inline const juce::String CLOUD_WITH_SNOW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA8"));  // 🌨 Cloud With Snow
-    inline const juce::String CLOUD_WITH_LIGHTNING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA9"));  // 🌩 Cloud With Lightning
-    inline const juce::String TORNADO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAA"));  // 🌪 Tornado
-    inline const juce::String FOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAB"));  // 🌫 Fog
-    inline const juce::String WIND_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAC"));  // 🌬 Wind Face
-    inline const juce::String RAINBOW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x88"));  // 🌈 Rainbow
-    inline const juce::String UMBRELLA_WITH_RAIN_DROPS = juce::String(juce::CharPointer_UTF8("\xE2\x98\x94"));  // ☔ Umbrella With Rain Drops
-    inline const juce::String HIGH_VOLTAGE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xA1"));  // ⚡ High Voltage
-    inline const juce::String SNOWFLAKE = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x84"));  // ❄ Snowflake
-    inline const juce::String SNOWMAN = juce::String(juce::CharPointer_UTF8("\xE2\x98\x83"));  // ☃ Snowman
-    inline const juce::String SNOWMAN_WITHOUT_SNOW = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x84"));  // ⛄ Snowman Without Snow
-    inline const juce::String COMET = juce::String(juce::CharPointer_UTF8("\xE2\x98\x84"));  // ☄ Comet
-    inline const juce::String FIRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA5"));  // 🔥 Fire
-    inline const juce::String DROPLET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA7"));  // 💧 Droplet
-    inline const juce::String WATER_WAVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8A"));  // 🌊 Water Wave
-    inline const juce::String CHRISTMAS_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x84"));  // 🎄 Christmas Tree
-    inline const juce::String SPARKLES = juce::String(juce::CharPointer_UTF8("\xE2\x9C\xA8"));  // ✨ Sparkles
-    inline const juce::String TANABATA_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8B"));  // 🎋 Tanabata Tree
-    inline const juce::String PINE_DECORATION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8D"));  // 🎍 Pine Decoration
-    inline const juce::String GRAPES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x87"));  // 🍇 Grapes
-    inline const juce::String MELON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x88"));  // 🍈 Melon
-    inline const juce::String WATERMELON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x89"));  // 🍉 Watermelon
-    inline const juce::String TANGERINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8A"));  // 🍊 Tangerine
-    inline const juce::String LEMON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8B"));  // 🍋 Lemon
-    inline const juce::String BANANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8C"));  // 🍌 Banana
-    inline const juce::String PINEAPPLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8D"));  // 🍍 Pineapple
-    inline const juce::String RED_APPLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8E"));  // 🍎 Red Apple
-    inline const juce::String GREEN_APPLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8F"));  // 🍏 Green Apple
-    inline const juce::String PEAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x90"));  // 🍐 Pear
-    inline const juce::String PEACH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x91"));  // 🍑 Peach
-    inline const juce::String CHERRIES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x92"));  // 🍒 Cherries
-    inline const juce::String STRAWBERRY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x93"));  // 🍓 Strawberry
-    inline const juce::String KIWI_FRUIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9D"));  // 🥝 Kiwi Fruit
-    inline const juce::String TOMATO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x85"));  // 🍅 Tomato
-    inline const juce::String COCONUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA5"));  // 🥥 Coconut
-    inline const juce::String AVOCADO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x91"));  // 🥑 Avocado
-    inline const juce::String EGGPLANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x86"));  // 🍆 Eggplant
-    inline const juce::String POTATO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x94"));  // 🥔 Potato
-    inline const juce::String CARROT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x95"));  // 🥕 Carrot
-    inline const juce::String EAR_OF_CORN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBD"));  // 🌽 Ear of Corn
-    inline const juce::String HOT_PEPPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB6"));  // 🌶 Hot Pepper
-    inline const juce::String CUCUMBER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x92"));  // 🥒 Cucumber
-    inline const juce::String BROCCOLI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA6"));  // 🥦 Broccoli
-    inline const juce::String PEANUTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9C"));  // 🥜 Peanuts
-    inline const juce::String BREAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9E"));  // 🍞 Bread
-    inline const juce::String CROISSANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x90"));  // 🥐 Croissant
-    inline const juce::String BAGUETTE_BREAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x96"));  // 🥖 Baguette Bread
-    inline const juce::String PRETZEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA8"));  // 🥨 Pretzel
-    inline const juce::String PANCAKES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9E"));  // 🥞 Pancakes
-    inline const juce::String CHEESE_WEDGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x80"));  // 🧀 Cheese Wedge
-    inline const juce::String MEAT_ON_BONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x96"));  // 🍖 Meat on Bone
-    inline const juce::String POULTRY_LEG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x97"));  // 🍗 Poultry Leg
-    inline const juce::String CUT_OF_MEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA9"));  // 🥩 Cut of Meat
-    inline const juce::String BACON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x93"));  // 🥓 Bacon
-    inline const juce::String HAMBURGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x94"));  // 🍔 Hamburger
-    inline const juce::String FRENCH_FRIES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9F"));  // 🍟 French Fries
-    inline const juce::String PIZZA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x95"));  // 🍕 Pizza
-    inline const juce::String HOT_DOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAD"));  // 🌭 Hot Dog
-    inline const juce::String SANDWICH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xAA"));  // 🥪 Sandwich
-    inline const juce::String TACO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAE"));  // 🌮 Taco
-    inline const juce::String BURRITO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAF"));  // 🌯 Burrito
-    inline const juce::String COOKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB3"));  // 🍳 Cooking
-    inline const juce::String POT_OF_FOOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB2"));  // 🍲 Pot of Food
-    inline const juce::String BOWL_WITH_SPOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA3"));  // 🥣 Bowl With Spoon
-    inline const juce::String GREEN_SALAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x97"));  // 🥗 Green Salad
-    inline const juce::String POPCORN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBF"));  // 🍿 Popcorn
-    inline const juce::String CANNED_FOOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xAB"));  // 🥫 Canned Food
-    inline const juce::String BENTO_BOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB1"));  // 🍱 Bento Box
-    inline const juce::String RICE_CRACKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x98"));  // 🍘 Rice Cracker
-    inline const juce::String RICE_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x99"));  // 🍙 Rice Ball
-    inline const juce::String COOKED_RICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9A"));  // 🍚 Cooked Rice
-    inline const juce::String CURRY_RICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9B"));  // 🍛 Curry Rice
-    inline const juce::String STEAMING_BOWL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9C"));  // 🍜 Steaming Bowl
-    inline const juce::String SPAGHETTI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9D"));  // 🍝 Spaghetti
-    inline const juce::String ROASTED_SWEET_POTATO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA0"));  // 🍠 Roasted Sweet Potato
-    inline const juce::String ODEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA2"));  // 🍢 Oden
-    inline const juce::String SUSHI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA3"));  // 🍣 Sushi
-    inline const juce::String FRIED_SHRIMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA4"));  // 🍤 Fried Shrimp
-    inline const juce::String FISH_CAKE_WITH_SWIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA5"));  // 🍥 Fish Cake With Swirl
-    inline const juce::String DANGO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA1"));  // 🍡 Dango
-    inline const juce::String DUMPLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9F"));  // 🥟 Dumpling
-    inline const juce::String FORTUNE_COOKIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA0"));  // 🥠 Fortune Cookie
-    inline const juce::String TAKEOUT_BOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA1"));  // 🥡 Takeout Box
-    inline const juce::String SOFT_ICE_CREAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA6"));  // 🍦 Soft Ice Cream
-    inline const juce::String SHAVED_ICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA7"));  // 🍧 Shaved Ice
-    inline const juce::String ICE_CREAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA8"));  // 🍨 Ice Cream
-    inline const juce::String DOUGHNUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA9"));  // 🍩 Doughnut
-    inline const juce::String COOKIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAA"));  // 🍪 Cookie
-    inline const juce::String BIRTHDAY_CAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x82"));  // 🎂 Birthday Cake
-    inline const juce::String SHORTCAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB0"));  // 🍰 Shortcake
-    inline const juce::String PIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA7"));  // 🥧 Pie
-    inline const juce::String CHOCOLATE_BAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAB"));  // 🍫 Chocolate Bar
-    inline const juce::String CANDY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAC"));  // 🍬 Candy
-    inline const juce::String LOLLIPOP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAD"));  // 🍭 Lollipop
-    inline const juce::String CUSTARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAE"));  // 🍮 Custard
-    inline const juce::String HONEY_POT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAF"));  // 🍯 Honey Pot
-    inline const juce::String BABY_BOTTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBC"));  // 🍼 Baby Bottle
-    inline const juce::String GLASS_OF_MILK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9B"));  // 🥛 Glass of Milk
-    inline const juce::String HOT_BEVERAGE = juce::String(juce::CharPointer_UTF8("\xE2\x98\x95"));  // ☕ Hot Beverage
-    inline const juce::String TEACUP_WITHOUT_HANDLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB5"));  // 🍵 Teacup Without Handle
-    inline const juce::String SAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB6"));  // 🍶 Sake
-    inline const juce::String BOTTLE_WITH_POPPING_CORK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBE"));  // 🍾 Bottle With Popping Cork
-    inline const juce::String WINE_GLASS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB7"));  // 🍷 Wine Glass
-    inline const juce::String COCKTAIL_GLASS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB8"));  // 🍸 Cocktail Glass
-    inline const juce::String TROPICAL_DRINK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB9"));  // 🍹 Tropical Drink
-    inline const juce::String BEER_MUG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBA"));  // 🍺 Beer Mug
-    inline const juce::String CLINKING_BEER_MUGS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBB"));  // 🍻 Clinking Beer Mugs
-    inline const juce::String CLINKING_GLASSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x82"));  // 🥂 Clinking Glasses
-    inline const juce::String TUMBLER_GLASS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x83"));  // 🥃 Tumbler Glass
-    inline const juce::String CUP_WITH_STRAW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA4"));  // 🥤 Cup With Straw
-    inline const juce::String CHOPSTICKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA2"));  // 🥢 Chopsticks
-    inline const juce::String FORK_AND_KNIFE_WITH_PLATE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBD"));  // 🍽 Fork and Knife With Plate
-    inline const juce::String FORK_AND_KNIFE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB4"));  // 🍴 Fork and Knife
-    inline const juce::String SPOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x84"));  // 🥄 Spoon
-    inline const juce::String ALIEN_MONSTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBE"));  // 👾 Alien Monster
-    inline const juce::String WOMAN_CLIMBING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x97\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧗‍♀️ Woman Climbing
-    inline const juce::String MAN_CLIMBING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x97\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧗‍♂️ Man Climbing
-    inline const juce::String WOMAN_IN_LOTUS_POSITION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x98\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🧘‍♀️ Woman in Lotus Position
-    inline const juce::String MAN_IN_LOTUS_POSITION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x98\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧘‍♂️ Man in Lotus Position
-    inline const juce::String HORSE_RACING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x87"));  // 🏇 Horse Racing
-    inline const juce::String SKIER = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB7"));  // ⛷ Skier
-    inline const juce::String SNOWBOARDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x82"));  // 🏂 Snowboarder
-    inline const juce::String PERSON_GOLFING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8C"));  // 🏌 Person Golfing
-    inline const juce::String MAN_GOLFING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8C\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🏌️‍♂️ Man Golfing
-    inline const juce::String WOMAN_GOLFING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8C\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🏌️‍♀️ Woman Golfing
-    inline const juce::String PERSON_SURFING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x84"));  // 🏄 Person Surfing
-    inline const juce::String MAN_SURFING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x84\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🏄‍♂️ Man Surfing
-    inline const juce::String WOMAN_SURFING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x84\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🏄‍♀️ Woman Surfing
-    inline const juce::String PERSON_ROWING_BOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA3"));  // 🚣 Person Rowing Boat
-    inline const juce::String MAN_ROWING_BOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA3\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🚣‍♂️ Man Rowing Boat
-    inline const juce::String WOMAN_ROWING_BOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA3\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🚣‍♀️ Woman Rowing Boat
-    inline const juce::String PERSON_SWIMMING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8A"));  // 🏊 Person Swimming
-    inline const juce::String MAN_SWIMMING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8A\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🏊‍♂️ Man Swimming
-    inline const juce::String WOMAN_SWIMMING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8A\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🏊‍♀️ Woman Swimming
-    inline const juce::String PERSON_BOUNCING_BALL = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB9"));  // ⛹ Person Bouncing Ball
-    inline const juce::String MAN_BOUNCING_BALL = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB9\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // ⛹️‍♂️ Man Bouncing Ball
-    inline const juce::String WOMAN_BOUNCING_BALL = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB9\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // ⛹️‍♀️ Woman Bouncing Ball
-    inline const juce::String PERSON_LIFTING_WEIGHTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8B"));  // 🏋 Person Lifting Weights
-    inline const juce::String MAN_LIFTING_WEIGHTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8B\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🏋️‍♂️ Man Lifting Weights
-    inline const juce::String WOMAN_LIFTING_WEIGHTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8B\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🏋️‍♀️ Woman Lifting Weights
-    inline const juce::String PERSON_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB4"));  // 🚴 Person Biking
-    inline const juce::String MAN_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB4\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🚴‍♂️ Man Biking
-    inline const juce::String WOMAN_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB4\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🚴‍♀️ Woman Biking
-    inline const juce::String PERSON_MOUNTAIN_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB5"));  // 🚵 Person Mountain Biking
-    inline const juce::String MAN_MOUNTAIN_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB5\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🚵‍♂️ Man Mountain Biking
-    inline const juce::String WOMAN_MOUNTAIN_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB5\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🚵‍♀️ Woman Mountain Biking
-    inline const juce::String PERSON_CARTWHEELING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB8"));  // 🤸 Person Cartwheeling
-    inline const juce::String MAN_CARTWHEELING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB8\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤸‍♂️ Man Cartwheeling
-    inline const juce::String WOMAN_CARTWHEELING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB8\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤸‍♀️ Woman Cartwheeling
-    inline const juce::String PEOPLE_WRESTLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBC"));  // 🤼 People Wrestling
-    inline const juce::String MEN_WRESTLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBC\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤼‍♂️ Men Wrestling
-    inline const juce::String WOMEN_WRESTLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBC\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤼‍♀️ Women Wrestling
-    inline const juce::String PERSON_PLAYING_WATER_POLO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBD"));  // 🤽 Person Playing Water Polo
-    inline const juce::String MAN_PLAYING_WATER_POLO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBD\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤽‍♂️ Man Playing Water Polo
-    inline const juce::String WOMAN_PLAYING_WATER_POLO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBD\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤽‍♀️ Woman Playing Water Polo
-    inline const juce::String PERSON_PLAYING_HANDBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBE"));  // 🤾 Person Playing Handball
-    inline const juce::String MAN_PLAYING_HANDBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBE\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤾‍♂️ Man Playing Handball
-    inline const juce::String WOMAN_PLAYING_HANDBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBE\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤾‍♀️ Woman Playing Handball
-    inline const juce::String PERSON_JUGGLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB9"));  // 🤹 Person Juggling
-    inline const juce::String MAN_JUGGLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB9\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🤹‍♂️ Man Juggling
-    inline const juce::String WOMAN_JUGGLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB9\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));  // 🤹‍♀️ Woman Juggling
-    inline const juce::String CIRCUS_TENT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAA"));  // 🎪 Circus Tent
-    inline const juce::String REMINDER_RIBBON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x97"));  // 🎗 Reminder Ribbon
-    inline const juce::String ADMISSION_TICKETS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9F"));  // 🎟 Admission Tickets
-    inline const juce::String TICKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAB"));  // 🎫 Ticket
-    inline const juce::String MILITARY_MEDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x96"));  // 🎖 Military Medal
-    inline const juce::String TROPHY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x86"));  // 🏆 Trophy
-    inline const juce::String SPORTS_MEDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x85"));  // 🏅 Sports Medal
-    inline const juce::String E_1ST_PLACE_MEDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x87"));  // 🥇 1st Place Medal
-    inline const juce::String E_2ND_PLACE_MEDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x88"));  // 🥈 2nd Place Medal
-    inline const juce::String E_3RD_PLACE_MEDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x89"));  // 🥉 3rd Place Medal
-    inline const juce::String SOCCER_BALL = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xBD"));  // ⚽ Soccer Ball
-    inline const juce::String BASEBALL = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xBE"));  // ⚾ Baseball
-    inline const juce::String BASKETBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x80"));  // 🏀 Basketball
-    inline const juce::String VOLLEYBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x90"));  // 🏐 Volleyball
-    inline const juce::String AMERICAN_FOOTBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x88"));  // 🏈 American Football
-    inline const juce::String RUGBY_FOOTBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x89"));  // 🏉 Rugby Football
-    inline const juce::String TENNIS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBE"));  // 🎾 Tennis
-    inline const juce::String BOWLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB3"));  // 🎳 Bowling
-    inline const juce::String CRICKET_GAME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8F"));  // 🏏 Cricket Game
-    inline const juce::String FIELD_HOCKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x91"));  // 🏑 Field Hockey
-    inline const juce::String ICE_HOCKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x92"));  // 🏒 Ice Hockey
-    inline const juce::String PING_PONG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x93"));  // 🏓 Ping Pong
-    inline const juce::String BADMINTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB8"));  // 🏸 Badminton
-    inline const juce::String BOXING_GLOVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x8A"));  // 🥊 Boxing Glove
-    inline const juce::String MARTIAL_ARTS_UNIFORM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x8B"));  // 🥋 Martial Arts Uniform
-    inline const juce::String FLAG_IN_HOLE = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB3"));  // ⛳ Flag in Hole
-    inline const juce::String ICE_SKATE = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB8"));  // ⛸ Ice Skate
-    inline const juce::String FISHING_POLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA3"));  // 🎣 Fishing Pole
-    inline const juce::String RUNNING_SHIRT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBD"));  // 🎽 Running Shirt
-    inline const juce::String SKIS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBF"));  // 🎿 Skis
-    inline const juce::String SLED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB7"));  // 🛷 Sled
-    inline const juce::String CURLING_STONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x8C"));  // 🥌 Curling Stone
-    inline const juce::String DIRECT_HIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAF"));  // 🎯 Direct Hit
-    inline const juce::String POOL_8_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB1"));  // 🎱 Pool 8 Ball
-    inline const juce::String VIDEO_GAME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAE"));  // 🎮 Video Game
-    inline const juce::String SLOT_MACHINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB0"));  // 🎰 Slot Machine
-    inline const juce::String GAME_DIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB2"));  // 🎲 Game Die
-    inline const juce::String PERFORMING_ARTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAD"));  // 🎭 Performing Arts
-    inline const juce::String ARTIST_PALETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA8"));  // 🎨 Artist Palette
-    inline const juce::String MUSICAL_SCORE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBC"));  // 🎼 Musical Score
-    inline const juce::String MICROPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA4"));  // 🎤 Microphone
-    inline const juce::String HEADPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA7"));  // 🎧 Headphone
-    inline const juce::String SAXOPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB7"));  // 🎷 Saxophone
-    inline const juce::String GUITAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB8"));  // 🎸 Guitar
-    inline const juce::String MUSICAL_KEYBOARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9"));  // 🎹 Musical Keyboard
-    inline const juce::String TRUMPET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBA"));  // 🎺 Trumpet
-    inline const juce::String VIOLIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBB"));  // 🎻 Violin
-    inline const juce::String DRUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x81"));  // 🥁 Drum
-    inline const juce::String CLAPPER_BOARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAC"));  // 🎬 Clapper Board
-    inline const juce::String BOW_AND_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB9"));  // 🏹 Bow and Arrow
-    inline const juce::String RACING_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8E"));  // 🏎 Racing Car
-    inline const juce::String MOTORCYCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8D"));  // 🏍 Motorcycle
-    inline const juce::String MAP_OF_JAPAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBE"));  // 🗾 Map of Japan
-    inline const juce::String SNOW_CAPPED_MOUNTAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x94"));  // 🏔 Snow-Capped Mountain
-    inline const juce::String MOUNTAIN = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB0"));  // ⛰ Mountain
-    inline const juce::String VOLCANO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8B"));  // 🌋 Volcano
-    inline const juce::String MOUNT_FUJI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBB"));  // 🗻 Mount Fuji
-    inline const juce::String CAMPING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x95"));  // 🏕 Camping
-    inline const juce::String BEACH_WITH_UMBRELLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x96"));  // 🏖 Beach With Umbrella
-    inline const juce::String DESERT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9C"));  // 🏜 Desert
-    inline const juce::String DESERT_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9D"));  // 🏝 Desert Island
-    inline const juce::String NATIONAL_PARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9E"));  // 🏞 National Park
-    inline const juce::String STADIUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9F"));  // 🏟 Stadium
-    inline const juce::String CLASSICAL_BUILDING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9B"));  // 🏛 Classical Building
-    inline const juce::String BUILDING_CONSTRUCTION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x97"));  // 🏗 Building Construction
-    inline const juce::String HOUSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x98"));  // 🏘 Houses
-    inline const juce::String DERELICT_HOUSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9A"));  // 🏚 Derelict House
-    inline const juce::String HOUSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA0"));  // 🏠 House
-    inline const juce::String HOUSE_WITH_GARDEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA1"));  // 🏡 House With Garden
-    inline const juce::String OFFICE_BUILDING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA2"));  // 🏢 Office Building
-    inline const juce::String JAPANESE_POST_OFFICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA3"));  // 🏣 Japanese Post Office
-    inline const juce::String POST_OFFICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA4"));  // 🏤 Post Office
-    inline const juce::String HOSPITAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA5"));  // 🏥 Hospital
-    inline const juce::String BANK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA6"));  // 🏦 Bank
-    inline const juce::String HOTEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA8"));  // 🏨 Hotel
-    inline const juce::String LOVE_HOTEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA9"));  // 🏩 Love Hotel
-    inline const juce::String CONVENIENCE_STORE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAA"));  // 🏪 Convenience Store
-    inline const juce::String SCHOOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAB"));  // 🏫 School
-    inline const juce::String DEPARTMENT_STORE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAC"));  // 🏬 Department Store
-    inline const juce::String FACTORY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAD"));  // 🏭 Factory
-    inline const juce::String JAPANESE_CASTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAF"));  // 🏯 Japanese Castle
-    inline const juce::String CASTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB0"));  // 🏰 Castle
-    inline const juce::String WEDDING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x92"));  // 💒 Wedding
-    inline const juce::String TOKYO_TOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBC"));  // 🗼 Tokyo Tower
-    inline const juce::String STATUE_OF_LIBERTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBD"));  // 🗽 Statue of Liberty
-    inline const juce::String CHURCH = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xAA"));  // ⛪ Church
-    inline const juce::String MOSQUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8C"));  // 🕌 Mosque
-    inline const juce::String SYNAGOGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8D"));  // 🕍 Synagogue
-    inline const juce::String SHINTO_SHRINE = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xA9"));  // ⛩ Shinto Shrine
-    inline const juce::String KAABA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8B"));  // 🕋 Kaaba
-    inline const juce::String FOUNTAIN = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB2"));  // ⛲ Fountain
-    inline const juce::String TENT = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xBA"));  // ⛺ Tent
-    inline const juce::String FOGGY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x81"));  // 🌁 Foggy
-    inline const juce::String NIGHT_WITH_STARS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x83"));  // 🌃 Night With Stars
-    inline const juce::String CITYSCAPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x99"));  // 🏙 Cityscape
-    inline const juce::String SUNRISE_OVER_MOUNTAINS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x84"));  // 🌄 Sunrise Over Mountains
-    inline const juce::String SUNRISE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x85"));  // 🌅 Sunrise
-    inline const juce::String CITYSCAPE_AT_DUSK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x86"));  // 🌆 Cityscape at Dusk
-    inline const juce::String SUNSET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x87"));  // 🌇 Sunset
-    inline const juce::String BRIDGE_AT_NIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x89"));  // 🌉 Bridge at Night
-    inline const juce::String MILKY_WAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8C"));  // 🌌 Milky Way
-    inline const juce::String CAROUSEL_HORSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA0"));  // 🎠 Carousel Horse
-    inline const juce::String FERRIS_WHEEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA1"));  // 🎡 Ferris Wheel
-    inline const juce::String ROLLER_COASTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA2"));  // 🎢 Roller Coaster
-    inline const juce::String LOCOMOTIVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x82"));  // 🚂 Locomotive
-    inline const juce::String RAILWAY_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x83"));  // 🚃 Railway Car
-    inline const juce::String HIGH_SPEED_TRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x84"));  // 🚄 High-Speed Train
-    inline const juce::String BULLET_TRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x85"));  // 🚅 Bullet Train
-    inline const juce::String TRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x86"));  // 🚆 Train
-    inline const juce::String METRO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x87"));  // 🚇 Metro
-    inline const juce::String LIGHT_RAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x88"));  // 🚈 Light Rail
-    inline const juce::String STATION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x89"));  // 🚉 Station
-    inline const juce::String TRAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8A"));  // 🚊 Tram
-    inline const juce::String MONORAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9D"));  // 🚝 Monorail
-    inline const juce::String MOUNTAIN_RAILWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9E"));  // 🚞 Mountain Railway
-    inline const juce::String TRAM_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8B"));  // 🚋 Tram Car
-    inline const juce::String BUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8C"));  // 🚌 Bus
-    inline const juce::String ONCOMING_BUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8D"));  // 🚍 Oncoming Bus
-    inline const juce::String TROLLEYBUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8E"));  // 🚎 Trolleybus
-    inline const juce::String MINIBUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x90"));  // 🚐 Minibus
-    inline const juce::String AMBULANCE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x91"));  // 🚑 Ambulance
-    inline const juce::String FIRE_ENGINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x92"));  // 🚒 Fire Engine
-    inline const juce::String POLICE_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x93"));  // 🚓 Police Car
-    inline const juce::String ONCOMING_POLICE_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x94"));  // 🚔 Oncoming Police Car
-    inline const juce::String TAXI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x95"));  // 🚕 Taxi
-    inline const juce::String ONCOMING_TAXI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x96"));  // 🚖 Oncoming Taxi
-    inline const juce::String AUTOMOBILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x97"));  // 🚗 Automobile
-    inline const juce::String ONCOMING_AUTOMOBILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x98"));  // 🚘 Oncoming Automobile
-    inline const juce::String DELIVERY_TRUCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9A"));  // 🚚 Delivery Truck
-    inline const juce::String ARTICULATED_LORRY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9B"));  // 🚛 Articulated Lorry
-    inline const juce::String TRACTOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9C"));  // 🚜 Tractor
-    inline const juce::String BICYCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB2"));  // 🚲 Bicycle
-    inline const juce::String KICK_SCOOTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB4"));  // 🛴 Kick Scooter
-    inline const juce::String MOTOR_SCOOTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB5"));  // 🛵 Motor Scooter
-    inline const juce::String BUS_STOP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8F"));  // 🚏 Bus Stop
-    inline const juce::String RAILWAY_TRACK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA4"));  // 🛤 Railway Track
-    inline const juce::String FUEL_PUMP = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xBD"));  // ⛽ Fuel Pump
-    inline const juce::String POLICE_CAR_LIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA8"));  // 🚨 Police Car Light
-    inline const juce::String HORIZONTAL_TRAFFIC_LIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA5"));  // 🚥 Horizontal Traffic Light
-    inline const juce::String VERTICAL_TRAFFIC_LIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA6"));  // 🚦 Vertical Traffic Light
-    inline const juce::String CONSTRUCTION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA7"));  // 🚧 Construction
-    inline const juce::String ANCHOR = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x93"));  // ⚓ Anchor
-    inline const juce::String SAILBOAT = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB5"));  // ⛵ Sailboat
-    inline const juce::String SPEEDBOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA4"));  // 🚤 Speedboat
-    inline const juce::String PASSENGER_SHIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB3"));  // 🛳 Passenger Ship
-    inline const juce::String FERRY = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB4"));  // ⛴ Ferry
-    inline const juce::String MOTOR_BOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA5"));  // 🛥 Motor Boat
-    inline const juce::String SHIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA2"));  // 🚢 Ship
-    inline const juce::String AIRPLANE = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x88"));  // ✈ Airplane
-    inline const juce::String SMALL_AIRPLANE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA9"));  // 🛩 Small Airplane
-    inline const juce::String AIRPLANE_DEPARTURE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xAB"));  // 🛫 Airplane Departure
-    inline const juce::String AIRPLANE_ARRIVAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xAC"));  // 🛬 Airplane Arrival
-    inline const juce::String SEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBA"));  // 💺 Seat
-    inline const juce::String HELICOPTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x81"));  // 🚁 Helicopter
-    inline const juce::String SUSPENSION_RAILWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9F"));  // 🚟 Suspension Railway
-    inline const juce::String MOUNTAIN_CABLEWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA0"));  // 🚠 Mountain Cableway
-    inline const juce::String AERIAL_TRAMWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA1"));  // 🚡 Aerial Tramway
-    inline const juce::String SATELLITE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB0"));  // 🛰 Satellite
-    inline const juce::String ROCKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x80"));  // 🚀 Rocket
-    inline const juce::String FLYING_SAUCER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB8"));  // 🛸 Flying Saucer
-    inline const juce::String UMBRELLA_ON_GROUND = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB1"));  // ⛱ Umbrella on Ground
-    inline const juce::String FIREWORKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x86"));  // 🎆 Fireworks
-    inline const juce::String SPARKLER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x87"));  // 🎇 Sparkler
-    inline const juce::String MOON_VIEWING_CEREMONY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x91"));  // 🎑 Moon Viewing Ceremony
-    inline const juce::String YEN_BANKNOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB4"));  // 💴 Yen Banknote
-    inline const juce::String DOLLAR_BANKNOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB5"));  // 💵 Dollar Banknote
-    inline const juce::String EURO_BANKNOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB6"));  // 💶 Euro Banknote
-    inline const juce::String POUND_BANKNOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB7"));  // 💷 Pound Banknote
-    inline const juce::String MOAI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBF"));  // 🗿 Moai
-    inline const juce::String PASSPORT_CONTROL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x82"));  // 🛂 Passport Control
-    inline const juce::String CUSTOMS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x83"));  // 🛃 Customs
-    inline const juce::String BAGGAGE_CLAIM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x84"));  // 🛄 Baggage Claim
-    inline const juce::String LEFT_LUGGAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x85"));  // 🛅 Left Luggage
-    inline const juce::String SKULL_AND_CROSSBONES = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA0"));  // ☠ Skull and Crossbones
-    inline const juce::String PERSON_TAKING_BATH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x80"));  // 🛀 Person Taking Bath
-    inline const juce::String PERSON_IN_BED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8C"));  // 🛌 Person in Bed
-    inline const juce::String LOVE_LETTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8C"));  // 💌 Love Letter
-    inline const juce::String BOMB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA3"));  // 💣 Bomb
-    inline const juce::String HOLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB3"));  // 🕳 Hole
-    inline const juce::String SHOPPING_BAGS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8D"));  // 🛍 Shopping Bags
-    inline const juce::String PRAYER_BEADS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBF"));  // 📿 Prayer Beads
-    inline const juce::String GEM_STONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8E"));  // 💎 Gem Stone
-    inline const juce::String KITCHEN_KNIFE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAA"));  // 🔪 Kitchen Knife
-    inline const juce::String AMPHORA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xBA"));  // 🏺 Amphora
-    inline const juce::String WORLD_MAP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBA"));  // 🗺 World Map
-    inline const juce::String BARBER_POLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x88"));  // 💈 Barber Pole
-    inline const juce::String OIL_DRUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA2"));  // 🛢 Oil Drum
-    inline const juce::String BELLHOP_BELL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8E"));  // 🛎 Bellhop Bell
-    inline const juce::String HOURGLASS_DONE = juce::String(juce::CharPointer_UTF8("\xE2\x8C\x9B"));  // ⌛ Hourglass Done
-    inline const juce::String HOURGLASS_NOT_DONE = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB3"));  // ⏳ Hourglass Not Done
-    inline const juce::String WATCH = juce::String(juce::CharPointer_UTF8("\xE2\x8C\x9A"));  // ⌚ Watch
-    inline const juce::String ALARM_CLOCK = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB0"));  // ⏰ Alarm Clock
-    inline const juce::String STOPWATCH = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB1"));  // ⏱ Stopwatch
-    inline const juce::String TIMER_CLOCK = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB2"));  // ⏲ Timer Clock
-    inline const juce::String MANTELPIECE_CLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB0"));  // 🕰 Mantelpiece Clock
-    inline const juce::String THERMOMETER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA1"));  // 🌡 Thermometer
-    inline const juce::String BALLOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x88"));  // 🎈 Balloon
-    inline const juce::String PARTY_POPPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x89"));  // 🎉 Party Popper
-    inline const juce::String CONFETTI_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8A"));  // 🎊 Confetti Ball
-    inline const juce::String JAPANESE_DOLLS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8E"));  // 🎎 Japanese Dolls
-    inline const juce::String CARP_STREAMER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8F"));  // 🎏 Carp Streamer
-    inline const juce::String WIND_CHIME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x90"));  // 🎐 Wind Chime
-    inline const juce::String RIBBON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x80"));  // 🎀 Ribbon
-    inline const juce::String WRAPPED_GIFT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x81"));  // 🎁 Wrapped Gift
-    inline const juce::String CRYSTAL_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAE"));  // 🔮 Crystal Ball
-    inline const juce::String JOYSTICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB9"));  // 🕹 Joystick
-    inline const juce::String FRAMED_PICTURE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xBC"));  // 🖼 Framed Picture
-    inline const juce::String POSTAL_HORN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAF"));  // 📯 Postal Horn
-    inline const juce::String STUDIO_MICROPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x99"));  // 🎙 Studio Microphone
-    inline const juce::String LEVEL_SLIDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9A"));  // 🎚 Level Slider
-    inline const juce::String CONTROL_KNOBS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9B"));  // 🎛 Control Knobs
-    inline const juce::String RADIO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBB"));  // 📻 Radio
-    inline const juce::String MOBILE_PHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB1"));  // 📱 Mobile Phone
-    inline const juce::String MOBILE_PHONE_WITH_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB2"));  // 📲 Mobile Phone With Arrow
-    inline const juce::String TELEPHONE = juce::String(juce::CharPointer_UTF8("\xE2\x98\x8E"));  // ☎ Telephone
-    inline const juce::String TELEPHONE_RECEIVER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9E"));  // 📞 Telephone Receiver
-    inline const juce::String PAGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9F"));  // 📟 Pager
-    inline const juce::String FAX_MACHINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA0"));  // 📠 Fax Machine
-    inline const juce::String BATTERY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8B"));  // 🔋 Battery
-    inline const juce::String ELECTRIC_PLUG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8C"));  // 🔌 Electric Plug
-    inline const juce::String LAPTOP_COMPUTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBB"));  // 💻 Laptop Computer
-    inline const juce::String DESKTOP_COMPUTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xA5"));  // 🖥 Desktop Computer
-    inline const juce::String PRINTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xA8"));  // 🖨 Printer
-    inline const juce::String KEYBOARD = juce::String(juce::CharPointer_UTF8("\xE2\x8C\xA8"));  // ⌨ Keyboard
-    inline const juce::String COMPUTER_MOUSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xB1"));  // 🖱 Computer Mouse
-    inline const juce::String TRACKBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xB2"));  // 🖲 Trackball
-    inline const juce::String COMPUTER_DISK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBD"));  // 💽 Computer Disk
-    inline const juce::String FLOPPY_DISK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBE"));  // 💾 Floppy Disk
-    inline const juce::String OPTICAL_DISK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBF"));  // 💿 Optical Disk
-    inline const juce::String DVD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x80"));  // 📀 DVD
-    inline const juce::String MOVIE_CAMERA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA5"));  // 🎥 Movie Camera
-    inline const juce::String FILM_FRAMES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9E"));  // 🎞 Film Frames
-    inline const juce::String FILM_PROJECTOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBD"));  // 📽 Film Projector
-    inline const juce::String TELEVISION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBA"));  // 📺 Television
-    inline const juce::String CAMERA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB7"));  // 📷 Camera
-    inline const juce::String CAMERA_WITH_FLASH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB8"));  // 📸 Camera With Flash
-    inline const juce::String VIDEO_CAMERA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB9"));  // 📹 Video Camera
-    inline const juce::String VIDEOCASSETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBC"));  // 📼 Videocassette
-    inline const juce::String MAGNIFYING_GLASS_TILTED_LEFT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8D"));  // 🔍 Magnifying Glass Tilted Left
-    inline const juce::String MAGNIFYING_GLASS_TILTED_RIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8E"));  // 🔎 Magnifying Glass Tilted Right
-    inline const juce::String CANDLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xAF"));  // 🕯 Candle
-    inline const juce::String LIGHT_BULB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA1"));  // 💡 Light Bulb
-    inline const juce::String FLASHLIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA6"));  // 🔦 Flashlight
-    inline const juce::String RED_PAPER_LANTERN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAE"));  // 🏮 Red Paper Lantern
-    inline const juce::String NOTEBOOK_WITH_DECORATIVE_COVER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x94"));  // 📔 Notebook With Decorative Cover
-    inline const juce::String CLOSED_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x95"));  // 📕 Closed Book
-    inline const juce::String OPEN_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x96"));  // 📖 Open Book
-    inline const juce::String GREEN_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x97"));  // 📗 Green Book
-    inline const juce::String BLUE_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x98"));  // 📘 Blue Book
-    inline const juce::String ORANGE_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x99"));  // 📙 Orange Book
-    inline const juce::String BOOKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9A"));  // 📚 Books
-    inline const juce::String NOTEBOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x93"));  // 📓 Notebook
-    inline const juce::String PAGE_WITH_CURL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x83"));  // 📃 Page With Curl
-    inline const juce::String SCROLL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9C"));  // 📜 Scroll
-    inline const juce::String PAGE_FACING_UP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x84"));  // 📄 Page Facing Up
-    inline const juce::String NEWSPAPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB0"));  // 📰 Newspaper
-    inline const juce::String ROLLED_UP_NEWSPAPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x9E"));  // 🗞 Rolled-Up Newspaper
-    inline const juce::String BOOKMARK_TABS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x91"));  // 📑 Bookmark Tabs
-    inline const juce::String BOOKMARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x96"));  // 🔖 Bookmark
-    inline const juce::String LABEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB7"));  // 🏷 Label
-    inline const juce::String MONEY_BAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB0"));  // 💰 Money Bag
-    inline const juce::String MONEY_WITH_WINGS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB8"));  // 💸 Money With Wings
-    inline const juce::String CREDIT_CARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB3"));  // 💳 Credit Card
-    inline const juce::String ENVELOPE = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x89"));  // ✉ Envelope
-    inline const juce::String E_MAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA7"));  // 📧 E-Mail
-    inline const juce::String INCOMING_ENVELOPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA8"));  // 📨 Incoming Envelope
-    inline const juce::String ENVELOPE_WITH_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA9"));  // 📩 Envelope With Arrow
-    inline const juce::String OUTBOX_TRAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA4"));  // 📤 Outbox Tray
-    inline const juce::String INBOX_TRAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA5"));  // 📥 Inbox Tray
-    inline const juce::String PACKAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA6"));  // 📦 Package
-    inline const juce::String CLOSED_MAILBOX_WITH_RAISED_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAB"));  // 📫 Closed Mailbox With Raised Flag
-    inline const juce::String CLOSED_MAILBOX_WITH_LOWERED_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAA"));  // 📪 Closed Mailbox With Lowered Flag
-    inline const juce::String OPEN_MAILBOX_WITH_RAISED_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAC"));  // 📬 Open Mailbox With Raised Flag
-    inline const juce::String OPEN_MAILBOX_WITH_LOWERED_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAD"));  // 📭 Open Mailbox With Lowered Flag
-    inline const juce::String POSTBOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAE"));  // 📮 Postbox
-    inline const juce::String BALLOT_BOX_WITH_BALLOT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xB3"));  // 🗳 Ballot Box With Ballot
-    inline const juce::String PENCIL = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8F"));  // ✏ Pencil
-    inline const juce::String BLACK_NIB = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x92"));  // ✒ Black Nib
-    inline const juce::String FOUNTAIN_PEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8B"));  // 🖋 Fountain Pen
-    inline const juce::String PEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8A"));  // 🖊 Pen
-    inline const juce::String PAINTBRUSH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8C"));  // 🖌 Paintbrush
-    inline const juce::String CRAYON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8D"));  // 🖍 Crayon
-    inline const juce::String MEMO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9D"));  // 📝 Memo
-    inline const juce::String FILE_FOLDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x81"));  // 📁 File Folder
-    inline const juce::String OPEN_FILE_FOLDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x82"));  // 📂 Open File Folder
-    inline const juce::String CARD_INDEX_DIVIDERS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x82"));  // 🗂 Card Index Dividers
-    inline const juce::String CALENDAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x85"));  // 📅 Calendar
-    inline const juce::String TEAR_OFF_CALENDAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x86"));  // 📆 Tear-Off Calendar
-    inline const juce::String SPIRAL_NOTEPAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x92"));  // 🗒 Spiral Notepad
-    inline const juce::String SPIRAL_CALENDAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x93"));  // 🗓 Spiral Calendar
-    inline const juce::String CARD_INDEX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x87"));  // 📇 Card Index
-    inline const juce::String CHART_INCREASING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x88"));  // 📈 Chart Increasing
-    inline const juce::String CHART_DECREASING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x89"));  // 📉 Chart Decreasing
-    inline const juce::String BAR_CHART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8A"));  // 📊 Bar Chart
-    inline const juce::String CLIPBOARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8B"));  // 📋 Clipboard
-    inline const juce::String PUSHPIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8C"));  // 📌 Pushpin
-    inline const juce::String ROUND_PUSHPIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8D"));  // 📍 Round Pushpin
-    inline const juce::String PAPERCLIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8E"));  // 📎 Paperclip
-    inline const juce::String LINKED_PAPERCLIPS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x87"));  // 🖇 Linked Paperclips
-    inline const juce::String STRAIGHT_RULER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8F"));  // 📏 Straight Ruler
-    inline const juce::String TRIANGULAR_RULER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x90"));  // 📐 Triangular Ruler
-    inline const juce::String SCISSORS = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x82"));  // ✂ Scissors
-    inline const juce::String CARD_FILE_BOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x83"));  // 🗃 Card File Box
-    inline const juce::String FILE_CABINET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x84"));  // 🗄 File Cabinet
-    inline const juce::String WASTEBASKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x91"));  // 🗑 Wastebasket
-    inline const juce::String LOCKED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x92"));  // 🔒 Locked
-    inline const juce::String UNLOCKED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x93"));  // 🔓 Unlocked
-    inline const juce::String LOCKED_WITH_PEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8F"));  // 🔏 Locked With Pen
-    inline const juce::String LOCKED_WITH_KEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x90"));  // 🔐 Locked With Key
-    inline const juce::String KEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x91"));  // 🔑 Key
-    inline const juce::String OLD_KEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x9D"));  // 🗝 Old Key
-    inline const juce::String HAMMER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA8"));  // 🔨 Hammer
-    inline const juce::String PICK = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x8F"));  // ⛏ Pick
-    inline const juce::String HAMMER_AND_PICK = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x92"));  // ⚒ Hammer and Pick
-    inline const juce::String HAMMER_AND_WRENCH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA0"));  // 🛠 Hammer and Wrench
-    inline const juce::String DAGGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xA1"));  // 🗡 Dagger
-    inline const juce::String CROSSED_SWORDS = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x94"));  // ⚔ Crossed Swords
-    inline const juce::String PISTOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAB"));  // 🔫 Pistol
-    inline const juce::String SHIELD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA1"));  // 🛡 Shield
-    inline const juce::String WRENCH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA7"));  // 🔧 Wrench
-    inline const juce::String NUT_AND_BOLT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA9"));  // 🔩 Nut and Bolt
-    inline const juce::String GEAR = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x99"));  // ⚙ Gear
-    inline const juce::String CLAMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x9C"));  // 🗜 Clamp
-    inline const juce::String BALANCE_SCALE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x96"));  // ⚖ Balance Scale
-    inline const juce::String LINK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x97"));  // 🔗 Link
-    inline const juce::String CHAINS = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x93"));  // ⛓ Chains
-    inline const juce::String ALEMBIC = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x97"));  // ⚗ Alembic
-    inline const juce::String MICROSCOPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAC"));  // 🔬 Microscope
-    inline const juce::String TELESCOPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAD"));  // 🔭 Telescope
-    inline const juce::String SATELLITE_ANTENNA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA1"));  // 📡 Satellite Antenna
-    inline const juce::String SYRINGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x89"));  // 💉 Syringe
-    inline const juce::String PILL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8A"));  // 💊 Pill
-    inline const juce::String DOOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAA"));  // 🚪 Door
-    inline const juce::String BED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8F"));  // 🛏 Bed
-    inline const juce::String COUCH_AND_LAMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8B"));  // 🛋 Couch and Lamp
-    inline const juce::String TOILET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBD"));  // 🚽 Toilet
-    inline const juce::String SHOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBF"));  // 🚿 Shower
-    inline const juce::String BATHTUB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x81"));  // 🛁 Bathtub
-    inline const juce::String CIGARETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAC"));  // 🚬 Cigarette
-    inline const juce::String COFFIN = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xB0"));  // ⚰ Coffin
-    inline const juce::String FUNERAL_URN = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xB1"));  // ⚱ Funeral Urn
-    inline const juce::String POTABLE_WATER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB0"));  // 🚰 Potable Water
-    inline const juce::String EYE_IN_SPEECH_BUBBLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x81\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x97\xA8\xEF\xB8\x8F"));  // 👁️‍🗨️ Eye in Speech Bubble
-    inline const juce::String HEART_WITH_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x98"));  // 💘 Heart With Arrow
-    inline const juce::String RED_HEART = juce::String(juce::CharPointer_UTF8("\xE2\x9D\xA4"));  // ❤ Red Heart
-    inline const juce::String BEATING_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x93"));  // 💓 Beating Heart
-    inline const juce::String BROKEN_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x94"));  // 💔 Broken Heart
-    inline const juce::String TWO_HEARTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x95"));  // 💕 Two Hearts
-    inline const juce::String SPARKLING_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x96"));  // 💖 Sparkling Heart
-    inline const juce::String GROWING_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x97"));  // 💗 Growing Heart
-    inline const juce::String BLUE_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x99"));  // 💙 Blue Heart
-    inline const juce::String GREEN_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9A"));  // 💚 Green Heart
-    inline const juce::String YELLOW_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9B"));  // 💛 Yellow Heart
-    inline const juce::String ORANGE_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA1"));  // 🧡 Orange Heart
-    inline const juce::String PURPLE_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9C"));  // 💜 Purple Heart
-    inline const juce::String BLACK_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xA4"));  // 🖤 Black Heart
-    inline const juce::String HEART_WITH_RIBBON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9D"));  // 💝 Heart With Ribbon
-    inline const juce::String REVOLVING_HEARTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9E"));  // 💞 Revolving Hearts
-    inline const juce::String HEART_DECORATION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9F"));  // 💟 Heart Decoration
-    inline const juce::String HEAVY_HEART_EXCLAMATION = juce::String(juce::CharPointer_UTF8("\xE2\x9D\xA3"));  // ❣ Heavy Heart Exclamation
-    inline const juce::String ZZZ = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA4"));  // 💤 Zzz
-    inline const juce::String ANGER_SYMBOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA2"));  // 💢 Anger Symbol
-    inline const juce::String SPEECH_BALLOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAC"));  // 💬 Speech Balloon
-    inline const juce::String RIGHT_ANGER_BUBBLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xAF"));  // 🗯 Right Anger Bubble
-    inline const juce::String THOUGHT_BALLOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAD"));  // 💭 Thought Balloon
-    inline const juce::String HOT_SPRINGS = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA8"));  // ♨ Hot Springs
-    inline const juce::String STOP_SIGN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x91"));  // 🛑 Stop Sign
-    inline const juce::String TWELVE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9B"));  // 🕛 Twelve O’clock
-    inline const juce::String TWELVE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA7"));  // 🕧 Twelve-Thirty
-    inline const juce::String ONE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x90"));  // 🕐 One O’clock
-    inline const juce::String ONE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9C"));  // 🕜 One-Thirty
-    inline const juce::String TWO_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x91"));  // 🕑 Two O’clock
-    inline const juce::String TWO_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9D"));  // 🕝 Two-Thirty
-    inline const juce::String THREE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x92"));  // 🕒 Three O’clock
-    inline const juce::String THREE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9E"));  // 🕞 Three-Thirty
-    inline const juce::String FOUR_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x93"));  // 🕓 Four O’clock
-    inline const juce::String FOUR_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9F"));  // 🕟 Four-Thirty
-    inline const juce::String FIVE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x94"));  // 🕔 Five O’clock
-    inline const juce::String FIVE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA0"));  // 🕠 Five-Thirty
-    inline const juce::String SIX_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x95"));  // 🕕 Six O’clock
-    inline const juce::String SIX_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA1"));  // 🕡 Six-Thirty
-    inline const juce::String SEVEN_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x96"));  // 🕖 Seven O’clock
-    inline const juce::String SEVEN_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA2"));  // 🕢 Seven-Thirty
-    inline const juce::String EIGHT_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x97"));  // 🕗 Eight O’clock
-    inline const juce::String EIGHT_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA3"));  // 🕣 Eight-Thirty
-    inline const juce::String NINE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x98"));  // 🕘 Nine O’clock
-    inline const juce::String NINE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA4"));  // 🕤 Nine-Thirty
-    inline const juce::String TEN_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x99"));  // 🕙 Ten O’clock
-    inline const juce::String TEN_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA5"));  // 🕥 Ten-Thirty
-    inline const juce::String ELEVEN_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9A"));  // 🕚 Eleven O’clock
-    inline const juce::String ELEVEN_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA6"));  // 🕦 Eleven-Thirty
-    inline const juce::String CYCLONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x80"));  // 🌀 Cyclone
-    inline const juce::String SPADE_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA0"));  // ♠ Spade Suit
-    inline const juce::String HEART_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5"));  // ♥ Heart Suit
-    inline const juce::String DIAMOND_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA6"));  // ♦ Diamond Suit
-    inline const juce::String CLUB_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA3"));  // ♣ Club Suit
-    inline const juce::String JOKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x83\x8F"));  // 🃏 Joker
-    inline const juce::String MAHJONG_RED_DRAGON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x80\x84"));  // 🀄 Mahjong Red Dragon
-    inline const juce::String FLOWER_PLAYING_CARDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB4"));  // 🎴 Flower Playing Cards
-    inline const juce::String MUTED_SPEAKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x87"));  // 🔇 Muted Speaker
-    inline const juce::String SPEAKER_LOW_VOLUME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x88"));  // 🔈 Speaker Low Volume
-    inline const juce::String SPEAKER_MEDIUM_VOLUME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x89"));  // 🔉 Speaker Medium Volume
-    inline const juce::String SPEAKER_HIGH_VOLUME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8A"));  // 🔊 Speaker High Volume
-    inline const juce::String LOUDSPEAKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA2"));  // 📢 Loudspeaker
-    inline const juce::String MEGAPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA3"));  // 📣 Megaphone
-    inline const juce::String BELL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x94"));  // 🔔 Bell
-    inline const juce::String BELL_WITH_SLASH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x95"));  // 🔕 Bell With Slash
-    inline const juce::String MUSICAL_NOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB5"));  // 🎵 Musical Note
-    inline const juce::String MUSICAL_NOTES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB6"));  // 🎶 Musical Notes
-    inline const juce::String ATM_SIGN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA7"));  // 🏧 Atm Sign
-    inline const juce::String LITTER_IN_BIN_SIGN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAE"));  // 🚮 Litter in Bin Sign
-    inline const juce::String WHEELCHAIR_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x99\xBF"));  // ♿ Wheelchair Symbol
-    inline const juce::String MENS_ROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB9"));  // 🚹 Men’s Room
-    inline const juce::String WOMENS_ROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBA"));  // 🚺 Women’s Room
-    inline const juce::String RESTROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBB"));  // 🚻 Restroom
-    inline const juce::String BABY_SYMBOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBC"));  // 🚼 Baby Symbol
-    inline const juce::String WATER_CLOSET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBE"));  // 🚾 Water Closet
-    inline const juce::String WARNING = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xA0"));  // ⚠ Warning
-    inline const juce::String CHILDREN_CROSSING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB8"));  // 🚸 Children Crossing
-    inline const juce::String NO_ENTRY = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x94"));  // ⛔ No Entry
-    inline const juce::String PROHIBITED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAB"));  // 🚫 Prohibited
-    inline const juce::String NO_BICYCLES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB3"));  // 🚳 No Bicycles
-    inline const juce::String NO_SMOKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAD"));  // 🚭 No Smoking
-    inline const juce::String NO_LITTERING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAF"));  // 🚯 No Littering
-    inline const juce::String NON_POTABLE_WATER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB1"));  // 🚱 Non-Potable Water
-    inline const juce::String NO_PEDESTRIANS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB7"));  // 🚷 No Pedestrians
-    inline const juce::String NO_ONE_UNDER_EIGHTEEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9E"));  // 🔞 No One Under Eighteen
-    inline const juce::String RADIOACTIVE = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA2"));  // ☢ Radioactive
-    inline const juce::String BIOHAZARD = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA3"));  // ☣ Biohazard
-    inline const juce::String UP_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x86"));  // ⬆ Up Arrow
-    inline const juce::String UP_RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x97"));  // ↗ Up-Right Arrow
-    inline const juce::String RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x9E\xA1"));  // ➡ Right Arrow
-    inline const juce::String DOWN_RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x98"));  // ↘ Down-Right Arrow
-    inline const juce::String DOWN_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x87"));  // ⬇ Down Arrow
-    inline const juce::String DOWN_LEFT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x99"));  // ↙ Down-Left Arrow
-    inline const juce::String LEFT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x85"));  // ⬅ Left Arrow
-    inline const juce::String UP_LEFT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x96"));  // ↖ Up-Left Arrow
-    inline const juce::String UP_DOWN_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x95"));  // ↕ Up-Down Arrow
-    inline const juce::String LEFT_RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x94"));  // ↔ Left-Right Arrow
-    inline const juce::String RIGHT_ARROW_CURVING_LEFT = juce::String(juce::CharPointer_UTF8("\xE2\x86\xA9"));  // ↩ Right Arrow Curving Left
-    inline const juce::String LEFT_ARROW_CURVING_RIGHT = juce::String(juce::CharPointer_UTF8("\xE2\x86\xAA"));  // ↪ Left Arrow Curving Right
-    inline const juce::String RIGHT_ARROW_CURVING_UP = juce::String(juce::CharPointer_UTF8("\xE2\xA4\xB4"));  // ⤴ Right Arrow Curving Up
-    inline const juce::String RIGHT_ARROW_CURVING_DOWN = juce::String(juce::CharPointer_UTF8("\xE2\xA4\xB5"));  // ⤵ Right Arrow Curving Down
-    inline const juce::String CLOCKWISE_VERTICAL_ARROWS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x83"));  // 🔃 Clockwise Vertical Arrows
-    inline const juce::String COUNTERCLOCKWISE_ARROWS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x84"));  // 🔄 Counterclockwise Arrows Button
-    inline const juce::String BACK_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x99"));  // 🔙 Back Arrow
-    inline const juce::String END_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9A"));  // 🔚 End Arrow
-    inline const juce::String ON_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9B"));  // 🔛 On! Arrow
-    inline const juce::String SOON_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9C"));  // 🔜 Soon Arrow
-    inline const juce::String TOP_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9D"));  // 🔝 Top Arrow
-    inline const juce::String PLACE_OF_WORSHIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x90"));  // 🛐 Place of Worship
-    inline const juce::String ATOM_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x9B"));  // ⚛ Atom Symbol
-    inline const juce::String OM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x89"));  // 🕉 Om
-    inline const juce::String STAR_OF_DAVID = juce::String(juce::CharPointer_UTF8("\xE2\x9C\xA1"));  // ✡ Star of David
-    inline const juce::String WHEEL_OF_DHARMA = juce::String(juce::CharPointer_UTF8("\xE2\x98\xB8"));  // ☸ Wheel of Dharma
-    inline const juce::String YIN_YANG = juce::String(juce::CharPointer_UTF8("\xE2\x98\xAF"));  // ☯ Yin Yang
-    inline const juce::String LATIN_CROSS = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x9D"));  // ✝ Latin Cross
-    inline const juce::String ORTHODOX_CROSS = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA6"));  // ☦ Orthodox Cross
-    inline const juce::String STAR_AND_CRESCENT = juce::String(juce::CharPointer_UTF8("\xE2\x98\xAA"));  // ☪ Star and Crescent
-    inline const juce::String PEACE_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x98\xAE"));  // ☮ Peace Symbol
-    inline const juce::String MENORAH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8E"));  // 🕎 Menorah
-    inline const juce::String DOTTED_SIX_POINTED_STAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAF"));  // 🔯 Dotted Six-Pointed Star
-    inline const juce::String ARIES = juce::String(juce::CharPointer_UTF8("\xE2\x99\x88"));  // ♈ Aries
-    inline const juce::String TAURUS = juce::String(juce::CharPointer_UTF8("\xE2\x99\x89"));  // ♉ Taurus
-    inline const juce::String GEMINI = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8A"));  // ♊ Gemini
-    inline const juce::String CANCER = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8B"));  // ♋ Cancer
-    inline const juce::String LEO = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8C"));  // ♌ Leo
-    inline const juce::String VIRGO = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8D"));  // ♍ Virgo
-    inline const juce::String LIBRA = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8E"));  // ♎ Libra
-    inline const juce::String SCORPIO = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8F"));  // ♏ Scorpio
-    inline const juce::String SAGITTARIUS = juce::String(juce::CharPointer_UTF8("\xE2\x99\x90"));  // ♐ Sagittarius
-    inline const juce::String CAPRICORN = juce::String(juce::CharPointer_UTF8("\xE2\x99\x91"));  // ♑ Capricorn
-    inline const juce::String AQUARIUS = juce::String(juce::CharPointer_UTF8("\xE2\x99\x92"));  // ♒ Aquarius
-    inline const juce::String PISCES = juce::String(juce::CharPointer_UTF8("\xE2\x99\x93"));  // ♓ Pisces
-    inline const juce::String OPHIUCHUS = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x8E"));  // ⛎ Ophiuchus
-    inline const juce::String SHUFFLE_TRACKS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x80"));  // 🔀 Shuffle Tracks Button
-    inline const juce::String REPEAT_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x81"));  // 🔁 Repeat Button
-    inline const juce::String REPEAT_SINGLE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x82"));  // 🔂 Repeat Single Button
-    inline const juce::String PLAY_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x96\xB6"));  // ▶ Play Button
-    inline const juce::String FAST_FORWARD_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xA9"));  // ⏩ Fast-Forward Button
-    inline const juce::String REVERSE_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x97\x80"));  // ◀ Reverse Button
-    inline const juce::String FAST_REVERSE_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xAA"));  // ⏪ Fast Reverse Button
-    inline const juce::String UPWARDS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBC"));  // 🔼 Upwards Button
-    inline const juce::String FAST_UP_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xAB"));  // ⏫ Fast Up Button
-    inline const juce::String DOWNWARDS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBD"));  // 🔽 Downwards Button
-    inline const juce::String FAST_DOWN_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xAC"));  // ⏬ Fast Down Button
-    inline const juce::String STOP_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB9"));  // ⏹ Stop Button
-    inline const juce::String EJECT_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\x8F"));  // ⏏ Eject Button
-    inline const juce::String CINEMA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA6"));  // 🎦 Cinema
-    inline const juce::String DIM_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x85"));  // 🔅 Dim Button
-    inline const juce::String BRIGHT_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x86"));  // 🔆 Bright Button
-    inline const juce::String ANTENNA_BARS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB6"));  // 📶 Antenna Bars
-    inline const juce::String VIBRATION_MODE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB3"));  // 📳 Vibration Mode
-    inline const juce::String MOBILE_PHONE_OFF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB4"));  // 📴 Mobile Phone Off
-    inline const juce::String RECYCLING_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x99\xBB"));  // ♻ Recycling Symbol
-    inline const juce::String TRIDENT_EMBLEM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB1"));  // 🔱 Trident Emblem
-    inline const juce::String NAME_BADGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9B"));  // 📛 Name Badge
-    inline const juce::String JAPANESE_SYMBOL_FOR_BEGINNER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB0"));  // 🔰 Japanese Symbol for Beginner
-    inline const juce::String HEAVY_LARGE_CIRCLE = juce::String(juce::CharPointer_UTF8("\xE2\xAD\x95"));  // ⭕ Heavy Large Circle
-    inline const juce::String WHITE_HEAVY_CHECK_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x85"));  // ✅ White Heavy Check Mark
-    inline const juce::String BALLOT_BOX_WITH_CHECK = juce::String(juce::CharPointer_UTF8("\xE2\x98\x91"));  // ☑ Ballot Box With Check
-    inline const juce::String HEAVY_CHECK_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x94"));  // ✔ Heavy Check Mark
-    inline const juce::String HEAVY_MULTIPLICATION_X = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x96"));  // ✖ Heavy Multiplication X
-    inline const juce::String CROSS_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x8C"));  // ❌ Cross Mark
-    inline const juce::String CROSS_MARK_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x8E"));  // ❎ Cross Mark Button
-    inline const juce::String HEAVY_PLUS_SIGN = juce::String(juce::CharPointer_UTF8("\xE2\x9E\x95"));  // ➕ Heavy Plus Sign
-    inline const juce::String HEAVY_MINUS_SIGN = juce::String(juce::CharPointer_UTF8("\xE2\x9E\x96"));  // ➖ Heavy Minus Sign
-    inline const juce::String HEAVY_DIVISION_SIGN = juce::String(juce::CharPointer_UTF8("\xE2\x9E\x97"));  // ➗ Heavy Division Sign
-    inline const juce::String CURLY_LOOP = juce::String(juce::CharPointer_UTF8("\xE2\x9E\xB0"));  // ➰ Curly Loop
-    inline const juce::String DOUBLE_CURLY_LOOP = juce::String(juce::CharPointer_UTF8("\xE2\x9E\xBF"));  // ➿ Double Curly Loop
-    inline const juce::String PART_ALTERNATION_MARK = juce::String(juce::CharPointer_UTF8("\xE3\x80\xBD"));  // 〽 Part Alternation Mark
-    inline const juce::String EIGHT_SPOKED_ASTERISK = juce::String(juce::CharPointer_UTF8("\xE2\x9C\xB3"));  // ✳ Eight-Spoked Asterisk
-    inline const juce::String EIGHT_POINTED_STAR = juce::String(juce::CharPointer_UTF8("\xE2\x9C\xB4"));  // ✴ Eight-Pointed Star
-    inline const juce::String SPARKLE = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x87"));  // ❇ Sparkle
-    inline const juce::String DOUBLE_EXCLAMATION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x80\xBC"));  // ‼ Double Exclamation Mark
-    inline const juce::String EXCLAMATION_QUESTION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x81\x89"));  // ⁉ Exclamation Question Mark
-    inline const juce::String QUESTION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x93"));  // ❓ Question Mark
-    inline const juce::String WHITE_QUESTION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x94"));  // ❔ White Question Mark
-    inline const juce::String WHITE_EXCLAMATION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x95"));  // ❕ White Exclamation Mark
-    inline const juce::String EXCLAMATION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x97"));  // ❗ Exclamation Mark
-    inline const juce::String COPYRIGHT = juce::String(juce::CharPointer_UTF8("\xC2\xA9"));  // © Copyright
-    inline const juce::String REGISTERED = juce::String(juce::CharPointer_UTF8("\xC2\xAE"));  // ® Registered
-    inline const juce::String TRADE_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x84\xA2"));  // ™ Trade Mark
-    inline const juce::String KEYCAP_NUMBER_SIGN = juce::String(juce::CharPointer_UTF8("\x23\xEF\xB8\x8F\xE2\x83\xA3"));  // #️⃣ Keycap Number Sign
-    inline const juce::String KEYCAP_DIGIT_ZERO = juce::String(juce::CharPointer_UTF8("\x30\xEF\xB8\x8F\xE2\x83\xA3"));  // 0️⃣ Keycap Digit Zero
-    inline const juce::String KEYCAP_DIGIT_ONE = juce::String(juce::CharPointer_UTF8("\x31\xEF\xB8\x8F\xE2\x83\xA3"));  // 1️⃣ Keycap Digit One
-    inline const juce::String KEYCAP_DIGIT_TWO = juce::String(juce::CharPointer_UTF8("\x32\xEF\xB8\x8F\xE2\x83\xA3"));  // 2️⃣ Keycap Digit Two
-    inline const juce::String KEYCAP_DIGIT_THREE = juce::String(juce::CharPointer_UTF8("\x33\xEF\xB8\x8F\xE2\x83\xA3"));  // 3️⃣ Keycap Digit Three
-    inline const juce::String KEYCAP_DIGIT_FOUR = juce::String(juce::CharPointer_UTF8("\x34\xEF\xB8\x8F\xE2\x83\xA3"));  // 4️⃣ Keycap Digit Four
-    inline const juce::String KEYCAP_DIGIT_FIVE = juce::String(juce::CharPointer_UTF8("\x35\xEF\xB8\x8F\xE2\x83\xA3"));  // 5️⃣ Keycap Digit Five
-    inline const juce::String KEYCAP_DIGIT_SIX = juce::String(juce::CharPointer_UTF8("\x36\xEF\xB8\x8F\xE2\x83\xA3"));  // 6️⃣ Keycap Digit Six
-    inline const juce::String KEYCAP_DIGIT_SEVEN = juce::String(juce::CharPointer_UTF8("\x37\xEF\xB8\x8F\xE2\x83\xA3"));  // 7️⃣ Keycap Digit Seven
-    inline const juce::String KEYCAP_DIGIT_EIGHT = juce::String(juce::CharPointer_UTF8("\x38\xEF\xB8\x8F\xE2\x83\xA3"));  // 8️⃣ Keycap Digit Eight
-    inline const juce::String KEYCAP_DIGIT_NINE = juce::String(juce::CharPointer_UTF8("\x39\xEF\xB8\x8F\xE2\x83\xA3"));  // 9️⃣ Keycap Digit Nine
-    inline const juce::String KEYCAP_10 = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9F"));  // 🔟 Keycap 10
-    inline const juce::String HUNDRED_POINTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAF"));  // 💯 Hundred Points
-    inline const juce::String INPUT_LATIN_UPPERCASE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA0"));  // 🔠 Input Latin Uppercase
-    inline const juce::String INPUT_LATIN_LOWERCASE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA1"));  // 🔡 Input Latin Lowercase
-    inline const juce::String INPUT_NUMBERS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA2"));  // 🔢 Input Numbers
-    inline const juce::String INPUT_SYMBOLS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA3"));  // 🔣 Input Symbols
-    inline const juce::String INPUT_LATIN_LETTERS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA4"));  // 🔤 Input Latin Letters
-    inline const juce::String A_BUTTON_BLOOD_TYPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xB0"));  // 🅰 A Button (blood Type)
-    inline const juce::String AB_BUTTON_BLOOD_TYPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x8E"));  // 🆎 Ab Button (blood Type)
-    inline const juce::String B_BUTTON_BLOOD_TYPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xB1"));  // 🅱 B Button (blood Type)
-    inline const juce::String CL_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x91"));  // 🆑 CL Button
-    inline const juce::String COOL_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x92"));  // 🆒 Cool Button
-    inline const juce::String FREE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x93"));  // 🆓 Free Button
-    inline const juce::String INFORMATION = juce::String(juce::CharPointer_UTF8("\xE2\x84\xB9"));  // ℹ Information
-    inline const juce::String ID_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x94"));  // 🆔 ID Button
-    inline const juce::String CIRCLED_M = juce::String(juce::CharPointer_UTF8("\xE2\x93\x82"));  // Ⓜ Circled M
-    inline const juce::String NEW_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x95"));  // 🆕 New Button
-    inline const juce::String NG_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x96"));  // 🆖 NG Button
-    inline const juce::String O_BUTTON_BLOOD_TYPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xBE"));  // 🅾 O Button (blood Type)
-    inline const juce::String OK_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x97"));  // 🆗 OK Button
-    inline const juce::String P_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xBF"));  // 🅿 P Button
-    inline const juce::String SOS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x98"));  // 🆘 SOS Button
-    inline const juce::String UP_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x99"));  // 🆙 Up! Button
-    inline const juce::String VS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x9A"));  // 🆚 Vs Button
-    inline const juce::String JAPANESE_HERE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\x81"));  // 🈁 Japanese “here” Button
-    inline const juce::String JAPANESE_SERVICE_CHARGE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\x82"));  // 🈂 Japanese “service Charge” Button
-    inline const juce::String JAPANESE_MONTHLY_AMOUNT_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB7"));  // 🈷 Japanese “monthly Amount” Button
-    inline const juce::String JAPANESE_NOT_FREE_OF_CHARGE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB6"));  // 🈶 Japanese “not Free of Charge” Button
-    inline const juce::String JAPANESE_RESERVED_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xAF"));  // 🈯 Japanese “reserved” Button
-    inline const juce::String JAPANESE_BARGAIN_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x89\x90"));  // 🉐 Japanese “bargain” Button
-    inline const juce::String JAPANESE_DISCOUNT_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB9"));  // 🈹 Japanese “discount” Button
-    inline const juce::String JAPANESE_FREE_OF_CHARGE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\x9A"));  // 🈚 Japanese “free of Charge” Button
-    inline const juce::String JAPANESE_PROHIBITED_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB2"));  // 🈲 Japanese “prohibited” Button
-    inline const juce::String JAPANESE_ACCEPTABLE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x89\x91"));  // 🉑 Japanese “acceptable” Button
-    inline const juce::String JAPANESE_APPLICATION_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB8"));  // 🈸 Japanese “application” Button
-    inline const juce::String JAPANESE_PASSING_GRADE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB4"));  // 🈴 Japanese “passing Grade” Button
-    inline const juce::String JAPANESE_VACANCY_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB3"));  // 🈳 Japanese “vacancy” Button
-    inline const juce::String JAPANESE_CONGRATULATIONS_BUTTON = juce::String(juce::CharPointer_UTF8("\xE3\x8A\x97"));  // ㊗ Japanese “congratulations” Button
-    inline const juce::String JAPANESE_SECRET_BUTTON = juce::String(juce::CharPointer_UTF8("\xE3\x8A\x99"));  // ㊙ Japanese “secret” Button
-    inline const juce::String JAPANESE_OPEN_FOR_BUSINESS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xBA"));  // 🈺 Japanese “open for Business” Button
-    inline const juce::String JAPANESE_NO_VACANCY_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB5"));  // 🈵 Japanese “no Vacancy” Button
-    inline const juce::String BLACK_SMALL_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\x96\xAA"));  // ▪ Black Small Square
-    inline const juce::String WHITE_SMALL_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\x96\xAB"));  // ▫ White Small Square
-    inline const juce::String WHITE_MEDIUM_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\x97\xBB"));  // ◻ White Medium Square
-    inline const juce::String BLACK_MEDIUM_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\x97\xBC"));  // ◼ Black Medium Square
-    inline const juce::String WHITE_MEDIUM_SMALL_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\x97\xBD"));  // ◽ White Medium-Small Square
-    inline const juce::String BLACK_MEDIUM_SMALL_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\x97\xBE"));  // ◾ Black Medium-Small Square
-    inline const juce::String BLACK_LARGE_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x9B"));  // ⬛ Black Large Square
-    inline const juce::String WHITE_LARGE_SQUARE = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x9C"));  // ⬜ White Large Square
-    inline const juce::String LARGE_ORANGE_DIAMOND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB6"));  // 🔶 Large Orange Diamond
-    inline const juce::String LARGE_BLUE_DIAMOND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB7"));  // 🔷 Large Blue Diamond
-    inline const juce::String SMALL_ORANGE_DIAMOND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB8"));  // 🔸 Small Orange Diamond
-    inline const juce::String SMALL_BLUE_DIAMOND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB9"));  // 🔹 Small Blue Diamond
-    inline const juce::String RED_TRIANGLE_POINTED_UP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBA"));  // 🔺 Red Triangle Pointed Up
-    inline const juce::String RED_TRIANGLE_POINTED_DOWN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBB"));  // 🔻 Red Triangle Pointed Down
-    inline const juce::String DIAMOND_WITH_A_DOT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA0"));  // 💠 Diamond With a Dot
-    inline const juce::String BLACK_SQUARE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB2"));  // 🔲 Black Square Button
-    inline const juce::String WHITE_SQUARE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB3"));  // 🔳 White Square Button
-    inline const juce::String WHITE_CIRCLE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xAA"));  // ⚪ White Circle
-    inline const juce::String BLACK_CIRCLE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xAB"));  // ⚫ Black Circle
-    inline const juce::String RED_CIRCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB4"));  // 🔴 Red Circle
-    inline const juce::String BLUE_CIRCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB5"));  // 🔵 Blue Circle
-    inline const juce::String CHEQUERED_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x81"));  // 🏁 Chequered Flag
-    inline const juce::String TRIANGULAR_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA9"));  // 🚩 Triangular Flag
-    inline const juce::String CROSSED_FLAGS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8C"));  // 🎌 Crossed Flags
-    inline const juce::String BLACK_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4"));  // 🏴 Black Flag
-    inline const juce::String WHITE_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB3"));  // 🏳 White Flag
-    inline const juce::String RAINBOW_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB3\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x8C\x88"));  // 🏳️‍🌈 Rainbow Flag
-    inline const juce::String PIRATE_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xE2\x80\x8D\xE2\x98\xA0\xEF\xB8\x8F"));  // 🏴‍☠️ Pirate Flag
-    inline const juce::String ASCENSION_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xA8"));  // 🇦🇨 Ascension Island
-    inline const juce::String ANDORRA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xA9"));  // 🇦🇩 Andorra
-    inline const juce::String UNITED_ARAB_EMIRATES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAA"));  // 🇦🇪 United Arab Emirates
-    inline const juce::String AFGHANISTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAB"));  // 🇦🇫 Afghanistan
-    inline const juce::String ANTIGUA_BARBUDA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAC"));  // 🇦🇬 Antigua & Barbuda
-    inline const juce::String ANGUILLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAE"));  // 🇦🇮 Anguilla
-    inline const juce::String ALBANIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB1"));  // 🇦🇱 Albania
-    inline const juce::String ARMENIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB2"));  // 🇦🇲 Armenia
-    inline const juce::String ANGOLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB4"));  // 🇦🇴 Angola
-    inline const juce::String ANTARCTICA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB6"));  // 🇦🇶 Antarctica
-    inline const juce::String ARGENTINA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB7"));  // 🇦🇷 Argentina
-    inline const juce::String AMERICAN_SAMOA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB8"));  // 🇦🇸 American Samoa
-    inline const juce::String AUSTRIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB9"));  // 🇦🇹 Austria
-    inline const juce::String AUSTRALIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBA"));  // 🇦🇺 Australia
-    inline const juce::String ARUBA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBC"));  // 🇦🇼 Aruba
-    inline const juce::String ÅLAND_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBD"));  // 🇦🇽 Åland Islands
-    inline const juce::String AZERBAIJAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBF"));  // 🇦🇿 Azerbaijan
-    inline const juce::String BOSNIA_HERZEGOVINA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xA6"));  // 🇧🇦 Bosnia & Herzegovina
-    inline const juce::String BARBADOS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xA7"));  // 🇧🇧 Barbados
-    inline const juce::String BANGLADESH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xA9"));  // 🇧🇩 Bangladesh
-    inline const juce::String BELGIUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAA"));  // 🇧🇪 Belgium
-    inline const juce::String BURKINA_FASO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAB"));  // 🇧🇫 Burkina Faso
-    inline const juce::String BULGARIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAC"));  // 🇧🇬 Bulgaria
-    inline const juce::String BAHRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAD"));  // 🇧🇭 Bahrain
-    inline const juce::String BURUNDI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAE"));  // 🇧🇮 Burundi
-    inline const juce::String BENIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAF"));  // 🇧🇯 Benin
-    inline const juce::String ST_BARTHÉLEMY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB1"));  // 🇧🇱 St. Barthélemy
-    inline const juce::String BERMUDA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB2"));  // 🇧🇲 Bermuda
-    inline const juce::String BRUNEI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB3"));  // 🇧🇳 Brunei
-    inline const juce::String BOLIVIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB4"));  // 🇧🇴 Bolivia
-    inline const juce::String CARIBBEAN_NETHERLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB6"));  // 🇧🇶 Caribbean Netherlands
-    inline const juce::String BRAZIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB7"));  // 🇧🇷 Brazil
-    inline const juce::String BAHAMAS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB8"));  // 🇧🇸 Bahamas
-    inline const juce::String BHUTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB9"));  // 🇧🇹 Bhutan
-    inline const juce::String BOUVET_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBB"));  // 🇧🇻 Bouvet Island
-    inline const juce::String BOTSWANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBC"));  // 🇧🇼 Botswana
-    inline const juce::String BELARUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBE"));  // 🇧🇾 Belarus
-    inline const juce::String BELIZE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBF"));  // 🇧🇿 Belize
-    inline const juce::String CANADA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xA6"));  // 🇨🇦 Canada
-    inline const juce::String COCOS_KEELING_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xA8"));  // 🇨🇨 Cocos (Keeling) Islands
-    inline const juce::String CONGO_KINSHASA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xA9"));  // 🇨🇩 Congo - Kinshasa
-    inline const juce::String CENTRAL_AFRICAN_REPUBLIC = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAB"));  // 🇨🇫 Central African Republic
-    inline const juce::String CONGO_BRAZZAVILLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAC"));  // 🇨🇬 Congo - Brazzaville
-    inline const juce::String SWITZERLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAD"));  // 🇨🇭 Switzerland
-    inline const juce::String CÔTE_DIVOIRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAE"));  // 🇨🇮 Côte D’Ivoire
-    inline const juce::String COOK_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB0"));  // 🇨🇰 Cook Islands
-    inline const juce::String CHILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB1"));  // 🇨🇱 Chile
-    inline const juce::String CAMEROON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB2"));  // 🇨🇲 Cameroon
-    inline const juce::String CHINA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB3"));  // 🇨🇳 China
-    inline const juce::String COLOMBIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB4"));  // 🇨🇴 Colombia
-    inline const juce::String CLIPPERTON_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB5"));  // 🇨🇵 Clipperton Island
-    inline const juce::String COSTA_RICA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB7"));  // 🇨🇷 Costa Rica
-    inline const juce::String CUBA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBA"));  // 🇨🇺 Cuba
-    inline const juce::String CAPE_VERDE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBB"));  // 🇨🇻 Cape Verde
-    inline const juce::String CURAÇAO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBC"));  // 🇨🇼 Curaçao
-    inline const juce::String CHRISTMAS_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBD"));  // 🇨🇽 Christmas Island
-    inline const juce::String CYPRUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBE"));  // 🇨🇾 Cyprus
-    inline const juce::String CZECHIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBF"));  // 🇨🇿 Czechia
-    inline const juce::String GERMANY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xAA"));  // 🇩🇪 Germany
-    inline const juce::String DIEGO_GARCIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xAC"));  // 🇩🇬 Diego Garcia
-    inline const juce::String DJIBOUTI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xAF"));  // 🇩🇯 Djibouti
-    inline const juce::String DENMARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xB0"));  // 🇩🇰 Denmark
-    inline const juce::String DOMINICA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xB2"));  // 🇩🇲 Dominica
-    inline const juce::String DOMINICAN_REPUBLIC = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xB4"));  // 🇩🇴 Dominican Republic
-    inline const juce::String ALGERIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xBF"));  // 🇩🇿 Algeria
-    inline const juce::String CEUTA_MELILLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xA6"));  // 🇪🇦 Ceuta & Melilla
-    inline const juce::String ECUADOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xA8"));  // 🇪🇨 Ecuador
-    inline const juce::String ESTONIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xAA"));  // 🇪🇪 Estonia
-    inline const juce::String EGYPT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xAC"));  // 🇪🇬 Egypt
-    inline const juce::String WESTERN_SAHARA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xAD"));  // 🇪🇭 Western Sahara
-    inline const juce::String ERITREA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xB7"));  // 🇪🇷 Eritrea
-    inline const juce::String SPAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xB8"));  // 🇪🇸 Spain
-    inline const juce::String ETHIOPIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xB9"));  // 🇪🇹 Ethiopia
-    inline const juce::String EUROPEAN_UNION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xBA"));  // 🇪🇺 European Union
-    inline const juce::String FINLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xAE"));  // 🇫🇮 Finland
-    inline const juce::String FIJI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xAF"));  // 🇫🇯 Fiji
-    inline const juce::String FALKLAND_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB0"));  // 🇫🇰 Falkland Islands
-    inline const juce::String MICRONESIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB2"));  // 🇫🇲 Micronesia
-    inline const juce::String FAROE_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB4"));  // 🇫🇴 Faroe Islands
-    inline const juce::String FRANCE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB7"));  // 🇫🇷 France
-    inline const juce::String GABON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xA6"));  // 🇬🇦 Gabon
-    inline const juce::String UNITED_KINGDOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xA7"));  // 🇬🇧 United Kingdom
-    inline const juce::String GRENADA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xA9"));  // 🇬🇩 Grenada
-    inline const juce::String GEORGIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAA"));  // 🇬🇪 Georgia
-    inline const juce::String FRENCH_GUIANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAB"));  // 🇬🇫 French Guiana
-    inline const juce::String GUERNSEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAC"));  // 🇬🇬 Guernsey
-    inline const juce::String GHANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAD"));  // 🇬🇭 Ghana
-    inline const juce::String GIBRALTAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAE"));  // 🇬🇮 Gibraltar
-    inline const juce::String GREENLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB1"));  // 🇬🇱 Greenland
-    inline const juce::String GAMBIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB2"));  // 🇬🇲 Gambia
-    inline const juce::String GUINEA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB3"));  // 🇬🇳 Guinea
-    inline const juce::String GUADELOUPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB5"));  // 🇬🇵 Guadeloupe
-    inline const juce::String EQUATORIAL_GUINEA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB6"));  // 🇬🇶 Equatorial Guinea
-    inline const juce::String GREECE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB7"));  // 🇬🇷 Greece
-    inline const juce::String SOUTH_GEORGIA_SOUTH_SANDWICH_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB8"));  // 🇬🇸 South Georgia & South Sandwich Islands
-    inline const juce::String GUATEMALA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB9"));  // 🇬🇹 Guatemala
-    inline const juce::String GUAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xBA"));  // 🇬🇺 Guam
-    inline const juce::String GUINEA_BISSAU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xBC"));  // 🇬🇼 Guinea-Bissau
-    inline const juce::String GUYANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xBE"));  // 🇬🇾 Guyana
-    inline const juce::String HONG_KONG_SAR_CHINA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB0"));  // 🇭🇰 Hong Kong SAR China
-    inline const juce::String HEARD_MCDONALD_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB2"));  // 🇭🇲 Heard & McDonald Islands
-    inline const juce::String HONDURAS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB3"));  // 🇭🇳 Honduras
-    inline const juce::String CROATIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB7"));  // 🇭🇷 Croatia
-    inline const juce::String HAITI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB9"));  // 🇭🇹 Haiti
-    inline const juce::String HUNGARY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xBA"));  // 🇭🇺 Hungary
-    inline const juce::String CANARY_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xA8"));  // 🇮🇨 Canary Islands
-    inline const juce::String INDONESIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xA9"));  // 🇮🇩 Indonesia
-    inline const juce::String IRELAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xAA"));  // 🇮🇪 Ireland
-    inline const juce::String ISRAEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB1"));  // 🇮🇱 Israel
-    inline const juce::String ISLE_OF_MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB2"));  // 🇮🇲 Isle of Man
-    inline const juce::String INDIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB3"));  // 🇮🇳 India
-    inline const juce::String BRITISH_INDIAN_OCEAN_TERRITORY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB4"));  // 🇮🇴 British Indian Ocean Territory
-    inline const juce::String IRAQ = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB6"));  // 🇮🇶 Iraq
-    inline const juce::String IRAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB7"));  // 🇮🇷 Iran
-    inline const juce::String ICELAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB8"));  // 🇮🇸 Iceland
-    inline const juce::String ITALY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9"));  // 🇮🇹 Italy
-    inline const juce::String JERSEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xAA"));  // 🇯🇪 Jersey
-    inline const juce::String JAMAICA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xB2"));  // 🇯🇲 Jamaica
-    inline const juce::String JORDAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xB4"));  // 🇯🇴 Jordan
-    inline const juce::String JAPAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xB5"));  // 🇯🇵 Japan
-    inline const juce::String KENYA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAA"));  // 🇰🇪 Kenya
-    inline const juce::String KYRGYZSTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAC"));  // 🇰🇬 Kyrgyzstan
-    inline const juce::String CAMBODIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAD"));  // 🇰🇭 Cambodia
-    inline const juce::String KIRIBATI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAE"));  // 🇰🇮 Kiribati
-    inline const juce::String COMOROS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB2"));  // 🇰🇲 Comoros
-    inline const juce::String ST_KITTS_NEVIS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB3"));  // 🇰🇳 St. Kitts & Nevis
-    inline const juce::String NORTH_KOREA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB5"));  // 🇰🇵 North Korea
-    inline const juce::String SOUTH_KOREA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB7"));  // 🇰🇷 South Korea
-    inline const juce::String KUWAIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xBC"));  // 🇰🇼 Kuwait
-    inline const juce::String CAYMAN_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xBE"));  // 🇰🇾 Cayman Islands
-    inline const juce::String KAZAKHSTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xBF"));  // 🇰🇿 Kazakhstan
-    inline const juce::String LAOS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xA6"));  // 🇱🇦 Laos
-    inline const juce::String LEBANON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xA7"));  // 🇱🇧 Lebanon
-    inline const juce::String ST_LUCIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xA8"));  // 🇱🇨 St. Lucia
-    inline const juce::String LIECHTENSTEIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xAE"));  // 🇱🇮 Liechtenstein
-    inline const juce::String SRI_LANKA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB0"));  // 🇱🇰 Sri Lanka
-    inline const juce::String LIBERIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB7"));  // 🇱🇷 Liberia
-    inline const juce::String LESOTHO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB8"));  // 🇱🇸 Lesotho
-    inline const juce::String LITHUANIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB9"));  // 🇱🇹 Lithuania
-    inline const juce::String LUXEMBOURG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xBA"));  // 🇱🇺 Luxembourg
-    inline const juce::String LATVIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xBB"));  // 🇱🇻 Latvia
-    inline const juce::String LIBYA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xBE"));  // 🇱🇾 Libya
-    inline const juce::String MOROCCO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xA6"));  // 🇲🇦 Morocco
-    inline const juce::String MONACO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xA8"));  // 🇲🇨 Monaco
-    inline const juce::String MOLDOVA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xA9"));  // 🇲🇩 Moldova
-    inline const juce::String MONTENEGRO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAA"));  // 🇲🇪 Montenegro
-    inline const juce::String ST_MARTIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAB"));  // 🇲🇫 St. Martin
-    inline const juce::String MADAGASCAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAC"));  // 🇲🇬 Madagascar
-    inline const juce::String MARSHALL_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAD"));  // 🇲🇭 Marshall Islands
-    inline const juce::String MACEDONIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB0"));  // 🇲🇰 Macedonia
-    inline const juce::String MALI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB1"));  // 🇲🇱 Mali
-    inline const juce::String MYANMAR_BURMA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB2"));  // 🇲🇲 Myanmar (Burma)
-    inline const juce::String MONGOLIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB3"));  // 🇲🇳 Mongolia
-    inline const juce::String MACAU_SAR_CHINA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB4"));  // 🇲🇴 Macau SAR China
-    inline const juce::String NORTHERN_MARIANA_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB5"));  // 🇲🇵 Northern Mariana Islands
-    inline const juce::String MARTINIQUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB6"));  // 🇲🇶 Martinique
-    inline const juce::String MAURITANIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB7"));  // 🇲🇷 Mauritania
-    inline const juce::String MONTSERRAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB8"));  // 🇲🇸 Montserrat
-    inline const juce::String MALTA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB9"));  // 🇲🇹 Malta
-    inline const juce::String MAURITIUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBA"));  // 🇲🇺 Mauritius
-    inline const juce::String MALDIVES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBB"));  // 🇲🇻 Maldives
-    inline const juce::String MALAWI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBC"));  // 🇲🇼 Malawi
-    inline const juce::String MEXICO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBD"));  // 🇲🇽 Mexico
-    inline const juce::String MALAYSIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBE"));  // 🇲🇾 Malaysia
-    inline const juce::String MOZAMBIQUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBF"));  // 🇲🇿 Mozambique
-    inline const juce::String NAMIBIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xA6"));  // 🇳🇦 Namibia
-    inline const juce::String NEW_CALEDONIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xA8"));  // 🇳🇨 New Caledonia
-    inline const juce::String NIGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAA"));  // 🇳🇪 Niger
-    inline const juce::String NORFOLK_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAB"));  // 🇳🇫 Norfolk Island
-    inline const juce::String NIGERIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAC"));  // 🇳🇬 Nigeria
-    inline const juce::String NICARAGUA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAE"));  // 🇳🇮 Nicaragua
-    inline const juce::String NETHERLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB1"));  // 🇳🇱 Netherlands
-    inline const juce::String NORWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB4"));  // 🇳🇴 Norway
-    inline const juce::String NEPAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB5"));  // 🇳🇵 Nepal
-    inline const juce::String NAURU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB7"));  // 🇳🇷 Nauru
-    inline const juce::String NIUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xBA"));  // 🇳🇺 Niue
-    inline const juce::String NEW_ZEALAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xBF"));  // 🇳🇿 New Zealand
-    inline const juce::String OMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB4\xF0\x9F\x87\xB2"));  // 🇴🇲 Oman
-    inline const juce::String PANAMA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xA6"));  // 🇵🇦 Panama
-    inline const juce::String PERU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAA"));  // 🇵🇪 Peru
-    inline const juce::String FRENCH_POLYNESIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAB"));  // 🇵🇫 French Polynesia
-    inline const juce::String PAPUA_NEW_GUINEA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAC"));  // 🇵🇬 Papua New Guinea
-    inline const juce::String PHILIPPINES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAD"));  // 🇵🇭 Philippines
-    inline const juce::String PAKISTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB0"));  // 🇵🇰 Pakistan
-    inline const juce::String POLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB1"));  // 🇵🇱 Poland
-    inline const juce::String ST_PIERRE_MIQUELON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB2"));  // 🇵🇲 St. Pierre & Miquelon
-    inline const juce::String PITCAIRN_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB3"));  // 🇵🇳 Pitcairn Islands
-    inline const juce::String PUERTO_RICO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB7"));  // 🇵🇷 Puerto Rico
-    inline const juce::String PALESTINIAN_TERRITORIES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB8"));  // 🇵🇸 Palestinian Territories
-    inline const juce::String PORTUGAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB9"));  // 🇵🇹 Portugal
-    inline const juce::String PALAU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xBC"));  // 🇵🇼 Palau
-    inline const juce::String PARAGUAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xBE"));  // 🇵🇾 Paraguay
-    inline const juce::String QATAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB6\xF0\x9F\x87\xA6"));  // 🇶🇦 Qatar
-    inline const juce::String RÉUNION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xAA"));  // 🇷🇪 Réunion
-    inline const juce::String ROMANIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xB4"));  // 🇷🇴 Romania
-    inline const juce::String SERBIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xB8"));  // 🇷🇸 Serbia
-    inline const juce::String RUSSIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xBA"));  // 🇷🇺 Russia
-    inline const juce::String RWANDA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xBC"));  // 🇷🇼 Rwanda
-    inline const juce::String SAUDI_ARABIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA6"));  // 🇸🇦 Saudi Arabia
-    inline const juce::String SOLOMON_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA7"));  // 🇸🇧 Solomon Islands
-    inline const juce::String SEYCHELLES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA8"));  // 🇸🇨 Seychelles
-    inline const juce::String SUDAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA9"));  // 🇸🇩 Sudan
-    inline const juce::String SWEDEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAA"));  // 🇸🇪 Sweden
-    inline const juce::String SINGAPORE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAC"));  // 🇸🇬 Singapore
-    inline const juce::String ST_HELENA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAD"));  // 🇸🇭 St. Helena
-    inline const juce::String SLOVENIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAE"));  // 🇸🇮 Slovenia
-    inline const juce::String SVALBARD_JAN_MAYEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAF"));  // 🇸🇯 Svalbard & Jan Mayen
-    inline const juce::String SLOVAKIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB0"));  // 🇸🇰 Slovakia
-    inline const juce::String SIERRA_LEONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB1"));  // 🇸🇱 Sierra Leone
-    inline const juce::String SAN_MARINO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB2"));  // 🇸🇲 San Marino
-    inline const juce::String SENEGAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB3"));  // 🇸🇳 Senegal
-    inline const juce::String SOMALIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB4"));  // 🇸🇴 Somalia
-    inline const juce::String SURINAME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB7"));  // 🇸🇷 Suriname
-    inline const juce::String SOUTH_SUDAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB8"));  // 🇸🇸 South Sudan
-    inline const juce::String SÃO_TOMÉ_PRÍNCIPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB9"));  // 🇸🇹 São Tomé & Príncipe
-    inline const juce::String EL_SALVADOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBB"));  // 🇸🇻 El Salvador
-    inline const juce::String SINT_MAARTEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBD"));  // 🇸🇽 Sint Maarten
-    inline const juce::String SYRIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBE"));  // 🇸🇾 Syria
-    inline const juce::String SWAZILAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBF"));  // 🇸🇿 Swaziland
-    inline const juce::String TRISTAN_DA_CUNHA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xA6"));  // 🇹🇦 Tristan Da Cunha
-    inline const juce::String TURKS_CAICOS_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xA8"));  // 🇹🇨 Turks & Caicos Islands
-    inline const juce::String CHAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xA9"));  // 🇹🇩 Chad
-    inline const juce::String FRENCH_SOUTHERN_TERRITORIES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAB"));  // 🇹🇫 French Southern Territories
-    inline const juce::String TOGO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAC"));  // 🇹🇬 Togo
-    inline const juce::String THAILAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAD"));  // 🇹🇭 Thailand
-    inline const juce::String TAJIKISTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAF"));  // 🇹🇯 Tajikistan
-    inline const juce::String TOKELAU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB0"));  // 🇹🇰 Tokelau
-    inline const juce::String TIMOR_LESTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB1"));  // 🇹🇱 Timor-Leste
-    inline const juce::String TURKMENISTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB2"));  // 🇹🇲 Turkmenistan
-    inline const juce::String TUNISIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB3"));  // 🇹🇳 Tunisia
-    inline const juce::String TONGA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB4"));  // 🇹🇴 Tonga
-    inline const juce::String TRINIDAD_TOBAGO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB9"));  // 🇹🇹 Trinidad & Tobago
-    inline const juce::String TUVALU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xBB"));  // 🇹🇻 Tuvalu
-    inline const juce::String TAIWAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xBC"));  // 🇹🇼 Taiwan
-    inline const juce::String TANZANIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xBF"));  // 🇹🇿 Tanzania
-    inline const juce::String UKRAINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xA6"));  // 🇺🇦 Ukraine
-    inline const juce::String UGANDA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xAC"));  // 🇺🇬 Uganda
-    inline const juce::String US_OUTLYING_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB2"));  // 🇺🇲 U.S. Outlying Islands
-    inline const juce::String UNITED_NATIONS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB3"));  // 🇺🇳 United Nations
-    inline const juce::String UNITED_STATES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8"));  // 🇺🇸 United States
-    inline const juce::String URUGUAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xBE"));  // 🇺🇾 Uruguay
-    inline const juce::String UZBEKISTAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xBF"));  // 🇺🇿 Uzbekistan
-    inline const juce::String VATICAN_CITY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xA6"));  // 🇻🇦 Vatican City
-    inline const juce::String ST_VINCENT_GRENADINES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xA8"));  // 🇻🇨 St. Vincent & Grenadines
-    inline const juce::String VENEZUELA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xAA"));  // 🇻🇪 Venezuela
-    inline const juce::String BRITISH_VIRGIN_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xAC"));  // 🇻🇬 British Virgin Islands
-    inline const juce::String US_VIRGIN_ISLANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xAE"));  // 🇻🇮 U.S. Virgin Islands
-    inline const juce::String VIETNAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xB3"));  // 🇻🇳 Vietnam
-    inline const juce::String VANUATU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xBA"));  // 🇻🇺 Vanuatu
-    inline const juce::String WALLIS_FUTUNA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBC\xF0\x9F\x87\xAB"));  // 🇼🇫 Wallis & Futuna
-    inline const juce::String SAMOA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBC\xF0\x9F\x87\xB8"));  // 🇼🇸 Samoa
-    inline const juce::String KOSOVO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBD\xF0\x9F\x87\xB0"));  // 🇽🇰 Kosovo
-    inline const juce::String YEMEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBE\xF0\x9F\x87\xAA"));  // 🇾🇪 Yemen
-    inline const juce::String MAYOTTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBE\xF0\x9F\x87\xB9"));  // 🇾🇹 Mayotte
-    inline const juce::String SOUTH_AFRICA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBF\xF0\x9F\x87\xA6"));  // 🇿🇦 South Africa
-    inline const juce::String ZAMBIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBF\xF0\x9F\x87\xB2"));  // 🇿🇲 Zambia
-    inline const juce::String ZIMBABWE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBF\xF0\x9F\x87\xBC"));  // 🇿🇼 Zimbabwe
-    inline const juce::String ENGLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xF3\xA0\x81\xA7\xF3\xA0\x81\xA2\xF3\xA0\x81\xA5\xF3\xA0\x81\xAE\xF3\xA0\x81\xA7\xF3\xA0\x81\xBF"));  // 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England
-    inline const juce::String SCOTLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xF3\xA0\x81\xA7\xF3\xA0\x81\xA2\xF3\xA0\x81\xB3\xF3\xA0\x81\xA3\xF3\xA0\x81\xB4\xF3\xA0\x81\xBF"));  // 🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland
-    inline const juce::String WALES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xF3\xA0\x81\xA7\xF3\xA0\x81\xA2\xF3\xA0\x81\xB7\xF3\xA0\x81\xAC\xF3\xA0\x81\xB3\xF3\xA0\x81\xBF"));  // 🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales
+inline const juce::String GRINNING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x80")); // 😀 Grinning Face
+inline const juce::String BEAMING_FACE_WITH_SMILING_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x81")); // 😁 Beaming Face With Smiling Eyes
+inline const juce::String FACE_WITH_TEARS_OF_JOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x82")); // 😂 Face With Tears of Joy
+inline const juce::String ROLLING_ON_THE_FLOOR_LAUGHING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA3")); // 🤣 Rolling on the Floor Laughing
+inline const juce::String GRINNING_FACE_WITH_BIG_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x83")); // 😃 Grinning Face With Big Eyes
+inline const juce::String GRINNING_FACE_WITH_SMILING_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x84")); // 😄 Grinning Face With Smiling Eyes
+inline const juce::String GRINNING_FACE_WITH_SWEAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x85")); // 😅 Grinning Face With Sweat
+inline const juce::String GRINNING_SQUINTING_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x86")); // 😆 Grinning Squinting Face
+inline const juce::String WINKING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x89")); // 😉 Winking Face
+inline const juce::String SMILING_FACE_WITH_SMILING_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8A")); // 😊 Smiling Face With Smiling Eyes
+inline const juce::String FACE_SAVORING_FOOD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8B")); // 😋 Face Savoring Food
+inline const juce::String SMILING_FACE_WITH_SUNGLASSES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8E")); // 😎 Smiling Face With Sunglasses
+inline const juce::String SMILING_FACE_WITH_HEART_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8D")); // 😍 Smiling Face With Heart-Eyes
+inline const juce::String FACE_BLOWING_A_KISS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x98")); // 😘 Face Blowing a Kiss
+inline const juce::String KISSING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x97")); // 😗 Kissing Face
+inline const juce::String KISSING_FACE_WITH_SMILING_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x99")); // 😙 Kissing Face With Smiling Eyes
+inline const juce::String KISSING_FACE_WITH_CLOSED_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9A")); // 😚 Kissing Face With Closed Eyes
+inline const juce::String SMILING_FACE = juce::String(juce::CharPointer_UTF8("\xE2\x98\xBA")); // ☺ Smiling Face
+inline const juce::String SLIGHTLY_SMILING_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x82")); // 🙂 Slightly Smiling Face
+inline const juce::String HUGGING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x97"));  // 🤗 Hugging Face
+inline const juce::String STAR_STRUCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA9"));   // 🤩 Star-Struck
+inline const juce::String THINKING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x94")); // 🤔 Thinking Face
+inline const juce::String FACE_WITH_RAISED_EYEBROW =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA8")); // 🤨 Face With Raised Eyebrow
+inline const juce::String NEUTRAL_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x90")); // 😐 Neutral Face
+inline const juce::String EXPRESSIONLESS_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x91")); // 😑 Expressionless Face
+inline const juce::String FACE_WITHOUT_MOUTH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB6")); // 😶 Face Without Mouth
+inline const juce::String FACE_WITH_ROLLING_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x84")); // 🙄 Face With Rolling Eyes
+inline const juce::String SMIRKING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8F")); // 😏 Smirking Face
+inline const juce::String PERSEVERING_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA3")); // 😣 Persevering Face
+inline const juce::String SAD_BUT_RELIEVED_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA5")); // 😥 Sad but Relieved Face
+inline const juce::String FACE_WITH_OPEN_MOUTH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAE")); // 😮 Face With Open Mouth
+inline const juce::String ZIPPER_MOUTH_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x90")); // 🤐 Zipper-Mouth Face
+inline const juce::String HUSHED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAF"));   // 😯 Hushed Face
+inline const juce::String SLEEPY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAA"));   // 😪 Sleepy Face
+inline const juce::String TIRED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAB"));    // 😫 Tired Face
+inline const juce::String SLEEPING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB4")); // 😴 Sleeping Face
+inline const juce::String RELIEVED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x8C")); // 😌 Relieved Face
+inline const juce::String FACE_WITH_TONGUE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9B")); // 😛 Face With Tongue
+inline const juce::String WINKING_FACE_WITH_TONGUE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9C")); // 😜 Winking Face With Tongue
+inline const juce::String SQUINTING_FACE_WITH_TONGUE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9D")); // 😝 Squinting Face With Tongue
+inline const juce::String DROOLING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA4")); // 🤤 Drooling Face
+inline const juce::String UNAMUSED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x92")); // 😒 Unamused Face
+inline const juce::String DOWNCAST_FACE_WITH_SWEAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x93")); // 😓 Downcast Face With Sweat
+inline const juce::String PENSIVE_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x94"));  // 😔 Pensive Face
+inline const juce::String CONFUSED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x95")); // 😕 Confused Face
+inline const juce::String UPSIDE_DOWN_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x83")); // 🙃 Upside-Down Face
+inline const juce::String MONEY_MOUTH_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x91")); // 🤑 Money-Mouth Face
+inline const juce::String ASTONISHED_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB2"));                                   // 😲 Astonished Face
+inline const juce::String FROWNING_FACE = juce::String(juce::CharPointer_UTF8("\xE2\x98\xB9")); // ☹ Frowning Face
+inline const juce::String SLIGHTLY_FROWNING_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x81")); // 🙁 Slightly Frowning Face
+inline const juce::String CONFOUNDED_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x96")); // 😖 Confounded Face
+inline const juce::String DISAPPOINTED_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9E")); // 😞 Disappointed Face
+inline const juce::String WORRIED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x9F")); // 😟 Worried Face
+inline const juce::String FACE_WITH_STEAM_FROM_NOSE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA4")); // 😤 Face With Steam From Nose
+inline const juce::String CRYING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA2")); // 😢 Crying Face
+inline const juce::String LOUDLY_CRYING_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAD")); // 😭 Loudly Crying Face
+inline const juce::String FROWNING_FACE_WITH_OPEN_MOUTH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA6")); // 😦 Frowning Face With Open Mouth
+inline const juce::String ANGUISHED_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA7"));                                      // 😧 Anguished Face
+inline const juce::String FEARFUL_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA8")); // 😨 Fearful Face
+inline const juce::String WEARY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA9"));   // 😩 Weary Face
+inline const juce::String EXPLODING_HEAD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAF")); // 🤯 Exploding Head
+inline const juce::String GRIMACING_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xAC")); // 😬 Grimacing Face
+inline const juce::String ANXIOUS_FACE_WITH_SWEAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB0")); // 😰 Anxious Face With Sweat
+inline const juce::String FACE_SCREAMING_IN_FEAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB1")); // 😱 Face Screaming in Fear
+inline const juce::String FLUSHED_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB3")); // 😳 Flushed Face
+inline const juce::String ZANY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAA"));    // 🤪 Zany Face
+inline const juce::String DIZZY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB5"));   // 😵 Dizzy Face
+inline const juce::String POUTING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA1")); // 😡 Pouting Face
+inline const juce::String ANGRY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xA0"));   // 😠 Angry Face
+inline const juce::String FACE_WITH_SYMBOLS_ON_MOUTH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAC")); // 🤬 Face With Symbols on Mouth
+inline const juce::String FACE_WITH_MEDICAL_MASK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB7")); // 😷 Face With Medical Mask
+inline const juce::String FACE_WITH_THERMOMETER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x92")); // 🤒 Face With Thermometer
+inline const juce::String FACE_WITH_HEAD_BANDAGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x95")); // 🤕 Face With Head-Bandage
+inline const juce::String NAUSEATED_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA2"));                                       // 🤢 Nauseated Face
+inline const juce::String FACE_VOMITING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAE")); // 🤮 Face Vomiting
+inline const juce::String SNEEZING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA7")); // 🤧 Sneezing Face
+inline const juce::String SMILING_FACE_WITH_HALO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x87")); // 😇 Smiling Face With Halo
+inline const juce::String COWBOY_HAT_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA0"));                                    // 🤠 Cowboy Hat Face
+inline const juce::String CLOWN_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA1")); // 🤡 Clown Face
+inline const juce::String LYING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA5")); // 🤥 Lying Face
+inline const juce::String SHUSHING_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAB")); // 🤫 Shushing Face
+inline const juce::String FACE_WITH_HAND_OVER_MOUTH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xAD")); // 🤭 Face With Hand Over Mouth
+inline const juce::String FACE_WITH_MONOCLE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x90"));                                   // 🧐 Face With Monocle
+inline const juce::String NERD_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x93")); // 🤓 Nerd Face
+inline const juce::String SMILING_FACE_WITH_HORNS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\x88")); // 😈 Smiling Face With Horns
+inline const juce::String ANGRY_FACE_WITH_HORNS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBF"));                                // 👿 Angry Face With Horns
+inline const juce::String OGRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB9"));   // 👹 Ogre
+inline const juce::String GOBLIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBA")); // 👺 Goblin
+inline const juce::String SKULL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x80"));  // 💀 Skull
+inline const juce::String GHOST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBB"));  // 👻 Ghost
+inline const juce::String ALIEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBD"));  // 👽 Alien
+inline const juce::String ROBOT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x96"));  // 🤖 Robot Face
+inline const juce::String PILE_OF_POO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA9")); // 💩 Pile of Poo
+inline const juce::String GRINNING_CAT_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBA")); // 😺 Grinning Cat Face
+inline const juce::String GRINNING_CAT_FACE_WITH_SMILING_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB8")); // 😸 Grinning Cat Face With Smiling Eyes
+inline const juce::String CAT_FACE_WITH_TEARS_OF_JOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xB9")); // 😹 Cat Face With Tears of Joy
+inline const juce::String SMILING_CAT_FACE_WITH_HEART_EYES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBB")); // 😻 Smiling Cat Face With Heart-Eyes
+inline const juce::String CAT_FACE_WITH_WRY_SMILE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBC")); // 😼 Cat Face With Wry Smile
+inline const juce::String KISSING_CAT_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBD")); // 😽 Kissing Cat Face
+inline const juce::String WEARY_CAT_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x80")); // 🙀 Weary Cat Face
+inline const juce::String CRYING_CAT_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBF")); // 😿 Crying Cat Face
+inline const juce::String POUTING_CAT_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x98\xBE"));                                   // 😾 Pouting Cat Face
+inline const juce::String BABY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB6"));      // 👶 Baby
+inline const juce::String BOY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA6"));       // 👦 Boy
+inline const juce::String GIRL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA7"));      // 👧 Girl
+inline const juce::String MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8"));       // 👨 Man
+inline const juce::String WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9"));     // 👩 Woman
+inline const juce::String OLD_MAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB4"));   // 👴 Old Man
+inline const juce::String OLD_WOMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB5")); // 👵 Old Woman
+inline const juce::String MAN_HEALTH_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9A\x95\xEF\xB8\x8F")); // 👨‍⚕️ Man
+                                                                                                  // Health
+                                                                                                  // Worker
+inline const juce::String WOMAN_HEALTH_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9A\x95\xEF\xB8\x8F")); // 👩‍⚕️
+                                                                                                  // Woman
+                                                                                                  // Health
+                                                                                                  // Worker
+inline const juce::String MAN_STUDENT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8E\x93")); // 👨‍🎓 Man Student
+inline const juce::String WOMAN_STUDENT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8E\x93")); // 👩‍🎓 Woman
+                                                                                          // Student
+inline const juce::String MAN_JUDGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9A\x96\xEF\xB8\x8F")); // 👨‍⚖️ Man
+                                                                                                  // Judge
+inline const juce::String WOMAN_JUDGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9A\x96\xEF\xB8\x8F")); // 👩‍⚖️ Woman
+                                                                                                  // Judge
+inline const juce::String MAN_FARMER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8C\xBE")); // 👨‍🌾 Man Farmer
+inline const juce::String WOMAN_FARMER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8C\xBE")); // 👩‍🌾 Woman
+                                                                                          // Farmer
+inline const juce::String MAN_COOK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8D\xB3")); // 👨‍🍳 Man Cook
+inline const juce::String WOMAN_COOK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8D\xB3")); // 👩‍🍳 Woman Cook
+inline const juce::String MAN_MECHANIC =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x94\xA7")); // 👨‍🔧 Man
+                                                                                          // Mechanic
+inline const juce::String WOMAN_MECHANIC =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x94\xA7")); // 👩‍🔧 Woman
+                                                                                          // Mechanic
+inline const juce::String MAN_FACTORY_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8F\xAD")); // 👨‍🏭 Man Factory
+                                                                                          // Worker
+inline const juce::String WOMAN_FACTORY_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8F\xAD")); // 👩‍🏭 Woman
+                                                                                          // Factory Worker
+inline const juce::String MAN_OFFICE_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x92\xBC")); // 👨‍💼 Man Office
+                                                                                          // Worker
+inline const juce::String WOMAN_OFFICE_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x92\xBC")); // 👩‍💼 Woman
+                                                                                          // Office Worker
+inline const juce::String MAN_SCIENTIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x94\xAC")); // 👨‍🔬 Man
+                                                                                          // Scientist
+inline const juce::String WOMAN_SCIENTIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x94\xAC")); // 👩‍🔬 Woman
+                                                                                          // Scientist
+inline const juce::String MAN_TECHNOLOGIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x92\xBB")); // 👨‍💻 Man
+                                                                                          // Technologist
+inline const juce::String WOMAN_TECHNOLOGIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x92\xBB")); // 👩‍💻 Woman
+                                                                                          // Technologist
+inline const juce::String MAN_SINGER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8E\xA4")); // 👨‍🎤 Man Singer
+inline const juce::String WOMAN_SINGER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8E\xA4")); // 👩‍🎤 Woman
+                                                                                          // Singer
+inline const juce::String MAN_ARTIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x8E\xA8")); // 👨‍🎨 Man Artist
+inline const juce::String WOMAN_ARTIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x8E\xA8")); // 👩‍🎨 Woman
+                                                                                          // Artist
+inline const juce::String MAN_PILOT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9C\x88\xEF\xB8\x8F")); // 👨‍✈️ Man
+                                                                                                  // Pilot
+inline const juce::String WOMAN_PILOT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9C\x88\xEF\xB8\x8F")); // 👩‍✈️ Woman
+                                                                                                  // Pilot
+inline const juce::String MAN_ASTRONAUT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x9A\x80")); // 👨‍🚀 Man
+                                                                                          // Astronaut
+inline const juce::String WOMAN_ASTRONAUT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x9A\x80")); // 👩‍🚀 Woman
+                                                                                          // Astronaut
+inline const juce::String MAN_FIREFIGHTER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x9A\x92")); // 👨‍🚒 Man
+                                                                                          // Firefighter
+inline const juce::String WOMAN_FIREFIGHTER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x9A\x92")); // 👩‍🚒 Woman
+                                                                                          // Firefighter
+inline const juce::String POLICE_OFFICER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAE")); // 👮 Police Officer
+inline const juce::String MAN_POLICE_OFFICER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAE\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 👮‍♂️ Man
+                                                                                                  // Police
+                                                                                                  // Officer
+inline const juce::String WOMAN_POLICE_OFFICER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAE\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 👮‍♀️
+                                                                                                  // Woman
+                                                                                                  // Police
+                                                                                                  // Officer
+inline const juce::String DETECTIVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB5"));   // 🕵 Detective
+inline const juce::String MAN_DETECTIVE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB5\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8"
+                                        "\x8F")); // 🕵️‍♂️ Man Detective
+inline const juce::String WOMAN_DETECTIVE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB5\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8"
+                                        "\x8F")); // 🕵️‍♀️ Woman Detective
+inline const juce::String GUARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x82")); // 💂 Guard
+inline const juce::String MAN_GUARD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x82\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 💂‍♂️ Man
+                                                                                                  // Guard
+inline const juce::String WOMAN_GUARD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x82\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 💂‍♀️ Woman
+                                                                                                  // Guard
+inline const juce::String CONSTRUCTION_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB7")); // 👷 Construction Worker
+inline const juce::String MAN_CONSTRUCTION_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB7\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 👷‍♂️ Man
+                                                                                                  // Construction
+                                                                                                  // Worker
+inline const juce::String WOMAN_CONSTRUCTION_WORKER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB7\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 👷‍♀️
+                                                                                                  // Woman
+                                                                                                  // Construction
+                                                                                                  // Worker
+inline const juce::String PRINCE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB4"));      // 🤴 Prince
+inline const juce::String PRINCESS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB8"));    // 👸 Princess
+inline const juce::String PERSON_WEARING_TURBAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB3")); // 👳 Person Wearing Turban
+inline const juce::String MAN_WEARING_TURBAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB3\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 👳‍♂️ Man
+                                                                                                  // Wearing
+                                                                                                  // Turban
+inline const juce::String WOMAN_WEARING_TURBAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB3\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 👳‍♀️
+                                                                                                  // Woman
+                                                                                                  // Wearing
+                                                                                                  // Turban
+inline const juce::String MAN_WITH_CHINESE_CAP =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB2")); // 👲 Man With Chinese Cap
+inline const juce::String WOMAN_WITH_HEADSCARF =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x95")); // 🧕 Woman With Headscarf
+inline const juce::String BEARDED_PERSON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x94")); // 🧔 Bearded Person
+inline const juce::String BLOND_HAIRED_PERSON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB1")); // 👱 Blond-Haired Person
+inline const juce::String BLOND_HAIRED_MAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB1\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 👱‍♂️
+                                                                                                  // Blond-Haired
+                                                                                                  // Man
+inline const juce::String BLOND_HAIRED_WOMAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB1\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));   // 👱‍♀️
+                                                                                                    // Blond-Haired
+                                                                                                    // Woman
+inline const juce::String MAN_IN_TUXEDO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB5")); // 🤵 Man in Tuxedo
+inline const juce::String BRIDE_WITH_VEIL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xB0")); // 👰 Bride With Veil
+inline const juce::String PREGNANT_WOMAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB0")); // 🤰 Pregnant Woman
+inline const juce::String BREAST_FEEDING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB1"));                                     // 🤱 Breast-Feeding
+inline const juce::String BABY_ANGEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBC"));  // 👼 Baby Angel
+inline const juce::String SANTA_CLAUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x85")); // 🎅 Santa Claus
+inline const juce::String MRS_CLAUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB6"));   // 🤶 Mrs. Claus
+inline const juce::String WOMAN_MAGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x99\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧙‍♀️ Woman
+                                                                                                  // Mage
+inline const juce::String MAN_MAGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x99\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧙‍♂️ Man
+                                                                                                  // Mage
+inline const juce::String WOMAN_FAIRY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9A\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧚‍♀️ Woman
+                                                                                                  // Fairy
+inline const juce::String MAN_FAIRY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9A\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧚‍♂️ Man
+                                                                                                  // Fairy
+inline const juce::String WOMAN_VAMPIRE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9B\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧛‍♀️ Woman
+                                                                                                  // Vampire
+inline const juce::String MAN_VAMPIRE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9B\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧛‍♂️ Man
+                                                                                                  // Vampire
+inline const juce::String MERMAID =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9C\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧜‍♀️
+                                                                                                  // Mermaid
+inline const juce::String MERMAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9C\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧜‍♂️
+                                                                                                  // Merman
+inline const juce::String WOMAN_ELF =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9D\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧝‍♀️ Woman
+                                                                                                  // Elf
+inline const juce::String MAN_ELF =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9D\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧝‍♂️ Man
+                                                                                                  // Elf
+inline const juce::String WOMAN_GENIE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9E\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧞‍♀️ Woman
+                                                                                                  // Genie
+inline const juce::String MAN_GENIE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9E\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧞‍♂️ Man
+                                                                                                  // Genie
+inline const juce::String WOMAN_ZOMBIE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧟‍♀️ Woman
+                                                                                                  // Zombie
+inline const juce::String MAN_ZOMBIE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x9F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧟‍♂️ Man
+                                                                                                  // Zombie
+inline const juce::String PERSON_FROWNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8D")); // 🙍 Person Frowning
+inline const juce::String MAN_FROWNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8D\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🙍‍♂️ Man
+                                                                                                  // Frowning
+inline const juce::String WOMAN_FROWNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8D\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🙍‍♀️ Woman
+                                                                                                  // Frowning
+inline const juce::String PERSON_POUTING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8E")); // 🙎 Person Pouting
+inline const juce::String MAN_POUTING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8E\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🙎‍♂️ Man
+                                                                                                  // Pouting
+inline const juce::String WOMAN_POUTING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8E\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🙎‍♀️ Woman
+                                                                                                  // Pouting
+inline const juce::String PERSON_GESTURING_NO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x85")); // 🙅 Person Gesturing No
+inline const juce::String MAN_GESTURING_NO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x85\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🙅‍♂️ Man
+                                                                                                  // Gesturing
+                                                                                                  // No
+inline const juce::String WOMAN_GESTURING_NO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x85\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🙅‍♀️
+                                                                                                  // Woman
+                                                                                                  // Gesturing
+                                                                                                  // No
+inline const juce::String PERSON_GESTURING_OK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x86")); // 🙆 Person Gesturing OK
+inline const juce::String MAN_GESTURING_OK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x86\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🙆‍♂️ Man
+                                                                                                  // Gesturing
+                                                                                                  // OK
+inline const juce::String WOMAN_GESTURING_OK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x86\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🙆‍♀️
+                                                                                                  // Woman
+                                                                                                  // Gesturing
+                                                                                                  // OK
+inline const juce::String PERSON_TIPPING_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x81")); // 💁 Person Tipping Hand
+inline const juce::String MAN_TIPPING_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x81\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 💁‍♂️ Man
+                                                                                                  // Tipping
+                                                                                                  // Hand
+inline const juce::String WOMAN_TIPPING_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x81\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 💁‍♀️
+                                                                                                  // Woman
+                                                                                                  // Tipping
+                                                                                                  // Hand
+inline const juce::String PERSON_RAISING_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8B")); // 🙋 Person Raising Hand
+inline const juce::String MAN_RAISING_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8B\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🙋‍♂️ Man
+                                                                                                  // Raising
+                                                                                                  // Hand
+inline const juce::String WOMAN_RAISING_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8B\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F"));   // 🙋‍♀️
+                                                                                                    // Woman
+                                                                                                    // Raising
+                                                                                                    // Hand
+inline const juce::String PERSON_BOWING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x87")); // 🙇 Person Bowing
+inline const juce::String MAN_BOWING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x87\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🙇‍♂️ Man
+                                                                                                  // Bowing
+inline const juce::String WOMAN_BOWING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x87\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🙇‍♀️ Woman
+                                                                                                  // Bowing
+inline const juce::String PERSON_FACEPALMING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA6")); // 🤦 Person Facepalming
+inline const juce::String MAN_FACEPALMING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA6\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🤦‍♂️ Man
+                                                                                                  // Facepalming
+inline const juce::String WOMAN_FACEPALMING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xA6\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🤦‍♀️
+                                                                                                  // Woman
+                                                                                                  // Facepalming
+inline const juce::String PERSON_SHRUGGING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB7")); // 🤷 Person Shrugging
+inline const juce::String MAN_SHRUGGING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB7\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🤷‍♂️ Man
+                                                                                                  // Shrugging
+inline const juce::String WOMAN_SHRUGGING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB7\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🤷‍♀️ Woman
+                                                                                                  // Shrugging
+inline const juce::String PERSON_GETTING_MASSAGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x86")); // 💆 Person Getting Massage
+inline const juce::String MAN_GETTING_MASSAGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x86\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 💆‍♂️ Man
+                                                                                                  // Getting
+                                                                                                  // Massage
+inline const juce::String WOMAN_GETTING_MASSAGE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x86\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 💆‍♀️
+                                                                                                  // Woman
+                                                                                                  // Getting
+                                                                                                  // Massage
+inline const juce::String PERSON_GETTING_HAIRCUT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x87")); // 💇 Person Getting Haircut
+inline const juce::String MAN_GETTING_HAIRCUT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x87\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 💇‍♂️ Man
+                                                                                                  // Getting
+                                                                                                  // Haircut
+inline const juce::String WOMAN_GETTING_HAIRCUT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x87\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 💇‍♀️
+                                                                                                  // Woman
+                                                                                                  // Getting
+                                                                                                  // Haircut
+inline const juce::String PERSON_WALKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB6")); // 🚶 Person Walking
+inline const juce::String MAN_WALKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB6\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🚶‍♂️ Man
+                                                                                                  // Walking
+inline const juce::String WOMAN_WALKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB6\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🚶‍♀️ Woman
+                                                                                                  // Walking
+inline const juce::String PERSON_RUNNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x83")); // 🏃 Person Running
+inline const juce::String MAN_RUNNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x83\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🏃‍♂️ Man
+                                                                                                  // Running
+inline const juce::String WOMAN_RUNNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x83\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🏃‍♀️ Woman
+                                                                                                  // Running
+inline const juce::String WOMAN_DANCING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x83")); // 💃 Woman Dancing
+inline const juce::String MAN_DANCING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xBA"));   // 🕺 Man Dancing
+inline const juce::String PEOPLE_WITH_BUNNY_EARS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAF")); // 👯 People With Bunny Ears
+inline const juce::String MEN_WITH_BUNNY_EARS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAF\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 👯‍♂️ Men
+                                                                                                  // With Bunny
+                                                                                                  // Ears
+inline const juce::String WOMEN_WITH_BUNNY_EARS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAF\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 👯‍♀️
+                                                                                                  // Women With
+                                                                                                  // Bunny Ears
+inline const juce::String WOMAN_IN_STEAMY_ROOM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x96\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧖‍♀️
+                                                                                                  // Woman in
+                                                                                                  // Steamy Room
+inline const juce::String MAN_IN_STEAMY_ROOM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x96\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧖‍♂️ Man
+                                                                                                  // in Steamy
+                                                                                                  // Room
+inline const juce::String MAN_IN_SUIT_LEVITATING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB4")); // 🕴 Man in Suit Levitating
+inline const juce::String SPEAKING_HEAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xA3")); // 🗣 Speaking Head
+inline const juce::String BUST_IN_SILHOUETTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA4")); // 👤 Bust in Silhouette
+inline const juce::String BUSTS_IN_SILHOUETTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA5")); // 👥 Busts in Silhouette
+inline const juce::String MAN_AND_WOMAN_HOLDING_HANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAB")); // 👫 Man and Woman Holding Hands
+inline const juce::String TWO_MEN_HOLDING_HANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAC")); // 👬 Two Men Holding Hands
+inline const juce::String TWO_WOMEN_HOLDING_HANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAD"));                              // 👭 Two Women Holding Hands
+inline const juce::String KISS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8F")); // 💏 Kiss
+inline const juce::String KISS_MAN_MAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F"
+                                        "\x92\x8B\xE2\x80\x8D\xF0\x9F\x91\xA8")); // 👨‍❤️‍💋‍👨 Kiss:
+                                                                                  // Man, Man
+inline const juce::String KISS_WOMAN_WOMAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0"
+                                        "\x9F\x92\x8B\xE2\x80\x8D\xF0\x9F\x91\xA9")); // 👩‍❤️‍💋‍👩
+                                                                                      // Kiss: Woman, Woman
+inline const juce::String COUPLE_WITH_HEART =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x91")); // 💑 Couple With Heart
+inline const juce::String COUPLE_WITH_HEART_MAN_MAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0"
+                                        "\x9F\x91\xA8")); // 👨‍❤️‍👨 Couple With Heart: Man, Man
+inline const juce::String COUPLE_WITH_HEART_WOMAN_WOMAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xE2\x9D\xA4\xEF\xB8\x8F\xE2\x80\x8D\xF0"
+                                        "\x9F\x91\xA9")); // 👩‍❤️‍👩 Couple With Heart: Woman,
+                                                          // Woman
+inline const juce::String FAMILY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xAA")); // 👪 Family
+inline const juce::String FAMILY_MAN_WOMAN_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👨‍👩‍👦 Family: Man, Woman, Boy
+inline const juce::String FAMILY_MAN_WOMAN_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7")); // 👨‍👩‍👧 Family: Man, Woman, Girl
+inline const juce::String FAMILY_MAN_WOMAN_GIRL_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👨‍👩‍👧‍👦 Family: Man,
+                                                                              // Woman, Girl, Boy
+inline const juce::String FAMILY_MAN_WOMAN_BOY_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👨‍👩‍👦‍👦 Family: Man,
+                                                                              // Woman, Boy, Boy
+inline const juce::String FAMILY_MAN_WOMAN_GIRL_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7")); // 👨‍👩‍👧‍👧 Family: Man,
+                                                                              // Woman, Girl, Girl
+inline const juce::String FAMILY_MAN_MAN_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👨‍👨‍👦 Family: Man, Man, Boy
+inline const juce::String FAMILY_MAN_MAN_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7")); // 👨‍👨‍👧 Family: Man, Man, Girl
+inline const juce::String FAMILY_MAN_MAN_GIRL_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👨‍👨‍👧‍👦 Family: Man,
+                                                                              // Man, Girl, Boy
+inline const juce::String FAMILY_MAN_MAN_BOY_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👨‍👨‍👦‍👦 Family: Man,
+                                                                              // Man, Boy, Boy
+inline const juce::String FAMILY_MAN_MAN_GIRL_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7")); // 👨‍👨‍👧‍👧 Family: Man,
+                                                                              // Man, Girl, Girl
+inline const juce::String FAMILY_WOMAN_WOMAN_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👩‍👩‍👦 Family: Woman, Woman, Boy
+inline const juce::String FAMILY_WOMAN_WOMAN_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7")); // 👩‍👩‍👧 Family: Woman, Woman, Girl
+inline const juce::String FAMILY_WOMAN_WOMAN_GIRL_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👩‍👩‍👧‍👦 Family:
+                                                                              // Woman, Woman, Girl, Boy
+inline const juce::String FAMILY_WOMAN_WOMAN_BOY_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👩‍👩‍👦‍👦 Family:
+                                                                              // Woman, Woman, Boy, Boy
+inline const juce::String FAMILY_WOMAN_WOMAN_GIRL_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7\xE2\x80\x8D\xF0\x9F\x91\xA7")); // 👩‍👩‍👧‍👧 Family:
+                                                                              // Woman, Woman, Girl, Girl
+inline const juce::String FAMILY_MAN_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👨‍👦 Family: Man,
+                                                                                          // Boy
+inline const juce::String FAMILY_MAN_BOY_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👨‍👦‍👦 Family: Man, Boy, Boy
+inline const juce::String FAMILY_MAN_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7")); // 👨‍👧 Family: Man,
+                                                                                          // Girl
+inline const juce::String FAMILY_MAN_GIRL_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👨‍👧‍👦 Family: Man, Girl, Boy
+inline const juce::String FAMILY_MAN_GIRL_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA8\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7")); // 👨‍👧‍👧 Family: Man, Girl, Girl
+inline const juce::String FAMILY_WOMAN_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6")); // 👩‍👦 Family:
+                                                                                          // Woman, Boy
+inline const juce::String FAMILY_WOMAN_BOY_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA6\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👩‍👦‍👦 Family: Woman, Boy, Boy
+inline const juce::String FAMILY_WOMAN_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7")); // 👩‍👧 Family:
+                                                                                          // Woman, Girl
+inline const juce::String FAMILY_WOMAN_GIRL_BOY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA6")); // 👩‍👧‍👦 Family: Woman, Girl, Boy
+inline const juce::String FAMILY_WOMAN_GIRL_GIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA9\xE2\x80\x8D\xF0\x9F\x91\xA7\xE2\x80\x8D\xF0\x9F\x91"
+                                        "\xA7")); // 👩‍👧‍👧 Family: Woman, Girl, Girl
+inline const juce::String SELFIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB3"));        // 🤳 Selfie
+inline const juce::String FLEXED_BICEPS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAA")); // 💪 Flexed Biceps
+inline const juce::String BACKHAND_INDEX_POINTING_LEFT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x88")); // 👈 Backhand Index Pointing Left
+inline const juce::String BACKHAND_INDEX_POINTING_RIGHT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x89")); // 👉 Backhand Index Pointing Right
+inline const juce::String INDEX_POINTING_UP =
+    juce::String(juce::CharPointer_UTF8("\xE2\x98\x9D")); // ☝ Index Pointing Up
+inline const juce::String BACKHAND_INDEX_POINTING_UP =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x86")); // 👆 Backhand Index Pointing Up
+inline const juce::String MIDDLE_FINGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x95")); // 🖕 Middle Finger
+inline const juce::String BACKHAND_INDEX_POINTING_DOWN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x87")); // 👇 Backhand Index Pointing Down
+inline const juce::String VICTORY_HAND = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8C")); // ✌ Victory Hand
+inline const juce::String CROSSED_FINGERS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9E")); // 🤞 Crossed Fingers
+inline const juce::String VULCAN_SALUTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x96")); // 🖖 Vulcan Salute
+inline const juce::String SIGN_OF_THE_HORNS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x98")); // 🤘 Sign of the Horns
+inline const juce::String HAND_WITH_FINGERS_SPLAYED =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x90")); // 🖐 Hand With Fingers Splayed
+inline const juce::String RAISED_HAND = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8B"));       // ✋ Raised Hand
+inline const juce::String OK_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8C"));       // 👌 OK Hand
+inline const juce::String THUMBS_UP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8D"));     // 👍 Thumbs Up
+inline const juce::String THUMBS_DOWN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8E"));   // 👎 Thumbs Down
+inline const juce::String RAISED_FIST = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8A"));       // ✊ Raised Fist
+inline const juce::String ONCOMING_FIST = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8A")); // 👊 Oncoming Fist
+inline const juce::String LEFT_FACING_FIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9B")); // 🤛 Left-Facing Fist
+inline const juce::String RIGHT_FACING_FIST =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9C")); // 🤜 Right-Facing Fist
+inline const juce::String RAISED_BACK_OF_HAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9A")); // 🤚 Raised Back of Hand
+inline const juce::String WAVING_HAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8B")); // 👋 Waving Hand
+inline const juce::String LOVE_YOU_GESTURE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9F"));                                  // 🤟 Love-You Gesture
+inline const juce::String WRITING_HAND = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8D")); // ✍ Writing Hand
+inline const juce::String CLAPPING_HANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x8F"));                                       // 👏 Clapping Hands
+inline const juce::String OPEN_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x90"));    // 👐 Open Hands
+inline const juce::String RAISING_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8C")); // 🙌 Raising Hands
+inline const juce::String PALMS_UP_TOGETHER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB2")); // 🤲 Palms Up Together
+inline const juce::String FOLDED_HANDS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8F")); // 🙏 Folded Hands
+inline const juce::String HANDSHAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\x9D"));    // 🤝 Handshake
+inline const juce::String NAIL_POLISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x85"));  // 💅 Nail Polish
+inline const juce::String EAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x82"));          // 👂 Ear
+inline const juce::String NOSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x83"));         // 👃 Nose
+inline const juce::String FOOTPRINTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA3"));   // 👣 Footprints
+inline const juce::String EYES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x80"));         // 👀 Eyes
+inline const juce::String EYE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x81"));          // 👁 Eye
+inline const juce::String BRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA0"));        // 🧠 Brain
+inline const juce::String TONGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x85"));       // 👅 Tongue
+inline const juce::String MOUTH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x84"));        // 👄 Mouth
+inline const juce::String KISS_MARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8B"));    // 💋 Kiss Mark
+inline const juce::String GLASSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x93"));      // 👓 Glasses
+inline const juce::String SUNGLASSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB6"));   // 🕶 Sunglasses
+inline const juce::String NECKTIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x94"));      // 👔 Necktie
+inline const juce::String T_SHIRT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x95"));      // 👕 T-Shirt
+inline const juce::String JEANS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x96"));        // 👖 Jeans
+inline const juce::String SCARF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA3"));        // 🧣 Scarf
+inline const juce::String GLOVES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA4"));       // 🧤 Gloves
+inline const juce::String COAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA5"));         // 🧥 Coat
+inline const juce::String SOCKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA6"));        // 🧦 Socks
+inline const juce::String DRESS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x97"));        // 👗 Dress
+inline const juce::String KIMONO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x98"));       // 👘 Kimono
+inline const juce::String BIKINI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x99"));       // 👙 Bikini
+inline const juce::String WOMANS_CLOTHES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9A"));                                    // 👚 Woman’s Clothes
+inline const juce::String PURSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9B"));      // 👛 Purse
+inline const juce::String HANDBAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9C"));    // 👜 Handbag
+inline const juce::String CLUTCH_BAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9D")); // 👝 Clutch Bag
+inline const juce::String SCHOOL_BACKPACK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x92"));                                      // 🎒 School Backpack
+inline const juce::String MANS_SHOE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9E"));    // 👞 Man’s Shoe
+inline const juce::String RUNNING_SHOE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x9F")); // 👟 Running Shoe
+inline const juce::String HIGH_HEELED_SHOE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA0")); // 👠 High-Heeled Shoe
+inline const juce::String WOMANS_SANDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA1")); // 👡 Woman’s Sandal
+inline const juce::String WOMANS_BOOT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xA2"));   // 👢 Woman’s Boot
+inline const juce::String CROWN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x91"));         // 👑 Crown
+inline const juce::String WOMANS_HAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x92"));    // 👒 Woman’s Hat
+inline const juce::String TOP_HAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA9"));       // 🎩 Top Hat
+inline const juce::String GRADUATION_CAP =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x93"));                                    // 🎓 Graduation Cap
+inline const juce::String BILLED_CAP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA2")); // 🧢 Billed Cap
+inline const juce::String RESCUE_WORKERS_HELMET =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\x91")); // ⛑ Rescue Worker’s Helmet
+inline const juce::String LIPSTICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x84")); // 💄 Lipstick
+inline const juce::String RING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8D"));     // 💍 Ring
+inline const juce::String CLOSED_UMBRELLA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x82"));                                   // 🌂 Closed Umbrella
+inline const juce::String UMBRELLA = juce::String(juce::CharPointer_UTF8("\xE2\x98\x82"));      // ☂ Umbrella
+inline const juce::String BRIEFCASE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBC")); // 💼 Briefcase
+inline const juce::String SEE_NO_EVIL_MONKEY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x88")); // 🙈 See-No-Evil Monkey
+inline const juce::String HEAR_NO_EVIL_MONKEY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x89")); // 🙉 Hear-No-Evil Monkey
+inline const juce::String SPEAK_NO_EVIL_MONKEY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x99\x8A")); // 🙊 Speak-No-Evil Monkey
+inline const juce::String COLLISION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA5")); // 💥 Collision
+inline const juce::String SWEAT_DROPLETS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA6"));                                       // 💦 Sweat Droplets
+inline const juce::String DASHING_AWAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA8"));  // 💨 Dashing Away
+inline const juce::String DIZZY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAB"));         // 💫 Dizzy
+inline const juce::String MONKEY_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB5"));   // 🐵 Monkey Face
+inline const juce::String MONKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x92"));        // 🐒 Monkey
+inline const juce::String GORILLA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8D"));       // 🦍 Gorilla
+inline const juce::String DOG_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB6"));      // 🐶 Dog Face
+inline const juce::String DOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x95"));           // 🐕 Dog
+inline const juce::String POODLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA9"));        // 🐩 Poodle
+inline const juce::String WOLF_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBA"));     // 🐺 Wolf Face
+inline const juce::String FOX_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8A"));      // 🦊 Fox Face
+inline const juce::String CAT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB1"));      // 🐱 Cat Face
+inline const juce::String CAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x88"));           // 🐈 Cat
+inline const juce::String LION_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x81"));     // 🦁 Lion Face
+inline const juce::String TIGER_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAF"));    // 🐯 Tiger Face
+inline const juce::String TIGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x85"));         // 🐅 Tiger
+inline const juce::String LEOPARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x86"));       // 🐆 Leopard
+inline const juce::String HORSE_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB4"));    // 🐴 Horse Face
+inline const juce::String HORSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8E"));         // 🐎 Horse
+inline const juce::String UNICORN_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x84"));  // 🦄 Unicorn Face
+inline const juce::String ZEBRA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x93"));         // 🦓 Zebra
+inline const juce::String COW_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAE"));      // 🐮 Cow Face
+inline const juce::String OX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x82"));            // 🐂 Ox
+inline const juce::String WATER_BUFFALO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x83")); // 🐃 Water Buffalo
+inline const juce::String COW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x84"));           // 🐄 Cow
+inline const juce::String PIG_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB7"));      // 🐷 Pig Face
+inline const juce::String PIG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x96"));           // 🐖 Pig
+inline const juce::String BOAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x97"));          // 🐗 Boar
+inline const juce::String PIG_NOSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBD"));      // 🐽 Pig Nose
+inline const juce::String RAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8F"));           // 🐏 Ram
+inline const juce::String EWE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x91"));           // 🐑 Ewe
+inline const juce::String GOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x90"));          // 🐐 Goat
+inline const juce::String CAMEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAA"));         // 🐪 Camel
+inline const juce::String TWO_HUMP_CAMEL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAB"));                                      // 🐫 Two-Hump Camel
+inline const juce::String GIRAFFE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x92"));      // 🦒 Giraffe
+inline const juce::String ELEPHANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x98"));     // 🐘 Elephant
+inline const juce::String RHINOCEROS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8F"));   // 🦏 Rhinoceros
+inline const juce::String MOUSE_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAD"));   // 🐭 Mouse Face
+inline const juce::String MOUSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x81"));        // 🐁 Mouse
+inline const juce::String RAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x80"));          // 🐀 Rat
+inline const juce::String HAMSTER_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB9")); // 🐹 Hamster Face
+inline const juce::String RABBIT_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB0"));  // 🐰 Rabbit Face
+inline const juce::String RABBIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x87"));       // 🐇 Rabbit
+inline const juce::String CHIPMUNK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBF"));     // 🐿 Chipmunk
+inline const juce::String HEDGEHOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x94"));     // 🦔 Hedgehog
+inline const juce::String BAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x87"));          // 🦇 Bat
+inline const juce::String BEAR_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBB"));    // 🐻 Bear Face
+inline const juce::String KOALA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA8"));        // 🐨 Koala
+inline const juce::String PANDA_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBC"));   // 🐼 Panda Face
+inline const juce::String PAW_PRINTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xBE"));   // 🐾 Paw Prints
+inline const juce::String TURKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x83"));       // 🦃 Turkey
+inline const juce::String CHICKEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x94"));      // 🐔 Chicken
+inline const juce::String ROOSTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x93"));      // 🐓 Rooster
+inline const juce::String HATCHING_CHICK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA3"));                                    // 🐣 Hatching Chick
+inline const juce::String BABY_CHICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA4")); // 🐤 Baby Chick
+inline const juce::String FRONT_FACING_BABY_CHICK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA5"));                              // 🐥 Front-Facing Baby Chick
+inline const juce::String BIRD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA6")); // 🐦 Bird
+inline const juce::String PENGUIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA7"));     // 🐧 Penguin
+inline const juce::String DOVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8A"));        // 🕊 Dove
+inline const juce::String EAGLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x85"));       // 🦅 Eagle
+inline const juce::String DUCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x86"));        // 🦆 Duck
+inline const juce::String OWL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x89"));         // 🦉 Owl
+inline const juce::String FROG_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB8"));   // 🐸 Frog Face
+inline const juce::String CROCODILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8A"));   // 🐊 Crocodile
+inline const juce::String TURTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA2"));      // 🐢 Turtle
+inline const juce::String LIZARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8E"));      // 🦎 Lizard
+inline const juce::String SNAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8D"));       // 🐍 Snake
+inline const juce::String DRAGON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB2")); // 🐲 Dragon Face
+inline const juce::String DRAGON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x89"));      // 🐉 Dragon
+inline const juce::String SAUROPOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x95"));    // 🦕 Sauropod
+inline const juce::String T_REX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x96"));       // 🦖 T-Rex
+inline const juce::String SPOUTING_WHALE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xB3"));                                       // 🐳 Spouting Whale
+inline const juce::String WHALE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8B"));         // 🐋 Whale
+inline const juce::String DOLPHIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xAC"));       // 🐬 Dolphin
+inline const juce::String FISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9F"));          // 🐟 Fish
+inline const juce::String TROPICAL_FISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA0")); // 🐠 Tropical Fish
+inline const juce::String BLOWFISH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\xA1"));      // 🐡 Blowfish
+inline const juce::String SHARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x88"));         // 🦈 Shark
+inline const juce::String OCTOPUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x99"));       // 🐙 Octopus
+inline const juce::String SPIRAL_SHELL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9A"));  // 🐚 Spiral Shell
+inline const juce::String CRAB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x80"));          // 🦀 Crab
+inline const juce::String SHRIMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x90"));        // 🦐 Shrimp
+inline const juce::String SQUID = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x91"));         // 🦑 Squid
+inline const juce::String SNAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x8C"));         // 🐌 Snail
+inline const juce::String BUTTERFLY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x8B"));     // 🦋 Butterfly
+inline const juce::String BUG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9B"));           // 🐛 Bug
+inline const juce::String ANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9C"));           // 🐜 Ant
+inline const juce::String HONEYBEE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9D"));      // 🐝 Honeybee
+inline const juce::String LADY_BEETLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x90\x9E"));   // 🐞 Lady Beetle
+inline const juce::String CRICKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x97"));       // 🦗 Cricket
+inline const juce::String SPIDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB7"));        // 🕷 Spider
+inline const juce::String SPIDER_WEB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB8"));    // 🕸 Spider Web
+inline const juce::String SCORPION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA6\x82"));      // 🦂 Scorpion
+inline const juce::String BOUQUET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x90"));       // 💐 Bouquet
+inline const juce::String CHERRY_BLOSSOM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB8"));                                       // 🌸 Cherry Blossom
+inline const juce::String WHITE_FLOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAE"));  // 💮 White Flower
+inline const juce::String ROSETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB5"));       // 🏵 Rosette
+inline const juce::String ROSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB9"));          // 🌹 Rose
+inline const juce::String WILTED_FLOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x80")); // 🥀 Wilted Flower
+inline const juce::String HIBISCUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBA"));      // 🌺 Hibiscus
+inline const juce::String SUNFLOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBB"));     // 🌻 Sunflower
+inline const juce::String BLOSSOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBC"));       // 🌼 Blossom
+inline const juce::String TULIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB7"));         // 🌷 Tulip
+inline const juce::String SEEDLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB1"));      // 🌱 Seedling
+inline const juce::String EVERGREEN_TREE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB2")); // 🌲 Evergreen Tree
+inline const juce::String DECIDUOUS_TREE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB3"));                                       // 🌳 Deciduous Tree
+inline const juce::String PALM_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB4"));     // 🌴 Palm Tree
+inline const juce::String CACTUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB5"));        // 🌵 Cactus
+inline const juce::String SHEAF_OF_RICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBE")); // 🌾 Sheaf of Rice
+inline const juce::String HERB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBF"));          // 🌿 Herb
+inline const juce::String SHAMROCK = juce::String(juce::CharPointer_UTF8("\xE2\x98\x98"));          // ☘ Shamrock
+inline const juce::String FOUR_LEAF_CLOVER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x80"));                                     // 🍀 Four Leaf Clover
+inline const juce::String MAPLE_LEAF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x81"));  // 🍁 Maple Leaf
+inline const juce::String FALLEN_LEAF = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x82")); // 🍂 Fallen Leaf
+inline const juce::String LEAF_FLUTTERING_IN_WIND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x83")); // 🍃 Leaf Fluttering in Wind
+inline const juce::String MUSHROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x84")); // 🍄 Mushroom
+inline const juce::String CHESTNUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB0")); // 🌰 Chestnut
+inline const juce::String GLOBE_SHOWING_EUROPE_AFRICA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8D")); // 🌍 Globe Showing Europe-Africa
+inline const juce::String GLOBE_SHOWING_AMERICAS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8E")); // 🌎 Globe Showing Americas
+inline const juce::String GLOBE_SHOWING_ASIA_AUSTRALIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8F")); // 🌏 Globe Showing Asia-Australia
+inline const juce::String GLOBE_WITH_MERIDIANS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x90")); // 🌐 Globe With Meridians
+inline const juce::String NEW_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x91")); // 🌑 New Moon
+inline const juce::String WAXING_CRESCENT_MOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x92")); // 🌒 Waxing Crescent Moon
+inline const juce::String FIRST_QUARTER_MOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x93")); // 🌓 First Quarter Moon
+inline const juce::String WAXING_GIBBOUS_MOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x94")); // 🌔 Waxing Gibbous Moon
+inline const juce::String FULL_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x95")); // 🌕 Full Moon
+inline const juce::String WANING_GIBBOUS_MOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x96")); // 🌖 Waning Gibbous Moon
+inline const juce::String LAST_QUARTER_MOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x97")); // 🌗 Last Quarter Moon
+inline const juce::String WANING_CRESCENT_MOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x98")); // 🌘 Waning Crescent Moon
+inline const juce::String CRESCENT_MOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x99")); // 🌙 Crescent Moon
+inline const juce::String NEW_MOON_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9A")); // 🌚 New Moon Face
+inline const juce::String FIRST_QUARTER_MOON_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9B")); // 🌛 First Quarter Moon Face
+inline const juce::String LAST_QUARTER_MOON_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9C"));                         // 🌜 Last Quarter Moon Face
+inline const juce::String SUN = juce::String(juce::CharPointer_UTF8("\xE2\x98\x80")); // ☀ Sun
+inline const juce::String FULL_MOON_FACE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9D"));                                       // 🌝 Full Moon Face
+inline const juce::String SUN_WITH_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9E")); // 🌞 Sun With Face
+inline const juce::String WHITE_MEDIUM_STAR =
+    juce::String(juce::CharPointer_UTF8("\xE2\xAD\x90")); // ⭐ White Medium Star
+inline const juce::String GLOWING_STAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x9F"));  // 🌟 Glowing Star
+inline const juce::String SHOOTING_STAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA0")); // 🌠 Shooting Star
+inline const juce::String CLOUD = juce::String(juce::CharPointer_UTF8("\xE2\x98\x81"));             // ☁ Cloud
+inline const juce::String SUN_BEHIND_CLOUD =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\x85")); // ⛅ Sun Behind Cloud
+inline const juce::String CLOUD_WITH_LIGHTNING_AND_RAIN =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\x88")); // ⛈ Cloud With Lightning and Rain
+inline const juce::String SUN_BEHIND_SMALL_CLOUD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA4")); // 🌤 Sun Behind Small Cloud
+inline const juce::String SUN_BEHIND_LARGE_CLOUD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA5")); // 🌥 Sun Behind Large Cloud
+inline const juce::String SUN_BEHIND_RAIN_CLOUD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA6")); // 🌦 Sun Behind Rain Cloud
+inline const juce::String CLOUD_WITH_RAIN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA7")); // 🌧 Cloud With Rain
+inline const juce::String CLOUD_WITH_SNOW =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA8")); // 🌨 Cloud With Snow
+inline const juce::String CLOUD_WITH_LIGHTNING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA9"));                                 // 🌩 Cloud With Lightning
+inline const juce::String TORNADO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAA")); // 🌪 Tornado
+inline const juce::String FOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAB"));     // 🌫 Fog
+inline const juce::String WIND_FACE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAC")); // 🌬 Wind Face
+inline const juce::String RAINBOW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x88"));   // 🌈 Rainbow
+inline const juce::String UMBRELLA_WITH_RAIN_DROPS =
+    juce::String(juce::CharPointer_UTF8("\xE2\x98\x94")); // ☔ Umbrella With Rain Drops
+inline const juce::String HIGH_VOLTAGE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xA1")); // ⚡ High Voltage
+inline const juce::String SNOWFLAKE = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x84"));    // ❄ Snowflake
+inline const juce::String SNOWMAN = juce::String(juce::CharPointer_UTF8("\xE2\x98\x83"));      // ☃ Snowman
+inline const juce::String SNOWMAN_WITHOUT_SNOW =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\x84"));                                     // ⛄ Snowman Without Snow
+inline const juce::String COMET = juce::String(juce::CharPointer_UTF8("\xE2\x98\x84"));       // ☄ Comet
+inline const juce::String FIRE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA5"));    // 🔥 Fire
+inline const juce::String DROPLET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA7")); // 💧 Droplet
+inline const juce::String WATER_WAVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8A")); // 🌊 Water Wave
+inline const juce::String CHRISTMAS_TREE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x84"));                                       // 🎄 Christmas Tree
+inline const juce::String SPARKLES = juce::String(juce::CharPointer_UTF8("\xE2\x9C\xA8"));          // ✨ Sparkles
+inline const juce::String TANABATA_TREE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8B")); // 🎋 Tanabata Tree
+inline const juce::String PINE_DECORATION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8D"));                                     // 🎍 Pine Decoration
+inline const juce::String GRAPES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x87"));      // 🍇 Grapes
+inline const juce::String MELON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x88"));       // 🍈 Melon
+inline const juce::String WATERMELON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x89"));  // 🍉 Watermelon
+inline const juce::String TANGERINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8A"));   // 🍊 Tangerine
+inline const juce::String LEMON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8B"));       // 🍋 Lemon
+inline const juce::String BANANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8C"));      // 🍌 Banana
+inline const juce::String PINEAPPLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8D"));   // 🍍 Pineapple
+inline const juce::String RED_APPLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8E"));   // 🍎 Red Apple
+inline const juce::String GREEN_APPLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x8F")); // 🍏 Green Apple
+inline const juce::String PEAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x90"));        // 🍐 Pear
+inline const juce::String PEACH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x91"));       // 🍑 Peach
+inline const juce::String CHERRIES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x92"));    // 🍒 Cherries
+inline const juce::String STRAWBERRY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x93"));  // 🍓 Strawberry
+inline const juce::String KIWI_FRUIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9D"));  // 🥝 Kiwi Fruit
+inline const juce::String TOMATO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x85"));      // 🍅 Tomato
+inline const juce::String COCONUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA5"));     // 🥥 Coconut
+inline const juce::String AVOCADO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x91"));     // 🥑 Avocado
+inline const juce::String EGGPLANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x86"));    // 🍆 Eggplant
+inline const juce::String POTATO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x94"));      // 🥔 Potato
+inline const juce::String CARROT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x95"));      // 🥕 Carrot
+inline const juce::String EAR_OF_CORN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xBD")); // 🌽 Ear of Corn
+inline const juce::String HOT_PEPPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xB6"));  // 🌶 Hot Pepper
+inline const juce::String CUCUMBER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x92"));    // 🥒 Cucumber
+inline const juce::String BROCCOLI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA6"));    // 🥦 Broccoli
+inline const juce::String PEANUTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9C"));     // 🥜 Peanuts
+inline const juce::String BREAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9E"));       // 🍞 Bread
+inline const juce::String CROISSANT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x90"));   // 🥐 Croissant
+inline const juce::String BAGUETTE_BREAD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x96"));                                      // 🥖 Baguette Bread
+inline const juce::String PRETZEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA8"));      // 🥨 Pretzel
+inline const juce::String PANCAKES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9E"));     // 🥞 Pancakes
+inline const juce::String CHEESE_WEDGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x80")); // 🧀 Cheese Wedge
+inline const juce::String MEAT_ON_BONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x96")); // 🍖 Meat on Bone
+inline const juce::String POULTRY_LEG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x97"));  // 🍗 Poultry Leg
+inline const juce::String CUT_OF_MEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA9"));  // 🥩 Cut of Meat
+inline const juce::String BACON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x93"));        // 🥓 Bacon
+inline const juce::String HAMBURGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x94"));    // 🍔 Hamburger
+inline const juce::String FRENCH_FRIES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9F")); // 🍟 French Fries
+inline const juce::String PIZZA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x95"));        // 🍕 Pizza
+inline const juce::String HOT_DOG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAD"));      // 🌭 Hot Dog
+inline const juce::String SANDWICH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xAA"));     // 🥪 Sandwich
+inline const juce::String TACO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAE"));         // 🌮 Taco
+inline const juce::String BURRITO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xAF"));      // 🌯 Burrito
+inline const juce::String COOKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB3"));      // 🍳 Cooking
+inline const juce::String POT_OF_FOOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB2"));  // 🍲 Pot of Food
+inline const juce::String BOWL_WITH_SPOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA3"));                                      // 🥣 Bowl With Spoon
+inline const juce::String GREEN_SALAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x97"));  // 🥗 Green Salad
+inline const juce::String POPCORN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBF"));      // 🍿 Popcorn
+inline const juce::String CANNED_FOOD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xAB"));  // 🥫 Canned Food
+inline const juce::String BENTO_BOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB1"));    // 🍱 Bento Box
+inline const juce::String RICE_CRACKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x98")); // 🍘 Rice Cracker
+inline const juce::String RICE_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x99"));    // 🍙 Rice Ball
+inline const juce::String COOKED_RICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9A"));  // 🍚 Cooked Rice
+inline const juce::String CURRY_RICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9B"));   // 🍛 Curry Rice
+inline const juce::String STEAMING_BOWL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9C")); // 🍜 Steaming Bowl
+inline const juce::String SPAGHETTI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\x9D"));     // 🍝 Spaghetti
+inline const juce::String ROASTED_SWEET_POTATO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA0"));                               // 🍠 Roasted Sweet Potato
+inline const juce::String ODEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA2"));  // 🍢 Oden
+inline const juce::String SUSHI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA3")); // 🍣 Sushi
+inline const juce::String FRIED_SHRIMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA4")); // 🍤 Fried Shrimp
+inline const juce::String FISH_CAKE_WITH_SWIRL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA5"));                               // 🍥 Fish Cake With Swirl
+inline const juce::String DANGO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA1")); // 🍡 Dango
+inline const juce::String DUMPLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9F")); // 🥟 Dumpling
+inline const juce::String FORTUNE_COOKIE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA0"));                                     // 🥠 Fortune Cookie
+inline const juce::String TAKEOUT_BOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA1")); // 🥡 Takeout Box
+inline const juce::String SOFT_ICE_CREAM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA6"));                                       // 🍦 Soft Ice Cream
+inline const juce::String SHAVED_ICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA7"));    // 🍧 Shaved Ice
+inline const juce::String ICE_CREAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA8"));     // 🍨 Ice Cream
+inline const juce::String DOUGHNUT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xA9"));      // 🍩 Doughnut
+inline const juce::String COOKIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAA"));        // 🍪 Cookie
+inline const juce::String BIRTHDAY_CAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x82")); // 🎂 Birthday Cake
+inline const juce::String SHORTCAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB0"));     // 🍰 Shortcake
+inline const juce::String PIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA7"));           // 🥧 Pie
+inline const juce::String CHOCOLATE_BAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAB")); // 🍫 Chocolate Bar
+inline const juce::String CANDY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAC"));         // 🍬 Candy
+inline const juce::String LOLLIPOP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAD"));      // 🍭 Lollipop
+inline const juce::String CUSTARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAE"));       // 🍮 Custard
+inline const juce::String HONEY_POT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xAF"));     // 🍯 Honey Pot
+inline const juce::String BABY_BOTTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBC"));   // 🍼 Baby Bottle
+inline const juce::String GLASS_OF_MILK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x9B")); // 🥛 Glass of Milk
+inline const juce::String HOT_BEVERAGE = juce::String(juce::CharPointer_UTF8("\xE2\x98\x95"));      // ☕ Hot Beverage
+inline const juce::String TEACUP_WITHOUT_HANDLE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB5"));                              // 🍵 Teacup Without Handle
+inline const juce::String SAKE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB6")); // 🍶 Sake
+inline const juce::String BOTTLE_WITH_POPPING_CORK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBE")); // 🍾 Bottle With Popping Cork
+inline const juce::String WINE_GLASS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB7")); // 🍷 Wine Glass
+inline const juce::String COCKTAIL_GLASS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB8")); // 🍸 Cocktail Glass
+inline const juce::String TROPICAL_DRINK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB9"));                                  // 🍹 Tropical Drink
+inline const juce::String BEER_MUG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBA")); // 🍺 Beer Mug
+inline const juce::String CLINKING_BEER_MUGS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBB")); // 🍻 Clinking Beer Mugs
+inline const juce::String CLINKING_GLASSES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x82")); // 🥂 Clinking Glasses
+inline const juce::String TUMBLER_GLASS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x83")); // 🥃 Tumbler Glass
+inline const juce::String CUP_WITH_STRAW =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA4"));                                    // 🥤 Cup With Straw
+inline const juce::String CHOPSTICKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\xA2")); // 🥢 Chopsticks
+inline const juce::String FORK_AND_KNIFE_WITH_PLATE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xBD")); // 🍽 Fork and Knife With Plate
+inline const juce::String FORK_AND_KNIFE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8D\xB4"));                                       // 🍴 Fork and Knife
+inline const juce::String SPOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x84"));         // 🥄 Spoon
+inline const juce::String ALIEN_MONSTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\xBE")); // 👾 Alien Monster
+inline const juce::String WOMAN_CLIMBING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x97\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧗‍♀️ Woman
+                                                                                                  // Climbing
+inline const juce::String MAN_CLIMBING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x97\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🧗‍♂️ Man
+                                                                                                  // Climbing
+inline const juce::String WOMAN_IN_LOTUS_POSITION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x98\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🧘‍♀️
+                                                                                                  // Woman in
+                                                                                                  // Lotus
+                                                                                                  // Position
+inline const juce::String MAN_IN_LOTUS_POSITION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\x98\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F"));  // 🧘‍♂️ Man
+                                                                                                   // in Lotus
+                                                                                                   // Position
+inline const juce::String HORSE_RACING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x87")); // 🏇 Horse Racing
+inline const juce::String SKIER = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB7"));            // ⛷ Skier
+inline const juce::String SNOWBOARDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x82"));  // 🏂 Snowboarder
+inline const juce::String PERSON_GOLFING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8C")); // 🏌 Person Golfing
+inline const juce::String MAN_GOLFING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8C\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99"
+                                        "\x82\xEF\xB8\x8F")); // 🏌️‍♂️ Man Golfing
+inline const juce::String WOMAN_GOLFING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8C\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8"
+                                        "\x8F")); // 🏌️‍♀️ Woman Golfing
+inline const juce::String PERSON_SURFING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x84")); // 🏄 Person Surfing
+inline const juce::String MAN_SURFING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x84\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🏄‍♂️ Man
+                                                                                                  // Surfing
+inline const juce::String WOMAN_SURFING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x84\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🏄‍♀️ Woman
+                                                                                                  // Surfing
+inline const juce::String PERSON_ROWING_BOAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA3")); // 🚣 Person Rowing Boat
+inline const juce::String MAN_ROWING_BOAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA3\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🚣‍♂️ Man
+                                                                                                  // Rowing Boat
+inline const juce::String WOMAN_ROWING_BOAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA3\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🚣‍♀️
+                                                                                                  // Woman
+                                                                                                  // Rowing Boat
+inline const juce::String PERSON_SWIMMING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8A")); // 🏊 Person Swimming
+inline const juce::String MAN_SWIMMING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8A\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🏊‍♂️ Man
+                                                                                                  // Swimming
+inline const juce::String WOMAN_SWIMMING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8A\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🏊‍♀️ Woman
+                                                                                                  // Swimming
+inline const juce::String PERSON_BOUNCING_BALL =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB9")); // ⛹ Person Bouncing Ball
+inline const juce::String MAN_BOUNCING_BALL =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB9\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82"
+                                        "\xEF\xB8\x8F")); // ⛹️‍♂️ Man Bouncing
+                                                          // Ball
+inline const juce::String WOMAN_BOUNCING_BALL =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB9\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80"
+                                        "\xEF\xB8\x8F")); // ⛹️‍♀️ Woman Bouncing
+                                                          // Ball
+inline const juce::String PERSON_LIFTING_WEIGHTS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8B")); // 🏋 Person Lifting Weights
+inline const juce::String MAN_LIFTING_WEIGHTS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8B\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x82\xEF\xB8"
+                                        "\x8F")); // 🏋️‍♂️ Man Lifting Weights
+inline const juce::String WOMAN_LIFTING_WEIGHTS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8B\xEF\xB8\x8F\xE2\x80\x8D\xE2\x99\x80\xEF\xB8"
+                                        "\x8F")); // 🏋️‍♀️ Woman Lifting Weights
+inline const juce::String PERSON_BIKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB4")); // 🚴 Person Biking
+inline const juce::String MAN_BIKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB4\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🚴‍♂️ Man
+                                                                                                  // Biking
+inline const juce::String WOMAN_BIKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB4\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🚴‍♀️ Woman
+                                                                                                  // Biking
+inline const juce::String PERSON_MOUNTAIN_BIKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB5")); // 🚵 Person Mountain Biking
+inline const juce::String MAN_MOUNTAIN_BIKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB5\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🚵‍♂️ Man
+                                                                                                  // Mountain
+                                                                                                  // Biking
+inline const juce::String WOMAN_MOUNTAIN_BIKING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB5\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🚵‍♀️
+                                                                                                  // Woman
+                                                                                                  // Mountain
+                                                                                                  // Biking
+inline const juce::String PERSON_CARTWHEELING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB8")); // 🤸 Person Cartwheeling
+inline const juce::String MAN_CARTWHEELING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB8\xE2\x80\x8D\xE2\x99\x82\xEF\xB8"
+                                        "\x8F")); // 🤸‍♂️ Man Cartwheeling
+inline const juce::String WOMAN_CARTWHEELING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB8\xE2\x80\x8D\xE2\x99\x80\xEF\xB8"
+                                        "\x8F")); // 🤸‍♀️ Woman Cartwheeling
+inline const juce::String PEOPLE_WRESTLING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBC")); // 🤼 People Wrestling
+inline const juce::String MEN_WRESTLING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBC\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🤼‍♂️ Men
+                                                                                                  // Wrestling
+inline const juce::String WOMEN_WRESTLING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBC\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🤼‍♀️ Women
+                                                                                                  // Wrestling
+inline const juce::String PERSON_PLAYING_WATER_POLO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBD")); // 🤽 Person Playing Water Polo
+inline const juce::String MAN_PLAYING_WATER_POLO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBD\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🤽‍♂️ Man
+                                                                                                  // Playing
+                                                                                                  // Water Polo
+inline const juce::String WOMAN_PLAYING_WATER_POLO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBD\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🤽‍♀️
+                                                                                                  // Woman
+                                                                                                  // Playing
+                                                                                                  // Water Polo
+inline const juce::String PERSON_PLAYING_HANDBALL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBE")); // 🤾 Person Playing Handball
+inline const juce::String MAN_PLAYING_HANDBALL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBE\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🤾‍♂️ Man
+                                                                                                  // Playing
+                                                                                                  // Handball
+inline const juce::String WOMAN_PLAYING_HANDBALL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xBE\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🤾‍♀️
+                                                                                                  // Woman
+                                                                                                  // Playing
+                                                                                                  // Handball
+inline const juce::String PERSON_JUGGLING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB9")); // 🤹 Person Juggling
+inline const juce::String MAN_JUGGLING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB9\xE2\x80\x8D\xE2\x99\x82\xEF\xB8\x8F")); // 🤹‍♂️ Man
+                                                                                                  // Juggling
+inline const juce::String WOMAN_JUGGLING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA4\xB9\xE2\x80\x8D\xE2\x99\x80\xEF\xB8\x8F")); // 🤹‍♀️ Woman
+                                                                                                  // Juggling
+inline const juce::String CIRCUS_TENT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAA")); // 🎪 Circus Tent
+inline const juce::String REMINDER_RIBBON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x97")); // 🎗 Reminder Ribbon
+inline const juce::String ADMISSION_TICKETS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9F"));                                // 🎟 Admission Tickets
+inline const juce::String TICKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAB")); // 🎫 Ticket
+inline const juce::String MILITARY_MEDAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x96"));                                      // 🎖 Military Medal
+inline const juce::String TROPHY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x86"));       // 🏆 Trophy
+inline const juce::String SPORTS_MEDAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x85")); // 🏅 Sports Medal
+inline const juce::String E_1ST_PLACE_MEDAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x87")); // 🥇 1st Place Medal
+inline const juce::String E_2ND_PLACE_MEDAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x88")); // 🥈 2nd Place Medal
+inline const juce::String E_3RD_PLACE_MEDAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x89"));                                    // 🥉 3rd Place Medal
+inline const juce::String SOCCER_BALL = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xBD"));    // ⚽ Soccer Ball
+inline const juce::String BASEBALL = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xBE"));       // ⚾ Baseball
+inline const juce::String BASKETBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x80")); // 🏀 Basketball
+inline const juce::String VOLLEYBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x90")); // 🏐 Volleyball
+inline const juce::String AMERICAN_FOOTBALL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x88")); // 🏈 American Football
+inline const juce::String RUGBY_FOOTBALL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x89"));                                      // 🏉 Rugby Football
+inline const juce::String TENNIS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBE"));       // 🎾 Tennis
+inline const juce::String BOWLING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB3"));      // 🎳 Bowling
+inline const juce::String CRICKET_GAME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8F")); // 🏏 Cricket Game
+inline const juce::String FIELD_HOCKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x91")); // 🏑 Field Hockey
+inline const juce::String ICE_HOCKEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x92"));   // 🏒 Ice Hockey
+inline const juce::String PING_PONG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x93"));    // 🏓 Ping Pong
+inline const juce::String BADMINTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB8"));    // 🏸 Badminton
+inline const juce::String BOXING_GLOVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x8A")); // 🥊 Boxing Glove
+inline const juce::String MARTIAL_ARTS_UNIFORM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x8B")); // 🥋 Martial Arts Uniform
+inline const juce::String FLAG_IN_HOLE = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB3"));      // ⛳ Flag in Hole
+inline const juce::String ICE_SKATE = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB8"));         // ⛸ Ice Skate
+inline const juce::String FISHING_POLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA3"));  // 🎣 Fishing Pole
+inline const juce::String RUNNING_SHIRT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBD")); // 🎽 Running Shirt
+inline const juce::String SKIS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBF"));          // 🎿 Skis
+inline const juce::String SLED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB7"));          // 🛷 Sled
+inline const juce::String CURLING_STONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x8C")); // 🥌 Curling Stone
+inline const juce::String DIRECT_HIT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAF"));    // 🎯 Direct Hit
+inline const juce::String POOL_8_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB1"));   // 🎱 Pool 8 Ball
+inline const juce::String VIDEO_GAME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAE"));    // 🎮 Video Game
+inline const juce::String SLOT_MACHINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB0"));  // 🎰 Slot Machine
+inline const juce::String GAME_DIE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB2"));      // 🎲 Game Die
+inline const juce::String PERFORMING_ARTS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAD")); // 🎭 Performing Arts
+inline const juce::String ARTIST_PALETTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA8"));                                       // 🎨 Artist Palette
+inline const juce::String MUSICAL_SCORE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBC")); // 🎼 Musical Score
+inline const juce::String MICROPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA4"));    // 🎤 Microphone
+inline const juce::String HEADPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA7"));     // 🎧 Headphone
+inline const juce::String SAXOPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB7"));     // 🎷 Saxophone
+inline const juce::String GUITAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB8"));        // 🎸 Guitar
+inline const juce::String MUSICAL_KEYBOARD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB9"));                                 // 🎹 Musical Keyboard
+inline const juce::String TRUMPET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBA")); // 🎺 Trumpet
+inline const juce::String VIOLIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xBB"));  // 🎻 Violin
+inline const juce::String DRUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA5\x81"));    // 🥁 Drum
+inline const juce::String CLAPPER_BOARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xAC")); // 🎬 Clapper Board
+inline const juce::String BOW_AND_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB9")); // 🏹 Bow and Arrow
+inline const juce::String RACING_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8E"));    // 🏎 Racing Car
+inline const juce::String MOTORCYCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x8D"));    // 🏍 Motorcycle
+inline const juce::String MAP_OF_JAPAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBE"));  // 🗾 Map of Japan
+inline const juce::String SNOW_CAPPED_MOUNTAIN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x94"));                                 // 🏔 Snow-Capped Mountain
+inline const juce::String MOUNTAIN = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB0"));    // ⛰ Mountain
+inline const juce::String VOLCANO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8B")); // 🌋 Volcano
+inline const juce::String MOUNT_FUJI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBB")); // 🗻 Mount Fuji
+inline const juce::String CAMPING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x95"));    // 🏕 Camping
+inline const juce::String BEACH_WITH_UMBRELLA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x96"));                                // 🏖 Beach With Umbrella
+inline const juce::String DESERT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9C")); // 🏜 Desert
+inline const juce::String DESERT_ISLAND = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9D")); // 🏝 Desert Island
+inline const juce::String NATIONAL_PARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9E")); // 🏞 National Park
+inline const juce::String STADIUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9F"));       // 🏟 Stadium
+inline const juce::String CLASSICAL_BUILDING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9B")); // 🏛 Classical Building
+inline const juce::String BUILDING_CONSTRUCTION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x97"));                                // 🏗 Building Construction
+inline const juce::String HOUSES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x98")); // 🏘 Houses
+inline const juce::String DERELICT_HOUSE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x9A"));                               // 🏚 Derelict House
+inline const juce::String HOUSE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA0")); // 🏠 House
+inline const juce::String HOUSE_WITH_GARDEN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA1")); // 🏡 House With Garden
+inline const juce::String OFFICE_BUILDING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA2")); // 🏢 Office Building
+inline const juce::String JAPANESE_POST_OFFICE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA3")); // 🏣 Japanese Post Office
+inline const juce::String POST_OFFICE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA4")); // 🏤 Post Office
+inline const juce::String HOSPITAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA5"));    // 🏥 Hospital
+inline const juce::String BANK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA6"));        // 🏦 Bank
+inline const juce::String HOTEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA8"));       // 🏨 Hotel
+inline const juce::String LOVE_HOTEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA9"));  // 🏩 Love Hotel
+inline const juce::String CONVENIENCE_STORE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAA"));                                // 🏪 Convenience Store
+inline const juce::String SCHOOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAB")); // 🏫 School
+inline const juce::String DEPARTMENT_STORE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAC"));                                 // 🏬 Department Store
+inline const juce::String FACTORY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAD")); // 🏭 Factory
+inline const juce::String JAPANESE_CASTLE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAF"));                                     // 🏯 Japanese Castle
+inline const juce::String CASTLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB0"));      // 🏰 Castle
+inline const juce::String WEDDING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x92"));     // 💒 Wedding
+inline const juce::String TOKYO_TOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBC")); // 🗼 Tokyo Tower
+inline const juce::String STATUE_OF_LIBERTY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBD"));                                   // 🗽 Statue of Liberty
+inline const juce::String CHURCH = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xAA"));        // ⛪ Church
+inline const juce::String MOSQUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8C"));    // 🕌 Mosque
+inline const juce::String SYNAGOGUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8D")); // 🕍 Synagogue
+inline const juce::String SHINTO_SHRINE = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xA9")); // ⛩ Shinto Shrine
+inline const juce::String KAABA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8B"));     // 🕋 Kaaba
+inline const juce::String FOUNTAIN = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB2"));      // ⛲ Fountain
+inline const juce::String TENT = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xBA"));          // ⛺ Tent
+inline const juce::String FOGGY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x81"));     // 🌁 Foggy
+inline const juce::String NIGHT_WITH_STARS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x83"));                                   // 🌃 Night With Stars
+inline const juce::String CITYSCAPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x99")); // 🏙 Cityscape
+inline const juce::String SUNRISE_OVER_MOUNTAINS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x84")); // 🌄 Sunrise Over Mountains
+inline const juce::String SUNRISE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x85")); // 🌅 Sunrise
+inline const juce::String CITYSCAPE_AT_DUSK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x86"));                                // 🌆 Cityscape at Dusk
+inline const juce::String SUNSET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x87")); // 🌇 Sunset
+inline const juce::String BRIDGE_AT_NIGHT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x89"));                                   // 🌉 Bridge at Night
+inline const juce::String MILKY_WAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x8C")); // 🌌 Milky Way
+inline const juce::String CAROUSEL_HORSE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA0"));                                      // 🎠 Carousel Horse
+inline const juce::String FERRIS_WHEEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA1")); // 🎡 Ferris Wheel
+inline const juce::String ROLLER_COASTER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA2"));                                     // 🎢 Roller Coaster
+inline const juce::String LOCOMOTIVE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x82"));  // 🚂 Locomotive
+inline const juce::String RAILWAY_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x83")); // 🚃 Railway Car
+inline const juce::String HIGH_SPEED_TRAIN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x84")); // 🚄 High-Speed Train
+inline const juce::String BULLET_TRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x85")); // 🚅 Bullet Train
+inline const juce::String TRAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x86"));        // 🚆 Train
+inline const juce::String METRO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x87"));        // 🚇 Metro
+inline const juce::String LIGHT_RAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x88"));   // 🚈 Light Rail
+inline const juce::String STATION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x89"));      // 🚉 Station
+inline const juce::String TRAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8A"));         // 🚊 Tram
+inline const juce::String MONORAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9D"));     // 🚝 Monorail
+inline const juce::String MOUNTAIN_RAILWAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9E"));                                  // 🚞 Mountain Railway
+inline const juce::String TRAM_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8B")); // 🚋 Tram Car
+inline const juce::String BUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8C"));      // 🚌 Bus
+inline const juce::String ONCOMING_BUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8D")); // 🚍 Oncoming Bus
+inline const juce::String TROLLEYBUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8E"));   // 🚎 Trolleybus
+inline const juce::String MINIBUS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x90"));      // 🚐 Minibus
+inline const juce::String AMBULANCE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x91"));    // 🚑 Ambulance
+inline const juce::String FIRE_ENGINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x92"));  // 🚒 Fire Engine
+inline const juce::String POLICE_CAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x93"));   // 🚓 Police Car
+inline const juce::String ONCOMING_POLICE_CAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x94"));                              // 🚔 Oncoming Police Car
+inline const juce::String TAXI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x95")); // 🚕 Taxi
+inline const juce::String ONCOMING_TAXI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x96")); // 🚖 Oncoming Taxi
+inline const juce::String AUTOMOBILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x97"));    // 🚗 Automobile
+inline const juce::String ONCOMING_AUTOMOBILE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x98")); // 🚘 Oncoming Automobile
+inline const juce::String DELIVERY_TRUCK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9A")); // 🚚 Delivery Truck
+inline const juce::String ARTICULATED_LORRY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9B"));                                 // 🚛 Articulated Lorry
+inline const juce::String TRACTOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9C")); // 🚜 Tractor
+inline const juce::String BICYCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB2")); // 🚲 Bicycle
+inline const juce::String KICK_SCOOTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB4"));  // 🛴 Kick Scooter
+inline const juce::String MOTOR_SCOOTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB5")); // 🛵 Motor Scooter
+inline const juce::String BUS_STOP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x8F"));      // 🚏 Bus Stop
+inline const juce::String RAILWAY_TRACK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA4")); // 🛤 Railway Track
+inline const juce::String FUEL_PUMP = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xBD"));         // ⛽ Fuel Pump
+inline const juce::String POLICE_CAR_LIGHT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA8")); // 🚨 Police Car Light
+inline const juce::String HORIZONTAL_TRAFFIC_LIGHT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA5")); // 🚥 Horizontal Traffic Light
+inline const juce::String VERTICAL_TRAFFIC_LIGHT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA6")); // 🚦 Vertical Traffic Light
+inline const juce::String CONSTRUCTION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA7"));   // 🚧 Construction
+inline const juce::String ANCHOR = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x93"));             // ⚓ Anchor
+inline const juce::String SAILBOAT = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB5"));           // ⛵ Sailboat
+inline const juce::String SPEEDBOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA4"));      // 🚤 Speedboat
+inline const juce::String PASSENGER_SHIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB3")); // 🛳 Passenger Ship
+inline const juce::String FERRY = juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB4"));              // ⛴ Ferry
+inline const juce::String MOTOR_BOAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA5"));     // 🛥 Motor Boat
+inline const juce::String SHIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA2"));           // 🚢 Ship
+inline const juce::String AIRPLANE = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x88"));           // ✈ Airplane
+inline const juce::String SMALL_AIRPLANE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA9")); // 🛩 Small Airplane
+inline const juce::String AIRPLANE_DEPARTURE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xAB")); // 🛫 Airplane Departure
+inline const juce::String AIRPLANE_ARRIVAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xAC"));                                    // 🛬 Airplane Arrival
+inline const juce::String SEAT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBA"));       // 💺 Seat
+inline const juce::String HELICOPTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x81")); // 🚁 Helicopter
+inline const juce::String SUSPENSION_RAILWAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x9F")); // 🚟 Suspension Railway
+inline const juce::String MOUNTAIN_CABLEWAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA0")); // 🚠 Mountain Cableway
+inline const juce::String AERIAL_TRAMWAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA1"));                                       // 🚡 Aerial Tramway
+inline const juce::String SATELLITE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB0"));     // 🛰 Satellite
+inline const juce::String ROCKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\x80"));        // 🚀 Rocket
+inline const juce::String FLYING_SAUCER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xB8")); // 🛸 Flying Saucer
+inline const juce::String UMBRELLA_ON_GROUND =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9B\xB1"));                                       // ⛱ Umbrella on Ground
+inline const juce::String FIREWORKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x86")); // 🎆 Fireworks
+inline const juce::String SPARKLER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x87"));  // 🎇 Sparkler
+inline const juce::String MOON_VIEWING_CEREMONY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x91")); // 🎑 Moon Viewing Ceremony
+inline const juce::String YEN_BANKNOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB4")); // 💴 Yen Banknote
+inline const juce::String DOLLAR_BANKNOTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB5")); // 💵 Dollar Banknote
+inline const juce::String EURO_BANKNOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB6")); // 💶 Euro Banknote
+inline const juce::String POUND_BANKNOTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB7"));                              // 💷 Pound Banknote
+inline const juce::String MOAI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBF")); // 🗿 Moai
+inline const juce::String PASSPORT_CONTROL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x82"));                                 // 🛂 Passport Control
+inline const juce::String CUSTOMS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x83")); // 🛃 Customs
+inline const juce::String BAGGAGE_CLAIM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x84")); // 🛄 Baggage Claim
+inline const juce::String LEFT_LUGGAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x85"));  // 🛅 Left Luggage
+inline const juce::String SKULL_AND_CROSSBONES =
+    juce::String(juce::CharPointer_UTF8("\xE2\x98\xA0")); // ☠ Skull and Crossbones
+inline const juce::String PERSON_TAKING_BATH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x80")); // 🛀 Person Taking Bath
+inline const juce::String PERSON_IN_BED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8C")); // 🛌 Person in Bed
+inline const juce::String LOVE_LETTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8C"));   // 💌 Love Letter
+inline const juce::String BOMB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA3"));          // 💣 Bomb
+inline const juce::String HOLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB3"));          // 🕳 Hole
+inline const juce::String SHOPPING_BAGS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8D")); // 🛍 Shopping Bags
+inline const juce::String PRAYER_BEADS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBF"));  // 📿 Prayer Beads
+inline const juce::String GEM_STONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8E"));     // 💎 Gem Stone
+inline const juce::String KITCHEN_KNIFE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAA")); // 🔪 Kitchen Knife
+inline const juce::String AMPHORA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xBA"));       // 🏺 Amphora
+inline const juce::String WORLD_MAP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xBA"));     // 🗺 World Map
+inline const juce::String BARBER_POLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x88"));   // 💈 Barber Pole
+inline const juce::String OIL_DRUM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA2"));      // 🛢 Oil Drum
+inline const juce::String BELLHOP_BELL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8E"));  // 🛎 Bellhop Bell
+inline const juce::String HOURGLASS_DONE = juce::String(juce::CharPointer_UTF8("\xE2\x8C\x9B"));    // ⌛ Hourglass Done
+inline const juce::String HOURGLASS_NOT_DONE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB3"));                                     // ⏳ Hourglass Not Done
+inline const juce::String WATCH = juce::String(juce::CharPointer_UTF8("\xE2\x8C\x9A"));       // ⌚ Watch
+inline const juce::String ALARM_CLOCK = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB0")); // ⏰ Alarm Clock
+inline const juce::String STOPWATCH = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB1"));   // ⏱ Stopwatch
+inline const juce::String TIMER_CLOCK = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB2")); // ⏲ Timer Clock
+inline const juce::String MANTELPIECE_CLOCK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB0")); // 🕰 Mantelpiece Clock
+inline const juce::String THERMOMETER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\xA1"));   // 🌡 Thermometer
+inline const juce::String BALLOON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x88"));       // 🎈 Balloon
+inline const juce::String PARTY_POPPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x89"));  // 🎉 Party Popper
+inline const juce::String CONFETTI_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8A")); // 🎊 Confetti Ball
+inline const juce::String JAPANESE_DOLLS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8E"));                                       // 🎎 Japanese Dolls
+inline const juce::String CARP_STREAMER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8F")); // 🎏 Carp Streamer
+inline const juce::String WIND_CHIME = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x90"));    // 🎐 Wind Chime
+inline const juce::String RIBBON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x80"));        // 🎀 Ribbon
+inline const juce::String WRAPPED_GIFT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x81"));  // 🎁 Wrapped Gift
+inline const juce::String CRYSTAL_BALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAE"));  // 🔮 Crystal Ball
+inline const juce::String JOYSTICK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xB9"));      // 🕹 Joystick
+inline const juce::String FRAMED_PICTURE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xBC"));                                     // 🖼 Framed Picture
+inline const juce::String POSTAL_HORN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAF")); // 📯 Postal Horn
+inline const juce::String STUDIO_MICROPHONE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x99")); // 🎙 Studio Microphone
+inline const juce::String LEVEL_SLIDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9A"));  // 🎚 Level Slider
+inline const juce::String CONTROL_KNOBS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9B")); // 🎛 Control Knobs
+inline const juce::String RADIO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBB"));         // 📻 Radio
+inline const juce::String MOBILE_PHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB1"));  // 📱 Mobile Phone
+inline const juce::String MOBILE_PHONE_WITH_ARROW =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB2")); // 📲 Mobile Phone With Arrow
+inline const juce::String TELEPHONE = juce::String(juce::CharPointer_UTF8("\xE2\x98\x8E")); // ☎ Telephone
+inline const juce::String TELEPHONE_RECEIVER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9E"));                               // 📞 Telephone Receiver
+inline const juce::String PAGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9F")); // 📟 Pager
+inline const juce::String FAX_MACHINE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA0"));   // 📠 Fax Machine
+inline const juce::String BATTERY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8B"));       // 🔋 Battery
+inline const juce::String ELECTRIC_PLUG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8C")); // 🔌 Electric Plug
+inline const juce::String LAPTOP_COMPUTER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBB")); // 💻 Laptop Computer
+inline const juce::String DESKTOP_COMPUTER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xA5"));                                 // 🖥 Desktop Computer
+inline const juce::String PRINTER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xA8")); // 🖨 Printer
+inline const juce::String KEYBOARD = juce::String(juce::CharPointer_UTF8("\xE2\x8C\xA8"));    // ⌨ Keyboard
+inline const juce::String COMPUTER_MOUSE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xB1"));                                       // 🖱 Computer Mouse
+inline const juce::String TRACKBALL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xB2"));     // 🖲 Trackball
+inline const juce::String COMPUTER_DISK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBD")); // 💽 Computer Disk
+inline const juce::String FLOPPY_DISK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBE"));   // 💾 Floppy Disk
+inline const juce::String OPTICAL_DISK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xBF"));  // 💿 Optical Disk
+inline const juce::String DVD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x80"));           // 📀 DVD
+inline const juce::String MOVIE_CAMERA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA5"));  // 🎥 Movie Camera
+inline const juce::String FILM_FRAMES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x9E"));   // 🎞 Film Frames
+inline const juce::String FILM_PROJECTOR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBD"));                                    // 📽 Film Projector
+inline const juce::String TELEVISION = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBA")); // 📺 Television
+inline const juce::String CAMERA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB7"));     // 📷 Camera
+inline const juce::String CAMERA_WITH_FLASH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB8")); // 📸 Camera With Flash
+inline const juce::String VIDEO_CAMERA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB9"));  // 📹 Video Camera
+inline const juce::String VIDEOCASSETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xBC")); // 📼 Videocassette
+inline const juce::String MAGNIFYING_GLASS_TILTED_LEFT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8D")); // 🔍 Magnifying Glass Tilted Left
+inline const juce::String MAGNIFYING_GLASS_TILTED_RIGHT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8E")); // 🔎 Magnifying Glass Tilted Right
+inline const juce::String CANDLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xAF"));     // 🕯 Candle
+inline const juce::String LIGHT_BULB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA1")); // 💡 Light Bulb
+inline const juce::String FLASHLIGHT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA6")); // 🔦 Flashlight
+inline const juce::String RED_PAPER_LANTERN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xAE")); // 🏮 Red Paper Lantern
+inline const juce::String NOTEBOOK_WITH_DECORATIVE_COVER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x94")); // 📔 Notebook With Decorative Cover
+inline const juce::String CLOSED_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x95")); // 📕 Closed Book
+inline const juce::String OPEN_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x96"));   // 📖 Open Book
+inline const juce::String GREEN_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x97"));  // 📗 Green Book
+inline const juce::String BLUE_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x98"));   // 📘 Blue Book
+inline const juce::String ORANGE_BOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x99")); // 📙 Orange Book
+inline const juce::String BOOKS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9A"));       // 📚 Books
+inline const juce::String NOTEBOOK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x93"));    // 📓 Notebook
+inline const juce::String PAGE_WITH_CURL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x83"));                                // 📃 Page With Curl
+inline const juce::String SCROLL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9C")); // 📜 Scroll
+inline const juce::String PAGE_FACING_UP =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x84"));                                   // 📄 Page Facing Up
+inline const juce::String NEWSPAPER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB0")); // 📰 Newspaper
+inline const juce::String ROLLED_UP_NEWSPAPER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x9E")); // 🗞 Rolled-Up Newspaper
+inline const juce::String BOOKMARK_TABS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x91")); // 📑 Bookmark Tabs
+inline const juce::String BOOKMARK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x96"));      // 🔖 Bookmark
+inline const juce::String LABEL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB7"));         // 🏷 Label
+inline const juce::String MONEY_BAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB0"));     // 💰 Money Bag
+inline const juce::String MONEY_WITH_WINGS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB8"));                                     // 💸 Money With Wings
+inline const juce::String CREDIT_CARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xB3")); // 💳 Credit Card
+inline const juce::String ENVELOPE = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x89"));        // ✉ Envelope
+inline const juce::String E_MAIL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA7"));      // 📧 E-Mail
+inline const juce::String INCOMING_ENVELOPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA8")); // 📨 Incoming Envelope
+inline const juce::String ENVELOPE_WITH_ARROW =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA9")); // 📩 Envelope With Arrow
+inline const juce::String OUTBOX_TRAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA4")); // 📤 Outbox Tray
+inline const juce::String INBOX_TRAY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA5"));  // 📥 Inbox Tray
+inline const juce::String PACKAGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA6"));     // 📦 Package
+inline const juce::String CLOSED_MAILBOX_WITH_RAISED_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAB")); // 📫 Closed Mailbox With Raised Flag
+inline const juce::String CLOSED_MAILBOX_WITH_LOWERED_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAA")); // 📪 Closed Mailbox With Lowered Flag
+inline const juce::String OPEN_MAILBOX_WITH_RAISED_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAC")); // 📬 Open Mailbox With Raised Flag
+inline const juce::String OPEN_MAILBOX_WITH_LOWERED_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAD")); // 📭 Open Mailbox With Lowered Flag
+inline const juce::String POSTBOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xAE")); // 📮 Postbox
+inline const juce::String BALLOT_BOX_WITH_BALLOT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xB3"));                               // 🗳 Ballot Box With Ballot
+inline const juce::String PENCIL = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x8F"));    // ✏ Pencil
+inline const juce::String BLACK_NIB = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x92")); // ✒ Black Nib
+inline const juce::String FOUNTAIN_PEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8B")); // 🖋 Fountain Pen
+inline const juce::String PEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8A"));          // 🖊 Pen
+inline const juce::String PAINTBRUSH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8C"));   // 🖌 Paintbrush
+inline const juce::String CRAYON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x8D"));       // 🖍 Crayon
+inline const juce::String MEMO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9D"));         // 📝 Memo
+inline const juce::String FILE_FOLDER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x81"));  // 📁 File Folder
+inline const juce::String OPEN_FILE_FOLDER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x82")); // 📂 Open File Folder
+inline const juce::String CARD_INDEX_DIVIDERS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x82"));                                  // 🗂 Card Index Dividers
+inline const juce::String CALENDAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x85")); // 📅 Calendar
+inline const juce::String TEAR_OFF_CALENDAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x86")); // 📆 Tear-Off Calendar
+inline const juce::String SPIRAL_NOTEPAD =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x92")); // 🗒 Spiral Notepad
+inline const juce::String SPIRAL_CALENDAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x93"));                                    // 🗓 Spiral Calendar
+inline const juce::String CARD_INDEX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x87")); // 📇 Card Index
+inline const juce::String CHART_INCREASING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x88")); // 📈 Chart Increasing
+inline const juce::String CHART_DECREASING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x89"));                                   // 📉 Chart Decreasing
+inline const juce::String BAR_CHART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8A")); // 📊 Bar Chart
+inline const juce::String CLIPBOARD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8B")); // 📋 Clipboard
+inline const juce::String PUSHPIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8C"));   // 📌 Pushpin
+inline const juce::String ROUND_PUSHPIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8D")); // 📍 Round Pushpin
+inline const juce::String PAPERCLIP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8E"));     // 📎 Paperclip
+inline const juce::String LINKED_PAPERCLIPS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\x87")); // 🖇 Linked Paperclips
+inline const juce::String STRAIGHT_RULER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x8F")); // 📏 Straight Ruler
+inline const juce::String TRIANGULAR_RULER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x90"));                              // 📐 Triangular Ruler
+inline const juce::String SCISSORS = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x82")); // ✂ Scissors
+inline const juce::String CARD_FILE_BOX = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x83")); // 🗃 Card File Box
+inline const juce::String FILE_CABINET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x84"));  // 🗄 File Cabinet
+inline const juce::String WASTEBASKET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x91"));   // 🗑 Wastebasket
+inline const juce::String LOCKED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x92"));        // 🔒 Locked
+inline const juce::String UNLOCKED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x93"));      // 🔓 Unlocked
+inline const juce::String LOCKED_WITH_PEN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8F")); // 🔏 Locked With Pen
+inline const juce::String LOCKED_WITH_KEY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x90"));                                     // 🔐 Locked With Key
+inline const juce::String KEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x91"));         // 🔑 Key
+inline const juce::String OLD_KEY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x9D"));     // 🗝 Old Key
+inline const juce::String HAMMER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA8"));      // 🔨 Hammer
+inline const juce::String PICK = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x8F"));            // ⛏ Pick
+inline const juce::String HAMMER_AND_PICK = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x92")); // ⚒ Hammer and Pick
+inline const juce::String HAMMER_AND_WRENCH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA0"));                                    // 🛠 Hammer and Wrench
+inline const juce::String DAGGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xA1"));     // 🗡 Dagger
+inline const juce::String CROSSED_SWORDS = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x94")); // ⚔ Crossed Swords
+inline const juce::String PISTOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAB"));     // 🔫 Pistol
+inline const juce::String SHIELD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\xA1"));     // 🛡 Shield
+inline const juce::String WRENCH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA7"));     // 🔧 Wrench
+inline const juce::String NUT_AND_BOLT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA9")); // 🔩 Nut and Bolt
+inline const juce::String GEAR = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x99"));             // ⚙ Gear
+inline const juce::String CLAMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\x9C"));        // 🗜 Clamp
+inline const juce::String BALANCE_SCALE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x96"));    // ⚖ Balance Scale
+inline const juce::String LINK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x97"));         // 🔗 Link
+inline const juce::String CHAINS = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x93"));           // ⛓ Chains
+inline const juce::String ALEMBIC = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x97"));          // ⚗ Alembic
+inline const juce::String MICROSCOPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAC"));   // 🔬 Microscope
+inline const juce::String TELESCOPE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAD"));    // 🔭 Telescope
+inline const juce::String SATELLITE_ANTENNA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA1"));                                 // 📡 Satellite Antenna
+inline const juce::String SYRINGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x89")); // 💉 Syringe
+inline const juce::String PILL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x8A"));    // 💊 Pill
+inline const juce::String DOOR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAA"));    // 🚪 Door
+inline const juce::String BED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8F"));     // 🛏 Bed
+inline const juce::String COUCH_AND_LAMP = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x8B")); // 🛋 Couch and Lamp
+inline const juce::String TOILET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBD"));         // 🚽 Toilet
+inline const juce::String SHOWER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBF"));         // 🚿 Shower
+inline const juce::String BATHTUB = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x81"));        // 🛁 Bathtub
+inline const juce::String CIGARETTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAC"));      // 🚬 Cigarette
+inline const juce::String COFFIN = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xB0"));             // ⚰ Coffin
+inline const juce::String FUNERAL_URN = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xB1"));        // ⚱ Funeral Urn
+inline const juce::String POTABLE_WATER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB0"));  // 🚰 Potable Water
+inline const juce::String EYE_IN_SPEECH_BUBBLE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x91\x81\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x97\xA8\xEF\xB8"
+                                        "\x8F")); // 👁️‍🗨️ Eye in Speech Bubble
+inline const juce::String HEART_WITH_ARROW =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x98"));                               // 💘 Heart With Arrow
+inline const juce::String RED_HEART = juce::String(juce::CharPointer_UTF8("\xE2\x9D\xA4")); // ❤ Red Heart
+inline const juce::String BEATING_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x93")); // 💓 Beating Heart
+inline const juce::String BROKEN_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x94"));  // 💔 Broken Heart
+inline const juce::String TWO_HEARTS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x95"));    // 💕 Two Hearts
+inline const juce::String SPARKLING_HEART =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x96")); // 💖 Sparkling Heart
+inline const juce::String GROWING_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x97")); // 💗 Growing Heart
+inline const juce::String BLUE_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x99"));    // 💙 Blue Heart
+inline const juce::String GREEN_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9A"));   // 💚 Green Heart
+inline const juce::String YELLOW_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9B"));  // 💛 Yellow Heart
+inline const juce::String ORANGE_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\xA7\xA1"));  // 🧡 Orange Heart
+inline const juce::String PURPLE_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9C"));  // 💜 Purple Heart
+inline const juce::String BLACK_HEART = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x96\xA4"));   // 🖤 Black Heart
+inline const juce::String HEART_WITH_RIBBON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9D")); // 💝 Heart With Ribbon
+inline const juce::String REVOLVING_HEARTS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9E")); // 💞 Revolving Hearts
+inline const juce::String HEART_DECORATION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\x9F")); // 💟 Heart Decoration
+inline const juce::String HEAVY_HEART_EXCLAMATION =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9D\xA3"));                                 // ❣ Heavy Heart Exclamation
+inline const juce::String ZZZ = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA4")); // 💤 Zzz
+inline const juce::String ANGER_SYMBOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA2")); // 💢 Anger Symbol
+inline const juce::String SPEECH_BALLOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAC")); // 💬 Speech Balloon
+inline const juce::String RIGHT_ANGER_BUBBLE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x97\xAF")); // 🗯 Right Anger Bubble
+inline const juce::String THOUGHT_BALLOON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAD"));                                   // 💭 Thought Balloon
+inline const juce::String HOT_SPRINGS = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA8"));   // ♨ Hot Springs
+inline const juce::String STOP_SIGN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x91")); // 🛑 Stop Sign
+inline const juce::String TWELVE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9B")); // 🕛 Twelve O’clock
+inline const juce::String TWELVE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA7")); // 🕧 Twelve-Thirty
+inline const juce::String ONE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x90"));    // 🕐 One O’clock
+inline const juce::String ONE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9C"));    // 🕜 One-Thirty
+inline const juce::String TWO_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x91"));    // 🕑 Two O’clock
+inline const juce::String TWO_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9D"));    // 🕝 Two-Thirty
+inline const juce::String THREE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x92"));  // 🕒 Three O’clock
+inline const juce::String THREE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9E"));  // 🕞 Three-Thirty
+inline const juce::String FOUR_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x93"));   // 🕓 Four O’clock
+inline const juce::String FOUR_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9F"));   // 🕟 Four-Thirty
+inline const juce::String FIVE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x94"));   // 🕔 Five O’clock
+inline const juce::String FIVE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA0"));   // 🕠 Five-Thirty
+inline const juce::String SIX_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x95"));    // 🕕 Six O’clock
+inline const juce::String SIX_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA1"));    // 🕡 Six-Thirty
+inline const juce::String SEVEN_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x96"));  // 🕖 Seven O’clock
+inline const juce::String SEVEN_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA2"));  // 🕢 Seven-Thirty
+inline const juce::String EIGHT_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x97"));  // 🕗 Eight O’clock
+inline const juce::String EIGHT_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA3"));  // 🕣 Eight-Thirty
+inline const juce::String NINE_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x98"));   // 🕘 Nine O’clock
+inline const juce::String NINE_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA4"));   // 🕤 Nine-Thirty
+inline const juce::String TEN_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x99"));    // 🕙 Ten O’clock
+inline const juce::String TEN_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA5"));    // 🕥 Ten-Thirty
+inline const juce::String ELEVEN_OCLOCK = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x9A")); // 🕚 Eleven O’clock
+inline const juce::String ELEVEN_THIRTY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\xA6")); // 🕦 Eleven-Thirty
+inline const juce::String CYCLONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8C\x80"));       // 🌀 Cyclone
+inline const juce::String SPADE_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA0"));        // ♠ Spade Suit
+inline const juce::String HEART_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA5"));        // ♥ Heart Suit
+inline const juce::String DIAMOND_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA6"));      // ♦ Diamond Suit
+inline const juce::String CLUB_SUIT = juce::String(juce::CharPointer_UTF8("\xE2\x99\xA3"));         // ♣ Club Suit
+inline const juce::String JOKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x83\x8F"));         // 🃏 Joker
+inline const juce::String MAHJONG_RED_DRAGON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x80\x84")); // 🀄 Mahjong Red Dragon
+inline const juce::String FLOWER_PLAYING_CARDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB4")); // 🎴 Flower Playing Cards
+inline const juce::String MUTED_SPEAKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x87")); // 🔇 Muted Speaker
+inline const juce::String SPEAKER_LOW_VOLUME =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x88")); // 🔈 Speaker Low Volume
+inline const juce::String SPEAKER_MEDIUM_VOLUME =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x89")); // 🔉 Speaker Medium Volume
+inline const juce::String SPEAKER_HIGH_VOLUME =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x8A")); // 🔊 Speaker High Volume
+inline const juce::String LOUDSPEAKER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA2")); // 📢 Loudspeaker
+inline const juce::String MEGAPHONE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xA3"));   // 📣 Megaphone
+inline const juce::String BELL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x94"));        // 🔔 Bell
+inline const juce::String BELL_WITH_SLASH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x95"));                                      // 🔕 Bell With Slash
+inline const juce::String MUSICAL_NOTE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB5")); // 🎵 Musical Note
+inline const juce::String MUSICAL_NOTES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xB6")); // 🎶 Musical Notes
+inline const juce::String ATM_SIGN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xA7"));      // 🏧 Atm Sign
+inline const juce::String LITTER_IN_BIN_SIGN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAE")); // 🚮 Litter in Bin Sign
+inline const juce::String WHEELCHAIR_SYMBOL =
+    juce::String(juce::CharPointer_UTF8("\xE2\x99\xBF"));                                       // ♿ Wheelchair Symbol
+inline const juce::String MENS_ROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB9")); // 🚹 Men’s Room
+inline const juce::String WOMENS_ROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBA"));  // 🚺 Women’s Room
+inline const juce::String RESTROOM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBB"));     // 🚻 Restroom
+inline const juce::String BABY_SYMBOL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBC"));  // 🚼 Baby Symbol
+inline const juce::String WATER_CLOSET = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xBE")); // 🚾 Water Closet
+inline const juce::String WARNING = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xA0"));          // ⚠ Warning
+inline const juce::String CHILDREN_CROSSING =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB8"));                                    // 🚸 Children Crossing
+inline const juce::String NO_ENTRY = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x94"));       // ⛔ No Entry
+inline const juce::String PROHIBITED = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAB")); // 🚫 Prohibited
+inline const juce::String NO_BICYCLES = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB3"));  // 🚳 No Bicycles
+inline const juce::String NO_SMOKING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAD"));   // 🚭 No Smoking
+inline const juce::String NO_LITTERING = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xAF")); // 🚯 No Littering
+inline const juce::String NON_POTABLE_WATER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB1")); // 🚱 Non-Potable Water
+inline const juce::String NO_PEDESTRIANS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xB7")); // 🚷 No Pedestrians
+inline const juce::String NO_ONE_UNDER_EIGHTEEN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9E")); // 🔞 No One Under Eighteen
+inline const juce::String RADIOACTIVE = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA2"));      // ☢ Radioactive
+inline const juce::String BIOHAZARD = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA3"));        // ☣ Biohazard
+inline const juce::String UP_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x86"));         // ⬆ Up Arrow
+inline const juce::String UP_RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x97"));   // ↗ Up-Right Arrow
+inline const juce::String RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x9E\xA1"));      // ➡ Right Arrow
+inline const juce::String DOWN_RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x98")); // ↘ Down-Right Arrow
+inline const juce::String DOWN_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x87"));       // ⬇ Down Arrow
+inline const juce::String DOWN_LEFT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x99"));  // ↙ Down-Left Arrow
+inline const juce::String LEFT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\xAC\x85"));       // ⬅ Left Arrow
+inline const juce::String UP_LEFT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x96"));    // ↖ Up-Left Arrow
+inline const juce::String UP_DOWN_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x95"));    // ↕ Up-Down Arrow
+inline const juce::String LEFT_RIGHT_ARROW = juce::String(juce::CharPointer_UTF8("\xE2\x86\x94")); // ↔ Left-Right Arrow
+inline const juce::String RIGHT_ARROW_CURVING_LEFT =
+    juce::String(juce::CharPointer_UTF8("\xE2\x86\xA9")); // ↩ Right Arrow Curving Left
+inline const juce::String LEFT_ARROW_CURVING_RIGHT =
+    juce::String(juce::CharPointer_UTF8("\xE2\x86\xAA")); // ↪ Left Arrow Curving Right
+inline const juce::String RIGHT_ARROW_CURVING_UP =
+    juce::String(juce::CharPointer_UTF8("\xE2\xA4\xB4")); // ⤴ Right Arrow Curving Up
+inline const juce::String RIGHT_ARROW_CURVING_DOWN =
+    juce::String(juce::CharPointer_UTF8("\xE2\xA4\xB5")); // ⤵ Right Arrow Curving Down
+inline const juce::String CLOCKWISE_VERTICAL_ARROWS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x83")); // 🔃 Clockwise Vertical Arrows
+inline const juce::String COUNTERCLOCKWISE_ARROWS_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x84")); // 🔄 Counterclockwise Arrows Button
+inline const juce::String BACK_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x99")); // 🔙 Back Arrow
+inline const juce::String END_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9A"));  // 🔚 End Arrow
+inline const juce::String ON_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9B"));   // 🔛 On! Arrow
+inline const juce::String SOON_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9C")); // 🔜 Soon Arrow
+inline const juce::String TOP_ARROW = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9D"));  // 🔝 Top Arrow
+inline const juce::String PLACE_OF_WORSHIP =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9B\x90"));                                     // 🛐 Place of Worship
+inline const juce::String ATOM_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x9A\x9B"));     // ⚛ Atom Symbol
+inline const juce::String OM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x89"));          // 🕉 Om
+inline const juce::String STAR_OF_DAVID = juce::String(juce::CharPointer_UTF8("\xE2\x9C\xA1"));   // ✡ Star of David
+inline const juce::String WHEEL_OF_DHARMA = juce::String(juce::CharPointer_UTF8("\xE2\x98\xB8")); // ☸ Wheel of Dharma
+inline const juce::String YIN_YANG = juce::String(juce::CharPointer_UTF8("\xE2\x98\xAF"));        // ☯ Yin Yang
+inline const juce::String LATIN_CROSS = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x9D"));     // ✝ Latin Cross
+inline const juce::String ORTHODOX_CROSS = juce::String(juce::CharPointer_UTF8("\xE2\x98\xA6"));  // ☦ Orthodox Cross
+inline const juce::String STAR_AND_CRESCENT =
+    juce::String(juce::CharPointer_UTF8("\xE2\x98\xAA"));                                      // ☪ Star and Crescent
+inline const juce::String PEACE_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x98\xAE")); // ☮ Peace Symbol
+inline const juce::String MENORAH = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x95\x8E"));  // 🕎 Menorah
+inline const juce::String DOTTED_SIX_POINTED_STAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xAF"));                             // 🔯 Dotted Six-Pointed Star
+inline const juce::String ARIES = juce::String(juce::CharPointer_UTF8("\xE2\x99\x88"));   // ♈ Aries
+inline const juce::String TAURUS = juce::String(juce::CharPointer_UTF8("\xE2\x99\x89"));  // ♉ Taurus
+inline const juce::String GEMINI = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8A"));  // ♊ Gemini
+inline const juce::String CANCER = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8B"));  // ♋ Cancer
+inline const juce::String LEO = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8C"));     // ♌ Leo
+inline const juce::String VIRGO = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8D"));   // ♍ Virgo
+inline const juce::String LIBRA = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8E"));   // ♎ Libra
+inline const juce::String SCORPIO = juce::String(juce::CharPointer_UTF8("\xE2\x99\x8F")); // ♏ Scorpio
+inline const juce::String SAGITTARIUS = juce::String(juce::CharPointer_UTF8("\xE2\x99\x90")); // ♐ Sagittarius
+inline const juce::String CAPRICORN = juce::String(juce::CharPointer_UTF8("\xE2\x99\x91"));   // ♑ Capricorn
+inline const juce::String AQUARIUS = juce::String(juce::CharPointer_UTF8("\xE2\x99\x92"));    // ♒ Aquarius
+inline const juce::String PISCES = juce::String(juce::CharPointer_UTF8("\xE2\x99\x93"));      // ♓ Pisces
+inline const juce::String OPHIUCHUS = juce::String(juce::CharPointer_UTF8("\xE2\x9B\x8E"));   // ⛎ Ophiuchus
+inline const juce::String SHUFFLE_TRACKS_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x80")); // 🔀 Shuffle Tracks Button
+inline const juce::String REPEAT_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x81")); // 🔁 Repeat Button
+inline const juce::String REPEAT_SINGLE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x82"));                                 // 🔂 Repeat Single Button
+inline const juce::String PLAY_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x96\xB6")); // ▶ Play Button
+inline const juce::String FAST_FORWARD_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xE2\x8F\xA9")); // ⏩ Fast-Forward Button
+inline const juce::String REVERSE_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x97\x80")); // ◀ Reverse Button
+inline const juce::String FAST_REVERSE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xE2\x8F\xAA")); // ⏪ Fast Reverse Button
+inline const juce::String UPWARDS_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBC"));                                    // 🔼 Upwards Button
+inline const juce::String FAST_UP_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xAB")); // ⏫ Fast Up Button
+inline const juce::String DOWNWARDS_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBD")); // 🔽 Downwards Button
+inline const juce::String FAST_DOWN_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xE2\x8F\xAC"));                                        // ⏬ Fast Down Button
+inline const juce::String STOP_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\xB9"));    // ⏹ Stop Button
+inline const juce::String EJECT_BUTTON = juce::String(juce::CharPointer_UTF8("\xE2\x8F\x8F"));   // ⏏ Eject Button
+inline const juce::String CINEMA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\xA6"));     // 🎦 Cinema
+inline const juce::String DIM_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x85")); // 🔅 Dim Button
+inline const juce::String BRIGHT_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x86")); // 🔆 Bright Button
+inline const juce::String ANTENNA_BARS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB6"));  // 📶 Antenna Bars
+inline const juce::String VIBRATION_MODE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB3")); // 📳 Vibration Mode
+inline const juce::String MOBILE_PHONE_OFF =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\xB4")); // 📴 Mobile Phone Off
+inline const juce::String RECYCLING_SYMBOL = juce::String(juce::CharPointer_UTF8("\xE2\x99\xBB")); // ♻ Recycling Symbol
+inline const juce::String TRIDENT_EMBLEM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB1"));                                    // 🔱 Trident Emblem
+inline const juce::String NAME_BADGE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x93\x9B")); // 📛 Name Badge
+inline const juce::String JAPANESE_SYMBOL_FOR_BEGINNER =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB0")); // 🔰 Japanese Symbol for Beginner
+inline const juce::String HEAVY_LARGE_CIRCLE =
+    juce::String(juce::CharPointer_UTF8("\xE2\xAD\x95")); // ⭕ Heavy Large Circle
+inline const juce::String WHITE_HEAVY_CHECK_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9C\x85")); // ✅ White Heavy Check Mark
+inline const juce::String BALLOT_BOX_WITH_CHECK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x98\x91")); // ☑ Ballot Box With Check
+inline const juce::String HEAVY_CHECK_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9C\x94")); // ✔ Heavy Check Mark
+inline const juce::String HEAVY_MULTIPLICATION_X =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9C\x96"));                                    // ✖ Heavy Multiplication X
+inline const juce::String CROSS_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x8C")); // ❌ Cross Mark
+inline const juce::String CROSS_MARK_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9D\x8E")); // ❎ Cross Mark Button
+inline const juce::String HEAVY_PLUS_SIGN = juce::String(juce::CharPointer_UTF8("\xE2\x9E\x95")); // ➕ Heavy Plus Sign
+inline const juce::String HEAVY_MINUS_SIGN =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9E\x96")); // ➖ Heavy Minus Sign
+inline const juce::String HEAVY_DIVISION_SIGN =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9E\x97"));                                    // ➗ Heavy Division Sign
+inline const juce::String CURLY_LOOP = juce::String(juce::CharPointer_UTF8("\xE2\x9E\xB0")); // ➰ Curly Loop
+inline const juce::String DOUBLE_CURLY_LOOP =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9E\xBF")); // ➿ Double Curly Loop
+inline const juce::String PART_ALTERNATION_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE3\x80\xBD")); // 〽 Part Alternation Mark
+inline const juce::String EIGHT_SPOKED_ASTERISK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9C\xB3")); // ✳ Eight-Spoked Asterisk
+inline const juce::String EIGHT_POINTED_STAR =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9C\xB4"));                                 // ✴ Eight-Pointed Star
+inline const juce::String SPARKLE = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x87")); // ❇ Sparkle
+inline const juce::String DOUBLE_EXCLAMATION_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x80\xBC")); // ‼ Double Exclamation Mark
+inline const juce::String EXCLAMATION_QUESTION_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x81\x89")); // ⁉ Exclamation Question Mark
+inline const juce::String QUESTION_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x9D\x93")); // ❓ Question Mark
+inline const juce::String WHITE_QUESTION_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9D\x94")); // ❔ White Question Mark
+inline const juce::String WHITE_EXCLAMATION_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9D\x95")); // ❕ White Exclamation Mark
+inline const juce::String EXCLAMATION_MARK =
+    juce::String(juce::CharPointer_UTF8("\xE2\x9D\x97"));                                    // ❗ Exclamation Mark
+inline const juce::String COPYRIGHT = juce::String(juce::CharPointer_UTF8("\xC2\xA9"));      // © Copyright
+inline const juce::String REGISTERED = juce::String(juce::CharPointer_UTF8("\xC2\xAE"));     // ® Registered
+inline const juce::String TRADE_MARK = juce::String(juce::CharPointer_UTF8("\xE2\x84\xA2")); // ™ Trade Mark
+inline const juce::String KEYCAP_NUMBER_SIGN =
+    juce::String(juce::CharPointer_UTF8("\x23\xEF\xB8\x8F\xE2\x83\xA3")); // #️⃣ Keycap Number Sign
+inline const juce::String KEYCAP_DIGIT_ZERO =
+    juce::String(juce::CharPointer_UTF8("\x30\xEF\xB8\x8F\xE2\x83\xA3")); // 0️⃣ Keycap Digit Zero
+inline const juce::String KEYCAP_DIGIT_ONE =
+    juce::String(juce::CharPointer_UTF8("\x31\xEF\xB8\x8F\xE2\x83\xA3")); // 1️⃣ Keycap Digit One
+inline const juce::String KEYCAP_DIGIT_TWO =
+    juce::String(juce::CharPointer_UTF8("\x32\xEF\xB8\x8F\xE2\x83\xA3")); // 2️⃣ Keycap Digit Two
+inline const juce::String KEYCAP_DIGIT_THREE =
+    juce::String(juce::CharPointer_UTF8("\x33\xEF\xB8\x8F\xE2\x83\xA3")); // 3️⃣ Keycap Digit Three
+inline const juce::String KEYCAP_DIGIT_FOUR =
+    juce::String(juce::CharPointer_UTF8("\x34\xEF\xB8\x8F\xE2\x83\xA3")); // 4️⃣ Keycap Digit Four
+inline const juce::String KEYCAP_DIGIT_FIVE =
+    juce::String(juce::CharPointer_UTF8("\x35\xEF\xB8\x8F\xE2\x83\xA3")); // 5️⃣ Keycap Digit Five
+inline const juce::String KEYCAP_DIGIT_SIX =
+    juce::String(juce::CharPointer_UTF8("\x36\xEF\xB8\x8F\xE2\x83\xA3")); // 6️⃣ Keycap Digit Six
+inline const juce::String KEYCAP_DIGIT_SEVEN =
+    juce::String(juce::CharPointer_UTF8("\x37\xEF\xB8\x8F\xE2\x83\xA3")); // 7️⃣ Keycap Digit Seven
+inline const juce::String KEYCAP_DIGIT_EIGHT =
+    juce::String(juce::CharPointer_UTF8("\x38\xEF\xB8\x8F\xE2\x83\xA3")); // 8️⃣ Keycap Digit Eight
+inline const juce::String KEYCAP_DIGIT_NINE =
+    juce::String(juce::CharPointer_UTF8("\x39\xEF\xB8\x8F\xE2\x83\xA3"));                       // 9️⃣ Keycap Digit Nine
+inline const juce::String KEYCAP_10 = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\x9F")); // 🔟 Keycap 10
+inline const juce::String HUNDRED_POINTS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xAF")); // 💯 Hundred Points
+inline const juce::String INPUT_LATIN_UPPERCASE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA0")); // 🔠 Input Latin Uppercase
+inline const juce::String INPUT_LATIN_LOWERCASE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA1")); // 🔡 Input Latin Lowercase
+inline const juce::String INPUT_NUMBERS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA2")); // 🔢 Input Numbers
+inline const juce::String INPUT_SYMBOLS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA3")); // 🔣 Input Symbols
+inline const juce::String INPUT_LATIN_LETTERS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xA4")); // 🔤 Input Latin Letters
+inline const juce::String A_BUTTON_BLOOD_TYPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xB0")); // 🅰 A Button (blood Type)
+inline const juce::String AB_BUTTON_BLOOD_TYPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x8E")); // 🆎 Ab Button (blood Type)
+inline const juce::String B_BUTTON_BLOOD_TYPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xB1")); // 🅱 B Button (blood Type)
+inline const juce::String CL_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x91"));   // 🆑 CL Button
+inline const juce::String COOL_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x92")); // 🆒 Cool Button
+inline const juce::String FREE_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x93")); // 🆓 Free Button
+inline const juce::String INFORMATION = juce::String(juce::CharPointer_UTF8("\xE2\x84\xB9"));     // ℹ Information
+inline const juce::String ID_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x94"));   // 🆔 ID Button
+inline const juce::String CIRCLED_M = juce::String(juce::CharPointer_UTF8("\xE2\x93\x82"));       // Ⓜ Circled M
+inline const juce::String NEW_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x95"));  // 🆕 New Button
+inline const juce::String NG_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x96"));   // 🆖 NG Button
+inline const juce::String O_BUTTON_BLOOD_TYPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xBE")); // 🅾 O Button (blood Type)
+inline const juce::String OK_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x97"));  // 🆗 OK Button
+inline const juce::String P_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x85\xBF"));   // 🅿 P Button
+inline const juce::String SOS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x98")); // 🆘 SOS Button
+inline const juce::String UP_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x99"));  // 🆙 Up! Button
+inline const juce::String VS_BUTTON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x86\x9A"));  // 🆚 Vs Button
+inline const juce::String JAPANESE_HERE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\x81")); // 🈁 Japanese “here” Button
+inline const juce::String JAPANESE_SERVICE_CHARGE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\x82")); // 🈂 Japanese “service Charge” Button
+inline const juce::String JAPANESE_MONTHLY_AMOUNT_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB7")); // 🈷 Japanese “monthly Amount” Button
+inline const juce::String JAPANESE_NOT_FREE_OF_CHARGE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB6")); // 🈶 Japanese “not Free of Charge” Button
+inline const juce::String JAPANESE_RESERVED_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xAF")); // 🈯 Japanese “reserved” Button
+inline const juce::String JAPANESE_BARGAIN_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x89\x90")); // 🉐 Japanese “bargain” Button
+inline const juce::String JAPANESE_DISCOUNT_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB9")); // 🈹 Japanese “discount” Button
+inline const juce::String JAPANESE_FREE_OF_CHARGE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\x9A")); // 🈚 Japanese “free of Charge” Button
+inline const juce::String JAPANESE_PROHIBITED_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB2")); // 🈲 Japanese “prohibited” Button
+inline const juce::String JAPANESE_ACCEPTABLE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x89\x91")); // 🉑 Japanese “acceptable” Button
+inline const juce::String JAPANESE_APPLICATION_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB8")); // 🈸 Japanese “application” Button
+inline const juce::String JAPANESE_PASSING_GRADE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB4")); // 🈴 Japanese “passing Grade” Button
+inline const juce::String JAPANESE_VACANCY_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB3")); // 🈳 Japanese “vacancy” Button
+inline const juce::String JAPANESE_CONGRATULATIONS_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xE3\x8A\x97")); // ㊗ Japanese “congratulations” Button
+inline const juce::String JAPANESE_SECRET_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xE3\x8A\x99")); // ㊙ Japanese “secret” Button
+inline const juce::String JAPANESE_OPEN_FOR_BUSINESS_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xBA")); // 🈺 Japanese “open for Business” Button
+inline const juce::String JAPANESE_NO_VACANCY_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x88\xB5")); // 🈵 Japanese “no Vacancy” Button
+inline const juce::String BLACK_SMALL_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x96\xAA")); // ▪ Black Small Square
+inline const juce::String WHITE_SMALL_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x96\xAB")); // ▫ White Small Square
+inline const juce::String WHITE_MEDIUM_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x97\xBB")); // ◻ White Medium Square
+inline const juce::String BLACK_MEDIUM_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x97\xBC")); // ◼ Black Medium Square
+inline const juce::String WHITE_MEDIUM_SMALL_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x97\xBD")); // ◽ White Medium-Small Square
+inline const juce::String BLACK_MEDIUM_SMALL_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\x97\xBE")); // ◾ Black Medium-Small Square
+inline const juce::String BLACK_LARGE_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\xAC\x9B")); // ⬛ Black Large Square
+inline const juce::String WHITE_LARGE_SQUARE =
+    juce::String(juce::CharPointer_UTF8("\xE2\xAC\x9C")); // ⬜ White Large Square
+inline const juce::String LARGE_ORANGE_DIAMOND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB6")); // 🔶 Large Orange Diamond
+inline const juce::String LARGE_BLUE_DIAMOND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB7")); // 🔷 Large Blue Diamond
+inline const juce::String SMALL_ORANGE_DIAMOND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB8")); // 🔸 Small Orange Diamond
+inline const juce::String SMALL_BLUE_DIAMOND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB9")); // 🔹 Small Blue Diamond
+inline const juce::String RED_TRIANGLE_POINTED_UP =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBA")); // 🔺 Red Triangle Pointed Up
+inline const juce::String RED_TRIANGLE_POINTED_DOWN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xBB")); // 🔻 Red Triangle Pointed Down
+inline const juce::String DIAMOND_WITH_A_DOT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x92\xA0")); // 💠 Diamond With a Dot
+inline const juce::String BLACK_SQUARE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB2")); // 🔲 Black Square Button
+inline const juce::String WHITE_SQUARE_BUTTON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB3"));                                  // 🔳 White Square Button
+inline const juce::String WHITE_CIRCLE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xAA")); // ⚪ White Circle
+inline const juce::String BLACK_CIRCLE = juce::String(juce::CharPointer_UTF8("\xE2\x9A\xAB")); // ⚫ Black Circle
+inline const juce::String RED_CIRCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB4"));  // 🔴 Red Circle
+inline const juce::String BLUE_CIRCLE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x94\xB5")); // 🔵 Blue Circle
+inline const juce::String CHEQUERED_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\x81")); // 🏁 Chequered Flag
+inline const juce::String TRIANGULAR_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x9A\xA9")); // 🚩 Triangular Flag
+inline const juce::String CROSSED_FLAGS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8E\x8C")); // 🎌 Crossed Flags
+inline const juce::String BLACK_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4"));    // 🏴 Black Flag
+inline const juce::String WHITE_FLAG = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB3"));    // 🏳 White Flag
+inline const juce::String RAINBOW_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB3\xEF\xB8\x8F\xE2\x80\x8D\xF0\x9F\x8C\x88")); // 🏳️‍🌈
+                                                                                                      // Rainbow
+                                                                                                      // Flag
+inline const juce::String PIRATE_FLAG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xE2\x80\x8D\xE2\x98\xA0\xEF\xB8\x8F")); // 🏴‍☠️
+                                                                                                  // Pirate Flag
+inline const juce::String ASCENSION_ISLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xA8")); // 🇦🇨 Ascension Island
+inline const juce::String ANDORRA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xA9")); // 🇦🇩 Andorra
+inline const juce::String UNITED_ARAB_EMIRATES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAA")); // 🇦🇪 United Arab Emirates
+inline const juce::String AFGHANISTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAB")); // 🇦🇫 Afghanistan
+inline const juce::String ANTIGUA_BARBUDA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAC")); // 🇦🇬 Antigua & Barbuda
+inline const juce::String ANGUILLA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xAE")); // 🇦🇮 Anguilla
+inline const juce::String ALBANIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB1")); // 🇦🇱 Albania
+inline const juce::String ARMENIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB2")); // 🇦🇲 Armenia
+inline const juce::String ANGOLA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB4")); // 🇦🇴 Angola
+inline const juce::String ANTARCTICA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB6")); // 🇦🇶 Antarctica
+inline const juce::String ARGENTINA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB7")); // 🇦🇷 Argentina
+inline const juce::String AMERICAN_SAMOA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB8")); // 🇦🇸 American Samoa
+inline const juce::String AUSTRIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xB9")); // 🇦🇹 Austria
+inline const juce::String AUSTRALIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBA")); // 🇦🇺 Australia
+inline const juce::String ARUBA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBC")); // 🇦🇼 Aruba
+inline const juce::String ÅLAND_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBD")); // 🇦🇽 Åland Islands
+inline const juce::String AZERBAIJAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA6\xF0\x9F\x87\xBF")); // 🇦🇿 Azerbaijan
+inline const juce::String BOSNIA_HERZEGOVINA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xA6")); // 🇧🇦 Bosnia & Herzegovina
+inline const juce::String BARBADOS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xA7")); // 🇧🇧 Barbados
+inline const juce::String BANGLADESH =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xA9")); // 🇧🇩 Bangladesh
+inline const juce::String BELGIUM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAA")); // 🇧🇪 Belgium
+inline const juce::String BURKINA_FASO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAB")); // 🇧🇫 Burkina Faso
+inline const juce::String BULGARIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAC")); // 🇧🇬 Bulgaria
+inline const juce::String BAHRAIN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAD")); // 🇧🇭 Bahrain
+inline const juce::String BURUNDI =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAE")); // 🇧🇮 Burundi
+inline const juce::String BENIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xAF")); // 🇧🇯 Benin
+inline const juce::String ST_BARTHÉLEMY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB1")); // 🇧🇱 St. Barthélemy
+inline const juce::String BERMUDA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB2")); // 🇧🇲 Bermuda
+inline const juce::String BRUNEI =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB3")); // 🇧🇳 Brunei
+inline const juce::String BOLIVIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB4")); // 🇧🇴 Bolivia
+inline const juce::String CARIBBEAN_NETHERLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB6")); // 🇧🇶 Caribbean Netherlands
+inline const juce::String BRAZIL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB7")); // 🇧🇷 Brazil
+inline const juce::String BAHAMAS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB8")); // 🇧🇸 Bahamas
+inline const juce::String BHUTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xB9")); // 🇧🇹 Bhutan
+inline const juce::String BOUVET_ISLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBB")); // 🇧🇻 Bouvet Island
+inline const juce::String BOTSWANA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBC")); // 🇧🇼 Botswana
+inline const juce::String BELARUS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBE")); // 🇧🇾 Belarus
+inline const juce::String BELIZE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA7\xF0\x9F\x87\xBF")); // 🇧🇿 Belize
+inline const juce::String CANADA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xA6")); // 🇨🇦 Canada
+inline const juce::String COCOS_KEELING_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xA8")); // 🇨🇨 Cocos (Keeling) Islands
+inline const juce::String CONGO_KINSHASA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xA9")); // 🇨🇩 Congo - Kinshasa
+inline const juce::String CENTRAL_AFRICAN_REPUBLIC =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAB")); // 🇨🇫 Central African Republic
+inline const juce::String CONGO_BRAZZAVILLE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAC")); // 🇨🇬 Congo - Brazzaville
+inline const juce::String SWITZERLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAD")); // 🇨🇭 Switzerland
+inline const juce::String CÔTE_DIVOIRE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xAE")); // 🇨🇮 Côte D’Ivoire
+inline const juce::String COOK_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB0")); // 🇨🇰 Cook Islands
+inline const juce::String CHILE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB1")); // 🇨🇱 Chile
+inline const juce::String CAMEROON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB2")); // 🇨🇲 Cameroon
+inline const juce::String CHINA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB3")); // 🇨🇳 China
+inline const juce::String COLOMBIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB4")); // 🇨🇴 Colombia
+inline const juce::String CLIPPERTON_ISLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB5")); // 🇨🇵 Clipperton Island
+inline const juce::String COSTA_RICA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xB7")); // 🇨🇷 Costa Rica
+inline const juce::String CUBA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBA")); // 🇨🇺 Cuba
+inline const juce::String CAPE_VERDE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBB")); // 🇨🇻 Cape Verde
+inline const juce::String CURAÇAO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBC")); // 🇨🇼 Curaçao
+inline const juce::String CHRISTMAS_ISLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBD")); // 🇨🇽 Christmas Island
+inline const juce::String CYPRUS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBE")); // 🇨🇾 Cyprus
+inline const juce::String CZECHIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA8\xF0\x9F\x87\xBF")); // 🇨🇿 Czechia
+inline const juce::String GERMANY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xAA")); // 🇩🇪 Germany
+inline const juce::String DIEGO_GARCIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xAC")); // 🇩🇬 Diego Garcia
+inline const juce::String DJIBOUTI =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xAF")); // 🇩🇯 Djibouti
+inline const juce::String DENMARK =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xB0")); // 🇩🇰 Denmark
+inline const juce::String DOMINICA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xB2")); // 🇩🇲 Dominica
+inline const juce::String DOMINICAN_REPUBLIC =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xB4")); // 🇩🇴 Dominican Republic
+inline const juce::String ALGERIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xA9\xF0\x9F\x87\xBF")); // 🇩🇿 Algeria
+inline const juce::String CEUTA_MELILLA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xA6")); // 🇪🇦 Ceuta & Melilla
+inline const juce::String ECUADOR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xA8")); // 🇪🇨 Ecuador
+inline const juce::String ESTONIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xAA")); // 🇪🇪 Estonia
+inline const juce::String EGYPT = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xAC")); // 🇪🇬 Egypt
+inline const juce::String WESTERN_SAHARA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xAD")); // 🇪🇭 Western Sahara
+inline const juce::String ERITREA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xB7")); // 🇪🇷 Eritrea
+inline const juce::String SPAIN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xB8")); // 🇪🇸 Spain
+inline const juce::String ETHIOPIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xB9")); // 🇪🇹 Ethiopia
+inline const juce::String EUROPEAN_UNION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAA\xF0\x9F\x87\xBA")); // 🇪🇺 European Union
+inline const juce::String FINLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xAE"));                              // 🇫🇮 Finland
+inline const juce::String FIJI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xAF")); // 🇫🇯 Fiji
+inline const juce::String FALKLAND_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB0")); // 🇫🇰 Falkland Islands
+inline const juce::String MICRONESIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB2")); // 🇫🇲 Micronesia
+inline const juce::String FAROE_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB4")); // 🇫🇴 Faroe Islands
+inline const juce::String FRANCE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAB\xF0\x9F\x87\xB7"));                               // 🇫🇷 France
+inline const juce::String GABON = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xA6")); // 🇬🇦 Gabon
+inline const juce::String UNITED_KINGDOM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xA7")); // 🇬🇧 United Kingdom
+inline const juce::String GRENADA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xA9")); // 🇬🇩 Grenada
+inline const juce::String GEORGIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAA")); // 🇬🇪 Georgia
+inline const juce::String FRENCH_GUIANA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAB")); // 🇬🇫 French Guiana
+inline const juce::String GUERNSEY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAC")); // 🇬🇬 Guernsey
+inline const juce::String GHANA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAD")); // 🇬🇭 Ghana
+inline const juce::String GIBRALTAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xAE")); // 🇬🇮 Gibraltar
+inline const juce::String GREENLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB1")); // 🇬🇱 Greenland
+inline const juce::String GAMBIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB2")); // 🇬🇲 Gambia
+inline const juce::String GUINEA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB3")); // 🇬🇳 Guinea
+inline const juce::String GUADELOUPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB5")); // 🇬🇵 Guadeloupe
+inline const juce::String EQUATORIAL_GUINEA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB6")); // 🇬🇶 Equatorial Guinea
+inline const juce::String GREECE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB7")); // 🇬🇷 Greece
+inline const juce::String SOUTH_GEORGIA_SOUTH_SANDWICH_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB8")); // 🇬🇸 South Georgia & South
+                                                                              // Sandwich Islands
+inline const juce::String GUATEMALA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xB9")); // 🇬🇹 Guatemala
+inline const juce::String GUAM = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xBA")); // 🇬🇺 Guam
+inline const juce::String GUINEA_BISSAU =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xBC")); // 🇬🇼 Guinea-Bissau
+inline const juce::String GUYANA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAC\xF0\x9F\x87\xBE")); // 🇬🇾 Guyana
+inline const juce::String HONG_KONG_SAR_CHINA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB0")); // 🇭🇰 Hong Kong SAR China
+inline const juce::String HEARD_MCDONALD_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB2")); // 🇭🇲 Heard & McDonald Islands
+inline const juce::String HONDURAS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB3")); // 🇭🇳 Honduras
+inline const juce::String CROATIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB7")); // 🇭🇷 Croatia
+inline const juce::String HAITI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xB9")); // 🇭🇹 Haiti
+inline const juce::String HUNGARY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAD\xF0\x9F\x87\xBA")); // 🇭🇺 Hungary
+inline const juce::String CANARY_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xA8")); // 🇮🇨 Canary Islands
+inline const juce::String INDONESIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xA9")); // 🇮🇩 Indonesia
+inline const juce::String IRELAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xAA")); // 🇮🇪 Ireland
+inline const juce::String ISRAEL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB1")); // 🇮🇱 Israel
+inline const juce::String ISLE_OF_MAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB2")); // 🇮🇲 Isle of Man
+inline const juce::String INDIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB3")); // 🇮🇳 India
+inline const juce::String BRITISH_INDIAN_OCEAN_TERRITORY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB4")); // 🇮🇴 British Indian Ocean
+                                                                              // Territory
+inline const juce::String IRAQ = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB6")); // 🇮🇶 Iraq
+inline const juce::String IRAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB7")); // 🇮🇷 Iran
+inline const juce::String ICELAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB8")); // 🇮🇸 Iceland
+inline const juce::String ITALY = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAE\xF0\x9F\x87\xB9")); // 🇮🇹 Italy
+inline const juce::String JERSEY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xAA")); // 🇯🇪 Jersey
+inline const juce::String JAMAICA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xB2")); // 🇯🇲 Jamaica
+inline const juce::String JORDAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xB4"));                               // 🇯🇴 Jordan
+inline const juce::String JAPAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xAF\xF0\x9F\x87\xB5")); // 🇯🇵 Japan
+inline const juce::String KENYA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAA")); // 🇰🇪 Kenya
+inline const juce::String KYRGYZSTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAC")); // 🇰🇬 Kyrgyzstan
+inline const juce::String CAMBODIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAD")); // 🇰🇭 Cambodia
+inline const juce::String KIRIBATI =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xAE")); // 🇰🇮 Kiribati
+inline const juce::String COMOROS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB2")); // 🇰🇲 Comoros
+inline const juce::String ST_KITTS_NEVIS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB3")); // 🇰🇳 St. Kitts & Nevis
+inline const juce::String NORTH_KOREA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB5")); // 🇰🇵 North Korea
+inline const juce::String SOUTH_KOREA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xB7")); // 🇰🇷 South Korea
+inline const juce::String KUWAIT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xBC")); // 🇰🇼 Kuwait
+inline const juce::String CAYMAN_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xBE")); // 🇰🇾 Cayman Islands
+inline const juce::String KAZAKHSTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB0\xF0\x9F\x87\xBF")); // 🇰🇿 Kazakhstan
+inline const juce::String LAOS = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xA6")); // 🇱🇦 Laos
+inline const juce::String LEBANON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xA7")); // 🇱🇧 Lebanon
+inline const juce::String ST_LUCIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xA8")); // 🇱🇨 St. Lucia
+inline const juce::String LIECHTENSTEIN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xAE")); // 🇱🇮 Liechtenstein
+inline const juce::String SRI_LANKA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB0")); // 🇱🇰 Sri Lanka
+inline const juce::String LIBERIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB7")); // 🇱🇷 Liberia
+inline const juce::String LESOTHO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB8")); // 🇱🇸 Lesotho
+inline const juce::String LITHUANIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xB9")); // 🇱🇹 Lithuania
+inline const juce::String LUXEMBOURG =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xBA")); // 🇱🇺 Luxembourg
+inline const juce::String LATVIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xBB"));                               // 🇱🇻 Latvia
+inline const juce::String LIBYA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB1\xF0\x9F\x87\xBE")); // 🇱🇾 Libya
+inline const juce::String MOROCCO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xA6")); // 🇲🇦 Morocco
+inline const juce::String MONACO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xA8")); // 🇲🇨 Monaco
+inline const juce::String MOLDOVA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xA9")); // 🇲🇩 Moldova
+inline const juce::String MONTENEGRO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAA")); // 🇲🇪 Montenegro
+inline const juce::String ST_MARTIN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAB")); // 🇲🇫 St. Martin
+inline const juce::String MADAGASCAR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAC")); // 🇲🇬 Madagascar
+inline const juce::String MARSHALL_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xAD")); // 🇲🇭 Marshall Islands
+inline const juce::String MACEDONIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB0")); // 🇲🇰 Macedonia
+inline const juce::String MALI = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB1")); // 🇲🇱 Mali
+inline const juce::String MYANMAR_BURMA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB2")); // 🇲🇲 Myanmar (Burma)
+inline const juce::String MONGOLIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB3")); // 🇲🇳 Mongolia
+inline const juce::String MACAU_SAR_CHINA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB4")); // 🇲🇴 Macau SAR China
+inline const juce::String NORTHERN_MARIANA_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB5")); // 🇲🇵 Northern Mariana Islands
+inline const juce::String MARTINIQUE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB6")); // 🇲🇶 Martinique
+inline const juce::String MAURITANIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB7")); // 🇲🇷 Mauritania
+inline const juce::String MONTSERRAT =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB8")); // 🇲🇸 Montserrat
+inline const juce::String MALTA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xB9")); // 🇲🇹 Malta
+inline const juce::String MAURITIUS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBA")); // 🇲🇺 Mauritius
+inline const juce::String MALDIVES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBB")); // 🇲🇻 Maldives
+inline const juce::String MALAWI =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBC")); // 🇲🇼 Malawi
+inline const juce::String MEXICO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBD")); // 🇲🇽 Mexico
+inline const juce::String MALAYSIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBE")); // 🇲🇾 Malaysia
+inline const juce::String MOZAMBIQUE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB2\xF0\x9F\x87\xBF")); // 🇲🇿 Mozambique
+inline const juce::String NAMIBIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xA6")); // 🇳🇦 Namibia
+inline const juce::String NEW_CALEDONIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xA8")); // 🇳🇨 New Caledonia
+inline const juce::String NIGER = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAA")); // 🇳🇪 Niger
+inline const juce::String NORFOLK_ISLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAB")); // 🇳🇫 Norfolk Island
+inline const juce::String NIGERIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAC")); // 🇳🇬 Nigeria
+inline const juce::String NICARAGUA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xAE")); // 🇳🇮 Nicaragua
+inline const juce::String NETHERLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB1")); // 🇳🇱 Netherlands
+inline const juce::String NORWAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB4"));                               // 🇳🇴 Norway
+inline const juce::String NEPAL = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB5")); // 🇳🇵 Nepal
+inline const juce::String NAURU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xB7")); // 🇳🇷 Nauru
+inline const juce::String NIUE = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xBA"));  // 🇳🇺 Niue
+inline const juce::String NEW_ZEALAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB3\xF0\x9F\x87\xBF")); // 🇳🇿 New Zealand
+inline const juce::String OMAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB4\xF0\x9F\x87\xB2")); // 🇴🇲 Oman
+inline const juce::String PANAMA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xA6"));                              // 🇵🇦 Panama
+inline const juce::String PERU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAA")); // 🇵🇪 Peru
+inline const juce::String FRENCH_POLYNESIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAB")); // 🇵🇫 French Polynesia
+inline const juce::String PAPUA_NEW_GUINEA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAC")); // 🇵🇬 Papua New Guinea
+inline const juce::String PHILIPPINES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xAD")); // 🇵🇭 Philippines
+inline const juce::String PAKISTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB0")); // 🇵🇰 Pakistan
+inline const juce::String POLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB1")); // 🇵🇱 Poland
+inline const juce::String ST_PIERRE_MIQUELON =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB2")); // 🇵🇲 St. Pierre & Miquelon
+inline const juce::String PITCAIRN_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB3")); // 🇵🇳 Pitcairn Islands
+inline const juce::String PUERTO_RICO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB7")); // 🇵🇷 Puerto Rico
+inline const juce::String PALESTINIAN_TERRITORIES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB8")); // 🇵🇸 Palestinian Territories
+inline const juce::String PORTUGAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xB9")); // 🇵🇹 Portugal
+inline const juce::String PALAU = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xBC")); // 🇵🇼 Palau
+inline const juce::String PARAGUAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB5\xF0\x9F\x87\xBE")); // 🇵🇾 Paraguay
+inline const juce::String QATAR = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB6\xF0\x9F\x87\xA6")); // 🇶🇦 Qatar
+inline const juce::String RÉUNION =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xAA")); // 🇷🇪 Réunion
+inline const juce::String ROMANIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xB4")); // 🇷🇴 Romania
+inline const juce::String SERBIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xB8")); // 🇷🇸 Serbia
+inline const juce::String RUSSIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xBA")); // 🇷🇺 Russia
+inline const juce::String RWANDA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB7\xF0\x9F\x87\xBC")); // 🇷🇼 Rwanda
+inline const juce::String SAUDI_ARABIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA6")); // 🇸🇦 Saudi Arabia
+inline const juce::String SOLOMON_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA7")); // 🇸🇧 Solomon Islands
+inline const juce::String SEYCHELLES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA8")); // 🇸🇨 Seychelles
+inline const juce::String SUDAN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xA9")); // 🇸🇩 Sudan
+inline const juce::String SWEDEN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAA")); // 🇸🇪 Sweden
+inline const juce::String SINGAPORE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAC")); // 🇸🇬 Singapore
+inline const juce::String ST_HELENA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAD")); // 🇸🇭 St. Helena
+inline const juce::String SLOVENIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAE")); // 🇸🇮 Slovenia
+inline const juce::String SVALBARD_JAN_MAYEN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xAF")); // 🇸🇯 Svalbard & Jan Mayen
+inline const juce::String SLOVAKIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB0")); // 🇸🇰 Slovakia
+inline const juce::String SIERRA_LEONE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB1")); // 🇸🇱 Sierra Leone
+inline const juce::String SAN_MARINO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB2")); // 🇸🇲 San Marino
+inline const juce::String SENEGAL =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB3")); // 🇸🇳 Senegal
+inline const juce::String SOMALIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB4")); // 🇸🇴 Somalia
+inline const juce::String SURINAME =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB7")); // 🇸🇷 Suriname
+inline const juce::String SOUTH_SUDAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB8")); // 🇸🇸 South Sudan
+inline const juce::String SÃO_TOMÉ_PRÍNCIPE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xB9")); // 🇸🇹 São Tomé & Príncipe
+inline const juce::String EL_SALVADOR =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBB")); // 🇸🇻 El Salvador
+inline const juce::String SINT_MAARTEN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBD")); // 🇸🇽 Sint Maarten
+inline const juce::String SYRIA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBE")); // 🇸🇾 Syria
+inline const juce::String SWAZILAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB8\xF0\x9F\x87\xBF")); // 🇸🇿 Swaziland
+inline const juce::String TRISTAN_DA_CUNHA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xA6")); // 🇹🇦 Tristan Da Cunha
+inline const juce::String TURKS_CAICOS_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xA8")); // 🇹🇨 Turks & Caicos Islands
+inline const juce::String CHAD = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xA9")); // 🇹🇩 Chad
+inline const juce::String FRENCH_SOUTHERN_TERRITORIES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAB")); // 🇹🇫 French Southern Territories
+inline const juce::String TOGO = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAC")); // 🇹🇬 Togo
+inline const juce::String THAILAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAD")); // 🇹🇭 Thailand
+inline const juce::String TAJIKISTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xAF")); // 🇹🇯 Tajikistan
+inline const juce::String TOKELAU =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB0")); // 🇹🇰 Tokelau
+inline const juce::String TIMOR_LESTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB1")); // 🇹🇱 Timor-Leste
+inline const juce::String TURKMENISTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB2")); // 🇹🇲 Turkmenistan
+inline const juce::String TUNISIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB3")); // 🇹🇳 Tunisia
+inline const juce::String TONGA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB4")); // 🇹🇴 Tonga
+inline const juce::String TRINIDAD_TOBAGO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xB9")); // 🇹🇹 Trinidad & Tobago
+inline const juce::String TUVALU =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xBB")); // 🇹🇻 Tuvalu
+inline const juce::String TAIWAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xBC")); // 🇹🇼 Taiwan
+inline const juce::String TANZANIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xB9\xF0\x9F\x87\xBF")); // 🇹🇿 Tanzania
+inline const juce::String UKRAINE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xA6")); // 🇺🇦 Ukraine
+inline const juce::String UGANDA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xAC")); // 🇺🇬 Uganda
+inline const juce::String US_OUTLYING_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB2")); // 🇺🇲 U.S. Outlying Islands
+inline const juce::String UNITED_NATIONS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB3")); // 🇺🇳 United Nations
+inline const juce::String UNITED_STATES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xB8")); // 🇺🇸 United States
+inline const juce::String URUGUAY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xBE")); // 🇺🇾 Uruguay
+inline const juce::String UZBEKISTAN =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBA\xF0\x9F\x87\xBF")); // 🇺🇿 Uzbekistan
+inline const juce::String VATICAN_CITY =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xA6")); // 🇻🇦 Vatican City
+inline const juce::String ST_VINCENT_GRENADINES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xA8")); // 🇻🇨 St. Vincent & Grenadines
+inline const juce::String VENEZUELA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xAA")); // 🇻🇪 Venezuela
+inline const juce::String BRITISH_VIRGIN_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xAC")); // 🇻🇬 British Virgin Islands
+inline const juce::String US_VIRGIN_ISLANDS =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xAE")); // 🇻🇮 U.S. Virgin Islands
+inline const juce::String VIETNAM =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xB3")); // 🇻🇳 Vietnam
+inline const juce::String VANUATU =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBB\xF0\x9F\x87\xBA")); // 🇻🇺 Vanuatu
+inline const juce::String WALLIS_FUTUNA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBC\xF0\x9F\x87\xAB")); // 🇼🇫 Wallis & Futuna
+inline const juce::String SAMOA = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBC\xF0\x9F\x87\xB8")); // 🇼🇸 Samoa
+inline const juce::String KOSOVO =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBD\xF0\x9F\x87\xB0"));                               // 🇽🇰 Kosovo
+inline const juce::String YEMEN = juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBE\xF0\x9F\x87\xAA")); // 🇾🇪 Yemen
+inline const juce::String MAYOTTE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBE\xF0\x9F\x87\xB9")); // 🇾🇹 Mayotte
+inline const juce::String SOUTH_AFRICA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBF\xF0\x9F\x87\xA6")); // 🇿🇦 South Africa
+inline const juce::String ZAMBIA =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBF\xF0\x9F\x87\xB2")); // 🇿🇲 Zambia
+inline const juce::String ZIMBABWE =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x87\xBF\xF0\x9F\x87\xBC")); // 🇿🇼 Zimbabwe
+inline const juce::String ENGLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xF3\xA0\x81\xA7\xF3\xA0\x81\xA2\xF3\xA0\x81\xA5\xF3\xA0"
+                                        "\x81\xAE\xF3\xA0\x81\xA7\xF3\xA0\x81\xBF")); // 🏴󠁧󠁢󠁥󠁮󠁧󠁿
+                                                                                      // England
+inline const juce::String SCOTLAND =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xF3\xA0\x81\xA7\xF3\xA0\x81\xA2\xF3\xA0\x81\xB3\xF3\xA0"
+                                        "\x81\xA3\xF3\xA0\x81\xB4\xF3\xA0\x81\xBF")); // 🏴󠁧󠁢󠁳󠁣󠁴󠁿
+                                                                                      // Scotland
+inline const juce::String WALES =
+    juce::String(juce::CharPointer_UTF8("\xF0\x9F\x8F\xB4\xF3\xA0\x81\xA7\xF3\xA0\x81\xA2\xF3\xA0\x81\xB7\xF3\xA0"
+                                        "\x81\xAC\xF3\xA0\x81\xB3\xF3\xA0\x81\xBF")); // 🏴󠁧󠁢󠁷󠁬󠁳󠁿
+                                                                                      // Wales
 
-}  // namespace Emoji
+} // namespace Emoji

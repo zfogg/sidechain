@@ -62,7 +62,9 @@ public:
     int position = 0;
     std::string content;
 
-    OpType getType() const override { return OpType::Insert; }
+    OpType getType() const override {
+      return OpType::Insert;
+    }
 
     std::shared_ptr<Operation> clone() const override {
       auto copy = std::make_shared<Insert>();
@@ -73,7 +75,9 @@ public:
       return copy;
     }
 
-    int getLength() const { return static_cast<int>(content.length()); }
+    int getLength() const {
+      return static_cast<int>(content.length());
+    }
   };
 
   /**
@@ -89,7 +93,9 @@ public:
     int length = 0;
     std::string content; // Original content for undo
 
-    OpType getType() const override { return OpType::Delete; }
+    OpType getType() const override {
+      return OpType::Delete;
+    }
 
     std::shared_ptr<Operation> clone() const override {
       auto copy = std::make_shared<Delete>();
@@ -115,7 +121,9 @@ public:
     std::string oldContent;
     std::string newContent;
 
-    OpType getType() const override { return OpType::Modify; }
+    OpType getType() const override {
+      return OpType::Modify;
+    }
 
     std::shared_ptr<Operation> clone() const override {
       auto copy = std::make_shared<Modify>();
@@ -142,8 +150,7 @@ public:
    * @return Pair of (transformed_op1, transformed_op2)
    */
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transform(const std::shared_ptr<Operation> &op1,
-            const std::shared_ptr<Operation> &op2) {
+  transform(const std::shared_ptr<Operation> &op1, const std::shared_ptr<Operation> &op2) {
     // Handle Insert vs Insert
     if (auto ins1 = std::dynamic_pointer_cast<Insert>(op1)) {
       if (auto ins2 = std::dynamic_pointer_cast<Insert>(op2)) {
@@ -200,8 +207,7 @@ public:
   /**
    * Apply operation to text, returning modified text
    */
-  static std::string apply(const std::string &text,
-                           const std::shared_ptr<Operation> &op) {
+  static std::string apply(const std::string &text, const std::shared_ptr<Operation> &op) {
     if (auto ins = std::dynamic_pointer_cast<Insert>(op)) {
       std::string result = text;
       result.insert(static_cast<size_t>(ins->position), ins->content);
@@ -210,15 +216,13 @@ public:
 
     if (auto del = std::dynamic_pointer_cast<Delete>(op)) {
       std::string result = text;
-      result.erase(static_cast<size_t>(del->position),
-                   static_cast<size_t>(del->length));
+      result.erase(static_cast<size_t>(del->position), static_cast<size_t>(del->length));
       return result;
     }
 
     if (auto mod = std::dynamic_pointer_cast<Modify>(op)) {
       std::string result = text;
-      result.replace(static_cast<size_t>(mod->position),
-                     mod->oldContent.length(), mod->newContent);
+      result.replace(static_cast<size_t>(mod->position), mod->oldContent.length(), mod->newContent);
       return result;
     }
 
@@ -229,8 +233,7 @@ private:
   // ========== Transform Implementations ==========
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformInsertInsert(const std::shared_ptr<Insert> &ins1,
-                        const std::shared_ptr<Insert> &ins2) {
+  transformInsertInsert(const std::shared_ptr<Insert> &ins1, const std::shared_ptr<Insert> &ins2) {
     auto result1 = std::make_shared<Insert>(*ins1);
     auto result2 = std::make_shared<Insert>(*ins2);
 
@@ -251,8 +254,7 @@ private:
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformInsertDelete(const std::shared_ptr<Insert> &ins,
-                        const std::shared_ptr<Delete> &del) {
+  transformInsertDelete(const std::shared_ptr<Insert> &ins, const std::shared_ptr<Delete> &del) {
     auto resultIns = std::make_shared<Insert>(*ins);
     auto resultDel = std::make_shared<Delete>(*del);
 
@@ -270,8 +272,7 @@ private:
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformInsertModify(const std::shared_ptr<Insert> &ins,
-                        const std::shared_ptr<Modify> &mod) {
+  transformInsertModify(const std::shared_ptr<Insert> &ins, const std::shared_ptr<Modify> &mod) {
     auto resultIns = std::make_shared<Insert>(*ins);
     auto resultMod = std::make_shared<Modify>(*mod);
 
@@ -283,31 +284,26 @@ private:
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformDeleteInsert(const std::shared_ptr<Delete> &del,
-                        const std::shared_ptr<Insert> &ins) {
+  transformDeleteInsert(const std::shared_ptr<Delete> &del, const std::shared_ptr<Insert> &ins) {
     return transformInsertDelete(ins, del);
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformDeleteDelete(const std::shared_ptr<Delete> &del1,
-                        const std::shared_ptr<Delete> &del2) {
+  transformDeleteDelete(const std::shared_ptr<Delete> &del1, const std::shared_ptr<Delete> &del2) {
     auto result1 = std::make_shared<Delete>(*del1);
     auto result2 = std::make_shared<Delete>(*del2);
 
     if (del1->position < del2->position) {
-      result2->position -=
-          std::min(del1->length, del2->position - del1->position);
+      result2->position -= std::min(del1->length, del2->position - del1->position);
     } else if (del1->position > del2->position) {
-      result1->position -=
-          std::min(del2->length, del1->position - del2->position);
+      result1->position -= std::min(del2->length, del1->position - del2->position);
     }
 
     return {result1, result2};
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformDeleteModify(const std::shared_ptr<Delete> &del,
-                        const std::shared_ptr<Modify> &mod) {
+  transformDeleteModify(const std::shared_ptr<Delete> &del, const std::shared_ptr<Modify> &mod) {
     auto resultDel = std::make_shared<Delete>(*del);
     auto resultMod = std::make_shared<Modify>(*mod);
 
@@ -319,20 +315,17 @@ private:
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformModifyInsert(const std::shared_ptr<Modify> &mod,
-                        const std::shared_ptr<Insert> &ins) {
+  transformModifyInsert(const std::shared_ptr<Modify> &mod, const std::shared_ptr<Insert> &ins) {
     return transformInsertModify(ins, mod);
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformModifyDelete(const std::shared_ptr<Modify> &mod,
-                        const std::shared_ptr<Delete> &del) {
+  transformModifyDelete(const std::shared_ptr<Modify> &mod, const std::shared_ptr<Delete> &del) {
     return transformDeleteModify(del, mod);
   }
 
   static std::pair<std::shared_ptr<Operation>, std::shared_ptr<Operation>>
-  transformModifyModify(const std::shared_ptr<Modify> &mod1,
-                        const std::shared_ptr<Modify> &mod2) {
+  transformModifyModify(const std::shared_ptr<Modify> &mod1, const std::shared_ptr<Modify> &mod2) {
     auto result1 = std::make_shared<Modify>(*mod1);
     auto result2 = std::make_shared<Modify>(*mod2);
 

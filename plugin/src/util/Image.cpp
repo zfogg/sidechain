@@ -1,101 +1,83 @@
 #include "Image.h"
 
-namespace ImageUtils
-{
+namespace ImageUtils {
 
-void drawCircular(juce::Graphics& g, juce::Rectangle<int> bounds, const juce::Image& image)
-{
-    if (!image.isValid())
-        return;
+void drawCircular(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image) {
+  if (!image.isValid())
+    return;
 
-    // Make bounds square (use smaller dimension)
-    int size = juce::jmin(bounds.getWidth(), bounds.getHeight());
-    auto squareBounds = bounds.withSizeKeepingCentre(size, size);
+  // Make bounds square (use smaller dimension)
+  int size = juce::jmin(bounds.getWidth(), bounds.getHeight());
+  auto squareBounds = bounds.withSizeKeepingCentre(size, size);
 
-    // Create circular clip path
-    juce::Path clipPath;
-    clipPath.addEllipse(squareBounds.toFloat());
+  // Create circular clip path
+  juce::Path clipPath;
+  clipPath.addEllipse(squareBounds.toFloat());
 
-    g.saveState();
-    g.reduceClipRegion(clipPath);
+  g.saveState();
+  g.reduceClipRegion(clipPath);
 
-    // Scale image to fit
-    auto scaledImage = image.rescaled(size, size, juce::Graphics::highResamplingQuality);
-    g.drawImageAt(scaledImage, squareBounds.getX(), squareBounds.getY());
+  // Scale image to fit
+  auto scaledImage = image.rescaled(size, size, juce::Graphics::highResamplingQuality);
+  g.drawImageAt(scaledImage, squareBounds.getX(), squareBounds.getY());
 
-    g.restoreState();
+  g.restoreState();
 }
 
-void drawCircularAvatar(juce::Graphics& g,
-                        juce::Rectangle<int> bounds,
-                        const juce::Image& image,
-                        const juce::String& initials,
-                        juce::Colour backgroundColor,
-                        juce::Colour textColor,
-                        float fontSize)
-{
-    // Make bounds square
-    int size = juce::jmin(bounds.getWidth(), bounds.getHeight());
-    auto squareBounds = bounds.withSizeKeepingCentre(size, size);
+void drawCircularAvatar(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image,
+                        const juce::String &initials, juce::Colour backgroundColor, juce::Colour textColor,
+                        float fontSize) {
+  // Make bounds square
+  int size = juce::jmin(bounds.getWidth(), bounds.getHeight());
+  auto squareBounds = bounds.withSizeKeepingCentre(size, size);
 
-    if (image.isValid())
-    {
-        drawCircular(g, squareBounds, image);
+  if (image.isValid()) {
+    drawCircular(g, squareBounds, image);
+  } else {
+    // Draw placeholder circle with initials
+    g.setColour(backgroundColor);
+    g.fillEllipse(squareBounds.toFloat());
+
+    // Draw initials
+    g.setColour(textColor);
+    float actualFontSize = (fontSize > 0.0f) ? fontSize : (static_cast<float>(size) * 0.4f);
+    g.setFont(juce::Font(juce::FontOptions().withHeight(actualFontSize)).boldened());
+
+    juce::String displayInitials = initials.isEmpty() ? "?" : initials.toUpperCase();
+    g.drawText(displayInitials, squareBounds, juce::Justification::centred);
+  }
+}
+
+juce::String getInitials(const juce::String &displayName, int maxChars) {
+  if (displayName.isEmpty())
+    return "?";
+
+  juce::String initials;
+  auto words = juce::StringArray::fromTokens(displayName.trim(), " ", "");
+
+  for (const auto &word : words) {
+    if (word.isNotEmpty() && initials.length() < maxChars) {
+      initials += word.substring(0, 1).toUpperCase();
     }
-    else
-    {
-        // Draw placeholder circle with initials
-        g.setColour(backgroundColor);
-        g.fillEllipse(squareBounds.toFloat());
+  }
 
-        // Draw initials
-        g.setColour(textColor);
-        float actualFontSize = (fontSize > 0.0f) ? fontSize : (static_cast<float>(size) * 0.4f);
-        g.setFont(juce::Font(juce::FontOptions().withHeight(actualFontSize)).boldened());
-
-        juce::String displayInitials = initials.isEmpty() ? "?" : initials.toUpperCase();
-        g.drawText(displayInitials, squareBounds, juce::Justification::centred);
-    }
+  return initials.isEmpty() ? displayName.substring(0, 1).toUpperCase() : initials;
 }
 
-juce::String getInitials(const juce::String& displayName, int maxChars)
-{
-    if (displayName.isEmpty())
-        return "?";
+void drawRounded(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::Image &image, float cornerRadius) {
+  if (!image.isValid())
+    return;
 
-    juce::String initials;
-    auto words = juce::StringArray::fromTokens(displayName.trim(), " ", "");
+  juce::Path clipPath;
+  clipPath.addRoundedRectangle(bounds.toFloat(), cornerRadius);
 
-    for (const auto& word : words)
-    {
-        if (word.isNotEmpty() && initials.length() < maxChars)
-        {
-            initials += word.substring(0, 1).toUpperCase();
-        }
-    }
+  g.saveState();
+  g.reduceClipRegion(clipPath);
 
-    return initials.isEmpty() ? displayName.substring(0, 1).toUpperCase() : initials;
+  auto scaledImage = image.rescaled(bounds.getWidth(), bounds.getHeight(), juce::Graphics::highResamplingQuality);
+  g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
+
+  g.restoreState();
 }
 
-void drawRounded(juce::Graphics& g,
-                 juce::Rectangle<int> bounds,
-                 const juce::Image& image,
-                 float cornerRadius)
-{
-    if (!image.isValid())
-        return;
-
-    juce::Path clipPath;
-    clipPath.addRoundedRectangle(bounds.toFloat(), cornerRadius);
-
-    g.saveState();
-    g.reduceClipRegion(clipPath);
-
-    auto scaledImage = image.rescaled(bounds.getWidth(), bounds.getHeight(),
-                                       juce::Graphics::highResamplingQuality);
-    g.drawImageAt(scaledImage, bounds.getX(), bounds.getY());
-
-    g.restoreState();
-}
-
-}  // namespace ImageUtils
+} // namespace ImageUtils

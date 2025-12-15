@@ -30,7 +30,9 @@ public:
    * Linear interpolation (no acceleration)
    * t is directly returned
    */
-  static float linear(float t) { return t; }
+  static float linear(float t) {
+    return t;
+  }
 
   // ========== Quadratic (t^2) ==========
 
@@ -38,13 +40,17 @@ public:
    * Quadratic ease-in: starts slow, accelerates
    * f(t) = t^2
    */
-  static float easeInQuad(float t) { return t * t; }
+  static float easeInQuad(float t) {
+    return t * t;
+  }
 
   /**
    * Quadratic ease-out: starts fast, decelerates
    * f(t) = 1 - (1-t)^2
    */
-  static float easeOutQuad(float t) { return 1.0f - (1.0f - t) * (1.0f - t); }
+  static float easeOutQuad(float t) {
+    return 1.0f - (1.0f - t) * (1.0f - t);
+  }
 
   /**
    * Quadratic ease-in-out: slow start, fast middle, slow end
@@ -60,7 +66,9 @@ public:
    * Cubic ease-in: slower than quadratic
    * f(t) = t^3
    */
-  static float easeInCubic(float t) { return t * t * t; }
+  static float easeInCubic(float t) {
+    return t * t * t;
+  }
 
   /**
    * Cubic ease-out: smoother deceleration
@@ -90,7 +98,9 @@ public:
    * Quartic ease-in: even slower than cubic
    * f(t) = t^4
    */
-  static float easeInQuart(float t) { return t * t * t * t; }
+  static float easeInQuart(float t) {
+    return t * t * t * t;
+  }
 
   /**
    * Quartic ease-out: smooth, gradual deceleration
@@ -110,8 +120,7 @@ public:
       return 8.0f * t * t * t * t;
     } else {
       float one_minus_t = 1.0f - t;
-      return 1.0f -
-             8.0f * one_minus_t * one_minus_t * one_minus_t * one_minus_t;
+      return 1.0f - 8.0f * one_minus_t * one_minus_t * one_minus_t * one_minus_t;
     }
   }
 
@@ -121,7 +130,9 @@ public:
    * Quintic ease-in: slowest polynomial curve
    * f(t) = t^5
    */
-  static float easeInQuint(float t) { return t * t * t * t * t; }
+  static float easeInQuint(float t) {
+    return t * t * t * t * t;
+  }
 
   /**
    * Quintic ease-out: smoothest polynomial deceleration
@@ -129,8 +140,7 @@ public:
    */
   static float easeOutQuint(float t) {
     float one_minus_t = 1.0f - t;
-    return 1.0f -
-           one_minus_t * one_minus_t * one_minus_t * one_minus_t * one_minus_t;
+    return 1.0f - one_minus_t * one_minus_t * one_minus_t * one_minus_t * one_minus_t;
   }
 
   /**
@@ -142,8 +152,7 @@ public:
       return 16.0f * t * t * t * t * t;
     } else {
       float one_minus_t = 1.0f - t;
-      return 1.0f - 16.0f * one_minus_t * one_minus_t * one_minus_t *
-                        one_minus_t * one_minus_t;
+      return 1.0f - 16.0f * one_minus_t * one_minus_t * one_minus_t * one_minus_t * one_minus_t;
     }
   }
 
@@ -187,7 +196,9 @@ public:
    * Circular ease-in: sqrt-based ease
    * f(t) = 1 - sqrt(1 - t^2)
    */
-  static float easeInCirc(float t) { return 1.0f - std::sqrt(1.0f - t * t); }
+  static float easeInCirc(float t) {
+    return 1.0f - std::sqrt(1.0f - t * t);
+  }
 
   /**
    * Circular ease-out: smooth circle arc
@@ -221,8 +232,7 @@ public:
       return 1.0f;
 
     const float c4 = (2.0f * 3.14159265359f) / 3.0f;
-    return -std::pow(2.0f, 10.0f * t - 10.0f) *
-           std::sin((t * 10.0f - 10.75f) * c4);
+    return -std::pow(2.0f, 10.0f * t - 10.0f) * std::sin((t * 10.0f - 10.75f) * c4);
   }
 
   /**
@@ -236,8 +246,7 @@ public:
       return 1.0f;
 
     const float c4 = (2.0f * 3.14159265359f) / 3.0f;
-    return std::pow(2.0f, -10.0f * t) * std::sin((t * 10.0f - 0.75f) * c4) +
-           1.0f;
+    return std::pow(2.0f, -10.0f * t) * std::sin((t * 10.0f - 0.75f) * c4) + 1.0f;
   }
 
   /**
@@ -253,14 +262,9 @@ public:
     const float c5 = (2.0f * 3.14159265359f) / 4.5f;
 
     if (t < 0.5f) {
-      return -(std::pow(2.0f, 20.0f * t - 10.0f) *
-               std::sin((20.0f * t - 11.125f) * c5)) /
-             2.0f;
+      return -(std::pow(2.0f, 20.0f * t - 10.0f) * std::sin((20.0f * t - 11.125f) * c5)) / 2.0f;
     } else {
-      return (std::pow(2.0f, -20.0f * t + 10.0f) *
-              std::sin((20.0f * t - 11.125f) * c5)) /
-                 2.0f +
-             1.0f;
+      return (std::pow(2.0f, -20.0f * t + 10.0f) * std::sin((20.0f * t - 11.125f) * c5)) / 2.0f + 1.0f;
     }
   }
 
@@ -292,7 +296,9 @@ public:
    * Bounce ease-in: bouncing at start
    * f(t) = 1 - easeOutBounce(1 - t)
    */
-  static float easeInBounce(float t) { return 1.0f - easeOutBounce(1.0f - t); }
+  static float easeInBounce(float t) {
+    return 1.0f - easeOutBounce(1.0f - t);
+  }
 
   /**
    * Bounce ease-in-out: bouncing at start and end
@@ -338,10 +344,7 @@ public:
     if (t < 0.5f) {
       return (std::pow(2.0f * t, 2.0f) * ((c2 + 1.0f) * 2.0f * t - c2)) / 2.0f;
     } else {
-      return (std::pow(2.0f * t - 2.0f, 2.0f) *
-                  ((c2 + 1.0f) * (t * 2.0f - 2.0f) + c2) +
-              2.0f) /
-             2.0f;
+      return (std::pow(2.0f * t - 2.0f, 2.0f) * ((c2 + 1.0f) * (t * 2.0f - 2.0f) + c2) + 2.0f) / 2.0f;
     }
   }
 

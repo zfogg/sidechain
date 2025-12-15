@@ -21,114 +21,109 @@
  *       longPress.cancel();
  *   }
  */
-class LongPressDetector : private juce::Timer
-{
+class LongPressDetector : private juce::Timer {
 public:
-    /**
-     * Create detector with threshold duration.
-     * @param thresholdMs Time in ms before long-press triggers (default 500ms)
-     */
-    explicit LongPressDetector(int thresholdMs = 500)
-        : threshold(thresholdMs)
-    {
-    }
+  /**
+   * Create detector with threshold duration.
+   * @param thresholdMs Time in ms before long-press triggers (default 500ms)
+   */
+  explicit LongPressDetector(int thresholdMs = 500) : threshold(thresholdMs) {}
 
-    ~LongPressDetector() override
-    {
-        stopTimer();
-    }
+  ~LongPressDetector() override {
+    stopTimer();
+  }
 
-    //==========================================================================
-    // Control
+  //==========================================================================
+  // Control
 
-    /**
-     * Start detecting a long-press.
-     * Call this from mouseDown.
-     */
-    void start()
-    {
-        triggered = false;
-        startTimer(threshold);
-    }
+  /**
+   * Start detecting a long-press.
+   * Call this from mouseDown.
+   */
+  void start() {
+    triggered = false;
+    startTimer(threshold);
+  }
 
-    /**
-     * Start with a specific callback.
-     */
-    void start(std::function<void()> callback)
-    {
-        onLongPress = std::move(callback);
-        start();
-    }
+  /**
+   * Start with a specific callback.
+   */
+  void start(std::function<void()> callback) {
+    onLongPress = std::move(callback);
+    start();
+  }
 
-    /**
-     * Cancel detection.
-     * Call this from mouseUp or mouseExit.
-     */
-    void cancel()
-    {
-        stopTimer();
-    }
+  /**
+   * Cancel detection.
+   * Call this from mouseUp or mouseExit.
+   */
+  void cancel() {
+    stopTimer();
+  }
 
-    /**
-     * Cancel and reset triggered state.
-     */
-    void reset()
-    {
-        cancel();
-        triggered = false;
-    }
+  /**
+   * Cancel and reset triggered state.
+   */
+  void reset() {
+    cancel();
+    triggered = false;
+  }
 
-    //==========================================================================
-    // State
+  //==========================================================================
+  // State
 
-    /**
-     * Check if currently detecting (timer running).
-     */
-    bool isActive() const { return isTimerRunning(); }
+  /**
+   * Check if currently detecting (timer running).
+   */
+  bool isActive() const {
+    return isTimerRunning();
+  }
 
-    /**
-     * Check if long-press was triggered in this gesture.
-     */
-    bool wasTriggered() const { return triggered; }
+  /**
+   * Check if long-press was triggered in this gesture.
+   */
+  bool wasTriggered() const {
+    return triggered;
+  }
 
-    //==========================================================================
-    // Configuration
+  //==========================================================================
+  // Configuration
 
-    /**
-     * Set threshold duration in milliseconds.
-     */
-    void setThreshold(int thresholdMs)
-    {
-        threshold = thresholdMs;
-    }
+  /**
+   * Set threshold duration in milliseconds.
+   */
+  void setThreshold(int thresholdMs) {
+    threshold = thresholdMs;
+  }
 
-    /**
-     * Get threshold duration.
-     */
-    int getThreshold() const { return threshold; }
+  /**
+   * Get threshold duration.
+   */
+  int getThreshold() const {
+    return threshold;
+  }
 
-    //==========================================================================
-    // Callbacks
+  //==========================================================================
+  // Callbacks
 
-    /**
-     * Called when long-press threshold is reached.
-     */
-    std::function<void()> onLongPress;
+  /**
+   * Called when long-press threshold is reached.
+   */
+  std::function<void()> onLongPress;
 
 private:
-    void timerCallback() override
-    {
-        stopTimer();
-        triggered = true;
+  void timerCallback() override {
+    stopTimer();
+    triggered = true;
 
-        if (onLongPress)
-            onLongPress();
-    }
+    if (onLongPress)
+      onLongPress();
+  }
 
-    int threshold = 500;
-    bool triggered = false;
+  int threshold = 500;
+  bool triggered = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LongPressDetector)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LongPressDetector)
 };
 
 //==============================================================================
@@ -143,86 +138,86 @@ private:
  *   longPress.onProgress = [this](float p) { progress = p; repaint(); };
  *   longPress.onLongPress = [this]() { triggerAction(); };
  */
-class LongPressWithProgress : private juce::Timer
-{
+class LongPressWithProgress : private juce::Timer {
 public:
-    explicit LongPressWithProgress(int thresholdMs = 500, int updateIntervalMs = 16)
-        : threshold(thresholdMs)
-        , updateInterval(updateIntervalMs)
-    {
-    }
+  explicit LongPressWithProgress(int thresholdMs = 500, int updateIntervalMs = 16)
+      : threshold(thresholdMs), updateInterval(updateIntervalMs) {}
 
-    ~LongPressWithProgress() override
-    {
-        stopTimer();
-    }
+  ~LongPressWithProgress() override {
+    stopTimer();
+  }
 
-    //==========================================================================
-    // Control
+  //==========================================================================
+  // Control
 
-    void start()
-    {
-        triggered = false;
-        startTimeMs = juce::Time::currentTimeMillis();
-        startTimer(updateInterval);
-    }
+  void start() {
+    triggered = false;
+    startTimeMs = juce::Time::currentTimeMillis();
+    startTimer(updateInterval);
+  }
 
-    void cancel()
-    {
-        stopTimer();
-        if (onProgress)
-            onProgress(0.0f);
-    }
+  void cancel() {
+    stopTimer();
+    if (onProgress)
+      onProgress(0.0f);
+  }
 
-    void reset()
-    {
-        cancel();
-        triggered = false;
-    }
+  void reset() {
+    cancel();
+    triggered = false;
+  }
 
-    //==========================================================================
-    // State
+  //==========================================================================
+  // State
 
-    bool isActive() const { return isTimerRunning(); }
-    bool wasTriggered() const { return triggered; }
-    float getProgress() const { return currentProgress; }
+  bool isActive() const {
+    return isTimerRunning();
+  }
+  bool wasTriggered() const {
+    return triggered;
+  }
+  float getProgress() const {
+    return currentProgress;
+  }
 
-    //==========================================================================
-    // Configuration
+  //==========================================================================
+  // Configuration
 
-    void setThreshold(int thresholdMs) { threshold = thresholdMs; }
-    int getThreshold() const { return threshold; }
+  void setThreshold(int thresholdMs) {
+    threshold = thresholdMs;
+  }
+  int getThreshold() const {
+    return threshold;
+  }
 
-    //==========================================================================
-    // Callbacks
+  //==========================================================================
+  // Callbacks
 
-    std::function<void(float progress)> onProgress;
-    std::function<void()> onLongPress;
+  std::function<void(float progress)> onProgress;
+  std::function<void()> onLongPress;
 
 private:
-    void timerCallback() override
-    {
-        auto elapsedMs = juce::Time::currentTimeMillis() - startTimeMs;
-        currentProgress = juce::jlimit(0.0f, 1.0f, static_cast<float>(elapsedMs) / static_cast<float>(threshold));
+  void timerCallback() override {
+    auto elapsedMs = juce::Time::currentTimeMillis() - startTimeMs;
+    currentProgress = juce::jlimit(0.0f, 1.0f, static_cast<float>(elapsedMs) / static_cast<float>(threshold));
 
-        if (onProgress)
-            onProgress(currentProgress);
+    if (onProgress)
+      onProgress(currentProgress);
 
-        if (currentProgress >= 1.0f)
-        {
-            stopTimer();
-            triggered = true;
+    if (currentProgress >= 1.0f) {
+      stopTimer();
+      triggered = true;
 
-            if (onLongPress)
-                onLongPress();
-        }
+      if (onLongPress)
+        onLongPress();
     }
+  }
 
-    int threshold = 500;
-    int updateInterval = 16;
-    juce::int64 startTimeMs = 0;
-    float currentProgress = 0.0f;
-    bool triggered = false;
+  int threshold = 500;
+  int updateInterval = 16;
+  juce::int64 startTimeMs = 0;
+  float currentProgress = 0.0f;
+  bool triggered = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LongPressWithProgress)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LongPressWithProgress)
 };

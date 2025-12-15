@@ -4,22 +4,18 @@
 AggregatedFeedCard::AggregatedFeedCard() {
   // Setup summary label
   addAndMakeVisible(summaryLabel);
-  summaryLabel.setFont(
-      juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
-  summaryLabel.setColour(juce::Label::textColourId,
-                         SidechainColors::textPrimary());
+  summaryLabel.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
+  summaryLabel.setColour(juce::Label::textColourId, SidechainColors::textPrimary());
 
   // Setup timestamp
   addAndMakeVisible(timestampLabel);
   timestampLabel.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)));
-  timestampLabel.setColour(juce::Label::textColourId,
-                           SidechainColors::textSecondary());
+  timestampLabel.setColour(juce::Label::textColourId, SidechainColors::textSecondary());
 
   // Setup activity count
   addAndMakeVisible(activityCountLabel);
   activityCountLabel.setFont(juce::Font(juce::FontOptions().withHeight(13.0f)));
-  activityCountLabel.setColour(juce::Label::textColourId,
-                               SidechainColors::textSecondary());
+  activityCountLabel.setColour(juce::Label::textColourId, SidechainColors::textSecondary());
 
   // Setup expand button
   addAndMakeVisible(expandButton);
@@ -69,13 +65,10 @@ void AggregatedFeedCard::updateSummary() {
   summaryLabel.setText(groupData.getSummary(), juce::dontSendNotification);
 
   // Set timestamp
-  timestampLabel.setText(formatTimestamp(groupData.updatedAt),
-                         juce::dontSendNotification);
+  timestampLabel.setText(formatTimestamp(groupData.updatedAt), juce::dontSendNotification);
 
   // Set activity count
-  activityCountLabel.setText(juce::String(groupData.activityCount) +
-                                 " activities",
-                             juce::dontSendNotification);
+  activityCountLabel.setText(juce::String(groupData.activityCount) + " activities", juce::dontSendNotification);
 }
 
 void AggregatedFeedCard::updateActivityCards() {
@@ -117,8 +110,7 @@ juce::String AggregatedFeedCard::formatTimestamp(const juce::Time &time) const {
 
 void AggregatedFeedCard::paint(juce::Graphics &g) {
   // Draw background
-  auto bgColor =
-      hovering ? SidechainColors::surfaceHover() : SidechainColors::surface();
+  auto bgColor = hovering ? SidechainColors::surfaceHover() : SidechainColors::surface();
   g.setColour(bgColor);
   g.fillRoundedRectangle(getLocalBounds().toFloat(), 8.0f);
 

@@ -9,7 +9,9 @@ SoundPage::SoundPage() {
   scrollBar.setRangeLimits(0.0, 1.0);
 }
 
-SoundPage::~SoundPage() { scrollBar.removeListener(this); }
+SoundPage::~SoundPage() {
+  scrollBar.removeListener(this);
+}
 
 //==============================================================================
 void SoundPage::paint(juce::Graphics &g) {
@@ -47,8 +49,7 @@ void SoundPage::paint(juce::Graphics &g) {
   // Draw section header
   g.setColour(Colors::textPrimary);
   g.setFont(juce::FontOptions().withHeight(16.0f).withStyle("Bold"));
-  g.drawText("Posts with this sound",
-             contentBounds.removeFromTop(24).reduced(PADDING, 0),
+  g.drawText("Posts with this sound", contentBounds.removeFromTop(24).reduced(PADDING, 0),
              juce::Justification::centredLeft);
 
   contentBounds.removeFromTop(8);
@@ -145,13 +146,10 @@ void SoundPage::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void SoundPage::mouseWheelMove(const juce::MouseEvent &event,
-                               const juce::MouseWheelDetails &wheel) {
+void SoundPage::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   int delta = static_cast<int>(wheel.deltaY * 200);
-  int newOffset = juce::jlimit(
-      0,
-      juce::jmax(0, calculateContentHeight() - getContentBounds().getHeight()),
-      scrollOffset - delta);
+  int newOffset =
+      juce::jlimit(0, juce::jmax(0, calculateContentHeight() - getContentBounds().getHeight()), scrollOffset - delta);
 
   if (newOffset != scrollOffset) {
     scrollOffset = newOffset;
@@ -267,30 +265,29 @@ void SoundPage::fetchSoundPosts() {
   if (networkClient == nullptr || soundId.isEmpty())
     return;
 
-  networkClient->getSoundPosts(
-      soundId, 50, 0, [this](Outcome<juce::var> result) {
-        juce::MessageManager::callAsync([this, result]() {
-          isLoading = false;
+  networkClient->getSoundPosts(soundId, 50, 0, [this](Outcome<juce::var> result) {
+    juce::MessageManager::callAsync([this, result]() {
+      isLoading = false;
 
-          if (result.isOk()) {
-            auto response = result.getValue();
-            auto postsArray = response.getProperty("posts", juce::var());
+      if (result.isOk()) {
+        auto response = result.getValue();
+        auto postsArray = response.getProperty("posts", juce::var());
 
-            posts.clear();
-            if (postsArray.isArray()) {
-              for (int i = 0; i < postsArray.size(); ++i) {
-                posts.add(SoundPost::fromJson(postsArray[i]));
-              }
-            }
-
-            updateScrollBounds();
-          } else {
-            errorMessage = result.getError();
+        posts.clear();
+        if (postsArray.isArray()) {
+          for (int i = 0; i < postsArray.size(); ++i) {
+            posts.add(SoundPost::fromJson(postsArray[i]));
           }
+        }
 
-          repaint();
-        });
-      });
+        updateScrollBounds();
+      } else {
+        errorMessage = result.getError();
+      }
+
+      repaint();
+    });
+  });
 }
 
 void SoundPage::loadCreatorAvatar() {
@@ -344,8 +341,7 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
   // Sound name
   g.setColour(Colors::textPrimary);
   g.setFont(juce::FontOptions().withHeight(20.0f).withStyle("Bold"));
-  g.drawText(sound.name.isNotEmpty() ? sound.name : "Untitled Sound", nameRow,
-             juce::Justification::centredLeft);
+  g.drawText(sound.name.isNotEmpty() ? sound.name : "Untitled Sound", nameRow, juce::Justification::centredLeft);
 
   bounds.removeFromTop(8);
 
@@ -354,13 +350,11 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
 
   g.setColour(Colors::textSecondary);
   g.setFont(juce::FontOptions().withHeight(14.0f));
-  g.drawText("by ", creatorRow.removeFromLeft(20),
-             juce::Justification::centredLeft);
+  g.drawText("by ", creatorRow.removeFromLeft(20), juce::Justification::centredLeft);
 
   g.setColour(Colors::accent);
-  g.drawText(sound.getCreatorName().isNotEmpty() ? sound.getCreatorName()
-                                                 : "Unknown",
-             creatorRow, juce::Justification::centredLeft);
+  g.drawText(sound.getCreatorName().isNotEmpty() ? sound.getCreatorName() : "Unknown", creatorRow,
+             juce::Justification::centredLeft);
 
   bounds.removeFromTop(16);
 
@@ -374,8 +368,7 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
 
   g.setColour(Colors::textPrimary);
   g.setFont(juce::FontOptions().withHeight(14.0f).withStyle("Bold"));
-  g.drawText(sound.getUsageCountString(), usageBounds,
-             juce::Justification::centred);
+  g.drawText(sound.getUsageCountString(), usageBounds, juce::Justification::centred);
 
   statsRow.removeFromLeft(12);
 
@@ -387,8 +380,7 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
 
     g.setColour(Colors::textSecondary);
     g.setFont(juce::FontOptions().withHeight(14.0f));
-    g.drawText(sound.getDurationString(), durationBounds,
-               juce::Justification::centred);
+    g.drawText(sound.getDurationString(), durationBounds, juce::Justification::centred);
   }
 
   // Trending badge
@@ -400,13 +392,11 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
 
     g.setColour(Colors::trendingBadge);
     g.setFont(juce::FontOptions().withHeight(13.0f).withStyle("Bold"));
-    g.drawText(juce::CharPointer_UTF8("\xf0\x9f\x94\xa5 Trending"),
-               trendingBounds, juce::Justification::centred);
+    g.drawText(juce::CharPointer_UTF8("\xf0\x9f\x94\xa5 Trending"), trendingBounds, juce::Justification::centred);
   }
 }
 
-void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds,
-                             const SoundPost &post, int index) {
+void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post, int index) {
   bool isPlaying = (post.id == currentlyPlayingPostId);
 
   // Card background
@@ -419,8 +409,7 @@ void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds,
     g.setColour(Colors::accent.withAlpha(0.3f));
     g.fillRect(progressBounds);
     g.setColour(Colors::accent);
-    g.fillRect(progressBounds.withWidth(
-        static_cast<int>(progressBounds.getWidth() * playbackProgress)));
+    g.fillRect(progressBounds.withWidth(static_cast<int>(progressBounds.getWidth() * playbackProgress)));
   }
 
   auto cardContent = bounds.reduced(12);
@@ -434,9 +423,8 @@ void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds,
 
   g.setColour(Colors::cardBg);
   g.setFont(juce::FontOptions().withHeight(18.0f));
-  g.drawText(isPlaying ? juce::CharPointer_UTF8("\xe2\x8f\xb8")
-                       : juce::CharPointer_UTF8("\xe2\x96\xb6"),
-             playBounds, juce::Justification::centred);
+  g.drawText(isPlaying ? juce::CharPointer_UTF8("\xe2\x8f\xb8") : juce::CharPointer_UTF8("\xe2\x96\xb6"), playBounds,
+             juce::Justification::centred);
 
   cardContent.removeFromLeft(12);
 
@@ -445,8 +433,7 @@ void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds,
 
   g.setColour(Colors::textPrimary);
   g.setFont(juce::FontOptions().withHeight(14.0f).withStyle("Bold"));
-  g.drawText(post.getUserDisplayName(), userRow,
-             juce::Justification::centredLeft);
+  g.drawText(post.getUserDisplayName(), userRow, juce::Justification::centredLeft);
 
   // Post metadata
   juce::String metadata;
@@ -469,19 +456,14 @@ void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds,
   g.setFont(juce::FontOptions().withHeight(12.0f));
 
   juce::String likesText =
-      juce::String(juce::CharPointer_UTF8("\xe2\x9d\xa4\xef\xb8\x8f ")) +
-      juce::String(post.likeCount);
-  g.drawText(likesText, statsBounds.removeFromTop(statsBounds.getHeight() / 2),
-             juce::Justification::centredRight);
+      juce::String(juce::CharPointer_UTF8("\xe2\x9d\xa4\xef\xb8\x8f ")) + juce::String(post.likeCount);
+  g.drawText(likesText, statsBounds.removeFromTop(statsBounds.getHeight() / 2), juce::Justification::centredRight);
 
-  juce::String playsText =
-      juce::String(juce::CharPointer_UTF8("\xe2\x96\xb6 ")) +
-      juce::String(post.playCount);
+  juce::String playsText = juce::String(juce::CharPointer_UTF8("\xe2\x96\xb6 ")) + juce::String(post.playCount);
   g.drawText(playsText, statsBounds, juce::Justification::centredRight);
 }
 
-void SoundPage::drawLoadingState(juce::Graphics &g,
-                                 juce::Rectangle<int> bounds) {
+void SoundPage::drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(Colors::textSecondary);
   g.setFont(juce::FontOptions().withHeight(16.0f));
   g.drawText("Loading sound...", bounds, juce::Justification::centred);
@@ -496,8 +478,7 @@ void SoundPage::drawErrorState(juce::Graphics &g, juce::Rectangle<int> bounds) {
 void SoundPage::drawEmptyState(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.setColour(Colors::textSecondary);
   g.setFont(juce::FontOptions().withHeight(16.0f));
-  g.drawText("No posts found with this sound", bounds,
-             juce::Justification::centred);
+  g.drawText("No posts found with this sound", bounds, juce::Justification::centred);
 }
 
 //==============================================================================
@@ -518,30 +499,25 @@ juce::Rectangle<int> SoundPage::getContentBounds() const {
 
 juce::Rectangle<int> SoundPage::getPostCardBounds(int index) const {
   auto contentBounds = getContentBounds();
-  contentBounds.removeFromTop(SOUND_INFO_HEIGHT + 1 + PADDING + 24 +
-                              8); // Info + separator + header
+  contentBounds.removeFromTop(SOUND_INFO_HEIGHT + 1 + PADDING + 24 + 8); // Info + separator + header
 
   int y = contentBounds.getY() + index * (POST_CARD_HEIGHT + 8);
-  return juce::Rectangle<int>(
-      PADDING, y, contentBounds.getWidth() - PADDING * 2, POST_CARD_HEIGHT);
+  return juce::Rectangle<int>(PADDING, y, contentBounds.getWidth() - PADDING * 2, POST_CARD_HEIGHT);
 }
 
 juce::Rectangle<int> SoundPage::getPostPlayButtonBounds(int index) const {
   auto cardBounds = getPostCardBounds(index);
-  return juce::Rectangle<int>(cardBounds.getX() + 12,
-                              cardBounds.getCentreY() - 22, 44, 44);
+  return juce::Rectangle<int>(cardBounds.getX() + 12, cardBounds.getCentreY() - 22, 44, 44);
 }
 
 juce::Rectangle<int> SoundPage::getPostUserBounds(int index) const {
   auto cardBounds = getPostCardBounds(index);
-  return juce::Rectangle<int>(cardBounds.getX() + 74, cardBounds.getY(), 200,
-                              cardBounds.getHeight() / 2);
+  return juce::Rectangle<int>(cardBounds.getX() + 74, cardBounds.getY(), 200, cardBounds.getHeight() / 2);
 }
 
 //==============================================================================
 int SoundPage::calculateContentHeight() const {
-  int height =
-      SOUND_INFO_HEIGHT + 1 + PADDING + 24 + 8; // Info + separator + header
+  int height = SOUND_INFO_HEIGHT + 1 + PADDING + 24 + 8; // Info + separator + header
   height += posts.size() * (POST_CARD_HEIGHT + 8);
   height += PADDING; // Bottom padding
   return height;

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <JuceHeader.h>
 #include "../../models/AggregatedFeedGroup.h"
 #include "../../util/Colors.h"
 #include "PostCard.h"
+#include <JuceHeader.h>
 
 /**
  * AggregatedFeedCard - Displays a group of aggregated activities
@@ -17,54 +17,57 @@
  * - Notifications aggregated by action+day
  * - User activity aggregated by action+day
  */
-class AggregatedFeedCard : public juce::Component
-{
+class AggregatedFeedCard : public juce::Component {
 public:
-    AggregatedFeedCard();
-    ~AggregatedFeedCard() override;
+  AggregatedFeedCard();
+  ~AggregatedFeedCard() override;
 
-    /** Set the aggregated group data */
-    void setGroup(const AggregatedFeedGroup& group);
+  /** Set the aggregated group data */
+  void setGroup(const AggregatedFeedGroup &group);
 
-    /** Get the group ID */
-    juce::String getGroupId() const { return groupData.id; }
+  /** Get the group ID */
+  juce::String getGroupId() const {
+    return groupData.id;
+  }
 
-    /** Check if this card is expanded */
-    bool isExpanded() const { return expanded; }
+  /** Check if this card is expanded */
+  bool isExpanded() const {
+    return expanded;
+  }
 
-    /** Expand or collapse the activity list */
-    void setExpanded(bool shouldExpand);
+  /** Expand or collapse the activity list */
+  void setExpanded(bool shouldExpand);
 
-    void paint(juce::Graphics& g) override;
-    void resized() override;
-    void mouseEnter(const juce::MouseEvent& event) override;
-    void mouseExit(const juce::MouseEvent& event) override;
-    void mouseDown(const juce::MouseEvent& event) override;
+  void paint(juce::Graphics &g) override;
+  void resized() override;
+  void mouseEnter(const juce::MouseEvent &event) override;
+  void mouseExit(const juce::MouseEvent &event) override;
+  void mouseDown(const juce::MouseEvent &event) override;
 
-    // Callbacks for user interactions
-    std::function<void(const juce::String& userId)> onUserClicked;
-    std::function<void(const juce::String& postId)> onPostClicked;
-    std::function<void(const juce::String& postId)> onPlayClicked;
+  // Callbacks for user interactions
+  std::function<void(const juce::String &userId)> onUserClicked;
+  std::function<void(const juce::String &postId)> onPostClicked;
+  std::function<void(const juce::String &postId)> onPlayClicked;
 
 private:
-    AggregatedFeedGroup groupData;
-    bool expanded = false;
-    bool hovering = false;
+  AggregatedFeedGroup groupData;
+  bool expanded = false;
+  bool hovering = false;
 
-    // UI components
-    juce::Label summaryLabel;
-    juce::Label timestampLabel;
-    juce::Label activityCountLabel;
-    juce::TextButton expandButton;
+  // UI components
+  juce::Label summaryLabel;
+  juce::Label timestampLabel;
+  juce::Label activityCountLabel;
+  juce::TextButton expandButton;
 
-    // Child post cards (shown when expanded)
-    juce::OwnedArray<PostCard> activityCards;
-    juce::Viewport activityViewport;
-    juce::Component activityContainer;
+  // Child post cards (shown when expanded)
+  juce::OwnedArray<PostCard> activityCards;
+  juce::Viewport activityViewport;
+  juce::Component activityContainer;
 
-    void updateSummary();
-    void updateActivityCards();
-    juce::String formatTimestamp(const juce::Time& time) const;
+  void updateSummary();
+  void updateActivityCards();
+  juce::String formatTimestamp(const juce::Time &time) const;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AggregatedFeedCard)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AggregatedFeedCard)
 };
