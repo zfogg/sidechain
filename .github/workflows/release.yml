@@ -11,12 +11,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS Universal (Intel + Apple Silicon)
+          # macOS Apple Silicon (arm64)
+          # Note: Building universal (x86_64+arm64) requires x86_64 dependencies
+          # which aren't available on arm64 Homebrew. Use arm64-only for releases.
           - os: macos-15
             name: macOS
-            cmake_args: -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+            cmake_args: -DCMAKE_OSX_ARCHITECTURES="arm64"
             cmake_preset: release-no-vcpkg
-            artifact_name: Sidechain-macOS-universal
+            artifact_name: Sidechain-macOS-arm64
             artifact_path: plugin/build/src/core/Sidechain_artefacts/Release
 
           # Linux (x86_64)
@@ -50,7 +52,7 @@ jobs:
       - name: Cache Build Dependencies
         uses: ./.github/actions/cache-build
         with:
-          arch: ${{ matrix.name == 'macOS' && 'universal' || 'x86_64' }}
+          arch: ${{ matrix.name == 'macOS' && 'arm64' || 'x86_64' }}
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build ${{ matrix.cmake_args }} --preset ${{ matrix.cmake_preset }}
@@ -63,7 +65,7 @@ jobs:
         uses: ./.github/actions/save-build-cache
         with:
           cache-version: '1'
-          arch: ${{ matrix.name == 'macOS' && 'universal' || 'x86_64' }}
+          arch: ${{ matrix.name == 'macOS' && 'arm64' || 'x86_64' }}
 
       - name: Package VST3 (macOS)
         if: runner.os == 'macOS'
@@ -168,7 +170,7 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-') }}
           body_path: changelog.txt
           files: |
-            artifacts/Sidechain-macOS-universal-VST3/*.zip
-            artifacts/Sidechain-macOS-universal-AU/*.zip
+            artifacts/Sidechain-macOS-arm64-VST3/*.zip
+            artifacts/Sidechain-macOS-arm64-AU/*.zip
             artifacts/Sidechain-Linux-x86_64-VST3/*.zip
             artifacts/Sidechain-Windows-x86_64-VST3/*.zip
