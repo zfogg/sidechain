@@ -42,7 +42,7 @@ void NetworkClient::getStoriesFeed(ResponseCallback callback)
     }
 
     Async::runVoid([this, callback]() {
-        auto result = makeRequestWithRetry(buildApiPath("/stories/feed"), "GET", juce::var(), true);
+        auto result = makeRequestWithRetry(buildApiPath("/stories"), "GET", juce::var(), true);
 
         if (callback)
         {
