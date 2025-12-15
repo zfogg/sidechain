@@ -1100,6 +1100,9 @@ NetworkClient::RequestResult NetworkClient::uploadMultipartData(
  * @param customHeaders Additional HTTP headers to include
  * @return RequestResult with status and error details
  */
+// Note: uploadMultipartDataAbsolute is NOT rate limited (Task 4.18)
+// External endpoints (CDN, S3, etc.) have their own rate limiting and should not
+// count against our API rate limits. This is intentional for external uploads.
 NetworkClient::RequestResult NetworkClient::uploadMultipartDataAbsolute(
     const juce::String& absoluteUrl,
     const juce::String& fieldName,
