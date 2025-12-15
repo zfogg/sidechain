@@ -16,10 +16,14 @@ add_library(SidechainStores STATIC
 
     # Reactive stores (Phase 2)
     ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ArchivedPostsStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ArchivedPostsStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/CommentStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CommentStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FeedStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SavedPostsStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SavedPostsStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ChatStore.cpp
