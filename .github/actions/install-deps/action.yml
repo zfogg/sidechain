@@ -37,6 +37,16 @@ runs:
         restore-keys: |
           sidechain-brew-v${{ inputs.cache-version }}-
 
+    - name: Restore apt cache (Linux)
+      if: runner.os == 'Linux'
+      id: packages-cache-linux
+      uses: actions/cache/restore@v4
+      with:
+        path: /var/cache/apt/archives
+        key: sidechain-apt-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+        restore-keys: |
+          sidechain-apt-v${{ inputs.cache-version }}-
+
     - name: Install Linux Dependencies
       if: runner.os == 'Linux'
       shell: bash
@@ -106,3 +116,10 @@ runs:
       with:
         path: ~/Library/Caches/Homebrew
         key: sidechain-brew-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+
+    - name: Save apt cache (Linux)
+      if: runner.os == 'Linux' && steps.packages-cache-linux.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: /var/cache/apt/archives
+        key: sidechain-apt-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
