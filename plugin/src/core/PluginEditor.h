@@ -231,6 +231,7 @@ private:
     //==============================================================================
     // Centralized stores
     std::unique_ptr<UserDataStore> userDataStore;
+    std::unique_ptr<Sidechain::Stores::FeedStore> feedStore;
     // ChatStore is a singleton, accessed via getInstance()
 
     // Legacy user state (to be removed as we migrate to UserDataStore)

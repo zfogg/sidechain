@@ -28,6 +28,7 @@ SavedPosts::SavedPosts()
 SavedPosts::~SavedPosts()
 {
     scrollBar.removeListener(this);
+    // RAII: Arrays will clean up automatically
 }
 
 //==============================================================================

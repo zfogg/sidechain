@@ -89,7 +89,7 @@ private:
     juce::String backendType_;
 
     SecureTokenStore();
-    virtual ~SecureTokenStore() = default;
+    virtual ~SecureTokenStore() { clearSingletonInstance(); }
 
 #ifdef JUCE_MAC
     // macOS Keychain implementation

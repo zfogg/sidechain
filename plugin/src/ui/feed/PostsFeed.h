@@ -44,7 +44,7 @@ class PostsFeed : public Sidechain::Util::ReactiveBoundComponent,
                            public juce::Timer
 {
 public:
-    PostsFeed();
+    explicit PostsFeed(Sidechain::Stores::FeedStore* feedStore);
     ~PostsFeed() override;
 
     void paint(juce::Graphics&) override;

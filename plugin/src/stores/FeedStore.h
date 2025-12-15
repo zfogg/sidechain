@@ -214,14 +214,8 @@ struct FeedStoreState
 class FeedStore : public Store<FeedStoreState>, private juce::Timer
 {
 public:
-    /**
-     * Get singleton instance
-     */
-    static FeedStore& getInstance()
-    {
-        static FeedStore instance;
-        return instance;
-    }
+    FeedStore();
+    ~FeedStore() override;
 
     /**
      * Set the network client for API requests
@@ -471,9 +465,6 @@ public:
     std::optional<std::pair<FeedType, int>> findPostLocation(const juce::String& postId) const;
 
 private:
-    FeedStore();
-    ~FeedStore() override;
-
     // Timer callback for cache expiration
     void timerCallback() override;
 

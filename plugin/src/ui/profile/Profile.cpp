@@ -156,6 +156,7 @@ Profile::~Profile()
     // Task 2.4.2: Unsubscribe from UserStore
     if (userStoreUnsubscribe)
         userStoreUnsubscribe();
+    // RAII: Arrays will clean up automatically
 }
 
 //==============================================================================
