@@ -493,3 +493,130 @@ void NetworkClient::getUserActivityAggregated(const juce::String& userId, int li
         }
     });
 }
+
+//==============================================================================
+// Gorse Recommendation Feeds
+
+void NetworkClient::getPopularFeed(int limit, int offset, FeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // Popular feed uses Gorse trending content based on engagement
+        juce::String endpoint = buildApiPath("/recommendations/popular") +
+                                "?limit=" + juce::String(limit) +
+                                "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid popular feed response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::getLatestFeed(int limit, int offset, FeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // Latest feed shows recently added content
+        juce::String endpoint = buildApiPath("/recommendations/latest") +
+                                "?limit=" + juce::String(limit) +
+                                "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid latest feed response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::getDiscoveryFeed(int limit, int offset, FeedCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, limit, offset, callback]() {
+        // Discovery feed blends popular, latest, and personalized content
+        juce::String endpoint = buildApiPath("/recommendations/discovery-feed") +
+                                "?limit=" + juce::String(limit) +
+                                "&offset=" + juce::String(offset);
+        auto response = makeRequest(endpoint, "GET", juce::var(), true);
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, response]() {
+                if (response.isObject() || response.isArray())
+                    callback(Outcome<juce::var>::ok(response));
+                else
+                    callback(Outcome<juce::var>::error("Invalid discovery feed response"));
+            });
+        }
+    });
+}
+
+void NetworkClient::trackRecommendationClick(const juce::String& postId,
+                                              const juce::String& source,
+                                              int position,
+                                              double playDuration,
+                                              bool completed,
+                                              ResponseCallback callback)
+{
+    if (!isAuthenticated())
+    {
+        if (callback)
+            callback(Outcome<juce::var>::error(Constants::Errors::NOT_AUTHENTICATED));
+        return;
+    }
+
+    Async::runVoid([this, postId, source, position, playDuration, completed, callback]() {
+        juce::var data = juce::var(new juce::DynamicObject());
+        auto* obj = data.getDynamicObject();
+        if (obj != nullptr)
+        {
+            obj->setProperty("post_id", postId);
+            obj->setProperty("source", source);
+            obj->setProperty("position", position);
+            if (playDuration > 0.0)
+                obj->setProperty("play_duration", playDuration);
+            obj->setProperty("completed", completed);
+        }
+
+        auto result = makeRequestWithRetry(buildApiPath("/recommendations/click"), "POST", data, true);
+        Log::debug("Track recommendation click response: " + juce::JSON::toString(result.data));
+
+        if (callback)
+        {
+            juce::MessageManager::callAsync([callback, result]() {
+                auto outcome = requestResultToOutcome(result);
+                callback(outcome);
+            });
+        }
+    });
+}
