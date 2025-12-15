@@ -32,6 +32,9 @@ enum class FeedType
     Global,                    // Global discover feed (all public posts)
     Trending,                  // Trending feed (posts sorted by engagement score)
     ForYou,                    // Personalized recommendations based on listening history
+    Popular,                   // Popular posts from Gorse (engagement-based trending)
+    Latest,                    // Latest posts from Gorse (recently added)
+    Discovery,                 // Discovery feed from Gorse (blends popular, latest, and personalized)
 
     // Aggregated feeds (grouped activities)
     TimelineAggregated,        // Timeline grouped by actor+verb+day
@@ -51,6 +54,9 @@ inline juce::String feedTypeToString(FeedType type)
         case FeedType::Global:                 return "Global";
         case FeedType::Trending:               return "Trending";
         case FeedType::ForYou:                 return "ForYou";
+        case FeedType::Popular:                return "Popular";
+        case FeedType::Latest:                 return "Latest";
+        case FeedType::Discovery:              return "Discovery";
         case FeedType::TimelineAggregated:     return "TimelineAggregated";
         case FeedType::TrendingAggregated:     return "TrendingAggregated";
         case FeedType::NotificationAggregated: return "NotificationAggregated";

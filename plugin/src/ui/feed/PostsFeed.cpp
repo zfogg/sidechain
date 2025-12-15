@@ -188,6 +188,46 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer* player)
                         Log::warn("PostsFeedComponent: Play tracking failed for postId: " + postId);
                     }
                 });
+
+                // Track recommendation click for CTR analysis (Gorse optimization)
+                if (feedStore != nullptr)
+                {
+                    using namespace Sidechain::Stores;
+                    auto currentFeedType = feedStore->getCurrentFeedType();
+                    const auto& currentFeed = feedStore->getState().getCurrentFeed();
+
+                    // Map feed type to source string for backend
+                    juce::String source = "unknown";
+                    switch (currentFeedType)
+                    {
+                        case FeedType::ForYou:    source = "for-you"; break;
+                        case FeedType::Popular:   source = "popular"; break;
+                        case FeedType::Latest:    source = "latest"; break;
+                        case FeedType::Discovery: source = "discovery"; break;
+                        case FeedType::Trending:  source = "trending"; break;
+                        default: break;
+                    }
+
+                    // Find position of post in current feed
+                    int position = -1;
+                    for (int i = 0; i < currentFeed.posts.size(); ++i)
+                    {
+                        if (currentFeed.posts[i].id == postId)
+                        {
+                            position = i;
+                            break;
+                        }
+                    }
+
+                    // Only track if this is a recommendation feed (not Timeline/Global)
+                    if (source != "unknown" && position >= 0)
+                    {
+                        Log::debug("PostsFeedComponent: Tracking recommendation click: postId=" + postId +
+                                   " source=" + source + " position=" + juce::String(position));
+
+                        networkClient->trackRecommendationClick(postId, source, position, 0.0, false, nullptr);
+                    }
+                }
             }
             else
             {
@@ -617,7 +657,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics& g)
 
     // Global (Discover) tab
     auto globalTab = getGlobalTabBounds();
-    bool isGlobalActive = (currentFeedType == FeedType::Global);
+    bool isGlobalActive = (currentFeedType == FeedType::Discovery);
 
     // Use UIHelpers::drawButton for consistent tab styling
     if (isGlobalActive)
@@ -2055,8 +2095,8 @@ void PostsFeed::mouseUp(const juce::MouseEvent& event)
 
     if (getGlobalTabBounds().contains(pos))
     {
-        Log::info("PostsFeed::mouseUp: Global/Discover tab clicked");
-        switchFeedType(Sidechain::Stores::FeedType::Global);
+        Log::info("PostsFeed::mouseUp: Discover tab clicked (Gorse discovery feed)");
+        switchFeedType(Sidechain::Stores::FeedType::Discovery);
         return;
     }
 

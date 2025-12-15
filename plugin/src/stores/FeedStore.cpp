@@ -186,6 +186,9 @@ void FeedStore::toggleLike(const juce::String& postId)
                 {
                     post.isLiked = !post.isLiked;
                     post.likeCount += post.isLiked ? 1 : -1;
+
+                    // Update lastUpdated timestamp to trigger state change detection
+                    currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                     break;
                 }
             }
@@ -256,6 +259,9 @@ void FeedStore::toggleSave(const juce::String& postId)
                 {
                     post.isSaved = !post.isSaved;
                     post.saveCount += post.isSaved ? 1 : -1;
+
+                    // Update lastUpdated timestamp to trigger state change detection
+                    currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                     break;
                 }
             }
@@ -319,6 +325,9 @@ void FeedStore::toggleRepost(const juce::String& postId)
                 {
                     post.isReposted = !post.isReposted;
                     post.repostCount += post.isReposted ? 1 : -1;
+
+                    // Update lastUpdated timestamp to trigger state change detection
+                    currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                     break;
                 }
             }
@@ -398,6 +407,9 @@ void FeedStore::addReaction(const juce::String& postId, const juce::String& emoj
                     {
                         post.userReaction = "";
                     }
+
+                    // Update lastUpdated timestamp to trigger state change detection
+                    currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                     break;
                 }
             }
@@ -499,19 +511,28 @@ void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
             int updatedCount = 0;
             for (auto& feedPair : state.feeds)
             {
+                bool feedModified = false;
                 for (auto& post : feedPair.second.posts)
                 {
                     if (post.userId == targetUserId)
                     {
                         post.isFollowing = willFollow;
                         updatedCount++;
+                        feedModified = true;
                     }
+                }
+
+                // Update lastUpdated timestamp to trigger state change detection
+                if (feedModified)
+                {
+                    feedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                 }
             }
 
             // Also update in aggregated feeds
             for (auto& aggFeedPair : state.aggregatedFeeds)
             {
+                bool feedModified = false;
                 for (auto& group : aggFeedPair.second.groups)
                 {
                     for (auto& activity : group.activities)
@@ -520,8 +541,15 @@ void FeedStore::toggleFollow(const juce::String& postId, bool willFollow)
                         {
                             activity.isFollowing = willFollow;
                             updatedCount++;
+                            feedModified = true;
                         }
                     }
+                }
+
+                // Update lastUpdated timestamp to trigger state change detection
+                if (feedModified)
+                {
+                    aggFeedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                 }
             }
 
@@ -600,19 +628,28 @@ void FeedStore::updateFollowStateByUserId(const juce::String& userId, bool willF
         int updatedCount = 0;
         for (auto& feedPair : state.feeds)
         {
+            bool feedModified = false;
             for (auto& post : feedPair.second.posts)
             {
                 if (post.userId == userId)
                 {
                     post.isFollowing = willFollow;
                     updatedCount++;
+                    feedModified = true;
                 }
+            }
+
+            // Update lastUpdated timestamp to trigger state change detection
+            if (feedModified)
+            {
+                feedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             }
         }
 
         // Also update in aggregated feeds
         for (auto& aggFeedPair : state.aggregatedFeeds)
         {
+            bool feedModified = false;
             for (auto& group : aggFeedPair.second.groups)
             {
                 for (auto& activity : group.activities)
@@ -621,8 +658,15 @@ void FeedStore::updateFollowStateByUserId(const juce::String& userId, bool willF
                     {
                         activity.isFollowing = willFollow;
                         updatedCount++;
+                        feedModified = true;
                     }
                 }
+            }
+
+            // Update lastUpdated timestamp to trigger state change detection
+            if (feedModified)
+            {
+                aggFeedPair.second.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             }
         }
 
@@ -689,6 +733,9 @@ void FeedStore::togglePin(const juce::String& postId, bool pinned)
                 if (post.id == postId)
                 {
                     post.isPinned = pinned;
+
+                    // Update lastUpdated timestamp to trigger state change detection
+                    currentFeed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
                     break;
                 }
             }
@@ -1093,6 +1140,15 @@ void FeedStore::performFetch(FeedType feedType, int limit, int offset)
         case FeedType::Global:
             networkClient->getGlobalFeed(limit, offset, callback);
             break;
+        case FeedType::Popular:
+            networkClient->getPopularFeed(limit, offset, callback);
+            break;
+        case FeedType::Latest:
+            networkClient->getLatestFeed(limit, offset, callback);
+            break;
+        case FeedType::Discovery:
+            networkClient->getDiscoveryFeed(limit, offset, callback);
+            break;
         case FeedType::Trending:
             networkClient->getTrendingFeed(limit, offset, callback);
             break;
@@ -1489,12 +1545,21 @@ void FeedStore::updatePostInAllFeeds(const juce::String& postId,
     {
         for (auto& [feedType, feed] : state.feeds)
         {
+            bool feedModified = false;
             for (auto& post : feed.posts)
             {
                 if (post.id == postId)
                 {
                     updater(post);
+                    feedModified = true;
                 }
+            }
+
+            // Update lastUpdated timestamp to trigger state change detection
+            // This ensures subscribers are notified when post fields change
+            if (feedModified)
+            {
+                feed.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
             }
         }
     });
