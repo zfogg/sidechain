@@ -37,6 +37,11 @@ runs:
         restore-keys: |
           sidechain-brew-v${{ inputs.cache-version }}-
 
+    - name: Fix apt cache permissions (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: sudo chown -R $(id -u):$(id -g) /var/cache/apt/archives 2>/dev/null || true
+
     - name: Restore apt cache (Linux)
       if: runner.os == 'Linux'
       id: packages-cache-linux
