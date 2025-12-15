@@ -698,10 +698,11 @@ juce::MemoryBlock NetworkClient::encodeAudioToWAV(const juce::AudioBuffer<float>
   juce::StringPairArray metadata; // Explicit empty metadata
 
   // Writer takes ownership of outputStream and will delete it
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      wavFormat.createWriterFor(outputStream, sampleRate, static_cast<unsigned int>(buffer.getNumChannels()),
-                                16, // bits per sample
-                                metadata, 0));
+  auto writerOptions = juce::AudioFormatWriterOptions()
+                           .withSampleRate(sampleRate)
+                           .withNumChannels(buffer.getNumChannels())
+                           .withBitsPerSample(16);
+  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(outputStream, writerOptions));
 
   if (writer == nullptr) {
     // If writer creation failed, we still own the stream

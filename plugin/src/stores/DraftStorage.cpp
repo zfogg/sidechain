@@ -123,10 +123,11 @@ bool DraftStorage::writeAudioFile(const juce::File &file, const juce::AudioBuffe
     return false;
   }
 
-  std::unique_ptr<juce::AudioFormatWriter> writer(
-      wavFormat.createWriterFor(fileStream.get(), sampleRate, static_cast<unsigned int>(buffer.getNumChannels()),
-                                16, // bits per sample
-                                {}, 0));
+  auto writerOptions = juce::AudioFormatWriterOptions()
+                           .withSampleRate(sampleRate)
+                           .withNumChannels(buffer.getNumChannels())
+                           .withBitsPerSample(16);
+  std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(fileStream.get(), writerOptions));
 
   if (writer == nullptr) {
     Log::error("DraftStorage::writeAudioFile: Failed to create WAV writer");
