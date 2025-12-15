@@ -108,6 +108,7 @@ public:
     std::function<void(const juce::String& userId)> onNavigateToProfile;  // Navigates to another user's profile
     std::function<void(const StoryHighlight&)> onHighlightClicked;  // Opens story viewer for a highlight
     std::function<void()> onCreateHighlightClicked;  // Opens create highlight flow (own profile only)
+    std::function<void()> onLogoutClicked;  // Logout (own profile only)
 
     //==============================================================================
     // Component overrides
@@ -196,6 +197,7 @@ private:
     juce::Rectangle<int> getActivityStatusButtonBounds() const;
     juce::Rectangle<int> getTwoFactorSettingsButtonBounds() const;  // 2FA settings (own profile only)
     juce::Rectangle<int> getMutedUsersButtonBounds() const;  // Muted users list (own profile only)
+    juce::Rectangle<int> getLogoutButtonBounds() const;  // Logout button (own profile only)
     juce::Rectangle<int> getShareButtonBounds() const;
     juce::Rectangle<int> getSocialLinkBounds(int index) const;
     juce::Rectangle<int> getPostsAreaBounds() const;

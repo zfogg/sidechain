@@ -682,6 +682,14 @@ void Profile::drawActionButtons(juce::Graphics& g, [[maybe_unused]] juce::Rectan
         g.setColour(Colors::textPrimary);
         g.setFont(12.0f);
         g.drawText("Notifs", notifBounds, juce::Justification::centred);
+
+        // Logout button (second row)
+        auto logoutBounds = getLogoutButtonBounds();
+        g.setColour(Colors::errorRed);
+        g.fillRoundedRectangle(logoutBounds.toFloat(), 6.0f);
+        g.setColour(Colors::textPrimary);
+        g.setFont(12.0f);
+        g.drawText("Logout", logoutBounds, juce::Justification::centred);
     }
     else
     {
@@ -1068,6 +1076,16 @@ void Profile::mouseUp(const juce::MouseEvent& event)
             return;
         }
 
+        if (getLogoutButtonBounds().contains(pos))
+        {
+            Log::info("Profile::mouseUp: Logout button clicked");
+            if (onLogoutClicked)
+                onLogoutClicked();
+            else
+                Log::warn("Profile::mouseUp: Logout clicked but callback not set");
+            return;
+        }
+
         // Note: Activity Status, Muted Users, and Two-Factor Auth are now in Edit Profile / Settings
         // They are no longer shown on the main profile page
     }
@@ -1214,6 +1232,16 @@ juce::Rectangle<int> Profile::getTwoFactorSettingsButtonBounds() const
     // Not shown on profile page - returns empty bounds
     // Two-Factor Auth is in Edit Profile / Settings
     return juce::Rectangle<int>();
+}
+
+juce::Rectangle<int> Profile::getLogoutButtonBounds() const
+{
+    // Logout button on second row below the main buttons
+    int buttonsY = getEditButtonBounds().getY();
+    int spacing = 6;
+    int secondRowY = buttonsY + BUTTON_HEIGHT + spacing;
+    int buttonWidth = 100;
+    return juce::Rectangle<int>(PADDING, secondRowY, buttonWidth, BUTTON_HEIGHT);
 }
 
 juce::Rectangle<int> Profile::getMuteButtonBounds() const
