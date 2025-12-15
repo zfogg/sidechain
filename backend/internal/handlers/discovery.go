@@ -358,7 +358,6 @@ func (h *Handlers) GetSuggestedUsers(c *gin.Context) {
 	}
 
 	userResults := make([]gin.H, 0, len(suggestedUsers))
-	followStateCache := make(map[string]bool)
 
 	for _, u := range suggestedUsers {
 		// Calculate shared genres
