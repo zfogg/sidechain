@@ -1,0 +1,21 @@
+services:
+  plugin:
+    build:
+      context: ..
+      dockerfile: plugin/Dockerfile
+    image: sidechain-plugin
+    volumes:
+      # Mount source code from host (live changes)
+      - ..:/sidechain:ro
+      # Cache build output (persists between runs)
+      - build-cache:/build
+      # Cache deps (.cache/cmake for JUCE, ccache, etc)
+      - deps-cache:/cache
+    environment:
+      - CCACHE_DIR=/cache/ccache
+      - BUILD_DIR=/build
+      - CACHE_DIR=/cache
+
+volumes:
+  build-cache:
+  deps-cache:
