@@ -6,10 +6,37 @@ inputs:
     description: 'Install coverage tools (lcov)'
     required: false
     default: 'false'
+  cache-version:
+    description: 'Cache version - increment to invalidate cache'
+    required: false
+    default: '1'
 
 runs:
   using: 'composite'
   steps:
+    - name: Restore vcpkg and chocolatey cache (Windows)
+      if: runner.os == 'Windows'
+      id: packages-cache-windows
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          C:\vcpkg
+          C:\ProgramData\chocolatey
+          C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+        key: sidechain-packages-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+        restore-keys: |
+          sidechain-packages-v${{ inputs.cache-version }}-
+
+    - name: Restore Homebrew cache (macOS)
+      if: runner.os == 'macOS'
+      id: packages-cache-macos
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/Library/Caches/Homebrew
+        key: sidechain-brew-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+        restore-keys: |
+          sidechain-brew-v${{ inputs.cache-version }}-
+
     - name: Install Linux Dependencies
       if: runner.os == 'Linux'
       shell: bash
@@ -62,3 +89,20 @@ runs:
 
     - name: Setup CMake
       uses: lukka/get-cmake@latest
+
+    - name: Save vcpkg and chocolatey cache (Windows)
+      if: runner.os == 'Windows' && steps.packages-cache-windows.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          C:\vcpkg
+          C:\ProgramData\chocolatey
+          C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+        key: sidechain-packages-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
+
+    - name: Save Homebrew cache (macOS)
+      if: runner.os == 'macOS' && steps.packages-cache-macos.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/Library/Caches/Homebrew
+        key: sidechain-brew-v${{ inputs.cache-version }}-${{ hashFiles('.github/actions/install-deps/action.yml') }}
