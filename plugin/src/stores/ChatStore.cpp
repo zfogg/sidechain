@@ -347,10 +347,29 @@ void ChatStore::loadMessages(const juce::String& channelId, int limit)
 
     auto currentState = getState();
     auto it = currentState.channels.find(channelId);
-    if (it == currentState.channels.end())
+
+    // If channel doesn't exist in our map, create a placeholder entry
+    // This handles the case where MessagesList loads channels independently
+    // and the user opens a channel before ChatStore has loaded its own channel list
+    juce::String channelType = "messaging";  // Default to messaging type
+    if (it != currentState.channels.end())
     {
-        Util::logWarning("ChatStore", "Cannot load messages - channel not found", "channelId=" + channelId);
-        return;
+        channelType = it->second.type;
+    }
+    else
+    {
+        Log::debug("ChatStore::loadMessages - Channel not in map, creating placeholder. channelId=" + channelId);
+        // Create placeholder channel entry so messages can be loaded
+        updateState([channelId](ChatStoreState& state)
+        {
+            if (state.channels.find(channelId) == state.channels.end())
+            {
+                ChannelState newChannel;
+                newChannel.id = channelId;
+                newChannel.type = "messaging";
+                state.channels[channelId] = newChannel;
+            }
+        });
     }
 
     Util::logInfo("ChatStore", "Loading messages", "channelId=" + channelId + " limit=" + juce::String(limit));
@@ -360,8 +379,6 @@ void ChatStore::loadMessages(const juce::String& channelId, int limit)
         auto& channel = state.channels[channelId];
         channel.isLoadingMessages = true;
     });
-
-    auto channelType = it->second.type;
 
     streamChatClient->queryMessages(channelType, channelId, limit, 0,
         [this, channelId](Outcome<std::vector<StreamChatClient::Message>> result)
