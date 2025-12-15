@@ -28,6 +28,9 @@ jobs:
         with:
           arch: x86_64
 
+      - name: Clean Build Directory
+        run: rm -rf plugin/build
+
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build --preset default
 
@@ -55,6 +58,9 @@ jobs:
         uses: ./.github/actions/cache-build
         with:
           arch: x86_64
+
+      - name: Clean Build Directory
+        run: rm -rf plugin/build
 
       - name: Configure CMake
         run: cmake -S plugin -B plugin/build --preset default
