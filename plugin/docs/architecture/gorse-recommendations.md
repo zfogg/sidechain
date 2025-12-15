@@ -45,14 +45,14 @@ Sidechain uses [Gorse](https://gorse.io), an open-source recommender system, to 
 │                         VST PLUGIN (C++/JUCE)                   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐ │
-│  │  PostsFeed   │      │ NetworkClient│      │  FeedStore   │ │
-│  │              │─────▶│              │◀─────│              │ │
-│  │ - Discovery  │      │ - getDiscov..│      │ - Discovery  │ │
-│  │ - Trending   │      │ - getPopular │      │ - Popular    │ │
-│  │ - For You    │      │ - getLatest  │      │ - Latest     │ │
-│  │ - Following  │      │ - trackClick │      │ - ForYou     │ │
-│  └──────────────┘      └──────────────┘      └──────────────┘ │
+│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐   │
+│  │  PostsFeed   │      │ NetworkClient│      │  FeedStore   │   │
+│  │              │─────▶│              │◀─────│              │   │
+│  │ - Discovery  │      │ - getDiscov..│      │ - Discovery  │   │
+│  │ - Trending   │      │ - getPopular │      │ - Popular    │   │
+│  │ - For You    │      │ - getLatest  │      │ - Latest     │   │
+│  │ - Following  │      │ - trackClick │      │ - ForYou     │   │
+│  └──────────────┘      └──────────────┘      └──────────────┘   │
 │         │                      │                      │         │
 │         └──────────────────────┼──────────────────────┘         │
 │                                │                                │
@@ -60,29 +60,29 @@ Sidechain uses [Gorse](https://gorse.io), an open-source recommender system, to 
                                  │ HTTP/REST
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      BACKEND SERVER (Go)                         │
+│                      BACKEND SERVER (Go)                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │           Recommendation Handlers                        │  │
-│  │  /recommendations/for-you                                │  │
-│  │  /recommendations/popular                                │  │
-│  │  /recommendations/latest                                 │  │
-│  │  /recommendations/discovery-feed                         │  │
-│  │  /recommendations/similar-posts/:id                      │  │
-│  │  /recommendations/click                                  │  │
-│  └──────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │           Recommendation Handlers                        │   │
+│  │  /recommendations/for-you                                │   │
+│  │  /recommendations/popular                                │   │
+│  │  /recommendations/latest                                 │   │
+│  │  /recommendations/discovery-feed                         │   │
+│  │  /recommendations/similar-posts/:id                      │   │
+│  │  /recommendations/click                                  │   │
+│  └──────────────────────────────────────────────────────────┘   │
 │                         │                                       │
 │                         ▼                                       │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │           GorseClient (gorse_rest.go)                    │  │
-│  │  - SyncFeedback() - Real-time event tracking            │  │
-│  │  - SyncItem() - Post metadata sync                      │  │
-│  │  - SyncUser() - User preference sync                    │  │
-│  │  - GetForYouFeed() - Personalized recommendations       │  │
-│  │  - GetPopular() - Trending content                      │  │
-│  │  - GetLatest() - Recent content                         │  │
-│  └──────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │           GorseClient (gorse_rest.go)                    │   │
+│  │  - SyncFeedback() - Real-time event tracking             │   │
+│  │  - SyncItem() - Post metadata sync                       │   │
+│  │  - SyncUser() - User preference sync                     │   │
+│  │  - GetForYouFeed() - Personalized recommendations        │   │
+│  │  - GetPopular() - Trending content                       │   │
+│  │  - GetLatest() - Recent content                          │   │
+│  └──────────────────────────────────────────────────────────┘   │
 │                         │                                       │
 └─────────────────────────┼───────────────────────────────────────┘
                           │ Gorse REST API
@@ -91,29 +91,29 @@ Sidechain uses [Gorse](https://gorse.io), an open-source recommender system, to 
 │                     GORSE (Docker Container)                    │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
-│  │   Master     │  │   Server     │  │   Recommendation     │ │
-│  │   Node       │  │   API        │  │   Engine             │ │
-│  │              │  │              │  │                      │ │
-│  │ - Training   │  │ - REST API   │  │ - Collaborative      │ │
-│  │ - Indexing   │  │ - Caching    │  │   Filtering          │ │
-│  │ - Jobs       │  │ - Serving    │  │ - CTR Prediction     │ │
-│  └──────────────┘  └──────────────┘  │ - Item Neighbors     │ │
-│         │                  │          └──────────────────────┘ │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │   Master     │  │   Server     │  │   Recommendation     │   │
+│  │   Node       │  │   API        │  │   Engine             │   │
+│  │              │  │              │  │                      │   │
+│  │ - Training   │  │ - REST API   │  │ - Collaborative      │   │
+│  │ - Indexing   │  │ - Caching    │  │   Filtering          │   │
+│  │ - Jobs       │  │ - Serving    │  │ - CTR Prediction     │   │
+│  └──────────────┘  └──────────────┘  │ - Item Neighbors     │   │
+│         │                  │         └──────────────────────┘   │
 │         │                  │                                    │
-│         └──────────────────┼────────────────────────────────┐  │
-│                            ▼                                │  │
-│         ┌──────────────────────────────────────────┐        │  │
-│         │          PostgreSQL (Data Store)         │        │  │
-│         │  - Users, Items, Feedback                │        │  │
-│         │  - Model parameters                      │        │  │
-│         └──────────────────────────────────────────┘        │  │
-│                            ▲                                │  │
-│         ┌──────────────────┴────────────────────────────────┘  │
-│         │          Redis (Cache Store)                         │
-│         │  - Recommendation cache                              │
-│         │  - User/item metadata cache                          │
-│         └──────────────────────────────────────────────────────┘
+│         └──────────────────┼────────────────────────────────┐   │
+│                            ▼                                │   │
+│         ┌──────────────────────────────────────────┐        │   │
+│         │          PostgreSQL (Data Store)         │        │   │
+│         │  - Users, Items, Feedback                │        │   │
+│         │  - Model parameters                      │        │   │
+│         └──────────────────────────────────────────┘        │   │
+│                            ▲                                │   │
+│         ┌──────────────────┴────────────────────────────────┘   │
+│         │          Redis (Cache Store)                          │
+│         │  - Recommendation cache                               │
+│         │  - User/item metadata cache                           │
+│         └───────────────────────────────────────────────────────┘
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 
@@ -121,18 +121,18 @@ Sidechain uses [Gorse](https://gorse.io), an open-source recommender system, to 
 │                   SIDECHAIN DATABASE (PostgreSQL)               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌──────────────────────┐  ┌────────────────────────────────┐  │
-│  │  audio_posts         │  │  recommendation_impressions    │  │
-│  │  - id, user_id       │  │  - id, user_id, post_id        │  │
-│  │  - genre, bpm        │  │  - source, position, score     │  │
-│  │  - audio_url         │  │  - clicked, clicked_at         │  │
-│  └──────────────────────┘  └────────────────────────────────┘  │
+│  ┌──────────────────────┐  ┌────────────────────────────────┐   │
+│  │  audio_posts         │  │  recommendation_impressions    │   │
+│  │  - id, user_id       │  │  - id, user_id, post_id        │   │
+│  │  - genre, bpm        │  │  - source, position, score     │   │
+│  │  - audio_url         │  │  - clicked, clicked_at         │   │
+│  └──────────────────────┘  └────────────────────────────────┘   │
 │                                                                 │
-│  ┌──────────────────────┐  ┌────────────────────────────────┐  │
-│  │  users               │  │  recommendation_clicks         │  │
-│  │  - id, username      │  │  - id, user_id, post_id        │  │
-│  │  - favorite_genres   │  │  - play_duration, completed    │  │
-│  └──────────────────────┘  └────────────────────────────────┘  │
+│  ┌──────────────────────┐  ┌────────────────────────────────┐   │
+│  │  users               │  │  recommendation_clicks         │   │
+│  │  - id, username      │  │  - id, user_id, post_id        │   │
+│  │  - favorite_genres   │  │  - play_duration, completed    │   │
+│  └──────────────────────┘  └────────────────────────────────┘   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
