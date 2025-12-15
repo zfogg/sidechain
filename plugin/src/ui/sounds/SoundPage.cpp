@@ -54,7 +54,7 @@ void SoundPage::paint(juce::Graphics& g)
 
     // Draw section header
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(16.0f).boldened());
+    g.setFont(juce::FontOptions().withHeight(16.0f).boldened());
     g.drawText("Posts with this sound", contentBounds.removeFromTop(24).reduced(PADDING, 0),
                juce::Justification::centredLeft);
 
@@ -370,12 +370,12 @@ void SoundPage::drawHeader(juce::Graphics& g)
     // Back button
     auto backBounds = getBackButtonBounds();
     g.setColour(Colors::accent);
-    g.setFont(juce::Font(20.0f));
+    g.setFont(juce::FontOptions().withHeight(20.0f));
     g.drawText(juce::CharPointer_UTF8("\xe2\x86\x90"), backBounds, juce::Justification::centred); // Left arrow
 
     // Title
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(18.0f).boldened());
+    g.setFont(juce::FontOptions().withHeight(18.0f).boldened());
     g.drawText("Sound", bounds.reduced(60, 0), juce::Justification::centred);
 }
 
@@ -389,14 +389,14 @@ void SoundPage::drawSoundInfo(juce::Graphics& g, juce::Rectangle<int>& bounds)
     // Sound icon (musical note)
     auto iconBounds = nameRow.removeFromLeft(40);
     g.setColour(Colors::soundIcon);
-    g.setFont(juce::Font(28.0f));
+    g.setFont(juce::FontOptions().withHeight(28.0f));
     g.drawText(juce::CharPointer_UTF8("\xe2\x99\xab"), iconBounds, juce::Justification::centred); // Musical note
 
     nameRow.removeFromLeft(12);
 
     // Sound name
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(20.0f).boldened());
+    g.setFont(juce::FontOptions().withHeight(20.0f).boldened());
     g.drawText(sound.name.isNotEmpty() ? sound.name : "Untitled Sound",
                nameRow, juce::Justification::centredLeft);
 
@@ -406,7 +406,7 @@ void SoundPage::drawSoundInfo(juce::Graphics& g, juce::Rectangle<int>& bounds)
     auto creatorRow = bounds.removeFromTop(24);
 
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(14.0f));
+    g.setFont(juce::FontOptions().withHeight(14.0f));
     g.drawText("by ", creatorRow.removeFromLeft(20), juce::Justification::centredLeft);
 
     g.setColour(Colors::accent);
@@ -424,7 +424,7 @@ void SoundPage::drawSoundInfo(juce::Graphics& g, juce::Rectangle<int>& bounds)
     g.fillRoundedRectangle(usageBounds.toFloat(), 6.0f);
 
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(14.0f).boldened());
+    g.setFont(juce::FontOptions().withHeight(14.0f).boldened());
     g.drawText(sound.getUsageCountString(), usageBounds, juce::Justification::centred);
 
     statsRow.removeFromLeft(12);
@@ -437,7 +437,7 @@ void SoundPage::drawSoundInfo(juce::Graphics& g, juce::Rectangle<int>& bounds)
         g.fillRoundedRectangle(durationBounds.toFloat(), 6.0f);
 
         g.setColour(Colors::textSecondary);
-        g.setFont(juce::Font(14.0f));
+        g.setFont(juce::FontOptions().withHeight(14.0f));
         g.drawText(sound.getDurationString(), durationBounds, juce::Justification::centred);
     }
 
@@ -450,7 +450,7 @@ void SoundPage::drawSoundInfo(juce::Graphics& g, juce::Rectangle<int>& bounds)
         g.fillRoundedRectangle(trendingBounds.toFloat(), 6.0f);
 
         g.setColour(Colors::trendingBadge);
-        g.setFont(juce::Font(13.0f).boldened());
+        g.setFont(juce::FontOptions().withHeight(13.0f).boldened());
         g.drawText(juce::CharPointer_UTF8("\xf0\x9f\x94\xa5 Trending"), trendingBounds, juce::Justification::centred);
     }
 }
@@ -483,7 +483,7 @@ void SoundPage::drawPostCard(juce::Graphics& g, juce::Rectangle<int> bounds, con
     g.fillEllipse(playBounds.toFloat());
 
     g.setColour(Colors::cardBg);
-    g.setFont(juce::Font(18.0f));
+    g.setFont(juce::FontOptions().withHeight(18.0f));
     g.drawText(isPlaying ? juce::CharPointer_UTF8("\xe2\x8f\xb8") : juce::CharPointer_UTF8("\xe2\x96\xb6"),
                playBounds, juce::Justification::centred);
 
@@ -493,7 +493,7 @@ void SoundPage::drawPostCard(juce::Graphics& g, juce::Rectangle<int> bounds, con
     auto userRow = cardContent.removeFromTop(cardContent.getHeight() / 2);
 
     g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(14.0f).boldened());
+    g.setFont(juce::FontOptions().withHeight(14.0f).boldened());
     g.drawText(post.getUserDisplayName(), userRow, juce::Justification::centredLeft);
 
     // Post metadata
@@ -507,14 +507,14 @@ void SoundPage::drawPostCard(juce::Graphics& g, juce::Rectangle<int> bounds, con
     }
 
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(12.0f));
+    g.setFont(juce::FontOptions().withHeight(12.0f));
     g.drawText(metadata, cardContent, juce::Justification::centredLeft);
 
     // Stats on right side
     auto statsBounds = bounds.reduced(12).removeFromRight(80);
 
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(12.0f));
+    g.setFont(juce::FontOptions().withHeight(12.0f));
 
     juce::String likesText = juce::String(juce::CharPointer_UTF8("\xe2\x9d\xa4\xef\xb8\x8f ")) + juce::String(post.likeCount);
     g.drawText(likesText, statsBounds.removeFromTop(statsBounds.getHeight() / 2), juce::Justification::centredRight);
@@ -526,21 +526,21 @@ void SoundPage::drawPostCard(juce::Graphics& g, juce::Rectangle<int> bounds, con
 void SoundPage::drawLoadingState(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(16.0f));
+    g.setFont(juce::FontOptions().withHeight(16.0f));
     g.drawText("Loading sound...", bounds, juce::Justification::centred);
 }
 
 void SoundPage::drawErrorState(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(juce::Colour(0xffff4757));
-    g.setFont(juce::Font(16.0f));
+    g.setFont(juce::FontOptions().withHeight(16.0f));
     g.drawText(errorMessage, bounds, juce::Justification::centred);
 }
 
 void SoundPage::drawEmptyState(juce::Graphics& g, juce::Rectangle<int> bounds)
 {
     g.setColour(Colors::textSecondary);
-    g.setFont(juce::Font(16.0f));
+    g.setFont(juce::FontOptions().withHeight(16.0f));
     g.drawText("No posts found with this sound", bounds, juce::Justification::centred);
 }
 
