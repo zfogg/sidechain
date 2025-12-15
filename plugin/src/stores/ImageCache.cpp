@@ -41,6 +41,11 @@ namespace
     // NetworkClient for HTTP requests (optional)
     NetworkClient* networkClient = nullptr;
 
+    // Mutex for serializing JUCE URL requests to avoid CFNetwork caching crashes
+    // CFNetwork has a race condition in its caching mechanism when multiple concurrent
+    // requests happen. This mutex serializes URL downloads to work around it.
+    std::mutex juceUrlMutex;
+
     // Statistics
     Stats stats;
 
@@ -120,7 +125,10 @@ namespace
                     }
                     else
                     {
-                        // Fallback to JUCE URL
+                        // Fallback to JUCE URL - serialize to avoid CFNetwork caching crashes
+                        // CFNetwork has a race condition when multiple concurrent requests try to cache
+                        std::lock_guard<std::mutex> lock(juceUrlMutex);
+
                         juce::URL imageUrl(url);
                         int statusCode = 0;
                         juce::StringPairArray responseHeaders;
@@ -313,6 +321,9 @@ juce::Image loadSync(const juce::String& url)
 
     try
     {
+        // Serialize JUCE URL requests to avoid CFNetwork caching crashes
+        std::lock_guard<std::mutex> lock(juceUrlMutex);
+
         juce::URL imageUrl(url);
         auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
             .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS);
@@ -558,7 +569,9 @@ void loadAvatarForUser(const juce::String& userId, ImageCallback callback, int w
         }
         else
         {
-            // Fallback: use JUCE URL
+            // Fallback: use JUCE URL - serialize to avoid CFNetwork caching crashes
+            std::lock_guard<std::mutex> lock(juceUrlMutex);
+
             juce::URL url(apiUrl);
             auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
                 .withConnectionTimeoutMs(Constants::Api::DEFAULT_TIMEOUT_MS);
@@ -597,6 +610,9 @@ void loadAvatarForUser(const juce::String& userId, ImageCallback callback, int w
         }
         else
         {
+            // Serialize JUCE URL requests to avoid CFNetwork caching crashes
+            std::lock_guard<std::mutex> lock(juceUrlMutex);
+
             juce::URL imgUrl(imageUrl);
             auto options = juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
                 .withConnectionTimeoutMs(Constants::Api::IMAGE_TIMEOUT_MS)
