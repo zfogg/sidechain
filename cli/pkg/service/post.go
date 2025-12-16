@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/zfogg/sidechain/cli/pkg/api"
+	"github.com/zfogg/sidechain/cli/pkg/formatter"
 	"github.com/zfogg/sidechain/cli/pkg/logger"
 )
 
@@ -157,13 +158,22 @@ func (ps *PostService) UnlikePost(postID string) error {
 
 // ReactToPost adds an emoji reaction to a post
 func (ps *PostService) ReactToPost(postID, emoji string) error {
-	logger.Debug("Reacting to post", "post_id", postID, "emoji", emoji)
+	logger.Debug("Adding emoji reaction", "post_id", postID, "emoji", emoji)
 
-	if err := api.ReactToPost(postID, emoji); err != nil {
-		return fmt.Errorf("failed to react to post: %w", err)
+	resp, err := api.AddReaction(postID, emoji)
+	if err != nil {
+		return err
 	}
 
-	fmt.Printf("✓ Reaction added.\n")
+	reactionInfo := map[string]interface{}{
+		"Status":    resp.Status,
+		"Emoji":     resp.Emoji,
+		"Type":      resp.Type,
+		"Timestamp": resp.Timestamp,
+	}
+
+	formatter.PrintSuccess("Reaction added!")
+	formatter.PrintKeyValue(reactionInfo)
 	return nil
 }
 
@@ -257,6 +267,76 @@ func (ps *PostService) UnrepostPost(postID string) error {
 	fmt.Printf("✓ Repost removed.\n")
 	return nil
 }
+
+// UnreactPost removes an emoji reaction from a post
+func (ps *PostService) UnreactPost(postID, emoji string) error {
+	logger.Debug("Removing emoji reaction", "post_id", postID, "emoji", emoji)
+
+	if err := api.RemoveReaction(postID, emoji); err != nil {
+		return err
+	}
+
+	formatter.PrintSuccess("Reaction removed from post: %s", postID)
+	return nil
+}
+
+// ViewPostReactions displays all reactions on a post
+func (ps *PostService) ViewPostReactions(postID string) error {
+	logger.Debug("Viewing reactions", "post_id", postID)
+
+	resp, err := api.GetPostReactions(postID)
+	if err != nil {
+		return err
+	}
+
+	formatter.PrintInfo("📊 Reactions on Post")
+	fmt.Printf("\n")
+
+	if len(resp.ReactionCounts) == 0 {
+		fmt.Println("No reactions on this post yet")
+		return nil
+	}
+
+	// Display reaction counts
+	for emoji, count := range resp.ReactionCounts {
+		fmt.Printf("%s %d\n", emoji, count)
+	}
+
+	fmt.Printf("\n")
+
+	// Display latest reactions by type
+	if len(resp.LatestReactions) > 0 {
+		formatter.PrintInfo("Latest Reactions")
+		fmt.Printf("\n")
+		for reactionType, reactions := range resp.LatestReactions {
+			fmt.Printf("%s (%s):\n", reactionType, getEmojiForReactionType(reactionType))
+			for _, reaction := range reactions {
+				fmt.Printf("  • %s (%s)\n", reaction.UserID, reaction.CreatedAt)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Helper function to get emoji for reaction type
+func getEmojiForReactionType(reactionType string) string {
+	emojiMap := map[string]string{
+		"love":    "❤️",
+		"fire":    "🔥",
+		"music":   "🎵",
+		"wow":     "😍",
+		"hype":    "🚀",
+		"perfect": "💯",
+		"react":   "👍",
+	}
+
+	if emoji, ok := emojiMap[reactionType]; ok {
+		return emoji
+	}
+	return "👍"
+}
+
 // Helper methods for displaying posts
 
 func (ps *PostService) displayPostDetails(post *api.Post) {

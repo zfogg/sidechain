@@ -178,6 +178,26 @@ var postUnrepostCmd = &cobra.Command{
 	},
 }
 
+var postUnreactCmd = &cobra.Command{
+	Use:   "unreact <post-id> <emoji>",
+	Short: "Remove an emoji reaction from a post",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		postService := service.NewPostService()
+		return postService.UnreactPost(args[0], args[1])
+	},
+}
+
+var postReactionsCmd = &cobra.Command{
+	Use:   "reactions <post-id>",
+	Short: "View reactions on a post",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		postService := service.NewPostService()
+		return postService.ViewPostReactions(args[0])
+	},
+}
+
 func init() {
 	// Upload command flags
 	postUploadCmd.Flags().StringVarP(&postTitle, "title", "t", "", "Post title")
@@ -202,6 +222,8 @@ func init() {
 	postCmd.AddCommand(postLikeCmd)
 	postCmd.AddCommand(postUnlikeCmd)
 	postCmd.AddCommand(postReactCmd)
+	postCmd.AddCommand(postUnreactCmd)
+	postCmd.AddCommand(postReactionsCmd)
 	postCmd.AddCommand(postSaveCmd)
 	postCmd.AddCommand(postUnsaveCmd)
 	postCmd.AddCommand(postSavedListCmd)
