@@ -36,6 +36,12 @@ add_library(SidechainUtil STATIC
     $<$<PLATFORM_ID:Darwin>:${CMAKE_CURRENT_SOURCE_DIR}/OSNotification_mac.mm>
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/WaveformGenerator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/FileCache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/FileCache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/ImageCache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/ImageCache.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/AudioCache.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cache/AudioCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error/ErrorTracking.h
 )
