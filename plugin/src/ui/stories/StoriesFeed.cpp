@@ -287,21 +287,9 @@ void StoriesFeed::drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> 
 
   // Avatar if user has one
   if (currentUserAvatarUrl.isNotEmpty()) {
-    auto image = appStore ? appStore->getCachedImage(currentUserAvatarUrl) : juce::Image();
-    if (image.isValid()) {
-      // Draw avatar
-      g.saveState();
-      juce::Path clipPath;
-      clipPath.addEllipse(center.x - radius, center.y - radius, radius * 2, radius * 2);
-      g.reduceClipRegion(clipPath);
-      g.drawImage(image, juce::Rectangle<float>(center.x - radius, center.y - radius, radius * 2, radius * 2),
-                  juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
-      g.restoreState();
-    } else {
-      // Fetch avatar from AppStore (with caching)
-      if (appStore) {
-        appStore->fetchImage(currentUserAvatarUrl, [this](const juce::Image &) { repaint(); });
-      }
+    // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+    if (appStore) {
+      appStore->getImage(currentUserAvatarUrl, [this](const juce::Image &) { repaint(); });
     }
   }
 
@@ -349,32 +337,20 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
   g.fillEllipse(center.x - gapRadius, center.y - gapRadius, gapRadius * 2, gapRadius * 2);
 
   // Avatar
-  auto image = appStore ? appStore->getCachedImage(userStories.avatarUrl) : juce::Image();
-  if (image.isValid()) {
-    g.saveState();
-    juce::Path clipPath;
-    clipPath.addEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2);
-    g.reduceClipRegion(clipPath);
-    g.drawImage(
-        image, juce::Rectangle<float>(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2),
-        juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
-    g.restoreState();
-  } else {
-    // Placeholder avatar
-    g.setColour(StoryFeedColors::surface);
-    g.fillEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2);
-
-    // Initials
-    g.setColour(StoryFeedColors::textPrimary);
-    g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
-    juce::String initial = userStories.username.isNotEmpty() ? userStories.username.substring(0, 1).toUpperCase() : "?";
-    g.drawText(initial, circleBounds, juce::Justification::centred);
-
-    // Fetch avatar via AppStore (with caching)
-    if (userStories.avatarUrl.isNotEmpty() && appStore) {
-      appStore->fetchImage(userStories.avatarUrl, [this](const juce::Image &) { repaint(); });
-    }
+  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  if (userStories.avatarUrl.isNotEmpty() && appStore) {
+    appStore->getImage(userStories.avatarUrl, [this](const juce::Image &) { repaint(); });
   }
+
+  // Placeholder avatar (will be replaced with actual image when loaded)
+  g.setColour(StoryFeedColors::surface);
+  g.fillEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2);
+
+  // Initials
+  g.setColour(StoryFeedColors::textPrimary);
+  g.setFont(juce::FontOptions(18.0f).withStyle("Bold"));
+  juce::String initial = userStories.username.isNotEmpty() ? userStories.username.substring(0, 1).toUpperCase() : "?";
+  g.drawText(initial, circleBounds, juce::Justification::centred);
 
   // Story count badge (if multiple stories)
   if (userStories.stories.size() > 1) {

@@ -23,7 +23,7 @@ void UserCard::setUser(const DiscoveredUser &newUser) {
 
   // Fetch avatar image via AppStore (with caching)
   if (user.avatarUrl.isNotEmpty() && appStore) {
-    appStore->fetchImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+    appStore->getImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
   }
 
   repaint();

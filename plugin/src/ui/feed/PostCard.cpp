@@ -72,7 +72,7 @@ void PostCard::setPost(const FeedPost &newPost) {
 
   // Fetch avatar image via AppStore (with caching)
   if (post.userAvatarUrl.isNotEmpty() && appStore) {
-    appStore->fetchImage(post.userAvatarUrl, [this](const juce::Image &) { repaint(); });
+    appStore->getImage(post.userAvatarUrl, [this](const juce::Image &) { repaint(); });
   }
 
   // Load waveform image from CDN

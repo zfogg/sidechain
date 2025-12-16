@@ -281,43 +281,43 @@ public:
   //==============================================================================
   // Image fetching with multi-level caching
   //
-  // Multi-level cache strategy:
+  // Single unified interface for all image loading:
   // 1. Memory cache (fast, in-process, lost on app close)
   // 2. File cache (persistent, survives app restarts, on disk)
   // 3. HTTP download (network fetch if not cached)
   //
-  // The system automatically manages both cache levels:
-  // - fetchImage() checks memory, then file, then downloads from HTTP
-  // - When downloading or loading from file, it stores in both caches
-  // - getCachedImage() does the same multi-level check without downloading
+  // getImage() handles all three levels automatically:
+  // - Returns immediately from memory cache
+  // - Falls back to file cache, loads to memory
+  // - Falls back to HTTP download if not in any cache
+  // - Automatically stores in both caches when downloading or loading from file
 
   /**
-   * Fetch image from URL with automatic multi-level caching.
+   * Get image from URL with automatic multi-level caching.
    *
-   * Strategy: Memory -> File Cache -> HTTP Download
-   * 1. Checks memory cache (fastest)
-   * 2. Checks file cache if not in memory
-   * 3. Downloads from HTTP if not in either cache
-   * 4. Stores in both caches when downloading or loading from file
+   * Handles all three cache levels: memory -> file -> network
+   * 1. Check memory cache first (returns immediately if found)
+   * 2. Check file cache if not in memory
+   * 3. Download from HTTP if not in either cache
+   * 4. Store in both caches when downloading or loading from file
    *
-   * Async operation with callback on UI thread.
+   * Callback emission timeline:
+   * - Memory hit: Calls callback immediately on same thread
+   * - File hit: Loads from file on background thread, calls callback on message thread
+   * - Network: Downloads on background thread, stores in both caches, calls callback on message thread
+   *
+   * Usage:
+   *   appStore.getImage(url, [this](const juce::Image &img) {
+   *       if (img.isValid()) {
+   *           setImage(img);
+   *           repaint();
+   *       }
+   *   });
    *
    * @param url Image URL to fetch
-   * @param callback Called with image on UI thread (may be null if fetch fails)
+   * @param callback Called with image when available (may be null if fetch fails)
    */
-  void fetchImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
-
-  /**
-   * Get cached image using multi-level caching without downloading.
-   *
-   * Checks memory cache first, then file cache. If found in file cache,
-   * automatically loads it into memory cache for next time.
-   * Does NOT download from HTTP - only checks existing caches.
-   *
-   * @param url Image URL to look up
-   * @return Image if found in either cache, null image otherwise
-   */
-  juce::Image getCachedImage(const juce::String &url);
+  void getImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
 
 protected:
   /**

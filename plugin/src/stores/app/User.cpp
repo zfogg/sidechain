@@ -273,8 +273,8 @@ void AppStore::downloadProfileImage(const juce::String &url) {
 
   updateUserState([](UserState &state) { state.isLoadingImage = true; });
 
-  // Use fetchImage which handles caching automatically
-  fetchImage(url, [this](const juce::Image &image) {
+  // Use getImage which handles all three cache levels automatically
+  getImage(url, [this](const juce::Image &image) {
     updateUserState([image](UserState &state) {
       state.isLoadingImage = false;
       if (image.isValid()) {
@@ -342,12 +342,9 @@ void AppStore::handleProfileFetchError(const juce::String &error) {
 // Image Fetching with Multi-Level Caching
 //
 // Strategy: Memory -> File Cache -> HTTP Download
-// - Check memory cache first (fastest, in-process)
-// - Check file cache second (persists across app restarts)
-// - Download from HTTP if not found in either
-// - Store in both caches when downloading or loading from file cache
+// Single unified getImage() that handles all three levels automatically
 
-void AppStore::fetchImage(const juce::String &url, std::function<void(const juce::Image &)> callback) {
+void AppStore::getImage(const juce::String &url, std::function<void(const juce::Image &)> callback) {
   if (url.isEmpty() || !callback) {
     if (callback) {
       callback(juce::Image());
@@ -355,21 +352,39 @@ void AppStore::fetchImage(const juce::String &url, std::function<void(const juce
     return;
   }
 
-  // Level 1: Check memory cache + file cache (multi-level, returns to memory if needed)
-  // SidechainImageCache::getImage() implements the full multi-level strategy:
-  // 1. Checks memory first
-  // 2. Checks file cache if not in memory
-  // 3. Loads from file to memory if found
-  auto cachedImage = imageCache.getImage(url);
-  if (cachedImage) {
-    juce::MessageManager::callAsync([callback, cachedImage]() { callback(*cachedImage); });
+  // Level 1: Try memory cache first (synchronous, immediate callback)
+  auto memoryImage = imageCache.getImage(url);
+  if (memoryImage) {
+    Util::logDebug("AppStore", "Image cache hit (memory): " + url);
+    callback(*memoryImage);
     return;
   }
 
-  // Level 2: Download from HTTP (not in memory or file cache)
+  // Level 2 & 3: File cache + HTTP download on background thread
+  // SidechainImageCache::getImage() checks memory then file automatically
   Async::run<juce::Image>(
       [this, url]() {
         try {
+          // Double-check memory cache (in case another thread cached it)
+          auto memoryCheck = imageCache.getImage(url);
+          if (memoryCheck) {
+            Util::logDebug("AppStore", "Image cache hit (memory after check): " + url);
+            return *memoryCheck;
+          }
+
+          // Try file cache - SidechainImageCache::getImage() checks:
+          // 1. Memory (we already checked, will miss)
+          // 2. File cache (returns if found)
+          // 3. Auto-promotes file cache hit to memory
+          auto fileImage = imageCache.getImage(url);
+          if (fileImage) {
+            Util::logDebug("AppStore", "Image cache hit (file): " + url);
+            return *fileImage;
+          }
+
+          // Level 3: Not in memory or file cache, download from HTTP
+          Util::logDebug("AppStore", "Image cache miss, downloading: " + url);
+
           juce::URL imageUrl(url);
           auto inputStream =
               imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
@@ -393,10 +408,9 @@ void AppStore::fetchImage(const juce::String &url, std::function<void(const juce
           }
 
           // Cache downloaded image in both memory and file caches
-          // SidechainImageCache::cacheImage() stores in:
-          // 1. File cache (persists to disk)
-          // 2. Memory cache (fast in-process access)
           imageCache.cacheImage(url, image);
+
+          Util::logInfo("AppStore", "Image downloaded and cached: " + url);
           return image;
         } catch (const std::exception &e) {
           Util::logError("AppStore", "Image fetch error: " + juce::String(e.what()));
@@ -404,17 +418,6 @@ void AppStore::fetchImage(const juce::String &url, std::function<void(const juce
         }
       },
       [callback](const juce::Image &image) { callback(image); });
-}
-
-juce::Image AppStore::getCachedImage(const juce::String &url) {
-  if (url.isEmpty()) {
-    return juce::Image();
-  }
-
-  // Uses multi-level cache (memory -> file cache)
-  // Returns immediately if found in either cache, loads to memory if found in file cache
-  auto cachedImage = imageCache.getImage(url);
-  return cachedImage ? *cachedImage : juce::Image();
 }
 
 } // namespace Stores

@@ -137,36 +137,26 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &hig
   // Draw cover image or placeholder
   auto imageBounds = circleBounds.reduced(4);
 
-  // Try to get cached image from AppStore for highlight cover
-  juce::Image coverImage;
+  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  // - Returns immediately from memory cache
+  // - Loads from file cache on background thread
+  // - Downloads from HTTP if not cached
+  // - Stores in both caches when downloading or loading from file
   if (appStore && !highlight.coverImageUrl.isEmpty()) {
-    coverImage = appStore->getCachedImage(highlight.coverImageUrl);
+    appStore->getImage(highlight.coverImageUrl, [this](const juce::Image &image) {
+      // Image loaded successfully (from any cache level or HTTP)
+      repaint();
+    });
   }
 
-  if (coverImage.isValid()) {
-    // Clip to circle and draw image
-    juce::Path clipPath;
-    clipPath.addEllipse(imageBounds);
-    g.saveState();
-    g.reduceClipRegion(clipPath);
-    g.drawImage(coverImage, imageBounds, juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
-    g.restoreState();
-
-    // Trigger async fetch if not already cached
-  } else {
-    // Draw placeholder with first letter
-    g.setColour(Colors::addButtonBg);
-    g.fillEllipse(imageBounds);
-    g.setColour(Colors::textPrimary);
-    g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
-    juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
-    g.drawText(initial, imageBounds.toNearestInt(), juce::Justification::centred);
-
-    // Trigger fetch if AppStore is available and cover has URL
-    if (appStore && !highlight.coverImageUrl.isEmpty()) {
-      appStore->fetchImage(highlight.coverImageUrl, [this](const juce::Image &) { repaint(); });
-    }
-  }
+  // Draw placeholder while image loads, or cached image if available
+  // The placeholder will be replaced when the image arrives
+  g.setColour(Colors::addButtonBg);
+  g.fillEllipse(imageBounds);
+  g.setColour(Colors::textPrimary);
+  g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
+  juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
+  g.drawText(initial, imageBounds.toNearestInt(), juce::Justification::centred);
 
   // Draw name
   g.setColour(Colors::textSecondary);
