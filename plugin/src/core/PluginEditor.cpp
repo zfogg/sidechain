@@ -51,6 +51,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Initialize UploadStore with NetworkClient
   uploadStore = std::make_shared<Sidechain::Stores::UploadStore>(networkClient.get());
 
+  // Initialize ChallengeStore with NetworkClient
+  challengeStore = std::make_shared<Sidechain::Stores::ChallengeStore>(networkClient.get());
+
   // Wire up UserDataStore with NetworkClient
   userDataStore->setNetworkClient(networkClient.get());
 
@@ -465,7 +468,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create MidiChallenges component (R.2.2.4.1)
   midiChallengesComponent = std::make_unique<MidiChallenges>();
-  midiChallengesComponent->setNetworkClient(networkClient.get());
+  midiChallengesComponent->bindToStore(challengeStore);
   if (userDataStore)
     midiChallengesComponent->setCurrentUserId(userDataStore->getUserId());
   midiChallengesComponent->onBackPressed = [this]() { navigateBack(); };

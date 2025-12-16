@@ -4,6 +4,7 @@
 #include "network/NetworkClient.h"
 #include "network/StreamChatClient.h"
 #include "network/WebSocketClient.h"
+#include "stores/ChallengeStore.h"
 #include "stores/ChatStore.h"
 #include "stores/DraftStorage.h"
 #include "stores/PlaylistStore.h"
@@ -258,6 +259,7 @@ private:
   std::unique_ptr<Sidechain::Stores::PostsStore> postsStore;
   std::shared_ptr<Sidechain::Stores::PlaylistStore> playlistStore;
   std::shared_ptr<Sidechain::Stores::UploadStore> uploadStore;
+  std::shared_ptr<Sidechain::Stores::ChallengeStore> challengeStore;
   // ChatStore is a singleton, accessed via getInstance()
 
   // Legacy user state (to be removed as we migrate to UserDataStore)
