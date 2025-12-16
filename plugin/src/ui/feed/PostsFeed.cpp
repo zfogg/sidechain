@@ -17,10 +17,10 @@
 using namespace Sidechain::UI::Animations;
 
 //==============================================================================
-// Local state enum for feed display
-enum class FeedState { Loading, Loaded, Empty, Error };
+// Local state enum for feed display (UI state, not data state)
+enum class PostsFeedDisplayState { Loading, Loaded, Empty, Error };
 
-static FeedState feedState = FeedState::Loading;
+static PostsFeedDisplayState feedDisplayState = PostsFeedDisplayState::Loading;
 
 //==============================================================================
 PostsFeed::PostsFeed(Sidechain::Stores::PostsStore *store) : postsStore(store) {
@@ -393,7 +393,7 @@ void PostsFeed::handleFeedStateChanged() {
 
   // Handle loading state
   if (currentFeed.isLoading || currentFeed.isRefreshing) {
-    feedState = FeedState::Loading;
+    feedDisplayState = PostsFeedDisplayState::Loading;
     if (feedSkeleton != nullptr)
       feedSkeleton->setVisible(true);
     if (errorStateComponent != nullptr)
@@ -404,7 +404,7 @@ void PostsFeed::handleFeedStateChanged() {
 
   // Handle error state
   if (currentFeed.error.isNotEmpty()) {
-    feedState = FeedState::Error;
+    feedDisplayState = PostsFeedDisplayState::Error;
     Log::error("PostsFeed::handleFeedStateChanged: Feed error - " + currentFeed.error);
 
     // Check if this is an authentication error - if so, redirect to auth screen
@@ -441,9 +441,9 @@ void PostsFeed::handleFeedStateChanged() {
 
   // Determine if feed is empty or loaded
   if (currentFeed.posts.isEmpty())
-    feedState = FeedState::Empty;
+    feedDisplayState = PostsFeedDisplayState::Empty;
   else
-    feedState = FeedState::Loaded;
+    feedDisplayState = PostsFeedDisplayState::Loaded;
 
   // Rebuild post cards from PostsStore state
   rebuildPostCards();
@@ -552,22 +552,22 @@ void PostsFeed::paint(juce::Graphics &g) {
     g.reduceClipRegion(getFeedContentBounds());
 
     // Main feed area based on state
-    switch (feedState) {
-    case FeedState::Loading:
+    switch (feedDisplayState) {
+    case PostsFeedDisplayState::Loading:
       // FeedSkeleton component handles the loading UI as a child component
       // Just ensure background is drawn (already done above)
       break;
-    case FeedState::Loaded:
+    case PostsFeedDisplayState::Loaded:
       drawFeedPosts(g);
       // Draw toast on top of feed if showing (5.5.2)
       if (showingNewPostsToast && pendingNewPostsCount > 0) {
         drawNewPostsToast(g);
       }
       break;
-    case FeedState::Empty:
+    case PostsFeedDisplayState::Empty:
       drawEmptyState(g);
       break;
-    case FeedState::Error:
+    case PostsFeedDisplayState::Error:
       // ErrorState component handles the error UI as a child component
       // Just ensure background is drawn (already done above)
       break;
@@ -645,7 +645,7 @@ void PostsFeed::drawFeedTabs(juce::Graphics &g) {
 
   // Refresh button
   auto refreshBtn = getRefreshButtonBounds();
-  auto currentState = postsStore ? postsStore->getState().getCurrentFeed() : Sidechain::Stores::SingleFeedState{};
+  auto currentState = postsStore ? postsStore->getState().getCurrentFeed() : Sidechain::Stores::FeedState{};
   g.setColour(currentState.isLoading ? SidechainColors::textMuted() : SidechainColors::textSecondary());
   g.setFont(18.0f);
   g.drawText("Refresh", refreshBtn, juce::Justification::centred);
@@ -1746,7 +1746,7 @@ void PostsFeed::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
 }
 
 void PostsFeed::mouseWheelMove(const juce::MouseEvent & /*event*/, const juce::MouseWheelDetails &wheel) {
-  if (feedState != FeedState::Loaded) {
+  if (feedDisplayState != PostsFeedDisplayState::Loaded) {
     Log::debug("PostsFeed::mouseWheelMove: Ignoring wheel - feed not loaded");
     return;
   }
@@ -1784,8 +1784,8 @@ void PostsFeed::checkLoadMore() {
   }
 
   const auto &currentFeed = postsStore->getState().getCurrentFeed();
-  if (feedState != FeedState::Loaded || !currentFeed.hasMore || currentFeed.isLoading) {
-    if (feedState != FeedState::Loaded)
+  if (feedDisplayState != PostsFeedDisplayState::Loaded || !currentFeed.hasMore || currentFeed.isLoading) {
+    if (feedDisplayState != PostsFeedDisplayState::Loaded)
       Log::debug("PostsFeed::checkLoadMore: Feed not loaded, skipping");
     else if (!currentFeed.hasMore)
       Log::debug("PostsFeed::checkLoadMore: No more posts available");
@@ -1853,8 +1853,8 @@ void PostsFeed::mouseUp(const juce::MouseEvent &event) {
     return;
   }
 
-  // Check refresh button - Task 2.6: Use FeedStore instead of feedDataManager
-  const auto &currentFeed = postsStore ? postsStore->getState().getCurrentFeed() : Sidechain::Stores::SingleFeedState{};
+  // Check refresh button
+  const auto &currentFeed = postsStore ? postsStore->getState().getCurrentFeed() : Sidechain::Stores::FeedState{};
   if (getRefreshButtonBounds().contains(pos) && !currentFeed.isLoading) {
     Log::info("PostsFeed::mouseUp: Refresh button clicked");
     refreshFeed();
@@ -1862,14 +1862,14 @@ void PostsFeed::mouseUp(const juce::MouseEvent &event) {
   }
 
   // Check retry button (error state)
-  if (feedState == FeedState::Error && getRetryButtonBounds().contains(pos)) {
+  if (feedDisplayState == PostsFeedDisplayState::Error && getRetryButtonBounds().contains(pos)) {
     Log::info("PostsFeed::mouseUp: Retry button clicked");
     loadFeed();
     return;
   }
 
   // Check record button (empty state)
-  if (feedState == FeedState::Empty && getRecordButtonBounds().contains(pos)) {
+  if (feedDisplayState == PostsFeedDisplayState::Empty && getRecordButtonBounds().contains(pos)) {
     Log::info("PostsFeed::mouseUp: Record button clicked");
     if (onStartRecording)
       onStartRecording();
