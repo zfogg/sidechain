@@ -48,6 +48,9 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   // Initialize PlaylistStore with NetworkClient
   playlistStore = std::make_shared<Sidechain::Stores::PlaylistStore>(networkClient.get());
 
+  // Initialize UploadStore with NetworkClient
+  uploadStore = std::make_shared<Sidechain::Stores::UploadStore>(networkClient.get());
+
   // Wire up UserDataStore with NetworkClient
   userDataStore->setNetworkClient(networkClient.get());
 
@@ -236,6 +239,7 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   //==========================================================================
   // Create Upload
   uploadComponent = std::make_unique<Upload>(audioProcessor, *networkClient);
+  uploadComponent->bindToStore(uploadStore);
   uploadComponent->onUploadComplete = [this]() {
     uploadComponent->reset();
     showView(AppView::PostsFeed);
