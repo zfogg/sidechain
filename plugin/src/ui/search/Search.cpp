@@ -360,7 +360,13 @@ void Search::scrollBarMoved(juce::ScrollBar *movedScrollBar, double newRangeStar
 }
 
 //==============================================================================
-bool Search::keyPressed(const juce::KeyPress &key, [[maybe_unused]] juce::Component *originatingComponent) {
+bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent) {
+  // Only handle keyboard if search component has focus or originated from here
+  if (originatingComponent != nullptr && originatingComponent != this &&
+      (searchInput == nullptr || originatingComponent != searchInput.get())) {
+    return false; // Let other components handle their own keyboard events
+  }
+
   // Tab key to switch between Users/Posts
   if (key.getKeyCode() == juce::KeyPress::tabKey) {
     switchTab(currentTab == ResultTab::Users ? ResultTab::Posts : ResultTab::Users);
@@ -785,10 +791,18 @@ void Search::drawResults(juce::Graphics &g) {
                       return;
                     Log::debug("Search: User followed successfully");
                   },
-                  [safeThis]([[maybe_unused]] std::exception_ptr error) {
+                  [safeThis](std::exception_ptr error) {
                     if (safeThis == nullptr)
                       return;
-                    Log::error("Search: Failed to follow user");
+                    juce::String errorMsg = "Search: Failed to follow user";
+                    if (error) {
+                      try {
+                        std::rethrow_exception(error);
+                      } catch (const std::exception &e) {
+                        errorMsg += " - " + juce::String(e.what());
+                      }
+                    }
+                    Log::error(errorMsg);
                   });
             } else {
               appStore->unfollowUserObservable(user.id).subscribe(
@@ -797,10 +811,18 @@ void Search::drawResults(juce::Graphics &g) {
                       return;
                     Log::debug("Search: User unfollowed successfully");
                   },
-                  [safeThis]([[maybe_unused]] std::exception_ptr error) {
+                  [safeThis](std::exception_ptr error) {
                     if (safeThis == nullptr)
                       return;
-                    Log::error("Search: Failed to unfollow user");
+                    juce::String errorMsg = "Search: Failed to unfollow user";
+                    if (error) {
+                      try {
+                        std::rethrow_exception(error);
+                      } catch (const std::exception &e) {
+                        errorMsg += " - " + juce::String(e.what());
+                      }
+                    }
+                    Log::error(errorMsg);
                   });
             }
           }
