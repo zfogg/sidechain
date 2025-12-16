@@ -28,9 +28,22 @@ CommentRow::CommentRow() {
 void CommentRow::setComment(const Comment &newComment) {
   comment = newComment;
 
-  // Fetch avatar image via AppStore (with caching)
+  // Fetch avatar image via AppStore reactive observable (with caching)
   if (comment.userAvatarUrl.isNotEmpty() && appStore) {
-    appStore->getImage(comment.userAvatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<CommentRow> safeThis(this);
+    appStore->loadImageObservable(comment.userAvatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("Comment: Failed to load avatar image");
+            });
   }
 
   repaint();
@@ -66,9 +79,22 @@ void CommentRow::paint(juce::Graphics &g) {
 }
 
 void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  // Use unified getImage() - handles all three cache levels automatically (memory -> file -> HTTP)
+  // Use reactive observable for image loading (with caching)
   if (appStore && comment.userAvatarUrl.isNotEmpty()) {
-    appStore->getImage(comment.userAvatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<CommentRow> safeThis(this);
+    appStore->loadImageObservable(comment.userAvatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("Comment: Failed to load avatar in paint");
+            });
   }
 
   // Draw placeholder circle (will be replaced with actual image when loaded)
@@ -333,9 +359,9 @@ void CommentsPanel::loadCommentsForPost(const juce::String &postId) {
   isLoading = true;
   repaint();
 
-  auto &appStore = AppStore::getInstance();
+  auto &appStoreRef = AppStore::getInstance();
   juce::Component::SafePointer<CommentsPanel> safeThis(this);
-  appStore.getCommentsObservable(postId, 20, 0)
+  appStoreRef.getCommentsObservable(postId, 20, 0)
       .subscribe(
           [safeThis](const juce::Array<juce::var> &commentsArray) {
             if (safeThis == nullptr)
@@ -395,41 +421,45 @@ void CommentsPanel::handleCommentsLoaded(Outcome<std::pair<juce::var, int>> comm
 }
 
 void CommentsPanel::loadMoreComments() {
-  if (isLoading || !hasMoreComments || networkClient == nullptr)
+  if (isLoading || !hasMoreComments)
     return;
 
   isLoading = true;
   repaint();
 
-  networkClient->getComments(currentPostId, 20, currentOffset,
-                             [this](Outcome<std::pair<juce::var, int>> commentsResult) {
-                               isLoading = false;
+  auto &appStoreRef = AppStore::getInstance();
+  juce::Component::SafePointer<CommentsPanel> safeThis(this);
+  appStoreRef.getCommentsObservable(currentPostId, 20, currentOffset)
+      .subscribe(
+          [safeThis](const juce::Array<juce::var> &commentsArray) {
+            if (safeThis == nullptr)
+              return;
+            safeThis->isLoading = false;
 
-                               if (commentsResult.isOk()) {
-                                 auto [commentsData, total] = commentsResult.getValue();
-                                 if (commentsData.isArray()) {
-                                   auto *arr = commentsData.getArray();
-                                   if (arr != nullptr) {
-                                     for (const auto &item : *arr) {
-                                       Comment comment = Comment::fromJson(item);
-                                       if (comment.isValid())
-                                         comments.add(comment);
-                                     }
-                                   }
+            if (commentsArray.size() > 0) {
+              for (const auto &item : commentsArray) {
+                Comment comment = Comment::fromJson(item);
+                if (comment.isValid())
+                  safeThis->comments.add(comment);
+              }
 
-                                   totalCommentCount = total;
-                                   hasMoreComments = comments.size() < total;
-                                   currentOffset = comments.size();
-                                   updateCommentsList();
-                                 } else {
-                                   errorMessage = "Invalid comments response";
-                                 }
-                               } else {
-                                 errorMessage = "Failed to load more comments: " + commentsResult.getError();
-                               }
+              safeThis->totalCommentCount = safeThis->comments.size();
+              safeThis->hasMoreComments = false;
+              safeThis->currentOffset = safeThis->comments.size();
+              safeThis->updateCommentsList();
+            } else {
+              safeThis->errorMessage = "Invalid comments response";
+            }
 
-                               repaint();
-                             });
+            safeThis->repaint();
+          },
+          [safeThis](std::exception_ptr) {
+            if (safeThis == nullptr)
+              return;
+            safeThis->isLoading = false;
+            safeThis->errorMessage = "Failed to load more comments";
+            safeThis->repaint();
+          });
 }
 
 void CommentsPanel::updateCommentsList() {
