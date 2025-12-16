@@ -2,7 +2,9 @@
 
 #include "../../audio/KeyDetector.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/UploadStore.h"
 #include <JuceHeader.h>
+#include <memory>
 
 // Forward declarations
 class SidechainAudioProcessor;
@@ -52,6 +54,11 @@ public:
   //==========================================================================
   Upload(SidechainAudioProcessor &processor, NetworkClient &network);
   ~Upload() override;
+
+  //==========================================================================
+  // Store integration (reactive pattern)
+  void bindToStore(std::shared_ptr<Sidechain::Stores::UploadStore> store);
+  void unbindFromStore();
 
   //==========================================================================
   // Set the audio to upload (called when user confirms recording)
@@ -113,6 +120,10 @@ private:
   //==========================================================================
   SidechainAudioProcessor &audioProcessor;
   NetworkClient &networkClient;
+
+  // Store integration
+  std::shared_ptr<Sidechain::Stores::UploadStore> uploadStore;
+  std::function<void()> storeUnsubscriber;
 
   // Audio data to upload
   juce::AudioBuffer<float> audioBuffer;
