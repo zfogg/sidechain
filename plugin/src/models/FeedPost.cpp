@@ -167,6 +167,7 @@ FeedPost FeedPost::fromJson(const juce::var &json) {
   post.commentCount = Json::getInt(json, "comment_count");
   post.saveCount = Json::getInt(json, "save_count");
   post.repostCount = Json::getInt(json, "repost_count");
+  post.downloadCount = Json::getInt(json, "download_count");
   post.isSaved = Json::getBool(json, "is_saved");
   post.isReposted = Json::getBool(json, "is_reposted");
   post.isFollowing = Json::getBool(json, "is_following");
@@ -315,6 +316,7 @@ juce::var FeedPost::toJson() const {
   obj->setProperty("comment_count", commentCount);
   obj->setProperty("save_count", saveCount);
   obj->setProperty("repost_count", repostCount);
+  obj->setProperty("download_count", downloadCount);
   obj->setProperty("is_liked", isLiked);
   obj->setProperty("is_saved", isSaved);
   obj->setProperty("is_reposted", isReposted);

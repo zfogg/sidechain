@@ -18,7 +18,10 @@ PostCard::PostCard(Sidechain::Stores::AppStore *store) : AppStoreComponent(nullp
   setSize(600, CARD_HEIGHT);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this](bool hovered) {
+    (void)hovered; // hovered state triggers repaint via internal mechanism
+    repaint();
+  };
 
   // Set up long-press detector for emoji reactions
   longPressDetector.onLongPress = [this]() { showEmojiReactionsPanel(); };
@@ -381,12 +384,33 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
     badgeY += BADGE_HEIGHT + 6;
   }
 
-  // Row 2: Play count
+  // Row 2: Play, save, and download counts
+  juce::String statsText;
+  bool hasStats = false;
+
   if (post.playCount > 0) {
+    statsText += StringFormatter::formatPlays(post.playCount);
+    hasStats = true;
+  }
+
+  if (post.saveCount > 0) {
+    if (hasStats)
+      statsText += " • ";
+    statsText += juce::String(post.saveCount) + " saved";
+    hasStats = true;
+  }
+
+  if (post.downloadCount > 0) {
+    if (hasStats)
+      statsText += " • ";
+    statsText += juce::String(post.downloadCount) + " downloads";
+    hasStats = true;
+  }
+
+  if (hasStats) {
     g.setColour(SidechainColors::textSecondary());
-    g.setFont(13.0f);
-    g.drawText(StringFormatter::formatPlays(post.playCount), badgeX, badgeY, bounds.getWidth(), 18,
-               juce::Justification::centredLeft);
+    g.setFont(12.0f);
+    g.drawText(statsText, badgeX, badgeY, bounds.getWidth(), 18, juce::Justification::centredLeft);
     badgeY += 22;
   }
 
@@ -414,7 +438,31 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
     badgeY += BADGE_HEIGHT + 6;
   }
 
-  // Row 5: Recommendation reason badge (for "For You" feed)
+  // Row 5: Remix chain info
+  if (post.isRemix) {
+    juce::String remixLabel = "Remix";
+    if (post.remixType.isNotEmpty() && post.remixType != "both") {
+      remixLabel += " (" + post.remixType + ")";
+    }
+    if (post.remixChainDepth > 0) {
+      remixLabel += " [Depth: " + juce::String(post.remixChainDepth) + "]";
+    }
+    auto remixBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT);
+    UIHelpers::drawBadge(g, remixBounds, remixLabel, SidechainColors::coralPink().withAlpha(0.2f),
+                         SidechainColors::coralPink(), 11.0f, 4.0f);
+    badgeY += BADGE_HEIGHT + 4;
+  }
+
+  // Row 6: Remix count (if this post has been remixed)
+  if (post.remixCount > 0) {
+    juce::String remixCountText = juce::String(post.remixCount) + " remix" + (post.remixCount != 1 ? "es" : "");
+    g.setColour(SidechainColors::textSecondary());
+    g.setFont(12.0f);
+    g.drawText(remixCountText, badgeX, badgeY, bounds.getWidth(), 18, juce::Justification::centredLeft);
+    badgeY += 22;
+  }
+
+  // Row 7: Recommendation reason badge (for "For You" feed)
   if (post.recommendationReason.isNotEmpty()) {
     auto reasonBounds = juce::Rectangle<int>(badgeX, badgeY, bounds.getWidth(), BADGE_HEIGHT);
     UIHelpers::drawBadge(g, reasonBounds, post.recommendationReason, SidechainColors::primary().withAlpha(0.2f),
@@ -422,7 +470,8 @@ void PostCard::drawMetadataBadges(juce::Graphics &g, juce::Rectangle<int> bounds
   }
 }
 
-void PostCard::drawSocialButtons(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
+void PostCard::drawSocialButtons(juce::Graphics &g, juce::Rectangle<int> bounds) {
+  // bounds parameter defines the area where social buttons should be drawn
   // Like/Reaction button
   auto likeBounds = getLikeButtonBounds();
 

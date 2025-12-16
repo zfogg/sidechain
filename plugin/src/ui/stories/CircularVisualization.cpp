@@ -255,7 +255,7 @@ void CircularVisualization::drawActiveNotes(juce::Graphics &g) {
       continue;
 
     float startAngle = timeToAngle(note.startTime);
-    [[maybe_unused]] float endAngle = timeToAngle(note.endTime);
+    // Note: endAngle not currently used in visualization, but could be used for note duration arcs
     float currentAngle = timeToAngle(playbackPosition);
     float radius = noteToRadius(note.noteNumber);
 

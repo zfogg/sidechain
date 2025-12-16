@@ -507,7 +507,8 @@ void Profile::drawStats(juce::Graphics &g, juce::Rectangle<int> bounds) {
              juce::Justification::centred);
 }
 
-void Profile::drawActionButtons(juce::Graphics &g, [[maybe_unused]] juce::Rectangle<int> bounds) {
+void Profile::drawActionButtons(juce::Graphics &g, juce::Rectangle<int> bounds) {
+  (void)bounds; // bounds provides the recommended drawing area for action buttons (though internal helper methods may override)
   bool isOwnProfile = profile.isOwnProfile(currentUserId);
 
   if (isOwnProfile) {
