@@ -2178,6 +2178,10 @@ void SidechainAudioProcessorEditor::loadLoginState() {
     } else {
       showView(AppView::ProfileSetup);
     }
+  } else {
+    // User is not logged in - show authentication view
+    Log::debug("loadLoginState: User not logged in, showing authentication view");
+    showView(AppView::Authentication);
   }
 }
 

@@ -91,8 +91,11 @@ backend-run: backend
 	@cd backend && ./bin/sidechain-server
 
 backend-dev:
-	@echo "🔧 Starting backend in development mode..."
-	@cd backend && go run cmd/server/main.go
+	@echo "🔧 Starting backend in development mode with Docker..."
+	@docker-compose -f backend/docker-compose.dev.yml up -d --build --force-recreate backend
+	@echo "✅ Backend running in Docker on http://localhost:8787"
+	@echo "📋 Streaming logs (Ctrl+C to detach, container keeps running)..."
+	@docker-compose -f backend/docker-compose.dev.yml logs -f backend
 
 # Plugin targets using CMake
 plugin: $(BUILD_DIR)/CMakeCache.txt
@@ -379,7 +382,7 @@ help:
 	@echo "  install-juce          - Manually install JUCE to deps/"
 	@echo "  backend               - Build Go backend server"
 	@echo "  backend-run           - Run built backend server"
-	@echo "  backend-dev           - Run backend in development mode"
+	@echo "  backend-dev           - Run backend in Docker (builds & deploys with latest code)"
 	@echo "  plugin                - Build VST plugin via CMake"
 	@echo "  plugin-fast           - Build VST plugin (skip reconfigure)"
 	@echo "  plugin-rebuild        - Rebuild plugin only (keep cached deps)"
@@ -406,7 +409,7 @@ help:
 	@echo "Quick start:"
 	@echo "  make              # Build everything"
 	@echo "  make plugin       # Build just the plugin"
-	@echo "  make backend-dev  # Start backend server"
+	@echo "  make backend-dev  # Build and deploy backend in Docker"
 	@echo ""
 	@echo "Code quality:"
 	@echo "  make format       # Format code with clang-format"

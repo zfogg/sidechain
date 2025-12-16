@@ -98,6 +98,7 @@ private:
   double scrollPosition = 0.0;
   static constexpr int HEADER_HEIGHT = 60;
   static constexpr int INPUT_HEIGHT = 60;
+  static constexpr int MESSAGE_INPUT_HEIGHT = 60; // Alias for INPUT_HEIGHT
   static constexpr int REPLY_PREVIEW_HEIGHT = 60;  // Height for reply preview above input
   static constexpr int AUDIO_RECORDER_HEIGHT = 80; // Height for audio snippet recorder
   static constexpr int MESSAGE_BUBBLE_MIN_HEIGHT = 50;

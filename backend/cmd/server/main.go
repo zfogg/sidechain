@@ -328,7 +328,7 @@ func main() {
 	waveformStorage, err := waveform.NewStorage(
 		os.Getenv("AWS_REGION"),
 		os.Getenv("AWS_BUCKET"),
-		os.Getenv("CDN_URL"),
+		os.Getenv("CDN_BASE_URL"),
 	)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize waveform storage: %v", err)
