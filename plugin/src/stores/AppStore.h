@@ -341,7 +341,32 @@ public:
    * @param key Cache key (e.g., "user:123", "feed:home")
    * @return std::optional<T> - cached value or std::nullopt if not cached
    */
-  template <typename T> std::optional<T> getCached(const juce::String &key);
+  template <typename T> std::optional<T> getCached(const juce::String &key) {
+    std::lock_guard<std::mutex> lock(memoryCacheLock);
+
+    auto it = memoryCache.find(key);
+    if (it == memoryCache.end()) {
+      Util::logDebug("AppStore", "Cache miss: " + key);
+      return std::nullopt;
+    }
+
+    // Check if expired
+    if (isCacheExpired(it->second)) {
+      Util::logDebug("AppStore", "Cache expired: " + key);
+      memoryCache.erase(it);
+      return std::nullopt;
+    }
+
+    // Try to cast to requested type
+    try {
+      auto result = std::any_cast<T>(it->second.value);
+      Util::logDebug("AppStore", "Cache hit: " + key);
+      return result;
+    } catch (const std::bad_any_cast &) {
+      Util::logWarning("AppStore", "Cache type mismatch for key: " + key);
+      return std::nullopt;
+    }
+  }
 
   /**
    * Store value in memory cache with TTL.
@@ -350,7 +375,11 @@ public:
    * @param value Value to cache
    * @param ttlSeconds Time-to-live in seconds (default 300 = 5 min)
    */
-  template <typename T> void setCached(const juce::String &key, const T &value, int ttlSeconds = 300);
+  template <typename T> void setCached(const juce::String &key, const T &value, int ttlSeconds = 300) {
+    std::lock_guard<std::mutex> lock(memoryCacheLock);
+    memoryCache[key] = CacheEntry{std::any(value), std::chrono::steady_clock::now(), ttlSeconds};
+    Util::logDebug("AppStore", "Cache set: " + key + " (TTL: " + juce::String(ttlSeconds) + "s)");
+  }
 
   /**
    * Remove specific cache entry immediately.
@@ -410,6 +439,22 @@ public:
    * Uses existing SidechainAudioCache (file cache only).
    */
   juce::File getCachedAudio(const juce::String &url);
+
+  //==============================================================================
+  // User Service Operations (File Cache: memory only with 5-min TTL)
+
+  /**
+   * Search for users by query string with memory caching (Reactive).
+   *
+   * @param query Search query (username, display name, etc)
+   * @return rxcpp::observable<juce::Array<juce::var>> - emits array of matching users
+   *
+   * Caching strategy:
+   * - Check memory cache for exact query (2 min TTL)
+   * - If miss or expired, fetch from network
+   * - Cache result for identical future queries
+   */
+  rxcpp::observable<juce::Array<juce::var>> searchUsersObservable(const juce::String &query);
 
 protected:
   /**
