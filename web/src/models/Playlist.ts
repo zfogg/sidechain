@@ -3,6 +3,17 @@
  * Represents a user-created collection of audio tracks
  */
 
+export type PlaylistCollaboratorRole = 'owner' | 'editor' | 'viewer'
+
+export interface PlaylistCollaborator {
+  userId: string
+  username: string
+  displayName: string
+  userAvatarUrl?: string
+  role: PlaylistCollaboratorRole
+  addedAt: Date
+}
+
 export interface Playlist {
   id: string
   userId: string
@@ -23,6 +34,10 @@ export interface Playlist {
   followerCount: number
   isFollowing: boolean
   isOwnPlaylist: boolean
+
+  // Collaboration
+  collaborators: PlaylistCollaborator[]
+  userRole?: PlaylistCollaboratorRole
 
   createdAt: Date
   updatedAt: Date
@@ -65,6 +80,16 @@ export class PlaylistModel {
       followerCount: json.follower_count || 0,
       isFollowing: json.is_following || false,
       isOwnPlaylist: json.is_own_playlist || false,
+
+      collaborators: (json.collaborators || []).map((c: any) => ({
+        userId: c.user_id,
+        username: c.username,
+        displayName: c.display_name,
+        userAvatarUrl: c.user_avatar_url,
+        role: (c.role || 'viewer') as PlaylistCollaboratorRole,
+        addedAt: new Date(c.added_at),
+      })),
+      userRole: json.user_role as PlaylistCollaboratorRole | undefined,
 
       createdAt: new Date(json.created_at || new Date()),
       updatedAt: new Date(json.updated_at || new Date()),

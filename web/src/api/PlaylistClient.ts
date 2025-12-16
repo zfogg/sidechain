@@ -5,7 +5,7 @@
 
 import { apiClient } from './client'
 import { Outcome } from './types'
-import { Playlist, PlaylistModel } from '@/models/Playlist'
+import { Playlist, PlaylistModel, PlaylistCollaborator, PlaylistCollaboratorRole } from '@/models/Playlist'
 
 export class PlaylistClient {
   /**
@@ -188,6 +188,92 @@ export class PlaylistClient {
     if (result.isOk()) {
       const playlists = result.getValue().playlists.map(PlaylistModel.fromJson)
       return Outcome.ok(playlists)
+    }
+
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Add collaborator to playlist
+   */
+  static async addCollaborator(
+    playlistId: string,
+    username: string,
+    role: PlaylistCollaboratorRole = 'viewer'
+  ): Promise<Outcome<PlaylistCollaborator>> {
+    const result = await apiClient.post<{ collaborator: any }>(
+      `/playlists/${playlistId}/collaborators`,
+      { username, role }
+    )
+
+    if (result.isOk()) {
+      const collab = result.getValue().collaborator
+      return Outcome.ok({
+        userId: collab.user_id,
+        username: collab.username,
+        displayName: collab.display_name,
+        userAvatarUrl: collab.user_avatar_url,
+        role: collab.role as PlaylistCollaboratorRole,
+        addedAt: new Date(collab.added_at),
+      })
+    }
+
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Remove collaborator from playlist
+   */
+  static async removeCollaborator(playlistId: string, userId: string): Promise<Outcome<void>> {
+    return apiClient.delete(`/playlists/${playlistId}/collaborators/${userId}`)
+  }
+
+  /**
+   * Update collaborator role
+   */
+  static async updateCollaboratorRole(
+    playlistId: string,
+    userId: string,
+    role: PlaylistCollaboratorRole
+  ): Promise<Outcome<PlaylistCollaborator>> {
+    const result = await apiClient.put<{ collaborator: any }>(
+      `/playlists/${playlistId}/collaborators/${userId}`,
+      { role }
+    )
+
+    if (result.isOk()) {
+      const collab = result.getValue().collaborator
+      return Outcome.ok({
+        userId: collab.user_id,
+        username: collab.username,
+        displayName: collab.display_name,
+        userAvatarUrl: collab.user_avatar_url,
+        role: collab.role as PlaylistCollaboratorRole,
+        addedAt: new Date(collab.added_at),
+      })
+    }
+
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Get all collaborators for a playlist
+   */
+  static async getCollaborators(playlistId: string): Promise<Outcome<PlaylistCollaborator[]>> {
+    const result = await apiClient.get<{ collaborators: any[] }>(
+      `/playlists/${playlistId}/collaborators`
+    )
+
+    if (result.isOk()) {
+      const collaborators = result.getValue().collaborators.map((c: any) => ({
+        userId: c.user_id,
+        username: c.username,
+        displayName: c.display_name,
+        userAvatarUrl: c.user_avatar_url,
+        role: c.role as PlaylistCollaboratorRole,
+        addedAt: new Date(c.added_at),
+      }))
+      return Outcome.ok(collaborators)
     }
 
     return Outcome.error(result.getError())

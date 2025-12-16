@@ -18,6 +18,7 @@ import { AddToPlaylistDialog } from '@/components/playlists/AddToPlaylistDialog'
 import { WaveformDisplay } from '@/components/audio/WaveformDisplay'
 import { RepostQuoteDialog } from '@/components/feed/RepostQuoteDialog'
 import { DownloadButton } from '@/components/feed/DownloadButton'
+import { CreateRemixDialog } from '@/components/remixes/CreateRemixDialog'
 import { SocialClient } from '@/api/SocialClient'
 
 interface PostCardProps {
@@ -370,6 +371,20 @@ export function PostCard({ post }: PostCardProps) {
           )}
           <span className="hidden sm:inline">Repost</span>
         </Button>
+
+        <CreateRemixDialog
+          postId={post.id}
+          trigger={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 min-w-0 gap-2"
+            >
+              <span>🎵</span>
+              <span className="hidden sm:inline">Remix</span>
+            </Button>
+          }
+        />
 
         <DownloadButton
           postId={post.id}
