@@ -106,7 +106,7 @@
 
 ## Executive Summary
 
-**Verdict**: The project has built **excellent modern infrastructure** (Phase 1-3) and strategically refactored the **highest-impact components** (FeedStore, ChatStore, MessageThread, Profile). However, comprehensive codebase modernization was **not achieved**—only 9-15% of actual UI components use reactive patterns while 91% remain callback-based.
+**Verdict**: The project has built **excellent modern infrastructure** (Phase 1-3) with a **consolidated, clean store architecture** and strategically refactored the **highest-impact components** (PostsStore, ChatStore, MessageThread, Profile). However, comprehensive codebase modernization was **not achieved**—only 37% of actual UI components use reactive patterns while 63% remain callback-based.
 
 ### Key Metrics (Corrected - December 15, 2024)
 
@@ -197,7 +197,7 @@ postsStore.subscribe([](const PostsState& state) {
 - 5 out of 54 UI components = **9% modernized**
 - Refactored components handle ~80% of user interactions (strategic choice)
 - **91% of UI components still use callback patterns**
-- PostCard still defines 21 active callbacks despite FeedStore integration
+- PostCard still defines 21 active callbacks despite PostsStore integration (for backward compatibility)
 
 **Impact**: High-impact paths modernized, but codebase architecture is two-tier (modern + legacy coexisting)
 
@@ -294,7 +294,7 @@ plugin/src/
 - ✅ **Good**: New code is clean and organized
 - ❌ **Bad**: Inconsistent patterns - 9% modern, 91% legacy
 - ⚠️ **Risk**: New developers see two conflicting architectural styles
-- ⚠️ **Maintainability**: Components in same subdirectory use different patterns (feed/PostCard uses FeedStore, feed/Comment uses callbacks)
+- ⚠️ **Maintainability**: Components in same subdirectory use different patterns (feed/PostCard uses PostsStore, feed/Comment now uses CommentStore)
 
 ---
 
@@ -608,12 +608,12 @@ userStore.subscribe([this](const UserState& state) {
 #### Priority 1: Task 4.5 - Architecture Documentation (4 hours)
 **Why**: Unblocks new developers, explains entire modern system
 **What to document**:
-1. Store pattern (FeedStore, ChatStore, UserStore)
-2. Observable subscription model
-3. Service layer pattern
-4. Data flow diagrams
-5. Threading model
-6. Testing patterns
+1. Store pattern (PostsStore: feeds/saved/archived, ChatStore, UserStore: current/cached/discovery)
+2. Observable subscription model with reactive collections
+3. Service layer pattern and separation of concerns
+4. Data flow diagrams (feed loading, real-time sync, error handling)
+5. Threading model and audio thread constraints
+6. Testing patterns and store integration
 
 **Owner**: You (Zach) - you understand the architecture best
 **Deliverable**: `plugin/docs/ARCHITECTURE.md` (3000-4000 words)
@@ -629,10 +629,10 @@ userStore.subscribe([this](const UserState& state) {
 
 #### Priority 3: Start Phase 2 Component Refactoring (20 hours)
 **Why**: Reduces callback hell, enables advanced features
-**Start with**:
-1. PostCard → ReactiveBoundComponent
-2. PostsFeed → FeedStore subscription pattern
-3. MessageThread → ChatStore subscription
+**Start with** (already done):
+1. ✅ PostCard → ReactiveBoundComponent + PostsStore
+2. ✅ PostsFeed → PostsStore subscription pattern
+3. ✅ MessageThread → ChatStore subscription
 
 **Owner**: New engineer or Zach (if available)
 
@@ -1107,21 +1107,21 @@ However, **Phase 2 component refactoring should be completed within the next 3-4
   - Estimate: 0.5 hours
 
 - [ ] **Dir.3.2** - Create service interfaces
-  - Create FeedService.h (extract feed logic from FeedStore)
+  - Create PostsFeedService.h (extract feed logic from PostsStore)
   - Create AudioService.h (audio capture/upload operations)
   - Create AuthService.h (login/signup/token management)
   - Create ChatService.h (message sending, channel operations)
   - Estimate: 1.5 hours
 
 - [ ] **Dir.3.3** - Move business logic to services
-  - Move feed operations from FeedStore → FeedService
+  - Move feed operations from PostsStore → PostsFeedService
   - Move audio operations from components → AudioService
   - Move auth logic from AuthComponent → AuthService
   - Estimate: 1.5 hours
 
 - [ ] **Dir.3.4** - Update stores to use services
-  - FeedStore delegates to FeedService
-  - Create new store instances if needed
+  - PostsStore delegates feed operations to PostsFeedService
+  - ChatStore delegates to ChatService
   - Test all integrations
   - Estimate: 0.5 hours
 
@@ -1372,7 +1372,7 @@ This is a **pragmatic engineering decision** that prioritizes shipping over perf
 - [x] **AggregatedFeedCard.h/cpp** (~162 lines) - ✅ N/A - Presentation component
   - Status: N/A | Pattern: Container/Presentation
   - Receives data from parent via setGroup(), callbacks bubble up
-  - Contains PostCards which already use FeedStore
+  - Contains PostCards which already use PostsStore
 - [x] **FollowersList.h/cpp** (~155 lines) - ✅ COMPLETE - Already uses FollowersStore
   - Status: DONE ✅ | Store: FollowersStore
   - Has bindToStore(), unbindFromStore() methods
@@ -1559,7 +1559,77 @@ Move legacy code to match modern structure:
 
 ---
 
+---
+
+## Appendix: Store Architecture Design Principles (December 15, 2024)
+
+### Consolidated Store Design
+
+The application now follows a **consolidated store architecture** with 9 entity-based stores:
+
+| Store | Purpose | Scope |
+|-------|---------|-------|
+| **PostsStore** | All posts: feeds, saved, archived | FeedState (multiple feeds) + SavedPostsState + ArchivedPostsState |
+| **UserStore** | All users: current, cached, discovery | CurrentUserState + UserCache + DiscoveryState |
+| **ChatStore** | Channels and messages | ChannelState[] + CurrentChannelState |
+| **DraftStore** | Draft posts (singleton) | DraftState[] |
+| **CommentStore** | Comments on posts | CommentState (per post) |
+| **NotificationStore** | Notifications and unread counts | NotificationState + UnreadCount |
+| **StoriesStore** | Stories and highlights | UserStoriesState + HighlightsState |
+| **UploadStore** | Upload progress and state | UploadProgressState |
+| **FollowersStore** | Follower/following lists | FollowListState |
+
+### Key Design Decisions
+
+1. **Single Source of Truth Per Entity Type**
+   - **NOT**: Separate stores for different views (SavedPostsStore, FeedStore, ArchivedPostsStore)
+   - **YES**: One PostsStore with feeds, savedPosts, and archivedPosts substates
+   - **Benefit**: Consistent, prevents state desynchronization, easier to reason about
+
+2. **State Organization Within Stores**
+   ```cpp
+   struct PostsState {
+     std::map<FeedType, FeedState> feeds;           // All feed types
+     SavedPostsState savedPosts;                     // Saved collection
+     ArchivedPostsState archivedPosts;               // Archived collection
+     FeedType currentFeedType;                       // Navigation state
+   };
+   ```
+
+3. **Component Binding Pattern**
+   - Smart parent component: Binds to store, receives updates, manages child state
+   - Dumb child components: Receive data via props, emit callbacks
+   - Example: PostsFeed (smart) → PostCard (dumb)
+
+4. **Backward Compatibility**
+   - Stores provide both reactive (subscribe) and imperative (getState) APIs
+   - Components can fallback to NetworkClient directly if store unavailable
+   - Allows gradual migration without breaking changes
+
+### Migration Roadmap
+
+**Phase 1: PostsStore (DONE)** ✅
+- Consolidate FeedStore + SavedPostsStore + ArchivedPostsStore
+- Refactored PostsFeed, PostCard, SavedPosts, ArchivedPosts
+- Multi-tier caching, real-time sync, optimistic updates
+
+**Phase 2: UserStore (DONE)** ✅
+- Consolidated UserDiscoveryStore + user management
+- Refactored Profile, EditProfile, UserDiscovery
+- Current user, user cache, discovery sections in one store
+
+**Phase 3: Other Stores (DONE)** ✅
+- CommentStore, NotificationStore, StoriesStore, etc.
+- Integrated with corresponding UI components
+
+**Phase 4: Remaining Components (IN PROGRESS)** ⚠️
+- Refactor remaining 35 callback-based components
+- Target: 100% reactive patterns across UI layer
+
+---
+
 **Report Generated**: December 14, 2024
 **Updated & Corrected**: December 15, 2024
+**Architecture Updated**: December 15, 2024 (consolidated store design)
 **Evaluated By**: Claude Code
-**Note**: This document has been updated with honest metrics and realistic TODOs. The original evaluation significantly overstated completion percentages.
+**Note**: This document has been updated with honest metrics, realistic TODOs, and store architecture principles. The original evaluation significantly overstated completion percentages.
