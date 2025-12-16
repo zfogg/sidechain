@@ -29,7 +29,7 @@ public:
   // Store and network client integration
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
-  void setUserDiscoveryStore(std::shared_ptr<Sidechain::Stores::UserDiscoveryStore> store);
+  void setUserStore(std::shared_ptr<Sidechain::Stores::UserStore> store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -75,7 +75,7 @@ private:
   // Data
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
-  std::shared_ptr<Sidechain::Stores::UserDiscoveryStore> discoveryStore;
+  std::shared_ptr<Sidechain::Stores::UserStore> userStore;
   std::function<void()> storeUnsubscriber;
   juce::String currentUserId;
 

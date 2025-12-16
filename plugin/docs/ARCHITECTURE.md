@@ -7,14 +7,89 @@
 ## Table of Contents
 
 1. [Quick Overview](#quick-overview)
-2. [Store Pattern](#store-pattern)
-3. [Observable Collections](#observable-collections)
-4. [Data Flow Architecture](#data-flow-architecture)
-5. [Threading Model](#threading-model)
-6. [Component Patterns](#component-patterns)
-7. [Testing Strategies](#testing-strategies)
-8. [Common Patterns & Best Practices](#common-patterns--best-practices)
-9. [Troubleshooting](#troubleshooting)
+2. [Getting Started (5-Minute Example)](#getting-started-5-minute-example)
+3. [Store Pattern](#store-pattern)
+4. [Observable Collections](#observable-collections)
+5. [Data Flow Architecture](#data-flow-architecture)
+6. [Threading Model](#threading-model)
+7. [Component Patterns](#component-patterns)
+8. [Testing Strategies](#testing-strategies)
+9. [Common Patterns & Best Practices](#common-patterns--best-practices)
+10. [Troubleshooting](#troubleshooting)
+
+---
+
+## Getting Started (5-Minute Example)
+
+### Your First Store Integration
+
+Want to understand how the modern architecture works? Here's the complete flow:
+
+**Step 1: Subscribe to a Store**
+```cpp
+class MyFeedComponent : public ReactiveBoundComponent {
+private:
+    std::shared_ptr<PostsStore> postsStore;
+    std::function<void()> unsubscribe;
+
+public:
+    void setPostsStore(std::shared_ptr<PostsStore> store) {
+        postsStore = store;
+        // Subscribe: This callback runs whenever state changes
+        unsubscribe = postsStore->subscribe([this](const PostsState& state) {
+            displayPosts(state.getCurrentFeed().posts);
+            if (state.getCurrentFeed().isLoading) {
+                showLoadingSpinner();
+            }
+            repaint();
+        });
+    }
+
+    ~MyFeedComponent() override {
+        if (unsubscribe) unsubscribe();  // Always cleanup!
+    }
+};
+```
+
+**Step 2: Trigger Actions via Store Methods**
+```cpp
+void MyFeedComponent::onLikeButtonClicked(const FeedPost& post) {
+    // Call store method - it handles everything:
+    // 1. Optimistic update (UI changes immediately)
+    // 2. Server sync (network call happens async)
+    // 3. Error handling (automatic rollback if needed)
+    postsStore->toggleLike(post.id);
+    // The store will notify all subscribers, UI updates automatically
+}
+```
+
+**Step 3: Store Updates Happen Automatically**
+```cpp
+// Inside PostsStore (implementation detail you don't need to write)
+void PostsStore::toggleLike(const juce::String& postId) {
+    // 1. Optimistic update
+    auto state = getState();
+    if (auto* post = findPost(postId, state)) {
+        post->isLiked = !post->isLiked;
+        post->likeCount += post->isLiked ? 1 : -1;
+    }
+    setState(state);  // Notifies all subscribers (including MyFeedComponent!)
+
+    // 2. Server sync (async, doesn't block UI)
+    networkClient->likePost(postId, [this, postId](auto result) {
+        if (!result.isOk()) {
+            toggleLike(postId);  // Rollback if failed
+        }
+    });
+}
+```
+
+**That's it!** Your UI automatically updates because:
+1. Store state changed → `setState()` called
+2. All subscribers notified → subscription callback fires
+3. Your component re-paints with new data
+
+**No manual state management. No callback chains. Just reactive magic.** ✨
 
 ---
 
@@ -170,28 +245,77 @@ struct PostsState {
 
 #### Key Methods
 
+**Feed Management**:
 ```cpp
-// Feed operations
+// Load feed for given type with optional refresh
 void loadFeed(FeedType feedType, bool forceRefresh = false);
-void switchFeedType(FeedType feedType);
-void loadMore();
 
-// Post interactions (optimistic updates)
+// Switch between Timeline, Global, Trending, ForYou
+void switchFeedType(FeedType feedType);
+
+// Paginate: load next page of posts
+void loadMore(FeedType feedType);
+
+// Real-time: handle broadcasts from WebSocket
+void handleNewPostNotification(const juce::var& postData);
+void handleLikeCountUpdate(const juce::String& postId, int likeCount);
+void handleFollowerCountUpdate(const juce::String& userId, int followerCount);
+```
+
+**Post Interactions (Optimistic Updates)**:
+```cpp
+// Toggle interactions - immediate local update + async server sync
 void toggleLike(const juce::String& postId);
 void toggleSave(const juce::String& postId);
 void toggleRepost(const juce::String& postId);
 void addReaction(const juce::String& postId, const juce::String& emoji);
-
-// Saved/archived posts
-void loadSavedPosts();
-void unsavePost(const juce::String& postId);
-void loadArchivedPosts();
-void restorePost(const juce::String& postId);
-
-// Cache management
-void clearCache();
-void startCacheWarming();
+void deleteReaction(const juce::String& postId, const juce::String& emoji);
 ```
+
+**Saved & Archived Posts**:
+```cpp
+void loadSavedPosts(bool forceRefresh = false);
+void unsavePost(const juce::String& postId);
+void loadArchivedPosts(bool forceRefresh = false);
+void restorePost(const juce::String& postId);
+void archivePost(const juce::String& postId);
+```
+
+**Cache & Sync**:
+```cpp
+void clearCache();
+void startCacheWarming();  // Pre-fill for offline
+bool isSyncingWithServer() const;
+```
+
+#### Implementation Details
+
+**Feed Loading with Pagination**:
+- Loads 20 posts per page via `GET /api/feeds/{type}`
+- Stores cursor position for next pagination request
+- In-memory cache for fast access between loads
+- `lastRefresh` timestamp prevents duplicate refreshes within 30s
+- Fallback to disk cache if offline
+
+**Optimistic Update Pattern**:
+1. User clicks like button → `toggleLike()` called
+2. Store immediately updates local state (isLiked=true, likeCount++)
+3. Notifies all subscribers → UI updates instantly
+4. Simultaneously sends `POST /api/posts/{id}/like` in background
+5. If server succeeds → state persists (happy path)
+6. If server fails → automatically reverses by calling toggle again
+
+**Real-Time Sync**:
+- WebSocket broadcasts deliver new posts, likes, comments
+- Feeds update via state changes (same mechanism as user actions)
+- Comment view uses operational transform for multi-user safety
+- Server always considered source of truth for consistency
+
+**Multi-Feed Architecture**:
+- One PostsStore manages 4 separate feed types
+- Each feed cached independently with own pagination cursor
+- Switch between feeds without losing scroll position
+- Global interactions (like, save) update all feed copies
 
 #### Usage Pattern
 
