@@ -14,38 +14,25 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.h
 
-    # Reactive stores (Phase 2)
+    # Core Store Framework
     ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/CommentStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CommentStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/PostsStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PostsStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/UserStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChatStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChatStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/DraftStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DraftStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/NotificationStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/UploadStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/UploadStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChallengeStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChallengeStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/PlaylistStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PlaylistStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/FollowersStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/FollowersStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/StoriesStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/StoriesStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/AuthStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/AuthStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SearchStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SearchStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SoundStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SoundStore.h
+
+    # Unified AppStore (Phase 3 - replaces all individual stores)
+    ${CMAKE_CURRENT_SOURCE_DIR}/AppStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/AppState.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Base.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Auth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Feed.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/User.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Chat.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Search.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Notifications.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Presence.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Stories.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Upload.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Playlists.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Challenges.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Sounds.cpp
 )
 
 # Include directories
