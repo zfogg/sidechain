@@ -1,5 +1,9 @@
-import { test as base, Page, expect } from '@playwright/test'
+import { test as base, Page } from '@playwright/test'
+import * as PlaywrightTest from '@playwright/test'
 import { testUsers, TEST_PASSWORD, TestUser } from './test-users'
+
+// Re-export Playwright's expect to avoid conflicts with other test frameworks
+const expect = PlaywrightTest.expect
 
 export interface AuthFixtures {
   authenticatedPage: Page
