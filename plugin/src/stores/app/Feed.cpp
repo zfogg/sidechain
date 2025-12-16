@@ -635,8 +635,10 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, int 
   auto response = parseJsonResponse(data);
 
   // Validate response size against requested limit
-  if (response.posts.size() > static_cast<size_t>(limit)) {
-    Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(response.posts.size())) +
+  const size_t responseSize = response.posts.size();
+  const size_t expectedLimit = static_cast<size_t>(limit);
+  if (responseSize > expectedLimit) {
+    Log::warn("AppStore: Response size (" + juce::String(static_cast<int>(responseSize)) +
              ") exceeds requested limit (" + juce::String(limit) + ")");
   }
 
