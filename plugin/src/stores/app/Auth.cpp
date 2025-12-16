@@ -66,7 +66,7 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
     state.authError = "";
   });
 
-  // TODO: Implement registration with correct NetworkClient method
+  // TODO: Implement registration with correct NetworkClient method when available
   updateAuthState([](AuthState &state) {
     state.isAuthenticating = false;
     state.authError = "Registration not yet implemented";
