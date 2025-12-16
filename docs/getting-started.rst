@@ -51,4 +51,4 @@ If you encounter any issues:
 
 * Check the :doc:`development` guide for troubleshooting
 * Review the :doc:`architecture` documentation for technical details
-* Browse the :doc:`api/library_root` for API reference
+* Explore the :doc:`plugin-architecture/index` for detailed architecture and patterns
