@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UserCard.h"
-#include "../../stores/UserDiscoveryStore.h"
+#include "../../stores/UserStore.h"
 #include <JuceHeader.h>
 #include <memory>
 
