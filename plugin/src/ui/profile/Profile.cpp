@@ -1,6 +1,7 @@
 #include "Profile.h"
 #include "../../network/NetworkClient.h"
 #include "../../network/StreamChatClient.h"
+#include "../../stores/AppStore.h"
 
 #include "../../util/Async.h"
 #include "../../util/Colors.h"
@@ -10,6 +11,8 @@
 #include "../../util/StringFormatter.h"
 #include "../feed/PostCard.h"
 #include <vector>
+
+using namespace Sidechain::Stores;
 
 //==============================================================================
 // Forward declarations
@@ -1197,11 +1200,21 @@ void Profile::handleFollowToggle() {
     });
   };
 
+  // Use AppStore to handle follow/unfollow with cache invalidation
+  auto &appStore = AppStore::getInstance();
+
   if (willFollow) {
-    networkClient->followUser(profile.id, callback);
+    appStore.followUser(profile.id);
   } else {
-    networkClient->unfollowUser(profile.id, callback);
+    appStore.unfollowUser(profile.id);
   }
+
+  // Still call the callback to update UI
+  juce::MessageManager::callAsync([this]() {
+    if (onFollowToggled) {
+      onFollowToggled(profile.id);
+    }
+  });
 }
 
 void Profile::handleMuteToggle() {

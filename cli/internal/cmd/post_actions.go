@@ -5,32 +5,7 @@ import (
 	"github.com/zfogg/sidechain/cli/pkg/service"
 )
 
-var postActionsCmd = &cobra.Command{
-	Use:   "actions",
-	Short: "Manage advanced post actions",
-	Long:  "Pin, remix, download, and report posts",
-}
-
-var pinPostCmd = &cobra.Command{
-	Use:   "pin",
-	Short: "Pin a post to your profile",
-	Long:  "Pin a post to keep it at the top of your profile",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		svc := service.NewPostActionsService()
-		return svc.PinPost()
-	},
-}
-
-var unpinPostCmd = &cobra.Command{
-	Use:   "unpin",
-	Short: "Unpin a post from your profile",
-	Long:  "Remove a pinned post from your profile",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		svc := service.NewPostActionsService()
-		return svc.UnpinPost()
-	},
-}
-
+// Interactive action commands (moved under post command)
 var createRemixCmd = &cobra.Command{
 	Use:   "remix",
 	Short: "Create a remix of a post",
@@ -82,11 +57,10 @@ var postStatsCmd = &cobra.Command{
 }
 
 func init() {
-	postActionsCmd.AddCommand(pinPostCmd)
-	postActionsCmd.AddCommand(unpinPostCmd)
-	postActionsCmd.AddCommand(createRemixCmd)
-	postActionsCmd.AddCommand(listRemixesCmd)
-	postActionsCmd.AddCommand(downloadPostCmd)
-	postActionsCmd.AddCommand(actionReportPostCmd)
-	postActionsCmd.AddCommand(postStatsCmd)
+	// Add interactive post action commands to post command
+	postCmd.AddCommand(createRemixCmd)
+	postCmd.AddCommand(listRemixesCmd)
+	postCmd.AddCommand(downloadPostCmd)
+	postCmd.AddCommand(actionReportPostCmd)
+	postCmd.AddCommand(postStatsCmd)
 }

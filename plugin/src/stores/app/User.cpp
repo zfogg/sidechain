@@ -488,5 +488,43 @@ rxcpp::observable<juce::Array<juce::var>> AppStore::searchUsersObservable(const 
   });
 }
 
+void AppStore::followUser(const juce::String &userId) {
+  if (!networkClient) {
+    return;
+  }
+
+  Util::logInfo("AppStore", "Following user: " + userId);
+
+  networkClient->followUser(userId, [this, userId](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      Util::logError("AppStore", "Failed to follow user: " + result.getError());
+    } else {
+      // Invalidate user search caches so follower lists update
+      invalidateCache("user:" + userId);
+      invalidateCachePattern("search:users:*");
+      Util::logInfo("AppStore", "Successfully followed user: " + userId);
+    }
+  });
+}
+
+void AppStore::unfollowUser(const juce::String &userId) {
+  if (!networkClient) {
+    return;
+  }
+
+  Util::logInfo("AppStore", "Unfollowing user: " + userId);
+
+  networkClient->unfollowUser(userId, [this, userId](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      Util::logError("AppStore", "Failed to unfollow user: " + result.getError());
+    } else {
+      // Invalidate user search caches so follower lists update
+      invalidateCache("user:" + userId);
+      invalidateCachePattern("search:users:*");
+      Util::logInfo("AppStore", "Successfully unfollowed user: " + userId);
+    }
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain
