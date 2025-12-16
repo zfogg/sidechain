@@ -33,9 +33,6 @@ BUILD_DIR = plugin/build
 # Build type (defaults to Debug, can be overridden: make CMAKE_BUILD_TYPE=Release)
 CMAKE_BUILD_TYPE ?= Debug
 
-# Installation prefix (defaults to /usr on both macOS and Linux, can be overridden: make install PREFIX=/usr/local)
-PREFIX ?= /usr
-
 # Platform-specific settings
 ifeq ($(UNAME_S),Darwin)
 	PLATFORM = macos
@@ -44,16 +41,22 @@ ifeq ($(UNAME_S),Darwin)
 	PLUGIN_INSTALL_DIR = ~/Library/Audio/Plug-Ins/VST3
 	AU_INSTALL_DIR = ~/Library/Audio/Plug-Ins/Components
 	CMAKE_GENERATOR = -G Ninja
+	# On macOS, default to /usr/local (SIP protects /usr)
+	PREFIX ?= /usr/local
 else ifeq ($(UNAME_S),Linux)
 	PLATFORM = linux
 	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = ~/.vst3
 	CMAKE_GENERATOR = -G Ninja
+	# On Linux, default to /usr (can use sudo)
+	PREFIX ?= /usr
 else ifeq ($(OS),Windows_NT)
 	PLATFORM = windows
 	PLUGIN_OUTPUT = plugin/build/src/core/Sidechain_artefacts/$(CMAKE_BUILD_TYPE)/VST3/Sidechain.vst3
 	PLUGIN_INSTALL_DIR = $(LOCALAPPDATA)/Programs/Common/VST3
 	CMAKE_GENERATOR = -G "Visual Studio 17 2022" -A x64
+	# On Windows, default to Program Files
+	PREFIX ?= $(ProgramFiles)/Sidechain
 else
 	$(error Unsupported platform: $(UNAME_S))
 endif
@@ -161,19 +164,20 @@ plugin-rebuild: plugin-configure
 	@cmake --build $(BUILD_DIR) --config $(CMAKE_BUILD_TYPE) --parallel
 	@echo "✅ Plugin rebuilt successfully (dependencies cached)"
 
-# Check if PREFIX is writable
+# Ensure PREFIX directory exists (will fail with appropriate error if no permissions)
 check-prefix:
 	@mkdir -p "$(PREFIX)"
-	@if [ ! -w "$(PREFIX)" ]; then \
-		echo "❌ Error: Cannot write to $(PREFIX) - you may need to run: sudo make install"; \
-		exit 1; \
-	fi
 
-# CMake install (respects PREFIX variable, default /usr)
-# Usage: sudo make install              # Uses /usr (requires sudo for system-wide install)
-#        make install PREFIX=/usr/local # User-level install to /usr/local (no sudo needed)
-#        make install PREFIX=$HOME/.local # Local user install (no sudo needed)
-#        make install-completions      # Install shell completions separately
+# CMake install (respects PREFIX variable)
+# Default PREFIX:
+#   macOS:  /usr/local (SIP protects /usr)
+#   Linux:  /usr (requires sudo for system-wide)
+#   Windows: $ProgramFiles/Sidechain
+# Usage examples:
+#   make install                        # Uses default for your platform
+#   make install PREFIX=$HOME/.local    # User-level install (no sudo needed)
+#   sudo make install                   # Use sudo for system-wide on Linux
+#   make install PREFIX=/opt/sidechain  # Custom location (no sudo if writable)
 install: check-prefix backend/bin/sidechain-server cli/bin/sidechain plugin install-completions
 	@echo "📦 Installing backend server to $(PREFIX)/bin..."
 	@mkdir -p "$(PREFIX)/bin"
