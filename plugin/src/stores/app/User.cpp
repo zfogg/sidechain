@@ -21,13 +21,24 @@ void AppStore::fetchUserProfile(bool forceRefresh) {
     return;
   }
 
-  // Check if we need to refresh
-  if (!forceRefresh && currentState.user.lastProfileUpdate > 0) {
-    auto age = juce::Time::getCurrentTime().toMilliseconds() - currentState.user.lastProfileUpdate;
-    if (age < 60000) // Less than 1 minute old
-    {
-      Util::logDebug("AppStore", "Using cached profile");
+  // Check memory cache first (if not force refreshing)
+  if (!forceRefresh) {
+    // Try memory cache with 10-minute TTL
+    auto cachedProfile = getCached<juce::var>("user:profile");
+    if (cachedProfile.has_value()) {
+      Util::logDebug("AppStore", "Using cached profile from memory");
+      handleProfileFetchSuccess(cachedProfile.value());
       return;
+    }
+
+    // Also check state-based cache as fallback
+    if (currentState.user.lastProfileUpdate > 0) {
+      auto age = juce::Time::getCurrentTime().toMilliseconds() - currentState.user.lastProfileUpdate;
+      if (age < 60000) // Less than 1 minute old
+      {
+        Util::logDebug("AppStore", "Using cached profile from state");
+        return;
+      }
     }
   }
 
@@ -72,6 +83,9 @@ void AppStore::updateProfile(const juce::String &username, const juce::String &d
         Util::logError("AppStore", "Failed to update profile: " + result.getError());
         // Revert on error
         updateUserState([previousState](UserState &state) { state = previousState; });
+      } else {
+        // Invalidate cache on successful update
+        invalidateCache("user:profile");
       }
     });
   });
@@ -220,6 +234,8 @@ void AppStore::updateProfileComplete(const juce::String &displayName, const juce
               state.dawPreference = dawPreference;
               state.isPrivate = isPrivate;
             });
+            // Invalidate profile cache on successful update
+            invalidateCache("user:profile");
             Util::logInfo("AppStore", "Profile updated successfully");
           } else {
             Util::logError("AppStore", "Failed to update profile: " + result.getError());
@@ -292,6 +308,9 @@ void AppStore::downloadProfileImage(const juce::String &url) {
 
 void AppStore::handleProfileFetchSuccess(const juce::var &data) {
   Util::logInfo("AppStore", "Profile fetch successful");
+
+  // Cache the profile data in memory cache (10-minute TTL)
+  setCached<juce::var>("user:profile", data, 600);
 
   updateUserState([&data](UserState &state) {
     state.isFetchingProfile = false;
