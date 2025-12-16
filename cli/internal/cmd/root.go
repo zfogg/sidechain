@@ -82,6 +82,8 @@ func init() {
 	rootCmd.AddCommand(reportCmd)
 	rootCmd.AddCommand(muteCmd)
 	rootCmd.AddCommand(errorCmd)
+	rootCmd.AddCommand(exploreCmd)
+	rootCmd.AddCommand(discoverCmd)
 	rootCmd.AddCommand(recommendCmd)
 	rootCmd.AddCommand(projectCmd)
 	rootCmd.AddCommand(searchCmd)
