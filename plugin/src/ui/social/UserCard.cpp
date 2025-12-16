@@ -21,9 +21,22 @@ void UserCard::setUser(const DiscoveredUser &newUser) {
   user = newUser;
   Log::debug("UserCard: Setting user - ID: " + user.id + ", username: " + user.username);
 
-  // Fetch avatar image via AppStore (with caching)
+  // Fetch avatar image via AppStore reactive observable (with caching)
   if (user.avatarUrl.isNotEmpty() && appStore) {
-    appStore->getImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<UserCard> safeThis(this);
+    appStore->loadImageObservable(user.avatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid())
+                safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("UserCard: Failed to load avatar image");
+            });
   }
 
   repaint();
