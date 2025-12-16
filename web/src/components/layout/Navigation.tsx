@@ -56,6 +56,14 @@ export function Navigation() {
               Discover
             </Button>
             <Button
+              variant={isActive('/trending') ? 'default' : 'ghost'}
+              onClick={() => navigate('/trending')}
+              className="gap-2"
+            >
+              <span>🔥</span>
+              Trending
+            </Button>
+            <Button
               variant={isActive('/upload') ? 'default' : 'ghost'}
               onClick={() => navigate('/upload')}
               className="gap-2"
@@ -167,6 +175,15 @@ export function Navigation() {
           >
             <span>✨</span>
             Discover
+          </Button>
+          <Button
+            variant={isActive('/trending') ? 'default' : 'outline'}
+            onClick={() => navigate('/trending')}
+            size="sm"
+            className="gap-1 whitespace-nowrap"
+          >
+            <span>🔥</span>
+            Trending
           </Button>
           <Button
             variant={isActive('/upload') ? 'default' : 'outline'}
