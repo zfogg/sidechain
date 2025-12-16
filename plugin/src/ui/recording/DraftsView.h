@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../stores/DraftStorage.h"
+#include "../../stores/DraftStore.h"
+#include "../../stores/Store.h"
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -14,6 +16,7 @@
  * - Delete button with confirmation
  * - Empty state when no drafts
  * - Auto-recovery prompt at top
+ * - Reactive updates from DraftStore
  */
 class DraftsView : public juce::Component, public juce::ScrollBar::Listener {
 public:
@@ -30,7 +33,20 @@ public:
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
   //==========================================================================
-  // Set draft storage reference
+  // Store binding (new reactive pattern)
+  /**
+   * Bind to DraftStore for automatic updates
+   * Uses the singleton DraftStore instance
+   */
+  void bindToStore();
+
+  /**
+   * Unbind from the store
+   */
+  void unbindFromStore();
+
+  //==========================================================================
+  // Set draft storage reference (legacy - prefer using store binding)
   void setDraftStorage(DraftStorage *storage);
 
   // Reload drafts list
@@ -47,6 +63,10 @@ private:
   juce::Array<Draft> drafts;
   bool hasRecoveryDraft = false;
 
+  // Store subscription
+  Sidechain::Stores::ScopedSubscription storeSubscription;
+  bool boundToStore = false;
+
   // UI State
   int hoveredDraftIndex = -1;
   int hoveredButtonType = -1; // 0 = resume, 1 = delete
@@ -56,6 +76,10 @@ private:
   // Scroll
   std::unique_ptr<juce::ScrollBar> scrollBar;
   double scrollOffset = 0.0;
+
+  //==========================================================================
+  // Store state handler
+  void handleStoreStateChanged(const Sidechain::Stores::DraftStoreState &state);
 
   // Confirmation dialog state
   bool showingDeleteConfirmation = false;

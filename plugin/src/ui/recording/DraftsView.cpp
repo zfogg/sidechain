@@ -1,4 +1,5 @@
 #include "DraftsView.h"
+#include "../../stores/DraftStore.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "Upload.h" // For key/genre names
@@ -12,8 +13,54 @@ DraftsView::DraftsView() {
 }
 
 DraftsView::~DraftsView() {
+  unbindFromStore();
   if (scrollBar)
     scrollBar->removeListener(this);
+}
+
+//==============================================================================
+void DraftsView::bindToStore() {
+  if (boundToStore) {
+    return; // Already bound
+  }
+
+  auto &store = Sidechain::Stores::DraftStore::getInstance();
+
+  // Subscribe to store state changes
+  storeSubscription =
+      store.subscribe([this](const Sidechain::Stores::DraftStoreState &state) { handleStoreStateChanged(state); });
+
+  boundToStore = true;
+  Log::debug("DraftsView: Bound to DraftStore");
+
+  // Load drafts via store
+  store.loadDrafts();
+}
+
+void DraftsView::unbindFromStore() {
+  storeSubscription.reset();
+  boundToStore = false;
+}
+
+void DraftsView::handleStoreStateChanged(const Sidechain::Stores::DraftStoreState &state) {
+  // Update local state from store using SafePointer for thread safety
+  juce::Component::SafePointer<DraftsView> safeThis(this);
+
+  juce::MessageManager::callAsync([safeThis, state]() {
+    if (safeThis == nullptr)
+      return;
+
+    // Update drafts list
+    safeThis->drafts = state.drafts;
+    safeThis->isLoading = state.isLoadingDrafts;
+    safeThis->errorMessage = state.error;
+
+    // Check for auto-recovery draft via the store
+    safeThis->hasRecoveryDraft = Sidechain::Stores::DraftStore::getInstance().hasAutoRecoveryDraft();
+
+    safeThis->resized();
+    safeThis->repaint();
+  });
 }
 
 //==============================================================================
@@ -23,6 +70,13 @@ void DraftsView::setDraftStorage(DraftStorage *storage) {
 }
 
 void DraftsView::refresh() {
+  // Prefer store if bound
+  if (boundToStore) {
+    Sidechain::Stores::DraftStore::getInstance().loadDrafts();
+    return;
+  }
+
+  // Legacy path using direct storage access
   if (draftStorage == nullptr)
     return;
 
@@ -444,7 +498,11 @@ int DraftsView::calculateContentHeight() const {
 
 //==============================================================================
 void DraftsView::resumeDraft(int index) {
-  if (index < 0 || index >= drafts.size() || draftStorage == nullptr)
+  if (index < 0 || index >= drafts.size())
+    return;
+
+  // Need either store binding or legacy storage
+  if (!boundToStore && draftStorage == nullptr)
     return;
 
   Log::info("DraftsView: Resuming draft " + drafts[index].id);
@@ -454,11 +512,21 @@ void DraftsView::resumeDraft(int index) {
 }
 
 void DraftsView::deleteDraft(int index) {
-  if (index < 0 || index >= drafts.size() || draftStorage == nullptr)
+  if (index < 0 || index >= drafts.size())
     return;
 
   juce::String draftId = drafts[index].id;
   Log::info("DraftsView: Deleting draft " + draftId);
+
+  // Prefer store if bound - store will notify us via subscription
+  if (boundToStore) {
+    Sidechain::Stores::DraftStore::getInstance().deleteDraft(draftId);
+    return;
+  }
+
+  // Legacy path using direct storage access
+  if (draftStorage == nullptr)
+    return;
 
   if (draftStorage->deleteDraft(draftId)) {
     drafts.remove(index);
@@ -497,10 +565,21 @@ void DraftsView::restoreRecoveryDraft() {
 }
 
 void DraftsView::discardRecoveryDraft() {
+  Log::info("DraftsView: Discarding auto-recovery draft");
+
+  // Prefer store if bound - store will notify us via subscription
+  if (boundToStore) {
+    Sidechain::Stores::DraftStore::getInstance().clearAutoRecoveryDraft();
+    hasRecoveryDraft = false;
+    resized();
+    repaint();
+    return;
+  }
+
+  // Legacy path using direct storage access
   if (draftStorage == nullptr)
     return;
 
-  Log::info("DraftsView: Discarding auto-recovery draft");
   draftStorage->clearAutoRecoveryDraft();
   hasRecoveryDraft = false;
   resized();
