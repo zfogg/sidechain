@@ -479,7 +479,16 @@ func main() {
 		// Returns the profile picture URL for JUCE to download directly via HTTPS
 		api.GET("/users/:id/profile-picture", authHandlers.GetProfilePictureURL)
 
-		// User routes
+		// Public user profile endpoints (no auth required)
+		api.GET("/users/:id/profile", h.GetUserProfile)
+		api.GET("/users/:id/posts", h.GetUserPosts)
+		api.GET("/users/:id/followers", h.GetUserFollowers)
+		api.GET("/users/:id/following", h.GetUserFollowing)
+		api.GET("/users/:id/reposts", h.GetUserReposts)
+		api.GET("/users/:id/pinned", h.GetPinnedPosts)
+		api.GET("/users/:id/muted", h.IsUserMuted)
+
+		// Authenticated user routes
 		users := api.Group("/users")
 		{
 			users.Use(authHandlers.AuthMiddleware())
@@ -503,24 +512,15 @@ func main() {
 			// Current user's muted users - must be before /:id routes
 			users.GET("/me/muted", h.GetMutedUsers)
 
-			// User profile endpoints (require auth for following checks)
-			users.GET("/:id/profile", h.GetUserProfile)
-			users.GET("/:id/posts", h.GetUserPosts)
-			users.GET("/:id/followers", h.GetUserFollowers)
-			users.GET("/:id/following", h.GetUserFollowing)
+			// User profile interaction endpoints (require auth)
 			users.GET("/:id/activity", h.GetUserActivitySummary)
 			users.GET("/:id/similar", h.GetSimilarUsers)
 			users.POST("/:id/follow", h.FollowUserByID)
 			users.DELETE("/:id/follow", h.UnfollowUserByID)
 			users.GET("/:id/follow-request-status", h.CheckFollowRequestStatus)
-			// User reposts endpoint (P0 Social Feature)
-			users.GET("/:id/reposts", h.GetUserReposts)
-			// Pinned posts endpoint
-			users.GET("/:id/pinned", h.GetPinnedPosts)
 			// Mute endpoints
 			users.POST("/:id/mute", h.MuteUser)
 			users.DELETE("/:id/mute", h.UnmuteUser)
-			users.GET("/:id/muted", h.IsUserMuted)
 		}
 
 		// Settings routes
