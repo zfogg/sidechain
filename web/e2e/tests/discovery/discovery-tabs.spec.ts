@@ -1,4 +1,5 @@
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { DiscoveryPage } from '../../page-objects/DiscoveryPage'
 
 test.describe('Discovery - Tab Navigation', () => {

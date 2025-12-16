@@ -146,9 +146,12 @@ npm run test:e2e:docker:down    # Cleanup
 
 ### Directory Layout
 ```
-e2e/
+web/
+├── playwright.config.ts      # Playwright configuration (root level)
+├── vite.config.ts            # Vite configuration
+├── vitest.config.ts          # Unit test configuration
+└── e2e/
 ├── README.md                 # This file
-├── playwright.config.ts      # Playwright configuration
 ├── docker-compose.test.yml   # Docker services
 ├── .env.test                 # Test environment variables
 ├── fixtures/
@@ -232,7 +235,8 @@ test('should make API request with token', async ({ apiToken }) => {
 ### Test Pattern 1: UI Flow Testing
 
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
+import { expect } from '@playwright/test'
 
 test('should filter feed by type', async ({ page }) => {
   await page.goto('http://localhost:5173/login')
@@ -257,7 +261,8 @@ test('should filter feed by type', async ({ page }) => {
 ### Test Pattern 2: Using Fixtures
 
 ```typescript
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { waitForLoadingToComplete } from '../../helpers/wait-strategies'
 
 test('should like a post', async ({ authenticatedPage }) => {
@@ -424,7 +429,7 @@ npm run test:e2e -- --verbose
 
 ### GitHub Actions
 
-See `.github/workflows/e2e.yml` for full workflow.
+See `.github/workflows/test-web.yml` for full workflow.
 
 ```yaml
 - name: Run E2E tests

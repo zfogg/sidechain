@@ -1,4 +1,5 @@
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { SettingsPage } from '../../page-objects/SettingsPage'
 
 test.describe('Settings - User Preferences', () => {

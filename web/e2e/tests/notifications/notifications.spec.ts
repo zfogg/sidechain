@@ -1,4 +1,5 @@
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { NotificationsPage } from '../../page-objects/NotificationsPage'
 
 test.describe('Notifications - Center & Management', () => {

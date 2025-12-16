@@ -1,4 +1,5 @@
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { FeedPage } from '../../page-objects/FeedPage'
 import { WebSocketHelper } from '../../helpers/websocket-helper'
 

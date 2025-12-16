@@ -1,4 +1,5 @@
-import { test, expect } from '../../fixtures/auth'
+import { test } from '../../fixtures/auth'
+import { expect } from '@playwright/test'
 import { SearchPage } from '../../page-objects/SearchPage'
 
 test.describe('Search - Basic Search Functionality', () => {
