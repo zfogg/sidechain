@@ -93,8 +93,8 @@ export class SearchClient {
         const users = (result.getValue().users || []).map((u: any) => ({
           id: u.id,
           username: u.username,
-          displayName: u.display_name,
-          profilePictureUrl: u.profile_picture_url,
+          displayName: u.display_name || u.username,
+          profilePictureUrl: u.avatar_url,
         }))
         return Outcome.ok(users)
       } catch (error) {
