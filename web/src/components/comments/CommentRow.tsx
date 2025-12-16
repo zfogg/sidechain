@@ -3,6 +3,7 @@ import type { Comment } from '@/models/Comment'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useToggleCommentLikeMutation } from '@/hooks/mutations/useCommentMutations'
+import { ReportButton } from '@/components/report/ReportButton'
 
 interface CommentRowProps {
   comment: Comment
@@ -43,7 +44,7 @@ export function CommentRow({ comment, onReplyClick }: CommentRowProps) {
         <p className="text-sm mt-1 text-foreground">{comment.content}</p>
 
         {/* Actions */}
-        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+        <div className="flex gap-4 mt-2 text-xs text-muted-foreground items-center">
           <button
             onClick={handleLike}
             disabled={isPending}
@@ -75,6 +76,16 @@ export function CommentRow({ comment, onReplyClick }: CommentRowProps) {
           >
             Reply
           </button>
+
+          <div className="ml-auto">
+            <ReportButton
+              type="comment"
+              targetId={comment.id}
+              targetName={`Comment by ${comment.displayName}`}
+              variant="ghost"
+              size="sm"
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { SearchUser } from '@/api/SearchClient'
 import { Button } from '@/components/ui/button'
 import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
+import { ReportButton } from '@/components/report/ReportButton'
 
 interface SearchUserCardProps {
   user: SearchUser
@@ -56,6 +57,13 @@ export function SearchUserCard({ user }: SearchUserCardProps) {
           View Profile
         </Button>
         <DirectMessageButton userId={user.id} displayName={user.displayName} />
+        <ReportButton
+          type="user"
+          targetId={user.id}
+          targetName={user.displayName}
+          variant="ghost"
+          size="sm"
+        />
       </div>
     </div>
   )

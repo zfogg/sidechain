@@ -1,22 +1,27 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Suspense, lazy, BrowserRouter, Routes, Route, Navigate, useEffect } from 'react-router-dom'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ChatProvider } from '@/providers/ChatProvider'
 import { useUserStore } from '@/stores/useUserStore'
 import { Navigation } from '@/components/layout/Navigation'
+import { RouteLoader } from '@/components/layout/RouteLoader'
+import { PerformanceMonitor } from '@/components/dev/PerformanceMonitor'
+import { useWebVitals } from '@/hooks/useWebVitals'
 
-// Pages
+// Auth Routes (eager load - required before auth check)
 import { Login } from '@/pages/Login'
 import { AuthCallback } from '@/pages/AuthCallback'
 import { DeviceClaim } from '@/pages/DeviceClaim'
-import { Feed } from '@/pages/Feed'
-import { Settings } from '@/pages/Settings'
-import { Upload } from '@/pages/Upload'
-import { Profile } from '@/pages/Profile'
-import { Notifications } from '@/pages/Notifications'
-import { Messages } from '@/pages/Messages'
-import { Search } from '@/pages/Search'
-import { Discovery } from '@/pages/Discovery'
+
+// Protected Routes (lazy load - reduces initial bundle)
+const Feed = lazy(() => import('@/pages/Feed').then(m => ({ default: m.Feed })))
+const Settings = lazy(() => import('@/pages/Settings').then(m => ({ default: m.Settings })))
+const Upload = lazy(() => import('@/pages/Upload').then(m => ({ default: m.Upload })))
+const Profile = lazy(() => import('@/pages/Profile').then(m => ({ default: m.Profile })))
+const Notifications = lazy(() => import('@/pages/Notifications').then(m => ({ default: m.Notifications })))
+const Messages = lazy(() => import('@/pages/Messages').then(m => ({ default: m.Messages })))
+const Search = lazy(() => import('@/pages/Search').then(m => ({ default: m.Search })))
+const Discovery = lazy(() => import('@/pages/Discovery').then(m => ({ default: m.Discovery })))
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -37,9 +42,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppContent() {
   const { isAuthenticated } = useUserStore()
 
+  // Track Web Vitals in development
+  useWebVitals()
+
   return (
     <>
       {isAuthenticated && <Navigation />}
+      <PerformanceMonitor />
       <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
@@ -51,7 +60,9 @@ function AppContent() {
           path="/feed"
           element={
             <ProtectedRoute>
-              <Feed />
+              <Suspense fallback={<RouteLoader />}>
+                <Feed />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -61,7 +72,9 @@ function AppContent() {
           path="/settings"
           element={
             <ProtectedRoute>
-              <Settings />
+              <Suspense fallback={<RouteLoader />}>
+                <Settings />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -71,7 +84,9 @@ function AppContent() {
           path="/notifications"
           element={
             <ProtectedRoute>
-              <Notifications />
+              <Suspense fallback={<RouteLoader />}>
+                <Notifications />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -81,7 +96,9 @@ function AppContent() {
           path="/messages/:channelId?"
           element={
             <ProtectedRoute>
-              <Messages />
+              <Suspense fallback={<RouteLoader />}>
+                <Messages />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -91,7 +108,9 @@ function AppContent() {
           path="/search"
           element={
             <ProtectedRoute>
-              <Search />
+              <Suspense fallback={<RouteLoader />}>
+                <Search />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -101,7 +120,9 @@ function AppContent() {
           path="/discover"
           element={
             <ProtectedRoute>
-              <Discovery />
+              <Suspense fallback={<RouteLoader />}>
+                <Discovery />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -111,7 +132,9 @@ function AppContent() {
           path="/upload"
           element={
             <ProtectedRoute>
-              <Upload />
+              <Suspense fallback={<RouteLoader />}>
+                <Upload />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -121,7 +144,9 @@ function AppContent() {
           path="/profile/:username"
           element={
             <ProtectedRoute>
-              <Profile />
+              <Suspense fallback={<RouteLoader />}>
+                <Profile />
+              </Suspense>
             </ProtectedRoute>
           }
         />

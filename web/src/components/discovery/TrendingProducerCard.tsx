@@ -3,6 +3,7 @@ import { TrendingProducer } from '@/api/GorseClient'
 import { Button } from '@/components/ui/button'
 import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
+import { ReportButton } from '@/components/report/ReportButton'
 
 interface TrendingProducerCardProps {
   producer: TrendingProducer
@@ -89,6 +90,14 @@ export function TrendingProducerCard({ producer }: TrendingProducerCardProps) {
         >
           {producer.isFollowing ? 'Following' : 'Follow'}
         </Button>
+        <DirectMessageButton userId={producer.id} displayName={producer.displayName} />
+        <ReportButton
+          type="user"
+          targetId={producer.id}
+          targetName={producer.displayName}
+          variant="ghost"
+          size="sm"
+        />
       </div>
     </div>
   )
