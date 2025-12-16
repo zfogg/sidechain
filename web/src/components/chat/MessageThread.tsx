@@ -22,16 +22,16 @@ export function MessageThread({ channelId }: MessageThreadProps) {
   }, [channelId, client])
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col" style={{ backgroundColor: '#26262c' }}>
       {/* Channel Header with info */}
-      <div className="border-b border-border bg-card/95 backdrop-blur sticky top-0 z-10">
+      <div className="border-b border-border/30 sticky top-0 z-10" style={{ backgroundColor: '#2e2e34' }}>
         <ChannelHeader />
       </div>
 
       {/* Window manages layout for message thread + thread panel */}
       <Window>
         {/* Main Messages */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden" style={{ backgroundColor: '#26262c' }}>
           <MessageList />
         </div>
 
@@ -39,7 +39,7 @@ export function MessageThread({ channelId }: MessageThreadProps) {
         <Thread />
 
         {/* Message Input */}
-        <div className="border-t border-border bg-card/95 backdrop-blur p-4">
+        <div className="border-t border-border/30 p-4" style={{ backgroundColor: '#2e2e34' }}>
           <MessageInput />
         </div>
       </Window>

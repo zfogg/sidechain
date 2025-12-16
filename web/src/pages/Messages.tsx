@@ -39,12 +39,12 @@ function MessagesContent() {
   return (
     <div className="min-h-screen bg-bg-primary flex">
       {/* Channel List Sidebar - Desktop */}
-      <div className="w-72 border-r border-border hidden lg:flex flex-col">
+      <div className="w-80 border-r border-border hidden lg:flex lg:flex-col flex-shrink-0 bg-bg-secondary">
         <ChannelList onNewMessageClick={() => setShowNewMessageDialog(true)} />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-bg-primary">
+      <div className="flex-1 flex flex-col bg-bg-primary min-w-0">
         {/* Mobile: Show conversation list when no channel selected */}
         {!channelId && (
           <div className="lg:hidden flex-1 overflow-y-auto">
