@@ -15,6 +15,7 @@ import { Upload } from '@/pages/Upload'
 import { Profile } from '@/pages/Profile'
 import { Notifications } from '@/pages/Notifications'
 import { Messages } from '@/pages/Messages'
+import { Search } from '@/pages/Search'
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -80,6 +81,16 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Messages />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Search Routes (Protected) */}
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <Search />
             </ProtectedRoute>
           }
         />
