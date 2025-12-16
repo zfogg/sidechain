@@ -75,6 +75,7 @@ func init() {
 	rootCmd.AddCommand(authCmd)
 	rootCmd.AddCommand(profileCmd)
 	rootCmd.AddCommand(postCmd)
+	rootCmd.AddCommand(commentCmd)
 	rootCmd.AddCommand(feedCmd)
 	rootCmd.AddCommand(notificationsCmd)
 	rootCmd.AddCommand(reportCmd)
@@ -83,6 +84,8 @@ func init() {
 	rootCmd.AddCommand(recommendCmd)
 	rootCmd.AddCommand(projectCmd)
 	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(followCmd)
+	rootCmd.AddCommand(settingsCmd)
 	rootCmd.AddCommand(adminCmd)
 	rootCmd.AddCommand(versionCmd)
 }
