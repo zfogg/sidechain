@@ -15,30 +15,30 @@ var completionCmd = &cobra.Command{
 To load completions in your shell session, run:
 
 Bash:
-  source <(sidechain-cli completion bash)
+  source <(sidechain completion bash)
 
 Zsh:
-  source <(sidechain-cli completion zsh)
+  source <(sidechain completion zsh)
 
 Fish:
-  sidechain-cli completion fish | source
+  sidechain completion fish | source
 
 PowerShell:
-  sidechain-cli completion powershell | Out-String | Invoke-Expression
+  sidechain completion powershell | Out-String | Invoke-Expression
 
 To load completions for every new session, execute once:
 
 Bash:
-  sidechain-cli completion bash > /etc/bash_completion.d/sidechain-cli
+  sidechain completion bash > /etc/bash_completion.d/sidechain
 
 Zsh:
-  sidechain-cli completion zsh > /usr/local/share/zsh/site-functions/_sidechain-cli
+  sidechain completion zsh > /usr/local/share/zsh/site-functions/_sidechain
 
 Fish:
-  sidechain-cli completion fish > ~/.config/fish/completions/sidechain-cli.fish
+  sidechain completion fish > ~/.config/fish/completions/sidechain.fish
 
 PowerShell:
-  sidechain-cli completion powershell >> $PROFILE
+  sidechain completion powershell >> $PROFILE
 `,
 	ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
