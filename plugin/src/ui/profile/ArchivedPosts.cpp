@@ -36,6 +36,9 @@ ArchivedPosts::ArchivedPosts() {
 
 ArchivedPosts::~ArchivedPosts() {
   scrollBar.removeListener(this);
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+  }
 }
 
 //==============================================================================
@@ -119,18 +122,46 @@ void ArchivedPosts::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void ArchivedPosts::loadArchivedPosts() {
-  archivedPosts.clear();
-  currentOffset = 0;
-  hasMore = true;
-  errorMessage.clear();
-  postCards.clear();
+void ArchivedPosts::setArchivedPostsStore(std::shared_ptr<Sidechain::Stores::ArchivedPostsStore> store) {
+  // Unsubscribe from old store
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+  }
 
-  fetchArchivedPosts();
+  archivedPostsStore = store;
+
+  if (archivedPostsStore) {
+    // Subscribe to store updates
+    storeUnsubscriber = archivedPostsStore->subscribe([this](const Sidechain::Stores::ArchivedPostsState &state) {
+      archivedPosts = state.posts;
+      isLoading = state.isLoading;
+      errorMessage = state.error;
+      rebuildPostCards();
+      repaint();
+    });
+  }
+}
+
+void ArchivedPosts::loadArchivedPosts() {
+  if (archivedPostsStore) {
+    archivedPostsStore->loadArchivedPosts();
+  } else if (networkClient) {
+    // Fallback to direct network client if store not available
+    archivedPosts.clear();
+    currentOffset = 0;
+    hasMore = true;
+    errorMessage.clear();
+    postCards.clear();
+    fetchArchivedPosts();
+  }
 }
 
 void ArchivedPosts::refresh() {
-  loadArchivedPosts();
+  if (archivedPostsStore) {
+    archivedPostsStore->refreshArchivedPosts();
+  } else if (networkClient) {
+    loadArchivedPosts();
+  }
 }
 
 //==============================================================================
@@ -185,7 +216,8 @@ void ArchivedPosts::drawHeader(juce::Graphics &g) {
 
   // Bottom border
   g.setColour(Colors::border());
-  g.drawLine(bounds.getX(), bounds.getBottom() - 1, bounds.getRight(), bounds.getBottom() - 1, 1.0f);
+  g.drawLine(static_cast<float>(bounds.getX()), static_cast<float>(bounds.getBottom() - 1),
+             static_cast<float>(bounds.getRight()), static_cast<float>(bounds.getBottom() - 1), 1.0f);
 }
 
 void ArchivedPosts::drawLoadingState(juce::Graphics &g, juce::Rectangle<int> bounds) {
@@ -269,7 +301,7 @@ void ArchivedPosts::fetchArchivedPosts() {
 }
 
 void ArchivedPosts::loadMoreIfNeeded() {
-  if (isLoading || !hasMore)
+  if (isLoading)
     return;
 
   auto contentHeight = calculateContentHeight();
@@ -278,7 +310,12 @@ void ArchivedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("ArchivedPosts: Loading more posts...");
-    fetchArchivedPosts();
+    if (archivedPostsStore) {
+      archivedPostsStore->loadMoreArchivedPosts();
+    } else if (networkClient) {
+      // Fallback to direct network client
+      fetchArchivedPosts();
+    }
   }
 }
 
@@ -357,27 +394,30 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
 
   // Handle unarchive - restore post to visible
   card->onArchiveToggled = [this](const FeedPost &post, bool archived) {
-    if (!archived && networkClient != nullptr) {
-      Log::info("ArchivedPosts: Unarchiving post: " + post.id);
-
-      networkClient->unarchivePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
-        if (result.isError()) {
-          Log::error("ArchivedPosts: Failed to unarchive post: " + result.getError());
-          return;
-        }
-
-        // Remove from list
-        juce::MessageManager::callAsync([this, postId]() {
-          for (int i = 0; i < archivedPosts.size(); ++i) {
-            if (archivedPosts[i].id == postId) {
-              archivedPosts.remove(i);
-              rebuildPostCards();
-              repaint();
-              break;
-            }
+    if (!archived) {
+      if (archivedPostsStore) {
+        Log::info("ArchivedPosts: Unarchiving post: " + post.id);
+        archivedPostsStore->restorePost(post.id);
+      } else if (networkClient != nullptr) {
+        Log::info("ArchivedPosts: Unarchiving post: " + post.id);
+        networkClient->unarchivePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
+          if (result.isError()) {
+            Log::error("ArchivedPosts: Failed to unarchive post: " + result.getError());
+            return;
           }
+          // Remove from list
+          juce::MessageManager::callAsync([this, postId]() {
+            for (int i = 0; i < archivedPosts.size(); ++i) {
+              if (archivedPosts[i].id == postId) {
+                archivedPosts.remove(i);
+                rebuildPostCards();
+                repaint();
+                break;
+              }
+            }
+          });
         });
-      });
+      }
     }
   };
 
