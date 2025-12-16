@@ -23,7 +23,7 @@ enum class FeedState { Loading, Loaded, Empty, Error };
 static FeedState feedState = FeedState::Loading;
 
 //==============================================================================
-PostsFeed::PostsFeed(Sidechain::Stores::FeedStore *feedStore) : feedStore(feedStore) {
+PostsFeed::PostsFeed(Sidechain::Stores::FeedStore *store) : feedStore(store) {
   using namespace Sidechain::Stores;
 
   Log::info("PostsFeed: Initializing feed component");
@@ -197,7 +197,23 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
           case FeedType::Trending:
             source = "trending";
             break;
-          default:
+          case FeedType::Timeline:
+            source = "timeline";
+            break;
+          case FeedType::Global:
+            source = "global";
+            break;
+          case FeedType::TimelineAggregated:
+            source = "timeline-aggregated";
+            break;
+          case FeedType::TrendingAggregated:
+            source = "trending-aggregated";
+            break;
+          case FeedType::NotificationAggregated:
+            source = "notification-aggregated";
+            break;
+          case FeedType::UserActivityAggregated:
+            source = "user-activity-aggregated";
             break;
           }
 
@@ -248,7 +264,7 @@ void PostsFeed::setAudioPlayer(HttpAudioPlayer *player) {
       if (it != playbackStartTimes.end() && networkClient != nullptr) {
         juce::Time startTime = it->second;
         juce::Time endTime = juce::Time::getCurrentTime();
-        double durationSeconds = (endTime.toMilliseconds() - startTime.toMilliseconds()) / 1000.0;
+        double durationSeconds = static_cast<double>(endTime.toMilliseconds() - startTime.toMilliseconds()) / 1000.0;
 
         Log::debug("PostsFeedComponent: Playback duration calculated - postId: " + postId +
                    ", duration: " + juce::String(durationSeconds, 2) + "s");
@@ -829,13 +845,13 @@ void PostsFeed::rebuildPostCards() {
           onNavigateToProfile(userId);
       };
 
-      card->onPlayClicked = [this](const juce::String &postId) {
+      card->onPlayClicked = [this](const juce::String &playPostId) {
         // Find the post and play it
-        const auto &groups = feedStore->getState().getCurrentAggregatedFeed().groups;
-        for (const auto &g : groups) {
-          for (const auto &post : g.activities) {
-            if (post.id == postId && audioPlayer && post.audioUrl.isNotEmpty()) {
-              audioPlayer->loadAndPlay(post.id, post.audioUrl);
+        const auto &playGroups = feedStore->getState().getCurrentAggregatedFeed().groups;
+        for (const auto &g : playGroups) {
+          for (const auto &playPost : g.activities) {
+            if (playPost.id == playPostId && audioPlayer && playPost.audioUrl.isNotEmpty()) {
+              audioPlayer->loadAndPlay(playPost.id, playPost.audioUrl);
               return;
             }
           }
@@ -1036,10 +1052,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
         Log::info("PostsFeedComponent: More like this clicked for post: " + post.id);
         if (networkClient != nullptr) {
           // Fetch similar posts and show in feed
-          networkClient->getSimilarPosts(post.id, 20, [post](Outcome<juce::var> result) {
-            if (result.isOk()) {
+          networkClient->getSimilarPosts(post.id, 20, [post](Outcome<juce::var> similarResult) {
+            if (similarResult.isOk()) {
               // Parse similar posts and show in feed
-              auto data = result.getValue();
+              auto data = similarResult.getValue();
               if (data.isObject()) {
                 auto activities = data.getProperty("activities", juce::var());
                 if (activities.isArray()) {
@@ -1057,17 +1073,12 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                 }
               }
             } else {
-              Log::error("PostsFeedComponent: Failed to get similar posts: " + result.getError());
+              Log::error("PostsFeedComponent: Failed to get similar posts: " + similarResult.getError());
               juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
                                                      "Failed to load similar posts. Please try again.");
             }
           });
         }
-      } else if (result == 2) {
-        // Copy link
-        juce::String shareUrl = "https://sidechain.live/post/" + post.id;
-        juce::SystemClipboard::copyTextToClipboard(shareUrl);
-        Log::info("PostsFeedComponent: Copied post link to clipboard");
       } else if (result == 2) {
         // Copy link
         juce::String shareUrl = "https://sidechain.live/post/" + post.id;
@@ -1082,10 +1093,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                            .withButton("Delete")
                            .withButton("Cancel");
 
-        juce::AlertWindow::showAsync(options, [this, post](int deleteResult) {
-          if (deleteResult == 1 && networkClient != nullptr) {
-            networkClient->deletePost(post.id, [postId = post.id](Outcome<juce::var> result) {
-              if (result.isOk()) {
+        juce::AlertWindow::showAsync(options, [this, post](int confirmResult) {
+          if (confirmResult == 1 && networkClient != nullptr) {
+            networkClient->deletePost(post.id, [postId = post.id](Outcome<juce::var> deleteResult) {
+              if (deleteResult.isOk()) {
                 Log::info("PostsFeedComponent: Post deleted successfully - " + postId);
                 // Task 2.6: Post deletion now handled by FeedStore subscription
                 // The feed will automatically update when the delete succeeds
@@ -1094,16 +1105,16 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                                                          "Your post has been deleted successfully.");
                 });
               } else {
-                Log::error("PostsFeedComponent: Failed to delete post - " + result.getError());
-                juce::MessageManager::callAsync([result]() {
+                Log::error("PostsFeedComponent: Failed to delete post - " + deleteResult.getError());
+                juce::MessageManager::callAsync([deleteResult]() {
                   juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
-                                                         "Failed to delete post: " + result.getError());
+                                                         "Failed to delete post: " + deleteResult.getError());
                 });
               }
             });
           }
         });
-      } else if (result == 3 && !post.isOwnPost) {
+      } else if (result == 4) {
         // Report post
         auto options = juce::MessageBoxOptions()
                            .withTitle("Report Post")
@@ -1121,8 +1132,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
             juce::String description = "Reported post: " + post.id;
 
             networkClient->reportPost(
-                post.id, reason, description, [postId = post.id, reason](Outcome<juce::var> result) {
-                  if (result.isOk()) {
+                post.id, reason, description, [postId = post.id, reason](Outcome<juce::var> reportApiResult) {
+                  if (reportApiResult.isOk()) {
                     Log::info("PostsFeedComponent: Post reported successfully - " + postId + ", reason: " + reason);
                     juce::MessageManager::callAsync([]() {
                       juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Report Submitted",
@@ -1130,10 +1141,10 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
                                                              "it shortly.");
                     });
                   } else {
-                    Log::error("PostsFeedComponent: Failed to report post - " + result.getError());
-                    juce::MessageManager::callAsync([result]() {
+                    Log::error("PostsFeedComponent: Failed to report post - " + reportApiResult.getError());
+                    juce::MessageManager::callAsync([reportApiResult]() {
                       juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
-                                                             "Failed to report post: " + result.getError());
+                                                             "Failed to report post: " + reportApiResult.getError());
                     });
                   }
                 });
@@ -1374,17 +1385,17 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           }
         }
 
-        menu.showMenuAsync(juce::PopupMenu::Options(), [this, post, playlists](int result) {
-          if (result == 1) {
+        menu.showMenuAsync(juce::PopupMenu::Options(), [this, post, playlists](int menuResult) {
+          if (menuResult == 1) {
             // Create new playlist - show message directing user to
             // PlaylistsComponent (Full playlist creation UI is in
             // PlaylistsComponent)
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Create Playlist",
                                                    "Please go to Playlists to create a new playlist, then add "
                                                    "this track.");
-          } else if (result >= 3 && result - 3 < playlists.size()) {
+          } else if (menuResult >= 3 && menuResult - 3 < static_cast<int>(playlists.size())) {
             // Add to selected playlist
-            int index = result - 3;
+            int index = menuResult - 3;
 
             // Extract post ID from foreignId (format: "loop:uuid")
             juce::String postId = post.foreignId;
@@ -1461,16 +1472,16 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
           }
         }
 
-        menu.showMenuAsync(juce::PopupMenu::Options(), [this, post, playlists](int result) {
-          if (result == 1) {
+        menu.showMenuAsync(juce::PopupMenu::Options(), [this, post, playlists](int menuResult) {
+          if (menuResult == 1) {
             // Create new playlist - navigate to playlists view (user can create
             // there) For now, just show a message
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "Create Playlist",
                                                    "Please go to Playlists to create a new playlist, then add "
                                                    "this track.");
-          } else if (result >= 3 && result - 3 < playlists.size()) {
+          } else if (menuResult >= 3 && menuResult - 3 < static_cast<int>(playlists.size())) {
             // Add to selected playlist
-            int index = result - 3;
+            int index = menuResult - 3;
 
             // Extract post ID from foreignId (format: "loop:uuid")
             juce::String postId = post.foreignId;
@@ -1632,8 +1643,8 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
         for (int i = 0; i < chain.size(); ++i) {
           auto item = chain[i];
-          juce::String type = Json::getString(item, "type");
-          juce::String username = Json::getString(item, "username");
+          juce::String itemType = Json::getString(item, "type");
+          juce::String itemUsername = Json::getString(item, "username");
           bool isCurrent = Json::getBool(item, "is_current");
           int depth = Json::getInt(item, "depth", 0);
 
@@ -1644,9 +1655,9 @@ void PostsFeed::setupPostCardCallbacks(PostCard *card) {
 
           juce::String arrow = (i > 0) ? "└→ " : "";
           juce::String marker = isCurrent ? " [YOU ARE HERE]" : "";
-          juce::String typeLabel = (type == "story") ? "(story)" : "";
+          juce::String typeLabel = (itemType == "story") ? "(story)" : "";
 
-          chainText += indent + arrow + "@" + username + " " + typeLabel + marker + "\n";
+          chainText += indent + arrow + "@" + itemUsername + " " + typeLabel + marker + "\n";
         }
 
         // Show the chain in a dialog
@@ -2016,11 +2027,13 @@ void PostsFeed::showCommentsForPost(const FeedPost &post) {
   currentCommentsPanelSlide = 0.0f;
   commentsPanelAnimation = TransitionAnimation<float>::create(0.0f, 1.0f, 250)
                                ->withEasing(Easing::easeOutCubic)
-                               ->onProgress([this](float slide) {
+                               ->onProgress([this](float slideProgress) {
                                  if (commentsPanel != nullptr) {
-                                   int panelWidth = juce::jmin(400, static_cast<int>(getWidth() * 0.4));
-                                   int targetX = static_cast<int>(getWidth() - panelWidth * slide);
-                                   commentsPanel->setBounds(targetX, 0, panelWidth, getHeight());
+                                   int slidePanelWidth =
+                                       juce::jmin(400, static_cast<int>(static_cast<float>(getWidth()) * 0.4f));
+                                   int targetX = static_cast<int>(static_cast<float>(getWidth()) -
+                                                                  static_cast<float>(slidePanelWidth) * slideProgress);
+                                   commentsPanel->setBounds(targetX, 0, slidePanelWidth, getHeight());
                                  }
                                  repaint();
                                })
