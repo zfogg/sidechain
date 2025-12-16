@@ -77,7 +77,7 @@ export function PerformanceMonitor() {
           {/* Slow API Calls */}
           {slowCalls.length > 0 && (
             <div className="mb-4 pb-4 border-t border-border">
-              <h3 className="font-bold text-amber-500 mb-2">Slow API Calls (>1s)</h3>
+              <h3 className="font-bold text-amber-500 mb-2">Slow API Calls (&gt;1s)</h3>
               <div className="space-y-1 text-muted-foreground">
                 {slowCalls.map((m, i) => (
                   <div key={i} className="text-xs">
