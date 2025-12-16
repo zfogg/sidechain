@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include <chrono>
 #include <any>
+#include <functional>
+#include <rxcpp/rx.hpp>
 
 namespace Sidechain {
 namespace Stores {
@@ -379,12 +381,12 @@ public:
   // Image Service Operations (File Cache: memory → file → network)
 
   /**
-   * Load image from URL with automatic multi-tier caching (Reactive).
+   * Load image from URL asynchronously with automatic multi-tier caching (Reactive).
    *
    * @param url Image URL
-   * @return rx::observable<Image> - emits loaded image when available
+   * @return rxcpp::observable<Image> - emits loaded image when available
    */
-  rx::observable<juce::Image> loadImageObservable(const juce::String &url);
+  rxcpp::observable<juce::Image> loadImageObservable(const juce::String &url);
 
   /**
    * Get image from cache synchronously (no network).
@@ -396,12 +398,12 @@ public:
   // Audio Service Operations (File Cache: file → network)
 
   /**
-   * Load audio file from URL with disk caching (Reactive).
+   * Load audio file from URL asynchronously with disk caching (Reactive).
    *
    * @param url Audio URL
-   * @return rx::observable<File> - emits file path when available
+   * @return rxcpp::observable<File> - emits file path when available
    */
-  rx::observable<juce::File> loadAudioObservable(const juce::String &url);
+  rxcpp::observable<juce::File> loadAudioObservable(const juce::String &url);
 
   /**
    * Get audio file from cache synchronously (no network).
