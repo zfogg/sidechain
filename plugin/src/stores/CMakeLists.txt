@@ -40,6 +40,8 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ChallengeStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PlaylistStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PlaylistStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FollowersStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FollowersStore.h
 )
 
 # Include directories
