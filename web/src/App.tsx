@@ -3,6 +3,7 @@ import { QueryProvider } from '@/providers/QueryProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ChatProvider } from '@/providers/ChatProvider'
 import { useUserStore } from '@/stores/useUserStore'
+import { Navigation } from '@/components/layout/Navigation'
 
 // Pages
 import { Login } from '@/pages/Login'
@@ -12,6 +13,8 @@ import { Feed } from '@/pages/Feed'
 import { Settings } from '@/pages/Settings'
 import { Upload } from '@/pages/Upload'
 import { Profile } from '@/pages/Profile'
+import { Notifications } from '@/pages/Notifications'
+import { Messages } from '@/pages/Messages'
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -27,6 +30,89 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * AppContent - Routes and Navigation
+ */
+function AppContent() {
+  const { isAuthenticated } = useUserStore()
+
+  return (
+    <>
+      {isAuthenticated && <Navigation />}
+      <Routes>
+        {/* Auth Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/claim/:deviceId" element={<DeviceClaim />} />
+
+        {/* Feed Routes (Protected) */}
+        <Route
+          path="/feed"
+          element={
+            <ProtectedRoute>
+              <Feed />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Settings Routes (Protected) */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Notifications Routes (Protected) */}
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Messages Routes (Protected) */}
+        <Route
+          path="/messages/:channelId?"
+          element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Upload Routes (Protected) */}
+        <Route
+          path="/upload"
+          element={
+            <ProtectedRoute>
+              <Upload />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Profile Routes (Protected) */}
+        <Route
+          path="/profile/:username"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Placeholder for other routes */}
+        <Route path="/" element={<Navigate to="/feed" replace />} />
+        <Route path="*" element={<Navigate to="/feed" replace />} />
+      </Routes>
+    </>
+  )
+}
+
+/**
  * App - Root component with routing and providers
  */
 function App() {
@@ -35,56 +121,7 @@ function App() {
       <QueryProvider>
         <AuthProvider>
           <ChatProvider>
-            <Routes>
-            {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/claim/:deviceId" element={<DeviceClaim />} />
-
-            {/* Feed Routes (Protected) */}
-            <Route
-              path="/feed"
-              element={
-                <ProtectedRoute>
-                  <Feed />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Settings Routes (Protected) */}
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Upload Routes (Protected) */}
-            <Route
-              path="/upload"
-              element={
-                <ProtectedRoute>
-                  <Upload />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Profile Routes (Protected) */}
-            <Route
-              path="/profile/:username"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Placeholder for other routes */}
-            <Route path="/" element={<Navigate to="/feed" replace />} />
-            <Route path="*" element={<Navigate to="/feed" replace />} />
-            </Routes>
+            <AppContent />
           </ChatProvider>
         </AuthProvider>
       </QueryProvider>
