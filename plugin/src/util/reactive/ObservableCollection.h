@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include "../Log.h"
 
 namespace Sidechain {
 namespace Util {
@@ -450,7 +451,7 @@ public:
    */
   void set(const K &key, const V &value) {
     V oldValue;
-    [[maybe_unused]] bool existed = false;
+    bool existed = false;
 
     {
       std::lock_guard<std::mutex> lock(mutex);
@@ -464,6 +465,14 @@ public:
         items[key] = value;
         notifyItemAdded(key, value);
       }
+    }
+
+    // Track collection mutations using the existed flag
+    // This enables logging and debugging of collection changes
+    if (existed) {
+      Log::debug("ObservableMap::set: Item updated (key exists)");
+    } else {
+      Log::debug("ObservableMap::set: Item added (new key)");
     }
   }
 

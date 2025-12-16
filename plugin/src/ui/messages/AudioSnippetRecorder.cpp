@@ -103,8 +103,21 @@ void AudioSnippetRecorder::mouseDown(const juce::MouseEvent &event) {
   }
 }
 
-void AudioSnippetRecorder::mouseUp([[maybe_unused]] const juce::MouseEvent &event) {
-  // For hold-to-record, we could implement here, but for now using toggle
+void AudioSnippetRecorder::mouseUp(const juce::MouseEvent &event) {
+  // Handle mouse up event - supports both toggle and hold-to-record patterns
+  if (isRecording()) {
+    // Log event coordinates and current recording duration
+    double duration = getRecordingDuration();
+    Log::debug("AudioSnippetRecorder: Mouse released at (" + juce::String(event.x) + ", " + juce::String(event.y) +
+              ") - recording duration: " + juce::String(duration, 2) + "s");
+
+    // Check if mouse was released over the record button area
+    if (event.x >= recordButtonArea.getX() && event.x < recordButtonArea.getRight() &&
+        event.y >= recordButtonArea.getY() && event.y < recordButtonArea.getBottom()) {
+      // Mouse released over button - finalize recording and show preview
+      stopRecording();
+    }
+  }
 }
 
 //==============================================================================

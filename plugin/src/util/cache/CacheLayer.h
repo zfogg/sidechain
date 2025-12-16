@@ -461,9 +461,16 @@ public:
    * @param diskDir Directory for disk cache
    * @param diskMaxMB Maximum disk cache size in MB
    */
-  MultiTierCache(size_t memoryMaxBytes, [[maybe_unused]] const juce::File &diskDir,
-                 [[maybe_unused]] size_t diskMaxMB = 1024)
-      : memoryCache_(memoryMaxBytes, 10000) {}
+  MultiTierCache(size_t memoryMaxBytes, const juce::File &diskDir, size_t diskMaxMB = 1024)
+      : memoryCache_(memoryMaxBytes, 10000), diskDir_(diskDir), diskMaxMB_(diskMaxMB) {
+    // Initialize disk cache directory if provided
+    if (diskDir.existsAsDirectory()) {
+      Log::debug("MultiTierCache: Disk cache directory initialized at " + diskDir.getFullPathName() +
+                 " with max size " + juce::String(static_cast<int>(diskMaxMB)) + "MB");
+    } else if (!diskDir.getFullPathName().isEmpty()) {
+      Log::warn("MultiTierCache: Disk cache directory does not exist: " + diskDir.getFullPathName());
+    }
+  }
 
   virtual ~MultiTierCache() = default;
 
@@ -530,15 +537,21 @@ public:
 
 private:
   MemoryCache<K, V> memoryCache_;
+  juce::File diskDir_;
+  size_t diskMaxMB_ = 0;
   mutable size_t hitCount_ = 0;
   mutable size_t missCount_ = 0;
 
   /**
    * Estimate size of a value
    */
-  size_t estimateSize([[maybe_unused]] const V &value) const {
-    // Default: estimate as 1KB
-    return 1024;
+  size_t estimateSize(const V &value) const {
+    // Use sizeof for basic types, otherwise use reasonable estimate
+    size_t baseSize = sizeof(V);
+    // For string-like types, add estimated content size
+    // This is a heuristic - real implementation would need type specialization
+    size_t estimatedSize = baseSize + 512; // Add buffer for potential dynamic content
+    return estimatedSize;
   }
 
   void statsHit() {

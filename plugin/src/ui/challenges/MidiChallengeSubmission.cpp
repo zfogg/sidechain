@@ -524,11 +524,57 @@ int MidiChallengeSubmission::countMIDINotes(const juce::var &midi) const {
   return noteCount;
 }
 
-bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi,
-                                             [[maybe_unused]] const juce::String &requiredScale) const {
-  // Simplified scale check - would need proper scale validation
-  // For now, just return true if MIDI data exists
-  return !midi.isVoid() && midi.hasProperty("events");
+bool MidiChallengeSubmission::checkMIDIScale(const juce::var &midi, const juce::String &requiredScale) const {
+  // Validate MIDI against the required scale
+  if (midi.isVoid() || !midi.hasProperty("events")) {
+    return false;
+  }
+
+  auto events = midi.getProperty("events", juce::var());
+  if (!events.isArray()) {
+    return false;
+  }
+
+  // Define scale note mappings (C=0, C#=1, D=2, etc.)
+  // Common scales: Major, Minor, Pentatonic, Blues, Dorian, Phrygian, etc.
+  std::map<juce::String, std::set<int>> scaleNotes;
+  scaleNotes["Major"] = {0, 2, 4, 5, 7, 9, 11};      // Ionian
+  scaleNotes["Minor"] = {0, 2, 3, 5, 7, 8, 10};      // Aeolian
+  scaleNotes["Pentatonic"] = {0, 2, 4, 7, 9};        // Major Pentatonic
+  scaleNotes["Blues"] = {0, 3, 5, 6, 7, 10};         // Blues
+  scaleNotes["Dorian"] = {0, 2, 3, 5, 7, 9, 10};     // Dorian
+  scaleNotes["Phrygian"] = {0, 1, 3, 5, 7, 8, 10};   // Phrygian
+
+  // Get the allowed notes for this scale (if scale is recognized)
+  auto it = scaleNotes.find(requiredScale);
+  if (it == scaleNotes.end()) {
+    Log::warn("MidiChallengeSubmission: Unknown scale: " + requiredScale);
+    return true; // Unknown scale - accept all notes
+  }
+
+  auto &allowedNotes = it->second;
+
+  // Check each MIDI note event
+  for (int i = 0; i < events.size(); ++i) {
+    auto event = events[i];
+    if (event.hasProperty("type")) {
+      juce::String type = Json::getString(event, "type");
+      if (type == "note_on" || type == "noteOn") {
+        if (event.hasProperty("note")) {
+          int midiNote = static_cast<int>(event.getProperty("note", juce::var(0)));
+          int noteInScale = midiNote % 12; // Normalize to 0-11
+          if (allowedNotes.find(noteInScale) == allowedNotes.end()) {
+            Log::warn("MidiChallengeSubmission: MIDI note " + juce::String(midiNote) + " (scale degree " +
+                     juce::String(noteInScale) + ") is not in scale " + requiredScale);
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  Log::info("MidiChallengeSubmission: All MIDI notes are valid for scale " + requiredScale);
+  return true;
 }
 
 void MidiChallengeSubmission::submitEntry(const juce::String &postId, const juce::String &audioUrl) {
