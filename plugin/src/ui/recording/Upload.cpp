@@ -58,6 +58,7 @@ void Upload::bindToStore(std::shared_ptr<Sidechain::Stores::UploadStore> store) 
   Log::debug("Upload: Binding to UploadStore");
 
   uploadStore = store;
+  jassert(uploadStore != nullptr); // UploadStore is required
   if (!uploadStore)
     return;
 
@@ -1084,100 +1085,38 @@ void Upload::startUpload() {
   Log::debug("Upload::startUpload: State changed to Uploading, progress: 10%");
   repaint();
 
-  // Build metadata struct for uploadAudioWithMetadata
+  // Validate store is available
+  jassert(uploadStore != nullptr);
+  if (!uploadStore) {
+    uploadState = UploadState::Error;
+    errorMessage = "Upload store not initialized";
+    repaint();
+    return;
+  }
+
+  Log::info("Upload::startUpload: Delegating to UploadStore");
+
+  // Extract key and genre strings for store
   auto &keys = getMusicalKeys();
+  auto keyStr = selectedKeyIndex > 0 && selectedKeyIndex < static_cast<int>(keys.size())
+                    ? keys[static_cast<size_t>(selectedKeyIndex)].shortName
+                    : "";
   auto &genres = getGenres();
-
-  NetworkClient::AudioUploadMetadata metadata;
-  metadata.filename = filename;
-  metadata.bpm = bpm;
-  metadata.key = selectedKeyIndex > 0 && selectedKeyIndex < static_cast<int>(keys.size())
-                     ? keys[static_cast<size_t>(selectedKeyIndex)].shortName
-                     : "";
-  metadata.genre =
+  auto genreStr =
       selectedGenreIndex < static_cast<int>(genres.size()) ? genres[static_cast<size_t>(selectedGenreIndex)] : "";
-  metadata.durationSeconds = static_cast<double>(audioBuffer.getNumSamples()) / audioSampleRate;
-  metadata.sampleRate = static_cast<int>(audioSampleRate);
-  metadata.numChannels = audioBuffer.getNumChannels();
 
-  // Include MIDI data if available (R.3.3 Cross-DAW MIDI Collaboration)
-  metadata.midiData = midiData;
-  metadata.includeMidi = includeMidi && !midiData.isVoid();
+  // Call uploadStore->startUpload which will handle the network request
+  // The store will notify us via subscription with progress/success/error updates
+  uploadStore->startUpload(filename, genreStr, keyStr, bpm, audioBuffer, audioSampleRate);
 
-  // Include project file if selected (R.3.4 Project File Exchange)
-  metadata.projectFile = projectFile;
-  metadata.includeProjectFile = includeProjectFile && projectFile.existsAsFile();
+  // Store upload details for success preview
+  lastUploadedFilename = filename;
+  lastUploadedGenre = genreStr;
+  lastUploadedBpm = bpm;
 
-  // Include comment audience setting
-  auto &audiences = getCommentAudiences();
-  metadata.commentAudience = selectedCommentAudienceIndex < static_cast<int>(audiences.size())
-                                 ? audiences[static_cast<size_t>(selectedCommentAudienceIndex)].value
-                                 : "everyone";
-
-  Log::info("Upload::startUpload: Upload metadata - filename: \"" + filename + "\", BPM: " + juce::String(bpm, 1) +
-            ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " +
-            juce::String(metadata.durationSeconds, 2) + "s, sampleRate: " + juce::String(metadata.sampleRate) +
-            "Hz, channels: " + juce::String(metadata.numChannels) +
-            ", includeMidi: " + (metadata.includeMidi ? "yes" : "no") + ", includeProjectFile: " +
-            (metadata.includeProjectFile ? "yes" : "no") + ", commentAudience: " + metadata.commentAudience);
-
-  // Simulate progress updates while waiting for upload
-  // (JUCE's URL class doesn't provide progress callbacks)
-  // Store timer IDs so we can cancel them if user cancels
-  progressTimer500ms = Async::delay(500, [this]() {
-    if (uploadState == UploadState::Uploading) {
-      uploadProgress = 0.3f;
-      Log::debug("Upload::startUpload: Progress update: 30%");
-      repaint();
-    }
-    progressTimer500ms = 0; // Clear ID after execution
-  });
-  progressTimer1000ms = Async::delay(1000, [this]() {
-    if (uploadState == UploadState::Uploading) {
-      uploadProgress = 0.6f;
-      Log::debug("Upload::startUpload: Progress update: 60%");
-      repaint();
-    }
-    progressTimer1000ms = 0; // Clear ID after execution
-  });
-
-  // Start async upload with full metadata
-  Log::info("Upload::startUpload: Calling networkClient.uploadAudioWithMetadata");
-  networkClient.uploadAudioWithMetadata(
-      audioBuffer, audioSampleRate, metadata,
-      [this, savedFilename = filename, savedGenre = metadata.genre,
-       savedBpm = bpm](Outcome<juce::String> uploadResult) {
-        juce::MessageManager::callAsync([this, uploadResult, savedFilename, savedGenre, savedBpm]() {
-          if (uploadResult.isOk()) {
-            auto audioUrl = uploadResult.getValue();
-            uploadState = UploadState::Success;
-            uploadProgress = 1.0f;
-            lastUploadedFilename = savedFilename;
-            lastUploadedGenre = savedGenre;
-            lastUploadedBpm = savedBpm;
-            lastUploadedUrl = audioUrl;
-            Log::info("Upload::startUpload: Upload successful - URL: " + audioUrl);
-            Log::info("Upload::startUpload: Upload details - Filename: \"" + savedFilename +
-                      "\", Genre: " + savedGenre + ", BPM: " + juce::String(savedBpm, 1));
-
-            // Auto-dismiss after 3 seconds (longer to show success preview)
-            successDismissTimer = Async::delay(3000, [this]() {
-              if (uploadState == UploadState::Success && onUploadComplete) {
-                Log::debug("Upload::startUpload: Auto-dismissing success "
-                           "state, calling onUploadComplete");
-                onUploadComplete();
-              }
-              successDismissTimer = 0; // Clear ID after execution
-            });
-          } else {
-            uploadState = UploadState::Error;
-            errorMessage = "Upload failed: " + uploadResult.getError();
-            uploadProgress = 0.0f;
-            Log::error("Upload::startUpload: Upload failed");
-          }
-          repaint();
-        });
-      });
+  // Auto-dismiss success after 3 seconds (longer to show success preview)
+  // This will be called by store subscription when uploadState changes to Success
+  // TODO: Phase 2 - Implement actual upload in UploadStore with NetworkClient integration
 }
 
 bool Upload::keyPressed(const juce::KeyPress &key) {
