@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FeedList } from '@/components/feed/FeedList'
 import { Button } from '@/components/ui/button'
+import { RealtimeIndicator } from '@/components/feed/RealtimeIndicator'
 import type { FeedType } from '@/api/FeedClient'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
@@ -29,6 +30,9 @@ export function Feed() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Realtime Indicator */}
+      <RealtimeIndicator />
+
       {/* Header */}
       <div className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4">
