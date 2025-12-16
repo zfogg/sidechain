@@ -6,6 +6,7 @@ import { FeedList } from '@/components/feed/FeedList'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
+import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 
 interface ProfileUser {
   id: string
@@ -111,19 +112,25 @@ export function Profile() {
                   <p className="text-muted-foreground text-lg">@{profile.username}</p>
                 </div>
 
-                {/* Follow Button */}
+                {/* Follow & Message Buttons */}
                 {!profile.isOwnProfile && (
-                  <Button
-                    onClick={handleFollow}
-                    disabled={isFollowPending}
-                    className={`h-10 px-6 font-semibold transition-all ${
-                      profile.isFollowing
-                        ? 'bg-bg-secondary/80 border border-border/50 text-foreground hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'
-                        : 'bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white'
-                    }`}
-                  >
-                    {profile.isFollowing ? 'Following' : 'Follow'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleFollow}
+                      disabled={isFollowPending}
+                      className={`h-10 px-6 font-semibold transition-all ${
+                        profile.isFollowing
+                          ? 'bg-bg-secondary/80 border border-border/50 text-foreground hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-400'
+                          : 'bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white'
+                      }`}
+                    >
+                      {profile.isFollowing ? 'Following' : 'Follow'}
+                    </Button>
+                    <DirectMessageButton
+                      userId={profile.id}
+                      displayName={profile.displayName}
+                    />
+                  </div>
                 )}
 
                 {/* Edit Profile Button */}
