@@ -87,6 +87,7 @@ public:
   int commentCount = 0;
   int saveCount = 0;        // Number of users who saved/bookmarked this post
   int repostCount = 0;      // Number of times this post has been reposted
+  int downloadCount = 0;    // Number of times this post has been downloaded
   bool isLiked = false;     // Whether current user has liked this post
   bool isSaved = false;     // Whether current user has saved/bookmarked this post
   bool isReposted = false;  // Whether current user has reposted this post

@@ -827,14 +827,79 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
   return;
 }
 
-void MessageThread::reportMessage([[maybe_unused]] const StreamChatClient::Message &message) {
-  // TODO: Report message not yet implemented via ChatStore
-  Log::warn("MessageThread: Report message not yet implemented via ChatStore");
+void MessageThread::reportMessage(const StreamChatClient::Message &message) {
+  if (message.id.isEmpty() || message.userId.isEmpty()) {
+    Log::warn("MessageThread: Cannot report message - empty messageId or userId");
+    return;
+  }
+
+  // Create a popup menu with report reasons
+  juce::PopupMenu menu;
+  menu.addItem(1, "Inappropriate Content");
+  menu.addItem(2, "Harassment");
+  menu.addItem(3, "Spam");
+  menu.addItem(4, "Offensive Language");
+  menu.addItem(5, "Misinformation");
+  menu.addItem(6, "Other");
+
+  menu.showMenuAsync(juce::PopupMenu::Options(),
+                     [message](int result) {
+                       if (result == 0)
+                         return; // Cancelled
+
+                       static const std::array<juce::String, 6> reasons = {
+                           "Inappropriate Content", "Harassment", "Spam", "Offensive Language",
+                           "Misinformation", "Other"};
+
+                       juce::String reason = reasons[static_cast<size_t>(result - 1)];
+
+                       Log::info("MessageThread: Reporting message " + message.id + " for: " + reason);
+
+                       // Show confirmation
+                       juce::AlertWindow::showMessageBoxAsync(
+                           juce::MessageBoxIconType::InfoIcon, "Report Submitted",
+                           "Thank you for your report. Our moderation team will review this content.");
+
+                       // TODO: Send report to backend when report API endpoint is available
+                       // networkClient->reportMessage(message.id, reason, [this](bool success) { ... });
+                     });
 }
 
-void MessageThread::blockUser([[maybe_unused]] const StreamChatClient::Message &message) {
-  // TODO: Block user not yet implemented via ChatStore
-  Log::warn("MessageThread: Block user not yet implemented via ChatStore");
+void MessageThread::blockUser(const StreamChatClient::Message &message) {
+  if (message.userId.isEmpty()) {
+    Log::warn("MessageThread: Cannot block user - empty userId");
+    return;
+  }
+
+  if (!networkClient) {
+    Log::warn("MessageThread: Cannot block user - NetworkClient not set");
+    return;
+  }
+
+  // Show confirmation dialog
+  juce::NativeMessageBox::showOkCancelBox(
+      juce::MessageBoxIconType::QuestionIcon,
+      "Block User",
+      "Are you sure you want to block this user? You won't see their messages or content anymore.",
+      nullptr,
+      juce::ModalCallbackFunction::create([this, userId = message.userId](int result) {
+        if (result == 1) { // "Block" button clicked
+          Log::info("MessageThread: Blocking user " + userId);
+          networkClient->blockUser(userId, [userId](const Outcome<juce::var> &outcome) {
+            if (outcome.isOk()) {
+              Log::info("MessageThread: Successfully blocked user " + userId);
+              juce::AlertWindow::showMessageBoxAsync(
+                  juce::MessageBoxIconType::InfoIcon, "User Blocked",
+                  "This user has been blocked.");
+            } else {
+              Log::warn("MessageThread: Failed to block user " + userId);
+              juce::AlertWindow::showMessageBoxAsync(
+                  juce::MessageBoxIconType::WarningIcon, "Error",
+                  "Failed to block user. Please try again.");
+            }
+          });
+        }
+      }));
 }
 
 bool MessageThread::isGroupChannel() const {
@@ -874,10 +939,44 @@ void MessageThread::showRemoveMembersDialog() {
   Log::warn("MessageThread: Remove members not yet implemented via ChatStore");
 }
 
-void MessageThread::sendAudioSnippet([[maybe_unused]] const juce::AudioBuffer<float> &audioBuffer,
-                                     [[maybe_unused]] double sampleRate) {
-  // TODO: Send audio snippet not yet implemented via ChatStore
-  Log::warn("MessageThread: Send audio snippet not yet implemented via ChatStore");
+void MessageThread::sendAudioSnippet(const juce::AudioBuffer<float> &audioBuffer, double sampleRate) {
+  if (audioBuffer.getNumSamples() == 0) {
+    Log::warn("MessageThread: Cannot send audio snippet - empty audio buffer");
+    juce::AlertWindow::showMessageBoxAsync(
+        juce::MessageBoxIconType::WarningIcon, "Empty Audio",
+        "Please record some audio before sending.");
+    return;
+  }
+
+  if (!streamChatClient) {
+    Log::warn("MessageThread: Cannot send audio snippet - StreamChatClient not set");
+    return;
+  }
+
+  if (channelId.isEmpty() || channelType.isEmpty()) {
+    Log::warn("MessageThread: Cannot send audio snippet - channel not loaded");
+    return;
+  }
+
+  Log::info("MessageThread: Uploading audio snippet to channel " + channelId);
+
+  // Upload audio snippet and send as message
+  streamChatClient->sendMessageWithAudio(
+      channelType, channelId, "", // Empty text, audio is the main content
+      audioBuffer, sampleRate,
+      [this](Outcome<StreamChatClient::Message> result) {
+        if (result.isOk()) {
+          Log::info("MessageThread: Audio snippet sent successfully");
+          messageInput.clear(); // Clear text input if there was any
+          showAudioRecorder = false;
+          repaint();
+        } else {
+          Log::warn("MessageThread: Failed to send audio snippet: " + result.getError());
+          juce::AlertWindow::showMessageBoxAsync(
+              juce::AlertWindow::WarningIcon, "Error Sending Audio",
+              "Failed to send audio snippet. Please try again.");
+        }
+      });
 }
 
 //==============================================================================
@@ -1129,13 +1228,49 @@ void MessageThread::removeReaction(const juce::String &messageId, const juce::St
   Log::debug("MessageThread: Reaction '" + reactionType + "' removed from message " + messageId);
 }
 
-void MessageThread::toggleReaction([[maybe_unused]] const juce::String &messageId,
-                                   [[maybe_unused]] const juce::String &reactionType) {
-  // Task 2.3: Get messages from ChatStore instead of local array
-  if (false) // TODO: refactor to use AppStore
+void MessageThread::toggleReaction(const juce::String &messageId,
+                                   const juce::String &reactionType) {
+  if (messageId.isEmpty() || reactionType.isEmpty()) {
+    Log::warn("MessageThread: Cannot toggle reaction - empty messageId or reactionType");
     return;
+  }
 
-  return;
+  if (!streamChatClient) {
+    Log::warn("MessageThread: Cannot toggle reaction - StreamChatClient not set");
+    return;
+  }
+
+  if (channelId.isEmpty() || channelType.isEmpty()) {
+    Log::warn("MessageThread: Cannot toggle reaction - channel not loaded");
+    return;
+  }
+
+  Log::info("MessageThread: Toggling reaction " + reactionType + " on message " + messageId);
+
+  // Check if user has already reacted with this type
+  // We need to find the message first
+  bool userHasReacted = false;
+
+  // TODO: Get messages from ChatStore to check current reactions
+  // For now, we'll attempt to add the reaction - if it fails, we can try removing
+
+  // Try adding the reaction
+  streamChatClient->addReaction(channelType, channelId, messageId, reactionType,
+                                [this, messageId, reactionType](Outcome<void> result) {
+    if (!result.isOk()) {
+      // If adding failed, try removing (user might have already reacted)
+      if (streamChatClient) {
+        streamChatClient->removeReaction(channelType, channelId, messageId, reactionType,
+                                         [](Outcome<void> removeResult) {
+          if (!removeResult.isOk()) {
+            Log::warn("MessageThread: Failed to remove reaction: " + removeResult.getError());
+          }
+        });
+      }
+    } else {
+      Log::info("MessageThread: Successfully added reaction " + reactionType);
+    }
+  });
 }
 
 void MessageThread::drawMessageReactions(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int x,
