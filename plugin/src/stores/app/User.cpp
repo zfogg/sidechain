@@ -287,10 +287,25 @@ void AppStore::downloadProfileImage(const juce::String &url) {
   if (url.isEmpty())
     return;
 
+  // Download profile image for current user (get user ID from state)
+  auto currentState = getState();
+  downloadProfileImage(currentState.user.userId, url);
+}
+
+void AppStore::downloadProfileImage(const juce::String &userId, const juce::String &url) {
+  if (userId.isEmpty() || url.isEmpty())
+    return;
+
   updateUserState([](UserState &state) { state.isLoadingImage = true; });
 
+  // Construct backend proxy URL for downloading profile picture
+  // The backend will handle S3 access and stream the image data
+  juce::String proxyUrl = "/api/v1/users/" + userId + "/profile-picture?proxy=true";
+
+  Util::logInfo("AppStore", "Downloading profile image via proxy", "proxyUrl=" + proxyUrl);
+
   // Use getImage which handles all three cache levels automatically
-  getImage(url, [this](const juce::Image &image) {
+  getImage(proxyUrl, [this](const juce::Image &image) {
     updateUserState([image](UserState &state) {
       state.isLoadingImage = false;
       if (image.isValid()) {
@@ -371,10 +386,23 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
     return;
   }
 
+  // Construct full URL if relative path (for API endpoints)
+  juce::String fullUrl = url;
+  if (url.startsWith("/")) {
+    // This is a relative API path, prepend the base URL
+    if (networkClient) {
+      fullUrl = networkClient->getBaseUrl() + url;
+    } else {
+      Util::logWarning("AppStore", "Cannot construct full URL for relative path: " + url);
+      callback(juce::Image());
+      return;
+    }
+  }
+
   // Level 1: Try memory cache first (synchronous, immediate callback)
-  auto memoryImage = imageCache.getImage(url);
+  auto memoryImage = imageCache.getImage(fullUrl);
   if (memoryImage) {
-    Util::logDebug("AppStore", "Image cache hit (memory): " + url);
+    Util::logDebug("AppStore", "Image cache hit (memory): " + fullUrl);
     callback(*memoryImage);
     return;
   }
@@ -382,12 +410,12 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
   // Level 2 & 3: File cache + HTTP download on background thread
   // SidechainImageCache::getImage() checks memory then file automatically
   Async::run<juce::Image>(
-      [this, url]() {
+      [this, fullUrl]() {
         try {
           // Double-check memory cache (in case another thread cached it)
-          auto memoryCheck = imageCache.getImage(url);
+          auto memoryCheck = imageCache.getImage(fullUrl);
           if (memoryCheck) {
-            Util::logDebug("AppStore", "Image cache hit (memory after check): " + url);
+            Util::logDebug("AppStore", "Image cache hit (memory after check): " + fullUrl);
             return *memoryCheck;
           }
 
@@ -395,24 +423,24 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
           // 1. Memory (we already checked, will miss)
           // 2. File cache (returns if found)
           // 3. Auto-promotes file cache hit to memory
-          auto fileImage = imageCache.getImage(url);
+          auto fileImage = imageCache.getImage(fullUrl);
           if (fileImage) {
-            Util::logDebug("AppStore", "Image cache hit (file): " + url);
+            Util::logDebug("AppStore", "Image cache hit (file): " + fullUrl);
             return *fileImage;
           }
 
           // Level 3: Not in memory or file cache, download from HTTP
-          Util::logDebug("AppStore", "Image cache miss, downloading: " + url);
+          Util::logDebug("AppStore", "Image cache miss, downloading: " + fullUrl);
 
-          juce::URL imageUrl(url);
+          juce::URL imageUrl(fullUrl);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
           auto inputStream =
               imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
 #pragma clang diagnostic pop
           if (inputStream == nullptr) {
-            Util::logWarning("AppStore", "Failed to create stream for: " + url);
-            Util::logWarning("AppStore", "Check: URL validity, S3 permissions, network connection");
+            Util::logWarning("AppStore", "Failed to create stream for: " + fullUrl);
+            Util::logWarning("AppStore", "Check: URL validity, network connection, backend availability");
             return juce::Image();
           }
 
@@ -420,23 +448,23 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
           inputStream->readIntoMemoryBlock(imageData);
           auto downloadSize = imageData.getSize();
 
-          Util::logDebug("AppStore", "Downloaded " + juce::String(downloadSize) + " bytes from: " + url);
+          Util::logDebug("AppStore", "Downloaded " + juce::String(downloadSize) + " bytes from: " + fullUrl);
 
           if (imageData.isEmpty()) {
-            Util::logWarning("AppStore", "Image data is empty (0 bytes) for: " + url);
+            Util::logWarning("AppStore", "Image data is empty (0 bytes) for: " + fullUrl);
             return juce::Image();
           }
 
           auto image = juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
           if (!image.isValid()) {
-            Util::logWarning("AppStore", "Failed to decode " + juce::String(downloadSize) + " bytes as image from: " + url);
+            Util::logWarning("AppStore", "Failed to decode " + juce::String(downloadSize) + " bytes as image from: " + fullUrl);
             return juce::Image();
           }
 
           // Cache downloaded image in both memory and file caches
-          imageCache.cacheImage(url, image);
+          imageCache.cacheImage(fullUrl, image);
 
-          Util::logInfo("AppStore", "Image downloaded and cached: " + url);
+          Util::logInfo("AppStore", "Image downloaded and cached: " + fullUrl);
           return image;
         } catch (const std::exception &e) {
           Util::logError("AppStore", "Image fetch error: " + juce::String(e.what()));
