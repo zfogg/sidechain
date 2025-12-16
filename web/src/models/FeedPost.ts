@@ -4,6 +4,51 @@
  * Mirrors C++ FeedPost.h structure
  */
 
+// API DTO Type
+export interface FeedPostJSON {
+  id: string
+  foreign_id?: string
+  actor?: string
+  verb?: string
+  object?: string
+  user_id?: string
+  username?: string
+  display_name?: string
+  user_avatar_url?: string
+  profile_picture_url?: string
+  audio_url: string
+  waveform_url?: string
+  filename: string
+  duration_seconds?: number
+  duration?: number
+  bpm?: number
+  key?: string
+  daw?: string
+  genre?: string[]
+  reaction_counts?: Record<string, number>
+  like_count?: number
+  play_count?: number
+  playback_count?: number
+  comment_count?: number
+  comments_count?: number
+  save_count?: number
+  saved_count?: number
+  repost_count?: number
+  reposts_count?: number
+  own_reactions?: Record<string, string[]>
+  is_liked?: boolean
+  is_saved?: boolean
+  saved?: boolean
+  is_reposted?: boolean
+  reposted?: boolean
+  is_following?: boolean
+  is_own_post?: boolean
+  own_post?: boolean
+  time?: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface FeedPost {
   // Identifiers
   id: string;
@@ -60,7 +105,7 @@ export class FeedPostModel {
   /**
    * Create FeedPost from API response JSON
    */
-  static fromJson(json: any): FeedPost {
+  static fromJson(json: FeedPostJSON): FeedPost {
     if (!json) {
       throw new Error('Cannot create FeedPost from null/undefined');
     }
@@ -120,7 +165,7 @@ export class FeedPostModel {
   /**
    * Convert FeedPost to JSON for API requests
    */
-  static toJson(post: FeedPost): any {
+  static toJson(post: FeedPost): Partial<FeedPostJSON> {
     return {
       id: post.id,
       foreign_id: post.foreignId,
