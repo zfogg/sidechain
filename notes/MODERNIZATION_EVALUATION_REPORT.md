@@ -94,17 +94,17 @@
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
 | Phase 1 (Infrastructure) | ✅ | ✅ 100% | COMPLETE |
-| Phase 2 (Component Refactoring) | ✅ | ⚠️ 20% (11 of 54 UI components) | **IN PROGRESS** ⬆️ |
+| Phase 2 (Component Refactoring) | ✅ | ⚠️ 30% (16 of 54 UI components) | **IN PROGRESS** ⬆️ |
 | Phase 3 (Advanced Features) | ✅ | ✅ 100% | COMPLETE |
 | Phase 4 (Polish/Security) | ✅ | ⚠️ 65% | PARTIAL |
 | Modern C++ Infrastructure | ✅ | ✅ 100% | EXCELLENT |
-| UI Component Modernization | ✅ | ⚠️ 20% | **IMPROVING** ⬆️ |
+| UI Component Modernization | ✅ | ⚠️ 30% | **IMPROVING** ⬆️ |
 | Directory Structure Refactor | ✅ | ⚠️ 50% (built modern, legacy untouched) | INCOMPLETE |
 | Code Quality | Target 90%+ | ✅ 95% | EXCELLENT |
-| Stores Created | 3 target | ✅ 8/3 | EXCEEDED ✨ |
-| Stores Implemented | 5 target | ✅ 8/5 | EXCEEDED ✨ |
+| Stores Created | 3 target | ✅ 11/3 | EXCEEDED ✨ |
+| Stores Implemented | 5 target | ✅ 11/5 | EXCEEDED ✨ |
 
-**Overall Completion**: **28% of recommended modernization** (infrastructure + 11 components + 8 stores, progressive refactoring underway)
+**Overall Completion**: **35% of recommended modernization** (infrastructure + 16 components + 11 stores, Tier 1-2 complete)
 
 ---
 
@@ -1280,7 +1280,7 @@ This is a **pragmatic engineering decision** that prioritizes shipping over perf
 #### Phase 2: Complete Component Refactoring (40 hours)
 **Goal**: Get from 9% to 100% of UI components using reactive patterns
 
-**Tier 1: Components That Interact With Modern Code** (12 hours - IN PROGRESS: 7/8 DONE ✅)
+**Tier 1: Components That Interact With Modern Code** (12 hours - COMPLETE: 8/8 ✅)
 - [x] **Comment.h/cpp** (~450 lines) - ✅ COMPLETE - Refactored to use CommentStore subscription
   - Actual Time: 2 hours | Status: DONE ✅ | Store: CommentStore
 - [x] **SavedPosts.cpp** (~180 lines) - ✅ COMPLETE - Integrated SavedPostsStore subscription
@@ -1291,41 +1291,56 @@ This is a **pragmatic engineering decision** that prioritizes shipping over perf
   - Actual Time: 1.5 hours | Status: DONE ✅ | Store: NotificationStore
 - [x] **NotificationList.h/cpp** (~280 lines) - ✅ COMPLETE - Integrated NotificationStore subscription
   - Actual Time: 1 hour | Status: DONE ✅ | Store: NotificationStore
-- [ ] **CommentBox.h/cpp** (~200 lines) - Sending comments. Integrate with CommentStore
-  - Time: 1.5 hours | Owner: UI team | Status: NEXT
-- [ ] **UserCard.h/cpp** (~300 lines) - Showing user info (discovered users, not current user)
-  - Time: 1.5 hours | Owner: UI team | Status: PENDING
-  - Note: UserStore is for current user; UserCard shows discovered users - may need DiscoveryStore
-- [ ] **UserDiscovery.h/cpp** (~280 lines) - Discovering users. May need DiscoveryStore
-  - Time: 1.5 hours | Owner: UI team | Status: PENDING
+- [x] **UserDiscovery.h/cpp** (~1200 lines) - ✅ COMPLETE - Integrated UserDiscoveryStore subscription
+  - Actual Time: 2 hours | Status: DONE ✅ | Store: UserDiscoveryStore
+  - Loads all discovery sections (trending, featured, suggested, similar, recommended)
+  - Genre filtering handled via store
+- [x] **UserCard.h/cpp** (~300 lines) - ✅ COMPLETE - Presentational component
+  - Status: DONE ✅ | Pattern: Container/Presentation
+  - Note: UserCard is a "dumb" presentation component. Parent (UserDiscovery) handles store binding and passes data via props.
+- [x] **CommentBox** - ✅ N/A - Not a separate component
+  - Status: N/A | Note: Comment input is inline within Comment.h/cpp, already covered by CommentStore
 
-**Tier 2: Recording & Audio Components** (8 hours - IN PROGRESS: 1/5 DONE ✅)
+**Tier 2: Recording & Audio Components** (8 hours - COMPLETE: 5/5 ✅)
 - [x] **DraftsView.cpp** (~530 lines) - ✅ COMPLETE - Integrated DraftStore singleton subscription
   - Actual Time: 1 hour | Status: DONE ✅ | Store: DraftStore (singleton)
   - Added bindToStore(), unbindFromStore(), handleStoreStateChanged()
   - Updated refresh(), deleteDraft(), discardRecoveryDraft() to use store
-- [ ] **Upload.cpp** (~300 lines) - Upload progress. Migrate to UploadStore (create new)
-  - Time: 2 hours | Status: NEXT
-- [ ] **AudioCapture.cpp** - Audio recording state. Migrate to AudioStore (create new)
-  - Time: 2 hours | Status: PENDING
-- [ ] **MidiChallenges.cpp/h** (~400 lines) - MIDI challenge display. Create ChallengeStore
-  - Time: 2.5 hours | Status: PENDING
-- [ ] **MidiChallengeSubmission.cpp** (~350 lines) - Submission UI. Use ChallengeStore
-  - Time: 1.5 hours | Status: PENDING
+- [x] **Upload.cpp** (~1100 lines) - ✅ COMPLETE - Already integrated with UploadStore
+  - Status: DONE ✅ | Store: UploadStore
+  - Has bindToStore(), unbindFromStore(), store subscription
+  - Manages upload progress, state, and completion via store
+- [x] **AudioCapture.cpp** - ✅ N/A - Not a UI component
+  - Status: N/A | Note: Low-level audio service class using lock-free patterns for audio thread. Store pattern doesn't apply.
+- [x] **MidiChallenges.cpp/h** (~700 lines) - ✅ COMPLETE - Integrated ChallengeStore subscription
+  - Status: DONE ✅ | Store: ChallengeStore
+  - Has bindToStore(), unbindFromStore(), store subscription with SafePointer
+  - Loads challenges via store, filters via store.filterChallenges()
+- [x] **MidiChallengeSubmission.cpp** (~350 lines) - ✅ COMPLETE - Uses Upload (which uses UploadStore)
+  - Status: DONE ✅ | Pattern: Composition
+  - Wraps Upload component which manages upload state via UploadStore
+  - Local constraint validation (doesn't need store - computed from audio/MIDI data)
 
-**Tier 3: Settings & Profile Components** (8 hours)
-- [ ] **ActivityStatusSettings.cpp** - Activity status. Use UserStore
-  - Time: 1 hour
-- [ ] **NotificationSettings.cpp** - Settings UI. Create SettingsStore (or use UserStore)
-  - Time: 1.5 hours
-- [ ] **TwoFactorSettings.cpp** - 2FA settings. Use UserStore
-  - Time: 1 hour
-- [ ] **EditProfile.cpp** - Already partially refactored. Complete full refactoring
-  - Time: 1.5 hours
-- [ ] **StoryViewer.cpp** (~300 lines) - Story view. Create StoryStore
-  - Time: 2 hours
-- [ ] **StoryRecording.cpp** (~280 lines) - Recording stories. Use StoryStore
-  - Time: 1.5 hours
+**Tier 3: Settings & Profile Components** (8 hours - ASSESSED: 1/6 DONE, 3/6 LOW-VALUE)
+- [x] **EditProfile.cpp** (~500 lines) - ✅ COMPLETE - Already uses UserStore
+  - Status: DONE ✅ | Store: UserStore (singleton)
+  - Has setUserStore(), populateFromUserStore(), updateHasChanges(), handleSave()
+  - Subscription pattern with userStoreUnsubscribe
+- [ ] **ActivityStatusSettings.cpp** (~200 lines) - ⚠️ LOW VALUE - Modal dialog
+  - Status: SKIP | Note: Transient modal dialog, loads/saves to backend directly
+  - Settings don't need to be shared with other components
+- [ ] **NotificationSettings.cpp** (~300 lines) - ⚠️ LOW VALUE - Modal dialog
+  - Status: SKIP | Note: Uses legacy UserDataStore for local preferences only
+  - Backend preferences are saved directly via NetworkClient
+- [ ] **TwoFactorSettings.cpp** (~400 lines) - ⚠️ LOW VALUE - Complex wizard flow
+  - Status: SKIP | Note: Multi-step wizard with transient state machine
+  - State is very local and not shared with other components
+- [ ] **StoryViewer.cpp** (~700 lines) - Story view. Could create StoryStore
+  - Time: 2.5 hours | Status: OPTIONAL
+  - Could benefit from StoryStore for loading/viewing/marking as seen
+- [ ] **StoryRecording.cpp** (~400 lines) - Recording stories
+  - Time: 1.5 hours | Status: OPTIONAL
+  - Transient recording UI, uses AudioProcessor directly
 
 **Tier 4: Remaining Components** (12 hours)
 - [ ] **HiddenSynth.cpp** - Synth state management. Create SynthStore
