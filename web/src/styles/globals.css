@@ -97,51 +97,92 @@
 }
 
 /* Stream Chat Dark Theme Overrides */
+.str-chat {
+  background-color: #26262c !important;
+  color: #ffffff !important;
+}
+
+.str-chat.str-chat--dark {
+  background-color: #26262c !important;
+  color: #ffffff !important;
+}
+
 .str-chat__container {
-  background-color: #26262c;
-  color: #ffffff;
+  background-color: #26262c !important;
+  color: #ffffff !important;
 }
 
 .str-chat__channel-list {
-  background-color: #26262c;
+  background-color: #26262c !important;
+  border-right: none !important;
 }
 
 .str-chat__channel-list-container {
-  background-color: #26262c;
+  background-color: #26262c !important;
 }
 
 .str-chat__channel-list-messenger {
-  background-color: #26262c;
+  background-color: #26262c !important;
 }
 
 .str-chat__channel-list-messenger-inner {
-  background-color: #26262c;
+  background-color: #26262c !important;
 }
 
 .str-chat__channel-list-item {
-  background-color: #26262c;
-  color: #ffffff;
-  border-bottom: 1px solid #2e2e34;
+  background-color: #26262c !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #2e2e34 !important;
 }
 
 .str-chat__channel-list-item:hover {
-  background-color: #2e2e34;
+  background-color: #2e2e34 !important;
 }
 
 .str-chat__channel-list-item--active {
-  background-color: #363640;
-  border-left-color: #fd7792;
+  background-color: #363640 !important;
+  border-left-color: #fd7792 !important;
 }
 
 .str-chat__channel-list-item-text {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
 .str-chat__channel-list-item-text-name {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
 .str-chat__channel-list-item-text-unread-count {
-  background-color: #fd7792;
-  color: #ffffff;
+  background-color: #fd7792 !important;
+  color: #ffffff !important;
+}
+
+/* Additional Stream Chat overrides */
+.str-chat__list {
+  background-color: #26262c !important;
+}
+
+.str-chat__channel-preview {
+  background-color: #26262c !important;
+  color: #ffffff !important;
+}
+
+.str-chat__channel-preview:hover {
+  background-color: #2e2e34 !important;
+}
+
+.str-chat__channel-preview--active {
+  background-color: #363640 !important;
+}
+
+.str-chat__channel-preview-text {
+  color: #ffffff !important;
+}
+
+.str-chat__channel-preview-title {
+  color: #ffffff !important;
+}
+
+.str-chat__avatar {
+  background-color: #2e2e34 !important;
 }
