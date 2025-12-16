@@ -1,10 +1,13 @@
 #include "../AppStore.h"
+#include "../../util/logging/Logger.h"
 
 namespace Sidechain {
 namespace Stores {
 
 void AppStore::loadChannels() {
-  // TODO: Implement load channels
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logWarning("AppStore", "loadChannels not implemented - use ChatStore");
 }
 
 void AppStore::selectChannel(const juce::String &channelId) {
@@ -12,27 +15,39 @@ void AppStore::selectChannel(const juce::String &channelId) {
 }
 
 void AppStore::loadMessages(const juce::String &channelId, int limit) {
-  // TODO: Implement load messages
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logWarning("AppStore", "loadMessages not implemented - use ChatStore");
 }
 
 void AppStore::sendMessage(const juce::String &channelId, const juce::String &text) {
-  // TODO: Implement send message
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logWarning("AppStore", "sendMessage not implemented - use ChatStore");
 }
 
 void AppStore::startTyping(const juce::String &channelId) {
-  // TODO: Implement start typing
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logDebug("AppStore", "startTyping not implemented - use ChatStore");
 }
 
 void AppStore::stopTyping(const juce::String &channelId) {
-  // TODO: Implement stop typing
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logDebug("AppStore", "stopTyping not implemented - use ChatStore");
 }
 
 void AppStore::handleNewMessage(const juce::var &messageData) {
-  // TODO: Implement handle new message
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logDebug("AppStore", "handleNewMessage not implemented - use ChatStore");
 }
 
 void AppStore::handleTypingStart(const juce::String &userId) {
-  // TODO: Implement handle typing start
+  // Chat functionality is not yet implemented in AppStore
+  // The ChatStore handles this separately
+  Util::logDebug("AppStore", "handleTypingStart not implemented - use ChatStore");
 }
 
 } // namespace Stores
