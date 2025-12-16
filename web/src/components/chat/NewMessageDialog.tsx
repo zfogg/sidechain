@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useChatContext } from 'stream-chat-react'
 import { Button } from '@/components/ui/button'
