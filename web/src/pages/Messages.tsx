@@ -4,13 +4,16 @@ import { useChatContext } from 'stream-chat-react'
 import { useEffect, useState } from 'react'
 import { ChannelList } from '@/components/chat/ChannelList'
 import { MessageThread } from '@/components/chat/MessageThread'
+import { NewMessageDialog } from '@/components/chat/NewMessageDialog'
 import { Spinner } from '@/components/ui/spinner'
+import { Button } from '@/components/ui/button'
 
 /**
  * Messages - Direct messaging page
  *
  * Features:
  * - Channel list sidebar with conversations
+ * - New message dialog with user search
  * - Message thread view with inline replies
  * - File uploads via message input
  * - Typing indicators
@@ -22,6 +25,8 @@ export function Messages() {
   const { client } = useChatContext()
   const [channel, setChannel] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(!!channelId)
+  const [showNewMessageDialog, setShowNewMessageDialog] = useState(false)
+  const [mobileShowChannels, setMobileShowChannels] = useState(false)
 
   useEffect(() => {
     if (!channelId || !client) return
@@ -42,14 +47,37 @@ export function Messages() {
   }, [channelId, client])
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Channel List Sidebar */}
-      <div className="w-80 border-r border-border hidden lg:flex flex-col">
-        <ChannelList />
+    <div className="min-h-screen bg-bg-primary flex">
+      {/* Channel List Sidebar - Desktop */}
+      <div className="w-72 border-r border-border hidden lg:flex flex-col">
+        <ChannelList onNewMessageClick={() => setShowNewMessageDialog(true)} />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-bg-primary">
+        {/* Mobile Header */}
+        <div className="lg:hidden border-b border-border p-4 flex items-center justify-between bg-bg-secondary">
+          <h1 className="text-xl font-bold text-foreground">Messages</h1>
+          <Button
+            size="sm"
+            onClick={() => setMobileShowChannels(!mobileShowChannels)}
+            variant="outline"
+          >
+            {mobileShowChannels ? '✕' : '☰'}
+          </Button>
+        </div>
+
+        {/* Mobile Channel List - Overlay */}
+        {mobileShowChannels && (
+          <div className="lg:hidden absolute inset-0 z-40">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileShowChannels(false)} />
+            <div className="absolute left-0 top-0 bottom-0 w-72 bg-bg-secondary z-50 flex flex-col">
+              <ChannelList onNewMessageClick={() => setShowNewMessageDialog(true)} />
+            </div>
+          </div>
+        )}
+
+        {/* Main Chat Area */}
         {channelId ? (
           isLoading ? (
             <div className="flex-1 flex items-center justify-center">
@@ -62,30 +90,39 @@ export function Messages() {
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-4">
-                <div className="text-4xl">💬</div>
-                <div className="text-muted-foreground">Failed to load conversation</div>
+                <div className="text-5xl">⚠️</div>
+                <div className="text-lg font-semibold text-foreground">Failed to load conversation</div>
+                <p className="text-sm text-muted-foreground">Please try selecting another conversation</p>
               </div>
             </div>
           )
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <div className="text-4xl">💬</div>
-              <div className="text-muted-foreground text-lg">
-                Select a conversation to start messaging
+          <div className="flex-1 flex flex-col items-center justify-center p-8">
+            <div className="text-center space-y-6 max-w-md">
+              <div className="text-6xl">💬</div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">No conversation selected</h2>
+                <p className="text-muted-foreground mb-6">
+                  Choose from your existing conversations or start a new message
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                Choose from your existing conversations or find users you want to message
-              </p>
+
+              {/* Desktop: Show "New Message" button for guidance */}
+              <div className="hidden lg:block">
+                <Button
+                  onClick={() => setShowNewMessageDialog(true)}
+                  className="bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white font-semibold"
+                >
+                  + Start New Conversation
+                </Button>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Mobile Channel List - Overlay */}
-      <div className="lg:hidden fixed inset-0 pointer-events-none z-40">
-        {/* Could add a slide-out drawer here for mobile */}
-      </div>
+      {/* New Message Dialog */}
+      <NewMessageDialog isOpen={showNewMessageDialog} onClose={() => setShowNewMessageDialog(false)} />
     </div>
   )
 }
