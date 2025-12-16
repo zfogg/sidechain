@@ -206,7 +206,7 @@ void Search::mouseUp(const juce::MouseEvent &event) {
   if (searchState == SearchState::Empty) {
     // Check if clicked on recent search item
     int yOffset = HEADER_HEIGHT + FILTER_HEIGHT + 40;
-    for (int i = 0; i < recentSearches.size() && i < 5; ++i) {
+    for (int i = 0; i < static_cast<int>(recentSearches.size()) && i < 5; ++i) {
       juce::Rectangle<int> itemBounds(20, yOffset + i * 40, getWidth() - 40, 35);
       if (itemBounds.contains(pos)) {
         searchInput->setText(recentSearches[i]);
@@ -217,8 +217,9 @@ void Search::mouseUp(const juce::MouseEvent &event) {
     }
 
     // Check if clicked on trending search item (7.3.6)
-    yOffset = HEADER_HEIGHT + FILTER_HEIGHT + 40 + (recentSearches.size() > 0 ? (recentSearches.size() * 40 + 40) : 0);
-    for (int i = 0; i < trendingSearches.size() && i < 5; ++i) {
+    yOffset = HEADER_HEIGHT + FILTER_HEIGHT + 40 +
+              (static_cast<int>(recentSearches.size()) > 0 ? (static_cast<int>(recentSearches.size()) * 40 + 40) : 0);
+    for (int i = 0; i < static_cast<int>(trendingSearches.size()) && i < 5; ++i) {
       juce::Rectangle<int> itemBounds(20, yOffset + i * 40, getWidth() - 40, 35);
       if (itemBounds.contains(pos)) {
         searchInput->setText(trendingSearches[i]);
@@ -230,7 +231,7 @@ void Search::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void Search::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+void Search::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
   if (scrollBar->isVisible()) {
     double newPos = scrollPosition - wheel.deltaY * 30.0;
     newPos =
@@ -286,7 +287,7 @@ void Search::scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) {
 }
 
 //==============================================================================
-bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingComponent) {
+bool Search::keyPressed(const juce::KeyPress &key, [[maybe_unused]] juce::Component *originatingComponent) {
   // Tab key to switch between Users/Posts
   if (key.getKeyCode() == juce::KeyPress::tabKey) {
     switchTab(currentTab == ResultTab::Users ? ResultTab::Posts : ResultTab::Users);
@@ -295,7 +296,8 @@ bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingC
 
   // Up/Down arrows for navigation (7.3.8)
   if (searchState == SearchState::Results) {
-    int maxResults = (currentTab == ResultTab::Users) ? userResults.size() : postResults.size();
+    int maxResults =
+        (currentTab == ResultTab::Users) ? static_cast<int>(userResults.size()) : static_cast<int>(postResults.size());
 
     if (key.getKeyCode() == juce::KeyPress::downKey) {
       if (selectedResultIndex < maxResults - 1) {
@@ -326,10 +328,10 @@ bool Search::keyPressed(const juce::KeyPress &key, juce::Component *originatingC
     } else if (key.getKeyCode() == juce::KeyPress::returnKey) {
       // Select the highlighted item
       if (selectedResultIndex >= 0 && selectedResultIndex < maxResults) {
-        if (currentTab == ResultTab::Users && selectedResultIndex < userResults.size()) {
+        if (currentTab == ResultTab::Users && selectedResultIndex < static_cast<int>(userResults.size())) {
           if (onUserSelected)
             onUserSelected(userResults[selectedResultIndex].id);
-        } else if (currentTab == ResultTab::Posts && selectedResultIndex < postResults.size()) {
+        } else if (currentTab == ResultTab::Posts && selectedResultIndex < static_cast<int>(postResults.size())) {
           if (onPostSelected)
             onPostSelected(postResults[selectedResultIndex]);
         }
@@ -478,7 +480,7 @@ void Search::loadRecentSearches() {
     juce::StringArray lines;
     searchFile.readLines(lines);
     recentSearches.clear();
-    for (int i = 0; i < lines.size() && i < MAX_RECENT_SEARCHES; ++i) {
+    for (int i = 0; i < static_cast<int>(lines.size()) && i < MAX_RECENT_SEARCHES; ++i) {
       if (!lines[i].trim().isEmpty())
         recentSearches.add(lines[i].trim());
     }
@@ -507,7 +509,7 @@ void Search::addToRecentSearches(const juce::String &query) {
   recentSearches.insert(0, query);
 
   // Limit size
-  while (recentSearches.size() > MAX_RECENT_SEARCHES)
+  while (static_cast<int>(recentSearches.size()) > MAX_RECENT_SEARCHES)
     recentSearches.removeLast();
 
   saveRecentSearches();
@@ -534,7 +536,7 @@ void Search::loadTrendingSearches() {
         if (terms.isArray()) {
           auto *arr = terms.getArray();
           if (arr != nullptr) {
-            for (int i = 0; i < arr->size() && i < 10; ++i) {
+            for (int i = 0; i < static_cast<int>(arr->size()) && i < 10; ++i) {
               juce::String term = (*arr)[i].toString().trim();
               if (term.isNotEmpty())
                 trendingSearches.add(term);
@@ -546,7 +548,7 @@ void Search::loadTrendingSearches() {
           if (terms.isArray()) {
             auto *arr = terms.getArray();
             if (arr != nullptr) {
-              for (int i = 0; i < arr->size() && i < 10; ++i) {
+              for (int i = 0; i < static_cast<int>(arr->size()) && i < 10; ++i) {
                 juce::String term = (*arr)[i].toString().trim();
                 if (term.isNotEmpty())
                   trendingSearches.add(term);
@@ -558,7 +560,7 @@ void Search::loadTrendingSearches() {
         // Response is directly an array
         auto *arr = data.getArray();
         if (arr != nullptr) {
-          for (int i = 0; i < arr->size() && i < 10; ++i) {
+          for (int i = 0; i < static_cast<int>(arr->size()) && i < 10; ++i) {
             juce::String term = (*arr)[i].toString().trim();
             if (term.isNotEmpty())
               trendingSearches.add(term);
@@ -567,7 +569,7 @@ void Search::loadTrendingSearches() {
       }
 
       // If we got results, update UI
-      if (trendingSearches.size() > 0) {
+      if (static_cast<int>(trendingSearches.size()) > 0) {
         juce::MessageManager::callAsync([this]() { repaint(); });
       } else {
         // Fallback to available genres if no trending terms
@@ -584,8 +586,8 @@ void Search::loadTrendingSearches() {
 void Search::useGenresAsTrendingFallback() {
   // Use available genres as trending searches fallback
   trendingSearches.clear();
-  if (availableGenres.size() > 0) {
-    for (int i = 0; i < juce::jmin(5, availableGenres.size()); ++i) {
+  if (static_cast<int>(availableGenres.size()) > 0) {
+    for (int i = 0; i < juce::jmin(5, static_cast<int>(availableGenres.size())); ++i) {
       trendingSearches.add(availableGenres[i]);
     }
   } else {
@@ -605,7 +607,7 @@ void Search::loadAvailableGenres() {
       availableGenres.clear();
       auto genresArray = response.getProperty("genres", juce::var());
       if (genresArray.isArray()) {
-        for (int i = 0; i < genresArray.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(genresArray.size()); ++i) {
           availableGenres.add(genresArray[i].toString());
         }
       }
@@ -731,13 +733,13 @@ void Search::drawResults(juce::Graphics &g) {
 
   if (currentTab == ResultTab::Users) {
     // Draw user cards
-    for (int i = 0; i < userResults.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(userResults.size()); ++i) {
       juce::Rectangle<int> cardBounds(10, yPos + i * CARD_HEIGHT, bounds.getWidth() - 20, CARD_HEIGHT - 5);
       if (cardBounds.getBottom() < bounds.getY() || cardBounds.getY() > bounds.getBottom())
         continue; // Off screen
 
       // Create user card if needed
-      while (userCards.size() <= i) {
+      while (static_cast<int>(userCards.size()) <= i) {
         auto *card = new UserCard();
         // Setup callbacks for user interactions
         card->onUserClicked = [this](const DiscoveredUser &user) {
@@ -778,13 +780,13 @@ void Search::drawResults(juce::Graphics &g) {
   } else // Posts tab
   {
     // Draw post cards
-    for (int i = 0; i < postResults.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(postResults.size()); ++i) {
       juce::Rectangle<int> cardBounds(10, yPos + i * CARD_HEIGHT, bounds.getWidth() - 20, CARD_HEIGHT - 5);
       if (cardBounds.getBottom() < bounds.getY() || cardBounds.getY() > bounds.getBottom())
         continue; // Off screen
 
       // Create post card if needed
-      while (postCards.size() <= i) {
+      while (static_cast<int>(postCards.size()) <= i) {
         auto *card = new PostCard();
         addAndMakeVisible(card);
         postCards.add(card);
@@ -804,7 +806,9 @@ void Search::drawResults(juce::Graphics &g) {
   }
 
   // Update scrollbar
-  totalContentHeight = (currentTab == ResultTab::Users ? userResults.size() : postResults.size()) * CARD_HEIGHT;
+  totalContentHeight =
+      (currentTab == ResultTab::Users ? static_cast<int>(userResults.size()) : static_cast<int>(postResults.size())) *
+      CARD_HEIGHT;
   int visibleHeight = bounds.getHeight();
   if (totalContentHeight > visibleHeight) {
     scrollBar->setRangeLimits(0.0, static_cast<double>(totalContentHeight - visibleHeight));
@@ -873,7 +877,7 @@ void Search::drawRecentSearches(juce::Graphics &g) {
 
   g.setColour(SidechainColors::textMuted());
   g.setFont(12.0f);
-  for (int i = 0; i < recentSearches.size() && i < 5; ++i) {
+  for (int i = 0; i < static_cast<int>(recentSearches.size()) && i < 5; ++i) {
     juce::Rectangle<int> itemBounds(20, yPos + i * 40, getWidth() - 40, 35);
     g.setColour(SidechainColors::surface());
     g.fillRoundedRectangle(itemBounds.toFloat(), 6.0f);
@@ -886,7 +890,8 @@ void Search::drawTrendingSearches(juce::Graphics &g) {
   if (trendingSearches.isEmpty())
     return;
 
-  int yPos = HEADER_HEIGHT + FILTER_HEIGHT + 40 + (recentSearches.size() > 0 ? (recentSearches.size() * 40 + 40) : 0);
+  int yPos = HEADER_HEIGHT + FILTER_HEIGHT + 40 +
+             (static_cast<int>(recentSearches.size()) > 0 ? (static_cast<int>(recentSearches.size()) * 40 + 40) : 0);
 
   g.setColour(SidechainColors::textPrimary());
   g.setFont(14.0f);
@@ -896,7 +901,7 @@ void Search::drawTrendingSearches(juce::Graphics &g) {
 
   g.setColour(SidechainColors::textMuted());
   g.setFont(12.0f);
-  for (int i = 0; i < trendingSearches.size() && i < 5; ++i) {
+  for (int i = 0; i < static_cast<int>(trendingSearches.size()) && i < 5; ++i) {
     juce::Rectangle<int> itemBounds(20, yPos + i * 40, getWidth() - 40, 35);
     g.setColour(SidechainColors::surface());
     g.fillRoundedRectangle(itemBounds.toFloat(), 6.0f);
@@ -978,10 +983,10 @@ void Search::showGenrePicker() {
                        if (result == 1) {
                          selectedGenre = juce::String();
                        } else if (result > 1) {
-                         auto &genres = getAvailableGenres();
+                         auto &genreList = getAvailableGenres();
                          int index = result - 2;
-                         if (index >= 0 && index < (int)genres.size()) {
-                           selectedGenre = genres[index];
+                         if (index >= 0 && index < static_cast<int>(genreList.size())) {
+                           selectedGenre = genreList[static_cast<size_t>(index)];
                          }
                        }
                        applyFilters();
@@ -1108,10 +1113,10 @@ void Search::showKeyPicker() {
                        if (result == 1) {
                          selectedKey = juce::String();
                        } else if (result > 1) {
-                         auto &keys = getMusicalKeys();
+                         auto &keyList = getMusicalKeys();
                          int index = result - 2;
-                         if (index >= 0 && index < (int)keys.size()) {
-                           selectedKey = keys[index];
+                         if (index >= 0 && index < static_cast<int>(keyList.size())) {
+                           selectedKey = keyList[static_cast<size_t>(index)];
                          }
                        }
                        applyFilters();

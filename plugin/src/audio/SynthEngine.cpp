@@ -90,7 +90,7 @@ void SynthEngine::noteOn(int noteNumber, int velocity) {
   }
 
   if (voice != nullptr) {
-    startVoice(*voice, noteNumber, velocity / 127.0f);
+    startVoice(*voice, noteNumber, static_cast<float>(velocity) / 127.0f);
   }
 }
 

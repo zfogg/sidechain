@@ -229,13 +229,13 @@ juce::String AudioCapture::generateWaveformSVG(const juce::AudioBuffer<float> &b
 
   // Calculate samples per pixel
   int numSamples = buffer.getNumSamples();
-  float samplesPerPixel = static_cast<float>(numSamples) / width;
+  float samplesPerPixel = static_cast<float>(numSamples) / static_cast<float>(width);
 
   // Generate path for waveform
   juce::String pathData = "M";
 
   for (int x = 0; x < width; ++x) {
-    int sampleIndex = static_cast<int>(x * samplesPerPixel);
+    int sampleIndex = static_cast<int>(static_cast<float>(x) * samplesPerPixel);
 
     if (sampleIndex < numSamples) {
       // Get peak amplitude for this pixel (mono or average of channels)
@@ -243,10 +243,10 @@ juce::String AudioCapture::generateWaveformSVG(const juce::AudioBuffer<float> &b
       for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
         peak += std::abs(buffer.getSample(channel, sampleIndex));
       }
-      peak /= buffer.getNumChannels();
+      peak /= static_cast<float>(buffer.getNumChannels());
 
       // Convert to SVG coordinates
-      int y = static_cast<int>((1.0f - peak) * height * 0.5f);
+      int y = static_cast<int>((1.0f - peak) * static_cast<float>(height) * 0.5f);
       y = juce::jlimit(0, height, y);
 
       if (x == 0)
@@ -333,8 +333,11 @@ bool AudioCapture::saveBufferToWavFile(const juce::File &file, const juce::Audio
   case ExportFormat::WAV_32bit:
     bitsPerSample = 32;
     break;
-  default:
+  case ExportFormat::FLAC_16bit:
     bitsPerSample = 16;
+    break;
+  case ExportFormat::FLAC_24bit:
+    bitsPerSample = 24;
     break;
   }
 
@@ -465,7 +468,12 @@ bool AudioCapture::saveBufferToFlacFile(const juce::File &file, const juce::Audi
     bitsPerSample = 24;
     break;
   case ExportFormat::FLAC_16bit:
-  default:
+    bitsPerSample = 16;
+    break;
+  case ExportFormat::WAV_16bit:
+  case ExportFormat::WAV_24bit:
+  case ExportFormat::WAV_32bit:
+    // WAV formats shouldn't reach FLAC save, but handle gracefully
     bitsPerSample = 16;
     break;
   }
@@ -565,12 +573,12 @@ juce::String AudioCapture::formatFileSize(juce::int64 bytes) {
   const double mb = kb * 1024.0;
   const double gb = mb * 1024.0;
 
-  if (bytes >= gb)
-    return juce::String(bytes / gb, 2) + " GB";
-  else if (bytes >= mb)
-    return juce::String(bytes / mb, 2) + " MB";
-  else if (bytes >= kb)
-    return juce::String(bytes / kb, 1) + " KB";
+  if (static_cast<double>(bytes) >= gb)
+    return juce::String(static_cast<double>(bytes) / gb, 2) + " GB";
+  else if (static_cast<double>(bytes) >= mb)
+    return juce::String(static_cast<double>(bytes) / mb, 2) + " MB";
+  else if (static_cast<double>(bytes) >= kb)
+    return juce::String(static_cast<double>(bytes) / kb, 1) + " KB";
   else
     return juce::String(bytes) + " bytes";
 }
@@ -610,7 +618,7 @@ juce::int64 AudioCapture::estimateFileSize(int numSamples, int numChannels, Expo
   juce::int64 rawSize = static_cast<juce::int64>(numSamples) * numChannels * bytesPerSample;
 
   // Apply compression ratio for FLAC
-  juce::int64 dataSize = static_cast<juce::int64>(rawSize * compressionRatio);
+  juce::int64 dataSize = static_cast<juce::int64>(static_cast<double>(rawSize) * compressionRatio);
 
   // Add header overhead (WAV: 44 bytes, FLAC: ~8KB typical metadata)
   juce::int64 headerSize = isFlacFormat(format) ? 8192 : 44;

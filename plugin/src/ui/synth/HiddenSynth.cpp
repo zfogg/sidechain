@@ -114,7 +114,7 @@ void HiddenSynth::loadPresetList() {
   presetSelector.clear();
 
   for (size_t i = 0; i < presets.size(); ++i) {
-    presetSelector.addItem(presets[i].name, static_cast<int>(i + 1));
+    presetSelector.addItem(presets[i].name, static_cast<int>(i) + 1);
   }
 
   presetSelector.setSelectedItemIndex(0);
@@ -159,11 +159,12 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics &g) {
   // Animated glow
   float glowRadius = bounds.getWidth() * 0.3f * unlockAnimationProgress;
   g.setColour(juce::Colours::cyan.withAlpha(0.3f * (1.0f - unlockAnimationProgress)));
-  g.fillEllipse(bounds.getCentreX() - glowRadius, bounds.getCentreY() - glowRadius, glowRadius * 2, glowRadius * 2);
+  g.fillEllipse(bounds.getCentreX() - glowRadius, bounds.getCentreY() - glowRadius, glowRadius * 2.0f,
+                glowRadius * 2.0f);
 
   // Sparkles
   juce::Random random(42);
-  int numSparkles = static_cast<int>(20 * unlockAnimationProgress);
+  int numSparkles = static_cast<int>(20.0f * unlockAnimationProgress);
   for (int i = 0; i < numSparkles; ++i) {
     float angle = random.nextFloat() * juce::MathConstants<float>::twoPi;
     float distance = random.nextFloat() * bounds.getWidth() * 0.4f * unlockAnimationProgress;
@@ -172,7 +173,7 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics &g) {
     float size = random.nextFloat() * 4.0f + 2.0f;
 
     g.setColour(juce::Colours::cyan.withAlpha(random.nextFloat() * 0.8f));
-    g.fillEllipse(x - size / 2, y - size / 2, size, size);
+    g.fillEllipse(x - size / 2.0f, y - size / 2.0f, size, size);
   }
 
   // Text
@@ -181,12 +182,12 @@ void HiddenSynth::drawUnlockAnimation(juce::Graphics &g) {
 
   float textAlpha = unlockAnimationProgress < 0.5f ? unlockAnimationProgress * 2.0f : 1.0f;
   g.setColour(juce::Colours::cyan.withAlpha(textAlpha));
-  g.drawText("SYNTH UNLOCKED!", bounds.reduced(20), juce::Justification::centred);
+  g.drawText("SYNTH UNLOCKED!", bounds.reduced(20.0f), juce::Justification::centred);
 
   // Emoji
   if (unlockAnimationProgress > 0.3f) {
     g.setFont(juce::Font(juce::FontOptions().withHeight(48.0f)));
-    g.drawText("SYNTH", bounds.withY(bounds.getY() + 60), juce::Justification::centred);
+    g.drawText("SYNTH", bounds.withY(bounds.getY() + 60.0f), juce::Justification::centred);
   }
 }
 
@@ -196,20 +197,20 @@ void HiddenSynth::drawSynthUI(juce::Graphics &g) {
 
   // Oscillator section
   g.setColour(juce::Colour(0xff252540));
-  g.fillRoundedRectangle(10, 50, 200, 60, 5);
+  g.fillRoundedRectangle(10.0f, 50.0f, 200.0f, 60.0f, 5.0f);
   g.setColour(juce::Colours::lightgrey);
   g.setFont(juce::Font(juce::FontOptions().withHeight(10.0f)));
   g.drawText("OSCILLATOR", 10, 52, 200, 15, juce::Justification::centred);
 
   // ADSR section
   g.setColour(juce::Colour(0xff252540));
-  g.fillRoundedRectangle(10, 120, 280, 110, 5);
+  g.fillRoundedRectangle(10.0f, 120.0f, 280.0f, 110.0f, 5.0f);
   g.setColour(juce::Colours::lightgrey);
   g.drawText("ENVELOPE", 10, 122, 280, 15, juce::Justification::centred);
 
   // Filter section
   g.setColour(juce::Colour(0xff252540));
-  g.fillRoundedRectangle(300, 120, 150, 110, 5);
+  g.fillRoundedRectangle(300.0f, 120.0f, 150.0f, 110.0f, 5.0f);
   g.setColour(juce::Colours::lightgrey);
   g.drawText("FILTER", 300, 122, 150, 15, juce::Justification::centred);
 
@@ -247,7 +248,7 @@ void HiddenSynth::drawKeyboard(juce::Graphics &g) {
       int x = keyboardArea.getX() + whiteKeyIndex * whiteKeyWidth;
 
       // Key background
-      if (keyStates[i])
+      if (keyStates[static_cast<size_t>(i)])
         g.setColour(juce::Colours::cyan.darker(0.3f));
       else
         g.setColour(juce::Colours::white);
@@ -269,7 +270,7 @@ void HiddenSynth::drawKeyboard(juce::Graphics &g) {
       // Black key is positioned between previous white key and next
       int x = keyboardArea.getX() + whiteKeyIndex * whiteKeyWidth - blackKeyWidth / 2;
 
-      if (keyStates[i])
+      if (keyStates[static_cast<size_t>(i)])
         g.setColour(juce::Colours::cyan.darker(0.5f));
       else
         g.setColour(juce::Colour(0xff1a1a1a));
@@ -335,8 +336,8 @@ void HiddenSynth::resized() {
 
   // Header area
   backButton.setBounds(10, 10, 80, 30);
-  titleLabel.setBounds(bounds.getWidth() / 2 - 100, 10, 200, 30);
-  presetSelector.setBounds(bounds.getWidth() - 160, 10, 150, 30);
+  titleLabel.setBounds(static_cast<int>(bounds.getWidth() / 2) - 100, 10, 200, 30);
+  presetSelector.setBounds(static_cast<int>(bounds.getWidth()) - 160, 10, 150, 30);
 
   // Waveform buttons
   int btnWidth = 45;
@@ -367,11 +368,11 @@ void HiddenSynth::resized() {
   resonanceLabel.setBounds(375, knobY + knobSize + 15, knobSize, 15);
 
   // Volume knob
-  volumeSlider.setBounds(bounds.getWidth() - 80, knobY, knobSize, knobSize + 20);
-  volumeLabel.setBounds(bounds.getWidth() - 80, knobY + knobSize + 15, knobSize, 15);
+  volumeSlider.setBounds(static_cast<int>(bounds.getWidth()) - 80, knobY, knobSize, knobSize + 20);
+  volumeLabel.setBounds(static_cast<int>(bounds.getWidth()) - 80, knobY + knobSize + 15, knobSize, 15);
 
   // Keyboard area
-  keyboardArea = juce::Rectangle<int>(10, 250, bounds.getWidth() - 20, 80);
+  keyboardArea = juce::Rectangle<int>(10, 250, static_cast<int>(bounds.getWidth()) - 20, 80);
 }
 
 //==============================================================================
@@ -413,16 +414,16 @@ void HiddenSynth::playUnlockAnimation() {
 void HiddenSynth::mouseDown(const juce::MouseEvent &event) {
   int key = getKeyAtPosition(event.getPosition());
   if (key >= 0) {
-    keyStates[key] = true;
+    keyStates[static_cast<size_t>(key)] = true;
     lastKeyPressed = key;
     synthEngine.noteOn(startNote + key, 100);
     repaint(keyboardArea);
   }
 }
 
-void HiddenSynth::mouseUp(const juce::MouseEvent &event) {
+void HiddenSynth::mouseUp([[maybe_unused]] const juce::MouseEvent &event) {
   if (lastKeyPressed >= 0) {
-    keyStates[lastKeyPressed] = false;
+    keyStates[static_cast<size_t>(lastKeyPressed)] = false;
     synthEngine.noteOff(startNote + lastKeyPressed);
     lastKeyPressed = -1;
     repaint(keyboardArea);
@@ -435,13 +436,13 @@ void HiddenSynth::mouseDrag(const juce::MouseEvent &event) {
   if (key != lastKeyPressed) {
     // Release old key
     if (lastKeyPressed >= 0) {
-      keyStates[lastKeyPressed] = false;
+      keyStates[static_cast<size_t>(lastKeyPressed)] = false;
       synthEngine.noteOff(startNote + lastKeyPressed);
     }
 
     // Press new key
     if (key >= 0) {
-      keyStates[key] = true;
+      keyStates[static_cast<size_t>(key)] = true;
       synthEngine.noteOn(startNote + key, 100);
     }
 

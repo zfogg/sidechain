@@ -114,11 +114,11 @@ class ProgressiveKeyDetector::Impl {
 public:
   Impl() = default;
 
-  bool start(double sampleRate) {
+  bool start(double sampleRateParam) {
     try {
       workspace = std::make_unique<KeyFinder::Workspace>();
       keyFinder = std::make_unique<KeyFinder::KeyFinder>();
-      this->sampleRate = sampleRate;
+      this->sampleRate = sampleRateParam;
       return true;
     } catch (const std::exception &e) {
       DBG("ProgressiveKeyDetector::start failed: " << e.what());
@@ -140,7 +140,7 @@ public:
       audioData.setChannels(1); // Mix to mono
 
       int numSamples = buffer.getNumSamples();
-      audioData.addToSampleCount(numSamples);
+      audioData.addToSampleCount(static_cast<unsigned int>(numSamples));
 
       // Mix to mono and copy to AudioData
       for (int i = 0; i < numSamples; ++i) {
@@ -151,7 +151,7 @@ public:
         sample /= static_cast<float>(numChannels);
 
         // libkeyfinder expects samples in range [-1, 1]
-        audioData.setSample(i, static_cast<double>(sample));
+        audioData.setSample(static_cast<unsigned int>(i), static_cast<double>(sample));
       }
 
       // Process this chunk progressively
@@ -257,15 +257,15 @@ ProgressiveKeyDetector::ProgressiveKeyDetector() : impl(std::make_unique<Impl>()
 
 ProgressiveKeyDetector::~ProgressiveKeyDetector() = default;
 
-bool ProgressiveKeyDetector::start(double sampleRate) {
+bool ProgressiveKeyDetector::start(double sampleRateParam) {
   if (!isAvailable())
     return false;
 
   reset(); // Clear any previous state
 
 #if SIDECHAIN_HAS_KEYFINDER
-  if (impl->start(sampleRate)) {
-    this->sampleRate = sampleRate;
+  if (impl->start(sampleRateParam)) {
+    this->sampleRate = sampleRateParam;
     this->active = true;
     this->finalized = false;
     this->samplesProcessed = 0;

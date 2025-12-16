@@ -240,32 +240,32 @@ void UserDiscovery::drawSectionHeader(juce::Graphics &g, juce::Rectangle<int> bo
   g.drawText(title, bounds, juce::Justification::centredLeft);
 }
 
-void UserDiscovery::drawTrendingSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void UserDiscovery::drawTrendingSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
   // User cards are drawn by their own components
   for (int i = 0; i < juce::jmin(5, trendingUsers.size()); ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
   }
 }
 
-void UserDiscovery::drawFeaturedSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void UserDiscovery::drawFeaturedSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
   for (int i = 0; i < juce::jmin(5, featuredProducers.size()); ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
   }
 }
 
-void UserDiscovery::drawSuggestedSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void UserDiscovery::drawSuggestedSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
   for (int i = 0; i < juce::jmin(5, suggestedUsers.size()); ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
   }
 }
 
-void UserDiscovery::drawSimilarSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void UserDiscovery::drawSimilarSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
   for (int i = 0; i < juce::jmin(5, similarProducers.size()); ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
   }
 }
 
-void UserDiscovery::drawRecommendedSection(juce::Graphics &g, juce::Rectangle<int> &bounds) {
+void UserDiscovery::drawRecommendedSection([[maybe_unused]] juce::Graphics &g, juce::Rectangle<int> &bounds) {
   for (int i = 0; i < juce::jmin(5, recommendedToFollow.size()); ++i) {
     bounds.removeFromTop(USER_CARD_HEIGHT);
   }
@@ -445,7 +445,7 @@ void UserDiscovery::textEditorReturnKeyPressed(juce::TextEditor &editor) {
   }
 }
 
-void UserDiscovery::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
+void UserDiscovery::scrollBarMoved([[maybe_unused]] juce::ScrollBar *bar, double newRangeStart) {
   scrollOffset = static_cast<int>(newRangeStart);
   updateUserCardPositions();
   repaint();

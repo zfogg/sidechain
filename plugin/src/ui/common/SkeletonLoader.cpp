@@ -39,7 +39,7 @@ void SkeletonLoader::setShimmerEnabled(bool enabled) {
 
 void SkeletonLoader::timerCallback() {
   auto elapsed = juce::Time::currentTimeMillis() - animationStartTime;
-  shimmerProgress = static_cast<float>(elapsed % shimmerDurationMs) / shimmerDurationMs;
+  shimmerProgress = static_cast<float>(elapsed % shimmerDurationMs) / static_cast<float>(shimmerDurationMs);
   repaint();
 }
 
@@ -86,7 +86,7 @@ void SkeletonLoader::drawCircle(juce::Graphics &g, juce::Rectangle<int> bounds) 
 }
 
 void SkeletonLoader::drawLine(juce::Graphics &g, juce::Rectangle<int> bounds, float widthPercent) {
-  auto lineBounds = bounds.withWidth(static_cast<int>(bounds.getWidth() * widthPercent));
+  auto lineBounds = bounds.withWidth(static_cast<int>(static_cast<float>(bounds.getWidth()) * widthPercent));
   g.setColour(getColorWithShimmer(lineBounds));
   g.fillRoundedRectangle(lineBounds.toFloat(), 3.0f);
 }

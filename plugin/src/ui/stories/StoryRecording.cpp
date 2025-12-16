@@ -415,7 +415,8 @@ void StoryRecording::drawHeader(juce::Graphics &g) {
 
 void StoryRecording::drawRecordButton(juce::Graphics &g) {
   auto center = recordButtonArea.getCentre().toFloat();
-  float radius = juce::jmin(recordButtonArea.getWidth(), recordButtonArea.getHeight()) / 2.0f - 5.0f;
+  float radius =
+      static_cast<float>(juce::jmin(recordButtonArea.getWidth(), recordButtonArea.getHeight())) / 2.0f - 5.0f;
 
   if (currentState == State::Recording) {
     // Pulsing stop square
@@ -468,7 +469,7 @@ void StoryRecording::drawTimeDisplay(juce::Graphics &g) {
 
 void StoryRecording::drawCountdownRing(juce::Graphics &g) {
   auto center = countdownArea.getCentre().toFloat();
-  float radius = juce::jmin(countdownArea.getWidth(), countdownArea.getHeight()) / 2.0f - 5.0f;
+  float radius = static_cast<float>(juce::jmin(countdownArea.getWidth(), countdownArea.getHeight())) / 2.0f - 5.0f;
 
   // Background ring
   g.setColour(StoryColors::progressBg);
@@ -508,7 +509,8 @@ void StoryRecording::drawMIDIIndicator(juce::Graphics &g) {
     float adjustedSize = dotSize * (1.0f + pulseAmount * 0.3f);
 
     g.setColour(StoryColors::midiActive.withAlpha(1.0f - pulseAmount * 0.5f));
-    g.fillEllipse(bounds.getX() - 25, bounds.getCentreY() - adjustedSize / 2, adjustedSize, adjustedSize);
+    g.fillEllipse(static_cast<float>(bounds.getX()) - 25, static_cast<float>(bounds.getCentreY()) - adjustedSize / 2,
+                  adjustedSize, adjustedSize);
   }
 }
 
@@ -526,17 +528,17 @@ void StoryRecording::drawWaveformPreview(juce::Graphics &g) {
     g.setColour(StoryColors::waveformColor);
 
     juce::Path wavePath;
-    float centerY = waveformArea.getCentreY();
-    float amplitude = waveformArea.getHeight() * 0.4f;
+    float centerY = static_cast<float>(waveformArea.getCentreY());
+    float amplitude = static_cast<float>(waveformArea.getHeight()) * 0.4f;
 
-    wavePath.startNewSubPath(waveformArea.getX(), centerY);
+    wavePath.startNewSubPath(static_cast<float>(waveformArea.getX()), centerY);
 
     for (int x = waveformArea.getX(); x < waveformArea.getRight(); x += 2) {
-      float progress = static_cast<float>(x - waveformArea.getX()) / waveformArea.getWidth();
-      float wave = std::sin(progress * 20.0f + currentRecordingDuration * 5.0f) * amplitude * 0.5f;
-      wave += std::sin(progress * 8.0f + currentRecordingDuration * 3.0f) * amplitude * 0.3f;
+      float progress = static_cast<float>(x - waveformArea.getX()) / static_cast<float>(waveformArea.getWidth());
+      float wave = static_cast<float>(std::sin(progress * 20.0f + currentRecordingDuration * 5.0f)) * amplitude * 0.5f;
+      wave += static_cast<float>(std::sin(progress * 8.0f + currentRecordingDuration * 3.0f)) * amplitude * 0.3f;
 
-      wavePath.lineTo(x, centerY + wave);
+      wavePath.lineTo(static_cast<float>(x), centerY + wave);
     }
 
     g.strokePath(wavePath, juce::PathStrokeType(2.0f));
@@ -599,7 +601,7 @@ void StoryRecording::drawPlaybackControls(juce::Graphics &g) {
       g.fillRect(progressBounds);
 
       g.setColour(StoryColors::progressFg);
-      g.fillRect(progressBounds.withWidth(static_cast<int>(progressBounds.getWidth() * progress)));
+      g.fillRect(progressBounds.withWidth(static_cast<int>(static_cast<float>(progressBounds.getWidth()) * progress)));
     }
   }
 }

@@ -464,7 +464,7 @@ void Auth::drawPasswordStrengthIndicator(juce::Graphics &g, juce::Rectangle<int>
       strengthColor = juce::Colour(0xff2ed573); // Green - very strong
 
     // Draw strength bar (width based on strength)
-    float strengthWidth = (bounds.getWidth() * strength) / 4.0f;
+    float strengthWidth = (static_cast<float>(bounds.getWidth()) * static_cast<float>(strength)) / 4.0f;
     auto strengthBounds = bounds.withWidth(static_cast<int>(strengthWidth));
     g.setColour(strengthColor);
     g.fillRoundedRectangle(strengthBounds.toFloat(), 2.0f);

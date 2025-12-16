@@ -162,13 +162,14 @@ void PianoRoll::drawPianoKeys(juce::Graphics &g) {
 
     // Key border
     g.setColour(PianoRollColors::keyBorder);
-    g.drawHorizontalLine(static_cast<int>(y + keyHeight), pianoKeyArea.getX(), pianoKeyArea.getRight());
+    g.drawHorizontalLine(static_cast<int>(y + keyHeight), static_cast<float>(pianoKeyArea.getX()),
+                         static_cast<float>(pianoKeyArea.getRight()));
 
     // Note name for C notes
     if (note % 12 == 0) {
       g.setColour(PianoRollColors::textPrimary);
       g.setFont(9.0f);
-      g.drawText(getNoteName(note), keyBounds.reduced(2), juce::Justification::centredLeft);
+      g.drawText(getNoteName(note), keyBounds.reduced(2.0f), juce::Justification::centredLeft);
     }
   }
 }
@@ -185,7 +186,7 @@ void PianoRoll::drawGridLines(juce::Graphics &g) {
 
   for (double time = 0; time < totalDuration; time += secondsPerBeat) {
     float x = timeToX(time);
-    if (x >= noteGridArea.getX() && x <= noteGridArea.getRight()) {
+    if (x >= static_cast<float>(noteGridArea.getX()) && x <= static_cast<float>(noteGridArea.getRight())) {
       // Stronger line for bar boundaries (every 4 beats)
       int beatNum = static_cast<int>(time * beatsPerSecond);
       if (beatNum % 4 == 0) {
@@ -194,7 +195,8 @@ void PianoRoll::drawGridLines(juce::Graphics &g) {
         g.setColour(PianoRollColors::gridLine);
       }
 
-      g.drawVerticalLine(static_cast<int>(x), noteGridArea.getY(), noteGridArea.getBottom());
+      g.drawVerticalLine(static_cast<int>(x), static_cast<float>(noteGridArea.getY()),
+                         static_cast<float>(noteGridArea.getBottom()));
     }
   }
 
@@ -205,7 +207,8 @@ void PianoRoll::drawGridLines(juce::Graphics &g) {
   g.setColour(PianoRollColors::gridLine);
   for (int i = 0; i <= numNotes; ++i) {
     float y = static_cast<float>(noteGridArea.getY()) + static_cast<float>(i) * keyHeight;
-    g.drawHorizontalLine(static_cast<int>(y), noteGridArea.getX(), noteGridArea.getRight());
+    g.drawHorizontalLine(static_cast<int>(y), static_cast<float>(noteGridArea.getX()),
+                         static_cast<float>(noteGridArea.getRight()));
   }
 }
 
@@ -261,11 +264,11 @@ void PianoRoll::drawNotes(juce::Graphics &g) {
     g.drawRoundedRectangle(noteBounds, 3.0f, isHovered ? 2.0f : 1.0f);
 
     // Velocity indicator (darker left edge)
-    if (showVelocity && noteBounds.getWidth() > 8) {
+    if (showVelocity && noteBounds.getWidth() > 8.0f) {
       float velocityHeight = (static_cast<float>(note.velocity) / 127.0f) * noteBounds.getHeight();
       auto velocityBounds = noteBounds.withHeight(velocityHeight).withY(noteBounds.getBottom() - velocityHeight);
       g.setColour(noteColor.brighter(0.2f));
-      g.fillRect(velocityBounds.removeFromLeft(3));
+      g.fillRect(velocityBounds.removeFromLeft(3.0f));
     }
   }
 
@@ -276,7 +279,7 @@ void PianoRoll::drawNotes(juce::Graphics &g) {
     float y = noteToY(note.noteNumber);
 
     juce::String tooltip = getNoteName(note.noteNumber) + " (" + juce::String(note.velocity) + " vel)";
-    auto tooltipBounds = juce::Rectangle<int>(static_cast<int>(x), static_cast<int>(y - 30), 100, 25);
+    auto tooltipBounds = juce::Rectangle<int>(static_cast<int>(x), static_cast<int>(y - 30.0f), 100, 25);
 
     // Background
     g.setColour(juce::Colour(0xff000000).withAlpha(0.8f));
@@ -295,9 +298,10 @@ void PianoRoll::drawPlayhead(juce::Graphics &g) {
 
   float x = timeToX(playbackPosition);
 
-  if (x >= noteGridArea.getX() && x <= noteGridArea.getRight()) {
+  if (x >= static_cast<float>(noteGridArea.getX()) && x <= static_cast<float>(noteGridArea.getRight())) {
     g.setColour(PianoRollColors::playhead);
-    g.drawVerticalLine(static_cast<int>(x), getLocalBounds().getY(), getLocalBounds().getBottom());
+    g.drawVerticalLine(static_cast<int>(x), static_cast<float>(getLocalBounds().getY()),
+                       static_cast<float>(getLocalBounds().getBottom()));
 
     // Playhead top marker
     juce::Path triangle;
@@ -330,7 +334,7 @@ float PianoRoll::noteToY(int noteNumber) const {
 
 float PianoRoll::timeToX(double time) const {
   if (totalDuration <= 0)
-    return noteGridArea.getX();
+    return static_cast<float>(noteGridArea.getX());
 
   // Account for zoom and scroll
   double visibleDuration = totalDuration / zoomLevel;
@@ -339,19 +343,19 @@ float PianoRoll::timeToX(double time) const {
   float width = static_cast<float>(noteGridArea.getWidth());
   float progress = static_cast<float>(adjustedTime / visibleDuration);
   progress = juce::jlimit(0.0f, 1.0f, progress);
-  return noteGridArea.getX() + progress * width;
+  return static_cast<float>(noteGridArea.getX()) + progress * width;
 }
 
 double PianoRoll::xToTime(float x) const {
   if (totalDuration <= 0 || noteGridArea.getWidth() <= 0)
     return 0.0;
 
-  float relativeX = x - noteGridArea.getX();
+  float relativeX = x - static_cast<float>(noteGridArea.getX());
   float progress = relativeX / static_cast<float>(noteGridArea.getWidth());
   progress = juce::jlimit(0.0f, 1.0f, progress);
 
   double visibleDuration = totalDuration / zoomLevel;
-  return timelineScrollOffset + (progress * visibleDuration);
+  return timelineScrollOffset + (static_cast<double>(progress) * visibleDuration);
 }
 
 int PianoRoll::findNoteAt(juce::Point<int> position) const {
@@ -360,7 +364,7 @@ int PianoRoll::findNoteAt(juce::Point<int> position) const {
 
   int numNotes = highNoteNumber - lowNoteNumber + 1;
   float keyHeight = static_cast<float>(noteGridArea.getHeight()) / static_cast<float>(numNotes);
-  float relativeY = static_cast<float>(position.y - noteGridArea.getY());
+  float relativeY = static_cast<float>(position.y) - static_cast<float>(noteGridArea.getY());
   int noteIndex = static_cast<int>(relativeY / keyHeight);
   int noteNumber = highNoteNumber - noteIndex;
 
@@ -371,7 +375,7 @@ int PianoRoll::findNoteAt(juce::Point<int> position) const {
       // Check if click is within note's time range
       float x1 = timeToX(note.startTime);
       float x2 = timeToX(note.endTime);
-      if (position.x >= static_cast<int>(x1) && position.x <= static_cast<int>(x2)) {
+      if (static_cast<float>(position.x) >= x1 && static_cast<float>(position.x) <= x2) {
         return static_cast<int>(i);
       }
     }
@@ -470,7 +474,7 @@ void PianoRoll::mouseUp(const juce::MouseEvent &event) {
   if (noteIndex >= 0 && noteIndex < static_cast<int>(notes.size())) {
     // Seek to note start time
     if (onSeekToTime)
-      onSeekToTime(notes[noteIndex].startTime);
+      onSeekToTime(notes[static_cast<size_t>(noteIndex)].startTime);
     return;
   }
 

@@ -387,14 +387,14 @@ void Recording::drawSingleMeter(juce::Graphics &g, juce::Rectangle<int> bounds, 
   g.fillRoundedRectangle(bounds.toFloat(), 2.0f);
 
   // RMS level (darker green)
-  float rmsWidth = bounds.getWidth() * juce::jlimit(0.0f, 1.0f, rms);
+  float rmsWidth = static_cast<float>(bounds.getWidth()) * juce::jlimit(0.0f, 1.0f, rms);
   if (rmsWidth > 0) {
     g.setColour(SidechainColors::success().darker(0.3f));
     g.fillRoundedRectangle(bounds.withWidth(static_cast<int>(rmsWidth)).toFloat(), 2.0f);
   }
 
   // Peak level (bright green, yellow, red gradient)
-  float peakWidth = bounds.getWidth() * juce::jlimit(0.0f, 1.0f, peak);
+  float peakWidth = static_cast<float>(bounds.getWidth()) * juce::jlimit(0.0f, 1.0f, peak);
   if (peakWidth > 0) {
     juce::Colour peakColor;
     if (peak < 0.7f)
@@ -420,7 +420,7 @@ void Recording::drawProgressBar(juce::Graphics &g) {
   g.fillRoundedRectangle(progressBarArea.toFloat(), 4.0f);
 
   // Progress fill
-  int fillWidth = static_cast<int>(progressBarArea.getWidth() * progress);
+  int fillWidth = static_cast<int>(static_cast<float>(progressBarArea.getWidth()) * progress);
   if (fillWidth > 0) {
     auto fillRect = progressBarArea.withWidth(fillWidth);
 
@@ -494,13 +494,13 @@ juce::Path Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffe
 
   int numSamples = buffer.getNumSamples();
   int width = bounds.getWidth();
-  float height = bounds.getHeight();
-  float centerY = bounds.getCentreY();
+  float height = static_cast<float>(bounds.getHeight());
+  float centerY = static_cast<float>(bounds.getCentreY());
 
   Log::debug("Recording::generateWaveformPath: Generating waveform - samples: " + juce::String(numSamples) +
              ", width: " + juce::String(width) + ", channels: " + juce::String(buffer.getNumChannels()));
 
-  path.startNewSubPath(bounds.getX(), centerY);
+  path.startNewSubPath(static_cast<float>(bounds.getX()), centerY);
 
   for (int x = 0; x < width; ++x) {
     int startSample = x * numSamples / width;
@@ -515,7 +515,7 @@ juce::Path Recording::generateWaveformPath(const juce::AudioBuffer<float> &buffe
     }
 
     float y = centerY - (peak * height * 0.45f);
-    path.lineTo(bounds.getX() + x, y);
+    path.lineTo(static_cast<float>(bounds.getX() + x), y);
   }
 
   Log::debug("Recording::generateWaveformPath: Waveform path generated with " + juce::String(width) + " points");

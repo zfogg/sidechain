@@ -127,6 +127,9 @@ void MidiChallenges::loadChallenges() {
 
   juce::String status;
   switch (currentFilter) {
+  case FilterType::All:
+    status = "";
+    break;
   case FilterType::Active:
     status = "active";
     break;
@@ -138,9 +141,6 @@ void MidiChallenges::loadChallenges() {
     break;
   case FilterType::Upcoming:
     status = "upcoming";
-    break;
-  default:
-    status = "";
     break;
   }
 

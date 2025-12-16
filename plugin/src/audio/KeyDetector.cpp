@@ -147,7 +147,7 @@ public:
 
       // Calculate number of samples
       int numSamples = buffer.getNumSamples();
-      audioData.addToSampleCount(numSamples);
+      audioData.addToSampleCount(static_cast<unsigned int>(numSamples));
 
       // Mix to mono and copy to AudioData
       for (int i = 0; i < numSamples; ++i) {
@@ -158,7 +158,7 @@ public:
         sample /= static_cast<float>(numChannels);
 
         // libkeyfinder expects samples in range [-1, 1]
-        audioData.setSample(i, static_cast<double>(sample));
+        audioData.setSample(static_cast<unsigned int>(i), static_cast<double>(sample));
       }
 
       // Run key detection

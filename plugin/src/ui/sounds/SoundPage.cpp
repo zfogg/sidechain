@@ -61,7 +61,7 @@ void SoundPage::paint(juce::Graphics &g) {
     // Apply scroll offset
     g.saveState();
     g.reduceClipRegion(contentBounds);
-    g.addTransform(juce::AffineTransform::translation(0, -scrollOffset));
+    g.addTransform(juce::AffineTransform::translation(0.0f, static_cast<float>(-scrollOffset)));
 
     for (int i = 0; i < posts.size(); ++i) {
       auto cardBounds = getPostCardBounds(i);
@@ -146,8 +146,8 @@ void SoundPage::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void SoundPage::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
-  int delta = static_cast<int>(wheel.deltaY * 200);
+void SoundPage::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  int delta = static_cast<int>(wheel.deltaY * 200.0f);
   int newOffset =
       juce::jlimit(0, juce::jmax(0, calculateContentHeight() - getContentBounds().getHeight()), scrollOffset - delta);
 
@@ -396,7 +396,8 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
   }
 }
 
-void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post, int index) {
+void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post,
+                             [[maybe_unused]] int index) {
   bool isPlaying = (post.id == currentlyPlayingPostId);
 
   // Card background
@@ -409,7 +410,8 @@ void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, con
     g.setColour(Colors::accent.withAlpha(0.3f));
     g.fillRect(progressBounds);
     g.setColour(Colors::accent);
-    g.fillRect(progressBounds.withWidth(static_cast<int>(progressBounds.getWidth() * playbackProgress)));
+    g.fillRect(
+        progressBounds.withWidth(static_cast<int>(static_cast<float>(progressBounds.getWidth()) * playbackProgress)));
   }
 
   auto cardContent = bounds.reduced(12);

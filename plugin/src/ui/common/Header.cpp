@@ -266,9 +266,9 @@ void Header::drawMessagesButton(juce::Graphics &g, juce::Rectangle<int> bounds) 
 
   // Draw flap lines on envelope
   juce::Path flap;
-  flap.startNewSubPath(iconBounds.getX(), iconBounds.getY());
-  flap.lineTo(iconBounds.getCentreX(), iconBounds.getCentreY() - 2);
-  flap.lineTo(iconBounds.getRight(), iconBounds.getY());
+  flap.startNewSubPath(static_cast<float>(iconBounds.getX()), static_cast<float>(iconBounds.getY()));
+  flap.lineTo(static_cast<float>(iconBounds.getCentreX()), static_cast<float>(iconBounds.getCentreY()) - 2.0f);
+  flap.lineTo(static_cast<float>(iconBounds.getRight()), static_cast<float>(iconBounds.getY()));
   g.strokePath(flap, juce::PathStrokeType(1.5f));
 
   // Draw unread badge if there are unread messages
@@ -297,9 +297,9 @@ void Header::drawStoryButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
   g.drawEllipse(iconBounds.toFloat().reduced(2), 1.5f);
 
   // Draw plus sign inside
-  auto center = iconBounds.getCentre();
-  g.drawLine(center.x - 5, center.y, center.x + 5, center.y, 1.5f);
-  g.drawLine(center.x, center.y - 5, center.x, center.y + 5, 1.5f);
+  auto centerF = iconBounds.getCentre().toFloat();
+  g.drawLine(centerF.x - 5.0f, centerF.y, centerF.x + 5.0f, centerF.y, 1.5f);
+  g.drawLine(centerF.x, centerF.y - 5.0f, centerF.x, centerF.y + 5.0f, 1.5f);
 }
 
 void Header::drawProfileSection(juce::Graphics &g, juce::Rectangle<int> bounds) {

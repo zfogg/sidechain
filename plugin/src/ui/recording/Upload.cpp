@@ -405,7 +405,8 @@ void Upload::drawTapTempoButton(juce::Graphics &g) {
 
 void Upload::drawKeyDropdown(juce::Graphics &g) {
   auto &keys = getMusicalKeys();
-  juce::String value = selectedKeyIndex < (int)keys.size() ? keys[selectedKeyIndex].name : "Not set";
+  juce::String value =
+      selectedKeyIndex < static_cast<int>(keys.size()) ? keys[static_cast<size_t>(selectedKeyIndex)].name : "Not set";
   bool isHovered = keyDropdownArea.contains(getMouseXYRelative());
   drawDropdown(g, keyDropdownArea, "Key", value, isHovered);
 }
@@ -435,15 +436,17 @@ void Upload::drawDetectKeyButton(juce::Graphics &g) {
 
 void Upload::drawGenreDropdown(juce::Graphics &g) {
   auto &genres = getGenres();
-  juce::String value = selectedGenreIndex < (int)genres.size() ? genres[selectedGenreIndex] : "Electronic";
+  juce::String value = selectedGenreIndex < static_cast<int>(genres.size())
+                           ? genres[static_cast<size_t>(selectedGenreIndex)]
+                           : "Electronic";
   bool isHovered = genreDropdownArea.contains(getMouseXYRelative());
   drawDropdown(g, genreDropdownArea, "Genre", value, isHovered);
 }
 
 void Upload::drawCommentAudienceDropdown(juce::Graphics &g) {
   auto &audiences = getCommentAudiences();
-  juce::String value = selectedCommentAudienceIndex < (int)audiences.size()
-                           ? audiences[selectedCommentAudienceIndex].displayName
+  juce::String value = selectedCommentAudienceIndex < static_cast<int>(audiences.size())
+                           ? audiences[static_cast<size_t>(selectedCommentAudienceIndex)].displayName
                            : "Everyone";
   bool isHovered = commentAudienceArea.contains(getMouseXYRelative());
   drawDropdown(g, commentAudienceArea, "Comments", value, isHovered);
@@ -475,15 +478,17 @@ void Upload::drawProjectFileButton(juce::Graphics &g) {
 
   if (includeProjectFile && projectFile.existsAsFile()) {
     // Show filename and file size
-    juce::String filename = projectFile.getFileName();
-    if (filename.length() > 35)
-      filename = filename.substring(0, 32) + "...";
+    juce::String projectFilename = projectFile.getFileName();
+    if (projectFilename.length() > 35)
+      projectFilename = projectFilename.substring(0, 32) + "...";
 
     int64 sizeKB = projectFile.getSize() / 1024;
-    juce::String sizeStr = sizeKB > 1024 ? juce::String(sizeKB / 1024.0, 1) + " MB" : juce::String(sizeKB) + " KB";
+    juce::String sizeStr =
+        sizeKB > 1024 ? juce::String(static_cast<double>(sizeKB) / 1024.0, 1) + " MB" : juce::String(sizeKB) + " KB";
 
     g.setColour(SidechainColors::textPrimary());
-    g.drawText(filename, valueBounds.removeFromLeft(valueBounds.getWidth() - 80), juce::Justification::centredLeft);
+    g.drawText(projectFilename, valueBounds.removeFromLeft(valueBounds.getWidth() - 80),
+               juce::Justification::centredLeft);
 
     g.setColour(SidechainColors::textMuted());
     g.setFont(11.0f);
@@ -510,7 +515,7 @@ void Upload::drawProgressBar(juce::Graphics &g) {
 
   // Progress fill
   if (uploadProgress > 0.0f) {
-    auto fillWidth = progressBarArea.getWidth() * uploadProgress;
+    auto fillWidth = static_cast<float>(progressBarArea.getWidth()) * uploadProgress;
     auto fillRect = progressBarArea.withWidth(static_cast<int>(fillWidth));
     g.setColour(SidechainColors::primary());
     g.fillRoundedRectangle(fillRect.toFloat(), 4.0f);
@@ -576,7 +581,7 @@ void Upload::drawStatus(juce::Graphics &g) {
 
 //==============================================================================
 void Upload::drawTextField(juce::Graphics &g, juce::Rectangle<int> bounds, const juce::String &label,
-                           const juce::String &value, bool isActive, bool isEditable) {
+                           const juce::String &value, bool isActive, [[maybe_unused]] bool isEditable) {
   // Background
   auto bgColor = isActive ? SidechainColors::surfaceHover() : SidechainColors::surface();
   g.setColour(bgColor);
@@ -636,8 +641,8 @@ void Upload::drawDropdown(juce::Graphics &g, juce::Rectangle<int> bounds, const 
   auto arrowArea = bounds.removeFromRight(40);
   g.setColour(SidechainColors::textMuted());
   juce::Path arrow;
-  float cx = arrowArea.getCentreX();
-  float cy = arrowArea.getCentreY();
+  float cx = static_cast<float>(arrowArea.getCentreX());
+  float cy = static_cast<float>(arrowArea.getCentreY());
   arrow.addTriangle(cx - 6, cy - 3, cx + 6, cy - 3, cx, cy + 4);
   g.fillPath(arrow);
 }
@@ -662,9 +667,9 @@ juce::Path Upload::generateWaveformPath(juce::Rectangle<int> bounds) {
   int numSamples = audioBuffer.getNumSamples();
   int width = bounds.getWidth();
   float height = static_cast<float>(bounds.getHeight());
-  float centerY = bounds.getCentreY();
+  float centerY = static_cast<float>(bounds.getCentreY());
 
-  path.startNewSubPath(bounds.getX(), centerY);
+  path.startNewSubPath(static_cast<float>(bounds.getX()), centerY);
 
   for (int x = 0; x < width; ++x) {
     int startSample = x * numSamples / width;
@@ -678,7 +683,7 @@ juce::Path Upload::generateWaveformPath(juce::Rectangle<int> bounds) {
     }
 
     float y = centerY - (peak * height * 0.45f);
-    path.lineTo(bounds.getX() + x, y);
+    path.lineTo(static_cast<float>(bounds.getX() + x), y);
   }
 
   return path;
@@ -711,7 +716,7 @@ void Upload::handleTapTempo() {
     for (size_t i = 1; i < tapTimes.size(); ++i) {
       totalInterval += tapTimes[i] - tapTimes[i - 1];
     }
-    double avgInterval = totalInterval / (tapTimes.size() - 1);
+    double avgInterval = totalInterval / static_cast<double>(tapTimes.size() - 1);
 
     // Convert to BPM (ms to beats per minute)
     if (avgInterval > 0) {
@@ -770,16 +775,16 @@ void Upload::detectKey() {
     if (detectedKey.isValid()) {
       // Try to find matching key in our list
       auto &keys = getMusicalKeys();
-      for (int i = 1; i < (int)keys.size(); ++i) {
+      for (size_t i = 1; i < keys.size(); ++i) {
         // Match by short name (Am, F#, etc.)
         if (keys[i].shortName.equalsIgnoreCase(detectedKey.shortName)) {
-          keyIndex = i;
+          keyIndex = static_cast<int>(i);
           Log::debug("Upload::detectKey: Matched key by shortName: " + keys[i].name);
           break;
         }
         // Also try matching by standard name prefix
         if (detectedKey.name.containsIgnoreCase(keys[i].shortName.replace("m", " Minor").replace("#", "# /"))) {
-          keyIndex = i;
+          keyIndex = static_cast<int>(i);
           Log::debug("Upload::detectKey: Matched key by name prefix: " + keys[i].name);
           break;
         }
@@ -819,18 +824,19 @@ void Upload::showKeyPicker() {
   juce::PopupMenu menu;
   auto &keys = getMusicalKeys();
 
-  for (int i = 0; i < (int)keys.size(); ++i) {
-    menu.addItem(i + 1, keys[i].name, true, i == selectedKeyIndex);
+  for (size_t i = 0; i < keys.size(); ++i) {
+    menu.addItem(static_cast<int>(i) + 1, keys[i].name, true, static_cast<int>(i) == selectedKeyIndex);
   }
 
   menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(
                          keyDropdownArea.translated(getScreenX(), getScreenY())),
                      [this](int result) {
                        if (result > 0) {
-                         auto &keys = getMusicalKeys();
+                         auto &keysInner = getMusicalKeys();
                          int newIndex = result - 1;
-                         Log::info("Upload::showKeyPicker: Key selected: " + keys[newIndex].name +
-                                   " (index: " + juce::String(newIndex) + ")");
+                         Log::info(
+                             "Upload::showKeyPicker: Key selected: " + keysInner[static_cast<size_t>(newIndex)].name +
+                             " (index: " + juce::String(newIndex) + ")");
                          selectedKeyIndex = newIndex;
                          repaint();
                        }
@@ -842,18 +848,19 @@ void Upload::showGenrePicker() {
   juce::PopupMenu menu;
   auto &genres = getGenres();
 
-  for (int i = 0; i < (int)genres.size(); ++i) {
-    menu.addItem(i + 1, genres[i], true, i == selectedGenreIndex);
+  for (size_t i = 0; i < genres.size(); ++i) {
+    menu.addItem(static_cast<int>(i) + 1, genres[i], true, static_cast<int>(i) == selectedGenreIndex);
   }
 
   menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(
                          genreDropdownArea.translated(getScreenX(), getScreenY())),
                      [this](int result) {
                        if (result > 0) {
-                         auto &genres = getGenres();
+                         auto &genresInner = getGenres();
                          int newIndex = result - 1;
-                         Log::info("Upload::showGenrePicker: Genre selected: " + genres[newIndex] +
-                                   " (index: " + juce::String(newIndex) + ")");
+                         Log::info(
+                             "Upload::showGenrePicker: Genre selected: " + genresInner[static_cast<size_t>(newIndex)] +
+                             " (index: " + juce::String(newIndex) + ")");
                          selectedGenreIndex = newIndex;
                          repaint();
                        }
@@ -866,18 +873,20 @@ void Upload::showCommentAudiencePicker() {
   juce::PopupMenu menu;
   auto &audiences = getCommentAudiences();
 
-  for (int i = 0; i < (int)audiences.size(); ++i) {
-    menu.addItem(i + 1, audiences[i].displayName, true, i == selectedCommentAudienceIndex);
+  for (size_t i = 0; i < audiences.size(); ++i) {
+    menu.addItem(static_cast<int>(i) + 1, audiences[i].displayName, true,
+                 static_cast<int>(i) == selectedCommentAudienceIndex);
   }
 
   menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(
                          commentAudienceArea.translated(getScreenX(), getScreenY())),
                      [this](int result) {
                        if (result > 0) {
-                         auto &audiences = getCommentAudiences();
+                         auto &audiencesInner = getCommentAudiences();
                          int newIndex = result - 1;
                          Log::info("Upload::showCommentAudiencePicker: Comment audience selected: " +
-                                   audiences[newIndex].displayName + " (" + audiences[newIndex].value + ")");
+                                   audiencesInner[static_cast<size_t>(newIndex)].displayName + " (" +
+                                   audiencesInner[static_cast<size_t>(newIndex)].value + ")");
                          selectedCommentAudienceIndex = newIndex;
                          repaint();
                        }
@@ -914,7 +923,8 @@ void Upload::selectProjectFile() {
                              juce::AlertWindow::showMessageBoxAsync(
                                  juce::MessageBoxIconType::WarningIcon, "File Too Large",
                                  "Project file must be under 50MB.\n\nYour file: " +
-                                     juce::String(result.getSize() / (1024.0 * 1024.0), 1) + " MB");
+                                     juce::String(static_cast<double>(result.getSize()) / (1024.0 * 1024.0), 1) +
+                                     " MB");
                              return;
                            }
 
@@ -1012,8 +1022,11 @@ void Upload::startUpload() {
   NetworkClient::AudioUploadMetadata metadata;
   metadata.filename = filename;
   metadata.bpm = bpm;
-  metadata.key = selectedKeyIndex > 0 && selectedKeyIndex < (int)keys.size() ? keys[selectedKeyIndex].shortName : "";
-  metadata.genre = selectedGenreIndex < (int)genres.size() ? genres[selectedGenreIndex] : "";
+  metadata.key = selectedKeyIndex > 0 && selectedKeyIndex < static_cast<int>(keys.size())
+                     ? keys[static_cast<size_t>(selectedKeyIndex)].shortName
+                     : "";
+  metadata.genre =
+      selectedGenreIndex < static_cast<int>(genres.size()) ? genres[static_cast<size_t>(selectedGenreIndex)] : "";
   metadata.durationSeconds = static_cast<double>(audioBuffer.getNumSamples()) / audioSampleRate;
   metadata.sampleRate = static_cast<int>(audioSampleRate);
   metadata.numChannels = audioBuffer.getNumChannels();
@@ -1028,8 +1041,9 @@ void Upload::startUpload() {
 
   // Include comment audience setting
   auto &audiences = getCommentAudiences();
-  metadata.commentAudience =
-      selectedCommentAudienceIndex < (int)audiences.size() ? audiences[selectedCommentAudienceIndex].value : "everyone";
+  metadata.commentAudience = selectedCommentAudienceIndex < static_cast<int>(audiences.size())
+                                 ? audiences[static_cast<size_t>(selectedCommentAudienceIndex)].value
+                                 : "everyone";
 
   Log::info("Upload::startUpload: Upload metadata - filename: \"" + filename + "\", BPM: " + juce::String(bpm, 1) +
             ", key: " + metadata.key + ", genre: " + metadata.genre + ", duration: " +

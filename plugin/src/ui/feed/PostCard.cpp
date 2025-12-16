@@ -106,14 +106,14 @@ void PostCard::setPost(const FeedPost &newPost) {
   if (post.userId.isNotEmpty()) {
     // Use SafePointer to handle case where PostCard is destroyed before
     // callback executes
-    juce::Component::SafePointer<PostCard> safeThis(this);
-    ImageLoader::loadAvatarForUser(post.userId, [safeThis](const juce::Image &img) {
+    juce::Component::SafePointer<PostCard> safeThisAvatar(this);
+    ImageLoader::loadAvatarForUser(post.userId, [safeThisAvatar](const juce::Image &img) {
       // Check if PostCard still exists before
       // accessing members
-      if (safeThis == nullptr)
+      if (safeThisAvatar == nullptr)
         return;
-      safeThis->avatarImage = img;
-      safeThis->repaint();
+      safeThisAvatar->avatarImage = img;
+      safeThisAvatar->repaint();
     });
   }
 
@@ -514,15 +514,16 @@ void PostCard::drawSocialButtons(juce::Graphics &g, [[maybe_unused]] juce::Recta
   g.drawRoundedRectangle(iconBounds.toFloat(), 3.0f, 1.5f);
   // Small tail for speech bubble
   juce::Path tail;
-  tail.addTriangle(iconBounds.getX() + 3, iconBounds.getBottom(), iconBounds.getX() + 9, iconBounds.getBottom(),
-                   iconBounds.getX() + 2, iconBounds.getBottom() + 5);
+  tail.addTriangle(static_cast<float>(iconBounds.getX() + 3), static_cast<float>(iconBounds.getBottom()),
+                   static_cast<float>(iconBounds.getX() + 9), static_cast<float>(iconBounds.getBottom()),
+                   static_cast<float>(iconBounds.getX() + 2), static_cast<float>(iconBounds.getBottom() + 5));
   g.fillPath(tail);
 
   // Draw strike-through line if comments disabled
   if (commentsOff) {
     g.setColour(SidechainColors::textMuted().withAlpha(0.6f));
-    g.drawLine(iconBounds.getX() - 1, iconBounds.getBottom() + 2, iconBounds.getRight() + 1, iconBounds.getY() - 2,
-               1.5f);
+    g.drawLine(static_cast<float>(iconBounds.getX() - 1), static_cast<float>(iconBounds.getBottom() + 2),
+               static_cast<float>(iconBounds.getRight() + 1), static_cast<float>(iconBounds.getY() - 2), 1.5f);
   }
 
   g.setFont(13.0f);
@@ -561,8 +562,8 @@ void PostCard::drawSocialButtons(juce::Graphics &g, [[maybe_unused]] juce::Recta
       g.setColour(SidechainColors::backgroundLighter());
       g.fillRoundedRectangle(dropToTrackBounds.toFloat(), 4.0f);
 
-      auto progressBounds =
-          dropToTrackBounds.withWidth(static_cast<int>(dropToTrackBounds.getWidth() * downloadProgress));
+      auto progressBounds = dropToTrackBounds.withWidth(
+          static_cast<int>(static_cast<float>(dropToTrackBounds.getWidth()) * downloadProgress));
       g.setColour(SidechainColors::follow());
       g.fillRoundedRectangle(progressBounds.toFloat(), 4.0f);
 
@@ -758,18 +759,21 @@ void PostCard::drawSaveButton(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
   if (post.isSaved) {
     // Filled bookmark
-    bookmark.addRectangle(iconBounds.getX(), iconBounds.getY(), iconBounds.getWidth(), iconBounds.getHeight() - 4);
+    bookmark.addRectangle(static_cast<float>(iconBounds.getX()), static_cast<float>(iconBounds.getY()),
+                          static_cast<float>(iconBounds.getWidth()), static_cast<float>(iconBounds.getHeight() - 4));
     // Triangular notch at bottom
-    bookmark.addTriangle(iconBounds.getX(), iconBounds.getBottom() - 4, iconBounds.getX() + iconBounds.getWidth(),
-                         iconBounds.getBottom() - 4, iconBounds.getCentreX(), iconBounds.getBottom() - 8);
+    bookmark.addTriangle(static_cast<float>(iconBounds.getX()), static_cast<float>(iconBounds.getBottom() - 4),
+                         static_cast<float>(iconBounds.getX() + iconBounds.getWidth()),
+                         static_cast<float>(iconBounds.getBottom() - 4), static_cast<float>(iconBounds.getCentreX()),
+                         static_cast<float>(iconBounds.getBottom() - 8));
     g.fillPath(bookmark);
   } else {
     // Outline bookmark
-    bookmark.startNewSubPath(iconBounds.getX(), iconBounds.getY());
-    bookmark.lineTo(iconBounds.getX(), iconBounds.getBottom() - 4);
-    bookmark.lineTo(iconBounds.getCentreX(), iconBounds.getBottom() - 8);
-    bookmark.lineTo(iconBounds.getRight(), iconBounds.getBottom() - 4);
-    bookmark.lineTo(iconBounds.getRight(), iconBounds.getY());
+    bookmark.startNewSubPath(static_cast<float>(iconBounds.getX()), static_cast<float>(iconBounds.getY()));
+    bookmark.lineTo(static_cast<float>(iconBounds.getX()), static_cast<float>(iconBounds.getBottom() - 4));
+    bookmark.lineTo(static_cast<float>(iconBounds.getCentreX()), static_cast<float>(iconBounds.getBottom() - 8));
+    bookmark.lineTo(static_cast<float>(iconBounds.getRight()), static_cast<float>(iconBounds.getBottom() - 4));
+    bookmark.lineTo(static_cast<float>(iconBounds.getRight()), static_cast<float>(iconBounds.getY()));
     bookmark.closeSubPath();
     g.strokePath(bookmark, juce::PathStrokeType(1.5f));
   }
