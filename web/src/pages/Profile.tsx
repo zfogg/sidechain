@@ -10,6 +10,7 @@ import { useFollowMutation } from '@/hooks/mutations/useFollowMutation'
 import { DirectMessageButton } from '@/components/chat/DirectMessageButton'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
 import { PinnedPostsSection } from '@/components/profile/PinnedPostsSection'
+import { DownloadHistory } from '@/components/profile/DownloadHistory'
 
 interface ProfileUser {
   id: string
@@ -225,6 +226,13 @@ export function Profile() {
       {/* Pinned Posts Section */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <PinnedPostsSection userId={profile.id} displayName={profile.displayName} />
+
+        {/* Download History Section - Own Profile Only */}
+        {profile.isOwnProfile && (
+          <section className="bg-card border border-border rounded-lg p-6 mb-8">
+            <DownloadHistory />
+          </section>
+        )}
 
         {/* User Posts Feed */}
         <div>
