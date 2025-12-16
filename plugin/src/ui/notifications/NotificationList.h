@@ -1,49 +1,10 @@
 #pragma once
 
-#include "../../models/AggregatedFeedGroup.h"
+#include "../../stores/NotificationStore.h"
+#include "../../stores/Store.h"
 #include "../../util/HoverState.h"
+#include "NotificationItem.h"
 #include <JuceHeader.h>
-
-//==============================================================================
-/**
- * NotificationItem represents a single notification group from getstream.io
- *
- * Now uses AggregatedFeedGroup as the underlying model for consistency.
- * getstream.io groups notifications by aggregation format: {{ verb }}_{{
- * time.strftime("%Y-%m-%d") }}
- *
- * Examples:
- * - "Alice and 3 others liked your loop" (grouped by verb+target+day)
- * - "Bob started following you" (single follow notification)
- */
-struct NotificationItem {
-  AggregatedFeedGroup group; // The underlying aggregated group
-  bool isRead = false;
-  bool isSeen = false;
-
-  // Derived from first activity in group
-  juce::String actorId;
-  juce::String actorName;
-  juce::String actorAvatarUrl;
-  juce::String targetId;      // e.g., "loop:123" or "user:456"
-  juce::String targetType;    // "loop", "user", "comment"
-  juce::String targetPreview; // Preview text or title
-
-  // Parse from JSON response (old format for backward compatibility)
-  static NotificationItem fromJson(const juce::var &json);
-
-  // Create from AggregatedFeedGroup
-  static NotificationItem fromAggregatedGroup(const AggregatedFeedGroup &group, bool read = false, bool seen = false);
-
-  // Generate display text like "Alice and 3 others liked your loop"
-  juce::String getDisplayText() const;
-
-  // Get relative time like "2h ago"
-  juce::String getRelativeTime() const;
-
-  // Get icon path/type for the verb
-  juce::String getVerbIcon() const;
-};
 
 //==============================================================================
 /**
@@ -100,7 +61,20 @@ public:
   ~NotificationList() override;
 
   //==============================================================================
-  // Data binding
+  // Store binding (new reactive pattern)
+  /**
+   * Bind to a NotificationStore for automatic updates
+   * The list will automatically update when the store state changes
+   */
+  void bindToStore(std::shared_ptr<Sidechain::Stores::NotificationStore> store);
+
+  /**
+   * Unbind from the current store
+   */
+  void unbindFromStore();
+
+  //==============================================================================
+  // Data binding (legacy - prefer using store binding)
   void setNotifications(const juce::Array<NotificationItem> &notifications);
   void clearNotifications();
   void setLoading(bool loading);
@@ -113,7 +87,7 @@ public:
   //==============================================================================
   // Callbacks
   std::function<void(const NotificationItem &)> onNotificationClicked;
-  std::function<void()> onMarkAllReadClicked;
+  std::function<void()> onMarkAllReadClicked; // Legacy - store binding calls markAllRead directly
   std::function<void()> onCloseClicked;
   std::function<void()> onRefreshRequested;
 
@@ -143,6 +117,14 @@ private:
   juce::Viewport viewport;
   juce::Component contentComponent;
   int scrollOffset = 0;
+
+  // Store subscription
+  std::shared_ptr<Sidechain::Stores::NotificationStore> notificationStore;
+  Sidechain::Stores::ScopedSubscription storeSubscription;
+
+  //==============================================================================
+  // Store state handler
+  void handleStoreStateChanged(const Sidechain::Stores::NotificationState &state);
 
   //==============================================================================
   // Drawing helpers
