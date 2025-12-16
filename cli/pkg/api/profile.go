@@ -1,6 +1,12 @@
 package api
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	json "github.com/json-iterator/go"
@@ -218,4 +224,52 @@ func GetUserActivity(username string) (map[string]interface{}, error) {
 	}
 
 	return activity, nil
+}
+
+// UploadProfilePicture uploads a profile picture for the current user
+func UploadProfilePicture(filePath string) (*User, error) {
+	logger.Debug("Uploading profile picture", "file_path", filePath)
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	// Create multipart form
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add file field
+	part, err := writer.CreateFormFile("profile_picture", filepath.Base(filePath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %w", err)
+	}
+
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to copy file: %w", err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close writer: %w", err)
+	}
+
+	resp, err := client.GetClient().
+		R().
+		SetHeader("Content-Type", writer.FormDataContentType()).
+		SetBody(body.Bytes()).
+		Post("/api/v1/users/upload-profile-picture")
+
+	if err := CheckResponse(resp, err); err != nil {
+		return nil, err
+	}
+
+	var profileResp ProfileResponse
+	if err := json.Unmarshal(resp.Body(), &profileResp); err != nil {
+		return nil, err
+	}
+
+	return &profileResp.User, nil
 }

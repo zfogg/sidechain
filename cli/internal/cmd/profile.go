@@ -128,12 +128,12 @@ var profilePictureCmd = &cobra.Command{
 }
 
 var profilePictureUploadCmd = &cobra.Command{
-	Use:   "upload <filepath>",
+	Use:   "upload",
 	Short: "Upload a profile picture",
-	Args:  cobra.ExactArgs(1),
+	Long:  "Upload a JPEG, PNG, or GIF image as your profile picture",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: Implement picture upload with file handling
-		return nil
+		svc := service.NewProfileService()
+		return svc.UploadProfilePicture()
 	},
 }
 
