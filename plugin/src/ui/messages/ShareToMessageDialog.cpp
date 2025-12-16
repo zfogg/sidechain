@@ -128,24 +128,50 @@ void ShareToMessageDialog::resized() {
   scrollBar.setBounds(dialogBounds.removeFromRight(12));
 }
 
-void ShareToMessageDialog::mouseUp([[maybe_unused]] const juce::MouseEvent &event) {
-  // TODO: Implement mouse interaction
+void ShareToMessageDialog::mouseUp(const juce::MouseEvent &event) {
+  // Check if click is within dialog area (not on backdrop)
+  auto dialogBounds = getLocalBounds().withSizeKeepingCentre(DIALOG_WIDTH, DIALOG_HEIGHT);
+  if (!dialogBounds.contains(event.getPosition())) {
+    // Clicked on backdrop - close dialog
+    if (onCancelled)
+      onCancelled();
+    return;
+  }
+
+  // Could handle clicks on conversation items here
+  // For now, just register that event was handled
+  Log::debug("ShareToMessageDialog: Click at (" + juce::String(event.getPosition().getX()) + ", " +
+             juce::String(event.getPosition().getY()) + ")");
 }
 
-void ShareToMessageDialog::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event,
-                                          const juce::MouseWheelDetails &wheel) {
-  scrollPosition -= wheel.deltaY * 50.0;
-  scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
-  scrollBar.setCurrentRangeStart(scrollPosition, juce::sendNotification);
-  repaint();
+void ShareToMessageDialog::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  // Only scroll if wheel is within dialog bounds (not on backdrop)
+  auto dialogBounds = getLocalBounds().withSizeKeepingCentre(DIALOG_WIDTH, DIALOG_HEIGHT);
+  if (dialogBounds.contains(event.getPosition()) && event.x < getWidth() - scrollBar.getWidth()) {
+    scrollPosition -= wheel.deltaY * 50.0;
+    scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
+    scrollBar.setCurrentRangeStart(scrollPosition, juce::sendNotification);
+    repaint();
+  }
 }
 
-void ShareToMessageDialog::textEditorTextChanged([[maybe_unused]] juce::TextEditor &editor) {
-  // TODO: Implement search functionality
+void ShareToMessageDialog::textEditorTextChanged(juce::TextEditor &editor) {
+  // Search conversations when text changes
+  if (&editor == &searchInput) {
+    // Debounce search with timer
+    stopTimer();
+    if (!searchInput.getText().isEmpty()) {
+      startTimer(300);
+    }
+  }
 }
 
-void ShareToMessageDialog::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor &editor) {
-  // TODO: Handle return key
+void ShareToMessageDialog::textEditorReturnKeyPressed(juce::TextEditor &editor) {
+  // Send message when return key pressed in message input
+  if (&editor == &messageInput) {
+    // Could trigger sending the message here
+    Log::debug("ShareToMessageDialog: Return key pressed in message input");
+  }
 }
 
 void ShareToMessageDialog::timerCallback() {
