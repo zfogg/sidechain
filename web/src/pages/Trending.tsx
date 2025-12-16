@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { FeedClient } from '@/api/FeedClient'
+import { PostCard } from '@/components/feed/PostCard'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { PostCard } from '@/components/feed/PostCard'
 import type { FeedPost } from '@/models/FeedPost'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
 type TimePeriod = 'weekly' | 'monthly' | 'alltime'
 
@@ -48,7 +48,10 @@ export function Trending() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
       {/* Header */}
-      <div className="bg-card/50 border-b border-border sticky top-16 z-40">
+      <div
+        className="border-b border-border sticky top-16 z-40"
+        style={{ backgroundColor: '#26262C' }}
+      >
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-foreground">Trending</h1>
