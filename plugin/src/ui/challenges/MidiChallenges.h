@@ -6,8 +6,6 @@
 #include <JuceHeader.h>
 #include <memory>
 
-class NetworkClient;
-
 //==============================================================================
 /**
  * MidiChallenges displays active MIDI challenges (R.2.2.4.1)
@@ -33,8 +31,6 @@ public:
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
   //==============================================================================
-  // Network client integration
-  void setNetworkClient(NetworkClient *client);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -62,7 +58,6 @@ private:
 
   //==============================================================================
   // Data
-  NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
   juce::Array<MIDIChallenge> challenges;
   bool isLoading = false;

@@ -1,9 +1,6 @@
 #include "MidiChallenges.h"
-#include "../../network/NetworkClient.h"
-#include "../../util/Async.h"
-#include "../../util/Json.h"
+#include "../../stores/ChallengeStore.h"
 #include "../../util/Log.h"
-#include "../../util/Result.h"
 
 //==============================================================================
 MidiChallenges::MidiChallenges() {
@@ -27,6 +24,7 @@ void MidiChallenges::bindToStore(std::shared_ptr<Sidechain::Stores::ChallengeSto
   Log::debug("MidiChallenges: Binding to ChallengeStore");
 
   challengeStore = store;
+  jassert(challengeStore != nullptr); // ChallengeStore is required
   if (!challengeStore)
     return;
 
@@ -67,12 +65,6 @@ void MidiChallenges::unbindFromStore() {
 void MidiChallenges::handleStoreStateChanged(const Sidechain::Stores::ChallengeState &state) {
   // This callback is handled inline in bindToStore via lambda
   // Keeping this method for consistency with other components
-}
-
-//==============================================================================
-void MidiChallenges::setNetworkClient(NetworkClient *client) {
-  networkClient = client;
-  Log::debug("MidiChallenges: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
 }
 
 //==============================================================================
@@ -165,63 +157,24 @@ void MidiChallenges::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newR
 
 //==============================================================================
 void MidiChallenges::loadChallenges() {
-  if (!networkClient) {
-    Log::warn("MidiChallenges: No network client set");
+  jassert(challengeStore != nullptr);
+  if (!challengeStore) {
+    Log::error("MidiChallenges: Cannot load challenges - ChallengeStore is null");
     return;
   }
 
-  isLoading = true;
-  errorMessage = "";
-  repaint();
+  Log::debug("MidiChallenges: Loading challenges from store");
 
-  juce::String status;
-  switch (currentFilter) {
-  case FilterType::All:
-    status = "";
-    break;
-  case FilterType::Active:
-    status = "active";
-    break;
-  case FilterType::Voting:
-    status = "voting";
-    break;
-  case FilterType::Past:
-    status = "past";
-    break;
-  case FilterType::Upcoming:
-    status = "upcoming";
-    break;
-  }
-
-  networkClient->getMIDIChallenges(status, [this](Outcome<juce::var> result) {
-    juce::MessageManager::callAsync([this, result]() {
-      isLoading = false;
-
-      if (!result.isOk()) {
-        errorMessage = "Failed to load challenges: " + result.getError();
-        Log::warn("MidiChallenges: " + errorMessage);
-        repaint();
-        return;
-      }
-
-      auto response = result.getValue();
-      challenges.clear();
-
-      if (response.isArray()) {
-        for (int i = 0; i < response.size(); ++i) {
-          challenges.add(MIDIChallenge::fromJSON(response[i]));
-        }
-      }
-
-      Log::info("MidiChallenges: Loaded " + juce::String(challenges.size()) + " challenges");
-      updateScrollBounds();
-      repaint();
-    });
-  });
+  // Call loadChallenges on store - store will notify via subscription
+  challengeStore->loadChallenges();
 }
 
 void MidiChallenges::refresh() {
-  loadChallenges();
+  jassert(challengeStore != nullptr);
+  if (!challengeStore)
+    return;
+
+  challengeStore->loadChallenges();
 }
 
 //==============================================================================
