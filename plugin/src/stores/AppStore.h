@@ -278,6 +278,26 @@ public:
     return audioCache;
   }
 
+  //==============================================================================
+  // Image fetching with automatic caching
+
+  /**
+   * Fetch image from URL with automatic caching.
+   *
+   * Checks cache first, downloads from HTTP if not cached, caches result.
+   * Async operation with callback on UI thread.
+   *
+   * @param url Image URL to fetch
+   * @param callback Called with image on UI thread (may be null if fetch fails)
+   */
+  void fetchImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
+
+  /**
+   * Get cached image if available, otherwise returns null image.
+   * Synchronous - does not download, only checks cache.
+   */
+  juce::Image getCachedImage(const juce::String &url);
+
 protected:
   /**
    * Constructor

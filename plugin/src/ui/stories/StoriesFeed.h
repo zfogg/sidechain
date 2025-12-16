@@ -138,7 +138,6 @@ private:
   static constexpr int LABEL_HEIGHT = 20;
 
   // Cached avatar images
-  std::map<juce::String, juce::Image> avatarCache;
 
   // Drawing helpers
   void drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds);
@@ -151,7 +150,6 @@ private:
   juce::Rectangle<int> getCircleBounds(int index) const;
 
   // Download avatar image
-  void loadAvatarImage(const juce::String &userId, const juce::String &avatarUrl);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StoriesFeed)
 };

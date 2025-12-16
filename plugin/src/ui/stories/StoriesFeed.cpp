@@ -287,19 +287,21 @@ void StoriesFeed::drawCreateStoryCircle(juce::Graphics &g, juce::Rectangle<int> 
 
   // Avatar if user has one
   if (currentUserAvatarUrl.isNotEmpty()) {
-    auto it = avatarCache.find(currentUserId);
-    if (it != avatarCache.end() && it->second.isValid()) {
+    auto image = appStore ? appStore->getCachedImage(currentUserAvatarUrl) : juce::Image();
+    if (image.isValid()) {
       // Draw avatar
       g.saveState();
       juce::Path clipPath;
       clipPath.addEllipse(center.x - radius, center.y - radius, radius * 2, radius * 2);
       g.reduceClipRegion(clipPath);
-      g.drawImage(it->second, juce::Rectangle<float>(center.x - radius, center.y - radius, radius * 2, radius * 2),
+      g.drawImage(image, juce::Rectangle<float>(center.x - radius, center.y - radius, radius * 2, radius * 2),
                   juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
       g.restoreState();
     } else {
-      // Load avatar
-      loadAvatarImage(currentUserId, currentUserAvatarUrl);
+      // Fetch avatar from AppStore (with caching)
+      if (appStore) {
+        appStore->fetchImage(currentUserAvatarUrl, [this](const juce::Image &) { repaint(); });
+      }
     }
   }
 
@@ -347,15 +349,14 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
   g.fillEllipse(center.x - gapRadius, center.y - gapRadius, gapRadius * 2, gapRadius * 2);
 
   // Avatar
-  auto it = avatarCache.find(userStories.userId);
-  if (it != avatarCache.end() && it->second.isValid()) {
+  auto image = appStore ? appStore->getCachedImage(userStories.avatarUrl) : juce::Image();
+  if (image.isValid()) {
     g.saveState();
     juce::Path clipPath;
     clipPath.addEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2);
     g.reduceClipRegion(clipPath);
     g.drawImage(
-        it->second,
-        juce::Rectangle<float>(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2),
+        image, juce::Rectangle<float>(center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2),
         juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
     g.restoreState();
   } else {
@@ -369,9 +370,10 @@ void StoriesFeed::drawStoryCircle(juce::Graphics &g, juce::Rectangle<int> bounds
     juce::String initial = userStories.username.isNotEmpty() ? userStories.username.substring(0, 1).toUpperCase() : "?";
     g.drawText(initial, circleBounds, juce::Justification::centred);
 
-    // Load avatar async
-    if (userStories.avatarUrl.isNotEmpty())
-      loadAvatarImage(userStories.userId, userStories.avatarUrl);
+    // Fetch avatar via AppStore (with caching)
+    if (userStories.avatarUrl.isNotEmpty() && appStore) {
+      appStore->fetchImage(userStories.avatarUrl, [this](const juce::Image &) { repaint(); });
+    }
   }
 
   // Story count badge (if multiple stories)
@@ -409,32 +411,4 @@ juce::Rectangle<int> StoriesFeed::getCircleBounds(int index) const {
   x -= static_cast<int>(scrollOffset);
 
   return juce::Rectangle<int>(x, 5, CIRCLE_SIZE + RING_THICKNESS * 2, CIRCLE_SIZE + RING_THICKNESS * 2 + LABEL_HEIGHT);
-}
-
-void StoriesFeed::loadAvatarImage(const juce::String &userId, const juce::String &avatarUrl) {
-  if (avatarUrl.isEmpty() || avatarCache.count(userId) > 0)
-    return;
-
-  // Mark as loading (placeholder)
-  avatarCache[userId] = juce::Image();
-
-  Async::runVoid([this, userId, avatarUrl]() {
-    juce::URL url(avatarUrl);
-    auto inputStream = url.createInputStream(
-        juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress).withConnectionTimeoutMs(5000));
-
-    if (inputStream) {
-      juce::MemoryBlock data;
-      inputStream->readIntoMemoryBlock(data);
-
-      auto image = juce::ImageFileFormat::loadFrom(data.getData(), data.getSize());
-
-      juce::MessageManager::callAsync([this, userId, image]() {
-        if (image.isValid()) {
-          avatarCache[userId] = image;
-          repaint();
-        }
-      });
-    }
-  });
 }
