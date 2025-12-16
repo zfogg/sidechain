@@ -1,17 +1,10 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
-	"github.com/zfogg/sidechain/cli/pkg/api"
 	"github.com/zfogg/sidechain/cli/pkg/service"
 )
 
-var (
-	followReqPage     int
-	followReqPageSize int
-)
 
 var profileCmd = &cobra.Command{
 	Use:   "profile",
