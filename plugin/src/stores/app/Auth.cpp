@@ -66,11 +66,26 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
     state.authError = "";
   });
 
-  // TODO: Implement registration with correct NetworkClient method when available
-  updateAuthState([](AuthState &state) {
-    state.isAuthenticating = false;
-    state.authError = "Registration not yet implemented";
-  });
+  networkClient->registerAccount(email, username, password, displayName,
+                                 [this, email, username, displayName](Outcome<juce::var> result) {
+                                   if (!result.isOk()) {
+                                     updateAuthState([error = result.getError()](AuthState &state) {
+                                       state.isAuthenticating = false;
+                                       state.authError = error;
+                                     });
+                                     return;
+                                   }
+
+                                   // Registration successful - update auth state with user info
+                                   updateAuthState([email, username, displayName](AuthState &state) {
+                                     state.isAuthenticating = false;
+                                     state.isLoggedIn = true;
+                                     state.email = email;
+                                     state.username = username;
+                                     state.authError = "";
+                                     state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+                                   });
+                                 });
 }
 
 void AppStore::verify2FA(const juce::String &code) {
@@ -121,16 +136,49 @@ void AppStore::requestPasswordReset(const juce::String &email) {
   }
 
   updateAuthState([](AuthState &state) { state.isResettingPassword = true; });
-  // TODO: Implement password reset
-  updateAuthState([](AuthState &state) {
-    state.isResettingPassword = false;
-    state.authError = "";
+
+  networkClient->requestPasswordReset(email, [this](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      updateAuthState([error = result.getError()](AuthState &state) {
+        state.isResettingPassword = false;
+        state.authError = error;
+      });
+      return;
+    }
+
+    updateAuthState([](AuthState &state) {
+      state.isResettingPassword = false;
+      state.authError = "";
+    });
+
+    Util::logInfo("AppStore", "Password reset email sent successfully");
   });
 }
 
 void AppStore::resetPassword(const juce::String &token, const juce::String &newPassword) {
-  // TODO: Implement password reset with token
-  updateAuthState([](AuthState &state) { state.authError = "Password reset not yet implemented"; });
+  if (!networkClient) {
+    updateAuthState([](AuthState &state) { state.authError = "Network client not initialized"; });
+    return;
+  }
+
+  updateAuthState([](AuthState &state) { state.isResettingPassword = true; });
+
+  networkClient->resetPassword(token, newPassword, [this](Outcome<juce::var> result) {
+    if (!result.isOk()) {
+      updateAuthState([error = result.getError()](AuthState &state) {
+        state.isResettingPassword = false;
+        state.authError = error;
+      });
+      return;
+    }
+
+    updateAuthState([](AuthState &state) {
+      state.isResettingPassword = false;
+      state.authError = "";
+    });
+
+    Util::logInfo("AppStore", "Password reset successful");
+  });
 }
 
 void AppStore::logout() {
