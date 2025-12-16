@@ -35,6 +35,7 @@ Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   // Set size last - this triggers resized() which requires components to exist
   setSize(1000, 800);
   Log::info("Auth: Initialization complete");
+  initialize();
 }
 
 Auth::~Auth() {
@@ -393,8 +394,8 @@ void Auth::paint(juce::Graphics &g) {
 
     for (int i = 0; i < numDots; ++i) {
       float angle = angleOffset + (i * juce::MathConstants<float>::twoPi / numDots);
-      float x = spinnerArea.getCentreX() + std::cos(angle) * spinnerRadius;
-      float y = spinnerArea.getCentreY() + std::sin(angle) * spinnerRadius;
+      float x = static_cast<float>(spinnerArea.getCentreX()) + std::cos(angle) * spinnerRadius;
+      float y = static_cast<float>(spinnerArea.getCentreY()) + std::sin(angle) * spinnerRadius;
 
       // Fade dots based on position in rotation
       float alpha = 0.3f + 0.7f * (static_cast<float>(i) / numDots);

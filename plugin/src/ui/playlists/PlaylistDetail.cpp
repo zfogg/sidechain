@@ -11,6 +11,7 @@ PlaylistDetail::PlaylistDetail(Sidechain::Stores::AppStore *store) : AppStoreCom
   scrollBar.setRangeLimits(0.0, 100.0);
   scrollBar.addListener(this);
   addAndMakeVisible(scrollBar);
+  initialize();
 }
 
 PlaylistDetail::~PlaylistDetail() {

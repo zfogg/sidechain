@@ -803,7 +803,7 @@ void Profile::resized() {
 
   // Reposition followers list panel if visible
   if (followersListPanel && followersListVisible) {
-    int panelWidth = juce::jmin(350, static_cast<int>(getWidth() * 0.4f));
+    int panelWidth = juce::jmin(350, static_cast<int>(static_cast<float>(getWidth()) * 0.4f));
     followersListPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
     Log::debug("Profile::resized: Followers list panel repositioned - width: " + juce::String(panelWidth));
   }
@@ -1407,7 +1407,7 @@ void Profile::showFollowersList(const juce::String &userId, FollowersList::ListT
   followersListPanel->setCurrentUserId(currentUserId);
 
   // Position panel on right side (40% of width, max 350px)
-  int panelWidth = juce::jmin(350, static_cast<int>(getWidth() * 0.4f));
+  int panelWidth = juce::jmin(350, static_cast<int>(static_cast<float>(getWidth()) * 0.4f));
   followersListPanel->setBounds(getWidth() - panelWidth, 0, panelWidth, getHeight());
   Log::debug("Profile::showFollowersList: Panel positioned - width: " + juce::String(panelWidth));
 
@@ -1618,7 +1618,10 @@ static juce::Image loadImageFromURL(const juce::String &urlStr) {
 
   try {
     juce::URL url(urlStr);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
+#pragma clang diagnostic pop
 
     if (inputStream == nullptr) {
       Log::error("loadImageFromURL: Failed to create input stream from URL: " + urlStr);

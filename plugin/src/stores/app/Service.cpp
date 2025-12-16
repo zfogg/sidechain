@@ -126,8 +126,11 @@ rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &
                                 .getChildFile(juce::String("audio_") +
                                               juce::String::toHexString(static_cast<int>(std::time(nullptr))));
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
             auto inputStream =
                 audioUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
+#pragma clang diagnostic pop
             if (inputStream == nullptr) {
               Util::logWarning("AppStore", "Failed to open audio stream for " + url);
               return juce::File();
@@ -139,7 +142,10 @@ rxcpp::observable<juce::File> AppStore::loadAudioObservable(const juce::String &
               return juce::File();
             }
 
-            int numBytesWritten = output.writeFromInputStream(*inputStream, -1);
+            // writeFromInputStream returns int64, but audio files are always < 2GB
+            // so safe to cast to int (INT_MAX = 2.1GB)
+            int64_t bytesWritten = output.writeFromInputStream(*inputStream, -1);
+            int numBytesWritten = static_cast<int>(bytesWritten);
             output.flush();
 
             if (numBytesWritten <= 0) {

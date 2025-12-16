@@ -21,6 +21,7 @@ StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent
   startTimerHz(60);
 
   Log::info("StoriesFeed created");
+  initialize();
 }
 
 StoriesFeed::~StoriesFeed() {
