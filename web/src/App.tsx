@@ -16,6 +16,7 @@ import { Profile } from '@/pages/Profile'
 import { Notifications } from '@/pages/Notifications'
 import { Messages } from '@/pages/Messages'
 import { Search } from '@/pages/Search'
+import { Discovery } from '@/pages/Discovery'
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -91,6 +92,16 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Search />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Discovery Routes (Protected) */}
+        <Route
+          path="/discover"
+          element={
+            <ProtectedRoute>
+              <Discovery />
             </ProtectedRoute>
           }
         />
