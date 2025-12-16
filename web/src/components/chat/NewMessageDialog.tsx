@@ -89,7 +89,7 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-      <div className="bg-bg-secondary rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 flex flex-col">
+      <div className="rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 flex flex-col" style={{ backgroundColor: '#26262c' }}>
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">New Message</h2>
@@ -112,7 +112,8 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
                 setSearchQuery(e.target.value)
                 handleSearch(e.target.value)
               }}
-              className="bg-bg-tertiary border-border text-foreground placeholder:text-muted-foreground"
+              className="border-border text-foreground placeholder:text-muted-foreground"
+              style={{ backgroundColor: '#2e2e34' }}
               autoFocus
             />
             {isSearching && (
@@ -137,9 +138,14 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
                   onClick={() => setSelectedUser(user)}
                   className={`w-full p-4 text-left transition-colors ${
                     selectedUser?.id === user.id
-                      ? 'bg-coral-pink/10 border-l-2 border-coral-pink'
-                      : 'hover:bg-bg-tertiary'
+                      ? 'border-l-2 border-coral-pink'
+                      : ''
                   }`}
+                  style={
+                    selectedUser?.id === user.id
+                      ? { backgroundColor: 'rgba(253, 119, 146, 0.1)' }
+                      : { backgroundColor: '#2e2e34' }
+                  }
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative flex-shrink-0">
