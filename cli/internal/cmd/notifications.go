@@ -59,22 +59,28 @@ var notificationsMarkReadCmd = &cobra.Command{
 	},
 }
 
-var notificationsPreferencesCmd = &cobra.Command{
-	Use:   "preferences [view|edit]",
+var notificationsSettingsCmd = &cobra.Command{
+	Use:   "settings",
 	Short: "Manage notification preferences",
+	Long:  "View and update your notification settings",
+}
+
+var notificationsSettingsViewCmd = &cobra.Command{
+	Use:   "view",
+	Short: "View your notification preferences",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		notifService := service.NewNotificationService()
+		settingsService := service.NewNotificationSettingsService()
+		return settingsService.ViewPreferences()
+	},
+}
 
-		action := "view"
-		if len(args) > 0 {
-			action = args[0]
-		}
-
-		if action == "edit" {
-			return notifService.EditPreferences()
-		}
-
-		return notifService.ViewPreferences()
+var notificationsSettingsManageCmd = &cobra.Command{
+	Use:   "manage",
+	Short: "Update your notification preferences",
+	Long:  "Interactively configure which notifications you want to receive",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		settingsService := service.NewNotificationSettingsService()
+		return settingsService.ManagePreferences()
 	},
 }
 
@@ -83,10 +89,14 @@ func init() {
 	notificationsListCmd.Flags().IntVar(&notifPage, "page", 1, "Page number")
 	notificationsListCmd.Flags().IntVar(&notifPageSize, "page-size", 10, "Results per page")
 
+	// Add settings subcommands to settings parent
+	notificationsSettingsCmd.AddCommand(notificationsSettingsViewCmd)
+	notificationsSettingsCmd.AddCommand(notificationsSettingsManageCmd)
+
 	// Add subcommands
 	notificationsCmd.AddCommand(notificationsListCmd)
 	notificationsCmd.AddCommand(notificationsWatchCmd)
 	notificationsCmd.AddCommand(notificationsCountCmd)
 	notificationsCmd.AddCommand(notificationsMarkReadCmd)
-	notificationsCmd.AddCommand(notificationsPreferencesCmd)
+	notificationsCmd.AddCommand(notificationsSettingsCmd)
 }
