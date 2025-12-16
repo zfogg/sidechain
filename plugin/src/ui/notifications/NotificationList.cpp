@@ -1,4 +1,5 @@
 #include "NotificationList.h"
+#include "../../stores/NotificationStore.h"
 #include "../../util/Colors.h"
 #include "../../util/HoverState.h"
 #include "../../util/Json.h"
@@ -312,7 +313,54 @@ NotificationList::NotificationList() {
 
 NotificationList::~NotificationList() {
   Log::debug("NotificationList: Destroying");
+  unbindFromStore();
   viewport.getVerticalScrollBar().removeListener(this);
+}
+
+//==============================================================================
+void NotificationList::bindToStore(std::shared_ptr<Sidechain::Stores::NotificationStore> store) {
+  if (store == notificationStore) {
+    return; // Already bound to this store
+  }
+
+  // Unbind from previous store if any
+  unbindFromStore();
+
+  notificationStore = store;
+
+  if (notificationStore) {
+    // Subscribe to store state changes
+    storeSubscription = notificationStore->subscribe(
+        [this](const Sidechain::Stores::NotificationState &state) { handleStoreStateChanged(state); });
+
+    Log::debug("NotificationList: Bound to NotificationStore");
+  }
+}
+
+void NotificationList::unbindFromStore() {
+  storeSubscription.reset();
+  notificationStore = nullptr;
+}
+
+void NotificationList::handleStoreStateChanged(const Sidechain::Stores::NotificationState &state) {
+  // Update local state from store using SafePointer for thread safety
+  juce::Component::SafePointer<NotificationList> safeThis(this);
+
+  juce::MessageManager::callAsync([safeThis, state]() {
+    if (safeThis == nullptr)
+      return;
+
+    // Update notifications
+    safeThis->notifications = state.notifications;
+    safeThis->unseenCount = state.unseenCount;
+    safeThis->unreadCount = state.unreadCount;
+    safeThis->isLoading = state.isLoading;
+    safeThis->errorMessage = state.error;
+
+    // Rebuild row components with new data
+    safeThis->rebuildRowComponents();
+    safeThis->repaint();
+  });
 }
 
 void NotificationList::setNotifications(const juce::Array<NotificationItem> &newNotifications) {
@@ -480,7 +528,12 @@ void NotificationList::mouseDown(const juce::MouseEvent &event) {
     if (onCloseClicked)
       onCloseClicked();
   } else if (getMarkAllReadButtonBounds().contains(pos) && unreadCount > 0) {
-    if (onMarkAllReadClicked)
+    // Prefer using store directly if bound
+    if (notificationStore) {
+      notificationStore->markAllRead();
+    } else if (onMarkAllReadClicked) {
+      // Legacy callback fallback
       onMarkAllReadClicked();
+    }
   }
 }

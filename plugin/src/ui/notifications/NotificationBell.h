@@ -1,7 +1,15 @@
 #pragma once
 
+#include "../../stores/NotificationStore.h"
+#include "../../stores/Store.h"
 #include "../../util/HoverState.h"
 #include <JuceHeader.h>
+
+namespace Sidechain {
+namespace Stores {
+class NotificationStore;
+}
+} // namespace Sidechain
 
 //==============================================================================
 /**
@@ -14,14 +22,28 @@
  * - "99+" display for overflow counts
  * - Click callback to open notification panel
  * - Tooltip showing notification status
+ * - Reactive updates from NotificationStore
  */
 class NotificationBell : public juce::Component, public juce::TooltipClient {
 public:
   NotificationBell();
-  ~NotificationBell() override = default;
+  ~NotificationBell() override;
 
   //==============================================================================
-  // Badge control
+  // Store binding (new reactive pattern)
+  /**
+   * Bind to a NotificationStore for automatic updates
+   * The bell will automatically update its badge when the store state changes
+   */
+  void bindToStore(std::shared_ptr<Sidechain::Stores::NotificationStore> store);
+
+  /**
+   * Unbind from the current store
+   */
+  void unbindFromStore();
+
+  //==============================================================================
+  // Badge control (legacy - prefer using store binding)
   void setUnseenCount(int count);
   int getUnseenCount() const {
     return unseenCount;
@@ -72,6 +94,14 @@ private:
   int unreadCount = 0;
   int followRequestCount = 0;
   HoverState hoverState;
+
+  // Store subscription
+  std::shared_ptr<Sidechain::Stores::NotificationStore> notificationStore;
+  Sidechain::Stores::ScopedSubscription storeSubscription;
+
+  //==============================================================================
+  // Store state handler
+  void handleStoreStateChanged(const Sidechain::Stores::NotificationState &state);
 
   //==============================================================================
   // Drawing helpers
