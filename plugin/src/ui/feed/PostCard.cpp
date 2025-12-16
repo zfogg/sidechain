@@ -70,9 +70,23 @@ void PostCard::setPost(const FeedPost &newPost) {
                         })
                         ->start();
 
-  // Fetch avatar image via AppStore (with caching)
+  // Fetch avatar image via AppStore reactive observable (with caching)
   if (post.userAvatarUrl.isNotEmpty() && appStore) {
-    appStore->getImage(post.userAvatarUrl, [this](const juce::Image &) { repaint(); });
+    juce::Component::SafePointer<PostCard> safeThis(this);
+    appStore->loadImageObservable(post.userAvatarUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              if (image.isValid()) {
+                safeThis->repaint();
+              }
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("PostCard: Failed to load avatar image");
+            });
   }
 
   // Load waveform image from CDN
@@ -957,7 +971,18 @@ void PostCard::mouseUp(const juce::MouseEvent &event) {
   if (getLikeButtonBounds().contains(pos)) {
     if (!wasLongPress) {
       if (appStore) {
-        appStore->toggleLike(post.id);
+        juce::Component::SafePointer<PostCard> safeThis(this);
+        appStore->likePostObservable(post.id).subscribe(
+            [safeThis](int) {
+              if (safeThis == nullptr)
+                return;
+              Log::debug("PostCard: Like toggled successfully");
+            },
+            [safeThis](std::exception_ptr error) {
+              if (safeThis == nullptr)
+                return;
+              Log::error("PostCard: Failed to toggle like");
+            });
       } else if (onLikeToggled) {
         // Fallback for when AppStore is not set
         onLikeToggled(post, !post.isLiked);
