@@ -25,27 +25,24 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const { setStreamToken, setStreamConnected } = useChatStore()
   const [chatClient, setChatClient] = useState<StreamChat | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const connectingRef = useRef(false)
 
   const apiKey = import.meta.env.VITE_STREAM_API_KEY
-  if (!apiKey) {
-    console.warn('[Chat] VITE_STREAM_API_KEY not configured')
-  }
 
   // Initialize Stream Chat client
   useEffect(() => {
-    if (!user || !token || !apiKey) return
+    // Skip if chat is not configured - no logging needed
+    if (!apiKey) return
+
+    if (!user || !token) return
 
     const initChat = async () => {
       // Prevent duplicate connection attempts
       if (connectingRef.current) {
-        console.log('[Chat] Connection already in progress')
         return
       }
 
       setIsConnecting(true)
-      setError(null)
       connectingRef.current = true
 
       try {
@@ -63,7 +60,6 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
         // Only connect if not already connected
         if (client.userID === user.id) {
-          console.log('[Chat] User already connected:', user.id)
           setStreamConnected(true)
           setIsConnecting(false)
           connectingRef.current = false
@@ -71,7 +67,6 @@ export function ChatProvider({ children }: ChatProviderProps) {
         }
 
         // Get Stream token from backend
-        console.log('[Chat] Fetching Stream token for user:', user.id)
         const result = await AuthClient.getStreamToken()
         if (result.isError()) {
           throw new Error(`Failed to get Stream token: ${result.getError()}`)
@@ -85,10 +80,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         setStreamToken(streamToken)
 
         // Connect user to Stream Chat
-        console.log('[Chat] Connecting user to Stream Chat:', {
-          userId: user.id,
-          displayName: user.displayName,
-        })
+        console.debug('[Chat] Connecting user to Stream Chat')
 
         await client.connectUser(
           {
@@ -102,15 +94,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
         setStreamConnected(true)
         setIsConnecting(false)
         connectingRef.current = false
-        console.log('[Chat] Successfully connected to Stream Chat')
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Stream Chat'
-        console.error('[Chat] Connection failed:', {
-          error: errorMessage,
-          userId: user.id,
-          hasToken: !!token,
-        })
-        setError(errorMessage)
+        // Use debug level - chat failures are non-critical for app functionality
+        console.debug('[Chat] Connection failed (graceful degradation):', errorMessage)
         setIsConnecting(false)
         connectingRef.current = false
       }
@@ -173,9 +160,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
   }
 
   // Connected successfully - render children with the connected client
-  if (error) {
-    console.warn('[Chat] Chat connection error (graceful degradation):', error)
-  }
+  // If there was an error, chat features won't work but app continues to function
 
   return (
     <Chat client={chatClient} theme="dark">
