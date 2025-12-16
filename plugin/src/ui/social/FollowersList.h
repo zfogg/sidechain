@@ -1,45 +1,16 @@
 #pragma once
 
+#include "../../stores/FollowersStore.h"
 #include "../../util/Colors.h"
 #include "../../util/HoverState.h"
 #include "../../util/Time.h"
 #include <JuceHeader.h>
+#include <memory>
 
 class NetworkClient;
 
-//==============================================================================
-/**
- * FollowListUser represents a user in a followers/following list
- */
-struct FollowListUser {
-  juce::String id;
-  juce::String username;
-  juce::String displayName;
-  juce::String avatarUrl;
-  juce::String bio;
-  bool isFollowing = false; // Whether current user follows this user
-  bool followsYou = false;  // Whether this user follows current user
-
-  static FollowListUser fromJson(const juce::var &json) {
-    FollowListUser user;
-    if (json.isObject()) {
-      user.id = json.getProperty("id", "").toString();
-      user.username = json.getProperty("username", "").toString();
-      user.displayName = json.getProperty("display_name", "").toString();
-      user.avatarUrl = json.getProperty("profile_picture_url", "").toString();
-      if (user.avatarUrl.isEmpty())
-        user.avatarUrl = json.getProperty("avatar_url", "").toString();
-      user.bio = json.getProperty("bio", "").toString();
-      user.isFollowing = static_cast<bool>(json.getProperty("is_following", false));
-      user.followsYou = static_cast<bool>(json.getProperty("follows_you", false));
-    }
-    return user;
-  }
-
-  bool isValid() const {
-    return id.isNotEmpty();
-  }
-};
+// Use FollowListUser from FollowersStore instead of defining our own
+using FollowListUser = Sidechain::Stores::FollowListUser;
 
 //==============================================================================
 /**
@@ -116,6 +87,11 @@ public:
   void refresh();
 
   //==============================================================================
+  // Store integration (reactive pattern)
+  void bindToStore(std::shared_ptr<Sidechain::Stores::FollowersStore> store);
+  void unbindFromStore();
+
+  //==============================================================================
   // Callbacks
   std::function<void()> onClose;
   std::function<void(const juce::String &userId)> onUserClicked;
@@ -146,6 +122,14 @@ private:
   bool hasMore = false;
   int currentOffset = 0;
   juce::String errorMessage;
+
+  // Store integration
+  std::shared_ptr<Sidechain::Stores::FollowersStore> followersStore;
+  std::function<void()> storeUnsubscriber;
+
+  //==============================================================================
+  // Store callback
+  void handleStoreStateChanged(const Sidechain::Stores::FollowersState &state);
 
   //==============================================================================
   // UI Components

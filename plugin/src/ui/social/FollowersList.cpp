@@ -141,6 +141,7 @@ FollowersList::FollowersList() {
 
 FollowersList::~FollowersList() {
   Log::debug("FollowersList: Destroying");
+  unbindFromStore();
   stopTimer();
 }
 
@@ -159,6 +160,58 @@ void FollowersList::setupUI() {
   viewport->setViewedComponent(contentContainer.get(), false);
   viewport->setScrollBarsShown(true, false);
   addAndMakeVisible(viewport.get());
+}
+
+//==============================================================================
+// Store integration methods
+void FollowersList::bindToStore(std::shared_ptr<Sidechain::Stores::FollowersStore> store) {
+  Log::debug("FollowersList: Binding to FollowersStore");
+
+  followersStore = store;
+  if (!followersStore)
+    return;
+
+  // Subscribe to store changes
+  juce::Component::SafePointer<FollowersList> safeThis(this);
+  storeUnsubscriber = followersStore->subscribe([safeThis](const Sidechain::Stores::FollowersState &state) {
+    if (!safeThis)
+      return;
+
+    auto usersArray = state.users;
+    auto isLoadingState = state.isLoading;
+    auto errorMsg = state.errorMessage;
+    auto stateTotal = state.totalCount;
+    auto stateHasMore = state.hasMore;
+
+    juce::MessageManager::callAsync([safeThis, usersArray, isLoadingState, errorMsg, stateTotal, stateHasMore]() {
+      if (!safeThis)
+        return;
+
+      safeThis->users = usersArray;
+      safeThis->isLoading = isLoadingState;
+      safeThis->errorMessage = errorMsg;
+      safeThis->totalCount = stateTotal;
+      safeThis->hasMore = stateHasMore;
+      safeThis->updateUsersList();
+      safeThis->repaint();
+    });
+  });
+
+  Log::debug("FollowersList: Successfully bound to FollowersStore");
+}
+
+void FollowersList::unbindFromStore() {
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+    storeUnsubscriber = nullptr;
+  }
+  followersStore = nullptr;
+  Log::debug("FollowersList: Unbound from FollowersStore");
+}
+
+void FollowersList::handleStoreStateChanged(const Sidechain::Stores::FollowersState &state) {
+  // This callback is handled inline in bindToStore via lambda
+  // Keeping this method for consistency with other components
 }
 
 void FollowersList::loadList(const juce::String &userId, ListType type) {
