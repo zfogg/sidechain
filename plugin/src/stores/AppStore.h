@@ -216,6 +216,67 @@ public:
   void refreshSounds();
 
   //==============================================================================
+  // Comment Methods (Comments.cpp)
+
+  /**
+   * Get comments for a post with pagination.
+   * Uses observable pattern for reactive updates.
+   *
+   * @param postId Post ID to load comments for
+   * @param limit Number of comments to load (default 20)
+   * @param offset Pagination offset (default 0)
+   */
+  rxcpp::observable<juce::Array<juce::var>> getCommentsObservable(const juce::String &postId, int limit = 20,
+                                                                  int offset = 0);
+
+  /**
+   * Create a new comment on a post.
+   *
+   * @param postId Post ID to comment on
+   * @param content Comment text
+   * @param parentId Optional parent comment ID for replies
+   */
+  void createComment(const juce::String &postId, const juce::String &content, const juce::String &parentId = "");
+
+  /**
+   * Delete a comment.
+   *
+   * @param commentId Comment ID to delete
+   */
+  void deleteComment(const juce::String &commentId);
+
+  /**
+   * Like a comment.
+   *
+   * @param commentId Comment ID to like
+   */
+  void likeComment(const juce::String &commentId);
+
+  /**
+   * Unlike a comment.
+   *
+   * @param commentId Comment ID to unlike
+   */
+  void unlikeComment(const juce::String &commentId);
+
+  /**
+   * Update an existing comment.
+   *
+   * @param commentId Comment ID to update
+   * @param content New comment text
+   */
+  void updateComment(const juce::String &commentId, const juce::String &content);
+
+  /**
+   * Report a comment.
+   *
+   * @param commentId Comment ID to report
+   * @param reason Report reason
+   * @param description Detailed report description
+   */
+  void reportComment(const juce::String &commentId, const juce::String &reason, const juce::String &description);
+
+  //==============================================================================
   // Subscription helpers for state slices
 
   /**
@@ -505,6 +566,46 @@ public:
    * - Allows WebSocket to repopulate with fresh data
    */
   rxcpp::observable<int> likePostObservable(const juce::String &postId);
+
+  /**
+   * Save/unsave a post reactively with optimistic update.
+   *
+   * - On success: Invalidates "feed:*" cache pattern
+   * - On error: Reverts optimistic update
+   */
+  rxcpp::observable<int> toggleSaveObservable(const juce::String &postId);
+
+  /**
+   * Repost a post reactively with optimistic update.
+   *
+   * - On success: Invalidates "feed:*" cache pattern
+   * - On error: Reverts optimistic update
+   */
+  rxcpp::observable<int> toggleRepostObservable(const juce::String &postId);
+
+  /**
+   * Pin/unpin a post reactively with optimistic update.
+   *
+   * - On success: Invalidates "feed:*" cache pattern
+   * - On error: Reverts optimistic update
+   */
+  rxcpp::observable<int> togglePinObservable(const juce::String &postId, bool pinned);
+
+  /**
+   * Follow/unfollow a user reactively with optimistic update.
+   *
+   * - On success: Invalidates user search cache
+   * - On error: Reverts optimistic update
+   */
+  rxcpp::observable<int> toggleFollowObservable(const juce::String &postId, bool willFollow);
+
+  /**
+   * Add a reaction to a post reactively with optimistic update.
+   *
+   * - On success: Invalidates "feed:*" cache pattern
+   * - On error: Reverts optimistic update
+   */
+  rxcpp::observable<int> addReactionObservable(const juce::String &postId, const juce::String &emoji);
 
   //==============================================================================
   // WebSocket Event Handlers for Real-Time Cache Invalidation (Phase 5)
