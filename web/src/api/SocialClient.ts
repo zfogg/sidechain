@@ -67,6 +67,46 @@ export class SocialClient {
     return Outcome.error(result.getError())
   }
 
+  /**
+   * Get pending follow requests for current user (private account)
+   */
+  static async getPendingFollowRequests(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Outcome<Array<{ id: string; username: string; displayName: string; profilePictureUrl?: string }>>> {
+    interface FollowRequest {
+      id: string
+      username: string
+      display_name: string
+      profile_picture_url?: string
+    }
+
+    interface FollowRequestsResponse {
+      follow_requests: FollowRequest[]
+    }
+
+    const result = await apiClient.get<FollowRequestsResponse>('/social/follow-requests', {
+      limit,
+      offset,
+    })
+
+    if (result.isOk()) {
+      try {
+        const requests = result.getValue().follow_requests.map((r) => ({
+          id: r.id,
+          username: r.username,
+          displayName: r.display_name,
+          profilePictureUrl: r.profile_picture_url,
+        }))
+        return Outcome.ok(requests)
+      } catch (error) {
+        return Outcome.error((error as Error).message)
+      }
+    }
+
+    return Outcome.error(result.getError())
+  }
+
   // ============== Block/Mute ==============
 
   /**
