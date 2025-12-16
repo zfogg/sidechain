@@ -246,12 +246,14 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
   // These require accessing messages from AppStore ChatState
 }
 
-void MessageThread::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event,
-                                   const juce::MouseWheelDetails &wheel) {
-  scrollPosition -= wheel.deltaY * 30.0;
-  scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
-  scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-  repaint();
+void MessageThread::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  // Only scroll if wheel is within message area (not input box)
+  if (event.y < getHeight() - MESSAGE_INPUT_HEIGHT - 10) {
+    scrollPosition -= wheel.deltaY * 30.0;
+    scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
+    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+    repaint();
+  }
 }
 
 void MessageThread::textEditorReturnKeyPressed(juce::TextEditor &editor) {
@@ -260,7 +262,14 @@ void MessageThread::textEditorReturnKeyPressed(juce::TextEditor &editor) {
   }
 }
 
-void MessageThread::textEditorTextChanged([[maybe_unused]] juce::TextEditor &editor) {}
+void MessageThread::textEditorTextChanged(juce::TextEditor &editor) {
+  // Use text changes to update typing indicator state
+  if (&editor == &messageInput) {
+    bool hasText = !messageInput.getText().isEmpty();
+    // Could broadcast typing status to other users here
+    Log::debug("MessageThread: Input text changed, hasText=" + juce::String(hasText ? "true" : "false"));
+  }
+}
 
 //==============================================================================
 void MessageThread::setStreamChatClient(StreamChatClient *client) {
@@ -559,9 +568,12 @@ void MessageThread::drawErrorState(juce::Graphics &g) {
 }
 
 //==============================================================================
-void MessageThread::scrollBarMoved([[maybe_unused]] juce::ScrollBar *bar, double newRangeStart) {
-  scrollPosition = newRangeStart;
-  repaint();
+void MessageThread::scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) {
+  // Verify scroll bar callback is from our scroll bar instance
+  if (bar == &scrollBar) {
+    scrollPosition = newRangeStart;
+    repaint();
+  }
 }
 
 juce::String MessageThread::formatTimestamp(const juce::String &timestamp) {

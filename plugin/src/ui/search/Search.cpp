@@ -303,8 +303,9 @@ void Search::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void Search::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
-  if (scrollBar->isVisible()) {
+void Search::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  // Only scroll results if wheel is within results area (not search input)
+  if (scrollBar->isVisible() && event.y > SEARCH_INPUT_HEIGHT) {
     double newPos = scrollPosition - wheel.deltaY * 30.0;
     newPos =
         juce::jmax(0.0, juce::jmin(newPos, static_cast<double>(totalContentHeight - getResultsBounds().getHeight())));
@@ -351,8 +352,8 @@ void Search::textEditorEscapeKeyPressed(juce::TextEditor &editor) {
 }
 
 //==============================================================================
-void Search::scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) {
-  if (scrollBar == this->scrollBar.get()) {
+void Search::scrollBarMoved(juce::ScrollBar *movedScrollBar, double newRangeStart) {
+  if (movedScrollBar == this->scrollBar.get()) {
     scrollPosition = newRangeStart;
     repaint();
   }
@@ -769,9 +770,9 @@ void Search::drawResults(juce::Graphics &g) {
         card->onFollowToggled = [this](const DiscoveredUser &user, bool willFollow) {
           if (appStore != nullptr) {
             // Update UI optimistically
-            for (auto *card : userCards) {
-              if (card && card->getUserId() == user.id) {
-                card->setIsFollowing(willFollow);
+            for (auto *searchCard : userCards) {
+              if (searchCard && searchCard->getUserId() == user.id) {
+                searchCard->setIsFollowing(willFollow);
                 break;
               }
             }
@@ -784,7 +785,7 @@ void Search::drawResults(juce::Graphics &g) {
                       return;
                     Log::debug("Search: User followed successfully");
                   },
-                  [safeThis](std::exception_ptr error) {
+                  [safeThis]([[maybe_unused]] std::exception_ptr error) {
                     if (safeThis == nullptr)
                       return;
                     Log::error("Search: Failed to follow user");
@@ -796,7 +797,7 @@ void Search::drawResults(juce::Graphics &g) {
                       return;
                     Log::debug("Search: User unfollowed successfully");
                   },
-                  [safeThis](std::exception_ptr error) {
+                  [safeThis]([[maybe_unused]] std::exception_ptr error) {
                     if (safeThis == nullptr)
                       return;
                     Log::error("Search: Failed to unfollow user");
@@ -1015,8 +1016,8 @@ void Search::showGenrePicker() {
   menu.addItem(1, "All Genres", true, selectedGenre.isEmpty());
 
   // Add genre options
-  for (int i = 0; i < (int)genres.size(); ++i) {
-    menu.addItem(i + 2, genres[i], true, selectedGenre == genres[i]);
+  for (size_t i = 0; i < genres.size(); ++i) {
+    menu.addItem(static_cast<int>(i + 2), genres[i], true, selectedGenre == genres[i]);
   }
 
   menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(
@@ -1055,10 +1056,10 @@ void Search::showBPMPicker() {
                                                     {"150-180 (Drum & Bass)", 150, 180},
                                                     {"Custom...", -1, -1}}};
 
-  for (int i = 0; i < (int)presets.size(); ++i) {
+  for (size_t i = 0; i < presets.size(); ++i) {
     bool isSelected =
         (bpmMin == presets[i].min && bpmMax == presets[i].max) || (i == 0 && bpmMin == 0 && bpmMax == 200);
-    menu.addItem(i + 1, presets[i].name, true, isSelected);
+    menu.addItem(static_cast<int>(i + 1), presets[i].name, true, isSelected);
   }
 
   menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(
@@ -1068,7 +1069,7 @@ void Search::showBPMPicker() {
                          int min;
                          int max;
                        };
-                       static const std::array<BPMPreset, 8> presets = {{
+                       static const std::array<BPMPreset, 8> bpmPresets = {{
                            {0, 200},   // All
                            {60, 80},   // Downtempo
                            {80, 100},  // Hip-Hop
@@ -1079,12 +1080,12 @@ void Search::showBPMPicker() {
                            {-1, -1}    // Custom (TODO: implement custom dialog - see PLAN.md Phase 7)
                        }};
 
-                       if (result > 0 && result <= (int)presets.size()) {
+                       if (result > 0 && result <= (int)bpmPresets.size()) {
                          int index = result - 1;
-                         if (presets[index].min >= 0) // Not custom
+                         if (bpmPresets[static_cast<size_t>(index)].min >= 0) // Not custom
                          {
-                           bpmMin = presets[index].min;
-                           bpmMax = presets[index].max;
+                           bpmMin = bpmPresets[static_cast<size_t>(index)].min;
+                           bpmMax = bpmPresets[static_cast<size_t>(index)].max;
                            applyFilters();
                            repaint();
                          } else {
@@ -1145,8 +1146,8 @@ void Search::showKeyPicker() {
   menu.addItem(1, "All Keys", true, selectedKey.isEmpty());
 
   // Add key options
-  for (int i = 0; i < (int)keys.size(); ++i) {
-    menu.addItem(i + 2, keys[i], true, selectedKey == keys[i]);
+  for (size_t i = 0; i < keys.size(); ++i) {
+    menu.addItem(static_cast<int>(i + 2), keys[i], true, selectedKey == keys[i]);
   }
 
   menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(
