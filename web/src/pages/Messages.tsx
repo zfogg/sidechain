@@ -1,11 +1,12 @@
-import { useParams } from 'react-router-dom'
-import { Channel, Chat, useChatContext } from 'stream-chat-react'
-import { useEffect, useState } from 'react'
 import { ChannelList } from '@/components/chat/ChannelList'
 import { MessageThread } from '@/components/chat/MessageThread'
 import { NewMessageDialog } from '@/components/chat/NewMessageDialog'
-import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { useChatStore } from '@/stores/useChatStore'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Channel, useChatContext } from 'stream-chat-react'
 
 /**
  * MessagesContent - Inner component that uses Chat context
@@ -14,12 +15,16 @@ import { Button } from '@/components/ui/button'
 function MessagesContent() {
   const { channelId } = useParams<{ channelId: string }>()
   const { client } = useChatContext()
+  const { isStreamConnected } = useChatStore()
   const [channel, setChannel] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(!!channelId)
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false)
 
   useEffect(() => {
-    if (!channelId || !client) return
+    if (!channelId || !client || !isStreamConnected) {
+      setIsLoading(false)
+      return
+    }
 
     const loadChannel = async () => {
       try {
@@ -28,23 +33,24 @@ function MessagesContent() {
         setChannel(ch)
       } catch (error) {
         console.error('Failed to load channel:', error)
+        setChannel(null)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadChannel()
-  }, [channelId, client])
+  }, [channelId, client, isStreamConnected])
 
   return (
-    <div className="min-h-screen bg-bg-primary flex">
+    <div className="h-full bg-bg-primary flex overflow-hidden">
       {/* Channel List Sidebar - Desktop */}
-      <div className="w-80 border-r border-border hidden lg:flex lg:flex-col flex-shrink-0 bg-bg-secondary">
+      <div className="w-80 border-r border-border hidden lg:flex lg:flex-col flex-shrink-0 bg-bg-secondary overflow-y-auto">
         <ChannelList onNewMessageClick={() => setShowNewMessageDialog(true)} />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-bg-primary min-w-0">
+      <div className="flex-1 flex flex-col bg-bg-primary min-w-0 overflow-hidden">
         {/* Mobile: Show conversation list when no channel selected */}
         {!channelId && (
           <div className="lg:hidden flex-1 overflow-y-auto">
@@ -54,7 +60,7 @@ function MessagesContent() {
 
         {/* Desktop & Mobile: Show selected conversation */}
         {channelId && (
-          <div className="flex-1 flex flex-col w-full min-w-0 overflow-hidden">
+          <>
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
                 <Spinner size="lg" />
@@ -72,7 +78,7 @@ function MessagesContent() {
                 </div>
               </div>
             )}
-          </div>
+          </>
         )}
 
         {/* Desktop: Show empty state when no channel selected */}

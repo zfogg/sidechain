@@ -238,4 +238,42 @@ export class StoryClient {
   static async deleteHighlight(highlightId: string): Promise<Outcome<void>> {
     return apiClient.delete(`/story-highlights/${highlightId}`)
   }
+
+  /**
+   * Get activity timeline from followed users
+   */
+  static async getFollowingActivityTimeline(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Outcome<any[]>> {
+    const result = await apiClient.get<StoriesResponse>('/activity/following', {
+      limit,
+      offset,
+    })
+
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().stories || [])
+    }
+
+    return Outcome.error(result.getError())
+  }
+
+  /**
+   * Get global activity timeline
+   */
+  static async getGlobalActivityTimeline(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Outcome<any[]>> {
+    const result = await apiClient.get<StoriesResponse>('/activity/global', {
+      limit,
+      offset,
+    })
+
+    if (result.isOk()) {
+      return Outcome.ok(result.getValue().stories || [])
+    }
+
+    return Outcome.error(result.getError())
+  }
 }

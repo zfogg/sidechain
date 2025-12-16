@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { ChannelList as StreamChannelList } from 'stream-chat-react'
+import { useChatContext } from 'stream-chat-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 
@@ -13,6 +14,7 @@ interface ChannelListProps {
  */
 export function ChannelList({ onNewMessageClick }: ChannelListProps) {
   const navigate = useNavigate()
+  const { client } = useChatContext()
 
   const handleSelectChannel = useCallback(
     (channelId: string) => {
@@ -40,7 +42,7 @@ export function ChannelList({ onNewMessageClick }: ChannelListProps) {
       {/* Channel List */}
       <div className="flex-1 overflow-y-auto">
         <StreamChannelList
-          filters={{ type: 'messaging' }}
+          filters={{ type: 'messaging', members: { $in: [client?.userID] } }}
           sort={{ last_message_at: -1 }}
           options={{ state: true, presence: true }}
           onSelectChannel={(channel) => handleSelectChannel(channel.id)}

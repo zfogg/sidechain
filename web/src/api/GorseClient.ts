@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 import { Outcome } from './types'
-import { FeedPost } from '@/models/FeedPost'
+import { FeedPost, FeedPostModel } from '@/models/FeedPost'
 
 export interface RecommendedPost {
   post: FeedPost
@@ -51,7 +51,7 @@ export class GorseClient {
     const data = result.getValue()
     return Outcome.ok(
       (data.recommendations || []).map((rec: any) => ({
-        post: FeedPost.fromJson(rec.post),
+        post: FeedPostModel.fromJson(rec.post),
         score: rec.score || 0,
         reason: rec.reason,
       }))
@@ -77,7 +77,7 @@ export class GorseClient {
     }
 
     const data = result.getValue()
-    return Outcome.ok((data.posts || []).map(FeedPost.fromJson))
+    return Outcome.ok((data.posts || []).map(FeedPostModel.fromJson))
   }
 
   /**
@@ -128,7 +128,7 @@ export class GorseClient {
     }
 
     const data = result.getValue()
-    return Outcome.ok((data.posts || []).map(FeedPost.fromJson))
+    return Outcome.ok((data.posts || []).map(FeedPostModel.fromJson))
   }
 
   /**
@@ -161,7 +161,7 @@ export class GorseClient {
     }
 
     const data = result.getValue()
-    return Outcome.ok((data.posts || []).map(FeedPost.fromJson))
+    return Outcome.ok((data.posts || []).map(FeedPostModel.fromJson))
   }
 
   /**
@@ -185,6 +185,6 @@ export class GorseClient {
     }
 
     const data = result.getValue()
-    return Outcome.ok((data.posts || []).map(FeedPost.fromJson))
+    return Outcome.ok((data.posts || []).map(FeedPostModel.fromJson))
   }
 }
