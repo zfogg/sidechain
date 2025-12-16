@@ -244,12 +244,18 @@ void UserPickerDialog::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void UserPickerDialog::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event,
-                                      const juce::MouseWheelDetails &wheel) {
-  scrollPosition -= wheel.deltaY * 30.0;
-  scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
-  scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-  repaint();
+void UserPickerDialog::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  // Only scroll if wheel is within content area (not over scroll bar)
+  int contentY = HEADER_HEIGHT + SEARCH_INPUT_HEIGHT;
+  if (showGroupNameInput)
+    contentY += GROUP_NAME_INPUT_HEIGHT;
+
+  if (event.x < getWidth() - scrollBar.getWidth() && event.y >= contentY) {
+    scrollPosition -= wheel.deltaY * 30.0;
+    scrollPosition = juce::jlimit(0.0, scrollBar.getMaximumRangeLimit(), scrollPosition);
+    scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
+    repaint();
+  }
 }
 
 void UserPickerDialog::textEditorTextChanged(juce::TextEditor &editor) {
@@ -277,9 +283,12 @@ void UserPickerDialog::timerCallback() {
   performSearch(searchInput.getText());
 }
 
-void UserPickerDialog::scrollBarMoved([[maybe_unused]] juce::ScrollBar *scrollBarMoved, double newRangeStart) {
-  scrollPosition = newRangeStart;
-  repaint();
+void UserPickerDialog::scrollBarMoved(juce::ScrollBar *scrollBarPtr, double newRangeStart) {
+  // Verify scroll bar callback is from our scroll bar instance
+  if (scrollBarPtr == &scrollBar) {
+    scrollPosition = newRangeStart;
+    repaint();
+  }
 }
 
 void UserPickerDialog::setStreamChatClient(StreamChatClient *client) {
@@ -453,12 +462,37 @@ void UserPickerDialog::drawHeader(juce::Graphics &g) {
              1.0f);
 }
 
-void UserPickerDialog::drawSearchInput([[maybe_unused]] juce::Graphics &g) {
-  // Search input is drawn by the TextEditor component
+void UserPickerDialog::drawSearchInput(juce::Graphics &g) {
+  // Draw search input background and styling
+  auto bounds = juce::Rectangle<int>(15, HEADER_HEIGHT + 10, getWidth() - 30, SEARCH_INPUT_HEIGHT - 20);
+
+  // Set up TextEditor bounds
+  searchInput.setBounds(bounds);
+
+  // Draw subtle background highlight when focused
+  if (searchInput.hasKeyboardFocus(true)) {
+    g.setColour(SidechainColors::accent().withAlpha(0.05f));
+    g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
+  }
 }
 
-void UserPickerDialog::drawGroupNameInput([[maybe_unused]] juce::Graphics &g) {
-  // Group name input is drawn by the TextEditor component
+void UserPickerDialog::drawGroupNameInput(juce::Graphics &g) {
+  // Only draw if visible
+  if (!showGroupNameInput)
+    return;
+
+  // Draw group name input background and styling
+  auto bounds = juce::Rectangle<int>(15, HEADER_HEIGHT + SEARCH_INPUT_HEIGHT + 10, getWidth() - 30,
+                                     GROUP_NAME_INPUT_HEIGHT - 20);
+
+  // Set up TextEditor bounds
+  groupNameInput.setBounds(bounds);
+
+  // Draw subtle background highlight when focused
+  if (groupNameInput.hasKeyboardFocus(true)) {
+    g.setColour(SidechainColors::accent().withAlpha(0.05f));
+    g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
+  }
 }
 
 void UserPickerDialog::drawSectionHeader(juce::Graphics &g, const juce::String &title, int y) {
@@ -576,15 +610,68 @@ void UserPickerDialog::drawLoadingState(juce::Graphics &g) {
   g.drawText("Loading...", 0, 0, getWidth(), getHeight(), juce::Justification::centred);
 }
 
-void UserPickerDialog::drawErrorState([[maybe_unused]] juce::Graphics &g) {
-  if (errorStateComponent) {
-    errorStateComponent->setVisible(true);
-    // ErrorState component will show the error message from its own state
-  }
+void UserPickerDialog::drawErrorState(juce::Graphics &g) {
+  // Draw error background
+  g.fillAll(SidechainColors::background());
+
+  // Draw error icon and message
+  int centerY = getHeight() / 2;
+
+  // Error icon (simple circle with X)
+  int iconSize = 80;
+  int iconX = (getWidth() - iconSize) / 2;
+  int iconY = centerY - 60;
+
+  g.setColour(SidechainColors::error().withAlpha(0.2f));
+  g.fillEllipse(static_cast<float>(iconX), static_cast<float>(iconY), static_cast<float>(iconSize),
+                static_cast<float>(iconSize));
+
+  g.setColour(SidechainColors::error());
+  g.setFont(juce::FontOptions(48.0f).withStyle("Bold"));
+  g.drawText("!", iconX, iconY, iconSize, iconSize, juce::Justification::centred);
+
+  // Error message
+  g.setColour(SidechainColors::textPrimary());
+  g.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
+  g.drawText("Failed to Load Users", 20, centerY + 20, getWidth() - 40, 30, juce::Justification::centred);
+
+  // Error detail
+  g.setColour(SidechainColors::textSecondary());
+  g.setFont(juce::FontOptions(13.0f));
+  g.drawText(errorMessage, 20, centerY + 60, getWidth() - 40, 60, juce::Justification::centred, true);
 }
 
-void UserPickerDialog::drawEmptyState([[maybe_unused]] juce::Graphics &g) {
-  // Not currently used - we always show search input
+void UserPickerDialog::drawEmptyState(juce::Graphics &g) {
+  // Draw empty state when no users are found
+  int contentY = HEADER_HEIGHT + SEARCH_INPUT_HEIGHT;
+  if (showGroupNameInput)
+    contentY += GROUP_NAME_INPUT_HEIGHT;
+
+  int centerY = contentY + (getHeight() - contentY) / 2;
+
+  // Empty state icon
+  int iconSize = 80;
+  int iconX = (getWidth() - iconSize) / 2;
+  int iconY = centerY - 60;
+
+  g.setColour(SidechainColors::textMuted().withAlpha(0.2f));
+  g.fillEllipse(static_cast<float>(iconX), static_cast<float>(iconY), static_cast<float>(iconSize),
+                static_cast<float>(iconSize));
+
+  g.setColour(SidechainColors::textMuted());
+  g.setFont(juce::FontOptions(40.0f));
+  g.drawText("👥", iconX, iconY, iconSize, iconSize, juce::Justification::centred);
+
+  // Empty state message
+  g.setColour(SidechainColors::textSecondary());
+  g.setFont(juce::FontOptions(15.0f).withStyle("Bold"));
+  g.drawText("No users found", 20, centerY + 20, getWidth() - 40, 30, juce::Justification::centred);
+
+  // Helper text
+  g.setColour(SidechainColors::textMuted());
+  g.setFont(juce::FontOptions(13.0f));
+  g.drawText("Try searching for a friend to start a conversation", 20, centerY + 60, getWidth() - 40, 40,
+            juce::Justification::centred, true);
 }
 
 //==============================================================================
