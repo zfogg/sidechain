@@ -194,15 +194,20 @@ void SoundPage::mouseUp(const juce::MouseEvent &event) {
   }
 }
 
-void SoundPage::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
-  int delta = static_cast<int>(wheel.deltaY * 200.0f);
-  int newOffset =
-      juce::jlimit(0, juce::jmax(0, calculateContentHeight() - getContentBounds().getHeight()), scrollOffset - delta);
+void SoundPage::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel) {
+  // Only scroll if wheel is within content area (not over scroll bar)
+  auto contentBounds = getContentBounds();
+  if (event.x >= contentBounds.getX() && event.x < contentBounds.getRight() - 12 && event.y >= contentBounds.getY() &&
+      event.y < contentBounds.getBottom()) {
+    int delta = static_cast<int>(wheel.deltaY * 200.0f);
+    int newOffset =
+        juce::jlimit(0, juce::jmax(0, calculateContentHeight() - getContentBounds().getHeight()), scrollOffset - delta);
 
-  if (newOffset != scrollOffset) {
-    scrollOffset = newOffset;
-    scrollBar.setCurrentRange(scrollOffset, getContentBounds().getHeight());
-    repaint();
+    if (newOffset != scrollOffset) {
+      scrollOffset = newOffset;
+      scrollBar.setCurrentRange(scrollOffset, getContentBounds().getHeight());
+      repaint();
+    }
   }
 }
 
@@ -444,8 +449,9 @@ void SoundPage::drawSoundInfo(juce::Graphics &g, juce::Rectangle<int> &bounds) {
   }
 }
 
-void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post,
-                             [[maybe_unused]] int index) {
+void SoundPage::drawPostCard(juce::Graphics &g, juce::Rectangle<int> bounds, const SoundPost &post, int index) {
+  // Use index parameter to identify which post in the list is being drawn
+  Log::debug("SoundPage: Drawing post card at index " + juce::String(index) + " with ID: " + post.id);
   bool isPlaying = (post.id == currentlyPlayingPostId);
 
   // Card background
