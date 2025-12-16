@@ -1,6 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
-import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { Button } from '@/components/ui/button'
 
 /**
@@ -118,10 +117,10 @@ export function Navigation() {
               <span>🔍</span>
             </Button>
 
-            {/* Notification Bell (Mobile & Desktop) */}
-            <div className="sm:hidden">
+            {/* Notification Bell (Mobile & Desktop) - Disabled until endpoint exists */}
+            {/* <div className="sm:hidden">
               <NotificationBell />
-            </div>
+            </div> */}
 
             {/* User Profile & Settings */}
             <div className="flex items-center gap-2">
