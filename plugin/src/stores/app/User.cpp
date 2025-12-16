@@ -526,5 +526,38 @@ void AppStore::unfollowUser(const juce::String &userId) {
   });
 }
 
+//==============================================================================
+// Reactive Observable Wrappers
+
+rxcpp::observable<int> AppStore::followUserObservable(const juce::String &userId) {
+  return rxcpp::sources::create<int>([this, userId](auto observer) {
+    if (!networkClient) {
+      Util::logError("AppStore", "Network client not initialized");
+      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+      return;
+    }
+
+    // Call the existing callback-based method which handles caching
+    followUser(userId);
+    observer.on_next(0);
+    observer.on_completed();
+  });
+}
+
+rxcpp::observable<int> AppStore::unfollowUserObservable(const juce::String &userId) {
+  return rxcpp::sources::create<int>([this, userId](auto observer) {
+    if (!networkClient) {
+      Util::logError("AppStore", "Network client not initialized");
+      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+      return;
+    }
+
+    // Call the existing callback-based method which handles caching
+    unfollowUser(userId);
+    observer.on_next(0);
+    observer.on_completed();
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain

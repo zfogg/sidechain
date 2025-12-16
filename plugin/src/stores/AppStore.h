@@ -196,6 +196,14 @@ public:
   //==============================================================================
   // Playlist Methods (Playlists.cpp)
 
+  /**
+   * Get user's playlists with reactive observable pattern.
+   * Returns list of playlists from server.
+   *
+   * @return rxcpp::observable<juce::Array<juce::var>> - emits playlist array when available
+   */
+  rxcpp::observable<juce::Array<juce::var>> getPlaylistsObservable();
+
   void loadPlaylists();
   void createPlaylist(const juce::String &name, const juce::String &description);
   void deletePlaylist(const juce::String &playlistId);
@@ -606,6 +614,22 @@ public:
    * - On error: Reverts optimistic update
    */
   rxcpp::observable<int> addReactionObservable(const juce::String &postId, const juce::String &emoji);
+
+  /**
+   * Follow a user by userId reactively.
+   *
+   * - On success: Invalidates user search cache
+   * - Invalidates followers list cache
+   */
+  rxcpp::observable<int> followUserObservable(const juce::String &userId);
+
+  /**
+   * Unfollow a user by userId reactively.
+   *
+   * - On success: Invalidates user search cache
+   * - Invalidates followers list cache
+   */
+  rxcpp::observable<int> unfollowUserObservable(const juce::String &userId);
 
   //==============================================================================
   // WebSocket Event Handlers for Real-Time Cache Invalidation (Phase 5)
