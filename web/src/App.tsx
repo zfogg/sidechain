@@ -43,7 +43,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />
   }
 
-  return <>{children}</>
+  return <ChatProvider>{children}</ChatProvider>
 }
 
 /**
@@ -65,14 +65,14 @@ function AppContent() {
       <KeyboardShortcutsDialog />
       <div className="flex-1 min-h-0 overflow-hidden">
         <Routes>
-        {/* Public Routes */}
+        {/* Public Routes - No Chat Provider */}
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/claim/:deviceId" element={<DeviceClaim />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
 
-        {/* Protected Routes */}
+        {/* Protected Routes - Wrapped with Chat Provider */}
         <Route
           path="/feed"
           element={
@@ -244,9 +244,7 @@ function App() {
     <BrowserRouter>
       <QueryProvider>
         <AuthProvider>
-          <ChatProvider>
-            <AppContent />
-          </ChatProvider>
+          <AppContent />
         </AuthProvider>
       </QueryProvider>
     </BrowserRouter>
