@@ -313,3 +313,8 @@ jobs:
         run: |
           echo "❌ Tests failed!"
           exit 1
+
+      - name: 'notify vercel'
+        uses: 'vercel/repository-dispatch/actions/status@v1'
+        with:
+          name: Vercel - sidechain: tests-web
