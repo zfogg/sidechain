@@ -65,3 +65,6 @@ export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
   return text.substring(0, maxLength) + '...'
 }
+
+// Alias for compatibility
+export const formatDistanceToNow = formatRelativeTime

@@ -1,4 +1,4 @@
-import { useEffect, useState, ReactNode } from 'react'
+import { useEffect, useState, ReactNode, useRef } from 'react'
 import { Chat } from 'stream-chat-react'
 import { StreamChat } from 'stream-chat'
 import { useUserStore } from '@/stores/useUserStore'
@@ -26,6 +26,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const [chatClient, setChatClient] = useState<StreamChat | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const connectingRef = useRef(false)
 
   const apiKey = import.meta.env.VITE_STREAM_API_KEY
   if (!apiKey) {
@@ -37,8 +38,15 @@ export function ChatProvider({ children }: ChatProviderProps) {
     if (!user || !token || !apiKey) return
 
     const initChat = async () => {
+      // Prevent duplicate connection attempts
+      if (connectingRef.current) {
+        console.log('[Chat] Connection already in progress')
+        return
+      }
+
       setIsConnecting(true)
       setError(null)
+      connectingRef.current = true
 
       try {
         // Validate user has required fields
@@ -51,6 +59,15 @@ export function ChatProvider({ children }: ChatProviderProps) {
         if (!client) {
           client = StreamChat.getInstance(apiKey)
           setChatClient(client)
+        }
+
+        // Only connect if not already connected
+        if (client.userID === user.id) {
+          console.log('[Chat] User already connected:', user.id)
+          setStreamConnected(true)
+          setIsConnecting(false)
+          connectingRef.current = false
+          return
         }
 
         // Get Stream token from backend
@@ -84,6 +101,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
         setStreamConnected(true)
         setIsConnecting(false)
+        connectingRef.current = false
         console.log('[Chat] Successfully connected to Stream Chat')
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Stream Chat'
@@ -94,6 +112,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         })
         setError(errorMessage)
         setIsConnecting(false)
+        connectingRef.current = false
       }
     }
 
@@ -106,7 +125,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         setStreamConnected(false)
       }
     }
-  }, [user, token, apiKey, chatClient])
+  }, [user?.id, token, apiKey])
 
   // Ensure we have the connected chat client before rendering
   // Don't fall back to creating an unconnected client

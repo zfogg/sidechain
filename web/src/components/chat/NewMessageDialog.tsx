@@ -104,7 +104,10 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
         // Force the channel list to refresh by querying channels
         // This ensures the newly created channel appears immediately
         try {
-          await client.queryChannels({ type: 'messaging' }, { last_message_at: -1 })
+          await client.queryChannels(
+            { type: 'messaging', members: { $in: [currentUser.id] } },
+            { last_message_at: -1 }
+          )
         } catch (error) {
           console.warn('Failed to refresh channel list:', error)
           // Continue anyway - the channel was created successfully

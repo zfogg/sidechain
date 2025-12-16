@@ -57,11 +57,12 @@ function AppContent() {
   useKeyboardShortcuts()
 
   return (
-    <>
-      {isAuthenticated && <Navigation />}
+    <div className="flex flex-col h-full w-full">
+      {isAuthenticated && <nav className="flex-shrink-0"><Navigation /></nav>}
       <PerformanceMonitor />
       <KeyboardShortcutsDialog />
-      <Routes>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
@@ -226,7 +227,8 @@ function AppContent() {
         <Route path="/" element={<Navigate to="/feed" replace />} />
         <Route path="*" element={<Navigate to="/feed" replace />} />
       </Routes>
-    </>
+      </div>
+    </div>
   )
 }
 

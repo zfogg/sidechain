@@ -55,7 +55,7 @@ export function PerformanceMonitor() {
                   </span>
                 </div>
               )}
-              {webVitals.fid && (
+              {webVitals.fid && webVitals.fid.value !== undefined && (
                 <div>
                   FID:{' '}
                   <span className={webVitals.fid.rating === 'good' ? 'text-mint-green' : 'text-amber-500'}>
@@ -63,7 +63,7 @@ export function PerformanceMonitor() {
                   </span>
                 </div>
               )}
-              {webVitals.cls && (
+              {webVitals.cls && webVitals.cls.value !== undefined && (
                 <div>
                   CLS:{' '}
                   <span className={webVitals.cls.rating === 'good' ? 'text-mint-green' : 'text-amber-500'}>
