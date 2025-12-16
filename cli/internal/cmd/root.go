@@ -78,6 +78,7 @@ func init() {
 	rootCmd.AddCommand(feedCmd)
 	rootCmd.AddCommand(notificationsCmd)
 	rootCmd.AddCommand(reportCmd)
+	rootCmd.AddCommand(muteCmd)
 	rootCmd.AddCommand(adminCmd)
 	rootCmd.AddCommand(versionCmd)
 }
