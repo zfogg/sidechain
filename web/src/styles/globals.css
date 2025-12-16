@@ -95,3 +95,53 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
+
+/* Stream Chat Dark Theme Overrides */
+.str-chat__container {
+  background-color: #26262c;
+  color: #ffffff;
+}
+
+.str-chat__channel-list {
+  background-color: #26262c;
+}
+
+.str-chat__channel-list-container {
+  background-color: #26262c;
+}
+
+.str-chat__channel-list-messenger {
+  background-color: #26262c;
+}
+
+.str-chat__channel-list-messenger-inner {
+  background-color: #26262c;
+}
+
+.str-chat__channel-list-item {
+  background-color: #26262c;
+  color: #ffffff;
+  border-bottom: 1px solid #2e2e34;
+}
+
+.str-chat__channel-list-item:hover {
+  background-color: #2e2e34;
+}
+
+.str-chat__channel-list-item--active {
+  background-color: #363640;
+  border-left-color: #fd7792;
+}
+
+.str-chat__channel-list-item-text {
+  color: #ffffff;
+}
+
+.str-chat__channel-list-item-text-name {
+  color: #ffffff;
+}
+
+.str-chat__channel-list-item-text-unread-count {
+  background-color: #fd7792;
+  color: #ffffff;
+}

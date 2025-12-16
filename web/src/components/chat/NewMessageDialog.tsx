@@ -42,14 +42,8 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
 
       if (result.isOk()) {
         const users = result.getValue()
-        // Map search results to UserSearchResult format
-        const formattedUsers: UserSearchResult[] = users.map((user: any) => ({
-          id: user.id,
-          username: user.username,
-          displayName: user.display_name || user.username,
-          profilePictureUrl: user.profile_picture_url,
-        }))
-        setSearchResults(formattedUsers)
+        // SearchClient already returns camelCase fields, just use them directly
+        setSearchResults(users as UserSearchResult[])
       } else {
         console.error('Search failed:', result.getError())
         setSearchResults([])
