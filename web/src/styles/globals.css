@@ -186,3 +186,77 @@
 .str-chat__avatar {
   background-color: #2e2e34 !important;
 }
+
+/* Message Thread Styling */
+.str-chat__window {
+  background-color: #26262c !important;
+}
+
+.str-chat__message-list {
+  background-color: #26262c !important;
+}
+
+.str-chat__message-list-scroll {
+  background-color: #26262c !important;
+}
+
+.str-chat__message {
+  background-color: transparent !important;
+}
+
+.str-chat__message-text {
+  color: #ffffff !important;
+}
+
+.str-chat__message-bubble {
+  background-color: #363640 !important;
+  color: #ffffff !important;
+}
+
+.str-chat__message-bubble--own {
+  background-color: #fd7792 !important;
+  color: #ffffff !important;
+}
+
+.str-chat__channel-header {
+  background-color: #2e2e34 !important;
+  border-bottom: 1px solid #363640 !important;
+}
+
+.str-chat__channel-header-title {
+  color: #ffffff !important;
+}
+
+.str-chat__channel-header-subtitle {
+  color: #a0a0a8 !important;
+}
+
+/* Message Input Styling */
+.str-chat__input-flat {
+  background-color: #2e2e34 !important;
+  border-color: #363640 !important;
+}
+
+.str-chat__textarea {
+  background-color: #2e2e34 !important;
+  color: #ffffff !important;
+  border-color: #363640 !important;
+}
+
+.str-chat__textarea::placeholder {
+  color: #a0a0a8 !important;
+}
+
+.str-chat__textarea:focus {
+  border-color: #fd7792 !important;
+}
+
+/* Empty State */
+.str-chat__empty-state {
+  background-color: #26262c !important;
+  color: #a0a0a8 !important;
+}
+
+.str-chat__empty-state-text {
+  color: #a0a0a8 !important;
+}
