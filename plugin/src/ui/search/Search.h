@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
+#include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include "../common/ErrorState.h"
 #include "../feed/PostCard.h"
 #include "../social/UserCard.h" // For DiscoveredUser struct and UserCard
@@ -22,13 +24,13 @@ class StreamChatClient;
  * - "No results" state with suggestions
  * - Keyboard navigation
  */
-class Search : public juce::Component,
+class Search : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::SearchState>,
                public juce::TextEditor::Listener,
                public juce::ScrollBar::Listener,
                public juce::KeyListener,
                public juce::Timer {
 public:
-  Search();
+  Search(Sidechain::Stores::AppStore *store = nullptr);
   ~Search() override;
 
   //==============================================================================
@@ -76,6 +78,12 @@ public:
   // Public methods
   void focusSearchInput();
   void clearSearch();
+
+protected:
+  //==============================================================================
+  // AppStoreComponent virtual methods
+  void onAppStateChanged(const Sidechain::Stores::SearchState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================
