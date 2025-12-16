@@ -279,12 +279,27 @@ public:
   }
 
   //==============================================================================
-  // Image fetching with automatic caching
+  // Image fetching with multi-level caching
+  //
+  // Multi-level cache strategy:
+  // 1. Memory cache (fast, in-process, lost on app close)
+  // 2. File cache (persistent, survives app restarts, on disk)
+  // 3. HTTP download (network fetch if not cached)
+  //
+  // The system automatically manages both cache levels:
+  // - fetchImage() checks memory, then file, then downloads from HTTP
+  // - When downloading or loading from file, it stores in both caches
+  // - getCachedImage() does the same multi-level check without downloading
 
   /**
-   * Fetch image from URL with automatic caching.
+   * Fetch image from URL with automatic multi-level caching.
    *
-   * Checks cache first, downloads from HTTP if not cached, caches result.
+   * Strategy: Memory -> File Cache -> HTTP Download
+   * 1. Checks memory cache (fastest)
+   * 2. Checks file cache if not in memory
+   * 3. Downloads from HTTP if not in either cache
+   * 4. Stores in both caches when downloading or loading from file
+   *
    * Async operation with callback on UI thread.
    *
    * @param url Image URL to fetch
@@ -293,8 +308,14 @@ public:
   void fetchImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
 
   /**
-   * Get cached image if available, otherwise returns null image.
-   * Synchronous - does not download, only checks cache.
+   * Get cached image using multi-level caching without downloading.
+   *
+   * Checks memory cache first, then file cache. If found in file cache,
+   * automatically loads it into memory cache for next time.
+   * Does NOT download from HTTP - only checks existing caches.
+   *
+   * @param url Image URL to look up
+   * @return Image if found in either cache, null image otherwise
    */
   juce::Image getCachedImage(const juce::String &url);
 

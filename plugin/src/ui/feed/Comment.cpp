@@ -1,5 +1,6 @@
 #include "Comment.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 
 #include "../../ui/common/ToastNotification.h"
 #include "../../ui/feed/EmojiReactionsPanel.h"
@@ -26,7 +27,12 @@ CommentRow::CommentRow() {
 //==============================================================================
 void CommentRow::setComment(const Comment &newComment) {
   comment = newComment;
-  avatarImage = juce::Image();
+
+  // Fetch avatar image via AppStore (with caching)
+  if (comment.userAvatarUrl.isNotEmpty() && appStore) {
+    appStore->fetchImage(comment.userAvatarUrl, [this](const juce::Image &) { repaint(); });
+  }
+
   repaint();
 }
 
@@ -60,9 +66,28 @@ void CommentRow::paint(juce::Graphics &g) {
 }
 
 void CommentRow::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
-  // Draw colored circle
-  g.setColour(SidechainColors::surface());
-  g.fillEllipse(bounds.toFloat());
+  // Try to get image from AppStore cache first
+  auto image = appStore ? appStore->getCachedImage(comment.userAvatarUrl) : juce::Image();
+
+  if (image.isValid()) {
+    // Draw cached image clipped to circle
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+    g.drawImageAt(image, bounds.getX(), bounds.getY());
+    g.restoreState();
+  } else {
+    // Fallback: colored placeholder
+    g.setColour(SidechainColors::surface());
+    g.fillEllipse(bounds.toFloat());
+
+    // Trigger fetch if we have AppStore but no cached image
+    if (appStore && comment.userAvatarUrl.isNotEmpty()) {
+      appStore->fetchImage(comment.userAvatarUrl, [this](const juce::Image &) { repaint(); });
+    }
+  }
 
   // Avatar border
   g.setColour(SidechainColors::border());

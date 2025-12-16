@@ -45,7 +45,6 @@ void PostCard::setNetworkClient(NetworkClient *client) {
 
 void PostCard::setPost(const FeedPost &newPost) {
   post = newPost;
-  avatarImage = juce::Image();
   Log::debug("PostCard: Setting post - ID: " + post.id + ", user: " + post.username +
              ", isFollowing: " + juce::String(post.isFollowing ? "true" : "false") +
              ", isOwnPost: " + juce::String(post.isOwnPost ? "true" : "false"));
@@ -71,10 +70,9 @@ void PostCard::setPost(const FeedPost &newPost) {
                         })
                         ->start();
 
-  // Load avatar via backend proxy to work around JUCE SSL/redirect issues on
-  // Linux
-  if (post.userId.isNotEmpty()) {
-    // Use SafePointer to handle case where PostCard is destroyed before
+  // Fetch avatar image via AppStore (with caching)
+  if (post.userAvatarUrl.isNotEmpty() && appStore) {
+    appStore->fetchImage(post.userAvatarUrl, [this](const juce::Image &) { repaint(); });
   }
 
   // Load waveform image from CDN

@@ -3,6 +3,12 @@
 #include "../../util/HoverState.h"
 #include <JuceHeader.h>
 
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+}
+} // namespace Sidechain
+
 //==============================================================================
 /**
  * DiscoveredUser represents a user result from search or discovery endpoints
@@ -85,6 +91,11 @@ public:
   // Update follow state
   void setIsFollowing(bool following);
 
+  // Set the app store for image caching
+  void setAppStore(Sidechain::Stores::AppStore *store) {
+    appStore = store;
+  }
+
   //==============================================================================
   // Callbacks
   std::function<void(const DiscoveredUser &)> onUserClicked;
@@ -106,9 +117,7 @@ public:
 private:
   DiscoveredUser user;
   HoverState hoverState;
-
-  // Cached avatar image
-  juce::Image avatarImage;
+  Sidechain::Stores::AppStore *appStore = nullptr;
 
   //==============================================================================
   // Drawing methods

@@ -6,6 +6,12 @@
 
 class NetworkClient;
 
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+}
+} // namespace Sidechain
+
 /**
  * Header - Central header bar shown on all post-login pages
  *
@@ -58,6 +64,13 @@ public:
    */
   void setProfileImage(const juce::Image &image);
 
+  /** Set AppStore for image caching
+   *  @param store Pointer to AppStore instance
+   */
+  void setAppStore(Sidechain::Stores::AppStore *store) {
+    appStore = store;
+  }
+
   /** Set NetworkClient for HTTP requests
    *  @param client Pointer to NetworkClient instance
    */
@@ -88,12 +101,10 @@ private:
   juce::String username;
   juce::String profilePicUrl;
   juce::Image cachedProfileImage;
+  Sidechain::Stores::AppStore *appStore = nullptr;
   NetworkClient *networkClient = nullptr;
   int unreadMessageCount = 0;
   bool hasStories = false;
-
-  // Load profile image from URL
-  void loadProfileImage(const juce::String &url);
 
   // Draw helper methods
   void drawLogo(juce::Graphics &g, juce::Rectangle<int> bounds);

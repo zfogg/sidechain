@@ -1,5 +1,6 @@
 #include "Header.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 
 #include "../../util/Async.h"
 #include "../../util/Colors.h"
@@ -28,24 +29,12 @@ void Header::setUserInfo(const juce::String &user, const juce::String &picUrl) {
   Log::info("Header::setUserInfo: Setting user info - username: " + user);
   username = user;
 
-  // Only reload image if URL changed and we don't already have a cached image
-  if (profilePicUrl != picUrl) {
-    Log::debug("Header::setUserInfo: Profile picture URL changed - old: " + profilePicUrl + ", new: " + picUrl);
-    profilePicUrl = picUrl;
-
-    // Only download if we don't have an image and URL is valid
-    if (!cachedProfileImage.isValid() && Validate::isUrl(profilePicUrl)) {
-      Log::debug("Header::setUserInfo: Loading profile image from URL");
-      loadProfileImage(profilePicUrl);
-    } else if (cachedProfileImage.isValid()) {
-      Log::debug("Header::setUserInfo: Using cached profile image");
-    } else if (!Validate::isUrl(profilePicUrl)) {
-      Log::warn("Header::setUserInfo: Invalid profile picture URL: " + picUrl);
-    }
-  } else {
-    Log::debug("Header::setUserInfo: Profile picture URL unchanged, skipping reload");
+  // Fetch avatar image via AppStore (with caching)
+  if (picUrl.isNotEmpty() && appStore) {
+    appStore->fetchImage(picUrl, [this](const juce::Image &) { repaint(); });
   }
 
+  profilePicUrl = picUrl;
   repaint();
 }
 
@@ -59,87 +48,6 @@ void Header::setProfileImage(const juce::Image &image) {
     cachedProfileImage = juce::Image();
   }
   repaint();
-}
-
-void Header::loadProfileImage(const juce::String &url) {
-  Log::info("Header::loadProfileImage: Loading profile image from: " + url);
-  // Use Async::run to download image on background thread
-  Async::run<juce::Image>(
-      // Background work: download image
-      [this, url]() -> juce::Image {
-        Log::debug("Header::loadProfileImage: Starting download on background thread");
-        juce::MemoryBlock imageData;
-        bool success = false;
-
-        // Use NetworkClient if available, otherwise fall back to JUCE URL
-        if (networkClient != nullptr) {
-          Log::debug("Header::loadProfileImage: Using NetworkClient for download");
-          auto result = networkClient->makeAbsoluteRequestSync(url, "GET", juce::var(), false, juce::StringPairArray(),
-                                                               &imageData);
-          success = result.success && imageData.getSize() > 0;
-          if (success) {
-            Log::debug("Header::loadProfileImage: Download successful via "
-                       "NetworkClient - size: " +
-                       juce::String(imageData.getSize()) + " bytes");
-          } else {
-            Log::warn("Header::loadProfileImage: Download failed via "
-                      "NetworkClient - error: " +
-                      result.errorMessage);
-          }
-        } else {
-          Log::debug("Header::loadProfileImage: NetworkClient not available, "
-                     "using JUCE URL fallback");
-          // Fallback to JUCE URL
-          auto urlObj = juce::URL(url);
-          auto inputStream =
-              urlObj.createInputStream(juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                                           .withConnectionTimeoutMs(Constants::Api::QUICK_TIMEOUT_MS)
-                                           .withNumRedirectsToFollow(Constants::Api::MAX_REDIRECTS));
-
-          if (inputStream != nullptr) {
-            inputStream->readIntoMemoryBlock(imageData);
-            success = imageData.getSize() > 0;
-            if (success) {
-              Log::debug("Header::loadProfileImage: Download successful via "
-                         "JUCE URL - size: " +
-                         juce::String(imageData.getSize()) + " bytes");
-            } else {
-              Log::warn("Header::loadProfileImage: Download failed via JUCE "
-                        "URL - empty data");
-            }
-          } else {
-            Log::error("Header::loadProfileImage: Failed to create input "
-                       "stream from URL");
-          }
-        }
-
-        if (success) {
-          auto image = juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
-          if (image.isValid()) {
-            Log::debug("Header::loadProfileImage: Image decoded successfully - "
-                       "size: " +
-                       juce::String(image.getWidth()) + "x" + juce::String(image.getHeight()));
-            return image;
-          } else {
-            Log::error("Header::loadProfileImage: Failed to decode image from "
-                       "downloaded data");
-          }
-        }
-
-        return {};
-      },
-      // Callback on message thread: update UI
-      [this, url](const juce::Image &image) {
-        if (image.isValid()) {
-          Log::info("Header::loadProfileImage: Profile image loaded "
-                    "successfully from: " +
-                    url);
-          cachedProfileImage = image;
-          repaint();
-        } else {
-          Log::error("Header::loadProfileImage: Failed to load profile image from: " + url);
-        }
-      });
 }
 
 //==============================================================================
@@ -328,8 +236,28 @@ void Header::drawCircularProfilePic(juce::Graphics &g, juce::Rectangle<int> boun
     g.drawEllipse(bounds.toFloat().expanded(2.0f), 2.5f);
   }
 
-  g.setColour(SidechainColors::primary());
-  g.fillEllipse(bounds.toFloat());
+  // Try to get image from AppStore cache first
+  auto image = appStore ? appStore->getCachedImage(profilePicUrl) : juce::Image();
+
+  if (image.isValid()) {
+    // Draw cached image clipped to circle
+    juce::Path circlePath;
+    circlePath.addEllipse(bounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+    g.drawImageAt(image, bounds.getX(), bounds.getY());
+    g.restoreState();
+  } else {
+    // Fallback: colored placeholder
+    g.setColour(SidechainColors::primary());
+    g.fillEllipse(bounds.toFloat());
+
+    // Trigger fetch if we have AppStore but no cached image
+    if (appStore && profilePicUrl.isNotEmpty()) {
+      appStore->fetchImage(profilePicUrl, [this](const juce::Image &) { repaint(); });
+    }
+  }
 
   // Border (only if no story highlight)
   if (!hasStories) {

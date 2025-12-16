@@ -8,6 +8,12 @@
 
 class NetworkClient;
 
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+}
+} // namespace Sidechain
+
 // User data structure for followers/following lists
 struct FollowListUser {
   juce::String id;
@@ -56,6 +62,11 @@ public:
   // Update follow state
   void setFollowing(bool following);
 
+  // Set the app store for image caching
+  void setAppStore(Sidechain::Stores::AppStore *store) {
+    appStore = store;
+  }
+
   // Callbacks
   std::function<void(const FollowListUser &)> onUserClicked;
   std::function<void(const FollowListUser &, bool willFollow)> onFollowToggled;
@@ -72,9 +83,7 @@ public:
 private:
   FollowListUser user;
   HoverState hoverState;
-
-  // Cached avatar
-  juce::Image avatarImage;
+  Sidechain::Stores::AppStore *appStore = nullptr;
 
   // Bounds helpers
   juce::Rectangle<int> getAvatarBounds() const;

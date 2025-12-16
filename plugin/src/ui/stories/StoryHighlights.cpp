@@ -18,11 +18,9 @@ void StoryHighlights::onAppStateChanged(const Sidechain::Stores::StoriesState &s
     highlights.add(StoryHighlight::fromJSON(stateHighlights[i]));
   }
 
-  // Load cover images for new highlights
+  // Load cover images for new highlights via AppStore
   for (const auto &highlight : highlights) {
-    if (coverImages.find(highlight.id) == coverImages.end()) {
-      loadCoverImage(highlight);
-    }
+    loadCoverImage(highlight);
   }
 
   repaint();
@@ -48,7 +46,6 @@ void StoryHighlights::setUserId(const juce::String &id) {
   if (userId != id) {
     userId = id;
     highlights.clear();
-    coverImages.clear();
     scrollOffset = 0;
     repaint();
   }
@@ -95,7 +92,6 @@ void StoryHighlights::loadHighlights() {
 
 void StoryHighlights::setHighlights(const juce::Array<StoryHighlight> &newHighlights) {
   highlights = newHighlights;
-  coverImages.clear();
 
   for (const auto &highlight : highlights) {
     loadCoverImage(highlight);
@@ -140,15 +136,23 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &hig
 
   // Draw cover image or placeholder
   auto imageBounds = circleBounds.reduced(4);
-  auto it = coverImages.find(highlight.id);
-  if (it != coverImages.end() && it->second.isValid()) {
+
+  // Try to get cached image from AppStore for highlight cover
+  juce::Image coverImage;
+  if (appStore && !highlight.coverImageUrl.isEmpty()) {
+    coverImage = appStore->getCachedImage(highlight.coverImageUrl);
+  }
+
+  if (coverImage.isValid()) {
     // Clip to circle and draw image
     juce::Path clipPath;
     clipPath.addEllipse(imageBounds);
     g.saveState();
     g.reduceClipRegion(clipPath);
-    g.drawImage(it->second, imageBounds, juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
+    g.drawImage(coverImage, imageBounds, juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
     g.restoreState();
+
+    // Trigger async fetch if not already cached
   } else {
     // Draw placeholder with first letter
     g.setColour(Colors::addButtonBg);
@@ -157,6 +161,11 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &hig
     g.setFont(juce::Font(juce::FontOptions().withHeight(20.0f)).boldened());
     juce::String initial = highlight.name.isNotEmpty() ? highlight.name.substring(0, 1).toUpperCase() : "?";
     g.drawText(initial, imageBounds.toNearestInt(), juce::Justification::centred);
+
+    // Trigger fetch if AppStore is available and cover has URL
+    if (appStore && !highlight.coverImageUrl.isEmpty()) {
+      appStore->fetchImage(highlight.coverImageUrl, [this](const juce::Image &) { repaint(); });
+    }
   }
 
   // Draw name

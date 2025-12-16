@@ -1,5 +1,6 @@
 #include "FollowersList.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 
 #include "../../util/Async.h"
 #include "../../util/Colors.h"
@@ -28,7 +29,10 @@ FollowUserRow::FollowUserRow() {
 
 void FollowUserRow::setUser(const FollowListUser &newUser) {
   user = newUser;
-  avatarImage = juce::Image();
+  // Fetch avatar image via AppStore (with caching)
+  if (user.avatarUrl.isNotEmpty() && appStore) {
+    appStore->fetchImage(user.avatarUrl, [this](const juce::Image &) { repaint(); });
+  }
   repaint();
 }
 
@@ -53,14 +57,15 @@ void FollowUserRow::paint(juce::Graphics &g) {
   juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
 
   // Draw circular avatar or placeholder with initials
-  if (avatarImage.isValid()) {
+  auto image = appStore ? appStore->getCachedImage(user.avatarUrl) : juce::Image();
+  if (image.isValid()) {
     // Draw image clipped to circle
     juce::Path circlePath;
     circlePath.addEllipse(avatarBounds.toFloat());
 
     g.saveState();
     g.reduceClipRegion(circlePath);
-    g.drawImageAt(avatarImage, avatarBounds.getX(), avatarBounds.getY());
+    g.drawImageAt(image, avatarBounds.getX(), avatarBounds.getY());
     g.restoreState();
   } else {
     // Fallback: colored circle with user initials
