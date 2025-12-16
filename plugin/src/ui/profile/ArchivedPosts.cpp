@@ -388,18 +388,32 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
       onPostClicked(post);
   };
 
-  // Handle unarchive - restore post to visible
+  // Handle unarchive - restore post to visible (callback fallback)
   card->onArchiveToggled = [this](const FeedPost &post, bool archived) {
     if (!archived && appStore != nullptr) {
       Log::info("ArchivedPosts: Unarchiving post: " + post.id);
+      juce::Component::SafePointer<ArchivedPosts> safeThis(this);
+      // Call restore directly - no observable wrapper yet
+      // Future enhancement: create restorePostObservable for reactive pattern
       appStore->restorePost(post.id);
     }
   };
 
-  // Like functionality
+  // Like functionality (callback fallback)
   card->onLikeToggled = [this](const FeedPost &post, bool liked) {
     if (appStore != nullptr) {
-      appStore->toggleLike(post.id);
+      juce::Component::SafePointer<ArchivedPosts> safeThis(this);
+      appStore->likePostObservable(post.id).subscribe(
+          [safeThis](int) {
+            if (safeThis == nullptr)
+              return;
+            Log::debug("ArchivedPosts: Like toggled successfully");
+          },
+          [safeThis](std::exception_ptr error) {
+            if (safeThis == nullptr)
+              return;
+            Log::error("ArchivedPosts: Failed to toggle like");
+          });
     }
   };
 }
