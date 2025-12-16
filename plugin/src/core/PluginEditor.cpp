@@ -1996,28 +1996,48 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
   // Start notification polling
   startNotificationPolling();
 
-  // Fetch user profile from backend to get their S3 profile picture (if they have one)
-  // This must happen before deciding whether to show ProfileSetup or Feed
-  appStore.fetchUserProfile(true);  // Force refresh to get latest profile data
-
   // Show header now that user is logged in
   if (headerComponent)
     headerComponent->setVisible(true);
 
-  // Schedule the view change after a short delay to allow profile fetch to complete
-  juce::Timer::callAfterDelay(500, [this]() {
-    // Sync user profile picture URL
-    profilePicUrl = appStore.getState().user.profilePictureUrl;
-    saveLoginState();
+  // Subscribe to user state changes to wait for profile fetch to complete
+  // This allows us to show the correct view (Feed or ProfileSetup) once we know if user has a profile picture
+  auto unsubscriber = std::make_shared<std::function<void()>>();
+  *unsubscriber = appStore.subscribeToUser([this, unsubscriber](const Sidechain::Stores::UserState &userState) {
+    // Only proceed once we've fetched the profile (userId should be populated)
+    if (!userState.userId.isEmpty() && !userState.isFetchingProfile) {
+      Log::info("onLoginSuccess: Profile fetch complete - userId: " + userState.userId +
+                ", profilePictureUrl: " + (userState.profilePictureUrl.isEmpty() ? "empty" : "set"));
 
-    // If user has a profile picture (from their S3 storage), skip setup and go straight to feed
-    // If they don't have one, show profile setup to let them upload one
-    if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
-      showView(AppView::PostsFeed);
-    } else {
-      showView(AppView::ProfileSetup);
+      // Sync user profile picture URL
+      profilePicUrl = userState.profilePictureUrl;
+      saveLoginState();
+
+      // Update header with user info from AppStore
+      if (headerComponent) {
+        headerComponent->setUserInfo(userState.username, userState.profilePictureUrl);
+        if (userState.profileImage.isValid()) {
+          headerComponent->setProfileImage(userState.profileImage);
+        }
+      }
+
+      // If user has a profile picture (from their S3 storage), skip setup and go straight to feed
+      // If they don't have one, show profile setup to let them upload one
+      if (!userState.profilePictureUrl.isEmpty()) {
+        showView(AppView::PostsFeed);
+      } else {
+        showView(AppView::ProfileSetup);
+      }
+
+      // Unsubscribe after profile setup is complete
+      if (*unsubscriber) {
+        (*unsubscriber)();
+      }
     }
   });
+
+  // Fetch user profile from backend to get their S3 profile picture and userId
+  appStore.fetchUserProfile(true);  // Force refresh to get latest profile data
 }
 
 void SidechainAudioProcessorEditor::logout() {
