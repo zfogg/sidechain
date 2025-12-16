@@ -1,0 +1,24 @@
+.story-viewer {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
+
+.story-viewer video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-progress-bar {
+  animation: progress linear forwards;
+}
+
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
