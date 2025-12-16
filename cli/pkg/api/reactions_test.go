@@ -33,25 +33,25 @@ func TestRemoveReaction_API(t *testing.T) {
 	}
 }
 
-func TestGetReactions_API(t *testing.T) {
+func TestGetPostReactions_API(t *testing.T) {
 	// Try with non-existent post
 	postID := "nonexistent-post"
 
-	resp, err := GetReactions(postID)
+	resp, err := GetPostReactions(postID)
 
 	if err != nil {
-		t.Logf("GetReactions error (post doesn't exist): %v", err)
+		t.Logf("GetPostReactions error (post doesn't exist): %v", err)
 		return
 	}
 
 	if resp == nil {
-		t.Error("GetReactions returned nil")
+		t.Error("GetPostReactions returned nil")
 	}
-	if resp.Reactions != nil {
-		// Verify reactions structure
-		for _, reaction := range resp.Reactions {
-			if reaction.Emoji == "" && reaction.Count == 0 {
-				t.Log("Found empty reaction")
+	if resp.ReactionCounts != nil {
+		// Verify reaction counts structure
+		for emoji, count := range resp.ReactionCounts {
+			if count < 0 {
+				t.Errorf("Invalid count for emoji %s: %d", emoji, count)
 			}
 		}
 	}
