@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  backend-test:
+    image: zfogg/sidechain-backend:latest
+    environment:
+      PORT: "8787"
+      ENVIRONMENT: "test"
+      DATABASE_URL: "postgres://sidechain:test_password@postgres-test:5432/sidechain_test"
+      JWT_SECRET: "test_jwt_secret_for_testing_only"
+      STREAM_API_KEY: "${STREAM_API_KEY}"
+      STREAM_API_SECRET: "${STREAM_API_SECRET}"
+      REDIS_URL: "redis://redis-test:6379"
+    ports:
+      - "8787:8787"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: "sidechain"
+      POSTGRES_PASSWORD: "test_password"
+      POSTGRES_DB: "sidechain_test"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sidechain -d sidechain_test"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  redis-test:
+    image: redis/redis-stack-server:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-test-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres-test-data:
+  redis-test-data:
