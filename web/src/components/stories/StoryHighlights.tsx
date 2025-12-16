@@ -5,15 +5,11 @@ import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog'
 import { StoryViewer } from './StoryViewer'
-import { StoryClient as StoriesAPI } from '@/api/StoryClient'
 
 interface StoryHighlightsProps {
   userId: string
-  displayName: string
 }
 
 /**
@@ -25,8 +21,7 @@ interface StoryHighlightsProps {
  * - Swipe through highlight stories
  * - Empty state when no highlights
  */
-export function StoryHighlights({ userId, displayName }: StoryHighlightsProps) {
-  const [selectedHighlight, setSelectedHighlight] = useState<string | null>(null)
+export function StoryHighlights({ userId }: StoryHighlightsProps) {
   const [highlightStories, setHighlightStories] = useState<any[]>([])
   const [isViewerOpen, setIsViewerOpen] = useState(false)
 

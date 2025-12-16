@@ -30,7 +30,7 @@ interface CollectionStoreActions {
 }
 
 export const useCollectionStore = create<CollectionStoreState & CollectionStoreActions>(
-  (set, get) => ({
+  (set) => ({
     collections: [],
     currentCollection: null,
     isLoading: false,

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
 import { Avatar } from '../avatar'
 import { renderWithProviders } from '@/test/utils'
@@ -45,7 +45,7 @@ describe('Avatar Component', () => {
 
   describe('sizes', () => {
     it('should render small avatar', () => {
-      const { container } = renderWithProviders(
+      const { container: smallContainer } = renderWithProviders(
         <Avatar
           src="https://example.com/avatar.jpg"
           alt="Test User"
@@ -53,12 +53,12 @@ describe('Avatar Component', () => {
         />
       )
 
-      const div = container.querySelector('.w-8')
+      const div = smallContainer.querySelector('.w-8')
       expect(div).toBeInTheDocument()
     })
 
     it('should render medium avatar', () => {
-      const { container } = renderWithProviders(
+      const { container: mediumContainer } = renderWithProviders(
         <Avatar
           src="https://example.com/avatar.jpg"
           alt="Test User"
@@ -66,12 +66,12 @@ describe('Avatar Component', () => {
         />
       )
 
-      const div = container.querySelector('.w-10')
+      const div = mediumContainer.querySelector('.w-10')
       expect(div).toBeInTheDocument()
     })
 
     it('should render large avatar', () => {
-      const { container } = renderWithProviders(
+      const { container: largeContainer } = renderWithProviders(
         <Avatar
           src="https://example.com/avatar.jpg"
           alt="Test User"
@@ -79,13 +79,13 @@ describe('Avatar Component', () => {
         />
       )
 
-      const div = container.querySelector('.w-16')
+      const div = largeContainer.querySelector('.w-16')
       expect(div).toBeInTheDocument()
     })
   })
 
   it('should apply custom className', () => {
-    const { container } = renderWithProviders(
+    const { container: customContainer } = renderWithProviders(
       <Avatar
         src="https://example.com/avatar.jpg"
         alt="Test User"
@@ -93,12 +93,12 @@ describe('Avatar Component', () => {
       />
     )
 
-    const div = container.querySelector('.custom-class')
+    const div = customContainer.querySelector('.custom-class')
     expect(div).toBeInTheDocument()
   })
 
   it('should show placeholder on image load error', () => {
-    const { container } = renderWithProviders(
+    const { container: errorContainer } = renderWithProviders(
       <Avatar
         src="https://example.com/broken.jpg"
         alt="Test User"
@@ -130,7 +130,7 @@ describe('Avatar Component', () => {
   })
 
   it('should add animate-pulse class while loading', () => {
-    const { container } = renderWithProviders(
+    renderWithProviders(
       <Avatar
         src="https://example.com/avatar.jpg"
         alt="Test User"
@@ -151,14 +151,14 @@ describe('Avatar Component', () => {
   })
 
   it('should be rounded circular', () => {
-    const { container } = renderWithProviders(
+    const { container: circularContainer } = renderWithProviders(
       <Avatar
         src="https://example.com/avatar.jpg"
         alt="Test User"
       />
     )
 
-    const div = container.querySelector('.rounded-full')
+    const div = circularContainer.querySelector('.rounded-full')
     expect(div).toBeInTheDocument()
   })
 })

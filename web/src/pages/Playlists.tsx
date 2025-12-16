@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { usePlaylistStore } from '@/stores/usePlaylistStore'
 import { PlaylistCard } from '@/components/playlists/PlaylistCard'
 import { CreatePlaylistDialog } from '@/components/playlists/CreatePlaylistDialog'
@@ -10,7 +9,6 @@ import { Button } from '@/components/ui/button'
  * Browse and manage user playlists
  */
 export function Playlists() {
-  const navigate = useNavigate()
   const { userPlaylists, isLoading, loadUserPlaylists } = usePlaylistStore()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 

@@ -61,7 +61,7 @@ export function useLikeMutation() {
 
       return { previousFeeds }
     },
-    onError: (err, variables, context: any) => {
+    onError: (_err, _variables, context: any) => {
       // Rollback React Query cache on error
       if (context?.previousFeeds) {
         context.previousFeeds.forEach(([queryKey, data]: [any, any]) => {
@@ -125,7 +125,7 @@ export function useSaveMutation() {
 
       return { previousFeeds }
     },
-    onError: (err, variables, context: any) => {
+    onError: (_err, _variables, context: any) => {
       if (context?.previousFeeds) {
         context.previousFeeds.forEach(([queryKey, data]: [any, any]) => {
           queryClient.setQueryData(queryKey, data)

@@ -66,13 +66,13 @@ export function useCreateCommentMutation() {
 
       return { previousComments }
     },
-    onError: (err, variables, context: any) => {
+    onError: (_err, variables, context: any) => {
       // Rollback on error
       if (context?.previousComments) {
         queryClient.setQueryData(['comments', variables.postId], context.previousComments)
       }
     },
-    onSuccess: (newComment, { postId }) => {
+    onSuccess: (_newComment, { postId }) => {
       // Replace optimistic comments with real ones from server
       queryClient.invalidateQueries({ queryKey: ['comments', postId] })
     },
@@ -99,7 +99,7 @@ export function useEditCommentMutation() {
       }
       return result.getValue()
     },
-    onSuccess: (updatedComment, { commentId }) => {
+    onSuccess: () => {
       // Invalidate comments queries to refresh
       queryClient.invalidateQueries({ queryKey: ['comments'] })
     },
