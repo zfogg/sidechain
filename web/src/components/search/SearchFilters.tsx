@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { SearchClient, SearchFilters } from '@/api/SearchClient'
 import { Button } from '@/components/ui/button'
