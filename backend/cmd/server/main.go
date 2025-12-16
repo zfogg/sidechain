@@ -547,6 +547,14 @@ func main() {
 			search.GET("/users", h.SearchUsers)
 		}
 
+		// Activity routes - Timeline from followed users and global activity
+		activity := api.Group("/activity")
+		{
+			activity.Use(authHandlers.AuthMiddleware())
+			activity.GET("/following", h.GetFollowingActivityTimeline)
+			activity.GET("/global", h.GetGlobalActivityTimeline)
+		}
+
 		// Discovery routes
 		discover := api.Group("/discover")
 		{
