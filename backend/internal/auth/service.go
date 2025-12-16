@@ -214,6 +214,7 @@ func (s *Service) generateAuthResponse(user *models.User) (*AuthResponse, error)
 		"email":          user.Email,
 		"username":       user.Username,
 		"stream_user_id": user.StreamUserID,
+		"is_admin":       user.IsAdmin,
 		"exp":            expiresAt.Unix(),
 		"iat":            time.Now().Unix(),
 	}

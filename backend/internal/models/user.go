@@ -104,6 +104,9 @@ type User struct {
 	FollowingCount int `gorm:"default:0" json:"following_count"`
 	PostCount      int `gorm:"default:0" json:"post_count"`
 
+	// Admin/Moderation
+	IsAdmin bool `gorm:"default:false" json:"is_admin"` // Admin can moderate content and view private profiles
+
 	// Privacy settings
 	IsPrivate bool `gorm:"default:false" json:"is_private"` // If true, requires follow approval
 
