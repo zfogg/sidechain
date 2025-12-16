@@ -10,6 +10,7 @@ import { AuthCallback } from '@/pages/AuthCallback'
 import { DeviceClaim } from '@/pages/DeviceClaim'
 import { Feed } from '@/pages/Feed'
 import { Settings } from '@/pages/Settings'
+import { Upload } from '@/pages/Upload'
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -55,6 +56,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Upload Routes (Protected) */}
+            <Route
+              path="/upload"
+              element={
+                <ProtectedRoute>
+                  <Upload />
                 </ProtectedRoute>
               }
             />
