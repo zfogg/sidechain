@@ -5,7 +5,7 @@
 
 import { apiClient } from './client'
 import { Outcome } from './types'
-import { CollectionModel, type Collection } from '../models/Collection'
+import { CollectionModel, type Collection, type CollectionJSON } from '../models/Collection'
 
 export class CollectionClient {
   /**
@@ -15,7 +15,7 @@ export class CollectionClient {
     limit: number = 20,
     offset: number = 0
   ): Promise<Outcome<Collection[]>> {
-    const result = await apiClient.get<{ collections: any[] }>('/collections', {
+    const result = await apiClient.get<{ collections: CollectionJSON[] }>('/collections', {
       limit,
       offset,
     })
@@ -36,7 +36,7 @@ export class CollectionClient {
    * Get a single collection with all posts
    */
   static async getCollection(collectionId: string): Promise<Outcome<Collection>> {
-    const result = await apiClient.get<{ collection: any }>(`/collections/${collectionId}`)
+    const result = await apiClient.get<{ collection: CollectionJSON }>(`/collections/${collectionId}`)
 
     if (result.isOk()) {
       try {
@@ -59,7 +59,7 @@ export class CollectionClient {
     icon: string = '📁',
     isPublic: boolean = false
   ): Promise<Outcome<Collection>> {
-    const result = await apiClient.post<{ collection: any }>('/collections', {
+    const result = await apiClient.post<{ collection: CollectionJSON }>('/collections', {
       title,
       description,
       icon,
@@ -90,13 +90,13 @@ export class CollectionClient {
       isPublic?: boolean
     }
   ): Promise<Outcome<Collection>> {
-    const payload: any = {}
+    const payload: Partial<Pick<CollectionJSON, 'title' | 'description' | 'icon' | 'is_public'>> = {}
     if (updates.title !== undefined) payload.title = updates.title
     if (updates.description !== undefined) payload.description = updates.description
     if (updates.icon !== undefined) payload.icon = updates.icon
     if (updates.isPublic !== undefined) payload.is_public = updates.isPublic
 
-    const result = await apiClient.put<{ collection: any }>(
+    const result = await apiClient.put<{ collection: CollectionJSON }>(
       `/collections/${collectionId}`,
       payload
     )
@@ -164,7 +164,7 @@ export class CollectionClient {
    * Get collections that contain a specific post
    */
   static async getCollectionsContainingPost(postId: string): Promise<Outcome<Collection[]>> {
-    const result = await apiClient.get<{ collections: any[] }>(`/posts/${postId}/collections`)
+    const result = await apiClient.get<{ collections: CollectionJSON[] }>(`/posts/${postId}/collections`)
 
     if (result.isOk()) {
       try {
