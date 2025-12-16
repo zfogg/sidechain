@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -176,7 +178,7 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 }
 
 // GoogleOAuth initiates Google OAuth flow
-// GET /api/v1/auth/google?session_id=...&state=...
+// GET /api/v1/auth/google?session_id=...&state=...&redirect_uri=...
 func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
@@ -192,8 +194,19 @@ func (h *AuthHandlers) GoogleOAuth(c *gin.Context) {
 		}
 	}
 
-	url := h.authService.GetGoogleOAuthURL(state)
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	// If redirect_uri is provided (web flow), encode it in the state
+	redirectURI := c.Query("redirect_uri")
+	if redirectURI != "" {
+		stateData := map[string]string{
+			"session_id":   state,
+			"redirect_uri": redirectURI,
+		}
+		stateJSON, _ := json.Marshal(stateData)
+		state = url.QueryEscape(string(stateJSON))
+	}
+
+	oauthURL := h.authService.GetGoogleOAuthURL(state)
+	c.Redirect(http.StatusTemporaryRedirect, oauthURL)
 }
 
 // GoogleCallback handles Google OAuth callback
@@ -212,7 +225,22 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 
 	authResp, err := h.authService.HandleGoogleCallback(code)
 	if err != nil {
-		// Show error page to browser
+		// Extract redirect_uri if present
+		stateParam := c.Query("state")
+		var redirectURI string
+		stateData := decodeStateParameter(stateParam)
+		if stateData != nil {
+			redirectURI = stateData["redirect_uri"]
+		}
+
+		// If redirect_uri provided (web flow), redirect with error
+		if redirectURI != "" {
+			redirectURL := fmt.Sprintf("%s?error=%s", redirectURI, url.QueryEscape(err.Error()))
+			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+			return
+		}
+
+		// Otherwise show error page to browser (VST flow)
 		errorHTML := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
@@ -240,10 +268,32 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Extract session_id from state parameter (OAuth providers return state in callback)
-	sessionID := c.Query("state")
+	// Extract session_id and redirect_uri from state parameter
+	stateParam := c.Query("state")
+	stateData := decodeStateParameter(stateParam)
+
+	var redirectURI string
+	var sessionID string
+
+	if stateData != nil {
+		redirectURI = stateData["redirect_uri"]
+		sessionID = stateData["session_id"]
+	} else {
+		// Fallback: use state as session_id if not JSON encoded
+		sessionID = stateParam
+	}
+
+	// If redirect_uri provided (web flow), redirect back with token and user
+	if redirectURI != "" {
+		userJSON, _ := json.Marshal(authResp.User)
+		userJSONEncoded := url.QueryEscape(string(userJSON))
+		redirectURL := fmt.Sprintf("%s?token=%s&user=%s", redirectURI, authResp.Token, userJSONEncoded)
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		return
+	}
+
+	// VST flow: Store session for polling (expires in 5 minutes)
 	if sessionID != "" {
-		// Store session for polling (expires in 5 minutes)
 		h.oauthMutex.Lock()
 		h.oauthSessions[sessionID] = &OAuthSession{
 			AuthResponse: authResp,
@@ -253,7 +303,7 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 		h.oauthMutex.Unlock()
 	}
 
-	// Always show success page to browser (plugin will poll for auth if sessionID was provided)
+	// Show success page to browser (plugin will poll for auth if sessionID was provided)
 	successHTML := `
 <!DOCTYPE html>
 <html>
@@ -281,7 +331,7 @@ func (h *AuthHandlers) GoogleCallback(c *gin.Context) {
 }
 
 // DiscordOAuth initiates Discord OAuth flow
-// GET /api/v1/auth/discord?session_id=...&state=...
+// GET /api/v1/auth/discord?session_id=...&state=...&redirect_uri=...
 func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 	if h.authService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "auth_service_not_configured"})
@@ -297,8 +347,19 @@ func (h *AuthHandlers) DiscordOAuth(c *gin.Context) {
 		}
 	}
 
-	url := h.authService.GetDiscordOAuthURL(state)
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	// If redirect_uri is provided (web flow), encode it in the state
+	redirectURI := c.Query("redirect_uri")
+	if redirectURI != "" {
+		stateData := map[string]string{
+			"session_id":   state,
+			"redirect_uri": redirectURI,
+		}
+		stateJSON, _ := json.Marshal(stateData)
+		state = url.QueryEscape(string(stateJSON))
+	}
+
+	oauthURL := h.authService.GetDiscordOAuthURL(state)
+	c.Redirect(http.StatusTemporaryRedirect, oauthURL)
 }
 
 // DiscordCallback handles Discord OAuth callback
@@ -317,7 +378,22 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 
 	authResp, err := h.authService.HandleDiscordCallback(code)
 	if err != nil {
-		// Show error page to browser
+		// Extract redirect_uri if present
+		stateParam := c.Query("state")
+		var redirectURI string
+		stateData := decodeStateParameter(stateParam)
+		if stateData != nil {
+			redirectURI = stateData["redirect_uri"]
+		}
+
+		// If redirect_uri provided (web flow), redirect with error
+		if redirectURI != "" {
+			redirectURL := fmt.Sprintf("%s?error=%s", redirectURI, url.QueryEscape(err.Error()))
+			c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+			return
+		}
+
+		// Otherwise show error page to browser (VST flow)
 		errorHTML := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
@@ -345,10 +421,32 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		return
 	}
 
-	// Extract session_id from state parameter (OAuth providers return state in callback)
-	sessionID := c.Query("state")
+	// Extract session_id and redirect_uri from state parameter
+	stateParam := c.Query("state")
+	stateData := decodeStateParameter(stateParam)
+
+	var redirectURI string
+	var sessionID string
+
+	if stateData != nil {
+		redirectURI = stateData["redirect_uri"]
+		sessionID = stateData["session_id"]
+	} else {
+		// Fallback: use state as session_id if not JSON encoded
+		sessionID = stateParam
+	}
+
+	// If redirect_uri provided (web flow), redirect back with token and user
+	if redirectURI != "" {
+		userJSON, _ := json.Marshal(authResp.User)
+		userJSONEncoded := url.QueryEscape(string(userJSON))
+		redirectURL := fmt.Sprintf("%s?token=%s&user=%s", redirectURI, authResp.Token, userJSONEncoded)
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		return
+	}
+
+	// VST flow: Store session for polling (expires in 5 minutes)
 	if sessionID != "" {
-		// Store session for polling (expires in 5 minutes)
 		h.oauthMutex.Lock()
 		h.oauthSessions[sessionID] = &OAuthSession{
 			AuthResponse: authResp,
@@ -358,7 +456,7 @@ func (h *AuthHandlers) DiscordCallback(c *gin.Context) {
 		h.oauthMutex.Unlock()
 	}
 
-	// Always show success page to browser (plugin will poll for auth if sessionID was provided)
+	// Show success page to browser (plugin will poll for auth if sessionID was provided)
 	successHTML := `
 <!DOCTYPE html>
 <html>
@@ -787,4 +885,26 @@ func (h *AuthHandlers) ResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "password_reset_successful",
 	})
+}
+
+// decodeStateParameter decodes the state parameter which may contain JSON with session_id and redirect_uri
+func decodeStateParameter(state string) map[string]string {
+	if state == "" {
+		return nil
+	}
+
+	// Try to URL decode first
+	decoded, err := url.QueryUnescape(state)
+	if err != nil {
+		return nil
+	}
+
+	// Try to unmarshal as JSON
+	var stateData map[string]string
+	if err := json.Unmarshal([]byte(decoded), &stateData); err != nil {
+		// If not JSON, it's a plain state value (for VST flow)
+		return nil
+	}
+
+	return stateData
 }
