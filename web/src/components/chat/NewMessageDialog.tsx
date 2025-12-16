@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserStore } from '@/stores/useUserStore'
+import { SearchClient } from '@/api/SearchClient'
 
 interface UserSearchResult {
   id: string
@@ -28,7 +29,7 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null)
   const [isCreatingChannel, setIsCreatingChannel] = useState(false)
 
-  // Mock user search - in production, this would call your backend API
+  // Search for users by name or username
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setSearchResults([])
@@ -37,33 +38,22 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
 
     setIsSearching(true)
     try {
-      // TODO: Replace with actual API call
-      // const response = await UserClient.searchUsers(query)
-      // setSearchResults(response.users)
+      const result = await SearchClient.searchUsers(query)
 
-      // Mock data for now
-      const mockUsers: UserSearchResult[] = [
-        {
-          id: 'user-1',
-          username: 'producer1',
-          displayName: 'Producer One',
-          profilePictureUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=producer1',
-        },
-        {
-          id: 'user-2',
-          username: 'beatmaker2',
-          displayName: 'Beat Maker Two',
-          profilePictureUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=beatmaker2',
-        },
-      ]
-
-      const filtered = mockUsers.filter(
-        (u) =>
-          u.username.toLowerCase().includes(query.toLowerCase()) ||
-          u.displayName.toLowerCase().includes(query.toLowerCase())
-      )
-
-      setSearchResults(filtered)
+      if (result.isOk()) {
+        const users = result.getValue()
+        // Map search results to UserSearchResult format
+        const formattedUsers: UserSearchResult[] = users.map((user: any) => ({
+          id: user.id,
+          username: user.username,
+          displayName: user.display_name || user.username,
+          profilePictureUrl: user.profile_picture_url,
+        }))
+        setSearchResults(formattedUsers)
+      } else {
+        console.error('Search failed:', result.getError())
+        setSearchResults([])
+      }
     } catch (error) {
       console.error('Failed to search users:', error)
       setSearchResults([])
@@ -104,7 +94,7 @@ export function NewMessageDialog({ isOpen, onClose }: { isOpen: boolean; onClose
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
       <div className="bg-bg-secondary rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">

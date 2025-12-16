@@ -17,7 +17,6 @@ function MessagesContent() {
   const [channel, setChannel] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(!!channelId)
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false)
-  const [mobileShowChannels, setMobileShowChannels] = useState(false)
 
   useEffect(() => {
     if (!channelId || !client) return
@@ -46,49 +45,39 @@ function MessagesContent() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col bg-bg-primary">
-        {/* Mobile Header */}
-        <div className="lg:hidden border-b border-border p-4 flex items-center justify-between bg-bg-secondary">
-          <h1 className="text-xl font-bold text-foreground">Messages</h1>
-          <Button
-            size="sm"
-            onClick={() => setMobileShowChannels(!mobileShowChannels)}
-            variant="outline"
-          >
-            {mobileShowChannels ? '✕' : '☰'}
-          </Button>
-        </div>
-
-        {/* Mobile Channel List - Overlay */}
-        {mobileShowChannels && (
-          <div className="lg:hidden absolute inset-0 z-40">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileShowChannels(false)} />
-            <div className="absolute left-0 top-0 bottom-0 w-72 bg-bg-secondary z-50 flex flex-col">
-              <ChannelList onNewMessageClick={() => setShowNewMessageDialog(true)} />
-            </div>
+        {/* Mobile: Show conversation list when no channel selected */}
+        {!channelId && (
+          <div className="lg:hidden flex-1 overflow-y-auto">
+            <ChannelList onNewMessageClick={() => setShowNewMessageDialog(true)} />
           </div>
         )}
 
-        {/* Main Chat Area */}
-        {channelId ? (
-          isLoading ? (
-            <div className="flex-1 flex items-center justify-center">
-              <Spinner size="lg" />
-            </div>
-          ) : channel ? (
-            <Channel channel={channel}>
-              <MessageThread channelId={channelId} />
-            </Channel>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <div className="text-5xl">⚠️</div>
-                <div className="text-lg font-semibold text-foreground">Failed to load conversation</div>
-                <p className="text-sm text-muted-foreground">Please try selecting another conversation</p>
+        {/* Desktop & Mobile: Show selected conversation */}
+        {channelId && (
+          <>
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <Spinner size="lg" />
               </div>
-            </div>
-          )
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8">
+            ) : channel ? (
+              <Channel channel={channel}>
+                <MessageThread channelId={channelId} />
+              </Channel>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="text-5xl">⚠️</div>
+                  <div className="text-lg font-semibold text-foreground">Failed to load conversation</div>
+                  <p className="text-sm text-muted-foreground">Please try selecting another conversation</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Desktop: Show empty state when no channel selected */}
+        {!channelId && (
+          <div className="hidden lg:flex flex-1 flex-col items-center justify-center p-8">
             <div className="text-center space-y-6 max-w-md">
               <div className="text-6xl">💬</div>
               <div>
@@ -98,15 +87,13 @@ function MessagesContent() {
                 </p>
               </div>
 
-              {/* Desktop: Show "New Message" button for guidance */}
-              <div className="hidden lg:block">
-                <Button
-                  onClick={() => setShowNewMessageDialog(true)}
-                  className="bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white font-semibold"
-                >
-                  + Start New Conversation
-                </Button>
-              </div>
+              {/* New Message button */}
+              <Button
+                onClick={() => setShowNewMessageDialog(true)}
+                className="bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white font-semibold"
+              >
+                + Start New Conversation
+              </Button>
             </div>
           </div>
         )}
@@ -122,13 +109,18 @@ function MessagesContent() {
  * Messages - Direct messaging page
  *
  * Features:
- * - Channel list sidebar with conversations
+ * - Channel list sidebar with conversations (desktop)
+ * - Channel list as full-width view on mobile when no conversation selected
  * - New message dialog with user search
  * - Message thread view with inline replies
  * - File uploads via message input
  * - Typing indicators
  * - Reactions on messages
  * - Search within conversation
+ *
+ * Layout:
+ * - Desktop: Sidebar (conversations) + Main area (chat or empty state)
+ * - Mobile: Conversations list OR Chat view (toggled by selecting a conversation)
  *
  * Note: Wrapped by ChatProvider at app level which provides Chat context
  */
