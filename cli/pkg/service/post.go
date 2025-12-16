@@ -167,36 +167,6 @@ func (ps *PostService) ReactToPost(postID, emoji string) error {
 	return nil
 }
 
-// CommentOnPost adds a comment to a post
-func (ps *PostService) CommentOnPost(postID, content string) error {
-	logger.Debug("Commenting on post", "post_id", postID)
-
-	if err := api.CommentOnPost(postID, content); err != nil {
-		return fmt.Errorf("failed to comment: %w", err)
-	}
-
-	fmt.Printf("✓ Comment posted.\n")
-	return nil
-}
-
-// ListComments displays comments on a post
-func (ps *PostService) ListComments(postID string, page, pageSize int) error {
-	logger.Debug("Listing comments", "post_id", postID)
-
-	comments, err := api.ListPostComments(postID, page, pageSize)
-	if err != nil {
-		return fmt.Errorf("failed to list comments: %w", err)
-	}
-
-	if len(comments.Comments) == 0 {
-		fmt.Println("No comments yet.")
-		return nil
-	}
-
-	ps.displayComments(comments)
-	return nil
-}
-
 // SavePost saves a post
 func (ps *PostService) SavePost(postID string) error {
 	logger.Debug("Saving post", "post_id", postID)
@@ -287,55 +257,6 @@ func (ps *PostService) UnrepostPost(postID string) error {
 	fmt.Printf("✓ Repost removed.\n")
 	return nil
 }
-
-// EditComment edits a comment
-func (ps *PostService) EditComment(commentID, content string) error {
-	logger.Debug("Editing comment", "comment_id", commentID)
-
-	if err := api.EditComment(commentID, content); err != nil {
-		return fmt.Errorf("failed to edit comment: %w", err)
-	}
-
-	fmt.Printf("✓ Comment edited successfully.\n")
-	return nil
-}
-
-// DeleteComment deletes a comment
-func (ps *PostService) DeleteComment(commentID string) error {
-	logger.Debug("Deleting comment", "comment_id", commentID)
-
-	if err := api.DeleteComment(commentID); err != nil {
-		return fmt.Errorf("failed to delete comment: %w", err)
-	}
-
-	fmt.Printf("✓ Comment deleted successfully.\n")
-	return nil
-}
-
-// LikeComment likes a comment
-func (ps *PostService) LikeComment(commentID string) error {
-	logger.Debug("Liking comment", "comment_id", commentID)
-
-	if err := api.LikeComment(commentID); err != nil {
-		return fmt.Errorf("failed to like comment: %w", err)
-	}
-
-	fmt.Printf("✓ Comment liked.\n")
-	return nil
-}
-
-// UnlikeComment unlikes a comment
-func (ps *PostService) UnlikeComment(commentID string) error {
-	logger.Debug("Unliking comment", "comment_id", commentID)
-
-	if err := api.UnlikeComment(commentID); err != nil {
-		return fmt.Errorf("failed to unlike comment: %w", err)
-	}
-
-	fmt.Printf("✓ Like removed from comment.\n")
-	return nil
-}
-
 // Helper methods for displaying posts
 
 func (ps *PostService) displayPostDetails(post *api.Post) {
@@ -389,11 +310,3 @@ func (ps *PostService) displayPostList(posts *api.PostListResponse) {
 	fmt.Printf("Showing %d of %d posts (Page %d)\n\n", len(posts.Posts), posts.TotalCount, posts.Page)
 }
 
-func (ps *PostService) displayComments(comments *api.CommentListResponse) {
-	for i, comment := range comments.Comments {
-		fmt.Printf("%d. %s\n", i+1, comment.Content)
-		fmt.Printf("   ❤️  %d | %s\n\n", comment.LikeCount, comment.CreatedAt.Format("2006-01-02 15:04:05"))
-	}
-
-	fmt.Printf("Showing %d of %d comments (Page %d)\n\n", len(comments.Comments), comments.TotalCount, comments.Page)
-}

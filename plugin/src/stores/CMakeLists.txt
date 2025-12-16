@@ -38,6 +38,14 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/FollowersStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/StoriesStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/StoriesStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AuthStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AuthStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SearchStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SearchStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PresenceStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SoundStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SoundStore.h
 )
 
 # Include directories

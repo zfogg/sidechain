@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/zfogg/sidechain/cli/pkg/client"
 	"github.com/zfogg/sidechain/cli/pkg/logger"
@@ -384,150 +383,16 @@ func UnrepostPost(postID string) error {
 	return nil
 }
 
-// Comment types
-type Comment struct {
+// AdminComment is used for admin comment moderation operations
+type AdminComment struct {
 	ID             string    `json:"id"`
 	PostID         string    `json:"post_id"`
 	UserID         string    `json:"user_id"`
 	AuthorUsername string    `json:"author_username,omitempty"`
 	Content        string    `json:"content"`
 	LikeCount      int       `json:"like_count"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-}
-
-type CommentListResponse struct {
-	Comments   []Comment `json:"comments"`
-	TotalCount int       `json:"total_count"`
-	Page       int       `json:"page"`
-	PageSize   int       `json:"page_size"`
-}
-
-// CommentOnPost adds a comment to a post
-func CommentOnPost(postID, content string) error {
-	logger.Debug("Commenting on post", "post_id", postID)
-
-	resp, err := client.GetClient().
-		R().
-		SetFormData(map[string]string{
-			"content": content,
-		}).
-		Post(fmt.Sprintf("/api/v1/posts/%s/comments", postID))
-
-	if err != nil {
-		return err
-	}
-
-	if !resp.IsSuccess() {
-		return fmt.Errorf("failed to comment on post: %s", resp.Status())
-	}
-
-	return nil
-}
-
-// ListPostComments retrieves comments on a post with pagination
-func ListPostComments(postID string, page, pageSize int) (*CommentListResponse, error) {
-	logger.Debug("Listing comments", "post_id", postID, "page", page)
-
-	var response CommentListResponse
-
-	resp, err := client.GetClient().
-		R().
-		SetQueryParams(map[string]string{
-			"page":      fmt.Sprintf("%d", page),
-			"page_size": fmt.Sprintf("%d", pageSize),
-		}).
-		SetResult(&response).
-		Get(fmt.Sprintf("/api/v1/posts/%s/comments", postID))
-
-	if err != nil {
-		return nil, err
-	}
-
-	if !resp.IsSuccess() {
-		return nil, fmt.Errorf("failed to list comments: %s", resp.Status())
-	}
-
-	return &response, nil
-}
-
-// EditComment updates a comment's content
-func EditComment(commentID, content string) error {
-	logger.Debug("Editing comment", "comment_id", commentID)
-
-	resp, err := client.GetClient().
-		R().
-		SetFormData(map[string]string{
-			"content": content,
-		}).
-		Patch(fmt.Sprintf("/api/v1/comments/%s", commentID))
-
-	if err != nil {
-		return err
-	}
-
-	if !resp.IsSuccess() {
-		return fmt.Errorf("failed to edit comment: %s", resp.Status())
-	}
-
-	return nil
-}
-
-// DeleteComment deletes a comment
-func DeleteComment(commentID string) error {
-	logger.Debug("Deleting comment", "comment_id", commentID)
-
-	resp, err := client.GetClient().
-		R().
-		Delete(fmt.Sprintf("/api/v1/comments/%s", commentID))
-
-	if err != nil {
-		return err
-	}
-
-	if !resp.IsSuccess() {
-		return fmt.Errorf("failed to delete comment: %s", resp.Status())
-	}
-
-	return nil
-}
-
-// LikeComment adds a like to a comment
-func LikeComment(commentID string) error {
-	logger.Debug("Liking comment", "comment_id", commentID)
-
-	resp, err := client.GetClient().
-		R().
-		Post(fmt.Sprintf("/api/v1/comments/%s/like", commentID))
-
-	if err != nil {
-		return err
-	}
-
-	if !resp.IsSuccess() {
-		return fmt.Errorf("failed to like comment: %s", resp.Status())
-	}
-
-	return nil
-}
-
-// UnlikeComment removes a like from a comment
-func UnlikeComment(commentID string) error {
-	logger.Debug("Unliking comment", "comment_id", commentID)
-
-	resp, err := client.GetClient().
-		R().
-		Delete(fmt.Sprintf("/api/v1/comments/%s/like", commentID))
-
-	if err != nil {
-		return err
-	}
-
-	if !resp.IsSuccess() {
-		return fmt.Errorf("failed to unlike comment: %s", resp.Status())
-	}
-
-	return nil
+	CreatedAt      string    `json:"created_at"`
+	UpdatedAt      string    `json:"updated_at"`
 }
 
 // Admin Post Moderation APIs
@@ -677,10 +542,12 @@ func AdminHideComment(commentID string) error {
 }
 
 // GetFlaggedComments retrieves flagged comments for moderation (admin only)
-func GetFlaggedComments(page, pageSize int) (*CommentListResponse, error) {
+func GetFlaggedComments(page, pageSize int) ([]AdminComment, error) {
 	logger.Debug("Fetching flagged comments", "page", page)
 
-	var response CommentListResponse
+	var response struct {
+		Comments []AdminComment `json:"comments"`
+	}
 
 	resp, err := client.GetClient().
 		R().
@@ -699,5 +566,5 @@ func GetFlaggedComments(page, pageSize int) (*CommentListResponse, error) {
 		return nil, fmt.Errorf("failed to fetch flagged comments: %s", resp.Status())
 	}
 
-	return &response, nil
+	return response.Comments, nil
 }

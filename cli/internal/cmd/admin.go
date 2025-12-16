@@ -218,7 +218,7 @@ var adminCommentsListCmd = &cobra.Command{
 			return err
 		}
 
-		if len(comments.Comments) == 0 {
+		if len(comments) == 0 {
 			fmt.Println("No flagged comments.")
 			return nil
 		}
@@ -481,19 +481,17 @@ func displayPostDetail(post *api.Post) {
 }
 
 // Helper display function for comments
-func displayFlaggedComments(comments *api.CommentListResponse) {
-	fmt.Printf("\n💬 Flagged Comments (%d)\n\n", len(comments.Comments))
+func displayFlaggedComments(comments []api.AdminComment) {
+	fmt.Printf("\n💬 Flagged Comments (%d)\n\n", len(comments))
 
-	for i, comment := range comments.Comments {
+	for i, comment := range comments {
 		fmt.Printf("%d. %s\n", i+1, comment.ID)
 		fmt.Printf("   Author: @%s\n", comment.AuthorUsername)
 		fmt.Printf("   Content: %s\n", comment.Content)
-		fmt.Printf("   Posted: %s\n", comment.CreatedAt.Format("2006-01-02 15:04:05"))
+		fmt.Printf("   Posted: %s\n", comment.CreatedAt)
 		fmt.Printf("   Likes: %d\n", comment.LikeCount)
 		fmt.Printf("\n")
 	}
-
-	fmt.Printf("Showing %d of %d comments (Page %d)\n\n", len(comments.Comments), comments.TotalCount, comments.Page)
 }
 
 // Helper display function for users list

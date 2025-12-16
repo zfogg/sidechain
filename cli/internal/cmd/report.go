@@ -21,16 +21,6 @@ var reportPostCmd = &cobra.Command{
 	},
 }
 
-var reportCommentCmd = &cobra.Command{
-	Use:   "comment <comment-id>",
-	Short: "Report a comment",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		svc := service.NewReportService()
-		return svc.ReportComment(args[0])
-	},
-}
-
 var reportUserCmd = &cobra.Command{
 	Use:   "user <username>",
 	Short: "Report a user",
@@ -43,6 +33,5 @@ var reportUserCmd = &cobra.Command{
 
 func init() {
 	reportCmd.AddCommand(reportPostCmd)
-	reportCmd.AddCommand(reportCommentCmd)
 	reportCmd.AddCommand(reportUserCmd)
 }

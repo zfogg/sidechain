@@ -144,92 +144,7 @@ var profilePictureUploadCmd = &cobra.Command{
 	},
 }
 
-// Follow Request Commands
-var followRequestCmd = &cobra.Command{
-	Use:   "follow-request",
-	Short: "Manage follow requests",
-	Long:  "Manage incoming and outgoing follow requests",
-}
-
-var followRequestListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List pending follow requests",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		requests, err := api.GetFollowRequests(followReqPage, followReqPageSize)
-		if err != nil {
-			return err
-		}
-
-		if len(requests.Requests) == 0 {
-			fmt.Println("No pending follow requests.")
-			return nil
-		}
-
-		displayFollowRequests(requests)
-		return nil
-	},
-}
-
-var followRequestAcceptCmd = &cobra.Command{
-	Use:   "accept <username>",
-	Short: "Accept a follow request",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := api.AcceptFollowRequest(args[0]); err != nil {
-			return err
-		}
-
-		fmt.Printf("✓ Follow request from @%s accepted.\n", args[0])
-		return nil
-	},
-}
-
-var followRequestRejectCmd = &cobra.Command{
-	Use:   "reject <username>",
-	Short: "Reject a follow request",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := api.RejectFollowRequest(args[0]); err != nil {
-			return err
-		}
-
-		fmt.Printf("✓ Follow request from @%s rejected.\n", args[0])
-		return nil
-	},
-}
-
-var followRequestCancelCmd = &cobra.Command{
-	Use:   "cancel <username>",
-	Short: "Cancel a follow request you sent",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := api.CancelFollowRequest(args[0]); err != nil {
-			return err
-		}
-
-		fmt.Printf("✓ Follow request to @%s cancelled.\n", args[0])
-		return nil
-	},
-}
-
-func displayFollowRequests(requests *api.FollowRequestListResponse) {
-	fmt.Printf("\n👥 Follow Requests (%d)\n\n", len(requests.Requests))
-
-	for i, req := range requests.Requests {
-		fmt.Printf("%d. Request from user ID: %s\n", i+1, req.RequesterID)
-		fmt.Printf("   Status: %s\n", req.Status)
-		fmt.Printf("   Requested: %s\n", req.CreatedAt.Format("2006-01-02 15:04:05"))
-		fmt.Printf("\n")
-	}
-
-	fmt.Printf("Showing %d of %d requests (Page %d)\n\n", len(requests.Requests), requests.TotalCount, requests.Page)
-}
-
 func init() {
-	// Follow request pagination
-	followRequestListCmd.Flags().IntVar(&followReqPage, "page", 1, "Page number")
-	followRequestListCmd.Flags().IntVar(&followReqPageSize, "page-size", 10, "Results per page")
-
 	// Add main subcommands
 	profileCmd.AddCommand(profileViewCmd)
 	profileCmd.AddCommand(profileEditCmd)
@@ -242,14 +157,7 @@ func init() {
 	profileCmd.AddCommand(profileFollowersCmd)
 	profileCmd.AddCommand(profileFollowingCmd)
 	profileCmd.AddCommand(profilePictureCmd)
-	profileCmd.AddCommand(followRequestCmd)
 
 	// Add subcommands
 	profilePictureCmd.AddCommand(profilePictureUploadCmd)
-
-	// Follow request subcommands
-	followRequestCmd.AddCommand(followRequestListCmd)
-	followRequestCmd.AddCommand(followRequestAcceptCmd)
-	followRequestCmd.AddCommand(followRequestRejectCmd)
-	followRequestCmd.AddCommand(followRequestCancelCmd)
 }

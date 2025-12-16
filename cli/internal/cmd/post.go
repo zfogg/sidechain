@@ -1,11 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
-	"github.com/zfogg/sidechain/cli/pkg/prompter"
 	"github.com/zfogg/sidechain/cli/pkg/service"
 )
 
@@ -113,38 +109,6 @@ var postReactCmd = &cobra.Command{
 	},
 }
 
-var postCommentCmd = &cobra.Command{
-	Use:   "comment <post-id>",
-	Short: "Add a comment to a post",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		postService := service.NewPostService()
-
-		// Prompt user for comment content
-		content, err := prompter.PromptString("Comment: ")
-		if err != nil {
-			return err
-		}
-
-		if content == "" {
-			fmt.Fprintf(os.Stderr, "Comment cannot be empty.\n")
-			os.Exit(1)
-		}
-
-		return postService.CommentOnPost(args[0], content)
-	},
-}
-
-var postCommentsCmd = &cobra.Command{
-	Use:   "comments <post-id>",
-	Short: "List comments on a post",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		postService := service.NewPostService()
-		return postService.ListComments(args[0], postPage, postPageSize)
-	},
-}
-
 var postSaveCmd = &cobra.Command{
 	Use:   "save <post-id>",
 	Short: "Save a post",
@@ -214,58 +178,6 @@ var postUnrepostCmd = &cobra.Command{
 	},
 }
 
-var commentEditCmd = &cobra.Command{
-	Use:   "comment-edit <comment-id>",
-	Short: "Edit a comment",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		postService := service.NewPostService()
-
-		// Prompt user for new comment content
-		content, err := prompter.PromptString("New comment content: ")
-		if err != nil {
-			return err
-		}
-
-		if content == "" {
-			fmt.Fprintf(os.Stderr, "Comment cannot be empty.\n")
-			os.Exit(1)
-		}
-
-		return postService.EditComment(args[0], content)
-	},
-}
-
-var commentDeleteCmd = &cobra.Command{
-	Use:   "comment-delete <comment-id>",
-	Short: "Delete a comment",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		postService := service.NewPostService()
-		return postService.DeleteComment(args[0])
-	},
-}
-
-var commentLikeCmd = &cobra.Command{
-	Use:   "comment-like <comment-id>",
-	Short: "Like a comment",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		postService := service.NewPostService()
-		return postService.LikeComment(args[0])
-	},
-}
-
-var commentUnlikeCmd = &cobra.Command{
-	Use:   "comment-unlike <comment-id>",
-	Short: "Unlike a comment",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		postService := service.NewPostService()
-		return postService.UnlikeComment(args[0])
-	},
-}
-
 func init() {
 	// Upload command flags
 	postUploadCmd.Flags().StringVarP(&postTitle, "title", "t", "", "Post title")
@@ -276,9 +188,6 @@ func init() {
 	// List/pagination flags
 	postListCmd.Flags().IntVar(&postPage, "page", 1, "Page number")
 	postListCmd.Flags().IntVar(&postPageSize, "page-size", 10, "Results per page")
-
-	postCommentsCmd.Flags().IntVar(&postPage, "page", 1, "Page number")
-	postCommentsCmd.Flags().IntVar(&postPageSize, "page-size", 10, "Results per page")
 
 	postSavedListCmd.Flags().IntVar(&postPage, "page", 1, "Page number")
 	postSavedListCmd.Flags().IntVar(&postPageSize, "page-size", 10, "Results per page")
@@ -293,8 +202,6 @@ func init() {
 	postCmd.AddCommand(postLikeCmd)
 	postCmd.AddCommand(postUnlikeCmd)
 	postCmd.AddCommand(postReactCmd)
-	postCmd.AddCommand(postCommentCmd)
-	postCmd.AddCommand(postCommentsCmd)
 	postCmd.AddCommand(postSaveCmd)
 	postCmd.AddCommand(postUnsaveCmd)
 	postCmd.AddCommand(postSavedListCmd)
@@ -302,8 +209,4 @@ func init() {
 	postCmd.AddCommand(postUnpinCmd)
 	postCmd.AddCommand(postRepostCmd)
 	postCmd.AddCommand(postUnrepostCmd)
-	postCmd.AddCommand(commentEditCmd)
-	postCmd.AddCommand(commentDeleteCmd)
-	postCmd.AddCommand(commentLikeCmd)
-	postCmd.AddCommand(commentUnlikeCmd)
 }
