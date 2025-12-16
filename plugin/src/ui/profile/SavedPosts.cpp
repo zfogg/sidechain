@@ -388,18 +388,40 @@ void SavedPosts::setupPostCardCallbacks(PostCard *card) {
       onPostClicked(post);
   };
 
-  // Handle unsave - remove from list
+  // Handle unsave - remove from list (callback fallback)
   card->onSaveToggled = [this](const FeedPost &post, bool saved) {
     if (!saved && appStore != nullptr) {
       Log::info("SavedPosts: Unsaving post: " + post.id);
-      appStore->unsavePost(post.id);
+      juce::Component::SafePointer<SavedPosts> safeThis(this);
+      appStore->toggleSaveObservable(post.id).subscribe(
+          [safeThis](int) {
+            if (safeThis == nullptr)
+              return;
+            Log::debug("SavedPosts: Post unsaved successfully");
+          },
+          [safeThis](std::exception_ptr error) {
+            if (safeThis == nullptr)
+              return;
+            Log::error("SavedPosts: Failed to unsave post");
+          });
     }
   };
 
-  // Like functionality
+  // Like functionality (callback fallback)
   card->onLikeToggled = [this](const FeedPost &post, bool liked) {
     if (appStore != nullptr) {
-      appStore->toggleLike(post.id);
+      juce::Component::SafePointer<SavedPosts> safeThis(this);
+      appStore->likePostObservable(post.id).subscribe(
+          [safeThis](int) {
+            if (safeThis == nullptr)
+              return;
+            Log::debug("SavedPosts: Like toggled successfully");
+          },
+          [safeThis](std::exception_ptr error) {
+            if (safeThis == nullptr)
+              return;
+            Log::error("SavedPosts: Failed to toggle like");
+          });
     }
   };
 }
