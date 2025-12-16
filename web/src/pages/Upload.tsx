@@ -4,10 +4,15 @@ import { Button } from '@/components/ui/button'
 import { FileUploadZone } from '@/components/upload/FileUploadZone'
 import { MetadataForm } from '@/components/upload/MetadataForm'
 import { UploadProgress } from '@/components/upload/UploadProgress'
+import { AdvancedFileUpload } from '@/components/upload/AdvancedFileUpload'
+import { DraftManager, saveDraft as saveDraftToStorage, Draft } from '@/components/upload/DraftManager'
+import { CommentAudienceSelector, CommentAudience } from '@/components/upload/CommentAudienceSelector'
 import { useUploadMutation } from '@/hooks/mutations/useUploadMutation'
 
 interface UploadFormData {
   file: File | null
+  midiFile?: File | null
+  projectFile?: File | null
   title: string
   description: string
   bpm: number | null
@@ -15,10 +20,13 @@ interface UploadFormData {
   daw: string
   genre: string[]
   isPublic: boolean
+  commentAudience?: CommentAudience
 }
 
 const initialFormData: UploadFormData = {
   file: null,
+  midiFile: null,
+  projectFile: null,
   title: '',
   description: '',
   bpm: null,
@@ -26,6 +34,7 @@ const initialFormData: UploadFormData = {
   daw: '',
   genre: [],
   isPublic: true,
+  commentAudience: 'everyone',
 }
 
 /**
@@ -34,9 +43,11 @@ const initialFormData: UploadFormData = {
  * Features:
  * - Drag-and-drop file upload
  * - Metadata form (title, BPM, key, DAW, genre)
+ * - MIDI file upload and project file support
+ * - Draft management (save, load, delete)
+ * - Comment audience control (everyone, followers, none)
  * - Upload progress tracking
  * - Waveform generation
- * - Draft saving to localStorage
  */
 export function Upload() {
   const navigate = useNavigate()
@@ -98,9 +109,24 @@ export function Upload() {
       daw: data.daw,
       genre: data.genre,
       isPublic: data.isPublic,
+      commentAudience: data.commentAudience || 'everyone',
       savedAt: new Date().toISOString(),
     }
     localStorage.setItem('uploadDraft', JSON.stringify(draft))
+  }
+
+  const handleLoadDraft = (draft: Draft) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: draft.title,
+      description: draft.description,
+      bpm: draft.bpm,
+      key: draft.key,
+      daw: draft.daw,
+      genre: draft.genre,
+      isPublic: draft.isPublic,
+      commentAudience: (draft as any).commentAudience || 'everyone',
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,9 +160,12 @@ export function Upload() {
     <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Upload Your Loop</h1>
-          <p className="text-muted-foreground">Share your sounds with the community</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Upload Your Loop</h1>
+            <p className="text-muted-foreground">Share your sounds with the community</p>
+          </div>
+          <DraftManager onLoadDraft={handleLoadDraft} />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -150,15 +179,37 @@ export function Upload() {
             />
           </div>
 
+          {/* Advanced File Upload */}
+          {formData.file && (
+            <AdvancedFileUpload
+              onMidiSelect={(file) => setFormData((prev) => ({ ...prev, midiFile: file }))}
+              onProjectSelect={(file) => setFormData((prev) => ({ ...prev, projectFile: file }))}
+              selectedMidiFile={formData.midiFile}
+              selectedProjectFile={formData.projectFile}
+            />
+          )}
+
           {/* Metadata Form */}
           {formData.file && (
-            <div>
-              <h2 className="text-xl font-bold text-foreground mb-4">Loop Details</h2>
-              <MetadataForm
-                formData={formData}
-                onChange={handleMetadataChange}
-                errors={errors}
-              />
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-foreground mb-4">Loop Details</h2>
+                <MetadataForm
+                  formData={formData}
+                  onChange={handleMetadataChange}
+                  errors={errors}
+                />
+              </div>
+
+              {/* Comment Audience */}
+              <div className="p-4 bg-bg-secondary/50 border border-border rounded-lg">
+                <CommentAudienceSelector
+                  value={formData.commentAudience || 'everyone'}
+                  onChange={(audience) =>
+                    setFormData((prev) => ({ ...prev, commentAudience: audience }))
+                  }
+                />
+              </div>
             </div>
           )}
 
