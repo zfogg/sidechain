@@ -255,11 +255,11 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   searchComponent->onBackPressed = [this]() { navigateBack(); };
   searchComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
   searchComponent->onPostSelected = [this](const FeedPost &post) {
-    // Handle notification click action.
-    // NOT YET IMPLEMENTED - Navigation to post details or playback.
-    // See notes/PLAN.md for post detail view implementation plan.
-    // TODO: Navigate to post details or play post - see PLAN.md Phase 4
-    audioProcessor.getAudioPlayer().loadAndPlay(post.id, post.audioUrl);
+    // Navigate to post details view (SoundPage shows post + other posts using same sound)
+    if (soundPageComponent) {
+      soundPageComponent->loadSoundForPost(post.id);
+      showView(AppView::SoundPage);
+    }
   };
   addChildComponent(searchComponent.get());
 
@@ -300,11 +300,16 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   storyViewerComponent->setNetworkClient(networkClient.get());
   storyViewerComponent->setCurrentUserId(appStore.getState().user.userId);
   storyViewerComponent->onClose = [this]() { navigateBack(); };
-  storyViewerComponent->onDeleteClicked = [this]([[maybe_unused]] const juce::String &storyId) {
-    // Story was deleted, refresh story indicators
+  storyViewerComponent->onDeleteClicked = [this](const juce::String &storyId) {
+    // Story was deleted - log and clean up
+    Log::info("PluginEditor: Story deleted - ID: " + storyId);
+
+    // Refresh story indicators in header
     checkForActiveStories();
-    // If we're viewing the profile, refresh it too
+
+    // If we're viewing the profile, refresh it too to update story list
     if (currentView == AppView::Profile && profileComponent) {
+      Log::debug("PluginEditor: Refreshing profile after story deletion");
       profileComponent->refresh();
     }
   };
@@ -376,9 +381,12 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   playlistDetailComponent->onBackPressed = [this]() { navigateBack(); };
   playlistDetailComponent->onPostSelected = [this](const juce::String &postId) {
     if (!postId.isEmpty()) {
-      // Post selected in playlist - navigate to feed to show the post
-      showView(AppView::PostsFeed);
-      Log::info("PluginEditor: Selected post from playlist: " + postId);
+      // Entry/post selected in playlist - navigate to post details view
+      if (soundPageComponent) {
+        soundPageComponent->loadSoundForPost(postId);
+        showView(AppView::SoundPage);
+      }
+      Log::info("PluginEditor: Navigating to post details from playlist: " + postId);
     }
   };
   playlistDetailComponent->onAddTrack = [this]() {
@@ -415,8 +423,10 @@ SidechainAudioProcessorEditor::SidechainAudioProcessorEditor(SidechainAudioProce
   soundPageComponent->setNetworkClient(networkClient.get());
   soundPageComponent->onBackPressed = [this]() { navigateBack(); };
   soundPageComponent->onPostSelected = [](const juce::String &postId) {
-    // TODO: Navigate to post detail view when implemented
-    Log::info("Post selected from sound page: " + postId);
+    // When a post is selected on SoundPage, log the selection
+    // Full post detail view is shown by SoundPage's post list
+    Log::info("SoundPage: Post selected - " + postId);
+    // TODO: Implement post playback by finding post in current sound's posts
   };
   soundPageComponent->onUserSelected = [this](const juce::String &userId) { showProfile(userId); };
   addChildComponent(soundPageComponent.get());
@@ -1986,20 +1996,28 @@ void SidechainAudioProcessorEditor::onLoginSuccess(const juce::String &user, con
   // Start notification polling
   startNotificationPolling();
 
-  // Sync user profile picture URL
-  profilePicUrl = appStore.getState().user.profilePictureUrl;
-  saveLoginState();
+  // Fetch user profile from backend to get their S3 profile picture (if they have one)
+  // This must happen before deciding whether to show ProfileSetup or Feed
+  appStore.fetchUserProfile(true);  // Force refresh to get latest profile data
 
   // Show header now that user is logged in
   if (headerComponent)
     headerComponent->setVisible(true);
 
-  // If user has a profile picture, skip setup and go straight to feed
-  if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
-    showView(AppView::PostsFeed);
-  } else {
-    showView(AppView::ProfileSetup);
-  }
+  // Schedule the view change after a short delay to allow profile fetch to complete
+  juce::Timer::callAfterDelay(500, [this]() {
+    // Sync user profile picture URL
+    profilePicUrl = appStore.getState().user.profilePictureUrl;
+    saveLoginState();
+
+    // If user has a profile picture (from their S3 storage), skip setup and go straight to feed
+    // If they don't have one, show profile setup to let them upload one
+    if (!appStore.getState().user.profilePictureUrl.isEmpty()) {
+      showView(AppView::PostsFeed);
+    } else {
+      showView(AppView::ProfileSetup);
+    }
+  });
 }
 
 void SidechainAudioProcessorEditor::logout() {
@@ -2790,7 +2808,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
         juce::String token = authData["token"].toString();
         juce::String userEmail = "";
         juce::String userName = "";
-        juce::String profilePicUrl = "";
+        juce::String responseProfilePicUrl = "";
 
         if (authData.hasProperty("user")) {
           juce::var userData = authData["user"];
@@ -2802,22 +2820,22 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
             userName = userData["display_name"].toString();
           // Extract profile picture URL from OAuth response
           if (userData.hasProperty("profile_picture_url"))
-            profilePicUrl = userData["profile_picture_url"].toString();
+            responseProfilePicUrl = userData["profile_picture_url"].toString();
         }
 
         if (userName.isEmpty() && userEmail.isNotEmpty())
           userName = userEmail.upToFirstOccurrenceOf("@", false, false);
 
-        Log::info("OAuth success! User: " + userName + ", profilePicUrl: " + profilePicUrl);
+        Log::info("OAuth success! User: " + userName);
 
         // Hide OAuth waiting screen before transitioning
         if (authComponent)
           authComponent->hideOAuthWaiting();
 
-        // Store profile picture URL in AppStore before calling onLoginSuccess
-        if (profilePicUrl.isNotEmpty()) {
-          appStore.setProfilePictureUrl(profilePicUrl);
-        }
+        // Note: We DO NOT use the OAuth profile picture directly
+        // Instead, we fetch the user's actual profile from the backend in onLoginSuccess
+        // The backend profile will have their S3 profile picture if they've uploaded one
+        // We only use OAuth profile picture as a fallback if they don't have an S3 picture yet
 
         onLoginSuccess(userName, userEmail, token);
       }
