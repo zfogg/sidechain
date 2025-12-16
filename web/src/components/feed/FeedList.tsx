@@ -3,10 +3,11 @@ import { useFeedQuery } from '@/hooks/queries/useFeedQuery'
 import { PostCard } from './PostCard'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
-import { FeedType } from '@/api/FeedClient'
+import type { FeedType } from '@/api/FeedClient'
 
 interface FeedListProps {
   feedType: FeedType
+  onPostCommentClick?: () => void
 }
 
 /**
@@ -19,7 +20,7 @@ interface FeedListProps {
  * - Error handling with retry
  * - Real-time updates via WebSocket
  */
-export function FeedList({ feedType, onPostCommentClick }: FeedListProps) {
+export function FeedList({ feedType }: FeedListProps) {
   const {
     data,
     isLoading,

@@ -13,21 +13,21 @@ import { FeedClient, type FeedType } from '@/api/FeedClient'
 export function useFeedQuery(feedType: FeedType, limit = 20) {
   return useInfiniteQuery({
     queryKey: ['feed', feedType],
-    queryFn: async ({ pageParam = 0 }) => {
-      const result = await FeedClient.getFeed(feedType, limit, pageParam)
+    queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {
+      const result = await FeedClient.getFeed(feedType, limit, pageParam as number)
       if (result.isOk()) {
         return result.getValue()
       }
       throw new Error(result.getError())
     },
-    getNextPageParam: (lastPage, allPages) => {
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: any[]) => {
       // If last page returned fewer items than limit, no more pages
-      if (lastPage.length < limit) {
+      if ((lastPage || []).length < limit) {
         return undefined
       }
-      // Next page starts at current total count
-      const totalFetched = allPages.flat().length
-      return totalFetched
+      // Next page starts at limit (offset for next request)
+      return limit
     },
     // Keep data fresh while user is actively scrolling
     staleTime: 60 * 1000, // 1 minute

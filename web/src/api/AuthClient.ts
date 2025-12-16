@@ -1,6 +1,7 @@
-import { apiClient } from './client';
-import { Outcome } from './types';
-import { User, UserModel } from '../models/User';
+import { apiClient } from './client'
+import { Outcome } from './types'
+import { UserModel } from '../models/User'
+import type { User } from '../models/User'
 
 /**
  * AuthClient - Authentication and user management

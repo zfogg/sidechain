@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useUserStore } from '@/stores/useUserStore'
-import { User } from '@/models/User'
+import { UserModel } from '@/models/User'
 import { Spinner } from '@/components/ui/spinner'
 
 /**
@@ -43,7 +43,7 @@ export function AuthCallback() {
     try {
       // Decode the user JSON (it should be URL-encoded by backend)
       const userData = JSON.parse(decodeURIComponent(userJson))
-      const user = User.fromJson(userData)
+      const user = UserModel.fromJson(userData)
 
       // Login with the token and user data
       login(token, user)

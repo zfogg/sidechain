@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { FeedClient } from '@/api/FeedClient'
-import { FeedPost } from '@/models/FeedPost'
+import type { FeedPost } from '@/models/FeedPost'
 import { useFeedStore } from '@/stores/useFeedStore'
 
 /**
