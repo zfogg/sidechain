@@ -8,6 +8,8 @@ import { Navigation } from '@/components/layout/Navigation'
 import { RouteLoader } from '@/components/layout/RouteLoader'
 import { PerformanceMonitor } from '@/components/dev/PerformanceMonitor'
 import { useWebVitals } from '@/hooks/useWebVitals'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { KeyboardShortcutsDialog } from '@/components/shortcuts/KeyboardShortcutsDialog'
 
 // Auth Routes (eager load - required before auth check)
 import { Login } from '@/pages/Login'
@@ -49,10 +51,14 @@ function AppContent() {
   // Track Web Vitals in development
   useWebVitals()
 
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts()
+
   return (
     <>
       {isAuthenticated && <Navigation />}
       <PerformanceMonitor />
+      <KeyboardShortcutsDialog />
       <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
