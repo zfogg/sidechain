@@ -74,7 +74,18 @@ export function Navigation() {
           </div>
 
           {/* Right Side - User Menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Search Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/search')}
+              title="Search"
+              className="hover:text-coral-pink"
+            >
+              <span>🔍</span>
+            </Button>
+
             {/* Notification Bell (Mobile & Desktop) */}
             <div className="sm:hidden">
               <NotificationBell />
