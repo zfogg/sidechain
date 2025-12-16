@@ -9,6 +9,7 @@ import { Login } from '@/pages/Login'
 import { AuthCallback } from '@/pages/AuthCallback'
 import { DeviceClaim } from '@/pages/DeviceClaim'
 import { Feed } from '@/pages/Feed'
+import { Settings } from '@/pages/Settings'
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -44,6 +45,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Feed />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Settings Routes (Protected) */}
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
