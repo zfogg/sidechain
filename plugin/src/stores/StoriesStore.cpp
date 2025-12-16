@@ -89,6 +89,109 @@ void StoriesStore::refreshHighlights() {
 }
 
 //==============================================================================
+void StoriesStore::markStoryAsViewed(const juce::String &storyId) {
+  if (networkClient == nullptr || storyId.isEmpty())
+    return;
+
+  Log::debug("StoriesStore: Marking story as viewed: " + storyId);
+
+  // Optimistic update - mark story as viewed in local state
+  auto state = getState();
+  bool found = false;
+  for (auto &userStories : state.feedUserStories) {
+    for (auto &story : userStories.stories) {
+      if (story.id == storyId) {
+        story.viewed = true;
+        story.viewCount++;
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      // Recalculate hasUnviewed
+      userStories.hasUnviewed = false;
+      for (const auto &story : userStories.stories) {
+        if (!story.viewed) {
+          userStories.hasUnviewed = true;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  if (found) {
+    setState(state);
+  }
+
+  // Send to server (fire and forget - optimistic update already applied)
+  networkClient->viewStory(storyId, [storyId](Outcome<juce::var> result) {
+    if (result.isOk())
+      Log::debug("StoriesStore: Story marked as viewed: " + storyId);
+    else
+      Log::warn("StoriesStore: Failed to mark story as viewed: " + result.getError());
+  });
+}
+
+//==============================================================================
+void StoriesStore::deleteStory(const juce::String &storyId) {
+  if (networkClient == nullptr || storyId.isEmpty())
+    return;
+
+  Log::debug("StoriesStore: Deleting story: " + storyId);
+
+  // Optimistic update - remove story from local state
+  auto state = getState();
+
+  // Remove from feed user stories
+  for (int i = 0; i < state.feedUserStories.size(); ++i) {
+    auto &userStories = state.feedUserStories.getReference(i);
+    for (int j = 0; j < userStories.stories.size(); ++j) {
+      if (userStories.stories[j].id == storyId) {
+        userStories.stories.remove(j);
+        // Remove user group if no stories left
+        if (userStories.stories.isEmpty()) {
+          state.feedUserStories.remove(i);
+        }
+        setState(state);
+
+        // Send delete to server
+        networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> result) {
+          if (result.isOk()) {
+            Log::info("StoriesStore: Story deleted successfully: " + storyId);
+          } else {
+            Log::error("StoriesStore: Failed to delete story: " + result.getError());
+            // Could revert optimistic update here by refreshing
+            refreshStoriesFeed();
+          }
+        });
+        return;
+      }
+    }
+  }
+
+  // Remove from my stories
+  for (int i = 0; i < state.myStories.size(); ++i) {
+    if (state.myStories[i].id == storyId) {
+      state.myStories.remove(i);
+      setState(state);
+
+      networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> result) {
+        if (result.isOk()) {
+          Log::info("StoriesStore: Story deleted successfully: " + storyId);
+        } else {
+          Log::error("StoriesStore: Failed to delete story: " + result.getError());
+          refreshMyStories();
+        }
+      });
+      return;
+    }
+  }
+
+  Log::warn("StoriesStore: Story not found in local state: " + storyId);
+}
+
+//==============================================================================
 void StoriesStore::handleStoriesFeedLoaded(Outcome<juce::var> result) {
   auto state = getState();
   state.feedIsLoading = false;

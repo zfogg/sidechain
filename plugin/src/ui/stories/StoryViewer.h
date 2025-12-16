@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../audio/HttpAudioPlayer.h"
+#include "../../stores/StoriesStore.h"
 #include "PianoRoll.h"
 #include "StoriesFeed.h"
 #include <JuceHeader.h>
@@ -46,6 +47,11 @@ public:
 
   // Set story data to display
   void setStories(const std::vector<StoryData> &stories, int startIndex = 0);
+
+  //==============================================================================
+  // Store integration (reactive pattern)
+  void bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store);
+  void unbindFromStore();
 
   // Navigation
   void showNextStory();
@@ -96,6 +102,10 @@ private:
   //==============================================================================
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
+
+  // Store integration
+  std::shared_ptr<Sidechain::Stores::StoriesStore> storiesStore;
+  std::function<void()> storeUnsubscriber;
 
   // Stories data
   std::vector<StoryData> stories;

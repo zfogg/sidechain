@@ -42,10 +42,36 @@ StoryViewer::StoryViewer() {
 
 StoryViewer::~StoryViewer() {
   stopTimer();
+  unbindFromStore();
   if (audioPlayer)
     audioPlayer->stop();
 
   Log::info("StoryViewer destroyed");
+}
+
+//==============================================================================
+void StoryViewer::bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store) {
+  unbindFromStore();
+  storiesStore = store;
+
+  if (storiesStore) {
+    auto safeThis = juce::Component::SafePointer<StoryViewer>(this);
+    storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::StoriesState & /*state*/) {
+      if (safeThis) {
+        // Store updates can trigger repaint if needed
+        safeThis->repaint();
+      }
+    });
+    Log::debug("StoryViewer: Bound to StoriesStore");
+  }
+}
+
+void StoryViewer::unbindFromStore() {
+  if (storeUnsubscriber) {
+    storeUnsubscriber();
+    storeUnsubscriber = nullptr;
+  }
+  storiesStore = nullptr;
 }
 
 //==============================================================================
@@ -735,8 +761,9 @@ void StoryViewer::handleShareStory(const juce::String &storyId) {
 void StoryViewer::handleDeleteStory(const juce::String &storyId) {
   Log::debug("StoryViewer: Delete story clicked for story: " + storyId);
 
-  if (networkClient == nullptr) {
-    Log::warn("StoryViewer: Cannot delete story - networkClient is null");
+  // Need either store or networkClient
+  if (!storiesStore && !networkClient) {
+    Log::warn("StoryViewer: Cannot delete story - no store or networkClient");
     juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
                                            "Unable to delete story. Please try again later.");
     return;
@@ -754,41 +781,47 @@ void StoryViewer::handleDeleteStory(const juce::String &storyId) {
   juce::AlertWindow::showAsync(options, [this, storyId](int result) {
     if (result == 1) // Delete clicked
     {
-      networkClient->deleteStory(storyId, [this, storyId](Outcome<juce::var> deleteResult) {
-        juce::MessageManager::callAsync([this, deleteResult, storyId]() {
+      // Remove story from local list immediately (optimistic update for UI)
+      stories.erase(
+          std::remove_if(stories.begin(), stories.end(), [storyId](const StoryData &s) { return s.id == storyId; }),
+          stories.end());
+
+      // Adjust current index if needed
+      if (currentStoryIndex >= static_cast<int>(stories.size())) {
+        currentStoryIndex = static_cast<int>(stories.size()) - 1;
+      }
+
+      // If no stories left, close viewer
+      if (stories.empty()) {
+        closeViewer();
+      } else {
+        loadCurrentStory();
+        repaint();
+      }
+
+      // Notify callback
+      if (onDeleteClicked)
+        onDeleteClicked(storyId);
+
+      // Prefer store if bound (provides optimistic updates to other components)
+      if (storiesStore) {
+        storiesStore->deleteStory(storyId);
+        Log::info("StoryViewer: Story deletion delegated to store: " + storyId);
+        return;
+      }
+
+      // Fallback to direct network call
+      if (networkClient) {
+        networkClient->deleteStory(storyId, [storyId](Outcome<juce::var> deleteResult) {
           if (deleteResult.isOk()) {
             Log::info("StoryViewer: Story deleted successfully: " + storyId);
-
-            // Remove story from local list
-            stories.erase(std::remove_if(stories.begin(), stories.end(),
-                                         [storyId](const StoryData &s) { return s.id == storyId; }),
-                          stories.end());
-
-            // Adjust current index if needed
-            if (currentStoryIndex >= static_cast<int>(stories.size())) {
-              currentStoryIndex = static_cast<int>(stories.size()) - 1;
-            }
-
-            // If no stories left, close viewer
-            if (stories.empty()) {
-              closeViewer();
-            } else {
-              // Load the current story (or previous if we deleted the current
-              // one)
-              loadCurrentStory();
-              repaint();
-            }
-
-            // Notify callback
-            if (onDeleteClicked)
-              onDeleteClicked(storyId);
           } else {
             Log::error("StoryViewer: Failed to delete story: " + deleteResult.getError());
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Delete Failed",
                                                    "Failed to delete story:\n" + deleteResult.getError());
           }
         });
-      });
+      }
     }
   });
 }
@@ -990,11 +1023,21 @@ void StoryViewer::loadCurrentStory() {
 
 void StoryViewer::markStoryAsViewed() {
   const auto *story = getCurrentStory();
-  if (!story || !networkClient)
+  if (!story)
     return;
 
   // Don't mark own stories
   if (story->userId == currentUserId)
+    return;
+
+  // Prefer store if bound (provides optimistic updates)
+  if (storiesStore) {
+    storiesStore->markStoryAsViewed(story->id);
+    return;
+  }
+
+  // Fallback to direct network call
+  if (!networkClient)
     return;
 
   networkClient->viewStory(story->id, [](Outcome<juce::var> result) {
