@@ -1,6 +1,6 @@
-# bash completion for sidechain-cli                        -*- shell-script -*-
+# bash completion for sidechain                            -*- shell-script -*-
 
-__sidechain-cli_debug()
+__sidechain_debug()
 {
     if [[ -n ${BASH_COMP_DEBUG_FILE:-} ]]; then
         echo "$*" >> "${BASH_COMP_DEBUG_FILE}"
@@ -9,13 +9,13 @@ __sidechain-cli_debug()
 
 # Homebrew on Macs have version 1.3 of bash-completion which doesn't include
 # _init_completion. This is a very minimal version of that function.
-__sidechain-cli_init_completion()
+__sidechain_init_completion()
 {
     COMPREPLY=()
     _get_comp_words_by_ref "$@" cur prev words cword
 }
 
-__sidechain-cli_index_of_word()
+__sidechain_index_of_word()
 {
     local w word=$1
     shift
@@ -27,7 +27,7 @@ __sidechain-cli_index_of_word()
     index=-1
 }
 
-__sidechain-cli_contains_word()
+__sidechain_contains_word()
 {
     local w word=$1; shift
     for w in "$@"; do
@@ -36,9 +36,9 @@ __sidechain-cli_contains_word()
     return 1
 }
 
-__sidechain-cli_handle_go_custom_completion()
+__sidechain_handle_go_custom_completion()
 {
-    __sidechain-cli_debug "${FUNCNAME[0]}: cur is ${cur}, words[*] is ${words[*]}, #words[@] is ${#words[@]}"
+    __sidechain_debug "${FUNCNAME[0]}: cur is ${cur}, words[*] is ${words[*]}, #words[@] is ${#words[@]}"
 
     local shellCompDirectiveError=1
     local shellCompDirectiveNoSpace=2
@@ -49,23 +49,23 @@ __sidechain-cli_handle_go_custom_completion()
     local out requestComp lastParam lastChar comp directive args
 
     # Prepare the command to request completions for the program.
-    # Calling ${words[0]} instead of directly sidechain-cli allows handling aliases
+    # Calling ${words[0]} instead of directly sidechain allows handling aliases
     args=("${words[@]:1}")
     # Disable ActiveHelp which is not supported for bash completion v1
-    requestComp="SIDECHAIN_CLI_ACTIVE_HELP=0 ${words[0]} __completeNoDesc ${args[*]}"
+    requestComp="SIDECHAIN_ACTIVE_HELP=0 ${words[0]} __completeNoDesc ${args[*]}"
 
     lastParam=${words[$((${#words[@]}-1))]}
     lastChar=${lastParam:$((${#lastParam}-1)):1}
-    __sidechain-cli_debug "${FUNCNAME[0]}: lastParam ${lastParam}, lastChar ${lastChar}"
+    __sidechain_debug "${FUNCNAME[0]}: lastParam ${lastParam}, lastChar ${lastChar}"
 
     if [ -z "${cur}" ] && [ "${lastChar}" != "=" ]; then
         # If the last parameter is complete (there is a space following it)
         # We add an extra empty parameter so we can indicate this to the go method.
-        __sidechain-cli_debug "${FUNCNAME[0]}: Adding extra empty parameter"
+        __sidechain_debug "${FUNCNAME[0]}: Adding extra empty parameter"
         requestComp="${requestComp} \"\""
     fi
 
-    __sidechain-cli_debug "${FUNCNAME[0]}: calling ${requestComp}"
+    __sidechain_debug "${FUNCNAME[0]}: calling ${requestComp}"
     # Use eval to handle any environment variables and such
     out=$(eval "${requestComp}" 2>/dev/null)
 
@@ -77,23 +77,23 @@ __sidechain-cli_handle_go_custom_completion()
         # There is not directive specified
         directive=0
     fi
-    __sidechain-cli_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
-    __sidechain-cli_debug "${FUNCNAME[0]}: the completions are: ${out}"
+    __sidechain_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
+    __sidechain_debug "${FUNCNAME[0]}: the completions are: ${out}"
 
     if [ $((directive & shellCompDirectiveError)) -ne 0 ]; then
         # Error code.  No completion.
-        __sidechain-cli_debug "${FUNCNAME[0]}: received error from custom completion go code"
+        __sidechain_debug "${FUNCNAME[0]}: received error from custom completion go code"
         return
     else
         if [ $((directive & shellCompDirectiveNoSpace)) -ne 0 ]; then
             if [[ $(type -t compopt) = "builtin" ]]; then
-                __sidechain-cli_debug "${FUNCNAME[0]}: activating no space"
+                __sidechain_debug "${FUNCNAME[0]}: activating no space"
                 compopt -o nospace
             fi
         fi
         if [ $((directive & shellCompDirectiveNoFileComp)) -ne 0 ]; then
             if [[ $(type -t compopt) = "builtin" ]]; then
-                __sidechain-cli_debug "${FUNCNAME[0]}: activating no file completion"
+                __sidechain_debug "${FUNCNAME[0]}: activating no file completion"
                 compopt +o default
             fi
         fi
@@ -109,7 +109,7 @@ __sidechain-cli_handle_go_custom_completion()
         done
 
         filteringCmd="_filedir $fullFilter"
-        __sidechain-cli_debug "File filtering command: $filteringCmd"
+        __sidechain_debug "File filtering command: $filteringCmd"
         $filteringCmd
     elif [ $((directive & shellCompDirectiveFilterDirs)) -ne 0 ]; then
         # File completion for directories only
@@ -117,10 +117,10 @@ __sidechain-cli_handle_go_custom_completion()
         # Use printf to strip any trailing newline
         subdir=$(printf "%s" "${out}")
         if [ -n "$subdir" ]; then
-            __sidechain-cli_debug "Listing directories in $subdir"
-            __sidechain-cli_handle_subdirs_in_dir_flag "$subdir"
+            __sidechain_debug "Listing directories in $subdir"
+            __sidechain_handle_subdirs_in_dir_flag "$subdir"
         else
-            __sidechain-cli_debug "Listing directories in ."
+            __sidechain_debug "Listing directories in ."
             _filedir -d
         fi
     else
@@ -130,9 +130,9 @@ __sidechain-cli_handle_go_custom_completion()
     fi
 }
 
-__sidechain-cli_handle_reply()
+__sidechain_handle_reply()
 {
-    __sidechain-cli_debug "${FUNCNAME[0]}"
+    __sidechain_debug "${FUNCNAME[0]}"
     local comp
     case $cur in
         -*)
@@ -160,7 +160,7 @@ __sidechain-cli_handle_reply()
 
                 local index flag
                 flag="${cur%=*}"
-                __sidechain-cli_index_of_word "${flag}" "${flags_with_completion[@]}"
+                __sidechain_index_of_word "${flag}" "${flags_with_completion[@]}"
                 COMPREPLY=()
                 if [[ ${index} -ge 0 ]]; then
                     PREFIX=""
@@ -184,7 +184,7 @@ __sidechain-cli_handle_reply()
 
     # check if we are handling a flag with special work handling
     local index
-    __sidechain-cli_index_of_word "${prev}" "${flags_with_completion[@]}"
+    __sidechain_index_of_word "${prev}" "${flags_with_completion[@]}"
     if [[ ${index} -ge 0 ]]; then
         ${flags_completion[${index}]}
         return
@@ -201,7 +201,7 @@ __sidechain-cli_handle_reply()
         completions+=("${must_have_one_noun[@]}")
     elif [[ -n "${has_completion_function}" ]]; then
         # if a go completion function is provided, defer to that function
-        __sidechain-cli_handle_go_custom_completion
+        __sidechain_handle_go_custom_completion
     fi
     if [[ ${#must_have_one_flag[@]} -ne 0 ]]; then
         completions+=("${must_have_one_flag[@]}")
@@ -217,9 +217,9 @@ __sidechain-cli_handle_reply()
     fi
 
     if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
-        if declare -F __sidechain-cli_custom_func >/dev/null; then
+        if declare -F __sidechain_custom_func >/dev/null; then
             # try command name qualified custom func
-            __sidechain-cli_custom_func
+            __sidechain_custom_func
         else
             # otherwise fall back to unqualified for compatibility
             declare -F __custom_func >/dev/null && __custom_func
@@ -239,21 +239,21 @@ __sidechain-cli_handle_reply()
 }
 
 # The arguments should be in the form "ext1|ext2|extn"
-__sidechain-cli_handle_filename_extension_flag()
+__sidechain_handle_filename_extension_flag()
 {
     local ext="$1"
     _filedir "@(${ext})"
 }
 
-__sidechain-cli_handle_subdirs_in_dir_flag()
+__sidechain_handle_subdirs_in_dir_flag()
 {
     local dir="$1"
     pushd "${dir}" >/dev/null 2>&1 && _filedir -d && popd >/dev/null 2>&1 || return
 }
 
-__sidechain-cli_handle_flag()
+__sidechain_handle_flag()
 {
-    __sidechain-cli_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
+    __sidechain_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
 
     # if a command required a flag, and we found it, unset must_have_one_flag()
     local flagname=${words[c]}
@@ -264,13 +264,13 @@ __sidechain-cli_handle_flag()
         flagname=${flagname%=*} # strip everything after the =
         flagname="${flagname}=" # but put the = back
     fi
-    __sidechain-cli_debug "${FUNCNAME[0]}: looking for ${flagname}"
-    if __sidechain-cli_contains_word "${flagname}" "${must_have_one_flag[@]}"; then
+    __sidechain_debug "${FUNCNAME[0]}: looking for ${flagname}"
+    if __sidechain_contains_word "${flagname}" "${must_have_one_flag[@]}"; then
         must_have_one_flag=()
     fi
 
     # if you set a flag which only applies to this command, don't show subcommands
-    if __sidechain-cli_contains_word "${flagname}" "${local_nonpersistent_flags[@]}"; then
+    if __sidechain_contains_word "${flagname}" "${local_nonpersistent_flags[@]}"; then
       commands=()
     fi
 
@@ -287,8 +287,8 @@ __sidechain-cli_handle_flag()
     fi
 
     # skip the argument to a two word flag
-    if [[ ${words[c]} != *"="* ]] && __sidechain-cli_contains_word "${words[c]}" "${two_word_flags[@]}"; then
-        __sidechain-cli_debug "${FUNCNAME[0]}: found a flag ${words[c]}, skip the next argument"
+    if [[ ${words[c]} != *"="* ]] && __sidechain_contains_word "${words[c]}" "${two_word_flags[@]}"; then
+        __sidechain_debug "${FUNCNAME[0]}: found a flag ${words[c]}, skip the next argument"
         c=$((c+1))
         # if we are looking for a flags value, don't show commands
         if [[ $c -eq $cword ]]; then
@@ -300,13 +300,13 @@ __sidechain-cli_handle_flag()
 
 }
 
-__sidechain-cli_handle_noun()
+__sidechain_handle_noun()
 {
-    __sidechain-cli_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
+    __sidechain_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
 
-    if __sidechain-cli_contains_word "${words[c]}" "${must_have_one_noun[@]}"; then
+    if __sidechain_contains_word "${words[c]}" "${must_have_one_noun[@]}"; then
         must_have_one_noun=()
-    elif __sidechain-cli_contains_word "${words[c]}" "${noun_aliases[@]}"; then
+    elif __sidechain_contains_word "${words[c]}" "${noun_aliases[@]}"; then
         must_have_one_noun=()
     fi
 
@@ -314,55 +314,55 @@ __sidechain-cli_handle_noun()
     c=$((c+1))
 }
 
-__sidechain-cli_handle_command()
+__sidechain_handle_command()
 {
-    __sidechain-cli_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
+    __sidechain_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
 
     local next_command
     if [[ -n ${last_command} ]]; then
         next_command="_${last_command}_${words[c]//:/__}"
     else
         if [[ $c -eq 0 ]]; then
-            next_command="_sidechain-cli_root_command"
+            next_command="_sidechain_root_command"
         else
             next_command="_${words[c]//:/__}"
         fi
     fi
     c=$((c+1))
-    __sidechain-cli_debug "${FUNCNAME[0]}: looking for ${next_command}"
+    __sidechain_debug "${FUNCNAME[0]}: looking for ${next_command}"
     declare -F "$next_command" >/dev/null && $next_command
 }
 
-__sidechain-cli_handle_word()
+__sidechain_handle_word()
 {
     if [[ $c -ge $cword ]]; then
-        __sidechain-cli_handle_reply
+        __sidechain_handle_reply
         return
     fi
-    __sidechain-cli_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
+    __sidechain_debug "${FUNCNAME[0]}: c is $c words[c] is ${words[c]}"
     if [[ "${words[c]}" == -* ]]; then
-        __sidechain-cli_handle_flag
-    elif __sidechain-cli_contains_word "${words[c]}" "${commands[@]}"; then
-        __sidechain-cli_handle_command
+        __sidechain_handle_flag
+    elif __sidechain_contains_word "${words[c]}" "${commands[@]}"; then
+        __sidechain_handle_command
     elif [[ $c -eq 0 ]]; then
-        __sidechain-cli_handle_command
-    elif __sidechain-cli_contains_word "${words[c]}" "${command_aliases[@]}"; then
+        __sidechain_handle_command
+    elif __sidechain_contains_word "${words[c]}" "${command_aliases[@]}"; then
         # aliashash variable is an associative array which is only supported in bash > 3.
         if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
             words[c]=${aliashash[${words[c]}]}
-            __sidechain-cli_handle_command
+            __sidechain_handle_command
         else
-            __sidechain-cli_handle_noun
+            __sidechain_handle_noun
         fi
     else
-        __sidechain-cli_handle_noun
+        __sidechain_handle_noun
     fi
-    __sidechain-cli_handle_word
+    __sidechain_handle_word
 }
 
-_sidechain-cli_actions_download()
+_sidechain_actions_download()
 {
-    last_command="sidechain-cli_actions_download"
+    last_command="sidechain_actions_download"
 
     command_aliases=()
 
@@ -388,9 +388,9 @@ _sidechain-cli_actions_download()
     noun_aliases=()
 }
 
-_sidechain-cli_actions_pin()
+_sidechain_actions_pin()
 {
-    last_command="sidechain-cli_actions_pin"
+    last_command="sidechain_actions_pin"
 
     command_aliases=()
 
@@ -416,9 +416,9 @@ _sidechain-cli_actions_pin()
     noun_aliases=()
 }
 
-_sidechain-cli_actions_remix()
+_sidechain_actions_remix()
 {
-    last_command="sidechain-cli_actions_remix"
+    last_command="sidechain_actions_remix"
 
     command_aliases=()
 
@@ -444,9 +444,9 @@ _sidechain-cli_actions_remix()
     noun_aliases=()
 }
 
-_sidechain-cli_actions_remixes()
+_sidechain_actions_remixes()
 {
-    last_command="sidechain-cli_actions_remixes"
+    last_command="sidechain_actions_remixes"
 
     command_aliases=()
 
@@ -472,9 +472,9 @@ _sidechain-cli_actions_remixes()
     noun_aliases=()
 }
 
-_sidechain-cli_actions_report()
+_sidechain_actions_report()
 {
-    last_command="sidechain-cli_actions_report"
+    last_command="sidechain_actions_report"
 
     command_aliases=()
 
@@ -500,9 +500,9 @@ _sidechain-cli_actions_report()
     noun_aliases=()
 }
 
-_sidechain-cli_actions_stats()
+_sidechain_actions_stats()
 {
-    last_command="sidechain-cli_actions_stats"
+    last_command="sidechain_actions_stats"
 
     command_aliases=()
 
@@ -528,9 +528,9 @@ _sidechain-cli_actions_stats()
     noun_aliases=()
 }
 
-_sidechain-cli_actions_unpin()
+_sidechain_actions_unpin()
 {
-    last_command="sidechain-cli_actions_unpin"
+    last_command="sidechain_actions_unpin"
 
     command_aliases=()
 
@@ -556,9 +556,9 @@ _sidechain-cli_actions_unpin()
     noun_aliases=()
 }
 
-_sidechain-cli_actions()
+_sidechain_actions()
 {
-    last_command="sidechain-cli_actions"
+    last_command="sidechain_actions"
 
     command_aliases=()
 
@@ -591,9 +591,9 @@ _sidechain-cli_actions()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_comments_delete()
+_sidechain_admin_comments_delete()
 {
-    last_command="sidechain-cli_admin_comments_delete"
+    last_command="sidechain_admin_comments_delete"
 
     command_aliases=()
 
@@ -619,9 +619,9 @@ _sidechain-cli_admin_comments_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_comments_hide()
+_sidechain_admin_comments_hide()
 {
-    last_command="sidechain-cli_admin_comments_hide"
+    last_command="sidechain_admin_comments_hide"
 
     command_aliases=()
 
@@ -647,9 +647,9 @@ _sidechain-cli_admin_comments_hide()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_comments_list()
+_sidechain_admin_comments_list()
 {
-    last_command="sidechain-cli_admin_comments_list"
+    last_command="sidechain_admin_comments_list"
 
     command_aliases=()
 
@@ -683,9 +683,9 @@ _sidechain-cli_admin_comments_list()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_comments()
+_sidechain_admin_comments()
 {
-    last_command="sidechain-cli_admin_comments"
+    last_command="sidechain_admin_comments"
 
     command_aliases=()
 
@@ -714,9 +714,9 @@ _sidechain-cli_admin_comments()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_dashboard()
+_sidechain_admin_dashboard()
 {
-    last_command="sidechain-cli_admin_dashboard"
+    last_command="sidechain_admin_dashboard"
 
     command_aliases=()
 
@@ -742,9 +742,9 @@ _sidechain-cli_admin_dashboard()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_health()
+_sidechain_admin_health()
 {
-    last_command="sidechain-cli_admin_health"
+    last_command="sidechain_admin_health"
 
     command_aliases=()
 
@@ -770,9 +770,9 @@ _sidechain-cli_admin_health()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_posts_delete()
+_sidechain_admin_posts_delete()
 {
-    last_command="sidechain-cli_admin_posts_delete"
+    last_command="sidechain_admin_posts_delete"
 
     command_aliases=()
 
@@ -798,9 +798,9 @@ _sidechain-cli_admin_posts_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_posts_hide()
+_sidechain_admin_posts_hide()
 {
-    last_command="sidechain-cli_admin_posts_hide"
+    last_command="sidechain_admin_posts_hide"
 
     command_aliases=()
 
@@ -826,9 +826,9 @@ _sidechain-cli_admin_posts_hide()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_posts_list()
+_sidechain_admin_posts_list()
 {
-    last_command="sidechain-cli_admin_posts_list"
+    last_command="sidechain_admin_posts_list"
 
     command_aliases=()
 
@@ -854,9 +854,9 @@ _sidechain-cli_admin_posts_list()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_posts_unhide()
+_sidechain_admin_posts_unhide()
 {
-    last_command="sidechain-cli_admin_posts_unhide"
+    last_command="sidechain_admin_posts_unhide"
 
     command_aliases=()
 
@@ -882,9 +882,9 @@ _sidechain-cli_admin_posts_unhide()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_posts_view()
+_sidechain_admin_posts_view()
 {
-    last_command="sidechain-cli_admin_posts_view"
+    last_command="sidechain_admin_posts_view"
 
     command_aliases=()
 
@@ -910,9 +910,9 @@ _sidechain-cli_admin_posts_view()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_posts()
+_sidechain_admin_posts()
 {
-    last_command="sidechain-cli_admin_posts"
+    last_command="sidechain_admin_posts"
 
     command_aliases=()
 
@@ -943,9 +943,9 @@ _sidechain-cli_admin_posts()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_reports_dismiss()
+_sidechain_admin_reports_dismiss()
 {
-    last_command="sidechain-cli_admin_reports_dismiss"
+    last_command="sidechain_admin_reports_dismiss"
 
     command_aliases=()
 
@@ -971,9 +971,9 @@ _sidechain-cli_admin_reports_dismiss()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_reports_list()
+_sidechain_admin_reports_list()
 {
-    last_command="sidechain-cli_admin_reports_list"
+    last_command="sidechain_admin_reports_list"
 
     command_aliases=()
 
@@ -1007,9 +1007,9 @@ _sidechain-cli_admin_reports_list()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_reports_resolve()
+_sidechain_admin_reports_resolve()
 {
-    last_command="sidechain-cli_admin_reports_resolve"
+    last_command="sidechain_admin_reports_resolve"
 
     command_aliases=()
 
@@ -1035,9 +1035,9 @@ _sidechain-cli_admin_reports_resolve()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_reports_view()
+_sidechain_admin_reports_view()
 {
-    last_command="sidechain-cli_admin_reports_view"
+    last_command="sidechain_admin_reports_view"
 
     command_aliases=()
 
@@ -1063,9 +1063,9 @@ _sidechain-cli_admin_reports_view()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_reports()
+_sidechain_admin_reports()
 {
-    last_command="sidechain-cli_admin_reports"
+    last_command="sidechain_admin_reports"
 
     command_aliases=()
 
@@ -1095,9 +1095,9 @@ _sidechain-cli_admin_reports()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_stats()
+_sidechain_admin_stats()
 {
-    last_command="sidechain-cli_admin_stats"
+    last_command="sidechain_admin_stats"
 
     command_aliases=()
 
@@ -1123,9 +1123,9 @@ _sidechain-cli_admin_stats()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_users_list()
+_sidechain_admin_users_list()
 {
-    last_command="sidechain-cli_admin_users_list"
+    last_command="sidechain_admin_users_list"
 
     command_aliases=()
 
@@ -1163,9 +1163,9 @@ _sidechain-cli_admin_users_list()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_users_suspend()
+_sidechain_admin_users_suspend()
 {
-    last_command="sidechain-cli_admin_users_suspend"
+    last_command="sidechain_admin_users_suspend"
 
     command_aliases=()
 
@@ -1195,9 +1195,9 @@ _sidechain-cli_admin_users_suspend()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_users_unsuspend()
+_sidechain_admin_users_unsuspend()
 {
-    last_command="sidechain-cli_admin_users_unsuspend"
+    last_command="sidechain_admin_users_unsuspend"
 
     command_aliases=()
 
@@ -1223,9 +1223,9 @@ _sidechain-cli_admin_users_unsuspend()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_users_view()
+_sidechain_admin_users_view()
 {
-    last_command="sidechain-cli_admin_users_view"
+    last_command="sidechain_admin_users_view"
 
     command_aliases=()
 
@@ -1251,9 +1251,9 @@ _sidechain-cli_admin_users_view()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_users_warn()
+_sidechain_admin_users_warn()
 {
-    last_command="sidechain-cli_admin_users_warn"
+    last_command="sidechain_admin_users_warn"
 
     command_aliases=()
 
@@ -1283,9 +1283,9 @@ _sidechain-cli_admin_users_warn()
     noun_aliases=()
 }
 
-_sidechain-cli_admin_users()
+_sidechain_admin_users()
 {
-    last_command="sidechain-cli_admin_users"
+    last_command="sidechain_admin_users"
 
     command_aliases=()
 
@@ -1316,9 +1316,9 @@ _sidechain-cli_admin_users()
     noun_aliases=()
 }
 
-_sidechain-cli_admin()
+_sidechain_admin()
 {
-    last_command="sidechain-cli_admin"
+    last_command="sidechain_admin"
 
     command_aliases=()
 
@@ -1351,9 +1351,9 @@ _sidechain-cli_admin()
     noun_aliases=()
 }
 
-_sidechain-cli_audio_get()
+_sidechain_audio_get()
 {
-    last_command="sidechain-cli_audio_get"
+    last_command="sidechain_audio_get"
 
     command_aliases=()
 
@@ -1379,9 +1379,9 @@ _sidechain-cli_audio_get()
     noun_aliases=()
 }
 
-_sidechain-cli_audio_status()
+_sidechain_audio_status()
 {
-    last_command="sidechain-cli_audio_status"
+    last_command="sidechain_audio_status"
 
     command_aliases=()
 
@@ -1407,9 +1407,9 @@ _sidechain-cli_audio_status()
     noun_aliases=()
 }
 
-_sidechain-cli_audio_upload()
+_sidechain_audio_upload()
 {
-    last_command="sidechain-cli_audio_upload"
+    last_command="sidechain_audio_upload"
 
     command_aliases=()
 
@@ -1435,9 +1435,9 @@ _sidechain-cli_audio_upload()
     noun_aliases=()
 }
 
-_sidechain-cli_audio()
+_sidechain_audio()
 {
-    last_command="sidechain-cli_audio"
+    last_command="sidechain_audio"
 
     command_aliases=()
 
@@ -1466,9 +1466,9 @@ _sidechain-cli_audio()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_2fa_backup-codes()
+_sidechain_auth_2fa_backup-codes()
 {
-    last_command="sidechain-cli_auth_2fa_backup-codes"
+    last_command="sidechain_auth_2fa_backup-codes"
 
     command_aliases=()
 
@@ -1494,9 +1494,9 @@ _sidechain-cli_auth_2fa_backup-codes()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_2fa_disable()
+_sidechain_auth_2fa_disable()
 {
-    last_command="sidechain-cli_auth_2fa_disable"
+    last_command="sidechain_auth_2fa_disable"
 
     command_aliases=()
 
@@ -1522,9 +1522,9 @@ _sidechain-cli_auth_2fa_disable()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_2fa_enable()
+_sidechain_auth_2fa_enable()
 {
-    last_command="sidechain-cli_auth_2fa_enable"
+    last_command="sidechain_auth_2fa_enable"
 
     command_aliases=()
 
@@ -1550,9 +1550,9 @@ _sidechain-cli_auth_2fa_enable()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_2fa_status()
+_sidechain_auth_2fa_status()
 {
-    last_command="sidechain-cli_auth_2fa_status"
+    last_command="sidechain_auth_2fa_status"
 
     command_aliases=()
 
@@ -1578,9 +1578,9 @@ _sidechain-cli_auth_2fa_status()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_2fa()
+_sidechain_auth_2fa()
 {
-    last_command="sidechain-cli_auth_2fa"
+    last_command="sidechain_auth_2fa"
 
     command_aliases=()
 
@@ -1610,9 +1610,9 @@ _sidechain-cli_auth_2fa()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_confirm-reset()
+_sidechain_auth_confirm-reset()
 {
-    last_command="sidechain-cli_auth_confirm-reset"
+    last_command="sidechain_auth_confirm-reset"
 
     command_aliases=()
 
@@ -1638,9 +1638,9 @@ _sidechain-cli_auth_confirm-reset()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_login()
+_sidechain_auth_login()
 {
-    last_command="sidechain-cli_auth_login"
+    last_command="sidechain_auth_login"
 
     command_aliases=()
 
@@ -1666,9 +1666,9 @@ _sidechain-cli_auth_login()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_logout()
+_sidechain_auth_logout()
 {
-    last_command="sidechain-cli_auth_logout"
+    last_command="sidechain_auth_logout"
 
     command_aliases=()
 
@@ -1694,9 +1694,9 @@ _sidechain-cli_auth_logout()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_me()
+_sidechain_auth_me()
 {
-    last_command="sidechain-cli_auth_me"
+    last_command="sidechain_auth_me"
 
     command_aliases=()
 
@@ -1722,9 +1722,9 @@ _sidechain-cli_auth_me()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_refresh()
+_sidechain_auth_refresh()
 {
-    last_command="sidechain-cli_auth_refresh"
+    last_command="sidechain_auth_refresh"
 
     command_aliases=()
 
@@ -1750,9 +1750,9 @@ _sidechain-cli_auth_refresh()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_register()
+_sidechain_auth_register()
 {
-    last_command="sidechain-cli_auth_register"
+    last_command="sidechain_auth_register"
 
     command_aliases=()
 
@@ -1778,9 +1778,9 @@ _sidechain-cli_auth_register()
     noun_aliases=()
 }
 
-_sidechain-cli_auth_reset-password()
+_sidechain_auth_reset-password()
 {
-    last_command="sidechain-cli_auth_reset-password"
+    last_command="sidechain_auth_reset-password"
 
     command_aliases=()
 
@@ -1806,9 +1806,9 @@ _sidechain-cli_auth_reset-password()
     noun_aliases=()
 }
 
-_sidechain-cli_auth()
+_sidechain_auth()
 {
-    last_command="sidechain-cli_auth"
+    last_command="sidechain_auth"
 
     command_aliases=()
 
@@ -1842,9 +1842,9 @@ _sidechain-cli_auth()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_create()
+_sidechain_comment_create()
 {
-    last_command="sidechain-cli_comment_create"
+    last_command="sidechain_comment_create"
 
     command_aliases=()
 
@@ -1870,9 +1870,9 @@ _sidechain-cli_comment_create()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_delete()
+_sidechain_comment_delete()
 {
-    last_command="sidechain-cli_comment_delete"
+    last_command="sidechain_comment_delete"
 
     command_aliases=()
 
@@ -1898,9 +1898,9 @@ _sidechain-cli_comment_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_like()
+_sidechain_comment_like()
 {
-    last_command="sidechain-cli_comment_like"
+    last_command="sidechain_comment_like"
 
     command_aliases=()
 
@@ -1926,9 +1926,9 @@ _sidechain-cli_comment_like()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_report()
+_sidechain_comment_report()
 {
-    last_command="sidechain-cli_comment_report"
+    last_command="sidechain_comment_report"
 
     command_aliases=()
 
@@ -1954,9 +1954,9 @@ _sidechain-cli_comment_report()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_unlike()
+_sidechain_comment_unlike()
 {
-    last_command="sidechain-cli_comment_unlike"
+    last_command="sidechain_comment_unlike"
 
     command_aliases=()
 
@@ -1982,9 +1982,9 @@ _sidechain-cli_comment_unlike()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_update()
+_sidechain_comment_update()
 {
-    last_command="sidechain-cli_comment_update"
+    last_command="sidechain_comment_update"
 
     command_aliases=()
 
@@ -2010,9 +2010,9 @@ _sidechain-cli_comment_update()
     noun_aliases=()
 }
 
-_sidechain-cli_comment_view()
+_sidechain_comment_view()
 {
-    last_command="sidechain-cli_comment_view"
+    last_command="sidechain_comment_view"
 
     command_aliases=()
 
@@ -2038,9 +2038,9 @@ _sidechain-cli_comment_view()
     noun_aliases=()
 }
 
-_sidechain-cli_comment()
+_sidechain_comment()
 {
-    last_command="sidechain-cli_comment"
+    last_command="sidechain_comment"
 
     command_aliases=()
 
@@ -2073,9 +2073,9 @@ _sidechain-cli_comment()
     noun_aliases=()
 }
 
-_sidechain-cli_completion()
+_sidechain_completion()
 {
-    last_command="sidechain-cli_completion"
+    last_command="sidechain_completion"
 
     command_aliases=()
 
@@ -2109,9 +2109,9 @@ _sidechain-cli_completion()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_by-genre()
+_sidechain_discover_by-genre()
 {
-    last_command="sidechain-cli_discover_by-genre"
+    last_command="sidechain_discover_by-genre"
 
     command_aliases=()
 
@@ -2145,9 +2145,9 @@ _sidechain-cli_discover_by-genre()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_featured()
+_sidechain_discover_featured()
 {
-    last_command="sidechain-cli_discover_featured"
+    last_command="sidechain_discover_featured"
 
     command_aliases=()
 
@@ -2181,9 +2181,9 @@ _sidechain-cli_discover_featured()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_recommendations()
+_sidechain_discover_recommendations()
 {
-    last_command="sidechain-cli_discover_recommendations"
+    last_command="sidechain_discover_recommendations"
 
     command_aliases=()
 
@@ -2217,9 +2217,9 @@ _sidechain-cli_discover_recommendations()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_suggested()
+_sidechain_discover_suggested()
 {
-    last_command="sidechain-cli_discover_suggested"
+    last_command="sidechain_discover_suggested"
 
     command_aliases=()
 
@@ -2253,9 +2253,9 @@ _sidechain-cli_discover_suggested()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_trending-users()
+_sidechain_discover_trending-users()
 {
-    last_command="sidechain-cli_discover_trending-users"
+    last_command="sidechain_discover_trending-users"
 
     command_aliases=()
 
@@ -2289,9 +2289,9 @@ _sidechain-cli_discover_trending-users()
     noun_aliases=()
 }
 
-_sidechain-cli_discover()
+_sidechain_discover()
 {
-    last_command="sidechain-cli_discover"
+    last_command="sidechain_discover"
 
     command_aliases=()
 
@@ -2322,9 +2322,9 @@ _sidechain-cli_discover()
     noun_aliases=()
 }
 
-_sidechain-cli_error_report()
+_sidechain_error_report()
 {
-    last_command="sidechain-cli_error_report"
+    last_command="sidechain_error_report"
 
     command_aliases=()
 
@@ -2350,9 +2350,9 @@ _sidechain-cli_error_report()
     noun_aliases=()
 }
 
-_sidechain-cli_error_resolve()
+_sidechain_error_resolve()
 {
-    last_command="sidechain-cli_error_resolve"
+    last_command="sidechain_error_resolve"
 
     command_aliases=()
 
@@ -2378,9 +2378,9 @@ _sidechain-cli_error_resolve()
     noun_aliases=()
 }
 
-_sidechain-cli_error_stats()
+_sidechain_error_stats()
 {
-    last_command="sidechain-cli_error_stats"
+    last_command="sidechain_error_stats"
 
     command_aliases=()
 
@@ -2406,9 +2406,9 @@ _sidechain-cli_error_stats()
     noun_aliases=()
 }
 
-_sidechain-cli_error_view()
+_sidechain_error_view()
 {
-    last_command="sidechain-cli_error_view"
+    last_command="sidechain_error_view"
 
     command_aliases=()
 
@@ -2434,9 +2434,9 @@ _sidechain-cli_error_view()
     noun_aliases=()
 }
 
-_sidechain-cli_error()
+_sidechain_error()
 {
-    last_command="sidechain-cli_error"
+    last_command="sidechain_error"
 
     command_aliases=()
 
@@ -2466,9 +2466,9 @@ _sidechain-cli_error()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_featured()
+_sidechain_explore_featured()
 {
-    last_command="sidechain-cli_explore_featured"
+    last_command="sidechain_explore_featured"
 
     command_aliases=()
 
@@ -2494,9 +2494,9 @@ _sidechain-cli_explore_featured()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_for-you()
+_sidechain_explore_for-you()
 {
-    last_command="sidechain-cli_explore_for-you"
+    last_command="sidechain_explore_for-you"
 
     command_aliases=()
 
@@ -2522,9 +2522,9 @@ _sidechain-cli_explore_for-you()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_genre()
+_sidechain_explore_genre()
 {
-    last_command="sidechain-cli_explore_genre"
+    last_command="sidechain_explore_genre"
 
     command_aliases=()
 
@@ -2550,9 +2550,9 @@ _sidechain-cli_explore_genre()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_latest()
+_sidechain_explore_latest()
 {
-    last_command="sidechain-cli_explore_latest"
+    last_command="sidechain_explore_latest"
 
     command_aliases=()
 
@@ -2578,9 +2578,9 @@ _sidechain-cli_explore_latest()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_popular()
+_sidechain_explore_popular()
 {
-    last_command="sidechain-cli_explore_popular"
+    last_command="sidechain_explore_popular"
 
     command_aliases=()
 
@@ -2606,9 +2606,9 @@ _sidechain-cli_explore_popular()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_similar()
+_sidechain_explore_similar()
 {
-    last_command="sidechain-cli_explore_similar"
+    last_command="sidechain_explore_similar"
 
     command_aliases=()
 
@@ -2634,9 +2634,9 @@ _sidechain-cli_explore_similar()
     noun_aliases=()
 }
 
-_sidechain-cli_explore_suggested()
+_sidechain_explore_suggested()
 {
-    last_command="sidechain-cli_explore_suggested"
+    last_command="sidechain_explore_suggested"
 
     command_aliases=()
 
@@ -2662,9 +2662,9 @@ _sidechain-cli_explore_suggested()
     noun_aliases=()
 }
 
-_sidechain-cli_explore()
+_sidechain_explore()
 {
-    last_command="sidechain-cli_explore"
+    last_command="sidechain_explore"
 
     command_aliases=()
 
@@ -2697,9 +2697,9 @@ _sidechain-cli_explore()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_by-genre()
+_sidechain_discover_by-genre()
 {
-    last_command="sidechain-cli_discover_by-genre"
+    last_command="sidechain_discover_by-genre"
 
     command_aliases=()
 
@@ -2733,9 +2733,9 @@ _sidechain-cli_discover_by-genre()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_featured()
+_sidechain_discover_featured()
 {
-    last_command="sidechain-cli_discover_featured"
+    last_command="sidechain_discover_featured"
 
     command_aliases=()
 
@@ -2769,9 +2769,9 @@ _sidechain-cli_discover_featured()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_recommendations()
+_sidechain_discover_recommendations()
 {
-    last_command="sidechain-cli_discover_recommendations"
+    last_command="sidechain_discover_recommendations"
 
     command_aliases=()
 
@@ -2805,9 +2805,9 @@ _sidechain-cli_discover_recommendations()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_suggested()
+_sidechain_discover_suggested()
 {
-    last_command="sidechain-cli_discover_suggested"
+    last_command="sidechain_discover_suggested"
 
     command_aliases=()
 
@@ -2841,9 +2841,9 @@ _sidechain-cli_discover_suggested()
     noun_aliases=()
 }
 
-_sidechain-cli_discover_trending-users()
+_sidechain_discover_trending-users()
 {
-    last_command="sidechain-cli_discover_trending-users"
+    last_command="sidechain_discover_trending-users"
 
     command_aliases=()
 
@@ -2877,9 +2877,9 @@ _sidechain-cli_discover_trending-users()
     noun_aliases=()
 }
 
-_sidechain-cli_discover()
+_sidechain_discover()
 {
-    last_command="sidechain-cli_discover"
+    last_command="sidechain_discover"
 
     command_aliases=()
 
@@ -2910,9 +2910,9 @@ _sidechain-cli_discover()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_enriched()
+_sidechain_feed_enriched()
 {
-    last_command="sidechain-cli_feed_enriched"
+    last_command="sidechain_feed_enriched"
 
     command_aliases=()
 
@@ -2946,9 +2946,9 @@ _sidechain-cli_feed_enriched()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_for-you()
+_sidechain_feed_for-you()
 {
-    last_command="sidechain-cli_feed_for-you"
+    last_command="sidechain_feed_for-you"
 
     command_aliases=()
 
@@ -2982,9 +2982,9 @@ _sidechain-cli_feed_for-you()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_for-you-advanced()
+_sidechain_feed_for-you-advanced()
 {
-    last_command="sidechain-cli_feed_for-you-advanced"
+    last_command="sidechain_feed_for-you-advanced"
 
     command_aliases=()
 
@@ -3030,9 +3030,9 @@ _sidechain-cli_feed_for-you-advanced()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_global()
+_sidechain_feed_global()
 {
-    last_command="sidechain-cli_feed_global"
+    last_command="sidechain_feed_global"
 
     command_aliases=()
 
@@ -3066,9 +3066,9 @@ _sidechain-cli_feed_global()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_latest()
+_sidechain_feed_latest()
 {
-    last_command="sidechain-cli_feed_latest"
+    last_command="sidechain_feed_latest"
 
     command_aliases=()
 
@@ -3102,9 +3102,9 @@ _sidechain-cli_feed_latest()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_search()
+_sidechain_feed_search()
 {
-    last_command="sidechain-cli_feed_search"
+    last_command="sidechain_feed_search"
 
     command_aliases=()
 
@@ -3138,9 +3138,9 @@ _sidechain-cli_feed_search()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound_featured()
+_sidechain_feed_sound_featured()
 {
-    last_command="sidechain-cli_feed_sound_featured"
+    last_command="sidechain_feed_sound_featured"
 
     command_aliases=()
 
@@ -3174,9 +3174,9 @@ _sidechain-cli_feed_sound_featured()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound_info()
+_sidechain_feed_sound_info()
 {
-    last_command="sidechain-cli_feed_sound_info"
+    last_command="sidechain_feed_sound_info"
 
     command_aliases=()
 
@@ -3202,45 +3202,9 @@ _sidechain-cli_feed_sound_info()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound_posts()
+_sidechain_feed_sound_posts()
 {
-    last_command="sidechain-cli_feed_sound_posts"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--page=")
-    two_word_flags+=("--page")
-    local_nonpersistent_flags+=("--page")
-    local_nonpersistent_flags+=("--page=")
-    flags+=("--page-size=")
-    two_word_flags+=("--page-size")
-    local_nonpersistent_flags+=("--page-size")
-    local_nonpersistent_flags+=("--page-size=")
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_feed_sound_recent()
-{
-    last_command="sidechain-cli_feed_sound_recent"
+    last_command="sidechain_feed_sound_posts"
 
     command_aliases=()
 
@@ -3274,9 +3238,9 @@ _sidechain-cli_feed_sound_recent()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound_search()
+_sidechain_feed_sound_recent()
 {
-    last_command="sidechain-cli_feed_sound_search"
+    last_command="sidechain_feed_sound_recent"
 
     command_aliases=()
 
@@ -3310,9 +3274,9 @@ _sidechain-cli_feed_sound_search()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound_trending()
+_sidechain_feed_sound_search()
 {
-    last_command="sidechain-cli_feed_sound_trending"
+    last_command="sidechain_feed_sound_search"
 
     command_aliases=()
 
@@ -3346,9 +3310,45 @@ _sidechain-cli_feed_sound_trending()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound_update()
+_sidechain_feed_sound_trending()
 {
-    last_command="sidechain-cli_feed_sound_update"
+    last_command="sidechain_feed_sound_trending"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--page=")
+    two_word_flags+=("--page")
+    local_nonpersistent_flags+=("--page")
+    local_nonpersistent_flags+=("--page=")
+    flags+=("--page-size=")
+    two_word_flags+=("--page-size")
+    local_nonpersistent_flags+=("--page-size")
+    local_nonpersistent_flags+=("--page-size=")
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_feed_sound_update()
+{
+    last_command="sidechain_feed_sound_update"
 
     command_aliases=()
 
@@ -3374,9 +3374,9 @@ _sidechain-cli_feed_sound_update()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_sound()
+_sidechain_feed_sound()
 {
-    last_command="sidechain-cli_feed_sound"
+    last_command="sidechain_feed_sound"
 
     command_aliases=()
 
@@ -3409,9 +3409,9 @@ _sidechain-cli_feed_sound()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_timeline()
+_sidechain_feed_timeline()
 {
-    last_command="sidechain-cli_feed_timeline"
+    last_command="sidechain_feed_timeline"
 
     command_aliases=()
 
@@ -3445,9 +3445,9 @@ _sidechain-cli_feed_timeline()
     noun_aliases=()
 }
 
-_sidechain-cli_feed_trending()
+_sidechain_feed_trending()
 {
-    last_command="sidechain-cli_feed_trending"
+    last_command="sidechain_feed_trending"
 
     command_aliases=()
 
@@ -3481,9 +3481,9 @@ _sidechain-cli_feed_trending()
     noun_aliases=()
 }
 
-_sidechain-cli_feed()
+_sidechain_feed()
 {
-    last_command="sidechain-cli_feed"
+    last_command="sidechain_feed"
 
     command_aliases=()
 
@@ -3519,9 +3519,9 @@ _sidechain-cli_feed()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_accept()
+_sidechain_follow_accept()
 {
-    last_command="sidechain-cli_follow_accept"
+    last_command="sidechain_follow_accept"
 
     command_aliases=()
 
@@ -3547,9 +3547,9 @@ _sidechain-cli_follow_accept()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_cancel()
+_sidechain_follow_cancel()
 {
-    last_command="sidechain-cli_follow_cancel"
+    last_command="sidechain_follow_cancel"
 
     command_aliases=()
 
@@ -3575,9 +3575,9 @@ _sidechain-cli_follow_cancel()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_check()
+_sidechain_follow_check()
 {
-    last_command="sidechain-cli_follow_check"
+    last_command="sidechain_follow_check"
 
     command_aliases=()
 
@@ -3603,9 +3603,9 @@ _sidechain-cli_follow_check()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_count()
+_sidechain_follow_count()
 {
-    last_command="sidechain-cli_follow_count"
+    last_command="sidechain_follow_count"
 
     command_aliases=()
 
@@ -3631,9 +3631,9 @@ _sidechain-cli_follow_count()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_pending()
+_sidechain_follow_pending()
 {
-    last_command="sidechain-cli_follow_pending"
+    last_command="sidechain_follow_pending"
 
     command_aliases=()
 
@@ -3659,9 +3659,9 @@ _sidechain-cli_follow_pending()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_reject()
+_sidechain_follow_reject()
 {
-    last_command="sidechain-cli_follow_reject"
+    last_command="sidechain_follow_reject"
 
     command_aliases=()
 
@@ -3687,9 +3687,9 @@ _sidechain-cli_follow_reject()
     noun_aliases=()
 }
 
-_sidechain-cli_follow_requests()
+_sidechain_follow_requests()
 {
-    last_command="sidechain-cli_follow_requests"
+    last_command="sidechain_follow_requests"
 
     command_aliases=()
 
@@ -3715,9 +3715,9 @@ _sidechain-cli_follow_requests()
     noun_aliases=()
 }
 
-_sidechain-cli_follow()
+_sidechain_follow()
 {
-    last_command="sidechain-cli_follow"
+    last_command="sidechain_follow"
 
     command_aliases=()
 
@@ -3750,9 +3750,9 @@ _sidechain-cli_follow()
     noun_aliases=()
 }
 
-_sidechain-cli_help()
+_sidechain_help()
 {
-    last_command="sidechain-cli_help"
+    last_command="sidechain_help"
 
     command_aliases=()
 
@@ -3779,9 +3779,9 @@ _sidechain-cli_help()
     noun_aliases=()
 }
 
-_sidechain-cli_message_clear()
+_sidechain_message_clear()
 {
-    last_command="sidechain-cli_message_clear"
+    last_command="sidechain_message_clear"
 
     command_aliases=()
 
@@ -3807,9 +3807,9 @@ _sidechain-cli_message_clear()
     noun_aliases=()
 }
 
-_sidechain-cli_message_delete()
+_sidechain_message_delete()
 {
-    last_command="sidechain-cli_message_delete"
+    last_command="sidechain_message_delete"
 
     command_aliases=()
 
@@ -3835,73 +3835,9 @@ _sidechain-cli_message_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_message_inbox()
+_sidechain_message_inbox()
 {
-    last_command="sidechain-cli_message_inbox"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--page=")
-    two_word_flags+=("--page")
-    local_nonpersistent_flags+=("--page")
-    local_nonpersistent_flags+=("--page=")
-    flags+=("--page-size=")
-    two_word_flags+=("--page-size")
-    local_nonpersistent_flags+=("--page-size")
-    local_nonpersistent_flags+=("--page-size=")
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_message_mark-read()
-{
-    last_command="sidechain-cli_message_mark-read"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_message_search()
-{
-    last_command="sidechain-cli_message_search"
+    last_command="sidechain_message_inbox"
 
     command_aliases=()
 
@@ -3935,9 +3871,9 @@ _sidechain-cli_message_search()
     noun_aliases=()
 }
 
-_sidechain-cli_message_send()
+_sidechain_message_mark-read()
 {
-    last_command="sidechain-cli_message_send"
+    last_command="sidechain_message_mark-read"
 
     command_aliases=()
 
@@ -3963,9 +3899,9 @@ _sidechain-cli_message_send()
     noun_aliases=()
 }
 
-_sidechain-cli_message_thread()
+_sidechain_message_search()
 {
-    last_command="sidechain-cli_message_thread"
+    last_command="sidechain_message_search"
 
     command_aliases=()
 
@@ -3999,9 +3935,9 @@ _sidechain-cli_message_thread()
     noun_aliases=()
 }
 
-_sidechain-cli_message_unread()
+_sidechain_message_send()
 {
-    last_command="sidechain-cli_message_unread"
+    last_command="sidechain_message_send"
 
     command_aliases=()
 
@@ -4027,9 +3963,73 @@ _sidechain-cli_message_unread()
     noun_aliases=()
 }
 
-_sidechain-cli_message()
+_sidechain_message_thread()
 {
-    last_command="sidechain-cli_message"
+    last_command="sidechain_message_thread"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--page=")
+    two_word_flags+=("--page")
+    local_nonpersistent_flags+=("--page")
+    local_nonpersistent_flags+=("--page=")
+    flags+=("--page-size=")
+    two_word_flags+=("--page-size")
+    local_nonpersistent_flags+=("--page-size")
+    local_nonpersistent_flags+=("--page-size=")
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_message_unread()
+{
+    last_command="sidechain_message_unread"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_message()
+{
+    last_command="sidechain_message"
 
     command_aliases=()
 
@@ -4063,9 +4063,9 @@ _sidechain-cli_message()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_active()
+_sidechain_midi_challenge_active()
 {
-    last_command="sidechain-cli_midi_challenge_active"
+    last_command="sidechain_midi_challenge_active"
 
     command_aliases=()
 
@@ -4091,9 +4091,9 @@ _sidechain-cli_midi_challenge_active()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_entries()
+_sidechain_midi_challenge_entries()
 {
-    last_command="sidechain-cli_midi_challenge_entries"
+    last_command="sidechain_midi_challenge_entries"
 
     command_aliases=()
 
@@ -4119,9 +4119,9 @@ _sidechain-cli_midi_challenge_entries()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_list()
+_sidechain_midi_challenge_list()
 {
-    last_command="sidechain-cli_midi_challenge_list"
+    last_command="sidechain_midi_challenge_list"
 
     command_aliases=()
 
@@ -4151,9 +4151,9 @@ _sidechain-cli_midi_challenge_list()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_submit()
+_sidechain_midi_challenge_submit()
 {
-    last_command="sidechain-cli_midi_challenge_submit"
+    last_command="sidechain_midi_challenge_submit"
 
     command_aliases=()
 
@@ -4179,9 +4179,9 @@ _sidechain-cli_midi_challenge_submit()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_upcoming()
+_sidechain_midi_challenge_upcoming()
 {
-    last_command="sidechain-cli_midi_challenge_upcoming"
+    last_command="sidechain_midi_challenge_upcoming"
 
     command_aliases=()
 
@@ -4207,9 +4207,9 @@ _sidechain-cli_midi_challenge_upcoming()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_view()
+_sidechain_midi_challenge_view()
 {
-    last_command="sidechain-cli_midi_challenge_view"
+    last_command="sidechain_midi_challenge_view"
 
     command_aliases=()
 
@@ -4235,9 +4235,9 @@ _sidechain-cli_midi_challenge_view()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_vote()
+_sidechain_midi_challenge_vote()
 {
-    last_command="sidechain-cli_midi_challenge_vote"
+    last_command="sidechain_midi_challenge_vote"
 
     command_aliases=()
 
@@ -4263,9 +4263,9 @@ _sidechain-cli_midi_challenge_vote()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge_voting()
+_sidechain_midi_challenge_voting()
 {
-    last_command="sidechain-cli_midi_challenge_voting"
+    last_command="sidechain_midi_challenge_voting"
 
     command_aliases=()
 
@@ -4291,9 +4291,9 @@ _sidechain-cli_midi_challenge_voting()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_challenge()
+_sidechain_midi_challenge()
 {
-    last_command="sidechain-cli_midi_challenge"
+    last_command="sidechain_midi_challenge"
 
     command_aliases=()
 
@@ -4327,9 +4327,9 @@ _sidechain-cli_midi_challenge()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_delete()
+_sidechain_midi_delete()
 {
-    last_command="sidechain-cli_midi_delete"
+    last_command="sidechain_midi_delete"
 
     command_aliases=()
 
@@ -4355,9 +4355,9 @@ _sidechain-cli_midi_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_list()
+_sidechain_midi_list()
 {
-    last_command="sidechain-cli_midi_list"
+    last_command="sidechain_midi_list"
 
     command_aliases=()
 
@@ -4391,9 +4391,9 @@ _sidechain-cli_midi_list()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_update()
+_sidechain_midi_update()
 {
-    last_command="sidechain-cli_midi_update"
+    last_command="sidechain_midi_update"
 
     command_aliases=()
 
@@ -4419,9 +4419,9 @@ _sidechain-cli_midi_update()
     noun_aliases=()
 }
 
-_sidechain-cli_midi_view()
+_sidechain_midi_view()
 {
-    last_command="sidechain-cli_midi_view"
+    last_command="sidechain_midi_view"
 
     command_aliases=()
 
@@ -4447,9 +4447,9 @@ _sidechain-cli_midi_view()
     noun_aliases=()
 }
 
-_sidechain-cli_midi()
+_sidechain_midi()
 {
-    last_command="sidechain-cli_midi"
+    last_command="sidechain_midi"
 
     command_aliases=()
 
@@ -4480,9 +4480,9 @@ _sidechain-cli_midi()
     noun_aliases=()
 }
 
-_sidechain-cli_mute_add()
+_sidechain_mute_add()
 {
-    last_command="sidechain-cli_mute_add"
+    last_command="sidechain_mute_add"
 
     command_aliases=()
 
@@ -4508,9 +4508,9 @@ _sidechain-cli_mute_add()
     noun_aliases=()
 }
 
-_sidechain-cli_mute_list()
+_sidechain_mute_list()
 {
-    last_command="sidechain-cli_mute_list"
+    last_command="sidechain_mute_list"
 
     command_aliases=()
 
@@ -4548,9 +4548,9 @@ _sidechain-cli_mute_list()
     noun_aliases=()
 }
 
-_sidechain-cli_mute_remove()
+_sidechain_mute_remove()
 {
-    last_command="sidechain-cli_mute_remove"
+    last_command="sidechain_mute_remove"
 
     command_aliases=()
 
@@ -4576,9 +4576,9 @@ _sidechain-cli_mute_remove()
     noun_aliases=()
 }
 
-_sidechain-cli_mute()
+_sidechain_mute()
 {
-    last_command="sidechain-cli_mute"
+    last_command="sidechain_mute"
 
     command_aliases=()
 
@@ -4607,9 +4607,9 @@ _sidechain-cli_mute()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_count()
+_sidechain_notifications_count()
 {
-    last_command="sidechain-cli_notifications_count"
+    last_command="sidechain_notifications_count"
 
     command_aliases=()
 
@@ -4635,9 +4635,9 @@ _sidechain-cli_notifications_count()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_list()
+_sidechain_notifications_list()
 {
-    last_command="sidechain-cli_notifications_list"
+    last_command="sidechain_notifications_list"
 
     command_aliases=()
 
@@ -4671,9 +4671,9 @@ _sidechain-cli_notifications_list()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_mark-read()
+_sidechain_notifications_mark-read()
 {
-    last_command="sidechain-cli_notifications_mark-read"
+    last_command="sidechain_notifications_mark-read"
 
     command_aliases=()
 
@@ -4699,9 +4699,9 @@ _sidechain-cli_notifications_mark-read()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_settings_manage()
+_sidechain_notifications_settings_manage()
 {
-    last_command="sidechain-cli_notifications_settings_manage"
+    last_command="sidechain_notifications_settings_manage"
 
     command_aliases=()
 
@@ -4727,9 +4727,9 @@ _sidechain-cli_notifications_settings_manage()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_settings_view()
+_sidechain_notifications_settings_view()
 {
-    last_command="sidechain-cli_notifications_settings_view"
+    last_command="sidechain_notifications_settings_view"
 
     command_aliases=()
 
@@ -4755,9 +4755,9 @@ _sidechain-cli_notifications_settings_view()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_settings()
+_sidechain_notifications_settings()
 {
-    last_command="sidechain-cli_notifications_settings"
+    last_command="sidechain_notifications_settings"
 
     command_aliases=()
 
@@ -4785,9 +4785,9 @@ _sidechain-cli_notifications_settings()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications_watch()
+_sidechain_notifications_watch()
 {
-    last_command="sidechain-cli_notifications_watch"
+    last_command="sidechain_notifications_watch"
 
     command_aliases=()
 
@@ -4813,9 +4813,9 @@ _sidechain-cli_notifications_watch()
     noun_aliases=()
 }
 
-_sidechain-cli_notifications()
+_sidechain_notifications()
 {
-    last_command="sidechain-cli_notifications"
+    last_command="sidechain_notifications"
 
     command_aliases=()
 
@@ -4846,9 +4846,9 @@ _sidechain-cli_notifications()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_add()
+_sidechain_playlist_add()
 {
-    last_command="sidechain-cli_playlist_add"
+    last_command="sidechain_playlist_add"
 
     command_aliases=()
 
@@ -4874,9 +4874,9 @@ _sidechain-cli_playlist_add()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_contents()
+_sidechain_playlist_contents()
 {
-    last_command="sidechain-cli_playlist_contents"
+    last_command="sidechain_playlist_contents"
 
     command_aliases=()
 
@@ -4910,9 +4910,9 @@ _sidechain-cli_playlist_contents()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_create()
+_sidechain_playlist_create()
 {
-    last_command="sidechain-cli_playlist_create"
+    last_command="sidechain_playlist_create"
 
     command_aliases=()
 
@@ -4940,9 +4940,9 @@ _sidechain-cli_playlist_create()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_delete()
+_sidechain_playlist_delete()
 {
-    last_command="sidechain-cli_playlist_delete"
+    last_command="sidechain_playlist_delete"
 
     command_aliases=()
 
@@ -4968,9 +4968,9 @@ _sidechain-cli_playlist_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_list()
+_sidechain_playlist_list()
 {
-    last_command="sidechain-cli_playlist_list"
+    last_command="sidechain_playlist_list"
 
     command_aliases=()
 
@@ -5004,9 +5004,9 @@ _sidechain-cli_playlist_list()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_remove()
+_sidechain_playlist_remove()
 {
-    last_command="sidechain-cli_playlist_remove"
+    last_command="sidechain_playlist_remove"
 
     command_aliases=()
 
@@ -5032,9 +5032,9 @@ _sidechain-cli_playlist_remove()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist_view()
+_sidechain_playlist_view()
 {
-    last_command="sidechain-cli_playlist_view"
+    last_command="sidechain_playlist_view"
 
     command_aliases=()
 
@@ -5060,9 +5060,9 @@ _sidechain-cli_playlist_view()
     noun_aliases=()
 }
 
-_sidechain-cli_playlist()
+_sidechain_playlist()
 {
-    last_command="sidechain-cli_playlist"
+    last_command="sidechain_playlist"
 
     command_aliases=()
 
@@ -5095,9 +5095,9 @@ _sidechain-cli_playlist()
     noun_aliases=()
 }
 
-_sidechain-cli_post_archive()
+_sidechain_post_archive()
 {
-    last_command="sidechain-cli_post_archive"
+    last_command="sidechain_post_archive"
 
     command_aliases=()
 
@@ -5123,9 +5123,9 @@ _sidechain-cli_post_archive()
     noun_aliases=()
 }
 
-_sidechain-cli_post_delete()
+_sidechain_post_delete()
 {
-    last_command="sidechain-cli_post_delete"
+    last_command="sidechain_post_delete"
 
     command_aliases=()
 
@@ -5151,9 +5151,9 @@ _sidechain-cli_post_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_post_like()
+_sidechain_post_like()
 {
-    last_command="sidechain-cli_post_like"
+    last_command="sidechain_post_like"
 
     command_aliases=()
 
@@ -5179,185 +5179,9 @@ _sidechain-cli_post_like()
     noun_aliases=()
 }
 
-_sidechain-cli_post_list()
+_sidechain_post_list()
 {
-    last_command="sidechain-cli_post_list"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--page=")
-    two_word_flags+=("--page")
-    local_nonpersistent_flags+=("--page")
-    local_nonpersistent_flags+=("--page=")
-    flags+=("--page-size=")
-    two_word_flags+=("--page-size")
-    local_nonpersistent_flags+=("--page-size")
-    local_nonpersistent_flags+=("--page-size=")
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_post_pin()
-{
-    last_command="sidechain-cli_post_pin"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_post_react()
-{
-    last_command="sidechain-cli_post_react"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_post_reactions()
-{
-    last_command="sidechain-cli_post_reactions"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_post_repost()
-{
-    last_command="sidechain-cli_post_repost"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_post_save()
-{
-    last_command="sidechain-cli_post_save"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--as-user=")
-    two_word_flags+=("--as-user")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--output=")
-    two_word_flags+=("--output")
-    flags+=("--verbose")
-    flags+=("-v")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    noun_aliases=()
-}
-
-_sidechain-cli_post_saved-list()
-{
-    last_command="sidechain-cli_post_saved-list"
+    last_command="sidechain_post_list"
 
     command_aliases=()
 
@@ -5391,9 +5215,9 @@ _sidechain-cli_post_saved-list()
     noun_aliases=()
 }
 
-_sidechain-cli_post_unarchive()
+_sidechain_post_pin()
 {
-    last_command="sidechain-cli_post_unarchive"
+    last_command="sidechain_post_pin"
 
     command_aliases=()
 
@@ -5419,9 +5243,9 @@ _sidechain-cli_post_unarchive()
     noun_aliases=()
 }
 
-_sidechain-cli_post_unlike()
+_sidechain_post_react()
 {
-    last_command="sidechain-cli_post_unlike"
+    last_command="sidechain_post_react"
 
     command_aliases=()
 
@@ -5447,9 +5271,9 @@ _sidechain-cli_post_unlike()
     noun_aliases=()
 }
 
-_sidechain-cli_post_unpin()
+_sidechain_post_reactions()
 {
-    last_command="sidechain-cli_post_unpin"
+    last_command="sidechain_post_reactions"
 
     command_aliases=()
 
@@ -5475,9 +5299,9 @@ _sidechain-cli_post_unpin()
     noun_aliases=()
 }
 
-_sidechain-cli_post_unreact()
+_sidechain_post_repost()
 {
-    last_command="sidechain-cli_post_unreact"
+    last_command="sidechain_post_repost"
 
     command_aliases=()
 
@@ -5503,9 +5327,9 @@ _sidechain-cli_post_unreact()
     noun_aliases=()
 }
 
-_sidechain-cli_post_unrepost()
+_sidechain_post_save()
 {
-    last_command="sidechain-cli_post_unrepost"
+    last_command="sidechain_post_save"
 
     command_aliases=()
 
@@ -5531,9 +5355,45 @@ _sidechain-cli_post_unrepost()
     noun_aliases=()
 }
 
-_sidechain-cli_post_unsave()
+_sidechain_post_saved-list()
 {
-    last_command="sidechain-cli_post_unsave"
+    last_command="sidechain_post_saved-list"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--page=")
+    two_word_flags+=("--page")
+    local_nonpersistent_flags+=("--page")
+    local_nonpersistent_flags+=("--page=")
+    flags+=("--page-size=")
+    two_word_flags+=("--page-size")
+    local_nonpersistent_flags+=("--page-size")
+    local_nonpersistent_flags+=("--page-size=")
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_post_unarchive()
+{
+    last_command="sidechain_post_unarchive"
 
     command_aliases=()
 
@@ -5559,9 +5419,149 @@ _sidechain-cli_post_unsave()
     noun_aliases=()
 }
 
-_sidechain-cli_post_upload()
+_sidechain_post_unlike()
 {
-    last_command="sidechain-cli_post_upload"
+    last_command="sidechain_post_unlike"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_post_unpin()
+{
+    last_command="sidechain_post_unpin"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_post_unreact()
+{
+    last_command="sidechain_post_unreact"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_post_unrepost()
+{
+    last_command="sidechain_post_unrepost"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_post_unsave()
+{
+    last_command="sidechain_post_unsave"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--as-user=")
+    two_word_flags+=("--as-user")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--output=")
+    two_word_flags+=("--output")
+    flags+=("--verbose")
+    flags+=("-v")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_sidechain_post_upload()
+{
+    last_command="sidechain_post_upload"
 
     command_aliases=()
 
@@ -5607,9 +5607,9 @@ _sidechain-cli_post_upload()
     noun_aliases=()
 }
 
-_sidechain-cli_post_view()
+_sidechain_post_view()
 {
-    last_command="sidechain-cli_post_view"
+    last_command="sidechain_post_view"
 
     command_aliases=()
 
@@ -5635,9 +5635,9 @@ _sidechain-cli_post_view()
     noun_aliases=()
 }
 
-_sidechain-cli_post()
+_sidechain_post()
 {
-    last_command="sidechain-cli_post"
+    last_command="sidechain_post"
 
     command_aliases=()
 
@@ -5681,9 +5681,9 @@ _sidechain-cli_post()
     noun_aliases=()
 }
 
-_sidechain-cli_presence_set()
+_sidechain_presence_set()
 {
-    last_command="sidechain-cli_presence_set"
+    last_command="sidechain_presence_set"
 
     command_aliases=()
 
@@ -5709,9 +5709,9 @@ _sidechain-cli_presence_set()
     noun_aliases=()
 }
 
-_sidechain-cli_presence_status()
+_sidechain_presence_status()
 {
-    last_command="sidechain-cli_presence_status"
+    last_command="sidechain_presence_status"
 
     command_aliases=()
 
@@ -5737,9 +5737,9 @@ _sidechain-cli_presence_status()
     noun_aliases=()
 }
 
-_sidechain-cli_presence()
+_sidechain_presence()
 {
-    last_command="sidechain-cli_presence"
+    last_command="sidechain_presence"
 
     command_aliases=()
 
@@ -5767,9 +5767,9 @@ _sidechain-cli_presence()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_activity()
+_sidechain_profile_activity()
 {
-    last_command="sidechain-cli_profile_activity"
+    last_command="sidechain_profile_activity"
 
     command_aliases=()
 
@@ -5795,9 +5795,9 @@ _sidechain-cli_profile_activity()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_edit()
+_sidechain_profile_edit()
 {
-    last_command="sidechain-cli_profile_edit"
+    last_command="sidechain_profile_edit"
 
     command_aliases=()
 
@@ -5823,9 +5823,9 @@ _sidechain-cli_profile_edit()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_follow()
+_sidechain_profile_follow()
 {
-    last_command="sidechain-cli_profile_follow"
+    last_command="sidechain_profile_follow"
 
     command_aliases=()
 
@@ -5851,9 +5851,9 @@ _sidechain-cli_profile_follow()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_followers()
+_sidechain_profile_followers()
 {
-    last_command="sidechain-cli_profile_followers"
+    last_command="sidechain_profile_followers"
 
     command_aliases=()
 
@@ -5879,9 +5879,9 @@ _sidechain-cli_profile_followers()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_following()
+_sidechain_profile_following()
 {
-    last_command="sidechain-cli_profile_following"
+    last_command="sidechain_profile_following"
 
     command_aliases=()
 
@@ -5907,9 +5907,9 @@ _sidechain-cli_profile_following()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_list-muted()
+_sidechain_profile_list-muted()
 {
-    last_command="sidechain-cli_profile_list-muted"
+    last_command="sidechain_profile_list-muted"
 
     command_aliases=()
 
@@ -5935,9 +5935,9 @@ _sidechain-cli_profile_list-muted()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_mute()
+_sidechain_profile_mute()
 {
-    last_command="sidechain-cli_profile_mute"
+    last_command="sidechain_profile_mute"
 
     command_aliases=()
 
@@ -5963,9 +5963,9 @@ _sidechain-cli_profile_mute()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_picture_upload()
+_sidechain_profile_picture_upload()
 {
-    last_command="sidechain-cli_profile_picture_upload"
+    last_command="sidechain_profile_picture_upload"
 
     command_aliases=()
 
@@ -5991,9 +5991,9 @@ _sidechain-cli_profile_picture_upload()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_picture()
+_sidechain_profile_picture()
 {
-    last_command="sidechain-cli_profile_picture"
+    last_command="sidechain_profile_picture"
 
     command_aliases=()
 
@@ -6020,9 +6020,9 @@ _sidechain-cli_profile_picture()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_unfollow()
+_sidechain_profile_unfollow()
 {
-    last_command="sidechain-cli_profile_unfollow"
+    last_command="sidechain_profile_unfollow"
 
     command_aliases=()
 
@@ -6048,9 +6048,9 @@ _sidechain-cli_profile_unfollow()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_unmute()
+_sidechain_profile_unmute()
 {
-    last_command="sidechain-cli_profile_unmute"
+    last_command="sidechain_profile_unmute"
 
     command_aliases=()
 
@@ -6076,9 +6076,9 @@ _sidechain-cli_profile_unmute()
     noun_aliases=()
 }
 
-_sidechain-cli_profile_view()
+_sidechain_profile_view()
 {
-    last_command="sidechain-cli_profile_view"
+    last_command="sidechain_profile_view"
 
     command_aliases=()
 
@@ -6104,9 +6104,9 @@ _sidechain-cli_profile_view()
     noun_aliases=()
 }
 
-_sidechain-cli_profile()
+_sidechain_profile()
 {
-    last_command="sidechain-cli_profile"
+    last_command="sidechain_profile"
 
     command_aliases=()
 
@@ -6143,9 +6143,9 @@ _sidechain-cli_profile()
     noun_aliases=()
 }
 
-_sidechain-cli_project_delete()
+_sidechain_project_delete()
 {
-    last_command="sidechain-cli_project_delete"
+    last_command="sidechain_project_delete"
 
     command_aliases=()
 
@@ -6171,9 +6171,9 @@ _sidechain-cli_project_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_project_list()
+_sidechain_project_list()
 {
-    last_command="sidechain-cli_project_list"
+    last_command="sidechain_project_list"
 
     command_aliases=()
 
@@ -6217,9 +6217,9 @@ _sidechain-cli_project_list()
     noun_aliases=()
 }
 
-_sidechain-cli_project_view()
+_sidechain_project_view()
 {
-    last_command="sidechain-cli_project_view"
+    last_command="sidechain_project_view"
 
     command_aliases=()
 
@@ -6245,9 +6245,9 @@ _sidechain-cli_project_view()
     noun_aliases=()
 }
 
-_sidechain-cli_project()
+_sidechain_project()
 {
-    last_command="sidechain-cli_project"
+    last_command="sidechain_project"
 
     command_aliases=()
 
@@ -6276,9 +6276,9 @@ _sidechain-cli_project()
     noun_aliases=()
 }
 
-_sidechain-cli_recommend_dislike()
+_sidechain_recommend_dislike()
 {
-    last_command="sidechain-cli_recommend_dislike"
+    last_command="sidechain_recommend_dislike"
 
     command_aliases=()
 
@@ -6304,9 +6304,9 @@ _sidechain-cli_recommend_dislike()
     noun_aliases=()
 }
 
-_sidechain-cli_recommend_hide()
+_sidechain_recommend_hide()
 {
-    last_command="sidechain-cli_recommend_hide"
+    last_command="sidechain_recommend_hide"
 
     command_aliases=()
 
@@ -6332,9 +6332,9 @@ _sidechain-cli_recommend_hide()
     noun_aliases=()
 }
 
-_sidechain-cli_recommend_metrics()
+_sidechain_recommend_metrics()
 {
-    last_command="sidechain-cli_recommend_metrics"
+    last_command="sidechain_recommend_metrics"
 
     command_aliases=()
 
@@ -6360,9 +6360,9 @@ _sidechain-cli_recommend_metrics()
     noun_aliases=()
 }
 
-_sidechain-cli_recommend_skip()
+_sidechain_recommend_skip()
 {
-    last_command="sidechain-cli_recommend_skip"
+    last_command="sidechain_recommend_skip"
 
     command_aliases=()
 
@@ -6388,9 +6388,9 @@ _sidechain-cli_recommend_skip()
     noun_aliases=()
 }
 
-_sidechain-cli_recommend()
+_sidechain_recommend()
 {
-    last_command="sidechain-cli_recommend"
+    last_command="sidechain_recommend"
 
     command_aliases=()
 
@@ -6420,9 +6420,9 @@ _sidechain-cli_recommend()
     noun_aliases=()
 }
 
-_sidechain-cli_report_post()
+_sidechain_report_post()
 {
-    last_command="sidechain-cli_report_post"
+    last_command="sidechain_report_post"
 
     command_aliases=()
 
@@ -6448,9 +6448,9 @@ _sidechain-cli_report_post()
     noun_aliases=()
 }
 
-_sidechain-cli_report_user()
+_sidechain_report_user()
 {
-    last_command="sidechain-cli_report_user"
+    last_command="sidechain_report_user"
 
     command_aliases=()
 
@@ -6476,9 +6476,9 @@ _sidechain-cli_report_user()
     noun_aliases=()
 }
 
-_sidechain-cli_report()
+_sidechain_report()
 {
-    last_command="sidechain-cli_report"
+    last_command="sidechain_report"
 
     command_aliases=()
 
@@ -6506,9 +6506,9 @@ _sidechain-cli_report()
     noun_aliases=()
 }
 
-_sidechain-cli_search_featured()
+_sidechain_search_featured()
 {
-    last_command="sidechain-cli_search_featured"
+    last_command="sidechain_search_featured"
 
     command_aliases=()
 
@@ -6534,9 +6534,9 @@ _sidechain-cli_search_featured()
     noun_aliases=()
 }
 
-_sidechain-cli_search_genre()
+_sidechain_search_genre()
 {
-    last_command="sidechain-cli_search_genre"
+    last_command="sidechain_search_genre"
 
     command_aliases=()
 
@@ -6562,9 +6562,9 @@ _sidechain-cli_search_genre()
     noun_aliases=()
 }
 
-_sidechain-cli_search_genres()
+_sidechain_search_genres()
 {
-    last_command="sidechain-cli_search_genres"
+    last_command="sidechain_search_genres"
 
     command_aliases=()
 
@@ -6590,9 +6590,9 @@ _sidechain-cli_search_genres()
     noun_aliases=()
 }
 
-_sidechain-cli_search_similar()
+_sidechain_search_similar()
 {
-    last_command="sidechain-cli_search_similar"
+    last_command="sidechain_search_similar"
 
     command_aliases=()
 
@@ -6618,9 +6618,9 @@ _sidechain-cli_search_similar()
     noun_aliases=()
 }
 
-_sidechain-cli_search_suggested()
+_sidechain_search_suggested()
 {
-    last_command="sidechain-cli_search_suggested"
+    last_command="sidechain_search_suggested"
 
     command_aliases=()
 
@@ -6646,9 +6646,9 @@ _sidechain-cli_search_suggested()
     noun_aliases=()
 }
 
-_sidechain-cli_search_trending()
+_sidechain_search_trending()
 {
-    last_command="sidechain-cli_search_trending"
+    last_command="sidechain_search_trending"
 
     command_aliases=()
 
@@ -6674,9 +6674,9 @@ _sidechain-cli_search_trending()
     noun_aliases=()
 }
 
-_sidechain-cli_search_users()
+_sidechain_search_users()
 {
-    last_command="sidechain-cli_search_users"
+    last_command="sidechain_search_users"
 
     command_aliases=()
 
@@ -6702,9 +6702,9 @@ _sidechain-cli_search_users()
     noun_aliases=()
 }
 
-_sidechain-cli_search()
+_sidechain_search()
 {
-    last_command="sidechain-cli_search"
+    last_command="sidechain_search"
 
     command_aliases=()
 
@@ -6737,9 +6737,9 @@ _sidechain-cli_search()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_all()
+_sidechain_settings_all()
 {
-    last_command="sidechain-cli_settings_all"
+    last_command="sidechain_settings_all"
 
     command_aliases=()
 
@@ -6765,9 +6765,9 @@ _sidechain-cli_settings_all()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_auto-offline()
+_sidechain_settings_auto-offline()
 {
-    last_command="sidechain-cli_settings_auto-offline"
+    last_command="sidechain_settings_auto-offline"
 
     command_aliases=()
 
@@ -6793,9 +6793,9 @@ _sidechain-cli_settings_auto-offline()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_clear-message()
+_sidechain_settings_clear-message()
 {
-    last_command="sidechain-cli_settings_clear-message"
+    last_command="sidechain_settings_clear-message"
 
     command_aliases=()
 
@@ -6821,9 +6821,9 @@ _sidechain-cli_settings_clear-message()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_reset-online()
+_sidechain_settings_reset-online()
 {
-    last_command="sidechain-cli_settings_reset-online"
+    last_command="sidechain_settings_reset-online"
 
     command_aliases=()
 
@@ -6849,9 +6849,9 @@ _sidechain-cli_settings_reset-online()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_set-message()
+_sidechain_settings_set-message()
 {
-    last_command="sidechain-cli_settings_set-message"
+    last_command="sidechain_settings_set-message"
 
     command_aliases=()
 
@@ -6877,9 +6877,9 @@ _sidechain-cli_settings_set-message()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_set-status()
+_sidechain_settings_set-status()
 {
-    last_command="sidechain-cli_settings_set-status"
+    last_command="sidechain_settings_set-status"
 
     command_aliases=()
 
@@ -6905,9 +6905,9 @@ _sidechain-cli_settings_set-status()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_status()
+_sidechain_settings_status()
 {
-    last_command="sidechain-cli_settings_status"
+    last_command="sidechain_settings_status"
 
     command_aliases=()
 
@@ -6933,9 +6933,9 @@ _sidechain-cli_settings_status()
     noun_aliases=()
 }
 
-_sidechain-cli_settings_visibility()
+_sidechain_settings_visibility()
 {
-    last_command="sidechain-cli_settings_visibility"
+    last_command="sidechain_settings_visibility"
 
     command_aliases=()
 
@@ -6961,9 +6961,9 @@ _sidechain-cli_settings_visibility()
     noun_aliases=()
 }
 
-_sidechain-cli_settings()
+_sidechain_settings()
 {
-    last_command="sidechain-cli_settings"
+    last_command="sidechain_settings"
 
     command_aliases=()
 
@@ -6997,9 +6997,9 @@ _sidechain-cli_settings()
     noun_aliases=()
 }
 
-_sidechain-cli_story_delete()
+_sidechain_story_delete()
 {
-    last_command="sidechain-cli_story_delete"
+    last_command="sidechain_story_delete"
 
     command_aliases=()
 
@@ -7025,9 +7025,9 @@ _sidechain-cli_story_delete()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7053,9 +7053,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7081,9 +7081,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7109,9 +7109,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7137,9 +7137,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7165,9 +7165,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7193,9 +7193,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_highlight()
+_sidechain_story_highlight()
 {
-    last_command="sidechain-cli_story_highlight"
+    last_command="sidechain_story_highlight"
 
     command_aliases=()
 
@@ -7221,9 +7221,9 @@ _sidechain-cli_story_highlight()
     noun_aliases=()
 }
 
-_sidechain-cli_story_list()
+_sidechain_story_list()
 {
-    last_command="sidechain-cli_story_list"
+    last_command="sidechain_story_list"
 
     command_aliases=()
 
@@ -7257,9 +7257,9 @@ _sidechain-cli_story_list()
     noun_aliases=()
 }
 
-_sidechain-cli_story_user()
+_sidechain_story_user()
 {
-    last_command="sidechain-cli_story_user"
+    last_command="sidechain_story_user"
 
     command_aliases=()
 
@@ -7285,9 +7285,9 @@ _sidechain-cli_story_user()
     noun_aliases=()
 }
 
-_sidechain-cli_story_view()
+_sidechain_story_view()
 {
-    last_command="sidechain-cli_story_view"
+    last_command="sidechain_story_view"
 
     command_aliases=()
 
@@ -7313,9 +7313,9 @@ _sidechain-cli_story_view()
     noun_aliases=()
 }
 
-_sidechain-cli_story_viewers()
+_sidechain_story_viewers()
 {
-    last_command="sidechain-cli_story_viewers"
+    last_command="sidechain_story_viewers"
 
     command_aliases=()
 
@@ -7341,9 +7341,9 @@ _sidechain-cli_story_viewers()
     noun_aliases=()
 }
 
-_sidechain-cli_story()
+_sidechain_story()
 {
-    last_command="sidechain-cli_story"
+    last_command="sidechain_story"
 
     command_aliases=()
 
@@ -7381,9 +7381,9 @@ _sidechain-cli_story()
     noun_aliases=()
 }
 
-_sidechain-cli_version()
+_sidechain_version()
 {
-    last_command="sidechain-cli_version"
+    last_command="sidechain_version"
 
     command_aliases=()
 
@@ -7409,9 +7409,9 @@ _sidechain-cli_version()
     noun_aliases=()
 }
 
-_sidechain-cli_root_command()
+_sidechain_root_command()
 {
-    last_command="sidechain-cli"
+    last_command="sidechain"
 
     command_aliases=()
 
@@ -7464,7 +7464,7 @@ _sidechain-cli_root_command()
     noun_aliases=()
 }
 
-__start_sidechain-cli()
+__start_sidechain()
 {
     local cur prev words cword split
     declare -A flaghash 2>/dev/null || :
@@ -7472,7 +7472,7 @@ __start_sidechain-cli()
     if declare -F _init_completion >/dev/null 2>&1; then
         _init_completion -s || return
     else
-        __sidechain-cli_init_completion -n "=" || return
+        __sidechain_init_completion -n "=" || return
     fi
 
     local c=0
@@ -7482,7 +7482,7 @@ __start_sidechain-cli()
     local local_nonpersistent_flags=()
     local flags_with_completion=()
     local flags_completion=()
-    local commands=("sidechain-cli")
+    local commands=("sidechain")
     local command_aliases=()
     local must_have_one_flag=()
     local must_have_one_noun=()
@@ -7491,13 +7491,13 @@ __start_sidechain-cli()
     local nouns=()
     local noun_aliases=()
 
-    __sidechain-cli_handle_word
+    __sidechain_handle_word
 }
 
 if [[ $(type -t compopt) = "builtin" ]]; then
-    complete -o default -F __start_sidechain-cli sidechain-cli
+    complete -o default -F __start_sidechain sidechain
 else
-    complete -o default -o nospace -F __start_sidechain-cli sidechain-cli
+    complete -o default -o nospace -F __start_sidechain sidechain
 fi
 
 # ex: ts=4 sw=4 et filetype=sh

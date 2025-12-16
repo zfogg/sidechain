@@ -19,9 +19,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "sidechain-cli",
-	Short: "Sidechain CLI - Social music production platform",
-	Long: `Sidechain CLI is a command-line interface for the Sidechain
+	Use:   "sidechain",
+	Short: "Sidechain - Social music production platform",
+	Long: `Sidechain is a command-line interface for the Sidechain
 social music production platform. Share loops, collaborate, and
 manage your music production community directly from the terminal.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {

@@ -1,6 +1,6 @@
-# Shell Completions for sidechain-cli
+# Shell Completions for sidechain
 
-This directory contains shell completion scripts for `sidechain-cli` for different shells.
+This directory contains shell completion scripts for `sidechain` for different shells.
 
 ## Installation
 
@@ -10,18 +10,18 @@ Copy the completion file to your bash completions directory:
 
 ```bash
 # For Homebrew (if using Homebrew)
-cp bash/sidechain-cli /usr/local/etc/bash_completion.d/
+cp bash/sidechain /usr/local/etc/bash_completion.d/
 
 # For Linux (systemwide)
-sudo cp bash/sidechain-cli /etc/bash_completion.d/
+sudo cp bash/sidechain /etc/bash_completion.d/
 
 # For macOS (systemwide)
-sudo cp bash/sidechain-cli /usr/local/etc/bash_completion.d/
+sudo cp bash/sidechain /usr/local/etc/bash_completion.d/
 
 # For user-only (add to ~/.bashrc or ~/.bash_profile)
 mkdir -p ~/.bash_completion.d
-cp bash/sidechain-cli ~/.bash_completion.d/
-echo 'source ~/.bash_completion.d/sidechain-cli' >> ~/.bashrc
+cp bash/sidechain ~/.bash_completion.d/
+echo 'source ~/.bash_completion.d/sidechain' >> ~/.bashrc
 ```
 
 Then reload your shell:
@@ -35,14 +35,14 @@ Copy the completion file to your zsh completions directory:
 
 ```bash
 # For Homebrew (if using Homebrew)
-cp zsh/_sidechain-cli /usr/local/share/zsh/site-functions/
+cp zsh/_sidechain /usr/local/share/zsh/site-functions/
 
 # For systemwide
-sudo cp zsh/_sidechain-cli /usr/share/zsh/site-functions/
+sudo cp zsh/_sidechain /usr/share/zsh/site-functions/
 
 # For user-only
 mkdir -p ~/.zsh/completions
-cp zsh/_sidechain-cli ~/.zsh/completions/
+cp zsh/_sidechain ~/.zsh/completions/
 echo 'fpath=(~/.zsh/completions $fpath)' >> ~/.zshrc
 echo 'autoload -U compinit && compinit' >> ~/.zshrc
 ```
@@ -59,7 +59,7 @@ Copy the completion file to your fish completions directory:
 ```bash
 # Standard location
 mkdir -p ~/.config/fish/completions
-cp fish/sidechain-cli.fish ~/.config/fish/completions/
+cp fish/sidechain.fish ~/.config/fish/completions/
 ```
 
 Fish will automatically load completions from `~/.config/fish/completions/` on startup.
@@ -70,24 +70,24 @@ To load completions for the current session without installing permanently:
 
 **Bash:**
 ```bash
-source <(sidechain-cli completion bash)
+source <(sidechain completion bash)
 ```
 
 **Zsh:**
 ```bash
-source <(sidechain-cli completion zsh)
+source <(sidechain completion zsh)
 ```
 
 **Fish:**
 ```bash
-sidechain-cli completion fish | source
+sidechain completion fish | source
 ```
 
 ## Available Completions
 
 The completion scripts provide context-aware completions for:
 
-- **Commands**: All available sidechain-cli commands and subcommands
+- **Commands**: All available sidechain commands and subcommands
 - **Flags**: All command flags with descriptions
 - **Flag values**: Dynamic completion for enum-type flags where applicable
 - **Command descriptions**: Help text for commands and flags
@@ -96,16 +96,16 @@ The completion scripts provide context-aware completions for:
 
 ```bash
 # Complete commands
-sidechain-cli auth<TAB>      # Suggests: auth, audio, admin, etc.
+sidechain auth<TAB>      # Suggests: auth, audio, admin, etc.
 
 # Complete subcommands
-sidechain-cli auth <TAB>     # Suggests: login, logout, me, register, etc.
+sidechain auth <TAB>     # Suggests: login, logout, me, register, etc.
 
 # Complete flags
-sidechain-cli post --<TAB>   # Suggests: --help, --verbose, --output, etc.
+sidechain post --<TAB>   # Suggests: --help, --verbose, --output, etc.
 
 # Complete flag descriptions
-sidechain-cli feed --<TAB>   # Shows descriptions for available flags
+sidechain feed --<TAB>   # Shows descriptions for available flags
 ```
 
 ## Generating Completions
@@ -114,9 +114,9 @@ If you need to regenerate the completion scripts (e.g., after updating the CLI):
 
 ```bash
 # Generate all completions
-sidechain-cli completion bash > share/completions/bash/sidechain-cli
-sidechain-cli completion zsh > share/completions/zsh/_sidechain-cli
-sidechain-cli completion fish > share/completions/fish/sidechain-cli.fish
+sidechain completion bash > share/completions/bash/sidechain
+sidechain completion zsh > share/completions/zsh/_sidechain
+sidechain completion fish > share/completions/fish/sidechain.fish
 ```
 
 ## Troubleshooting
