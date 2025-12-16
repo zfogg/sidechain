@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { getWebSocketClient } from '@/api/websocket'
+import type {
+  NewPostPayload,
+  PostLikedPayload,
+  PostCommentedPayload,
+  PostSavedPayload,
+  UserFollowedPayload,
+  ErrorPayload,
+  EventPayload,
+} from '@/api/websocket'
 import { useUserStore } from '@/stores/useUserStore'
 import { useFeedStore } from '@/stores/useFeedStore'
 
@@ -39,60 +48,58 @@ export function useWebSocket() {
     }
 
     // Subscribe to real-time events
-    const unsubscribeNewPost = ws.on('new_post', (payload: any) => {
-      console.log('[RT] New post:', payload)
+    const unsubscribeNewPost = ws.on('new_post', (payload) => {
+      const newPostPayload = payload as NewPostPayload
+      console.log('[RT] New post:', newPostPayload)
       // Prepend new post to current feed
-      if (payload.post) {
-        feedStore.addPostToFeed(payload.post)
+      if (newPostPayload.post) {
+        feedStore.addPostToFeed(newPostPayload.post)
       }
     })
 
-    const unsubscribePostLiked = ws.on('post_liked', (payload: any) => {
-      console.log('[RT] Post liked:', payload)
+    const unsubscribePostLiked = ws.on('post_liked', (payload) => {
+      const likedPayload = payload as PostLikedPayload
+      console.log('[RT] Post liked:', likedPayload)
       // Update like count in feed
-      if (payload.post_id && payload.new_like_count !== undefined) {
-        feedStore.updatePost(payload.post_id, {
-          likeCount: payload.new_like_count,
-        })
-      }
+      feedStore.updatePost(likedPayload.post_id, {
+        likeCount: likedPayload.new_like_count,
+      })
     })
 
-    const unsubscribePostCommented = ws.on('post_commented', (payload: any) => {
-      console.log('[RT] Post commented:', payload)
+    const unsubscribePostCommented = ws.on('post_commented', (payload) => {
+      const commentedPayload = payload as PostCommentedPayload
+      console.log('[RT] Post commented:', commentedPayload)
       // Increment comment count
-      if (payload.post_id && payload.new_comment_count !== undefined) {
-        feedStore.updatePost(payload.post_id, {
-          commentCount: payload.new_comment_count,
-        })
-      }
+      feedStore.updatePost(commentedPayload.post_id, {
+        commentCount: commentedPayload.new_comment_count,
+      })
     })
 
-    const unsubscribePostSaved = ws.on('post_saved', (payload: any) => {
-      console.log('[RT] Post saved:', payload)
+    const unsubscribePostSaved = ws.on('post_saved', (payload) => {
+      const savedPayload = payload as PostSavedPayload
+      console.log('[RT] Post saved:', savedPayload)
       // Update save count
-      if (payload.post_id && payload.new_save_count !== undefined) {
-        feedStore.updatePost(payload.post_id, {
-          saveCount: payload.new_save_count,
-        })
-      }
+      feedStore.updatePost(savedPayload.post_id, {
+        saveCount: savedPayload.new_save_count,
+      })
     })
 
-    const unsubscribeUserFollowed = ws.on('user_followed', (payload: any) => {
-      console.log('[RT] User followed:', payload)
+    const unsubscribeUserFollowed = ws.on('user_followed', (payload) => {
+      const followedPayload = payload as UserFollowedPayload
+      console.log('[RT] User followed:', followedPayload)
       // Update is_following flag for posts
-      if (payload.user_id && payload.is_following !== undefined) {
-        feedStore.feeds[feedStore.currentFeedType]?.posts.forEach((post) => {
-          if (post.userId === payload.user_id) {
-            feedStore.updatePost(post.id, {
-              isFollowing: payload.is_following,
-            })
-          }
-        })
-      }
+      feedStore.feeds[feedStore.currentFeedType]?.posts.forEach((post) => {
+        if (post.userId === followedPayload.user_id) {
+          feedStore.updatePost(post.id, {
+            isFollowing: followedPayload.is_following,
+          })
+        }
+      })
     })
 
-    const unsubscribeError = ws.on('error', (payload: any) => {
-      console.error('[RT] Error:', payload)
+    const unsubscribeError = ws.on('error', (payload) => {
+      const errorPayload = payload as ErrorPayload
+      console.error('[RT] Error:', errorPayload)
     })
 
     // Cleanup
@@ -133,7 +140,7 @@ export function useWebSocketStatus() {
 export function useWebSocketEmit() {
   const ws = getWebSocketClient()
 
-  return (type: string, payload?: Record<string, any>) => {
+  return (type: string, payload?: Partial<EventPayload>) => {
     ws.send(type, payload || {})
   }
 }

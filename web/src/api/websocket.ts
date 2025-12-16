@@ -5,6 +5,8 @@
  * Mirrors C++ plugin's network client patterns with proper reconnection logic
  */
 
+import type { FeedPostJSON } from '@/models/FeedPost'
+
 export type WebSocketMessageType =
   | 'new_post'
   | 'post_liked'
@@ -15,9 +17,64 @@ export type WebSocketMessageType =
   | 'notification'
   | 'error'
 
+// WebSocket Event Payload Types
+export interface NewPostPayload {
+  post: FeedPostJSON
+}
+
+export interface PostLikedPayload {
+  post_id: string
+  new_like_count: number
+}
+
+export interface PostCommentedPayload {
+  post_id: string
+  new_comment_count: number
+}
+
+export interface PostSavedPayload {
+  post_id: string
+  new_save_count: number
+}
+
+export interface UserFollowedPayload {
+  user_id: string
+  is_following: boolean
+}
+
+export interface CommentLikedPayload {
+  comment_id: string
+  new_like_count: number
+}
+
+export interface NotificationPayload {
+  id: string
+  type: string
+  message: string
+  data?: NotificationData
+}
+
+export interface NotificationData {
+  title?: string
+  icon?: string
+  action_url?: string
+  priority?: string
+  tags?: string[]
+}
+
+export interface ErrorPayload {
+  message?: string
+  code?: string
+  status?: number
+  details?: string
+}
+
+export type EventPayload = NewPostPayload | PostLikedPayload | PostCommentedPayload | PostSavedPayload |
+                   UserFollowedPayload | CommentLikedPayload | NotificationPayload | ErrorPayload
+
 export interface WebSocketMessage {
   type: WebSocketMessageType
-  payload: Record<string, any>
+  payload: EventPayload
   timestamp?: number
 }
 
@@ -33,7 +90,7 @@ export class BackendWebSocketClient {
   private heartbeatInterval: NodeJS.Timeout | null = null
 
   // Event listeners
-  private listeners: Map<WebSocketMessageType | 'connect' | 'disconnect' | 'error', Set<(data: any) => void>> =
+  private listeners: Map<WebSocketMessageType | 'connect' | 'disconnect', Set<(data: EventPayload) => void>> =
     new Map()
 
   constructor(baseUrl: string = import.meta.env.VITE_API_URL || 'http://localhost:8787') {
@@ -124,7 +181,7 @@ export class BackendWebSocketClient {
   /**
    * Send message to server
    */
-  send(type: string, payload: Record<string, any> = {}) {
+  send(type: string, payload: Partial<EventPayload> = {}) {
     if (this.ws?.readyState !== WebSocket.OPEN) {
       console.warn('[WS] Cannot send message: WebSocket not connected')
       return
@@ -133,7 +190,7 @@ export class BackendWebSocketClient {
     try {
       const message: WebSocketMessage = {
         type: type as WebSocketMessageType,
-        payload,
+        payload: payload as EventPayload,
         timestamp: Date.now(),
       }
       this.ws.send(JSON.stringify(message))
@@ -146,7 +203,7 @@ export class BackendWebSocketClient {
    * Subscribe to specific event type
    * Returns unsubscribe function
    */
-  on(type: WebSocketMessageType | 'connect' | 'disconnect' | 'error', callback: (data: any) => void) {
+  on(type: WebSocketMessageType | 'connect' | 'disconnect', callback: (data: EventPayload) => void) {
     if (!this.listeners.has(type)) {
       this.listeners.set(type, new Set())
     }
@@ -159,14 +216,14 @@ export class BackendWebSocketClient {
   /**
    * Unsubscribe from event type
    */
-  off(type: WebSocketMessageType | 'connect' | 'disconnect' | 'error', callback: (data: any) => void) {
+  off(type: WebSocketMessageType | 'connect' | 'disconnect', callback: (data: EventPayload) => void) {
     this.listeners.get(type)?.delete(callback)
   }
 
   /**
    * Emit event to all listeners
    */
-  private emit(type: WebSocketMessageType | 'connect' | 'disconnect' | 'error', data: any) {
+  private emit(type: WebSocketMessageType | 'connect' | 'disconnect', data: EventPayload) {
     this.listeners.get(type)?.forEach((callback) => {
       try {
         callback(data)
