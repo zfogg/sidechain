@@ -49,3 +49,15 @@ export {
 export { Spinner } from "./spinner"
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs"
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from "./select"
