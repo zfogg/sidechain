@@ -37,8 +37,8 @@ const std::array<Upload::CommentAudienceOption, Upload::NUM_COMMENT_AUDIENCES> &
 }
 
 //==============================================================================
-Upload::Upload(SidechainAudioProcessor &processor, NetworkClient &network)
-    : audioProcessor(processor), networkClient(network) {
+Upload::Upload(SidechainAudioProcessor &processor, NetworkClient &network, Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(store), audioProcessor(processor), networkClient(network) {
   Log::info("Upload: Initializing upload component");
   setWantsKeyboardFocus(true);
   startTimerHz(30);
@@ -48,37 +48,27 @@ Upload::Upload(SidechainAudioProcessor &processor, NetworkClient &network)
 
 Upload::~Upload() {
   Log::debug("Upload: Destroying upload component");
-  unbindFromStore();
   stopTimer();
 }
 
 //==============================================================================
-// Store integration methods
-void Upload::bindToStore(Sidechain::Stores::AppStore *store) {
-  Log::debug("Upload: Binding to AppStore");
-
-  appStore = store;
-  jassert(appStore != nullptr); // AppStore is required
+void Upload::subscribeToAppStore() {
   if (!appStore)
     return;
 
-  // Subscribe to store changes
   juce::Component::SafePointer<Upload> safeThis(this);
-  storeUnsubscriber = appStore->subscribe([safeThis](const Sidechain::Stores::AppState &state) {
+  storeUnsubscriber = appStore->subscribeToUploads([safeThis](const Sidechain::Stores::UploadState &state) {
     if (!safeThis)
       return;
 
-    // Extract upload state from unified AppState
-    const auto &uploadState = state.uploads;
-    auto isUploading = uploadState.isUploading;
-    auto progress = uploadState.progress;
-    auto errorMsg = uploadState.uploadError;
+    auto isUploading = state.isUploading;
+    auto progress = state.progress;
+    auto errorMsg = state.uploadError;
 
     juce::MessageManager::callAsync([safeThis, isUploading, progress, errorMsg]() {
       if (!safeThis)
         return;
 
-      // Update upload component state based on store state
       if (isUploading) {
         safeThis->uploadState = Upload::UploadState::Uploading;
         safeThis->uploadProgress = progress;
@@ -102,17 +92,10 @@ void Upload::bindToStore(Sidechain::Stores::AppStore *store) {
       safeThis->repaint();
     });
   });
-
-  Log::debug("Upload: Successfully bound to UploadStore");
 }
 
-void Upload::unbindFromStore() {
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-    storeUnsubscriber = nullptr;
-  }
-  appStore = nullptr;
-  Log::debug("Upload: Unbound from AppStore");
+void Upload::onAppStateChanged(const Sidechain::Stores::UploadState & /*state*/) {
+  repaint();
 }
 
 //==============================================================================

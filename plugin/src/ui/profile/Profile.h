@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
-#include "../../util/reactive/ReactiveBoundComponent.h"
+#include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include "../common/ErrorState.h"
 #include "../social/FollowersList.h"
 #include "../stories/StoryHighlights.h"
@@ -63,11 +64,11 @@ struct UserProfile {
  * - Member since date
  * - Profile sharing
  */
-class Profile : public Sidechain::Util::ReactiveBoundComponent,
+class Profile : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::UserState>,
                 public juce::ScrollBar::Listener,
                 public juce::TooltipClient {
 public:
-  Profile();
+  Profile(Sidechain::Stores::AppStore *store = nullptr);
   ~Profile() override;
 
   //==============================================================================
@@ -214,6 +215,13 @@ private:
   // Sync follow state from PostsStore to local userPosts array
   void syncFollowStateFromPostsStore();
 
+  //==============================================================================
+  // AppStoreComponent overrides
+protected:
+  void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
+  void subscribeToAppStore() override;
+
+private:
   //==============================================================================
   // Helpers
   void updatePostCards();

@@ -17,35 +17,28 @@ const juce::Colour badgeRed(0xffe53935);
 } // namespace StoryFeedColors
 
 //==============================================================================
-StoriesFeed::StoriesFeed() {
-  // Start animation timer
+StoriesFeed::StoriesFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   startTimerHz(60);
 
   Log::info("StoriesFeed created");
 }
 
 StoriesFeed::~StoriesFeed() {
-  unbindFromStore();
   stopTimer();
   Log::info("StoriesFeed destroyed");
 }
 
 //==============================================================================
 // Store integration methods
-void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store) {
-  Log::debug("StoriesFeed: Binding to StoriesStore");
-
-  storiesStore = store;
-  if (!storiesStore)
+void StoriesFeed::subscribeToAppStore() {
+  if (!appStore)
     return;
 
-  // Subscribe to store changes
   juce::Component::SafePointer<StoriesFeed> safeThis(this);
-  storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::AppState &appState) {
+  storeUnsubscriber = appStore->subscribeToStories([safeThis](const Sidechain::Stores::StoriesState &state) {
     if (!safeThis)
       return;
 
-    const auto &state = appState.stories;
     auto groups = state.feedUserStories;
 
     juce::MessageManager::callAsync([safeThis, groups]() {
@@ -90,17 +83,10 @@ void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store
       safeThis->repaint();
     });
   });
-
-  Log::debug("StoriesFeed: Successfully bound to AppStore");
 }
 
-void StoriesFeed::unbindFromStore() {
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-    storeUnsubscriber = nullptr;
-  }
-  storiesStore = nullptr;
-  Log::debug("StoriesFeed: Unbound from AppStore");
+void StoriesFeed::onAppStateChanged(const Sidechain::Stores::StoriesState & /*state*/) {
+  repaint();
 }
 
 //==============================================================================

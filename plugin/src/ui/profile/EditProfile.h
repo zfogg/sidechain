@@ -1,8 +1,7 @@
 #pragma once
 
 #include "../../stores/AppStore.h"
-
-#include "../../util/reactive/ReactiveBoundComponent.h"
+#include "../common/AppStoreComponent.h"
 #include "Profile.h"
 #include <JuceHeader.h>
 
@@ -21,11 +20,11 @@ class NetworkClient;
  * - DAW preference
  * - Social links editing
  */
-class EditProfile : public Sidechain::Util::ReactiveBoundComponent,
+class EditProfile : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::UserState>,
                     public juce::Button::Listener,
                     public juce::TextEditor::Listener {
 public:
-  EditProfile();
+  EditProfile(Sidechain::Stores::AppStore *store = nullptr);
   ~EditProfile() override;
 
   //==============================================================================
@@ -33,9 +32,8 @@ public:
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
-  void setUserStore(Sidechain::Stores::AppStore *store); // Task 2.4: Use UserStore for profile management
 
-  // Task 2.4: Show modal with current profile from UserStore
+  // Show modal with current profile from UserStore
   void showWithCurrentProfile(juce::Component *parentComponent);
 
   // Get pending local path for upload
@@ -64,13 +62,17 @@ public:
   void buttonClicked(juce::Button *button) override;
   void textEditorTextChanged(juce::TextEditor &editor) override;
 
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const Sidechain::Stores::UserState &state) override;
+  void subscribeToAppStore() override;
+
 private:
   //==============================================================================
   NetworkClient *networkClient = nullptr;
-  Sidechain::Stores::AppStore *userStore = nullptr;
-  std::function<void()> userStoreUnsubscribe; // Unsubscribe function for UserStore (Task 2.4)
 
-  // Task 2.4: Local form state (tracks what user is editing, not saved state)
+  // Local form state (tracks what user is editing, not saved state)
   // Saved state comes from UserStore; editors hold unsaved changes
   juce::String originalUsername;  // Username when form opened (to detect changes)
   bool hasUnsavedChanges = false; // Computed from comparing editors to UserStore

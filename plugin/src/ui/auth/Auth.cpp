@@ -1,6 +1,7 @@
 #include "Auth.h"
 #include "../../network/NetworkClient.h"
 #include "../../security/InputValidation.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
@@ -8,7 +9,7 @@
 #include "../../util/Validate.h"
 
 //==============================================================================
-Auth::Auth() {
+Auth::Auth(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("Auth: Initializing authentication component");
 
   // Create all UI components BEFORE calling setSize() because setSize()
@@ -44,6 +45,51 @@ Auth::~Auth() {
 void Auth::setNetworkClient(NetworkClient *client) {
   networkClient = client;
   Log::info("Auth: NetworkClient set " + juce::String(client != nullptr ? "(valid)" : "(null)"));
+}
+
+//==============================================================================
+// AppStoreComponent virtual methods
+
+void Auth::subscribeToAppStore() {
+  Log::debug("Auth: Subscribing to AppStore");
+
+  if (!appStore) {
+    Log::warn("Auth: Cannot subscribe to null AppStore");
+    return;
+  }
+
+  // Subscribe to auth state changes
+  juce::Component::SafePointer<Auth> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToAuth([safeThis](const Sidechain::Stores::AuthState &authState) {
+    // Check if Auth component still exists
+    if (!safeThis)
+      return;
+
+    // Schedule UI update on message thread for thread safety
+    juce::MessageManager::callAsync([safeThis, authState]() {
+      // Double-check component still exists after async dispatch
+      if (!safeThis)
+        return;
+
+      safeThis->onAppStateChanged(authState);
+    });
+  });
+
+  Log::debug("Auth: Successfully subscribed to AppStore");
+}
+
+void Auth::onAppStateChanged(const Sidechain::Stores::AuthState &authState) {
+  // This method is called when auth state changes in the store
+  // Currently Auth component drives its own state, but this infrastructure
+  // allows future reactive updates from the store (e.g., session expiration,
+  // forced logout, OAuth completion callbacks, etc.)
+
+  // Example reactive behaviors that could be implemented:
+  // - If authState.isAuthenticated becomes false unexpectedly, show welcome screen
+  // - If authState.error is set, display error message
+  // - If authState.requires2FA changes, switch to 2FA screen
+
+  Log::debug("Auth: Handling auth state change - isLoggedIn: " + juce::String(authState.isLoggedIn ? "true" : "false"));
 }
 
 //==============================================================================

@@ -2,6 +2,7 @@
 
 #include "../../models/MidiChallenge.h"
 #include "../../util/Colors.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
@@ -19,9 +20,10 @@ class HttpAudioPlayer;
  * - Submit entry button (if not submitted)
  * - Leaderboard showing top entries
  */
-class MidiChallengeDetail : public juce::Component, public juce::ScrollBar::Listener {
+class MidiChallengeDetail : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChallengeState>,
+                            public juce::ScrollBar::Listener {
 public:
-  MidiChallengeDetail();
+  MidiChallengeDetail(Sidechain::Stores::AppStore *store = nullptr);
   ~MidiChallengeDetail() override;
 
   //==============================================================================
@@ -50,6 +52,12 @@ public:
   std::function<void()> onBackPressed;
   std::function<void()> onSubmitEntry;                              // Navigate to submission view
   std::function<void(const juce::String &entryId)> onEntrySelected; // Navigate to entry/post
+
+protected:
+  //==============================================================================
+  // AppStoreComponent virtual methods
+  void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

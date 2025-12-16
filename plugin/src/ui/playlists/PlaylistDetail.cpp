@@ -4,7 +4,7 @@
 #include "../../util/Result.h"
 
 //==============================================================================
-PlaylistDetail::PlaylistDetail() {
+PlaylistDetail::PlaylistDetail(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("PlaylistDetailComponent: Initializing");
 
   // Set up scroll bar
@@ -16,6 +16,41 @@ PlaylistDetail::PlaylistDetail() {
 PlaylistDetail::~PlaylistDetail() {
   Log::debug("PlaylistDetailComponent: Destroying");
   scrollBar.removeListener(this);
+}
+
+//==============================================================================
+void PlaylistDetail::onAppStateChanged(const Sidechain::Stores::PlaylistState &state) {
+  // Find the current playlist in the state
+  for (int i = 0; i < state.playlists.size(); ++i) {
+    const auto &playlistVar = state.playlists[i];
+    if (playlistVar.getProperty("id", "").toString() == playlistId) {
+      playlist = Playlist::fromJSON(playlistVar);
+      // Note: We still need to fetch full playlist details including entries
+      // from NetworkClient, as state may only contain basic info
+      break;
+    }
+  }
+
+  isLoading = state.isLoading;
+  errorMessage = state.playlistError;
+
+  updateScrollBounds();
+  repaint();
+}
+
+void PlaylistDetail::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<PlaylistDetail> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToPlaylists([safeThis](const Sidechain::Stores::PlaylistState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================

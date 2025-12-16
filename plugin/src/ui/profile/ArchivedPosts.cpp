@@ -1,5 +1,6 @@
 #include "ArchivedPosts.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Log.h"
 #include "../feed/PostCard.h"
 
@@ -28,7 +29,7 @@ inline juce::Colour error() {
 } // namespace
 
 //==============================================================================
-ArchivedPosts::ArchivedPosts() {
+ArchivedPosts::ArchivedPosts(AppStore *store) : AppStoreComponent(store) {
   addAndMakeVisible(scrollBar);
   scrollBar.addListener(this);
   scrollBar.setRangeLimits(0.0, 1.0);
@@ -36,6 +37,37 @@ ArchivedPosts::ArchivedPosts() {
 
 ArchivedPosts::~ArchivedPosts() {
   scrollBar.removeListener(this);
+}
+
+//==============================================================================
+void ArchivedPosts::onAppStateChanged(const PostsState &state) {
+  // Update archived posts from state
+  archivedPosts.clear();
+  for (const auto &post : state.archivedPosts.posts) {
+    archivedPosts.add(post);
+  }
+
+  isLoading = state.archivedPosts.isLoading;
+  errorMessage = state.archivedPosts.error;
+  hasMore = state.archivedPosts.hasMore;
+
+  rebuildPostCards();
+  repaint();
+}
+
+void ArchivedPosts::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<ArchivedPosts> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToFeed([safeThis](const PostsState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -120,21 +152,14 @@ void ArchivedPosts::setNetworkClient(NetworkClient *client) {
 }
 
 void ArchivedPosts::loadArchivedPosts() {
-  // TODO: use AppStore instead of direct NetworkClient
-  if (networkClient) {
-    archivedPosts.clear();
-    currentOffset = 0;
-    hasMore = true;
-    errorMessage.clear();
-    postCards.clear();
-    fetchArchivedPosts();
+  if (appStore) {
+    appStore->loadArchivedPosts();
   }
 }
 
 void ArchivedPosts::refresh() {
-  // TODO: use AppStore instead of direct NetworkClient
-  if (networkClient) {
-    loadArchivedPosts();
+  if (appStore) {
+    appStore->loadArchivedPosts();
   }
 }
 
@@ -275,7 +300,7 @@ void ArchivedPosts::fetchArchivedPosts() {
 }
 
 void ArchivedPosts::loadMoreIfNeeded() {
-  if (isLoading)
+  if (isLoading || !hasMore)
     return;
 
   auto contentHeight = calculateContentHeight();
@@ -284,9 +309,8 @@ void ArchivedPosts::loadMoreIfNeeded() {
   // Load more when scrolled near the bottom
   if (scrollOffset + visibleHeight >= contentHeight - 200) {
     Log::debug("ArchivedPosts: Loading more posts...");
-    // TODO: use AppStore instead of direct NetworkClient
-    if (networkClient) {
-      fetchArchivedPosts();
+    if (appStore) {
+      appStore->loadMoreArchivedPosts();
     }
   }
 }
@@ -366,44 +390,16 @@ void ArchivedPosts::setupPostCardCallbacks(PostCard *card) {
 
   // Handle unarchive - restore post to visible
   card->onArchiveToggled = [this](const FeedPost &post, bool archived) {
-    if (!archived && networkClient != nullptr) {
+    if (!archived && appStore != nullptr) {
       Log::info("ArchivedPosts: Unarchiving post: " + post.id);
-      // TODO: use AppStore instead of direct NetworkClient
-      networkClient->unarchivePost(post.id, [this, postId = post.id](Outcome<juce::var> result) {
-        if (result.isError()) {
-          Log::error("ArchivedPosts: Failed to unarchive post: " + result.getError());
-          return;
-        }
-        // Remove from list
-        juce::MessageManager::callAsync([this, postId]() {
-          for (int i = 0; i < archivedPosts.size(); ++i) {
-            if (archivedPosts[i].id == postId) {
-              archivedPosts.remove(i);
-              rebuildPostCards();
-              repaint();
-              break;
-            }
-          }
-        });
-      });
+      appStore->restorePost(post.id);
     }
   };
 
   // Like functionality
   card->onLikeToggled = [this](const FeedPost &post, bool liked) {
-    if (networkClient == nullptr)
-      return;
-
-    if (liked) {
-      networkClient->likePost(post.id, "", [](Outcome<juce::var> result) {
-        if (result.isError())
-          Log::error("ArchivedPosts: Like failed: " + result.getError());
-      });
-    } else {
-      networkClient->unlikePost(post.id, [](Outcome<juce::var> result) {
-        if (result.isError())
-          Log::error("ArchivedPosts: Unlike failed: " + result.getError());
-      });
+    if (appStore != nullptr) {
+      appStore->toggleLike(post.id);
     }
   };
 }

@@ -5,7 +5,7 @@
 #include "../../models/Playlist.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
-#include "../../util/reactive/ReactiveBoundComponent.h"
+#include "../common/AppStoreComponent.h"
 #include "../common/ErrorState.h"
 #include "../common/SkeletonLoader.h"
 #include "AggregatedFeedCard.h"
@@ -34,7 +34,7 @@ class StreamChatClient;
  * - All UI operations must be on the message thread
  * - Network callbacks are automatically marshalled to message thread
  */
-class PostsFeed : public Sidechain::Util::ReactiveBoundComponent,
+class PostsFeed : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::PostsState>,
                   public juce::ScrollBar::Listener,
                   public juce::KeyListener,
                   public juce::Timer {
@@ -118,10 +118,6 @@ public:
 
 private:
   //==============================================================================
-  // Feed store subscription (Task 2.6 - reactive refactoring)
-  Sidechain::Stores::AppStore *appStore = nullptr;
-  std::function<void()> storeUnsubscribe;
-
   // Real-time update state (5.5)
   int pendingNewPostsCount = 0; // Count of new posts received while user is viewing feed
   juce::Time lastNewPostTime;   // Track when last new post notification arrived
@@ -202,6 +198,11 @@ private:
   // Feed state handling (now from PostsStore subscription)
   void handleFeedStateChanged();
 
+protected:
+  void onAppStateChanged(const Sidechain::Stores::PostsState &state) override;
+  void subscribeToAppStore() override;
+
+private:
   // Presence querying
   void queryPresenceForPosts();
 

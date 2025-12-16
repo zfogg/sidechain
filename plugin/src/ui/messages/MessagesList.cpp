@@ -6,7 +6,8 @@
 #include "../../util/StringFormatter.h"
 
 //==============================================================================
-MessagesList::MessagesList() : scrollBar(true) {
+MessagesList::MessagesList(Sidechain::Stores::AppStore *store)
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
   Log::info("MessagesList: Initializing");
   addAndMakeVisible(scrollBar);
   scrollBar.setRangeLimits(0.0, 0.0);
@@ -33,6 +34,60 @@ MessagesList::MessagesList() : scrollBar(true) {
 MessagesList::~MessagesList() {
   Log::debug("MessagesList: Destroying");
   stopTimer();
+}
+
+//==============================================================================
+// AppStoreComponent implementation
+
+void MessagesList::onAppStateChanged(const Sidechain::Stores::ChatState &state) {
+  // Update loading state
+  if (state.isLoadingChannels) {
+    listState = ListState::Loading;
+  } else if (!state.chatError.isEmpty()) {
+    listState = ListState::Error;
+    errorMessage = state.chatError;
+    if (errorStateComponent) {
+      errorStateComponent->configureFromError(state.chatError);
+      errorStateComponent->setVisible(true);
+    }
+  } else {
+    // Convert channelOrder and channels map to StreamChatClient::Channel vector
+    channels.clear();
+    for (const auto &channelId : state.channelOrder) {
+      auto it = state.channels.find(channelId);
+      if (it != state.channels.end()) {
+        const auto &channelState = it->second;
+        StreamChatClient::Channel channel;
+        channel.id = channelState.id;
+        channel.name = channelState.name;
+        channel.unreadCount = channelState.unreadCount;
+        // TODO: Map more fields from ChannelState to StreamChatClient::Channel as needed
+        channels.push_back(channel);
+      }
+    }
+
+    listState = channels.empty() ? ListState::Empty : ListState::Loaded;
+    if (errorStateComponent) {
+      errorStateComponent->setVisible(false);
+    }
+  }
+
+  repaint();
+}
+
+void MessagesList::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<MessagesList> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToChat([safeThis](const Sidechain::Stores::ChatState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 void MessagesList::paint(juce::Graphics &g) {

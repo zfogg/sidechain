@@ -3,6 +3,7 @@
 #include "../../models/MidiChallenge.h"
 #include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -15,10 +16,13 @@
  * - Show challenge details, constraints, deadline
  * - Button to view entries or submit entry
  * - Filter by status (active, voting, past, upcoming)
+ *
+ * Inherits from AppStoreComponent for automatic reactive state binding
  */
-class MidiChallenges : public juce::Component, public juce::ScrollBar::Listener {
+class MidiChallenges : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChallengeState>,
+                       public juce::ScrollBar::Listener {
 public:
-  MidiChallenges();
+  explicit MidiChallenges(Sidechain::Stores::AppStore *store = nullptr);
   ~MidiChallenges() override;
 
   //==============================================================================
@@ -40,14 +44,15 @@ public:
   void refresh();
 
   //==============================================================================
-  // Store integration (reactive pattern)
-  void bindToStore(Sidechain::Stores::AppStore *store);
-  void unbindFromStore();
-
-  //==============================================================================
   // Callbacks
   std::function<void()> onBackPressed;
   std::function<void(const juce::String &challengeId)> onChallengeSelected; // Navigate to challenge detail
+
+protected:
+  //==============================================================================
+  // AppStoreComponent virtual methods
+  void onAppStateChanged(const Sidechain::Stores::ChallengeState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================
@@ -62,14 +67,6 @@ private:
   juce::Array<MIDIChallenge> challenges;
   bool isLoading = false;
   juce::String errorMessage;
-
-  // Store integration
-  Sidechain::Stores::AppStore *appStore = nullptr;
-  std::function<void()> storeUnsubscriber;
-
-  //==============================================================================
-  // Store callback
-  void handleStoreStateChanged(const Sidechain::Stores::ChallengeState &state);
 
   //==============================================================================
   // UI Components

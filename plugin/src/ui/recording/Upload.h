@@ -3,6 +3,7 @@
 #include "../../audio/KeyDetector.h"
 #include "../../network/NetworkClient.h"
 #include "../../stores/AppStore.h"
+#include "../../ui/common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -24,7 +25,7 @@ class SidechainAudioProcessor;
  *
  * Design: Dark theme matching the plugin aesthetic, producer-friendly
  */
-class Upload : public juce::Component, public juce::Timer {
+class Upload : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::UploadState>, public juce::Timer {
 public:
   //==========================================================================
   // Musical key options
@@ -52,13 +53,8 @@ public:
   static const std::array<CommentAudienceOption, NUM_COMMENT_AUDIENCES> &getCommentAudiences();
 
   //==========================================================================
-  Upload(SidechainAudioProcessor &processor, NetworkClient &network);
+  Upload(SidechainAudioProcessor &processor, NetworkClient &network, Sidechain::Stores::AppStore *store = nullptr);
   ~Upload() override;
-
-  //==========================================================================
-  // Store integration (reactive pattern)
-  void bindToStore(Sidechain::Stores::AppStore *store);
-  void unbindFromStore();
 
   //==========================================================================
   // Set the audio to upload (called when user confirms recording)
@@ -116,14 +112,14 @@ public:
   std::function<void()> onCancel;         // Called when user cancels
   std::function<void()> onSaveAsDraft;    // Called when user saves as draft
 
+protected:
+  void onAppStateChanged(const Sidechain::Stores::UploadState &state) override;
+  void subscribeToAppStore() override;
+
 private:
   //==========================================================================
   SidechainAudioProcessor &audioProcessor;
   NetworkClient &networkClient;
-
-  // Store integration
-  Sidechain::Stores::AppStore *appStore = nullptr;
-  std::function<void()> storeUnsubscriber;
 
   // Audio data to upload
   juce::AudioBuffer<float> audioBuffer;

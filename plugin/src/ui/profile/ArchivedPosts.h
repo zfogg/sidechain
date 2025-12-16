@@ -2,11 +2,22 @@
 
 #include "../../models/FeedPost.h"
 #include "../../util/Colors.h"
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 #include <memory>
 
 class NetworkClient;
 class PostCard;
+
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+struct PostsState;
+} // namespace Stores
+} // namespace Sidechain
+
+using namespace Sidechain::UI;
+using namespace Sidechain::Stores;
 
 //==============================================================================
 /**
@@ -17,9 +28,9 @@ class PostCard;
  * - Click to play audio
  * - Unarchive functionality (restore to visible)
  */
-class ArchivedPosts : public juce::Component, public juce::ScrollBar::Listener {
+class ArchivedPosts : public AppStoreComponent<PostsState>, public juce::ScrollBar::Listener {
 public:
-  ArchivedPosts();
+  ArchivedPosts(AppStore *store = nullptr);
   ~ArchivedPosts() override;
 
   //==============================================================================
@@ -55,6 +66,12 @@ public:
   void setCurrentlyPlayingPost(const juce::String &postId);
   void setPlaybackProgress(float progress);
   void clearPlayingState();
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const PostsState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

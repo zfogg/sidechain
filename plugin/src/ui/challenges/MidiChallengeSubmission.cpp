@@ -8,12 +8,13 @@
 #include "core/PluginProcessor.h"
 
 //==============================================================================
-MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network)
-    : audioProcessor(processor), networkClient(network) {
+MidiChallengeSubmission::MidiChallengeSubmission(SidechainAudioProcessor &processor, NetworkClient &network,
+                                                 Sidechain::Stores::AppStore *store)
+    : AppStoreComponent(store), audioProcessor(processor), networkClient(network) {
   Log::info("MidiChallengeSubmission: Initializing");
 
   // Create wrapped Upload component
-  uploadComponent = std::make_unique<Upload>(processor, network);
+  uploadComponent = std::make_unique<Upload>(processor, network, store);
   uploadComponent->onUploadComplete = []() {
     // After upload completes, submit to challenge
     // The upload component will have created a post, we need to get the post ID
@@ -68,6 +69,55 @@ void MidiChallengeSubmission::reset() {
   scaleCheck = ConstraintCheck();
   noteCountCheck = ConstraintCheck();
   durationCheck = ConstraintCheck();
+}
+
+//==============================================================================
+// AppStoreComponent virtual methods
+
+void MidiChallengeSubmission::subscribeToAppStore() {
+  Log::debug("MidiChallengeSubmission: Subscribing to AppStore");
+
+  if (!appStore) {
+    Log::warn("MidiChallengeSubmission: Cannot subscribe to null AppStore");
+    return;
+  }
+
+  // Subscribe to challenge state changes
+  juce::Component::SafePointer<MidiChallengeSubmission> safeThis(this);
+  storeUnsubscriber =
+      appStore->subscribeToChallenges([safeThis](const Sidechain::Stores::ChallengeState &challengeState) {
+        // Check if component still exists
+        if (!safeThis)
+          return;
+
+        // Schedule UI update on message thread for thread safety
+        juce::MessageManager::callAsync([safeThis, challengeState]() {
+          // Double-check component still exists after async dispatch
+          if (!safeThis)
+            return;
+
+          safeThis->onAppStateChanged(challengeState);
+        });
+      });
+
+  Log::debug("MidiChallengeSubmission: Successfully subscribed to AppStore");
+}
+
+void MidiChallengeSubmission::onAppStateChanged(const Sidechain::Stores::ChallengeState &state) {
+  // Update UI when challenge state changes in the store
+  Log::debug("MidiChallengeSubmission: Handling challenge state change");
+
+  // If the current challenge was updated in the store, refresh its data
+  if (!challenge.id.isEmpty() && state.challenges.size() > 0) {
+    for (const auto &ch : state.challenges) {
+      juce::String chId = ch.getProperty("id", "").toString();
+      if (chId == challenge.id) {
+        challenge = MIDIChallenge::fromJSON(ch);
+        repaint();
+        break;
+      }
+    }
+  }
 }
 
 //==============================================================================

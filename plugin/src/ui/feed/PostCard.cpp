@@ -14,7 +14,7 @@
 using namespace Sidechain::UI::Animations;
 
 //==============================================================================
-PostCard::PostCard() {
+PostCard::PostCard(Sidechain::Stores::AppStore *store) : AppStoreComponent(nullptr) {
   setSize(600, CARD_HEIGHT);
 
   // Set up hover state
@@ -29,44 +29,18 @@ PostCard::PostCard() {
   // Add waveform image view as child component
   addAndMakeVisible(waveformView);
   waveformView.setBackgroundColour(SidechainColors::waveformBackground());
+
+  // Store reference for lazy subscription
+  appStore = store;
 }
 
 PostCard::~PostCard() {
-  // Unsubscribe from PostsStore (Task 2.5)
-  // This removes this PostCard from receiving further state updates
-  // The callback uses SafePointer which will become nullptr if PostCard is
-  // destroyed
-  if (storeUnsubscribe)
-    storeUnsubscribe();
-
-  // Note: The PostsStore callback is protected using JUCE's
-  // Component::SafePointer If the callback executes after this destructor, it
-  // will detect that the PostCard is deleted and return early without accessing
-  // any members
+  // Base class AppStoreComponent handles store unsubscription in destructor
 }
 
 //==============================================================================
 void PostCard::setNetworkClient(NetworkClient *client) {
   waveformView.setNetworkClient(client);
-}
-
-void PostCard::bindToStore(Sidechain::Stores::AppStore *store) {
-  // Type-safe lazy subscription pattern:
-  // Store the pointer but don't subscribe yet - subscription happens in
-  // setPost() after we have a valid post.id. This makes it impossible to have a
-  // subscription fire before the post is initialized.
-
-  // Unsubscribe from previous store if any
-  if (storeUnsubscribe)
-    storeUnsubscribe();
-
-  appStore = store;
-
-  // If we already have a valid post, subscribe now
-  // (handles the case where setPost() was called before bindToStore())
-  if (appStore && !post.id.isEmpty()) {
-    subscribeToAppStore();
-  }
 }
 
 void PostCard::setPost(const FeedPost &newPost) {
@@ -76,11 +50,8 @@ void PostCard::setPost(const FeedPost &newPost) {
              ", isFollowing: " + juce::String(post.isFollowing ? "true" : "false") +
              ", isOwnPost: " + juce::String(post.isOwnPost ? "true" : "false"));
 
-  // Type-safe lazy subscription: Now that we have a valid post.id, subscribe to
-  // AppStore This ensures the subscription can never fire before we have a
-  // valid post
   if (appStore && !post.id.isEmpty()) {
-    subscribeToAppStore();
+    bindToStore(appStore);
   }
 
   // Immediately repaint to reflect updated post data (especially follow state)
@@ -1396,58 +1367,41 @@ void PostCard::handleEmojiSelected(const juce::String &emoji) {
 // AppStore Subscription (Type-Safe Lazy Pattern)
 
 void PostCard::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
   using namespace Sidechain::Stores;
 
-  // Unsubscribe from previous subscription if any
-  if (storeUnsubscribe)
-    storeUnsubscribe();
-
   // Capture post ID by value to avoid accessing potentially invalid member
-  // during callback This protects against the case where 'post' member is
-  // corrupted during rapid state changes
   juce::String postId = post.id;
-
-  // Use a SafePointer to safely access this from the callback
-  // SafePointer automatically becomes nullptr if the Component is deleted
   juce::Component::SafePointer<PostCard> safeThis(this);
 
-  // Subscribe to AppStore for reactive updates
-  // At this point we're guaranteed to have a valid post.id, making this
-  // type-safe
-  storeUnsubscribe = appStore->subscribe([safeThis, postId](const AppState &state) {
-    // Check if PostCard still exists (SafePointer handles deleted
-    // Components) This prevents any access to members if the PostCard has
-    // been destroyed
-    if (safeThis == nullptr)
+  storeUnsubscriber = appStore->subscribeToFeed([safeThis, postId](const PostsState &postsState) {
+    if (safeThis == nullptr || postId.isEmpty())
       return;
 
-    // Use captured post ID instead of accessing member variable
-    if (postId.isEmpty())
-      return;
-
-    // Extract posts state from unified AppState
-    const auto &postsState = state.posts;
-
-    // Find our post in the current feed
-    const auto &currentFeed = postsState.getCurrentFeed();
-
-    for (const auto &feedPost : currentFeed->posts) {
-      if (feedPost.id == postId) {
-        // Re-check that PostCard still exists before accessing members
-        // This is defensive in case state changes while iterating
-        if (safeThis == nullptr)
-          return;
-
-        // Validate the FeedPost before assignment
-        if (!feedPost.id.isEmpty()) {
-          // Copy assignment - only do this if we're still valid
-          safeThis->post = feedPost;
-          safeThis->repaint();
-        }
+    juce::MessageManager::callAsync([safeThis, postId, postsState]() {
+      if (safeThis == nullptr)
         return;
+
+      const auto &currentFeed = postsState.getCurrentFeed();
+      for (const auto &feedPost : currentFeed->posts) {
+        if (feedPost.id == postId) {
+          if (safeThis == nullptr)
+            return;
+          if (!feedPost.id.isEmpty()) {
+            safeThis->post = feedPost;
+            safeThis->repaint();
+          }
+          return;
+        }
       }
-    }
+    });
   });
+}
+
+void PostCard::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*/) {
+  repaint();
 }
 
 //==============================================================================

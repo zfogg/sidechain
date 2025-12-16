@@ -11,7 +11,8 @@
 #include <map>
 
 //==============================================================================
-MessageThread::MessageThread() : scrollBar(true) {
+MessageThread::MessageThread(Sidechain::Stores::AppStore *store)
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::ChatState>(store), scrollBar(true) {
   Log::info("MessageThread: Initializing");
 
   addAndMakeVisible(scrollBar);
@@ -45,6 +46,56 @@ MessageThread::MessageThread() : scrollBar(true) {
   Log::debug("MessageThread: Error state component created");
 
   startTimer(5000); // Refresh every 5 seconds
+}
+
+//==============================================================================
+// AppStoreComponent implementation
+
+void MessageThread::onAppStateChanged(const Sidechain::Stores::ChatState &state) {
+  // Get current channel from state
+  if (channelId.isEmpty())
+    return;
+
+  auto it = state.channels.find(channelId);
+  if (it != state.channels.end()) {
+    const auto &channelState = it->second;
+    channelName = channelState.name;
+
+    // Update typing indicators
+    // usersTyping comes from channelState.usersTyping
+
+    // Message list comes from channelState.messages
+    // Loading state from channelState.isLoadingMessages
+  }
+
+  // Update error state
+  if (!state.chatError.isEmpty()) {
+    if (errorStateComponent) {
+      errorStateComponent->configureFromError(state.chatError);
+      errorStateComponent->setVisible(true);
+    }
+  } else {
+    if (errorStateComponent) {
+      errorStateComponent->setVisible(false);
+    }
+  }
+
+  repaint();
+}
+
+void MessageThread::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<MessageThread> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToChat([safeThis](const Sidechain::Stores::ChatState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 void MessageThread::setAudioProcessor(SidechainAudioProcessor *processor) {

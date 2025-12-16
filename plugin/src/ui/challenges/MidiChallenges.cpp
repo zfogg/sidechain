@@ -2,7 +2,7 @@
 #include "../../util/Log.h"
 
 //==============================================================================
-MidiChallenges::MidiChallenges() {
+MidiChallenges::MidiChallenges(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   Log::info("MidiChallenges: Initializing");
 
   // Set up scroll bar
@@ -14,49 +14,13 @@ MidiChallenges::MidiChallenges() {
 MidiChallenges::~MidiChallenges() {
   Log::debug("MidiChallenges: Destroying");
   scrollBar.removeListener(this);
+  // AppStoreComponent destructor will handle unsubscribe
 }
 
 //==============================================================================
-// Store integration methods
-void MidiChallenges::bindToStore(Sidechain::Stores::AppStore *store) {
-  Log::debug("MidiChallenges: Binding to AppStore");
+// AppStoreComponent virtual methods
 
-  // Unsubscribe from previous store if any
-  if (storeUnsubscriber)
-    storeUnsubscriber();
-
-  appStore = store;
-  if (!appStore) {
-    Log::warn("MidiChallenges: AppStore is null");
-    return;
-  }
-
-  // Subscribe to challenges state changes
-  juce::Component::SafePointer<MidiChallenges> safeThis(this);
-  storeUnsubscriber = appStore->subscribeToChallenges([safeThis](const Sidechain::Stores::ChallengeState &state) {
-    if (!safeThis)
-      return;
-
-    juce::MessageManager::callAsync([safeThis, state]() {
-      if (safeThis)
-        safeThis->handleStoreStateChanged(state);
-    });
-  });
-
-  // Load challenges to populate initial state
-  loadChallenges();
-}
-
-void MidiChallenges::unbindFromStore() {
-  Log::debug("MidiChallenges: Unbinding from AppStore");
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-    storeUnsubscriber = nullptr;
-  }
-  appStore = nullptr;
-}
-
-void MidiChallenges::handleStoreStateChanged(const Sidechain::Stores::ChallengeState &state) {
+void MidiChallenges::onAppStateChanged(const Sidechain::Stores::ChallengeState &state) {
   isLoading = state.isLoading;
   errorMessage = state.challengeError;
 
@@ -75,6 +39,30 @@ void MidiChallenges::handleStoreStateChanged(const Sidechain::Stores::ChallengeS
 
   Log::debug("MidiChallenges: Store state changed - " + juce::String(challenges.size()) + " challenges");
   repaint();
+}
+
+void MidiChallenges::subscribeToAppStore() {
+  if (!appStore) {
+    Log::warn("MidiChallenges: Cannot subscribe - AppStore is null");
+    return;
+  }
+
+  Log::debug("MidiChallenges: Subscribing to AppStore challenges state");
+
+  // Subscribe to challenges state changes
+  juce::Component::SafePointer<MidiChallenges> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToChallenges([safeThis](const Sidechain::Stores::ChallengeState &state) {
+    if (!safeThis)
+      return;
+
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
+
+  // Load challenges to populate initial state
+  loadChallenges();
 }
 
 //==============================================================================

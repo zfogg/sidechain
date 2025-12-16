@@ -1,9 +1,20 @@
 #pragma once
 
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
 class UserDataStore;
+
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+struct UserState;
+} // namespace Stores
+} // namespace Sidechain
+
+using namespace Sidechain::UI;
+using namespace Sidechain::Stores;
 
 //==============================================================================
 /**
@@ -15,9 +26,9 @@ class UserDataStore;
  * - Loads current preferences on open
  * - Plugin settings (OS notifications) stored locally
  */
-class NotificationSettings : public juce::Component, public juce::Button::Listener {
+class NotificationSettings : public AppStoreComponent<UserState>, public juce::Button::Listener {
 public:
-  NotificationSettings();
+  NotificationSettings(AppStore *store = nullptr);
   ~NotificationSettings() override;
 
   //==============================================================================
@@ -41,6 +52,12 @@ public:
   void paint(juce::Graphics &g) override;
   void resized() override;
   void buttonClicked(juce::Button *button) override;
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const UserState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

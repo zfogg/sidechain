@@ -1,8 +1,8 @@
 #pragma once
-#include "../../stores/AppStore.h"
 
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../stores/AppStore.h"
+#include "../common/AppStoreComponent.h"
 #include "PianoRoll.h"
 #include "StoriesFeed.h"
 #include <JuceHeader.h>
@@ -21,9 +21,9 @@ class NetworkClient;
  * - Progress bar showing story duration
  * - Swipe/tap navigation between stories
  */
-class StoryViewer : public juce::Component, public juce::Timer {
+class StoryViewer : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::StoriesState>, public juce::Timer {
 public:
-  StoryViewer();
+  StoryViewer(Sidechain::Stores::AppStore *store = nullptr);
   ~StoryViewer() override;
 
   //==============================================================================
@@ -48,11 +48,6 @@ public:
 
   // Set story data to display
   void setStories(const std::vector<StoryData> &stories, int startIndex = 0);
-
-  //==============================================================================
-  // Store integration (reactive pattern)
-  void bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
-  void unbindFromStore();
 
   // Navigation
   void showNextStory();
@@ -99,14 +94,14 @@ public:
   // Called when user wants to add their own story to a highlight
   std::function<void(const juce::String &storyId)> onAddToHighlightClicked;
 
+protected:
+  void onAppStateChanged(const Sidechain::Stores::StoriesState &state) override;
+  void subscribeToAppStore() override;
+
 private:
   //==============================================================================
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
-
-  // Store integration
-  std::shared_ptr<Sidechain::Stores::AppStore> storiesStore;
-  std::function<void()> storeUnsubscriber;
 
   // Stories data
   std::vector<StoryData> stories;

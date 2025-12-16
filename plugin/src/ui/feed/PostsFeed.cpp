@@ -63,19 +63,13 @@ enum class PostsFeedDisplayState { Loading, Loaded, Empty, Error };
 static PostsFeedDisplayState feedDisplayState = PostsFeedDisplayState::Loading;
 
 //==============================================================================
-PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : appStore(store) {
+PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   using namespace Sidechain::Stores;
 
   Log::info("PostsFeed: Initializing feed component");
   setSize(1000, 800);
 
-  // Subscribe to AppStore (Task 2.6)
-  storeUnsubscribe = this->appStore->subscribe([this](const Sidechain::Stores::AppState &state) {
-    // AppStore state changed - rebuild UI
-    (void)state; // Suppress unused parameter warning
-    handleFeedStateChanged();
-  });
-  Log::debug("PostsFeed: Subscribed to AppStore");
+  // AppStoreComponent will call subscribeToAppStore() if store is provided
 
   // Add scroll bar
   addAndMakeVisible(scrollBar);
@@ -130,14 +124,8 @@ PostsFeed::PostsFeed(Sidechain::Stores::AppStore *store) : appStore(store) {
 
 PostsFeed::~PostsFeed() {
   Log::debug("PostsFeed: Destroying feed component");
-
-  // Unsubscribe from PostsStore (Task 2.6)
-  if (storeUnsubscribe)
-    storeUnsubscribe();
-
   removeKeyListener(this);
   scrollBar.removeListener(this);
-  // RAII: OwnedArray will clean up PostCards automatically
 }
 
 //==============================================================================
@@ -496,6 +484,25 @@ void PostsFeed::handleFeedStateChanged() {
   queryPresenceForPosts();
 
   repaint();
+}
+
+void PostsFeed::onAppStateChanged(const Sidechain::Stores::PostsState & /*state*/) {
+  handleFeedStateChanged();
+}
+
+void PostsFeed::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<PostsFeed> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToFeed([safeThis](const Sidechain::Stores::PostsState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -934,9 +941,8 @@ void PostsFeed::rebuildPostCards() {
     aggregatedCards.clear();
 
     for (const auto &post : posts) {
-      auto *card = postCards.add(new PostCard());
+      auto *card = postCards.add(new PostCard(appStore));
       card->setNetworkClient(networkClient);
-      // TODO: Connect PostCard to AppStore for reactive updates
       card->setPost(post);
       setupPostCardCallbacks(card);
       addAndMakeVisible(card);

@@ -19,30 +19,19 @@ const juce::Colour playOverlay(0x80000000);
 } // namespace StoryViewerColors
 
 //==============================================================================
-StoryViewer::StoryViewer() {
-  // Create piano roll component
+StoryViewer::StoryViewer(Sidechain::Stores::AppStore *store) : AppStoreComponent(store) {
   pianoRoll = std::make_unique<PianoRoll>();
   addChildComponent(pianoRoll.get());
 
-  // Create audio player
   audioPlayer = std::make_unique<HttpAudioPlayer>();
 
-  // Start timer for progress updates
   startTimerHz(30);
-
-  // TODO: Phase 7.5.5.2.1 - Create note waterfall visualization (alternative to
-  // piano roll)
-  // TODO: Phase 7.5.5.2.2 - Create circular visualization (alternative to piano
-  // roll)
-  // TODO: Phase 7.5.5.2 - Toggle between piano roll and note list view (add
-  // note list view alternative)
 
   Log::info("StoryViewer created");
 }
 
 StoryViewer::~StoryViewer() {
   stopTimer();
-  unbindFromStore();
   if (audioPlayer)
     audioPlayer->stop();
 
@@ -50,28 +39,23 @@ StoryViewer::~StoryViewer() {
 }
 
 //==============================================================================
-void StoryViewer::bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store) {
-  unbindFromStore();
-  storiesStore = store;
-
-  if (storiesStore) {
-    auto safeThis = juce::Component::SafePointer<StoryViewer>(this);
-    storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::AppState & /*state*/) {
-      if (safeThis) {
-        // Store updates can trigger repaint if needed
-        safeThis->repaint();
-      }
-    });
-    Log::debug("StoryViewer: Bound to StoriesStore");
-  }
+void StoryViewer::onAppStateChanged(const Sidechain::Stores::StoriesState & /*state*/) {
+  repaint();
 }
 
-void StoryViewer::unbindFromStore() {
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-    storeUnsubscriber = nullptr;
-  }
-  storiesStore = nullptr;
+void StoryViewer::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<StoryViewer> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToStories([safeThis](const Sidechain::Stores::StoriesState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
 }
 
 //==============================================================================
@@ -762,7 +746,7 @@ void StoryViewer::handleDeleteStory(const juce::String &storyId) {
   Log::debug("StoryViewer: Delete story clicked for story: " + storyId);
 
   // Need either store or networkClient
-  if (!storiesStore && !networkClient) {
+  if (!appStore && !networkClient) {
     Log::warn("StoryViewer: Cannot delete story - no store or networkClient");
     juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Error",
                                            "Unable to delete story. Please try again later.");
@@ -804,8 +788,8 @@ void StoryViewer::handleDeleteStory(const juce::String &storyId) {
         onDeleteClicked(storyId);
 
       // Prefer store if bound (provides optimistic updates to other components)
-      if (storiesStore) {
-        storiesStore->deleteStory(storyId);
+      if (appStore) {
+        appStore->deleteStory(storyId);
         Log::info("StoryViewer: Story deletion delegated to store: " + storyId);
         return;
       }
@@ -1031,8 +1015,8 @@ void StoryViewer::markStoryAsViewed() {
     return;
 
   // Prefer store if bound (provides optimistic updates)
-  if (storiesStore) {
-    storiesStore->markStoryAsViewed(story->id);
+  if (appStore) {
+    appStore->markStoryAsViewed(story->id);
     return;
   }
 

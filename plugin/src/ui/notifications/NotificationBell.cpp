@@ -2,7 +2,8 @@
 #include "../../util/Log.h"
 
 //==============================================================================
-NotificationBell::NotificationBell() {
+NotificationBell::NotificationBell(Sidechain::Stores::AppStore *store)
+    : Sidechain::UI::AppStoreComponent<Sidechain::Stores::NotificationState>(store) {
   setSize(PREFERRED_SIZE, PREFERRED_SIZE);
 
   // Set up hover state
@@ -10,6 +11,29 @@ NotificationBell::NotificationBell() {
 }
 
 NotificationBell::~NotificationBell() = default;
+
+//==============================================================================
+// AppStoreComponent implementation
+
+void NotificationBell::onAppStateChanged(const Sidechain::Stores::NotificationState &state) {
+  setUnseenCount(state.unseenCount);
+  setUnreadCount(state.unreadCount);
+}
+
+void NotificationBell::subscribeToAppStore() {
+  if (!appStore)
+    return;
+
+  juce::Component::SafePointer<NotificationBell> safeThis(this);
+  storeUnsubscriber = appStore->subscribeToNotifications([safeThis](const Sidechain::Stores::NotificationState &state) {
+    if (!safeThis)
+      return;
+    juce::MessageManager::callAsync([safeThis, state]() {
+      if (safeThis)
+        safeThis->onAppStateChanged(state);
+    });
+  });
+}
 
 //==============================================================================
 void NotificationBell::setUnseenCount(int count) {

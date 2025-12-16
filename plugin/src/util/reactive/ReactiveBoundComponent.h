@@ -58,7 +58,6 @@ public:
   ReactiveBoundComponent() = default;
 
   virtual ~ReactiveBoundComponent() override {
-    // Unregister all property observers
     clearBindings();
   }
 

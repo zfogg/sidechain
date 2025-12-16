@@ -1,8 +1,19 @@
 #pragma once
 
+#include "../common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 class NetworkClient;
+
+namespace Sidechain {
+namespace Stores {
+class AppStore;
+struct AuthState;
+} // namespace Stores
+} // namespace Sidechain
+
+using namespace Sidechain::UI;
+using namespace Sidechain::Stores;
 
 //==============================================================================
 /**
@@ -16,9 +27,9 @@ class NetworkClient;
  * - Disable 2FA
  * - Regenerate backup codes
  */
-class TwoFactorSettings : public juce::Component, public juce::Button::Listener {
+class TwoFactorSettings : public AppStoreComponent<AuthState>, public juce::Button::Listener {
 public:
-  TwoFactorSettings();
+  TwoFactorSettings(AppStore *store = nullptr);
   ~TwoFactorSettings() override;
 
   //==============================================================================
@@ -42,6 +53,12 @@ public:
   void paint(juce::Graphics &g) override;
   void resized() override;
   void buttonClicked(juce::Button *button) override;
+
+protected:
+  //==============================================================================
+  // AppStoreComponent overrides
+  void onAppStateChanged(const AuthState &state) override;
+  void subscribeToAppStore() override;
 
 private:
   //==============================================================================

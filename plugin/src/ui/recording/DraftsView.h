@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../stores/AppStore.h"
+#include "../../ui/common/AppStoreComponent.h"
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -16,9 +17,10 @@
  * - Auto-recovery prompt at top
  * - Reactive updates from DraftStore
  */
-class DraftsView : public juce::Component, public juce::ScrollBar::Listener {
+class DraftsView : public Sidechain::UI::AppStoreComponent<Sidechain::Stores::DraftState>,
+                   public juce::ScrollBar::Listener {
 public:
-  DraftsView();
+  DraftsView(Sidechain::Stores::AppStore *store = nullptr);
   ~DraftsView() override;
 
   //==========================================================================
@@ -31,19 +33,6 @@ public:
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
   //==========================================================================
-  // Store binding (new reactive pattern)
-  /**
-   * Bind to DraftStore for automatic updates
-   * Uses the singleton DraftStore instance
-   */
-  void bindToStore();
-
-  /**
-   * Unbind from the store
-   */
-  void unbindFromStore();
-
-  //==========================================================================
   // Reload drafts list
   void refresh();
 
@@ -53,14 +42,13 @@ public:
   std::function<void()> onClose;                          // Close view
   std::function<void()> onNewRecording;                   // Start new recording
 
+protected:
+  void onAppStateChanged(const Sidechain::Stores::DraftState &state) override;
+  void subscribeToAppStore() override;
+
 private:
-  Sidechain::Stores::AppStore *appStore = nullptr;
   juce::Array<juce::var> drafts;
   bool hasRecoveryDraft = false;
-
-  // Store subscription
-  Sidechain::Stores::ScopedSubscription storeSubscription;
-  bool boundToStore = false;
 
   // UI State
   int hoveredDraftIndex = -1;
