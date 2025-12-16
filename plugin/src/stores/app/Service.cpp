@@ -14,39 +14,6 @@ namespace Stores {
 // Caches non-persistent data (users, posts, messages) with TTL-based expiration.
 // Binary assets (images, audio) use file caching instead (see Phase 2).
 
-template <typename T> std::optional<T> AppStore::getCached(const juce::String &key) {
-  std::lock_guard<std::mutex> lock(memoryCacheLock);
-
-  auto it = memoryCache.find(key);
-  if (it == memoryCache.end()) {
-    Util::logDebug("AppStore", "Cache miss: " + key);
-    return std::nullopt;
-  }
-
-  // Check if expired
-  if (isCacheExpired(it->second)) {
-    Util::logDebug("AppStore", "Cache expired: " + key);
-    memoryCache.erase(it);
-    return std::nullopt;
-  }
-
-  // Try to cast to requested type
-  try {
-    auto result = std::any_cast<T>(it->second.value);
-    Util::logDebug("AppStore", "Cache hit: " + key);
-    return result;
-  } catch (const std::bad_any_cast &) {
-    Util::logWarning("AppStore", "Cache type mismatch for key: " + key);
-    return std::nullopt;
-  }
-}
-
-template <typename T> void AppStore::setCached(const juce::String &key, const T &value, int ttlSeconds) {
-  std::lock_guard<std::mutex> lock(memoryCacheLock);
-  memoryCache[key] = CacheEntry{std::any(value), std::chrono::steady_clock::now(), ttlSeconds};
-  Util::logDebug("AppStore", "Cache set: " + key + " (TTL: " + juce::String(ttlSeconds) + "s)");
-}
-
 void AppStore::invalidateCache(const juce::String &key) {
   std::lock_guard<std::mutex> lock(memoryCacheLock);
   size_t erased = memoryCache.erase(key);
