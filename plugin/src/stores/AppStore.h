@@ -456,6 +456,105 @@ public:
    */
   rxcpp::observable<juce::Array<juce::var>> searchUsersObservable(const juce::String &query);
 
+  //==============================================================================
+  // Feed Service Operations (Memory Cache: 30-second TTL for frequent updates)
+
+  /**
+   * Load a feed by type with memory caching (Reactive).
+   *
+   * @param feedType Feed type (Timeline, Global, Trending, ForYou, etc.)
+   * @return rxcpp::observable<juce::var> - emits feed data when available
+   *
+   * Caching strategy:
+   * - Check memory cache for exact feed type (30 sec TTL)
+   * - If miss or expired, fetch from network
+   * - Cache result for 30 seconds (feeds update frequently)
+   * - Automatically invalidated by likePost/unlikePost/savePost mutations
+   */
+  rxcpp::observable<juce::var> loadFeedObservable(FeedType feedType);
+
+  /**
+   * Like a post with automatic cache invalidation (Reactive).
+   *
+   * @param postId Post ID to like
+   * @return rxcpp::observable<int> - emits 0 on success, completes with error on failure
+   *
+   * Side effects:
+   * - Optimistic update applied immediately
+   * - On success: Invalidates "feed:*" cache pattern
+   * - On error: Reverts optimistic update
+   *
+   * Cache invalidation strategy:
+   * - Invalidates "feed:*" pattern to refresh all feed caches
+   * - Allows WebSocket to repopulate with fresh data
+   */
+  rxcpp::observable<int> likePostObservable(const juce::String &postId);
+
+  //==============================================================================
+  // WebSocket Event Handlers for Real-Time Cache Invalidation (Phase 5)
+  //
+  // Called by PluginEditor when WebSocket messages arrive from backend.
+  // Each handler invalidates relevant cache entries to keep data fresh in real-time.
+
+  /**
+   * Handle WebSocket post update (like, repost, comment added to post).
+   * Invalidates post cache and feed caches.
+   *
+   * @param postId ID of the post that was updated
+   */
+  void onWebSocketPostUpdated(const juce::String &postId);
+
+  /**
+   * Handle WebSocket like count update for a post.
+   * Invalidates post cache and updates state if needed.
+   *
+   * @param postId ID of the post with updated like count
+   * @param likeCount New like count
+   */
+  void onWebSocketLikeCountUpdate(const juce::String &postId, int likeCount);
+
+  /**
+   * Handle WebSocket follower count update for a user.
+   * Invalidates user cache and updates state if needed.
+   *
+   * @param userId ID of the user with updated follower count
+   * @param followerCount New follower count
+   */
+  void onWebSocketFollowerCountUpdate(const juce::String &userId, int followerCount);
+
+  /**
+   * Handle WebSocket new post notification.
+   * Invalidates all feed caches so new post appears.
+   *
+   * @param postData Serialized post data from WebSocket
+   */
+  void onWebSocketNewPost(const juce::var &postData);
+
+  /**
+   * Handle WebSocket user profile update.
+   * Invalidates user cache.
+   *
+   * @param userId ID of the user with updated profile
+   */
+  void onWebSocketUserUpdated(const juce::String &userId);
+
+  /**
+   * Handle WebSocket new message notification.
+   * Invalidates message cache for the conversation.
+   *
+   * @param conversationId ID of the conversation with new message
+   */
+  void onWebSocketNewMessage(const juce::String &conversationId);
+
+  /**
+   * Handle WebSocket presence update (user online/offline).
+   * Updates presence state without full cache invalidation.
+   *
+   * @param userId ID of the user with updated presence
+   * @param isOnline Whether user is now online
+   */
+  void onWebSocketPresenceUpdate(const juce::String &userId, bool isOnline);
+
 protected:
   /**
    * Constructor

@@ -840,5 +840,171 @@ AggregatedFeedResponse AppStore::parseAggregatedJsonResponse(const juce::var &js
   return response;
 }
 
+//==============================================================================
+// Phase 4: Reactive Feed Service Operations with Memory Caching
+//
+// These methods implement loadFeedObservable() and likePostObservable()
+// using RxCpp observables with automatic cache invalidation strategies.
+
+rxcpp::observable<juce::var> AppStore::loadFeedObservable(FeedType feedType) {
+  return rxcpp::sources::create<juce::var>([this, feedType](auto observer) {
+    // Check memory cache first (30-second TTL for feeds)
+    auto cacheKey = "feed:" + feedTypeToString(feedType).toLowerCase();
+    if (auto cached = getCached<juce::var>(cacheKey)) {
+      Util::logDebug("AppStore", "Feed cache hit: " + cacheKey);
+      observer.on_next(*cached);
+      observer.on_completed();
+      return;
+    }
+
+    // Cache miss - fetch from network
+    if (!networkClient) {
+      Util::logError("AppStore", "Network client not initialized");
+      observer.on_next(juce::var());
+      observer.on_completed();
+      return;
+    }
+
+    Util::logDebug("AppStore", "Loading feed from network: " + feedTypeToString(feedType));
+
+    // Create callback to handle network response
+    auto callback = [this, feedType, cacheKey, observer](Outcome<juce::var> result) {
+      if (result.isOk()) {
+        // Cache the response (30 seconds for feeds - they update frequently)
+        auto data = result.getValue();
+        setCached<juce::var>(cacheKey, data, 30);
+        Util::logInfo("AppStore", "Feed loaded and cached: " + feedTypeToString(feedType));
+        observer.on_next(data);
+      } else {
+        Util::logError("AppStore", "Feed load failed: " + result.getError());
+        observer.on_next(juce::var());
+      }
+      observer.on_completed();
+    };
+
+    // Call the appropriate feed method based on feed type
+    if (feedType == FeedType::Timeline) {
+      networkClient->getTimelineFeed(20, 0, callback);
+    } else if (feedType == FeedType::Trending) {
+      networkClient->getTrendingFeed(20, 0, callback);
+    } else if (feedType == FeedType::Global) {
+      networkClient->getGlobalFeed(20, 0, callback);
+    } else if (feedType == FeedType::ForYou) {
+      networkClient->getForYouFeed(20, 0, callback);
+    } else if (feedType == FeedType::Popular) {
+      networkClient->getPopularFeed(20, 0, callback);
+    } else if (feedType == FeedType::Latest) {
+      networkClient->getLatestFeed(20, 0, callback);
+    } else if (feedType == FeedType::Discovery) {
+      networkClient->getDiscoveryFeed(20, 0, callback);
+    } else if (feedType == FeedType::TimelineAggregated) {
+      networkClient->getAggregatedTimeline(20, 0, callback);
+    } else if (feedType == FeedType::TrendingAggregated) {
+      networkClient->getTrendingFeedGrouped(20, 0, callback);
+    } else if (feedType == FeedType::NotificationAggregated) {
+      networkClient->getNotificationsAggregated(20, 0, callback);
+    } else if (feedType == FeedType::UserActivityAggregated) {
+      Util::logWarning("AppStore", "UserActivityAggregated requires userId - skipping");
+      observer.on_next(juce::var());
+      observer.on_completed();
+    } else {
+      Util::logError("AppStore", "Unknown feed type");
+      observer.on_next(juce::var());
+      observer.on_completed();
+    }
+  });
+}
+
+rxcpp::observable<int> AppStore::likePostObservable(const juce::String &postId) {
+  return rxcpp::sources::create<int>([this, postId](auto observer) {
+    if (!networkClient) {
+      Util::logError("AppStore", "Network client not initialized");
+      observer.on_error(std::make_exception_ptr(std::runtime_error("Network client not initialized")));
+      return;
+    }
+
+    // Check current like state from app state
+    auto state = getState();
+    bool isCurrentlyLiked = false;
+
+    for (const auto &[feedType, feedState] : state.posts.feeds) {
+      for (const auto &post : feedState.posts) {
+        if (post.id == postId) {
+          isCurrentlyLiked = post.isLiked;
+          break;
+        }
+      }
+    }
+
+    // Store previous state for rollback on error
+    auto previousState = isCurrentlyLiked;
+
+    // Apply optimistic update
+    updateFeedState([postId, isCurrentlyLiked](PostsState &state) {
+      for (auto &[feedType, feedState] : state.feeds) {
+        for (auto &post : feedState.posts) {
+          if (post.id == postId) {
+            post.isLiked = !post.isLiked;
+            post.likeCount += post.isLiked ? 1 : -1;
+          }
+        }
+      }
+    });
+
+    Util::logDebug("AppStore", "Like post optimistic update: " + postId);
+
+    // Send to server - like or unlike based on previous state
+    if (isCurrentlyLiked) {
+      networkClient->unlikePost(postId, [this, postId, previousState, observer](Outcome<juce::var> result) {
+        if (result.isOk()) {
+          Util::logInfo("AppStore", "Post unliked successfully: " + postId);
+          // Invalidate feed caches on successful unlike
+          invalidateCachePattern("feed:*");
+          observer.on_next(0);
+          observer.on_completed();
+        } else {
+          Util::logError("AppStore", "Failed to unlike post: " + result.getError());
+          // Rollback optimistic update on error
+          updateFeedState([postId, previousState](PostsState &state) {
+            for (auto &[feedType, feedState] : state.feeds) {
+              for (auto &post : feedState.posts) {
+                if (post.id == postId) {
+                  post.isLiked = previousState;
+                  post.likeCount += previousState ? 1 : -1;
+                }
+              }
+            }
+          });
+          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+        }
+      });
+    } else {
+      networkClient->likePost(postId, "", [this, postId, previousState, observer](Outcome<juce::var> result) {
+        if (result.isOk()) {
+          Util::logInfo("AppStore", "Post liked successfully: " + postId);
+          // Invalidate feed caches on successful like
+          invalidateCachePattern("feed:*");
+          observer.on_next(0);
+          observer.on_completed();
+        } else {
+          Util::logError("AppStore", "Failed to like post: " + result.getError());
+          // Rollback optimistic update on error
+          updateFeedState([postId, previousState](PostsState &state) {
+            for (auto &[feedType, feedState] : state.feeds) {
+              for (auto &post : feedState.posts) {
+                if (post.id == postId) {
+                  post.isLiked = previousState;
+                  post.likeCount += previousState ? 1 : -1;
+                }
+              }
+            }
+          });
+          observer.on_error(std::make_exception_ptr(std::runtime_error(result.getError().toStdString())));
+        }
+      });
+    }
+  });
+}
+
 } // namespace Stores
 } // namespace Sidechain
