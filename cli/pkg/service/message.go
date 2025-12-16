@@ -193,6 +193,99 @@ func (ms *MessageService) displayConversationList(threads *api.ThreadListRespons
 	fmt.Printf("\nShowing %d of %d conversations\n\n", len(threads.Threads), threads.TotalCount)
 }
 
+// SearchMessages searches for messages containing a query string
+func (ms *MessageService) SearchMessages(query string, page, pageSize int) error {
+	logger.Debug("Searching messages", "query", query)
+
+	if query == "" {
+		return fmt.Errorf("search query is required")
+	}
+
+	// Get all conversations and search through them
+	threads, err := api.GetConversations(1, 100)
+	if err != nil {
+		logger.Error("Failed to fetch conversations", "error", err)
+		return err
+	}
+
+	fmt.Printf("\n🔍 Searching for: \"%s\"\n", query)
+	fmt.Println(strings.Repeat("─", 60))
+
+	matchCount := 0
+	for _, thread := range threads.Threads {
+		messages, err := api.GetUserThread(thread.Participant.ID, 1, 100)
+		if err != nil {
+			continue
+		}
+
+		for _, msg := range messages.Messages {
+			if strings.Contains(strings.ToLower(msg.Content), strings.ToLower(query)) {
+				matchCount++
+				preview := msg.Content
+				if len(preview) > 50 {
+					preview = preview[:47] + "..."
+				}
+				fmt.Printf("@%s: %s\n", msg.Sender.Username, preview)
+				fmt.Printf("  Date: %s\n\n", msg.CreatedAt.Format("2006-01-02 15:04:05"))
+			}
+		}
+	}
+
+	if matchCount == 0 {
+		fmt.Printf("No messages found containing \"%s\"\n\n", query)
+	} else {
+		fmt.Printf("Found %d matching message(s)\n\n", matchCount)
+	}
+
+	return nil
+}
+
+// ClearConversation clears the message history with a specific user
+func (ms *MessageService) ClearConversation(username string) error {
+	logger.Debug("Clearing conversation", "username", username)
+
+	// Get user ID from username
+	userProfile, err := api.GetUserProfile(username)
+	if err != nil {
+		logger.Error("Failed to find user", "error", err)
+		return fmt.Errorf("user '%s' not found", username)
+	}
+
+	// Get all messages in thread
+	messages, err := api.GetUserThread(userProfile.ID, 1, 1000)
+	if err != nil {
+		logger.Error("Failed to fetch messages", "error", err)
+		return err
+	}
+
+	if len(messages.Messages) == 0 {
+		fmt.Printf("No messages to clear with %s\n", username)
+		return nil
+	}
+
+	fmt.Printf("This will delete %d message(s) with @%s.\n", len(messages.Messages), username)
+	fmt.Print("Are you sure? (y/n): ")
+
+	var confirm string
+	fmt.Scanln(&confirm)
+
+	if confirm != "y" && confirm != "yes" {
+		fmt.Println("Cancelled.")
+		return nil
+	}
+
+	deletedCount := 0
+	for _, msg := range messages.Messages {
+		err := api.DeleteMessage(msg.ID)
+		if err == nil {
+			deletedCount++
+		}
+	}
+
+	fmt.Printf("✓ Deleted %d message(s)\n", deletedCount)
+	return nil
+}
+
 // displayMessageThread displays a message thread
 func (ms *MessageService) displayMessageThread(username string, messages *api.MessageListResponse) {
 	fmt.Printf("\n💬 Messages with @%s (Page %d)\n", username, messages.Page)

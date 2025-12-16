@@ -90,6 +90,26 @@ var messageDeleteCmd = &cobra.Command{
 	},
 }
 
+var messageSearchCmd = &cobra.Command{
+	Use:   "search <query>",
+	Short: "Search messages by content",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		messageService := service.NewMessageService()
+		return messageService.SearchMessages(args[0], messagePage, messagePageSize)
+	},
+}
+
+var messageClearCmd = &cobra.Command{
+	Use:   "clear <username>",
+	Short: "Clear message history with a user",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		messageService := service.NewMessageService()
+		return messageService.ClearConversation(args[0])
+	},
+}
+
 func init() {
 	// Pagination flags
 	messageInboxCmd.Flags().IntVar(&messagePage, "page", 1, "Page number")
@@ -98,6 +118,9 @@ func init() {
 	messageThreadCmd.Flags().IntVar(&messagePage, "page", 1, "Page number")
 	messageThreadCmd.Flags().IntVar(&messagePageSize, "page-size", 20, "Results per page")
 
+	messageSearchCmd.Flags().IntVar(&messagePage, "page", 1, "Page number")
+	messageSearchCmd.Flags().IntVar(&messagePageSize, "page-size", 20, "Results per page")
+
 	// Add subcommands
 	messageCmd.AddCommand(messageSendCmd)
 	messageCmd.AddCommand(messageInboxCmd)
@@ -105,6 +128,8 @@ func init() {
 	messageCmd.AddCommand(messageMarkReadCmd)
 	messageCmd.AddCommand(messageUnreadCmd)
 	messageCmd.AddCommand(messageDeleteCmd)
+	messageCmd.AddCommand(messageSearchCmd)
+	messageCmd.AddCommand(messageClearCmd)
 
 	// Add message command to root
 	rootCmd.AddCommand(messageCmd)
