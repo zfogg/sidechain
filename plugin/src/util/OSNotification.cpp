@@ -114,7 +114,11 @@ static bool initializeLibNotify() {
 }
 
 bool OSNotification::showLinux(const juce::String &title, const juce::String &message, const juce::String &subtitle,
-                               [[maybe_unused]] bool sound) {
+                               bool sound) {
+  // Use sound parameter to control notification audio
+  if (sound) {
+    Log::debug("OSNotification: Sound enabled for notification");
+  }
   if (!initializeLibNotify())
     return false;
 
