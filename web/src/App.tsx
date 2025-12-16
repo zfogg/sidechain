@@ -22,6 +22,8 @@ const Notifications = lazy(() => import('@/pages/Notifications').then(m => ({ de
 const Messages = lazy(() => import('@/pages/Messages').then(m => ({ default: m.Messages })))
 const Search = lazy(() => import('@/pages/Search').then(m => ({ default: m.Search })))
 const Discovery = lazy(() => import('@/pages/Discovery').then(m => ({ default: m.Discovery })))
+const Playlists = lazy(() => import('@/pages/Playlists').then(m => ({ default: m.Playlists })))
+const PlaylistDetail = lazy(() => import('@/pages/PlaylistDetail').then(m => ({ default: m.PlaylistDetail })))
 
 /**
  * ProtectedRoute - Route guard that redirects to login if not authenticated
@@ -146,6 +148,29 @@ function AppContent() {
             <ProtectedRoute>
               <Suspense fallback={<RouteLoader />}>
                 <Profile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Playlists Routes (Protected) */}
+        <Route
+          path="/playlists"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<RouteLoader />}>
+                <Playlists />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/playlists/:playlistId"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<RouteLoader />}>
+                <PlaylistDetail />
               </Suspense>
             </ProtectedRoute>
           }

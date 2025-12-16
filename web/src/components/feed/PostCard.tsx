@@ -7,6 +7,7 @@ import { createAudioPlayer, formatTime, formatGenres, type AudioPlayer } from '@
 import { useUIStore } from '@/stores/useUIStore'
 import { CommentsPanel } from '@/components/comments/CommentsPanel'
 import { ReportButton } from '@/components/report/ReportButton'
+import { AddToPlaylistDialog } from '@/components/playlists/AddToPlaylistDialog'
 
 interface PostCardProps {
   post: FeedPost
@@ -28,6 +29,7 @@ export function PostCard({ post }: PostCardProps) {
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [isCommentsPanelOpen, setIsCommentsPanelOpen] = useState(false)
+  const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false)
   const playerRef = useRef<AudioPlayer | null>(null)
   const animationRef = useRef<number | null>(null)
 
@@ -302,6 +304,17 @@ export function PostCard({ post }: PostCardProps) {
           <span className="hidden sm:inline">Save</span>
         </Button>
 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsAddToPlaylistOpen(true)}
+          className="flex-1 gap-2"
+          title="Add to Playlist"
+        >
+          <span>🎵</span>
+          <span className="hidden sm:inline">Add</span>
+        </Button>
+
         <ReportButton
           type="post"
           targetId={post.id}
@@ -318,6 +331,13 @@ export function PostCard({ post }: PostCardProps) {
         postId={post.id}
         isOpen={isCommentsPanelOpen}
         onOpenChange={setIsCommentsPanelOpen}
+      />
+
+      {/* Add to Playlist Dialog */}
+      <AddToPlaylistDialog
+        postId={post.id}
+        isOpen={isAddToPlaylistOpen}
+        onOpenChange={setIsAddToPlaylistOpen}
       />
     </>
   )

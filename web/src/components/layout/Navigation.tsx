@@ -64,6 +64,14 @@ export function Navigation() {
               Upload
             </Button>
             <Button
+              variant={isActive('/playlists') ? 'default' : 'ghost'}
+              onClick={() => navigate('/playlists')}
+              className="gap-2"
+            >
+              <span>🎵</span>
+              Playlists
+            </Button>
+            <Button
               variant={isActive('/messages') ? 'default' : 'ghost'}
               onClick={() => navigate('/messages')}
               className="gap-2"
