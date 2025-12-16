@@ -226,7 +226,8 @@ void BufferAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSa
   }
 
   // Update position
-  juce::int64 newPos = static_cast<juce::int64>(currentPos + resamplingRatio * numSamples);
+  juce::int64 newPos =
+      static_cast<juce::int64>(static_cast<double>(currentPos) + resamplingRatio * static_cast<double>(numSamples));
   newPos = juce::jlimit<juce::int64>(0, totalSamples, newPos);
   currentSamplePosition = newPos;
 

@@ -153,8 +153,8 @@ void SelectHighlightDialog::drawHighlightItem(juce::Graphics &g, const StoryHigh
   // Add indicator on right
   auto addBounds = bounds.removeFromRight(30).withSizeKeepingCentre(20, 20);
   g.setColour(SidechainColors::primary());
-  float cx = addBounds.getCentreX();
-  float cy = addBounds.getCentreY();
+  float cx = static_cast<float>(addBounds.getCentreX());
+  float cy = static_cast<float>(addBounds.getCentreY());
   g.drawLine(cx - 6, cy, cx + 6, cy, 2.0f);
   g.drawLine(cx, cy - 6, cx, cy + 6, 2.0f);
 }
@@ -174,8 +174,8 @@ void SelectHighlightDialog::drawCreateNewItem(juce::Graphics &g, juce::Rectangle
   g.drawEllipse(iconBounds.toFloat(), 2.0f);
 
   // Plus sign
-  float cx = iconBounds.getCentreX();
-  float cy = iconBounds.getCentreY();
+  float cx = static_cast<float>(iconBounds.getCentreX());
+  float cy = static_cast<float>(iconBounds.getCentreY());
   g.drawLine(cx - 8, cy, cx + 8, cy, 2.5f);
   g.drawLine(cx, cy - 8, cx, cy + 8, 2.5f);
 

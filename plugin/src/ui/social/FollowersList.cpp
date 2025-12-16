@@ -15,7 +15,7 @@ FollowUserRow::FollowUserRow() {
   setSize(400, ROW_HEIGHT);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this](bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 }
 
 void FollowUserRow::setUser(const FollowListUser &newUser) {

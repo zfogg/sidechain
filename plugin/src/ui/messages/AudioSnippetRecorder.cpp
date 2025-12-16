@@ -158,7 +158,7 @@ void AudioSnippetRecorder::drawTimer(juce::Graphics &g) {
     g.fillRect(progressBar);
 
     g.setColour(progress > 0.9f ? juce::Colour(0xffff0000) : SidechainColors::primary());
-    g.fillRect(progressBar.withWidth(static_cast<int>(progressBar.getWidth() * progress)));
+    g.fillRect(progressBar.withWidth(static_cast<int>(static_cast<float>(progressBar.getWidth()) * progress)));
   }
 }
 
@@ -175,15 +175,18 @@ void AudioSnippetRecorder::drawWaveform(juce::Graphics &g) {
     // Draw animated bars (simplified - in real implementation, use actual audio
     // levels)
     int numBars = 20;
-    float barWidth = static_cast<float>(waveformArea.getWidth()) / numBars;
+    float barWidth = static_cast<float>(waveformArea.getWidth()) / static_cast<float>(numBars);
     float maxHeight = static_cast<float>(waveformArea.getHeight());
 
     for (int i = 0; i < numBars; ++i) {
-      float height = maxHeight * (0.3f + 0.7f * std::sin((i * 0.5f + juce::Time::currentTimeMillis() * 0.01f) * 0.1f));
+      float height = maxHeight * (0.3f + 0.7f * std::sin((static_cast<float>(i) * 0.5f +
+                                                          static_cast<float>(juce::Time::currentTimeMillis()) * 0.01f) *
+                                                         0.1f));
       height = juce::jlimit(2.0f, maxHeight, height);
 
-      auto bar = juce::Rectangle<float>(waveformArea.getX() + i * barWidth + 2,
-                                        waveformArea.getY() + (maxHeight - height) * 0.5f, barWidth - 4, height);
+      auto bar = juce::Rectangle<float>(static_cast<float>(waveformArea.getX()) + static_cast<float>(i) * barWidth + 2,
+                                        static_cast<float>(waveformArea.getY()) + (maxHeight - height) * 0.5f,
+                                        barWidth - 4, height);
 
       g.setColour(SidechainColors::primary());
       g.fillRoundedRectangle(bar, 2.0f);
@@ -233,7 +236,7 @@ juce::Path AudioSnippetRecorder::generateWaveformPath(const juce::AudioBuffer<fl
 
   float width = static_cast<float>(bounds.getWidth());
   float height = static_cast<float>(bounds.getHeight());
-  float centerY = bounds.getY() + height * 0.5f;
+  float centerY = static_cast<float>(bounds.getY()) + height * 0.5f;
 
   // Sample the buffer (take every Nth sample for performance)
   int step = juce::jmax(1, numSamples / static_cast<int>(width));
@@ -242,7 +245,7 @@ juce::Path AudioSnippetRecorder::generateWaveformPath(const juce::AudioBuffer<fl
 
   for (int i = 0; i < numSamples; i += step) {
     float sample = buffer.getSample(channelToUse, i);
-    float x = bounds.getX() + (static_cast<float>(i) / numSamples) * width;
+    float x = static_cast<float>(bounds.getX()) + (static_cast<float>(i) / static_cast<float>(numSamples)) * width;
     float y = centerY - sample * height * 0.4f;
 
     if (i == 0)
@@ -367,7 +370,7 @@ void AudioSnippetRecorder::sendRecording() {
 double AudioSnippetRecorder::getRecordingDuration() const {
   if (currentState == State::Recording) {
     juce::int64 elapsed = juce::Time::currentTimeMillis() - recordingStartTime.toMilliseconds();
-    return elapsed / 1000.0;
+    return static_cast<double>(elapsed) / 1000.0;
   } else if (currentState == State::Preview && recordedAudio.getNumSamples() > 0) {
     return static_cast<double>(recordedAudio.getNumSamples()) / recordedSampleRate;
   }

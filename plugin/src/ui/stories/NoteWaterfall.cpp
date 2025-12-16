@@ -146,13 +146,13 @@ void NoteWaterfall::drawBackground(juce::Graphics &g) {
   g.setColour(WaterfallColors::gridLine);
   for (int i = 0; i <= numNotes; ++i) {
     float x = static_cast<float>(i) * noteWidth;
-    g.drawVerticalLine(static_cast<int>(x), 0, bounds.getBottom());
+    g.drawVerticalLine(static_cast<int>(x), 0.0f, static_cast<float>(bounds.getBottom()));
   }
 
   // Horizontal "catch line" near bottom where notes land
   float catchLineY = static_cast<float>(bounds.getHeight()) * 0.9f;
   g.setColour(WaterfallColors::noteDefault.withAlpha(0.3f));
-  g.drawHorizontalLine(static_cast<int>(catchLineY), 0, bounds.getRight());
+  g.drawHorizontalLine(static_cast<int>(catchLineY), 0.0f, static_cast<float>(bounds.getRight()));
 }
 
 void NoteWaterfall::drawKeyIndicators(juce::Graphics &g) {
@@ -292,7 +292,7 @@ void NoteWaterfall::drawActiveNotesGlow(juce::Graphics &g) {
 
     // Bright line at catch point
     g.setColour(noteColor.withAlpha(0.8f));
-    g.fillRect(x + 2, catchLineY - 3, noteWidth - 4, 6.0f);
+    g.fillRect(x + 2.0f, catchLineY - 3.0f, noteWidth - 4.0f, 6.0f);
   }
 }
 

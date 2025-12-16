@@ -285,7 +285,7 @@ void HttpAudioPlayer::processBlock(juce::AudioBuffer<float> &buffer, int numSamp
         // Handle auto-play
         if (autoPlayEnabled) {
           int nextIndex = getCurrentPlaylistIndex() + 1;
-          const juce::ScopedLock sl(playlistLock);
+          const juce::ScopedLock playlistSl(playlistLock);
           if (nextIndex >= 0 && nextIndex < playlistPostIds.size()) {
             // Play next post
             juce::String nextPostId = playlistPostIds[nextIndex];

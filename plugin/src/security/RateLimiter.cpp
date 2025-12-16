@@ -80,7 +80,7 @@ RateLimitStatus TokenBucketLimiter::getStatus(const juce::String &identifier) co
 
 size_t TokenBucketLimiter::getTrackedCount() const {
   std::lock_guard<std::mutex> lock(mutex_);
-  return buckets_.size();
+  return static_cast<size_t>(buckets_.size());
 }
 
 void TokenBucketLimiter::cleanup() {
@@ -96,7 +96,7 @@ void TokenBucketLimiter::cleanup() {
     }
 
     // Stop if we're under max size
-    if (buckets_.size() < config_.maxTrackedIdentifiers)
+    if (static_cast<size_t>(buckets_.size()) < config_.maxTrackedIdentifiers)
       break;
   }
 
@@ -211,7 +211,7 @@ RateLimitStatus SlidingWindowLimiter::getStatus(const juce::String &identifier) 
 
 size_t SlidingWindowLimiter::getTrackedCount() const {
   std::lock_guard<std::mutex> lock(mutex_);
-  return windows_.size();
+  return static_cast<size_t>(windows_.size());
 }
 
 void SlidingWindowLimiter::cleanup() {
@@ -227,7 +227,7 @@ void SlidingWindowLimiter::cleanup() {
       keysToRemove.add(it.getKey());
     }
 
-    if (windows_.size() < config_.maxTrackedIdentifiers)
+    if (static_cast<size_t>(windows_.size()) < config_.maxTrackedIdentifiers)
       break;
   }
 

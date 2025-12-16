@@ -137,6 +137,9 @@ void Playlists::loadPlaylists() {
 
   juce::String filter;
   switch (currentFilter) {
+  case FilterType::All:
+    filter = "all";
+    break;
   case FilterType::Owned:
     filter = "owned";
     break;
@@ -145,9 +148,6 @@ void Playlists::loadPlaylists() {
     break;
   case FilterType::Public:
     filter = "public";
-    break;
-  default:
-    filter = "all";
     break;
   }
 

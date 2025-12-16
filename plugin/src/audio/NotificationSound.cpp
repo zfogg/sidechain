@@ -111,7 +111,7 @@ bool NotificationSound::tryPlaySystemSound() {
   }
 
   // Get duration before moving reader
-  double duration = reader->lengthInSamples / reader->sampleRate;
+  double duration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
 
   // Create audio source from the file (reader is moved into the source)
   beepSource = std::make_unique<juce::AudioFormatReaderSource>(reader.release(), true);

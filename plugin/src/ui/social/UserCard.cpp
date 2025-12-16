@@ -10,7 +10,7 @@ UserCard::UserCard() {
   setInterceptsMouseClicks(true, true);
 
   // Set up hover state
-  hoverState.onHoverChanged = [this](bool hovered) { repaint(); };
+  hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 }
 
 UserCard::~UserCard() {}

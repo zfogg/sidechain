@@ -289,8 +289,8 @@ void StoryViewer::setStories(const std::vector<StoryData> &newStories, int start
 
   // Mark previous stories as complete
   for (int i = 0; i < currentStoryIndex; ++i) {
-    progressSegments[i].progress = 1.0f;
-    progressSegments[i].completed = true;
+    progressSegments[static_cast<size_t>(i)].progress = 1.0f;
+    progressSegments[static_cast<size_t>(i)].completed = true;
   }
 
   loadCurrentStory();
@@ -300,8 +300,8 @@ void StoryViewer::showNextStory() {
   if (currentStoryIndex < static_cast<int>(stories.size()) - 1) {
     // Mark current as complete
     if (currentStoryIndex >= 0 && currentStoryIndex < static_cast<int>(progressSegments.size())) {
-      progressSegments[currentStoryIndex].progress = 1.0f;
-      progressSegments[currentStoryIndex].completed = true;
+      progressSegments[static_cast<size_t>(currentStoryIndex)].progress = 1.0f;
+      progressSegments[static_cast<size_t>(currentStoryIndex)].completed = true;
     }
 
     currentStoryIndex++;
@@ -320,8 +320,8 @@ void StoryViewer::showPreviousStory() {
     currentStoryIndex--;
     // Reset progress for stories after current
     for (int i = currentStoryIndex; i < static_cast<int>(progressSegments.size()); ++i) {
-      progressSegments[i].progress = 0.0f;
-      progressSegments[i].completed = false;
+      progressSegments[static_cast<size_t>(i)].progress = 0.0f;
+      progressSegments[static_cast<size_t>(i)].completed = false;
     }
     loadCurrentStory();
   }
@@ -428,9 +428,9 @@ void StoryViewer::drawProgressBar(juce::Graphics &g) {
     g.fillRoundedRectangle(segmentBounds.toFloat(), 2.0f);
 
     // Progress
-    float progress = progressSegments[i].progress;
+    float progress = progressSegments[static_cast<size_t>(i)].progress;
     if (progress > 0) {
-      auto progressBounds = segmentBounds.withWidth(static_cast<int>(segmentWidth * progress));
+      auto progressBounds = segmentBounds.withWidth(static_cast<int>(static_cast<float>(segmentWidth) * progress));
       g.setColour(StoryViewerColors::progressFg);
       g.fillRoundedRectangle(progressBounds.toFloat(), 2.0f);
     }
@@ -483,17 +483,17 @@ void StoryViewer::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {
     g.strokePath(currentWaveformPath, juce::PathStrokeType(1.5f));
   } else {
     // Placeholder waveform visualization while loading
-    float centerY = bounds.getCentreY();
-    float amplitude = bounds.getHeight() * 0.4f;
+    float centerY = static_cast<float>(bounds.getCentreY());
+    float amplitude = static_cast<float>(bounds.getHeight()) * 0.4f;
 
     juce::Path wavePath;
-    wavePath.startNewSubPath(bounds.getX(), centerY);
+    wavePath.startNewSubPath(static_cast<float>(bounds.getX()), centerY);
 
     for (int x = bounds.getX(); x < bounds.getRight(); x += 2) {
-      float progress = static_cast<float>(x - bounds.getX()) / bounds.getWidth();
+      float progress = static_cast<float>(x - bounds.getX()) / static_cast<float>(bounds.getWidth());
       float wave = std::sin(progress * 30.0f) * amplitude * (0.3f + progress * 0.7f);
 
-      wavePath.lineTo(x, centerY + wave);
+      wavePath.lineTo(static_cast<float>(x), centerY + wave);
     }
 
     g.setColour(StoryViewerColors::waveformColor.withAlpha(0.3f));
@@ -502,9 +502,11 @@ void StoryViewer::drawWaveform(juce::Graphics &g, juce::Rectangle<int> bounds) {
 
   // Playback position indicator
   if (storyDuration > 0) {
-    float positionX = bounds.getX() + (playbackPosition / storyDuration) * bounds.getWidth();
+    float positionX = static_cast<float>(bounds.getX()) +
+                      static_cast<float>(playbackPosition / storyDuration) * static_cast<float>(bounds.getWidth());
     g.setColour(StoryViewerColors::progressFg);
-    g.drawVerticalLine(static_cast<int>(positionX), bounds.getY(), bounds.getBottom());
+    g.drawVerticalLine(static_cast<int>(positionX), static_cast<float>(bounds.getY()),
+                       static_cast<float>(bounds.getBottom()));
   }
 }
 
@@ -1008,7 +1010,8 @@ void StoryViewer::updateProgress() {
     return;
 
   if (storyDuration > 0) {
-    progressSegments[currentStoryIndex].progress = static_cast<float>(playbackPosition / storyDuration);
+    progressSegments[static_cast<size_t>(currentStoryIndex)].progress =
+        static_cast<float>(playbackPosition / storyDuration);
   }
 }
 
@@ -1017,8 +1020,8 @@ void StoryViewer::onStoryComplete() {
 
   // Mark as complete
   if (currentStoryIndex >= 0 && currentStoryIndex < static_cast<int>(progressSegments.size())) {
-    progressSegments[currentStoryIndex].progress = 1.0f;
-    progressSegments[currentStoryIndex].completed = true;
+    progressSegments[static_cast<size_t>(currentStoryIndex)].progress = 1.0f;
+    progressSegments[static_cast<size_t>(currentStoryIndex)].completed = true;
   }
 
   // Auto-advance to next story
@@ -1027,7 +1030,7 @@ void StoryViewer::onStoryComplete() {
 
 const StoryData *StoryViewer::getCurrentStory() const {
   if (currentStoryIndex >= 0 && currentStoryIndex < static_cast<int>(stories.size())) {
-    return &stories[currentStoryIndex];
+    return &stories[static_cast<size_t>(currentStoryIndex)];
   }
   return nullptr;
 }

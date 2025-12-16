@@ -48,7 +48,7 @@ void ToastNotification::paint(juce::Graphics &g) {
   if (!dismissing && duration > 0) {
     int64_t elapsed = juce::Time::currentTimeMillis() - createTime;
     float progress = juce::jmin(1.0f, static_cast<float>(elapsed) / static_cast<float>(duration));
-    float barWidth = getWidth() * (1.0f - progress);
+    float barWidth = static_cast<float>(getWidth()) * (1.0f - progress);
 
     g.setColour(getIconColor().withAlpha(alpha * 0.3f));
     g.fillRect(0.0f, static_cast<float>(getHeight() - 3), barWidth, 3.0f);
