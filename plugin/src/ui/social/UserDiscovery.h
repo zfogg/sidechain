@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UserCard.h"
-#include "../../stores/UserStore.h"
+#include "../../stores/AppStore.h"
 #include <JuceHeader.h>
 #include <memory>
 
@@ -29,7 +29,7 @@ public:
   // Store and network client integration
   void setNetworkClient(NetworkClient *client);
   void setStreamChatClient(StreamChatClient *client);
-  void setUserStore(std::shared_ptr<Sidechain::Stores::UserStore> store);
+  void setUserStore(std::shared_ptr<Sidechain::Stores::AppStore> store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -75,7 +75,7 @@ private:
   // Data
   NetworkClient *networkClient = nullptr;
   StreamChatClient *streamChatClient = nullptr;
-  std::shared_ptr<Sidechain::Stores::UserStore> userStore;
+  std::shared_ptr<Sidechain::Stores::AppStore> userStore;
   std::function<void()> storeUnsubscriber;
   juce::String currentUserId;
 

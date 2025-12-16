@@ -32,7 +32,7 @@ StoriesFeed::~StoriesFeed() {
 
 //==============================================================================
 // Store integration methods
-void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store) {
+void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store) {
   Log::debug("StoriesFeed: Binding to StoriesStore");
 
   storiesStore = store;
@@ -41,42 +41,47 @@ void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> s
 
   // Subscribe to store changes
   juce::Component::SafePointer<StoriesFeed> safeThis(this);
-  storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::StoriesState &state) {
+  storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::AppState &appState) {
     if (!safeThis)
       return;
 
+    const auto &state = appState.stories;
     auto groups = state.feedUserStories;
 
     juce::MessageManager::callAsync([safeThis, groups]() {
       if (!safeThis)
         return;
 
-      // Convert store format to UI format
       std::vector<UserStories> newUserStoriesGroups;
-      for (const auto &group : groups) {
+      for (int i = 0; i < groups.size(); ++i) {
+        const auto &groupVar = groups[i];
         UserStories uiGroup;
-        uiGroup.userId = group.userId;
-        uiGroup.username = group.username;
-        uiGroup.avatarUrl = group.avatarUrl;
-        uiGroup.hasUnviewed = group.hasUnviewed;
+        uiGroup.userId = groupVar.getProperty("user_id", "").toString();
+        uiGroup.username = groupVar.getProperty("username", "").toString();
+        uiGroup.avatarUrl = groupVar.getProperty("avatar_url", "").toString();
+        uiGroup.hasUnviewed = static_cast<bool>(groupVar.getProperty("has_unviewed", false));
 
-        for (const auto &story : group.stories) {
-          StoryData uiStory;
-          uiStory.id = story.id;
-          uiStory.userId = story.userId;
-          uiStory.username = story.username;
-          uiStory.userAvatarUrl = story.userAvatarUrl;
-          uiStory.audioUrl = story.audioUrl;
-          uiStory.filename = story.filename;
-          uiStory.midiFilename = story.midiFilename;
-          uiStory.audioDuration = story.audioDuration;
-          uiStory.midiData = story.midiData;
-          uiStory.midiPatternId = story.midiPatternId;
-          uiStory.viewCount = story.viewCount;
-          uiStory.viewed = story.viewed;
-          uiStory.expiresAt = story.expiresAt;
-          uiStory.createdAt = story.createdAt;
-          uiGroup.stories.push_back(uiStory);
+        auto storiesArray = groupVar.getProperty("stories", juce::var());
+        if (storiesArray.isArray()) {
+          for (int j = 0; j < storiesArray.size(); ++j) {
+            const auto &storyVar = storiesArray[j];
+            StoryData uiStory;
+            uiStory.id = storyVar.getProperty("id", "").toString();
+            uiStory.userId = storyVar.getProperty("user_id", "").toString();
+            uiStory.username = storyVar.getProperty("username", "").toString();
+            uiStory.userAvatarUrl = storyVar.getProperty("user_avatar_url", "").toString();
+            uiStory.audioUrl = storyVar.getProperty("audio_url", "").toString();
+            uiStory.filename = storyVar.getProperty("filename", "").toString();
+            uiStory.midiFilename = storyVar.getProperty("midi_filename", "").toString();
+            uiStory.audioDuration = static_cast<float>(storyVar.getProperty("audio_duration", 0.0));
+            uiStory.midiData = storyVar.getProperty("midi_data", juce::var());
+            uiStory.midiPatternId = storyVar.getProperty("midi_pattern_id", "").toString();
+            uiStory.viewCount = static_cast<int>(storyVar.getProperty("view_count", 0));
+            uiStory.viewed = static_cast<bool>(storyVar.getProperty("viewed", false));
+            uiStory.expiresAt = juce::Time::fromISO8601(storyVar.getProperty("expires_at", "").toString());
+            uiStory.createdAt = juce::Time::fromISO8601(storyVar.getProperty("created_at", "").toString());
+            uiGroup.stories.push_back(uiStory);
+          }
         }
         newUserStoriesGroups.push_back(uiGroup);
       }
@@ -86,7 +91,7 @@ void StoriesFeed::bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> s
     });
   });
 
-  Log::debug("StoriesFeed: Successfully bound to StoriesStore");
+  Log::debug("StoriesFeed: Successfully bound to AppStore");
 }
 
 void StoriesFeed::unbindFromStore() {
@@ -95,7 +100,7 @@ void StoriesFeed::unbindFromStore() {
     storeUnsubscriber = nullptr;
   }
   storiesStore = nullptr;
-  Log::debug("StoriesFeed: Unbound from StoriesStore");
+  Log::debug("StoriesFeed: Unbound from AppStore");
 }
 
 //==============================================================================

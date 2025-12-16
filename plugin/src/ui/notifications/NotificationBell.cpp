@@ -1,5 +1,4 @@
 #include "NotificationBell.h"
-#include "../../stores/NotificationStore.h"
 #include "../../util/Log.h"
 
 //==============================================================================
@@ -10,64 +9,7 @@ NotificationBell::NotificationBell() {
   hoverState.onHoverChanged = [this]([[maybe_unused]] bool hovered) { repaint(); };
 }
 
-NotificationBell::~NotificationBell() {
-  unbindFromStore();
-}
-
-//==============================================================================
-void NotificationBell::bindToStore(std::shared_ptr<Sidechain::Stores::NotificationStore> store) {
-  if (store == notificationStore) {
-    return; // Already bound to this store
-  }
-
-  // Unbind from previous store if any
-  unbindFromStore();
-
-  notificationStore = store;
-
-  if (notificationStore) {
-    // Subscribe to store state changes
-    storeSubscription = notificationStore->subscribe(
-        [this](const Sidechain::Stores::NotificationState &state) { handleStoreStateChanged(state); });
-
-    Log::debug("NotificationBell: Bound to NotificationStore");
-  }
-}
-
-void NotificationBell::unbindFromStore() {
-  storeSubscription.reset();
-  notificationStore = nullptr;
-}
-
-void NotificationBell::handleStoreStateChanged(const Sidechain::Stores::NotificationState &state) {
-  // Update local state from store
-  bool needsRepaint = false;
-
-  if (unseenCount != state.unseenCount) {
-    unseenCount = state.unseenCount;
-    needsRepaint = true;
-  }
-
-  if (unreadCount != state.unreadCount) {
-    unreadCount = state.unreadCount;
-    needsRepaint = true;
-  }
-
-  if (followRequestCount != state.followRequestCount) {
-    followRequestCount = state.followRequestCount;
-    needsRepaint = true;
-  }
-
-  if (needsRepaint) {
-    // Ensure we repaint on the message thread using SafePointer for safety
-    juce::Component::SafePointer<NotificationBell> safeThis(this);
-    juce::MessageManager::callAsync([safeThis]() {
-      if (safeThis != nullptr) {
-        safeThis->repaint();
-      }
-    });
-  }
-}
+NotificationBell::~NotificationBell() = default;
 
 //==============================================================================
 void NotificationBell::setUnseenCount(int count) {
@@ -95,13 +37,6 @@ void NotificationBell::setFollowRequestCount(int count) {
 }
 
 void NotificationBell::clearBadge() {
-  // Prefer using store if bound
-  if (notificationStore) {
-    notificationStore->markAllSeen();
-    return;
-  }
-
-  // Legacy fallback
   if (unseenCount != 0) {
     unseenCount = 0;
     repaint();
@@ -236,11 +171,6 @@ void NotificationBell::mouseExit(const juce::MouseEvent &) {
 }
 
 void NotificationBell::mouseDown(const juce::MouseEvent &) {
-  // Mark notifications as seen when bell is clicked
-  if (notificationStore) {
-    notificationStore->markAllSeen();
-  }
-
   if (onBellClicked)
     onBellClicked();
 }

@@ -72,6 +72,34 @@ std::function<void()> AppStore::subscribeToChat(std::function<void(const ChatSta
   return [this, subscriberId]() { chatSubscribers.erase(subscriberId); };
 }
 
+std::function<void()> AppStore::subscribeToDrafts(std::function<void(const DraftState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  draftSubscribers[subscriberId] = callback;
+
+  // Call immediately with current drafts state
+  callback(getState().drafts);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { draftSubscribers.erase(subscriberId); };
+}
+
+std::function<void()> AppStore::subscribeToChallenges(std::function<void(const ChallengeState &)> callback) {
+  if (!callback)
+    return []() {};
+
+  auto subscriberId = nextSliceSubscriberId++;
+  challengeSubscribers[subscriberId] = callback;
+
+  // Call immediately with current challenges state
+  callback(getState().challenges);
+
+  // Return unsubscriber
+  return [this, subscriberId]() { challengeSubscribers.erase(subscriberId); };
+}
+
 //==============================================================================
 // Helper Methods for State Updates
 
@@ -129,6 +157,13 @@ void AppStore::updateChatState(std::function<void(ChatState &)> updater) {
       Util::logError("AppStore", "Chat subscriber threw exception", e.what());
     }
   }
+}
+
+void AppStore::updateUploadState(std::function<void(UploadState &)> updater) {
+  updateState([updater](AppState &state) { updater(state.uploads); });
+
+  // Notify all observers of state change
+  notifyObservers();
 }
 
 } // namespace Stores

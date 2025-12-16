@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../../stores/UserStore.h"
+#include "../../stores/AppStore.h"
+
 #include "../../util/reactive/ReactiveBoundComponent.h"
 #include "Profile.h"
 #include <JuceHeader.h>
@@ -32,7 +33,7 @@ public:
   void setNetworkClient(NetworkClient *client) {
     networkClient = client;
   }
-  void setUserStore(Sidechain::Stores::UserStore *store); // Task 2.4: Use UserStore for profile management
+  void setUserStore(Sidechain::Stores::AppStore *store); // Task 2.4: Use UserStore for profile management
 
   // Task 2.4: Show modal with current profile from UserStore
   void showWithCurrentProfile(juce::Component *parentComponent);
@@ -66,7 +67,7 @@ public:
 private:
   //==============================================================================
   NetworkClient *networkClient = nullptr;
-  Sidechain::Stores::UserStore *userStore = nullptr;
+  Sidechain::Stores::AppStore *userStore = nullptr;
   std::function<void()> userStoreUnsubscribe; // Unsubscribe function for UserStore (Task 2.4)
 
   // Task 2.4: Local form state (tracks what user is editing, not saved state)

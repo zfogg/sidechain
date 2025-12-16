@@ -66,26 +66,32 @@ void AppStore::registerAccount(const juce::String &email, const juce::String &us
     state.authError = "";
   });
 
-  networkClient->registerAccount(email, username, password, displayName,
-                                 [this, email, username, displayName](Outcome<juce::var> result) {
-                                   if (!result.isOk()) {
-                                     updateAuthState([error = result.getError()](AuthState &state) {
-                                       state.isAuthenticating = false;
-                                       state.authError = error;
-                                     });
-                                     return;
-                                   }
+  networkClient->registerAccount(
+      email, username, password, displayName,
+      [this, email, username, displayName](Outcome<std::pair<juce::String, juce::String>> result) {
+        if (!result.isOk()) {
+          updateAuthState([error = result.getError()](AuthState &state) {
+            state.isAuthenticating = false;
+            state.authError = error;
+          });
+          return;
+        }
 
-                                   // Registration successful - update auth state with user info
-                                   updateAuthState([email, username, displayName](AuthState &state) {
-                                     state.isAuthenticating = false;
-                                     state.isLoggedIn = true;
-                                     state.email = email;
-                                     state.username = username;
-                                     state.authError = "";
-                                     state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
-                                   });
-                                 });
+        // Registration successful - extract token and userId from result pair
+        auto [token, userId] = result.getValue();
+
+        // Update auth state with user info
+        updateAuthState([token, userId, email, username, displayName](AuthState &state) {
+          state.isAuthenticating = false;
+          state.isLoggedIn = true;
+          state.userId = userId;
+          state.username = username;
+          state.email = email;
+          state.authToken = token;
+          state.authError = "";
+          state.lastAuthTime = juce::Time::getCurrentTime().toMilliseconds();
+        });
+      });
 }
 
 void AppStore::verify2FA(const juce::String &code) {

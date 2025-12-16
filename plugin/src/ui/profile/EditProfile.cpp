@@ -1,7 +1,7 @@
 #include "EditProfile.h"
 #include "../../network/NetworkClient.h"
 #include "../../security/InputValidation.h"
-#include "../../stores/ImageCache.h"
+
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/Validate.h"
@@ -163,12 +163,12 @@ void EditProfile::showWithCurrentProfile(juce::Component *parentComponent) {
   showModal(parentComponent);
 }
 
-void EditProfile::setUserStore(Sidechain::Stores::UserStore *store) {
+void EditProfile::setUserStore(Sidechain::Stores::AppStore *store) {
   userStore = store;
   if (userStore) {
     Log::debug("EditProfile: UserStore set, subscribing to state changes");
     // Task 2.4: Subscribe to UserStore for reactive updates
-    userStoreUnsubscribe = userStore->subscribe([this]([[maybe_unused]] const Sidechain::Stores::UserState &state) {
+    userStoreUnsubscribe = userStore->subscribe([this]([[maybe_unused]] const Sidechain::Stores::AppState &state) {
       Log::debug("EditProfile: UserStore state updated");
 
       // ReactiveBoundComponent will call repaint() automatically
@@ -194,24 +194,24 @@ void EditProfile::populateFromUserStore() {
   const auto &state = userStore->getState();
 
   // Populate basic fields from UserStore
-  usernameEditor->setText(state.username, false);
-  displayNameEditor->setText(state.displayName, false);
-  bioEditor->setText(state.bio, false);
-  locationEditor->setText(state.location, false);
-  genreEditor->setText(state.genre, false);
-  dawEditor->setText(state.dawPreference, false);
-  privateAccountToggle->setToggleState(state.isPrivate, juce::dontSendNotification);
+  usernameEditor->setText(state.user.username, false);
+  displayNameEditor->setText(state.user.displayName, false);
+  bioEditor->setText(state.user.bio, false);
+  locationEditor->setText(state.user.location, false);
+  genreEditor->setText(state.user.genre, false);
+  dawEditor->setText(state.user.dawPreference, false);
+  privateAccountToggle->setToggleState(state.user.isPrivate, juce::dontSendNotification);
 
   // Store original username for change detection
-  originalUsername = state.username;
+  originalUsername = state.user.username;
 
   // Reset username validation state
   isUsernameValid = true;
   usernameError = "";
 
   // Parse social links from UserStore
-  if (state.socialLinks.isObject()) {
-    auto *obj = state.socialLinks.getDynamicObject();
+  if (state.user.socialLinks.isObject()) {
+    auto *obj = state.user.socialLinks.getDynamicObject();
     if (obj != nullptr) {
       instagramEditor->setText(obj->getProperty("instagram").toString(), false);
       soundcloudEditor->setText(obj->getProperty("soundcloud").toString(), false);
@@ -221,16 +221,8 @@ void EditProfile::populateFromUserStore() {
   }
 
   // Load avatar from UserStore
-  if (state.profileImage.isValid()) {
-    avatarImage = state.profileImage;
-  } else if (state.profilePictureUrl.isNotEmpty() && pendingAvatarPath.isEmpty()) {
-    // Load from URL if not already cached
-    ImageLoader::load(state.profilePictureUrl, [this](const juce::Image &img) {
-      if (pendingAvatarPath.isEmpty()) {
-        avatarImage = img;
-        repaint();
-      }
-    });
+  if (state.user.profileImage.isValid()) {
+    avatarImage = state.user.profileImage;
   }
 
   updateHasChanges();
@@ -312,15 +304,15 @@ void EditProfile::updateHasChanges() {
   bool usernameChanged = currentUsername != originalUsername;
 
   // Compare all fields to UserStore state
-  hasUnsavedChanges =
-      (usernameChanged || currentDisplayName != state.displayName || currentBio != state.bio ||
-       currentLocation != state.location || currentGenre != state.genre || currentDaw != state.dawPreference ||
-       currentPrivate != state.isPrivate || pendingAvatarPath.isNotEmpty() ||
-       juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.socialLinks));
+  hasUnsavedChanges = (usernameChanged || currentDisplayName != state.user.displayName ||
+                       currentBio != state.user.bio || currentLocation != state.user.location ||
+                       currentGenre != state.user.genre || currentDaw != state.user.dawPreference ||
+                       currentPrivate != state.user.isPrivate || pendingAvatarPath.isNotEmpty() ||
+                       juce::JSON::toString(currentSocialLinks) != juce::JSON::toString(state.user.socialLinks));
 
   // Can only save if there are changes AND username is valid (if changed) AND
   // not currently saving
-  bool isSaving = state.isFetchingProfile;
+  bool isSaving = false;
   bool canSave = hasUnsavedChanges && !isSaving && (!usernameChanged || isUsernameValid);
 
   saveButton->setEnabled(canSave);
@@ -388,14 +380,6 @@ void EditProfile::paint(juce::Graphics &g) {
   // Settings section
   int settingsY = privacyY + FIELD_HEIGHT + SECTION_SPACING + 25;
   drawFormSection(g, "Settings", juce::Rectangle<int>(PADDING, settingsY - 25, getWidth() - PADDING * 2, 20));
-
-  // Task 2.4: Error message from UserStore
-  if (userStore && userStore->getState().error.isNotEmpty()) {
-    g.setColour(Colors::errorRed);
-    g.setFont(12.0f);
-    g.drawText(userStore->getState().error, PADDING, getHeight() - 80, getWidth() - PADDING * 2, 20,
-               juce::Justification::centred);
-  }
 }
 
 void EditProfile::drawHeader(juce::Graphics &g, juce::Rectangle<int> bounds) {
@@ -439,9 +423,9 @@ void EditProfile::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
     juce::String initial = "?";
     if (userStore) {
       const auto &state = userStore->getState();
-      initial = state.displayName.isEmpty()
-                    ? (state.username.isEmpty() ? "?" : state.username.substring(0, 1).toUpperCase())
-                    : state.displayName.substring(0, 1).toUpperCase();
+      initial = state.user.displayName.isEmpty()
+                    ? (state.user.username.isEmpty() ? "?" : state.user.username.substring(0, 1).toUpperCase())
+                    : state.user.displayName.substring(0, 1).toUpperCase();
     }
     g.drawText(initial, bounds, juce::Justification::centred);
   }
@@ -589,14 +573,15 @@ void EditProfile::handleSave() {
   // If username changed, update it first
   if (usernameChanged && isUsernameValid) {
     Log::info("EditProfile: Username changed to: " + newUsername);
-    userStore->changeUsername(newUsername);
+    Sidechain::Stores::AppStore::getInstance().changeUsername(newUsername);
     originalUsername = newUsername; // Update for next comparison
   }
 
   // Update profile data (all fields except username)
-  juce::String avatarUrl = pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : userStore->getState().profilePictureUrl;
-  userStore->updateProfileComplete(newDisplayName, newBio, newLocation, newGenre, newDaw, newSocialLinks, newPrivate,
-                                   avatarUrl);
+  juce::String avatarUrl =
+      pendingAvatarPath.isNotEmpty() ? pendingAvatarPath : userStore->getState().user.profilePictureUrl;
+  Sidechain::Stores::AppStore::getInstance().updateProfileComplete(newDisplayName, newBio, newLocation, newGenre,
+                                                                   newDaw, newSocialLinks, newPrivate, avatarUrl);
 
   // Reset form state
   hasUnsavedChanges = false;
@@ -661,7 +646,7 @@ void EditProfile::handlePhotoSelect() {
                          // Task 2.4: Upload via UserStore instead of callback
                          if (userStore != nullptr) {
                            Log::debug("EditProfile: Uploading profile picture via UserStore");
-                           userStore->uploadProfilePicture(selectedFile);
+                           Sidechain::Stores::AppStore::getInstance().uploadProfilePicture(selectedFile);
                          } else {
                            Log::warn("EditProfile: UserStore not set for profile picture upload");
                          }

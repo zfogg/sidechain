@@ -1,5 +1,4 @@
 #include "DraftsView.h"
-#include "../../stores/DraftStore.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
 #include "Upload.h" // For key/genre names
@@ -24,14 +23,14 @@ void DraftsView::bindToStore() {
     return; // Already bound
   }
 
-  auto &store = Sidechain::Stores::DraftStore::getInstance();
+  auto &store = Sidechain::Stores::AppStore::getInstance();
 
   // Subscribe to store state changes
   storeSubscription =
-      store.subscribe([this](const Sidechain::Stores::DraftStoreState &state) { handleStoreStateChanged(state); });
+      store.subscribeToDrafts([this](const Sidechain::Stores::DraftState &state) { handleStoreStateChanged(state); });
 
   boundToStore = true;
-  Log::debug("DraftsView: Bound to DraftStore");
+  Log::debug("DraftsView: Bound to AppStore");
 
   // Load drafts via store
   store.loadDrafts();
@@ -42,7 +41,7 @@ void DraftsView::unbindFromStore() {
   boundToStore = false;
 }
 
-void DraftsView::handleStoreStateChanged(const Sidechain::Stores::DraftStoreState &state) {
+void DraftsView::handleStoreStateChanged(const Sidechain::Stores::DraftState &state) {
   // Update local state from store using SafePointer for thread safety
   juce::Component::SafePointer<DraftsView> safeThis(this);
 
@@ -52,11 +51,11 @@ void DraftsView::handleStoreStateChanged(const Sidechain::Stores::DraftStoreStat
 
     // Update drafts list
     safeThis->drafts = state.drafts;
-    safeThis->isLoading = state.isLoadingDrafts;
-    safeThis->errorMessage = state.error;
+    safeThis->isLoading = false; // TODO: Add loading state to DraftState
+    safeThis->errorMessage = ""; // TODO: Add error state to DraftState
 
     // Check for auto-recovery draft via the store
-    safeThis->hasRecoveryDraft = Sidechain::Stores::DraftStore::getInstance().hasAutoRecoveryDraft();
+    safeThis->hasRecoveryDraft = false; // TODO: Implement auto-recovery draft tracking
 
     safeThis->resized();
     safeThis->repaint();
@@ -64,34 +63,11 @@ void DraftsView::handleStoreStateChanged(const Sidechain::Stores::DraftStoreStat
 }
 
 //==============================================================================
-void DraftsView::setDraftStorage(DraftStorage *storage) {
-  draftStorage = storage;
-  refresh();
-}
-
 void DraftsView::refresh() {
-  // Prefer store if bound
-  if (boundToStore) {
-    Sidechain::Stores::DraftStore::getInstance().loadDrafts();
-    return;
-  }
-
-  // Legacy path using direct storage access
-  if (draftStorage == nullptr)
-    return;
-
   isLoading = true;
   repaint();
 
-  drafts = draftStorage->getAllDrafts();
-  hasRecoveryDraft = draftStorage->hasAutoRecoveryDraft();
-
-  isLoading = false;
-  Log::info("DraftsView: Loaded " + juce::String(drafts.size()) + " drafts" +
-            (hasRecoveryDraft ? " (with recovery draft)" : ""));
-
-  resized();
-  repaint();
+  Sidechain::Stores::AppStore::getInstance().loadDrafts();
 }
 
 void DraftsView::loadDrafts() {
@@ -212,7 +188,7 @@ void DraftsView::drawRecoveryBanner(juce::Graphics &g) {
   g.drawText("Discard", discardBounds, juce::Justification::centred);
 }
 
-void DraftsView::drawDraftCard(juce::Graphics &g, const Draft &draft, juce::Rectangle<int> bounds, int index) {
+void DraftsView::drawDraftCard(juce::Graphics &g, const juce::var &draft, juce::Rectangle<int> bounds, int index) {
   bool isHovered = (index == hoveredDraftIndex);
 
   // Card background
@@ -230,24 +206,30 @@ void DraftsView::drawDraftCard(juce::Graphics &g, const Draft &draft, juce::Rect
   // Filename or "Untitled"
   g.setColour(SidechainColors::textPrimary());
   g.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
-  juce::String displayName = draft.filename.isEmpty() ? "Untitled Draft" : draft.filename;
+  juce::String filename = draft.getProperty("filename", "").toString();
+  juce::String displayName = filename.isEmpty() ? "Untitled Draft" : filename;
   g.drawText(displayName, x, y, contentWidth, 22, juce::Justification::centredLeft);
 
   // Duration and date
   g.setColour(SidechainColors::textSecondary());
   g.setFont(13.0f);
-  juce::String info = draft.getFormattedDuration() + " | " + formatRelativeTime(draft.updatedAt);
+  auto duration = static_cast<float>(draft.getProperty("duration_ms", 0.0));
+  juce::Time updated = juce::Time::fromISO8601(draft.getProperty("updated_at", "").toString());
+  juce::String durationStr = juce::String(static_cast<int>(duration / 1000.0f)) + "s";
+  juce::String info = durationStr + " | " + formatRelativeTime(updated);
   g.drawText(info, x, y + 24, contentWidth, 18, juce::Justification::centredLeft);
 
   // BPM and Key
   juce::String metadata;
-  if (draft.bpm > 0)
-    metadata += juce::String(static_cast<int>(draft.bpm)) + " BPM";
+  int bpm = static_cast<int>(draft.getProperty("bpm", 0));
+  if (bpm > 0)
+    metadata += juce::String(bpm) + " BPM";
 
-  if (draft.keyIndex > 0 && draft.keyIndex < Upload::NUM_KEYS) {
+  int keyIndex = static_cast<int>(draft.getProperty("key_index", 0));
+  if (keyIndex > 0 && keyIndex < Upload::NUM_KEYS) {
     if (metadata.isNotEmpty())
       metadata += " | ";
-    metadata += Upload::getMusicalKeys()[static_cast<size_t>(draft.keyIndex)].name;
+    metadata += Upload::getMusicalKeys()[static_cast<size_t>(keyIndex)].name;
   }
 
   if (metadata.isNotEmpty()) {
@@ -256,7 +238,8 @@ void DraftsView::drawDraftCard(juce::Graphics &g, const Draft &draft, juce::Rect
   }
 
   // MIDI indicator
-  if (draft.hasMidi()) {
+  bool hasMidi = static_cast<bool>(draft.getProperty("has_midi", false));
+  if (hasMidi) {
     g.setColour(SidechainColors::accent());
     g.setFont(11.0f);
     g.drawText("MIDI", x + contentWidth - 40, y + 44, 40, 16, juce::Justification::centredRight);
@@ -501,11 +484,8 @@ void DraftsView::resumeDraft(int index) {
   if (index < 0 || index >= drafts.size())
     return;
 
-  // Need either store binding or legacy storage
-  if (!boundToStore && draftStorage == nullptr)
-    return;
-
-  Log::info("DraftsView: Resuming draft " + drafts[index].id);
+  juce::String draftId = drafts[index].getProperty("id", "").toString();
+  Log::info("DraftsView: Resuming draft " + draftId);
 
   if (onDraftSelected)
     onDraftSelected(drafts[index]);
@@ -515,24 +495,10 @@ void DraftsView::deleteDraft(int index) {
   if (index < 0 || index >= drafts.size())
     return;
 
-  juce::String draftId = drafts[index].id;
+  juce::String draftId = drafts[index].getProperty("id", "").toString();
   Log::info("DraftsView: Deleting draft " + draftId);
 
-  // Prefer store if bound - store will notify us via subscription
-  if (boundToStore) {
-    Sidechain::Stores::DraftStore::getInstance().deleteDraft(draftId);
-    return;
-  }
-
-  // Legacy path using direct storage access
-  if (draftStorage == nullptr)
-    return;
-
-  if (draftStorage->deleteDraft(draftId)) {
-    drafts.remove(index);
-    resized();
-    repaint();
-  }
+  Sidechain::Stores::AppStore::getInstance().deleteDraft(draftId);
 }
 
 void DraftsView::confirmDelete() {
@@ -551,14 +517,10 @@ void DraftsView::cancelDelete() {
 }
 
 void DraftsView::restoreRecoveryDraft() {
-  if (draftStorage == nullptr)
-    return;
-
   Log::info("DraftsView: Restoring auto-recovery draft");
 
-  // Create a temporary draft to pass to callback
-  Draft recoveryDraft;
-  recoveryDraft.id = "_auto_recovery"; // Special marker
+  juce::var recoveryDraft = juce::var(juce::DynamicObject::Ptr(new juce::DynamicObject()));
+  recoveryDraft.getProperty("id", "") = "_auto_recovery";
 
   if (onDraftSelected)
     onDraftSelected(recoveryDraft);
@@ -567,20 +529,7 @@ void DraftsView::restoreRecoveryDraft() {
 void DraftsView::discardRecoveryDraft() {
   Log::info("DraftsView: Discarding auto-recovery draft");
 
-  // Prefer store if bound - store will notify us via subscription
-  if (boundToStore) {
-    Sidechain::Stores::DraftStore::getInstance().clearAutoRecoveryDraft();
-    hasRecoveryDraft = false;
-    resized();
-    repaint();
-    return;
-  }
-
-  // Legacy path using direct storage access
-  if (draftStorage == nullptr)
-    return;
-
-  draftStorage->clearAutoRecoveryDraft();
+  Sidechain::Stores::AppStore::getInstance().clearAutoRecoveryDraft();
   hasRecoveryDraft = false;
   resized();
   repaint();

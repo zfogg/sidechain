@@ -3,7 +3,6 @@
 #include "../../audio/HttpAudioPlayer.h"
 #include "../../models/FeedResponse.h"
 #include "../../models/Playlist.h"
-#include "../../stores/PostsStore.h"
 #include "../../ui/animations/Easing.h"
 #include "../../ui/animations/TransitionAnimation.h"
 #include "../../util/reactive/ReactiveBoundComponent.h"
@@ -16,13 +15,6 @@
 
 class NetworkClient;
 class StreamChatClient;
-
-// Forward declarations
-namespace Sidechain {
-namespace Stores {
-class PostsStore;
-}
-} // namespace Sidechain
 
 //==============================================================================
 /**
@@ -47,7 +39,7 @@ class PostsFeed : public Sidechain::Util::ReactiveBoundComponent,
                   public juce::KeyListener,
                   public juce::Timer {
 public:
-  explicit PostsFeed(Sidechain::Stores::PostsStore *postsStore);
+  explicit PostsFeed(Sidechain::Stores::AppStore *appStore);
   ~PostsFeed() override;
 
   void paint(juce::Graphics &) override;
@@ -127,7 +119,7 @@ public:
 private:
   //==============================================================================
   // Feed store subscription (Task 2.6 - reactive refactoring)
-  Sidechain::Stores::PostsStore *postsStore = nullptr;
+  Sidechain::Stores::AppStore *appStore = nullptr;
   std::function<void()> storeUnsubscribe;
 
   // Real-time update state (5.5)

@@ -52,6 +52,7 @@ struct FeedState {
   bool isLoading = false;
   bool isRefreshing = false;
   bool hasMore = true;
+  bool isSynced = false;
   int offset = 0;
   int limit = 20;
   int total = 0;
@@ -65,7 +66,9 @@ struct SavedPostsState {
   juce::String error;
   int totalCount = 0;
   int offset = 0;
+  int limit = 20;
   bool hasMore = true;
+  int64_t lastUpdated = 0;
 };
 
 struct ArchivedPostsState {
@@ -74,16 +77,48 @@ struct ArchivedPostsState {
   juce::String error;
   int totalCount = 0;
   int offset = 0;
+  int limit = 20;
   bool hasMore = true;
+  int64_t lastUpdated = 0;
+};
+
+struct AggregatedFeedState {
+  juce::Array<AggregatedFeedGroup> groups;
+  bool isLoading = false;
+  juce::String error;
+  int offset = 0;
+  int limit = 20;
+  int total = 0;
+  bool hasMore = true;
+  int64_t lastUpdated = 0;
 };
 
 struct PostsState {
   std::map<FeedType, FeedState> feeds;
+  std::map<FeedType, AggregatedFeedState> aggregatedFeeds;
   FeedType currentFeedType = FeedType::Timeline;
   SavedPostsState savedPosts;
   ArchivedPostsState archivedPosts;
   juce::String feedError;
   int64_t lastFeedUpdate = 0;
+
+  // Helper to get current feed state
+  FeedState *getCurrentFeed() const {
+    auto it = feeds.find(currentFeedType);
+    if (it != feeds.end()) {
+      return const_cast<FeedState *>(&it->second);
+    }
+    return nullptr;
+  }
+
+  // Helper to get current aggregated feed state
+  AggregatedFeedState *getCurrentAggregatedFeed() const {
+    auto it = aggregatedFeeds.find(currentFeedType);
+    if (it != aggregatedFeeds.end()) {
+      return const_cast<AggregatedFeedState *>(&it->second);
+    }
+    return nullptr;
+  }
 };
 
 //==============================================================================
@@ -145,6 +180,7 @@ struct ChatState {
 struct NotificationState {
   juce::Array<juce::var> notifications;
   int unreadCount = 0;
+  int unseenCount = 0;
   bool isLoading = false;
   juce::String notificationError;
 };

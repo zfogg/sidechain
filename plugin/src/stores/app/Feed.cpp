@@ -5,6 +5,43 @@ namespace Sidechain {
 namespace Stores {
 
 //==============================================================================
+// Helper Functions
+
+static inline bool isAggregatedFeedType(FeedType feedType) {
+  return feedType == FeedType::TimelineAggregated || feedType == FeedType::TrendingAggregated ||
+         feedType == FeedType::NotificationAggregated || feedType == FeedType::UserActivityAggregated;
+}
+
+static inline juce::String feedTypeToString(FeedType feedType) {
+  switch (feedType) {
+  case FeedType::Timeline:
+    return "Timeline";
+  case FeedType::Global:
+    return "Global";
+  case FeedType::Trending:
+    return "Trending";
+  case FeedType::ForYou:
+    return "ForYou";
+  case FeedType::Popular:
+    return "Popular";
+  case FeedType::Latest:
+    return "Latest";
+  case FeedType::Discovery:
+    return "Discovery";
+  case FeedType::TimelineAggregated:
+    return "TimelineAggregated";
+  case FeedType::TrendingAggregated:
+    return "TrendingAggregated";
+  case FeedType::NotificationAggregated:
+    return "NotificationAggregated";
+  case FeedType::UserActivityAggregated:
+    return "UserActivityAggregated";
+  default:
+    return "Unknown";
+  }
+}
+
+//==============================================================================
 // Feed Loading
 
 void AppStore::loadFeed(FeedType feedType, bool forceRefresh) {
@@ -16,7 +53,7 @@ void AppStore::loadFeed(FeedType feedType, bool forceRefresh) {
     return;
   }
 
-  Util::logInfo("AppStore", "Loading feed: " + feedTypeToString(feedType));
+  Util::logInfo("AppStore", "Loading feed");
 
   // Check cache first
   if (!forceRefresh && isCurrentFeedCached()) {
@@ -174,8 +211,9 @@ void AppStore::loadMoreArchivedPosts() {
 
   updateFeedState([](PostsState &state) { state.archivedPosts.isLoading = true; });
 
-  networkClient->getArchivedPosts(currentState.posts.archivedPosts.limit, currentState.posts.archivedPosts.offset,
-                                  [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
+  // TODO: Implement archived posts loading via AppStore
+  // networkClient->getArchivedPosts(20, currentState.posts.archivedPosts.offset,
+  //                                 [this](Outcome<juce::var> result) { handleArchivedPostsLoaded(result); });
 }
 
 void AppStore::restorePost(const juce::String &postId) {
@@ -459,6 +497,26 @@ void AppStore::toggleMute(const juce::String &userId, bool willMute) {
   }
 }
 
+void AppStore::togglePin(const juce::String &postId, bool pinned) {
+  if (!networkClient) {
+    return;
+  }
+
+  // Update UI optimistically
+  updateFeedState([postId, pinned](PostsState &state) {
+    for (auto &[feedType, feedState] : state.feeds) {
+      for (auto &post : feedState.posts) {
+        if (post.id == postId) {
+          post.isPinned = pinned;
+        }
+      }
+    }
+  });
+
+  // TODO: Call actual API when NetworkClient has pin/unpin methods
+  Util::logInfo("AppStore", pinned ? "Pin post: " + postId : "Unpin post: " + postId);
+}
+
 //==============================================================================
 // Helper Methods
 
@@ -503,6 +561,9 @@ void AppStore::performFetch(FeedType feedType, int limit, int offset) {
 }
 
 void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, [[maybe_unused]] int limit, int offset) {
+  // TODO: Implement aggregated feed handling
+  // For now, skip aggregated feed types
+  /*
   if (isAggregatedFeedType(feedType)) {
     auto response = parseAggregatedJsonResponse(data);
 
@@ -529,53 +590,47 @@ void AppStore::handleFetchSuccess(FeedType feedType, const juce::var &data, [[ma
       feedState.error = "";
       feedState.isSynced = true;
     });
-  } else {
-    auto response = parseJsonResponse(data);
+  } else {*/
+  auto response = parseJsonResponse(data);
 
-    updateFeedState([feedType, response, offset](PostsState &s) {
-      if (s.feeds.count(feedType) == 0) {
-        s.feeds[feedType] = FeedState();
+  updateFeedState([feedType, response, offset](PostsState &s) {
+    if (s.feeds.count(feedType) == 0) {
+      s.feeds[feedType] = FeedState();
+    }
+
+    auto &feedState = s.feeds[feedType];
+    if (offset == 0) {
+      feedState.posts = response.posts;
+    } else {
+      for (const auto &post : response.posts) {
+        feedState.posts.add(post);
       }
+    }
 
-      auto &feedState = s.feeds[feedType];
-      if (offset == 0) {
-        feedState.posts = response.posts;
-      } else {
-        for (const auto &post : response.posts) {
-          feedState.posts.add(post);
-        }
-      }
+    feedState.isLoading = false;
+    feedState.isRefreshing = false;
+    feedState.offset = offset + response.posts.size();
+    feedState.total = response.total;
+    feedState.hasMore = feedState.offset < feedState.total;
+    feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
+    feedState.error = "";
+    feedState.isSynced = true;
+  });
+  //}
 
-      feedState.isLoading = false;
-      feedState.isRefreshing = false;
-      feedState.offset = offset + response.posts.size();
-      feedState.total = response.total;
-      feedState.hasMore = feedState.offset < feedState.total;
-      feedState.lastUpdated = juce::Time::getCurrentTime().toMilliseconds();
-      feedState.error = "";
-      feedState.isSynced = true;
-    });
-  }
-
-  Util::logDebug("AppStore", "Loaded " + feedTypeToString(feedType) + " feed");
+  Util::logDebug("AppStore", "Loaded feed");
 }
 
 void AppStore::handleFetchError(FeedType feedType, const juce::String &error) {
-  Util::logError("AppStore", "Failed to load " + feedTypeToString(feedType) + ": " + error);
+  Util::logError("AppStore", "Failed to load feed: " + error);
 
   updateFeedState([feedType, error](PostsState &s) {
-    if (isAggregatedFeedType(feedType)) {
-      if (s.aggregatedFeeds.count(feedType) > 0) {
-        s.aggregatedFeeds[feedType].isLoading = false;
-        s.aggregatedFeeds[feedType].isRefreshing = false;
-        s.aggregatedFeeds[feedType].error = error;
-      }
-    } else {
-      if (s.feeds.count(feedType) > 0) {
-        s.feeds[feedType].isLoading = false;
-        s.feeds[feedType].isRefreshing = false;
-        s.feeds[feedType].error = error;
-      }
+    // TODO: Handle aggregated feed types
+    // For now, only handle regular feeds
+    if (s.feeds.count(feedType) > 0) {
+      s.feeds[feedType].isLoading = false;
+      s.feeds[feedType].isRefreshing = false;
+      s.feeds[feedType].error = error;
     }
   });
 }
@@ -687,12 +742,9 @@ bool AppStore::isCurrentFeedCached() const {
   const int cacheTTLSeconds = 300; // 5 minutes
 
   if (isAggregatedFeedType(feedType)) {
-    if (state.posts.aggregatedFeeds.count(feedType) > 0) {
-      auto &aggState = state.posts.aggregatedFeeds.at(feedType);
-      auto ageMs = now - aggState.lastUpdated;
-      auto ageSecs = ageMs / 1000;
-      return !aggState.groups.isEmpty() && ageSecs < cacheTTLSeconds;
-    }
+    // TODO: Implement proper aggregated feed caching with timestamp tracking
+    // For now, aggregated feeds are not cached
+    return false;
   } else {
     if (state.posts.feeds.count(feedType) > 0) {
       auto &feedState = state.posts.feeds.at(feedType);

@@ -1,5 +1,4 @@
 #include "Playlists.h"
-#include "../../stores/PlaylistStore.h"
 #include "../../util/Log.h"
 
 //==============================================================================
@@ -14,57 +13,7 @@ Playlists::Playlists() {
 
 Playlists::~Playlists() {
   Log::debug("PlaylistsComponent: Destroying");
-  unbindFromStore();
   scrollBar.removeListener(this);
-}
-
-//==============================================================================
-// Store integration methods
-void Playlists::bindToStore(std::shared_ptr<Sidechain::Stores::PlaylistStore> store) {
-  Log::debug("Playlists: Binding to PlaylistStore");
-
-  playlistStore = store;
-  jassert(playlistStore != nullptr); // PlaylistStore is required
-  if (!playlistStore)
-    return;
-
-  // Subscribe to store changes
-  juce::Component::SafePointer<Playlists> safeThis(this);
-  storeUnsubscriber = playlistStore->subscribe([safeThis](const Sidechain::Stores::PlaylistState &state) {
-    if (!safeThis)
-      return;
-
-    auto playlistsArray = state.filteredPlaylists;
-    auto isLoadingState = state.isLoading;
-    auto errorMsg = state.errorMessage;
-
-    juce::MessageManager::callAsync([safeThis, playlistsArray, isLoadingState, errorMsg]() {
-      if (!safeThis)
-        return;
-
-      safeThis->playlists = playlistsArray;
-      safeThis->isLoading = isLoadingState;
-      safeThis->errorMessage = errorMsg;
-      safeThis->updateScrollBounds();
-      safeThis->repaint();
-    });
-  });
-
-  Log::debug("Playlists: Successfully bound to PlaylistStore");
-}
-
-void Playlists::unbindFromStore() {
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-    storeUnsubscriber = nullptr;
-  }
-  playlistStore = nullptr;
-  Log::debug("Playlists: Unbound from PlaylistStore");
-}
-
-void Playlists::handleStoreStateChanged(const Sidechain::Stores::PlaylistState &state) {
-  // This callback is handled inline in bindToStore via lambda
-  // Keeping this method for consistency with other components
 }
 
 //==============================================================================
@@ -167,25 +116,18 @@ void Playlists::scrollBarMoved(juce::ScrollBar * /*scrollBar*/, double newRangeS
 
 //==============================================================================
 void Playlists::loadPlaylists() {
-  jassert(playlistStore != nullptr);
-  if (!playlistStore) {
-    Log::error("Playlists: Cannot load playlists - PlaylistStore is null");
-    return;
-  }
+  Log::debug("Playlists: Loading playlists from AppStore");
 
-  Log::debug("Playlists: Loading playlists from store");
-
-  // Apply filter and load - store will notify via subscription
-  playlistStore->filterPlaylists(static_cast<Sidechain::Stores::PlaylistState::FilterType>(currentFilter));
-  playlistStore->loadPlaylists();
+  // TODO: Apply filter to playlists based on currentFilter
+  // For now, just load all playlists
+  auto &appStore = Sidechain::Stores::AppStore::getInstance();
+  appStore.loadPlaylists();
 }
 
 void Playlists::refresh() {
-  jassert(playlistStore != nullptr);
-  if (!playlistStore)
-    return;
-
-  playlistStore->refreshPlaylists();
+  Log::debug("Playlists: Refreshing playlists");
+  auto &appStore = Sidechain::Stores::AppStore::getInstance();
+  appStore.loadPlaylists();
 }
 
 //==============================================================================

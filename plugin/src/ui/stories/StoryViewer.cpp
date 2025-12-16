@@ -50,13 +50,13 @@ StoryViewer::~StoryViewer() {
 }
 
 //==============================================================================
-void StoryViewer::bindToStore(std::shared_ptr<Sidechain::Stores::StoriesStore> store) {
+void StoryViewer::bindToStore(std::shared_ptr<Sidechain::Stores::AppStore> store) {
   unbindFromStore();
   storiesStore = store;
 
   if (storiesStore) {
     auto safeThis = juce::Component::SafePointer<StoryViewer>(this);
-    storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::StoriesState & /*state*/) {
+    storeUnsubscriber = storiesStore->subscribe([safeThis](const Sidechain::Stores::AppState & /*state*/) {
       if (safeThis) {
         // Store updates can trigger repaint if needed
         safeThis->repaint();

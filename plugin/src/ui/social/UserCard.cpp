@@ -1,5 +1,5 @@
 #include "UserCard.h"
-#include "../../stores/ImageCache.h"
+
 #include "../../util/HoverState.h"
 #include "../../util/Log.h"
 #include "../../util/StringFormatter.h"
@@ -22,15 +22,6 @@ void UserCard::setUser(const DiscoveredUser &newUser) {
   Log::debug("UserCard: Setting user - ID: " + user.id + ", username: " + user.username);
 
   // Load avatar via ImageCache
-  if (user.avatarUrl.isNotEmpty()) {
-    juce::Component::SafePointer<UserCard> safeThis(this);
-    ::ImageLoader::load(user.avatarUrl, [safeThis](const juce::Image &img) {
-      if (safeThis == nullptr)
-        return; // Component was deleted
-      safeThis->avatarImage = img;
-      safeThis->repaint();
-    });
-  }
 
   repaint();
 }
@@ -73,9 +64,8 @@ void UserCard::drawBackground(juce::Graphics &g) {
 void UserCard::drawAvatar(juce::Graphics &g, juce::Rectangle<int> bounds) {
   auto avatarArea = bounds.withSizeKeepingCentre(AVATAR_SIZE, AVATAR_SIZE);
 
-  // Use ImageUtils helper for avatar drawing with initials fallback
-  ImageLoader::drawCircularAvatar(g, avatarArea, avatarImage, ImageLoader::getInitials(user.getDisplayNameOrUsername()),
-                                  Colors::badge, Colors::textPrimary, 16.0f);
+  g.setColour(Colors::badge);
+  g.fillEllipse(avatarArea.toFloat());
 
   // Draw online indicator (green/cyan dot in bottom-right corner)
   if (user.isOnline || user.isInStudio) {

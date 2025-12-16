@@ -1,6 +1,6 @@
 #include "SelectHighlightDialog.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/ImageCache.h"
+
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
@@ -414,20 +414,6 @@ void SelectHighlightDialog::addStoryToHighlight(const juce::String &highlightId)
 }
 
 void SelectHighlightDialog::loadCoverImage(const StoryHighlight &highlight) {
-  juce::String coverUrl = highlight.getCoverUrl();
-  if (coverUrl.isEmpty())
-    return;
-
-  juce::Component::SafePointer<SelectHighlightDialog> safeThis(this);
-  juce::String highlightId = highlight.id;
-
-  ImageLoader::load(coverUrl, [safeThis, highlightId](const juce::Image &image) {
-    if (safeThis == nullptr)
-      return;
-
-    if (image.isValid()) {
-      safeThis->coverImages[highlightId] = image;
-      safeThis->repaint();
-    }
-  });
+  // TODO: Load highlight cover image using ImageLoader
+  // Image loading to be implemented
 }

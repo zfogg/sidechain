@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../../stores/DraftStorage.h"
-#include "../../stores/DraftStore.h"
-#include "../../stores/Store.h"
+#include "../../stores/AppStore.h"
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -46,21 +44,18 @@ public:
   void unbindFromStore();
 
   //==========================================================================
-  // Set draft storage reference (legacy - prefer using store binding)
-  void setDraftStorage(DraftStorage *storage);
-
   // Reload drafts list
   void refresh();
 
   //==========================================================================
   // Callbacks
-  std::function<void(const Draft &)> onDraftSelected; // Resume editing
-  std::function<void()> onClose;                      // Close view
-  std::function<void()> onNewRecording;               // Start new recording
+  std::function<void(const juce::var &)> onDraftSelected; // Resume editing
+  std::function<void()> onClose;                          // Close view
+  std::function<void()> onNewRecording;                   // Start new recording
 
 private:
-  DraftStorage *draftStorage = nullptr;
-  juce::Array<Draft> drafts;
+  Sidechain::Stores::AppStore *appStore = nullptr;
+  juce::Array<juce::var> drafts;
   bool hasRecoveryDraft = false;
 
   // Store subscription
@@ -79,7 +74,7 @@ private:
 
   //==========================================================================
   // Store state handler
-  void handleStoreStateChanged(const Sidechain::Stores::DraftStoreState &state);
+  void handleStoreStateChanged(const Sidechain::Stores::DraftState &state);
 
   // Confirmation dialog state
   bool showingDeleteConfirmation = false;
@@ -97,7 +92,7 @@ private:
   // Drawing
   void drawHeader(juce::Graphics &g);
   void drawRecoveryBanner(juce::Graphics &g);
-  void drawDraftCard(juce::Graphics &g, const Draft &draft, juce::Rectangle<int> bounds, int index);
+  void drawDraftCard(juce::Graphics &g, const juce::var &draft, juce::Rectangle<int> bounds, int index);
   void drawEmptyState(juce::Graphics &g);
   void drawDeleteConfirmation(juce::Graphics &g);
 

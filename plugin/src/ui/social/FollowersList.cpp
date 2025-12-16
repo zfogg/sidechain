@@ -1,11 +1,19 @@
 #include "FollowersList.h"
 #include "../../network/NetworkClient.h"
-#include "../../stores/ImageCache.h"
+
+#include "../../util/Async.h"
 #include "../../util/Colors.h"
 #include "../../util/Json.h"
 #include "../../util/Log.h"
 #include "../../util/Result.h"
 #include "../../util/UIHelpers.h"
+
+//==============================================================================
+// Forward declarations
+//==============================================================================
+
+static juce::String getInitialsFromName(const juce::String &name);
+static juce::Image loadImageFromURL(const juce::String &urlStr);
 
 //==============================================================================
 // FollowUserRow Implementation
@@ -21,15 +29,6 @@ FollowUserRow::FollowUserRow() {
 void FollowUserRow::setUser(const FollowListUser &newUser) {
   user = newUser;
   avatarImage = juce::Image();
-
-  // Load avatar via ImageCache
-  if (user.avatarUrl.isNotEmpty()) {
-    ImageLoader::load(user.avatarUrl, [this](const juce::Image &img) {
-      avatarImage = img;
-      repaint();
-    });
-  }
-
   repaint();
 }
 
@@ -52,8 +51,29 @@ void FollowUserRow::paint(juce::Graphics &g) {
 
   // Avatar
   juce::String name = user.displayName.isNotEmpty() ? user.displayName : user.username;
-  ImageLoader::drawCircularAvatar(g, avatarBounds, avatarImage, ImageLoader::getInitials(name),
-                                  SidechainColors::surface(), SidechainColors::textPrimary(), 18.0f);
+
+  // Draw circular avatar or placeholder with initials
+  if (avatarImage.isValid()) {
+    // Draw image clipped to circle
+    juce::Path circlePath;
+    circlePath.addEllipse(avatarBounds.toFloat());
+
+    g.saveState();
+    g.reduceClipRegion(circlePath);
+    g.drawImageAt(avatarImage, avatarBounds.getX(), avatarBounds.getY());
+    g.restoreState();
+  } else {
+    // Fallback: colored circle with user initials
+    juce::String initials = getInitialsFromName(name);
+
+    g.setColour(SidechainColors::surface());
+    g.fillEllipse(avatarBounds.toFloat());
+
+    g.setColour(SidechainColors::textPrimary());
+    g.setFont(
+        juce::Font(juce::FontOptions().withHeight(static_cast<float>(avatarBounds.getHeight()) * 0.4f)).boldened());
+    g.drawText(initials, avatarBounds, juce::Justification::centred);
+  }
 
   // Avatar border
   g.setColour(SidechainColors::border());
@@ -141,7 +161,6 @@ FollowersList::FollowersList() {
 
 FollowersList::~FollowersList() {
   Log::debug("FollowersList: Destroying");
-  unbindFromStore();
   stopTimer();
 }
 
@@ -163,56 +182,8 @@ void FollowersList::setupUI() {
 }
 
 //==============================================================================
-// Store integration methods
-void FollowersList::bindToStore(std::shared_ptr<Sidechain::Stores::FollowersStore> store) {
-  Log::debug("FollowersList: Binding to FollowersStore");
-
-  followersStore = store;
-  if (!followersStore)
-    return;
-
-  // Subscribe to store changes
-  juce::Component::SafePointer<FollowersList> safeThis(this);
-  storeUnsubscriber = followersStore->subscribe([safeThis](const Sidechain::Stores::FollowersState &state) {
-    if (!safeThis)
-      return;
-
-    auto usersArray = state.users;
-    auto isLoadingState = state.isLoading;
-    auto errorMsg = state.errorMessage;
-    auto stateTotal = state.totalCount;
-    auto stateHasMore = state.hasMore;
-
-    juce::MessageManager::callAsync([safeThis, usersArray, isLoadingState, errorMsg, stateTotal, stateHasMore]() {
-      if (!safeThis)
-        return;
-
-      safeThis->users = usersArray;
-      safeThis->isLoading = isLoadingState;
-      safeThis->errorMessage = errorMsg;
-      safeThis->totalCount = stateTotal;
-      safeThis->hasMore = stateHasMore;
-      safeThis->updateUsersList();
-      safeThis->repaint();
-    });
-  });
-
-  Log::debug("FollowersList: Successfully bound to FollowersStore");
-}
-
-void FollowersList::unbindFromStore() {
-  if (storeUnsubscriber) {
-    storeUnsubscriber();
-    storeUnsubscriber = nullptr;
-  }
-  followersStore = nullptr;
-  Log::debug("FollowersList: Unbound from FollowersStore");
-}
-
-void FollowersList::handleStoreStateChanged(const Sidechain::Stores::FollowersState &state) {
-  // This callback is handled inline in bindToStore via lambda
-  // Keeping this method for consistency with other components
-}
+// Store integration (TODO: migrate to AppStore reactive pattern)
+// For now, using direct NetworkClient calls for followers/following operations
 
 void FollowersList::loadList(const juce::String &userId, ListType type) {
   if (userId.isEmpty() || networkClient == nullptr) {
@@ -448,4 +419,39 @@ void FollowersList::resized() {
   viewport->setBounds(bounds);
   contentContainer->setSize(viewport->getWidth() - 10, contentContainer->getHeight());
   updateUsersList();
+}
+
+//==============================================================================
+// Helper functions
+//==============================================================================
+
+static juce::String getInitialsFromName(const juce::String &name) {
+  if (name.isEmpty())
+    return "?";
+
+  auto trimmedName = name.trim();
+  auto parts = juce::StringArray::fromTokens(trimmedName, " ", "");
+
+  if (parts.size() >= 2) {
+    // First letter of first and last word
+    return parts[0].substring(0, 1).toUpperCase() + parts[parts.size() - 1].substring(0, 1).toUpperCase();
+  } else if (parts.size() == 1) {
+    // First two letters
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+
+  return "?";
+}
+
+static juce::Image loadImageFromURL(const juce::String &urlStr) {
+  try {
+    juce::URL url(urlStr);
+    auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
+    if (inputStream == nullptr)
+      return juce::Image();
+    return juce::ImageFileFormat::loadFrom(*inputStream);
+  } catch (const std::exception &e) {
+    Log::error("FollowersList: Failed to load image from URL: " + juce::String(e.what()));
+    return juce::Image();
+  }
 }

@@ -6,12 +6,6 @@
 add_library(SidechainStores STATIC
     # Core Store Framework
     ${CMAKE_CURRENT_SOURCE_DIR}/Store.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/FeedDataManager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ImageCache.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/DraftStorage.h
 
     # Unified AppStore (Phase 3 - replaces all individual stores)
     ${CMAKE_CURRENT_SOURCE_DIR}/AppStore.h
@@ -29,6 +23,7 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Playlists.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Challenges.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Sounds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Draft.cpp
 )
 
 # Include directories

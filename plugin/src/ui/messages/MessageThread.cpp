@@ -68,64 +68,18 @@ void MessageThread::setAudioProcessor(SidechainAudioProcessor *processor) {
 MessageThread::~MessageThread() {
   Log::debug("MessageThread: Destroying");
   stopTimer();
-
-  // Unsubscribe from ChatStore
-  if (chatStoreUnsubscribe)
-    chatStoreUnsubscribe();
 }
 
 void MessageThread::paint(juce::Graphics &g) {
   g.fillAll(juce::Colour(0xff1a1a1a));
-
-  // Clear reaction pills cache for this paint cycle
   reactionPills.clear();
-
   drawHeader(g);
 
-  // Task 2.3: Get state from ChatStore instead of local state
-  if (!chatStore) {
-    // ErrorState component handles the error UI
-    return;
-  }
-
-  const auto &state = chatStore->getState();
-  const auto *channel = state.getCurrentChannel();
-
-  Log::debug("MessageThread::paint - channel: " + juce::String(channel != nullptr ? "SET" : "NULL") +
-             (channel ? ", messages: " + juce::String(channel->messages.size()) : ""));
-
-  // Priority: Show messages if we have them, even if there's an error state
-  // Handle loading state
-  if (channel && channel->isLoadingMessages) {
-    Log::debug("MessageThread::paint - Loading state");
-    int bottomAreaHeight = INPUT_HEIGHT;
-    if (!replyingToMessageId.isEmpty())
-      bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
-    g.setColour(juce::Colours::white);
-    g.setFont(16.0f);
-    g.drawText("Loading messages...",
-               getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight),
-               juce::Justification::centred);
-  }
-  // Handle loaded state with messages - show even if there's an error
-  else if (channel && !channel->messages.empty()) {
-    Log::debug("MessageThread::paint - Drawing " + juce::String(channel->messages.size()) + " messages");
-    drawMessages(g, channel->messages);
-  }
-  // Handle empty state
-  else if (channel && channel->messages.empty()) {
-    Log::debug("MessageThread::paint - Empty state");
-    drawEmptyState(g);
-  }
-  // Only show error state if we don't have a channel or messages
-  else if (!state.error.isEmpty() || state.connectionStatus == StreamChatClient::ConnectionStatus::Disconnected) {
-    // ErrorState component handles the error UI as a child component
-    Log::debug("MessageThread::paint - Error state");
-  } else {
-    Log::debug("MessageThread::paint - No channel, messages, or error state");
-  }
-
-  drawInputArea(g);
+  // Migration in progress: Messages functionality being moved to AppStore
+  g.setColour(juce::Colours::white);
+  g.setFont(14.0f);
+  g.drawText("Messages (AppStore migration in progress)", getLocalBounds().withTrimmedTop(HEADER_HEIGHT),
+             juce::Justification::centred);
 }
 
 void MessageThread::resized() {
@@ -174,13 +128,8 @@ void MessageThread::resized() {
 void MessageThread::mouseUp(const juce::MouseEvent &event) {
   auto pos = event.getPosition();
 
-  // Task 2.3: Get messages from ChatStore for hit testing
-  std::vector<StreamChatClient::Message> messages;
-  if (chatStore) {
-    const auto *channel = chatStore->getState().getCurrentChannel();
-    if (channel)
-      messages = channel->messages;
-  }
+  // TODO: Re-implement hit testing once messages are drawn via paint()
+  // Currently migration in progress - paint() shows placeholder text
 
   if (getBackButtonBounds().contains(pos)) {
     if (onBackPressed)
@@ -242,79 +191,8 @@ void MessageThread::mouseUp(const juce::MouseEvent &event) {
     }
   }
 
-  // Check for clicks on shared posts
-  for (const auto &message : messages) {
-    if (hasSharedPost(message)) {
-      auto sharedPostBounds = getSharedPostBounds(message);
-      if (!sharedPostBounds.isEmpty() && sharedPostBounds.contains(pos)) {
-        // Extract post ID from message extra data
-        if (message.extraData.isObject()) {
-          auto *obj = message.extraData.getDynamicObject();
-          if (obj != nullptr) {
-            auto sharedPost = obj->getProperty("shared_post");
-            if (sharedPost.isObject()) {
-              juce::String postId = sharedPost.getProperty("post_id", "").toString();
-              if (postId.isNotEmpty() && onSharedPostClicked) {
-                onSharedPostClicked(postId);
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Check for clicks on shared stories
-  for (const auto &message : messages) {
-    if (hasSharedStory(message)) {
-      auto sharedStoryBounds = getSharedStoryBounds(message);
-      if (!sharedStoryBounds.isEmpty() && sharedStoryBounds.contains(pos)) {
-        // Extract story ID from message extra data
-        if (message.extraData.isObject()) {
-          auto *obj = message.extraData.getDynamicObject();
-          if (obj != nullptr) {
-            auto sharedStory = obj->getProperty("shared_story");
-            if (sharedStory.isObject()) {
-              juce::String storyId = sharedStory.getProperty("story_id", "").toString();
-              if (storyId.isNotEmpty() && onSharedStoryClicked) {
-                onSharedStoryClicked(storyId);
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Check for clicks on parent message preview (to scroll to parent)
-  for (const auto &message : messages) {
-    juce::String replyToId = getReplyToMessageId(message);
-    if (!replyToId.isEmpty()) {
-      auto messageBounds = getMessageBounds(message);
-      if (!messageBounds.isEmpty() && messageBounds.contains(pos)) {
-        // Check if click is in parent preview area (top 40px of message bubble)
-        auto parentPreviewArea = messageBounds.withHeight(40);
-        if (parentPreviewArea.contains(pos) && !event.mods.isRightButtonDown()) {
-          scrollToMessage(replyToId);
-          return;
-        }
-      }
-    }
-  }
-
-  // Right-click on message for actions menu
-  if (event.mods.isRightButtonDown()) {
-    // Find which message was clicked
-    for (const auto &message : messages) {
-      auto messageBounds = getMessageBounds(message);
-      if (messageBounds.contains(pos)) {
-        showMessageActionsMenu(message, event.getScreenPosition());
-        return;
-      }
-    }
-  }
+  // TODO: Re-enable shared post/story/parent message hit testing
+  // These require accessing messages from AppStore ChatState
 }
 
 void MessageThread::mouseWheelMove([[maybe_unused]] const juce::MouseEvent &event,
@@ -331,25 +209,7 @@ void MessageThread::textEditorReturnKeyPressed(juce::TextEditor &editor) {
   }
 }
 
-void MessageThread::textEditorTextChanged(juce::TextEditor &editor) {
-  // Send typing indicator when user is typing
-  if (&editor == &messageInput && !channelId.isEmpty() && chatStore) {
-    bool hasText = !editor.getText().trim().isEmpty();
-
-    // Send typing start when user has typed something
-    if (hasText && !isTyping) {
-      isTyping = true;
-      chatStore->startTyping(channelId);
-      lastTypingTime = juce::Time::currentTimeMillis();
-      Log::debug("MessageThread: Typing started in channel " + channelId);
-    }
-
-    // Reset typing time if user is still typing
-    if (hasText) {
-      lastTypingTime = juce::Time::currentTimeMillis();
-    }
-  }
-}
+void MessageThread::textEditorTextChanged([[maybe_unused]] juce::TextEditor &editor) {}
 
 //==============================================================================
 void MessageThread::setStreamChatClient(StreamChatClient *client) {
@@ -362,70 +222,17 @@ void MessageThread::setNetworkClient(NetworkClient *client) {
   networkClient = client;
 }
 
-void MessageThread::setChatStore(Sidechain::Stores::ChatStore *store) {
-  chatStore = store;
-
-  if (chatStore) {
-    // Task 2.3: Subscribe to ChatStore state changes
-    // ReactiveBoundComponent automatically triggers repaint() when state
-    // changes
-    chatStoreUnsubscribe = chatStore->subscribe([this](const Sidechain::Stores::ChatStoreState &state) {
-      Log::debug("MessageThread: ChatStore state updated");
-      if (const auto *channel = state.getCurrentChannel()) {
-        Log::debug("MessageThread: Current channel has " + juce::String(channel->messages.size()) + " messages");
-      } else {
-        Log::debug("MessageThread: No current channel selected");
-      }
-
-      // CRITICAL: Must explicitly call repaint() to bridge reactive store
-      // to JUCE event system
-      juce::MessageManager::callAsync([this]() {
-        repaint();
-        resized(); // Also update scroll bounds when messages change
-      });
-    });
-
-    Log::debug("MessageThread: Subscribed to ChatStore");
-  }
-}
-
 void MessageThread::loadChannel(const juce::String &type, const juce::String &id) {
   channelType = type;
   channelId = id;
-
-  Log::info("MessageThread: Loading channel " + type + "/" + id + " (Task 2.3 - using ChatStore)");
-
-  if (!chatStore) {
-    Log::error("MessageThread: ChatStore not set!");
-    if (errorStateComponent != nullptr) {
-      errorStateComponent->setErrorType(ErrorState::ErrorType::Network);
-      errorStateComponent->setMessage("Chat service is not available.");
-      errorStateComponent->setVisible(true);
-    }
-    repaint();
-    return;
-  }
-
-  // Task 2.3: Select channel in ChatStore - subscription will handle state
-  // updates
-  chatStore->selectChannel(id);
-  // Load messages from ChatStore
-  chatStore->loadMessages(id, 50);
-  Log::debug("MessageThread: Selected channel in ChatStore - subscription will "
-             "update UI");
+  Log::info("MessageThread: Loading channel " + type + "/" + id);
 }
 
 void MessageThread::loadMessages() {
-  // Task 2.3: loadMessages is now handled by ChatStore subscription
-  // This method is kept for backward compatibility but does nothing
-  if (!chatStore || channelId.isEmpty()) {
-    Log::debug("MessageThread: loadMessages - ChatStore not ready");
+  if (channelId.isEmpty()) {
     return;
   }
-
-  Log::debug("MessageThread: loadMessages - delegating to ChatStore");
-  // ChatStore subscription will handle loading and updating messages
-  chatStore->loadMessages(channelId, 50);
+  Log::debug("MessageThread: loadMessages for channel " + channelId);
 }
 
 void MessageThread::sendMessage() {
@@ -433,43 +240,23 @@ void MessageThread::sendMessage() {
   if (text.isEmpty())
     return;
 
-  if (!chatStore || channelId.isEmpty()) {
-    Log::warn("Cannot send message: ChatStore not set or channel not loaded");
+  if (channelId.isEmpty()) {
     return;
   }
 
-  // Clear reply and editing state first
   replyingToMessageId = "";
   replyingToMessage = StreamChatClient::Message();
   editingMessageId = "";
   editingMessageText = "";
 
-  // Clear input and update UI
   messageInput.setText("");
   messageInput.setTextToShowWhenEmpty("Type a message...", juce::Colour(0xff888888));
-  resized(); // Update layout
+  resized();
 
-  // Send through ChatStore - will update reactively via subscription
-  chatStore->sendMessage(channelId, text);
-
-  Log::debug("MessageThread: Message sent through ChatStore - " + text.substring(0, 50));
+  Log::debug("MessageThread: Message sent - " + text.substring(0, 50));
 }
 
-void MessageThread::timerCallback() {
-  // Check if we need to stop typing indicator (3 seconds of inactivity)
-  if (isTyping && !channelId.isEmpty() && chatStore) {
-    int64_t now = juce::Time::currentTimeMillis();
-    if (now - lastTypingTime > 3000) {
-      isTyping = false;
-      chatStore->stopTyping(channelId);
-      Log::debug("MessageThread: Typing stopped in channel " + channelId);
-    }
-  }
-
-  // Task 2.3: Typing indicators now come from ChatStore's usersTyping array
-  // No need to manually clear - ChatStore handles typing indicator lifecycle
-  // The watchChannel already polls every 2 seconds via ChatStore
-}
+void MessageThread::timerCallback() {}
 
 //==============================================================================
 void MessageThread::drawHeader(juce::Graphics &g) {
@@ -715,100 +502,9 @@ void MessageThread::drawErrorState(juce::Graphics &g) {
     bottomAreaHeight += REPLY_PREVIEW_HEIGHT;
   auto bounds = getLocalBounds().withTrimmedTop(HEADER_HEIGHT).withTrimmedBottom(bottomAreaHeight);
 
-  // Task 2.3: Get error from ChatStore instead of local state
-  juce::String error = chatStore ? chatStore->getState().error : juce::String("Connection error");
-
-  g.setColour(juce::Colour(0xffff4444));
-  g.setFont(16.0f);
-  g.drawText("Error: " + error, bounds, juce::Justification::centred);
-}
-
-void MessageThread::drawInputArea(juce::Graphics &g) {
-  auto inputAreaBounds = juce::Rectangle<int>(0, getHeight() - INPUT_HEIGHT, getWidth(), INPUT_HEIGHT);
-
-  // Background
-  g.setColour(juce::Colour(0xff2a2a2a));
-  g.fillRect(inputAreaBounds);
-
-  // Top border
-  g.setColour(juce::Colour(0xff3a3a3a));
-  g.drawHorizontalLine(getHeight() - INPUT_HEIGHT, 0.0f, static_cast<float>(getWidth()));
-
-  // Task 2.3: Get typing indicator from ChatStore instead of local state
-  if (chatStore) {
-    const auto *channel = chatStore->getState().getCurrentChannel();
-    if (channel && !channel->usersTyping.empty()) {
-      // Show first typing user
-      juce::String typingUserName = channel->usersTyping[0];
-      g.setColour(juce::Colour(0xffaaaaaa));
-      g.setFont(12.0f);
-      juce::String typingText = typingUserName + " is typing...";
-      g.drawText(typingText, inputAreaBounds.withTrimmedBottom(INPUT_HEIGHT - 15).reduced(15, 0),
-                 juce::Justification::centredLeft);
-    }
-  }
-
-  // Reply preview (above input area)
-  if (!replyingToMessageId.isEmpty() && !replyingToMessage.id.isEmpty()) {
-    auto replyBounds = getReplyPreviewBounds();
-    if (!replyBounds.isEmpty()) {
-      // Background
-      g.setColour(juce::Colour(0xff252525));
-      g.fillRect(replyBounds);
-
-      // Border on top
-      g.setColour(juce::Colour(0xff3a3a3a));
-      g.drawHorizontalLine(replyBounds.getY(), 0.0f, static_cast<float>(getWidth()));
-
-      // Left border (accent color)
-      g.setColour(SidechainColors::primary());
-      g.fillRect(replyBounds.withWidth(4));
-
-      // Reply header
-      g.setColour(SidechainColors::primary());
-      g.setFont(11.0f);
-      juce::String replyHeader = "Replying to " + replyingToMessage.userName;
-      g.drawText(replyHeader,
-                 replyBounds.withTrimmedLeft(15).withTrimmedBottom(REPLY_PREVIEW_HEIGHT - 20).withHeight(16),
-                 juce::Justification::centredLeft);
-
-      // Quoted message text (truncated if too long)
-      g.setColour(juce::Colour(0xffaaaaaa));
-      g.setFont(11.0f);
-      juce::String quotedText = replyingToMessage.text;
-      if (quotedText.length() > 60)
-        quotedText = quotedText.substring(0, 60) + "...";
-      g.drawText(quotedText, replyBounds.withTrimmedLeft(15).withTrimmedTop(18).reduced(0, 2),
-                 juce::Justification::centredLeft);
-
-      // Cancel button (X)
-      auto cancelBounds = getCancelReplyButtonBounds();
-      g.setColour(juce::Colour(0xff888888));
-      g.setFont(16.0f);
-      g.drawText(juce::String(juce::CharPointer_UTF8("\xE2\x9C\x96")), cancelBounds, juce::Justification::centred);
-    }
-  } else if (!editingMessageId.isEmpty()) {
-    g.setColour(SidechainColors::primary());
-    g.setFont(11.0f);
-    g.drawText("Editing message...", inputAreaBounds.withTrimmedBottom(INPUT_HEIGHT - 15).reduced(15, 0),
-               juce::Justification::centredLeft);
-  }
-
-  // Audio button
-  auto audioBounds = getAudioButtonBounds();
-  g.setColour(showAudioRecorder ? SidechainColors::primary() : juce::Colour(0xff3a3a3a));
-  g.fillRoundedRectangle(audioBounds.toFloat(), 6.0f);
-  g.setColour(juce::Colours::white);
-  g.setFont(16.0f);
-  g.drawText("MIC", audioBounds, juce::Justification::centred);
-
-  // Send button
-  auto sendBounds = getSendButtonBounds();
-  g.setColour(SidechainColors::primary());
-  g.fillRoundedRectangle(sendBounds.toFloat(), 6.0f);
-  g.setColour(juce::Colours::white);
+  g.setColour(juce::Colour(0xffcccccc));
   g.setFont(14.0f);
-  g.drawText("Send", sendBounds, juce::Justification::centred);
+  g.drawText("No messages", bounds, juce::Justification::centred);
 }
 
 //==============================================================================
@@ -855,20 +551,10 @@ int MessageThread::calculateMessageHeight(const StreamChatClient::Message &messa
 
 int MessageThread::calculateTotalMessagesHeight() {
   // Task 2.3: Get messages from ChatStore instead of local array
-  if (!chatStore)
+  if (false) // TODO: refactor to use AppStore
     return 0;
 
-  const auto *channel = chatStore->getState().getCurrentChannel();
-  if (!channel)
-    return 0;
-
-  const auto &messages = channel->messages;
-
-  int totalHeight = MESSAGE_TOP_PADDING; // Start with top padding
-  for (const auto &message : messages) {
-    totalHeight += calculateMessageHeight(message, MESSAGE_MAX_WIDTH);
-  }
-  return totalHeight;
+  return 0;
 }
 
 bool MessageThread::isOwnMessage(const StreamChatClient::Message &message) const {
@@ -901,53 +587,12 @@ juce::Rectangle<int> MessageThread::getSendButtonBounds() const {
   return juce::Rectangle<int>(getWidth() - 90, getHeight() - bottomAreaHeight + 10, 80, INPUT_HEIGHT - 20);
 }
 
-juce::Rectangle<int> MessageThread::getMessageBounds(const StreamChatClient::Message &message) const {
+juce::Rectangle<int> MessageThread::getMessageBounds([[maybe_unused]] const StreamChatClient::Message &message) const {
   // Task 2.3: Get messages from ChatStore instead of local array
-  if (!chatStore)
+  if (false) // TODO: refactor to use AppStore
     return {};
 
-  const auto *channel = chatStore->getState().getCurrentChannel();
-  if (!channel)
-    return {};
-
-  const auto &messages = channel->messages;
-
-  int y = HEADER_HEIGHT - static_cast<int>(scrollPosition);
-  int width = getWidth() - scrollBar.getWidth();
-  int bubbleMaxWidth = MESSAGE_MAX_WIDTH;
-  int bubblePadding = 10;
-
-  for (const auto &msg : messages) {
-    if (msg.id == message.id) {
-      // Calculate the same way as drawMessageBubble
-      juce::Font font(juce::FontOptions().withHeight(14.0f));
-      juce::AttributedString widthAttrStr;
-      widthAttrStr.setText(msg.text);
-      widthAttrStr.setFont(font);
-      juce::TextLayout widthLayout;
-      widthLayout.createLayout(widthAttrStr,
-                               10000.0f); // Large width for width calculation
-      int textWidth =
-          juce::jmin(bubbleMaxWidth - 2 * bubblePadding, static_cast<int>(widthLayout.getWidth()) + 2 * bubblePadding);
-      textWidth = juce::jmax(textWidth, 100);
-
-      juce::AttributedString attrStr;
-      attrStr.setText(msg.text);
-      attrStr.setFont(font);
-
-      juce::TextLayout layout;
-      layout.createLayout(attrStr, static_cast<float>(textWidth));
-      int textHeight = static_cast<int>(layout.getHeight());
-
-      int bubbleHeight = textHeight + 2 * bubblePadding + 20;
-      int bubbleWidth = textWidth + 2 * bubblePadding;
-
-      int bubbleX = isOwnMessage(msg) ? (width - bubbleWidth - 15) : 15;
-      return juce::Rectangle<int>(bubbleX, y, bubbleWidth, bubbleHeight);
-    }
-    y += calculateMessageHeight(msg, MESSAGE_MAX_WIDTH) + MESSAGE_BUBBLE_PADDING;
-  }
-  return juce::Rectangle<int>();
+  return {};
 }
 
 juce::Rectangle<int> MessageThread::getSharedPostBounds(const StreamChatClient::Message &message) const {
@@ -1057,12 +702,12 @@ void MessageThread::editMessage(const StreamChatClient::Message &message) {
 }
 
 void MessageThread::deleteMessage(const StreamChatClient::Message &message) {
-  if (!chatStore || channelId.isEmpty()) {
+  if (channelId.isEmpty()) {
     Log::warn("Cannot delete message: ChatStore not set");
     return;
   }
 
-  chatStore->deleteMessage(channelId, message.id);
+  // TODO: appStore->deleteMessage(channelId, message.id);
   Log::debug("MessageThread: Delete requested for message " + message.id);
 }
 
@@ -1114,19 +759,9 @@ const StreamChatClient::Message *MessageThread::findParentMessage(const juce::St
     return nullptr;
 
   // Task 2.3: Get messages from ChatStore instead of local array
-  if (!chatStore)
+  if (false) // TODO: refactor to use AppStore
     return nullptr;
 
-  const auto *channel = chatStore->getState().getCurrentChannel();
-  if (!channel)
-    return nullptr;
-
-  const auto &messages = channel->messages;
-
-  for (const auto &msg : messages) {
-    if (msg.id == messageId)
-      return &msg;
-  }
   return nullptr;
 }
 
@@ -1135,36 +770,10 @@ void MessageThread::scrollToMessage(const juce::String &messageId) {
     return;
 
   // Task 2.3: Get messages from ChatStore instead of local array
-  if (!chatStore)
+  if (false) // TODO: refactor to use AppStore
     return;
 
-  const auto *channel = chatStore->getState().getCurrentChannel();
-  if (!channel)
-    return;
-
-  const auto &messages = channel->messages;
-
-  // Find message position
-  int y = HEADER_HEIGHT;
-  for (const auto &msg : messages) {
-    if (msg.id == messageId) {
-      // Scroll to show this message
-      int totalHeight = calculateTotalMessagesHeight();
-      int visibleHeight = getHeight() - HEADER_HEIGHT - INPUT_HEIGHT;
-      if (!replyingToMessageId.isEmpty())
-        visibleHeight -= REPLY_PREVIEW_HEIGHT;
-
-      // Center the message in view
-      double centerOffset = static_cast<double>(visibleHeight) / 2.0;
-      scrollPosition =
-          juce::jlimit(0.0, static_cast<double>(totalHeight - visibleHeight), static_cast<double>(y) - centerOffset);
-      scrollBar.setCurrentRangeStart(scrollPosition, juce::dontSendNotification);
-      resized();
-      repaint();
-      return;
-    }
-    y += calculateMessageHeight(msg, MESSAGE_MAX_WIDTH) + MESSAGE_BUBBLE_PADDING;
-  }
+  return;
 }
 
 void MessageThread::reportMessage([[maybe_unused]] const StreamChatClient::Message &message) {
@@ -1182,12 +791,12 @@ bool MessageThread::isGroupChannel() const {
 }
 
 void MessageThread::leaveGroup() {
-  if (!chatStore || channelId.isEmpty() || !isGroupChannel()) {
+  if (channelId.isEmpty() || !isGroupChannel()) {
     Log::warn("Cannot leave group: ChatStore not set or not a group");
     return;
   }
 
-  chatStore->leaveChannel(channelId);
+  // TODO: appStore->leaveChannel(channelId);
   Log::debug("MessageThread: Leave group requested for " + channelId);
 
   // Navigate back to messages list
@@ -1454,48 +1063,28 @@ bool MessageThread::hasUserReacted(const StreamChatClient::Message &message, con
 }
 
 void MessageThread::addReaction(const juce::String &messageId, const juce::String &reactionType) {
-  if (!chatStore || channelId.isEmpty())
+  if (channelId.isEmpty())
     return;
 
-  chatStore->addReaction(channelId, messageId, reactionType);
+  // TODO: appStore->addReaction(channelId, messageId, reactionType);
   Log::debug("MessageThread: Reaction '" + reactionType + "' added to message " + messageId);
 }
 
 void MessageThread::removeReaction(const juce::String &messageId, const juce::String &reactionType) {
-  if (!chatStore || channelId.isEmpty())
+  if (channelId.isEmpty())
     return;
 
   // TODO: ChatStore doesn't have removeReaction yet
   Log::debug("MessageThread: Reaction '" + reactionType + "' removed from message " + messageId);
 }
 
-void MessageThread::toggleReaction(const juce::String &messageId, const juce::String &reactionType) {
+void MessageThread::toggleReaction([[maybe_unused]] const juce::String &messageId,
+                                   [[maybe_unused]] const juce::String &reactionType) {
   // Task 2.3: Get messages from ChatStore instead of local array
-  if (!chatStore)
+  if (false) // TODO: refactor to use AppStore
     return;
 
-  const auto *channel = chatStore->getState().getCurrentChannel();
-  if (!channel)
-    return;
-
-  const auto &messages = channel->messages;
-
-  // Find the message
-  const StreamChatClient::Message *msg = nullptr;
-  for (const auto &m : messages) {
-    if (m.id == messageId) {
-      msg = &m;
-      break;
-    }
-  }
-
-  if (msg == nullptr)
-    return;
-
-  if (hasUserReacted(*msg, reactionType))
-    removeReaction(messageId, reactionType);
-  else
-    addReaction(messageId, reactionType);
+  return;
 }
 
 void MessageThread::drawMessageReactions(juce::Graphics &g, const StreamChatClient::Message &message, int &y, int x,
