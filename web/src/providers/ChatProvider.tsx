@@ -108,29 +108,51 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   }, [user, token, apiKey, chatClient])
 
-  // If chat not initialized, show children anyway (graceful degradation)
-  if (!chatClient) {
-    return <>{children}</>
+  // If chat not initialized, create a temporary client for context
+  // This ensures useChatContext() works even if not yet connected
+  let client = chatClient
+  if (!client) {
+    try {
+      if (apiKey) {
+        client = StreamChat.getInstance(apiKey)
+      }
+    } catch (err) {
+      console.error('[Chat] Failed to create Stream Chat instance:', err)
+    }
   }
 
-  // If connecting, show loading state
-  if (isConnecting) {
+  // If still no client, show error
+  if (!client) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Spinner size="lg" />
+        <div className="text-center space-y-4">
+          <div className="text-red-500">⚠️</div>
+          <p className="text-foreground">Failed to initialize chat</p>
+          <p className="text-sm text-muted-foreground">Please refresh the page</p>
+        </div>
       </div>
     )
   }
 
-  // If error, show error message but still render children
+  // If connecting, show loading state over the Chat context
+  if (isConnecting) {
+    return (
+      <Chat client={client} theme="dark">
+        <div className="flex items-center justify-center h-screen">
+          <Spinner size="lg" />
+        </div>
+      </Chat>
+    )
+  }
+
+  // Always render Chat wrapper so useChatContext works
+  // If there's an error, log it but still render (graceful degradation)
   if (error) {
-    console.warn('[Chat] Chat not available:', error)
-    // Gracefully degrade - still show app without chat
-    return <>{children}</>
+    console.warn('[Chat] Chat connection error:', error)
   }
 
   return (
-    <Chat client={chatClient} theme="dark">
+    <Chat client={client} theme="dark">
       {children}
     </Chat>
   )
