@@ -1,7 +1,10 @@
 #include "UserPickerDialog.h"
 #include "../../network/NetworkClient.h"
+#include "../../stores/AppStore.h"
 #include "../../util/Colors.h"
 #include "../../util/Log.h"
+
+using namespace Sidechain::Stores;
 
 UserPickerDialog::UserPickerDialog()
     : scrollBar(true) // Initialize scrollbar as vertical
@@ -632,50 +635,49 @@ void UserPickerDialog::performSearch(const juce::String &query) {
   repaint();
 
   juce::Component::SafePointer<UserPickerDialog> safeThis(this);
+  auto &appStore = AppStore::getInstance();
 
-  // Search users by username or display name
-  networkClient->searchUsers(currentSearchQuery, 20, 0, [safeThis](Outcome<juce::var> result) {
-    if (safeThis == nullptr)
-      return;
+  // Search users by username or display name via AppStore (with caching)
+  appStore.searchUsersObservable(currentSearchQuery)
+      .subscribe(
+          [safeThis](const juce::Array<juce::var> &users) {
+            if (safeThis == nullptr)
+              return;
 
-    safeThis->isSearching = false;
+            safeThis->isSearching = false;
+            safeThis->searchResults.clear();
 
-    if (result.isError()) {
-      Log::error("UserPickerDialog: Search failed - " + result.getError());
-      safeThis->searchResults.clear();
-      safeThis->repaint();
-      return;
-    }
+            for (const auto &userObj : users) {
+              // Skip excluded users
+              juce::String userId = userObj.getProperty("id", "").toString();
+              if (userId.isEmpty() || safeThis->excludedUserIds.contains(userId))
+                continue;
 
-    auto data = result.getValue();
-    safeThis->searchResults.clear();
+              UserItem user;
+              user.userId = userId;
+              user.username = userObj.getProperty("username", "").toString();
+              user.displayName = userObj.getProperty("display_name", "").toString();
+              user.profilePictureUrl = userObj.getProperty("profile_picture_url", "").toString();
+              user.isFollowing = userObj.getProperty("is_following", false);
+              user.followsMe = userObj.getProperty("follows_me", false);
+              user.isOnline = userObj.getProperty("is_online", false);
 
-    if (data.isArray()) {
-      for (int i = 0; i < data.size(); ++i) {
-        auto userObj = data[i];
+              safeThis->searchResults.push_back(user);
+            }
 
-        // Skip excluded users
-        juce::String userId = userObj.getProperty("id", "").toString();
-        if (userId.isEmpty() || safeThis->excludedUserIds.contains(userId))
-          continue;
+            Log::info("UserPickerDialog: Found " + juce::String(safeThis->searchResults.size()) + " users");
+            safeThis->resized();
+            safeThis->repaint();
+          },
+          [safeThis](std::exception_ptr) {
+            if (safeThis == nullptr)
+              return;
 
-        UserItem user;
-        user.userId = userId;
-        user.username = userObj.getProperty("username", "").toString();
-        user.displayName = userObj.getProperty("display_name", "").toString();
-        user.profilePictureUrl = userObj.getProperty("profile_picture_url", "").toString();
-        user.isFollowing = userObj.getProperty("is_following", false);
-        user.followsMe = userObj.getProperty("follows_me", false);
-        user.isOnline = userObj.getProperty("is_online", false);
-
-        safeThis->searchResults.push_back(user);
-      }
-    }
-
-    Log::info("UserPickerDialog: Found " + juce::String(safeThis->searchResults.size()) + " users");
-    safeThis->resized();
-    safeThis->repaint();
-  });
+            safeThis->isSearching = false;
+            Log::error("UserPickerDialog: Search failed");
+            safeThis->searchResults.clear();
+            safeThis->repaint();
+          });
 }
 
 void UserPickerDialog::toggleUserSelection(const juce::String &userId) {

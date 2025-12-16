@@ -972,45 +972,43 @@ void CommentsPanel::showMentionAutocomplete(const juce::String &query) {
   mentionUserIds.clear();
   selectedMentionIndex = -1;
 
-  // Search for users (use empty query to get suggestions, or actual query)
+  // Search for users via AppStore (with caching)
   juce::String searchQuery = query.isEmpty() ? "" : query;
-  networkClient->searchUsers(searchQuery, 10, 0, [this](Outcome<juce::var> responseOutcome) {
-    if (responseOutcome.isOk()) {
-      auto response = responseOutcome.getValue();
-      if (response.isObject()) {
-        auto *users = response.getProperty("users", juce::var()).getArray();
-        if (users != nullptr) {
-          mentionSuggestions.clear();
-          mentionUserIds.clear();
+  auto &storeRef = AppStore::getInstance();
 
-          for (const auto &user : *users) {
-            if (user.isObject()) {
-              juce::String username = user.getProperty("username", "").toString();
-              juce::String userId = user.getProperty("id", "").toString();
+  storeRef.searchUsersObservable(searchQuery)
+      .subscribe(
+          [this](const juce::Array<juce::var> &users) {
+            // On next - users found
+            mentionSuggestions.clear();
+            mentionUserIds.clear();
 
-              if (username.isNotEmpty() && userId.isNotEmpty()) {
-                mentionSuggestions.add(username);
-                mentionUserIds.add(userId);
+            for (const auto &user : users) {
+              if (user.isObject()) {
+                juce::String username = user.getProperty("username", "").toString();
+                juce::String userId = user.getProperty("id", "").toString();
+
+                if (username.isNotEmpty() && userId.isNotEmpty()) {
+                  mentionSuggestions.add(username);
+                  mentionUserIds.add(userId);
+                }
               }
             }
-          }
 
-          if (mentionSuggestions.size() > 0) {
-            selectedMentionIndex = 0;
-            mentionAutocompletePanel->setVisible(true);
-            resized(); // Update panel position
-            repaint();
-          } else {
+            if (mentionSuggestions.size() > 0) {
+              selectedMentionIndex = 0;
+              mentionAutocompletePanel->setVisible(true);
+              resized(); // Update panel position
+              repaint();
+            } else {
+              hideMentionAutocomplete();
+            }
+          },
+          [this](std::exception_ptr) {
+            // On error - hide mention panel
+            Log::error("CommentsPanel: Search users failed");
             hideMentionAutocomplete();
-          }
-        }
-      } else {
-        Log::error("CommentsPanel: Invalid search users response");
-      }
-    } else {
-      Log::error("CommentsPanel: Search users failed - " + responseOutcome.getError());
-    }
-  });
+          });
 }
 
 void CommentsPanel::hideMentionAutocomplete() {
