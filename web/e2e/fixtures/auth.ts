@@ -51,7 +51,7 @@ export const test = base.extend<AuthFixtures>({
   },
 })
 
-export const { expect: expectAuth } = test
+export { expect }
 
 /**
  * Authenticate with the real backend via API
