@@ -411,21 +411,25 @@ void AppStore::getImage(const juce::String &url, std::function<void(const juce::
               imageUrl.createInputStream(false, nullptr, nullptr, "User-Agent: Sidechain/1.0", 5000, nullptr);
 #pragma clang diagnostic pop
           if (inputStream == nullptr) {
-            Util::logWarning("AppStore", "Failed to open image stream for " + url);
+            Util::logWarning("AppStore", "Failed to create stream for: " + url);
+            Util::logWarning("AppStore", "Check: URL validity, S3 permissions, network connection");
             return juce::Image();
           }
 
           juce::MemoryBlock imageData;
           inputStream->readIntoMemoryBlock(imageData);
+          auto downloadSize = imageData.getSize();
+
+          Util::logDebug("AppStore", "Downloaded " + juce::String(downloadSize) + " bytes from: " + url);
 
           if (imageData.isEmpty()) {
-            Util::logWarning("AppStore", "Downloaded image data is empty for " + url);
+            Util::logWarning("AppStore", "Image data is empty (0 bytes) for: " + url);
             return juce::Image();
           }
 
           auto image = juce::ImageFileFormat::loadFrom(imageData.getData(), imageData.getSize());
           if (!image.isValid()) {
-            Util::logWarning("AppStore", "Failed to decode image from " + url);
+            Util::logWarning("AppStore", "Failed to decode " + juce::String(downloadSize) + " bytes as image from: " + url);
             return juce::Image();
           }
 
