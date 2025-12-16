@@ -84,36 +84,39 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Header with Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-coral-pink to-rose-pink shadow-lg mb-4">
-            <span className="text-2xl font-bold text-white">◈</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary px-4">
+      <div className="w-full max-w-sm">
+        {/* Logo and Header - centered at top */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-coral-pink to-rose-pink shadow-lg mb-4">
+            <span className="text-xl font-bold text-white">◈</span>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Sidechain</h1>
-          <p className="text-muted-foreground">Share and discover loops with producers worldwide</p>
+          <h1 className="text-3xl font-bold text-foreground mb-1">Sidechain</h1>
+          <p className="text-sm text-muted-foreground">Share and discover loops with producers</p>
         </div>
 
-        {/* Card */}
+        {/* Main Card */}
         <div className="bg-card border border-border/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm">
           <div className="p-8">
-            {/* Title */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                {isLoginMode ? 'Welcome back' : 'Join Sidechain'}
+            {/* Form Title */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-foreground">
+                {isLoginMode ? 'Sign in to your account' : 'Create your account'}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-1">
                 {isLoginMode
-                  ? 'Sign in to your account to continue'
-                  : 'Create your account to get started'}
+                  ? 'Welcome back! Please sign in to continue'
+                  : 'Get started sharing your loops with the community'}
               </p>
             </div>
 
             {/* Email/Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="email" className="text-xs font-semibold text-foreground/80">
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -121,13 +124,16 @@ export function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loginMutation.isPending || registerMutation.isPending}
-                  className="h-10 bg-bg-secondary border-border/50 focus:border-coral-pink"
+                  className="h-9 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
                 />
               </div>
 
+              {/* Username (register only) */}
               {!isLoginMode && (
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+                  <Label htmlFor="username" className="text-xs font-semibold text-foreground/80">
+                    Username
+                  </Label>
                   <Input
                     id="username"
                     type="text"
@@ -135,13 +141,27 @@ export function Login() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     disabled={registerMutation.isPending}
-                    className="h-10 bg-bg-secondary border-border/50 focus:border-coral-pink"
+                    className="h-9 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
                   />
                 </div>
               )}
 
+              {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-xs font-semibold text-foreground/80">
+                    Password
+                  </Label>
+                  {isLoginMode && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/forgot-password')}
+                      className="text-xs text-coral-pink hover:text-rose-pink font-medium transition-colors"
+                    >
+                      Forgot?
+                    </button>
+                  )}
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -149,13 +169,16 @@ export function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loginMutation.isPending || registerMutation.isPending}
-                  className="h-10 bg-bg-secondary border-border/50 focus:border-coral-pink"
+                  className="h-9 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
                 />
               </div>
 
+              {/* Confirm Password (register only) */}
               {!isLoginMode && (
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword" className="text-xs font-semibold text-foreground/80">
+                    Confirm Password
+                  </Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -163,20 +186,22 @@ export function Login() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={registerMutation.isPending}
-                    className="h-10 bg-bg-secondary border-border/50 focus:border-coral-pink"
+                    className="h-9 bg-bg-secondary/80 border-border/50 text-foreground text-sm focus:border-coral-pink focus:ring-1 focus:ring-coral-pink/50"
                   />
                 </div>
               )}
 
+              {/* Error Message */}
               {error && (
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
                   {error}
                 </div>
               )}
 
+              {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-10 mt-2 bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white font-semibold transition-all duration-200"
+                className="w-full h-9 mt-2 bg-gradient-to-r from-coral-pink to-rose-pink hover:from-coral-pink/90 hover:to-rose-pink/90 text-white text-sm font-semibold transition-all duration-200"
                 disabled={loginMutation.isPending || registerMutation.isPending}
               >
                 {loginMutation.isPending || registerMutation.isPending ? (
@@ -187,32 +212,32 @@ export function Login() {
                 ) : isLoginMode ? (
                   'Sign In'
                 ) : (
-                  'Sign Up'
+                  'Create Account'
                 )}
               </Button>
             </form>
 
             {/* Divider */}
-            <div className="relative my-6">
+            <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border/30" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-2 bg-card text-muted-foreground font-medium">OR</span>
+                <span className="px-2 bg-card text-muted-foreground font-medium">or continue with</span>
               </div>
             </div>
 
             {/* OAuth Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button
                 variant="outline"
-                className="w-full h-10 border-border/50 hover:bg-bg-secondary transition-colors"
+                className="w-full h-9 border-border/50 hover:bg-bg-secondary/50 transition-colors text-sm"
                 onClick={handleGoogleAuth}
                 disabled={loginMutation.isPending || registerMutation.isPending}
               >
                 <svg
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   className="mr-2"
@@ -222,31 +247,31 @@ export function Login() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                <span className="font-semibold">Google</span>
+                <span className="font-medium">Google</span>
               </Button>
 
               <Button
                 variant="outline"
-                className="w-full h-10 border-border/50 hover:bg-bg-secondary transition-colors"
+                className="w-full h-9 border-border/50 hover:bg-bg-secondary/50 transition-colors text-sm"
                 onClick={handleDiscordAuth}
                 disabled={loginMutation.isPending || registerMutation.isPending}
               >
                 <svg
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   className="mr-2"
                 >
                   <path d="M20.317 4.3671a19.8215 19.8215 0 00-4.8851-1.5152.074.074 0 00-.0784.0371c-.211.3671-.444.8426-.607 1.2182a18.27 18.27 0 00-5.487 0c-.163-.3756-.396-.8511-.607-1.2182a.077.077 0 00-.0785-.037 19.7163 19.7163 0 00-4.8852 1.515.0699.0699 0 00-.032.0274C1.053 8.645 0 12.692 0 16.6723c0 .0141.009.028.021.0328a19.902 19.902 0 005.858 2.973.078.078 0 00.085-.028c.462-.612.873-1.29 1.226-1.994a.076.076 0 00-.042-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.294.075.075 0 01.078-.01c3.928 1.793 8.18 1.793 12.062 0a.075.075 0 01.079.009c.12.098.246.198.373.295a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.076.076 0 00-.041.107c.36.698.77 1.382 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 005.859-2.972.077.077 0 00.021-.0328c0-3.9805-1.02-7.9971-4.32-10.6514a.0649.0649 0 00-.032-.0274zM8.02 13.9045c-.9-0-1.6362-.8889-1.6362-1.9779 0-1.0889.7073-1.9779 1.6362-1.9779.9412 0 1.6496.889 1.6362 1.9779 0 1.089-.7073 1.9779-1.6362 1.9779zm7.9566 0c-.9 0-1.6362-.8889-1.6362-1.9779 0-1.0889.7073-1.9779 1.6362-1.9779.9412 0 1.6496.889 1.6362 1.9779 0 1.089-.7145 1.9779-1.6362 1.9779z" fill="#5865F2" />
                 </svg>
-                <span className="font-semibold">Discord</span>
+                <span className="font-medium">Discord</span>
               </Button>
             </div>
 
             {/* Sign up / Sign in Toggle */}
-            <div className="text-center text-sm text-muted-foreground mt-6 pt-6 border-t border-border/30">
-              {isLoginMode ? "Don't have an account?" : 'Already have an account?'}{' '}
+            <div className="text-center text-xs text-muted-foreground mt-6 pt-5 border-t border-border/30">
+              {isLoginMode ? "Don't have an account? " : 'Already have an account? '}
               <button
                 onClick={() => {
                   setIsLoginMode(!isLoginMode)
@@ -262,11 +287,6 @@ export function Login() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-xs text-muted-foreground">
-          <p>Share loops. Discover beats. Connect with producers.</p>
         </div>
       </div>
     </div>
