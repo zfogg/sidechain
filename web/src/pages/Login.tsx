@@ -84,7 +84,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary px-4">
+    <div className="min-h-screen bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         {/* Logo and Header - centered at top */}
         <div className="text-center mb-12">
