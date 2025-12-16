@@ -86,7 +86,7 @@ export class SearchClient {
   > {
     const result = await apiClient.get<{
       users: any[]
-    }>('/users/search', { q: query, limit })
+    }>('/search/users', { q: query, limit })
 
     if (result.isOk()) {
       try {
