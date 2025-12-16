@@ -75,6 +75,7 @@ func init() {
 	rootCmd.AddCommand(authCmd)
 	rootCmd.AddCommand(profileCmd)
 	rootCmd.AddCommand(postCmd)
+	rootCmd.AddCommand(postActionsCmd)
 	rootCmd.AddCommand(commentCmd)
 	rootCmd.AddCommand(feedCmd)
 	rootCmd.AddCommand(notificationsCmd)
