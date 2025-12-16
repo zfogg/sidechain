@@ -10,6 +10,7 @@ NotificationSettings::NotificationSettings(AppStore *store) : AppStoreComponent(
   setupToggles();
   // Set size last to avoid resized() being called before components are created
   setSize(400, 550);
+  initialize();
 }
 
 NotificationSettings::~NotificationSettings() {

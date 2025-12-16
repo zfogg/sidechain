@@ -7,6 +7,7 @@ ProfileSetup::ProfileSetup(Sidechain::Stores::AppStore *store) : AppStoreCompone
   Log::info("ProfileSetup: Initializing profile setup component");
   setSize(1000, 800);
   Log::info("ProfileSetup: Initialization complete");
+  initialize();
 }
 
 // Layout constants for responsive design
@@ -176,7 +177,7 @@ void ProfileSetup::paint(juce::Graphics &g) {
     g.fillRoundedRectangle(uploadBtn.toFloat(), 6.0f);
 
     // Draw progress bar fill
-    auto progressWidth = static_cast<int>(uploadBtn.getWidth() * uploadProgress);
+    auto progressWidth = static_cast<int>(static_cast<float>(uploadBtn.getWidth()) * uploadProgress);
     auto progressBounds = uploadBtn.withWidth(progressWidth);
     g.setColour(SidechainColors::primary());
     g.fillRoundedRectangle(progressBounds.toFloat(), 6.0f);

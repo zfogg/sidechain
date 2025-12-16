@@ -9,6 +9,7 @@ DraftsView::DraftsView(Sidechain::Stores::AppStore *store) : AppStoreComponent(s
   scrollBar->addListener(this);
   scrollBar->setAutoHide(true);
   addAndMakeVisible(scrollBar.get());
+  initialize();
 }
 
 DraftsView::~DraftsView() {

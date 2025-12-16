@@ -13,7 +13,7 @@ namespace UI {
  *
  * Eliminates boilerplate subscribe/unsubscribe code by:
  * - Accepting AppStore in constructor
- * - Automatically subscribing in constructor
+ * - Providing explicit initialize() for safe virtual method calls after construction
  * - Automatically unsubscribing in destructor
  * - Providing thread-safe state callbacks via MessageManager
  *
@@ -21,11 +21,15 @@ namespace UI {
  * 1. Inherit from AppStoreComponent<StateType>
  * 2. Override subscribeToAppStore() with their specific subscription
  * 3. Override onAppStateChanged() to handle state updates
+ * 4. Call initialize() after construction is complete
  *
  * Usage:
  *   class MyComponent : public AppStoreComponent<ChallengeState> {
  *   public:
- *     MyComponent(AppStore *store = nullptr) : AppStoreComponent(store) {}
+ *     explicit MyComponent(AppStore *store = nullptr) : AppStoreComponent(store) {
+ *       // All initialization here before calling initialize()
+ *       initialize();  // Safe to call virtual methods now
+ *     }
  *
  *   protected:
  *     void onAppStateChanged(const ChallengeState &state) override {
@@ -49,9 +53,23 @@ template <typename StateType> class AppStoreComponent : public juce::Component {
 public:
   /**
    * Constructor with optional AppStore binding
-   * If store is provided, subscribes immediately
+   * Does NOT subscribe automatically - call initialize() after construction
    */
-  explicit AppStoreComponent(Stores::AppStore *store = nullptr) : appStore(store) {
+  explicit AppStoreComponent(Stores::AppStore *store = nullptr) : appStore(store), isInitialized(false) {
+  }
+
+  /**
+   * Initialize store subscription after construction
+   * Must be called exactly once after derived class construction is complete
+   * Safe to call virtual methods (subscribeToAppStore) at this point
+   */
+  void initialize() {
+    if (isInitialized) {
+      Log::error("AppStoreComponent::initialize() called more than once");
+      return;
+    }
+
+    isInitialized = true;
     if (appStore) {
       subscribeToAppStore();
     }
@@ -75,7 +93,7 @@ public:
     }
 
     appStore = store;
-    if (appStore) {
+    if (appStore && isInitialized) {
       subscribeToAppStore();
     }
   }
@@ -98,6 +116,7 @@ public:
 protected:
   Stores::AppStore *appStore = nullptr;
   std::function<void()> storeUnsubscriber;
+  bool isInitialized;
 
   /**
    * Called when app state changes

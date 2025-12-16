@@ -469,7 +469,10 @@ static juce::String getInitialsFromName(const juce::String &name) {
 static juce::Image loadImageFromURL(const juce::String &urlStr) {
   try {
     juce::URL url(urlStr);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     auto inputStream = std::unique_ptr<juce::InputStream>(url.createInputStream(false));
+#pragma clang diagnostic pop
     if (inputStream == nullptr)
       return juce::Image();
     return juce::ImageFileFormat::loadFrom(*inputStream);

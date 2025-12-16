@@ -14,6 +14,7 @@ MidiChallengeDetail::MidiChallengeDetail(Sidechain::Stores::AppStore *store) : A
   scrollBar.setRangeLimits(0.0, 100.0);
   scrollBar.addListener(this);
   addAndMakeVisible(scrollBar);
+  initialize();
 }
 
 MidiChallengeDetail::~MidiChallengeDetail() {

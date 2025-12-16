@@ -10,6 +10,7 @@ ActivityStatusSettings::ActivityStatusSettings(AppStore *store) : AppStoreCompon
   setupToggles();
   // Set size last to avoid resized() being called before components are created
   setSize(400, 320);
+  initialize();
 }
 
 ActivityStatusSettings::~ActivityStatusSettings() {

@@ -28,6 +28,7 @@ StoryViewer::StoryViewer(Sidechain::Stores::AppStore *store) : AppStoreComponent
   startTimerHz(30);
 
   Log::info("StoryViewer created");
+  initialize();
 }
 
 StoryViewer::~StoryViewer() {

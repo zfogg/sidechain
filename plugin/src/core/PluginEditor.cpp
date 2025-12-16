@@ -2790,6 +2790,7 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
         juce::String token = authData["token"].toString();
         juce::String userEmail = "";
         juce::String userName = "";
+        juce::String profilePicUrl = "";
 
         if (authData.hasProperty("user")) {
           juce::var userData = authData["user"];
@@ -2799,16 +2800,24 @@ void SidechainAudioProcessorEditor::pollOAuthStatus() {
             userName = userData["username"].toString();
           else if (userData.hasProperty("display_name"))
             userName = userData["display_name"].toString();
+          // Extract profile picture URL from OAuth response
+          if (userData.hasProperty("profile_picture_url"))
+            profilePicUrl = userData["profile_picture_url"].toString();
         }
 
         if (userName.isEmpty() && userEmail.isNotEmpty())
           userName = userEmail.upToFirstOccurrenceOf("@", false, false);
 
-        Log::info("OAuth success! User: " + userName);
+        Log::info("OAuth success! User: " + userName + ", profilePicUrl: " + profilePicUrl);
 
         // Hide OAuth waiting screen before transitioning
         if (authComponent)
           authComponent->hideOAuthWaiting();
+
+        // Store profile picture URL in AppStore before calling onLoginSuccess
+        if (profilePicUrl.isNotEmpty()) {
+          appStore.setProfilePictureUrl(profilePicUrl);
+        }
 
         onLoginSuccess(userName, userEmail, token);
       }

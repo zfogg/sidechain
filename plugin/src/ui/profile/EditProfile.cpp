@@ -12,6 +12,7 @@ EditProfile::EditProfile(Sidechain::Stores::AppStore *store) : AppStoreComponent
   setupEditors();
   // Set size last to avoid resized() being called before components are created
   setSize(500, 1050); // Height for profile editing + settings section
+  initialize();
 }
 
 EditProfile::~EditProfile() {
