@@ -1,6 +1,4 @@
-import { useState } from 'react'
 import type { Comment } from '@/models/Comment'
-import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useToggleCommentLikeMutation } from '@/hooks/mutations/useCommentMutations'
 import { ReportButton } from '@/components/report/ReportButton'

@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { SearchClient, SearchFilters } from '@/api/SearchClient'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 
 interface SearchFiltersProps {
   filters: SearchFilters

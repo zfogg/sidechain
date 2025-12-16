@@ -14,7 +14,7 @@ interface SearchUserCardProps {
  */
 export function SearchUserCard({ user }: SearchUserCardProps) {
   const navigate = useNavigate()
-  const { mutate: toggleFollow, isPending: isFollowPending } = useFollowMutation()
+  const { mutate: toggleFollow } = useFollowMutation()
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 hover:border-coral-pink/50 transition-colors">
@@ -56,7 +56,7 @@ export function SearchUserCard({ user }: SearchUserCardProps) {
         >
           View Profile
         </Button>
-        <DirectMessageButton userId={user.id} displayName={user.displayName} />
+        <DirectMessageButton userId={user.id} />
         <ReportButton
           type="user"
           targetId={user.id}

@@ -11,7 +11,7 @@ interface MessageThreadProps {
  * Shows message list, allows composing replies and uploading files
  */
 export function MessageThread({ channelId }: MessageThreadProps) {
-  const { client, channel: contextChannel } = useChatContext()
+  const { channel: contextChannel } = useChatContext()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import type { FeedPost } from '@/models/FeedPost'
-import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import {
   DropdownMenu,
@@ -11,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useLikeMutation, useSaveMutation, usePlayTrackMutation } from '@/hooks/mutations/useFeedMutations'
 import { createAudioPlayer, formatTime, formatGenres, type AudioPlayer } from '@/utils/audio'
-import { useUIStore } from '@/stores/useUIStore'
 import { CommentsPanel } from '@/components/comments/CommentsPanel'
 import { ReportButton } from '@/components/report/ReportButton'
 import { AddToPlaylistDialog } from '@/components/playlists/AddToPlaylistDialog'

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFeedQuery } from '@/hooks/queries/useFeedQuery'
 import { PostCard } from './PostCard'
 import { Spinner } from '@/components/ui/spinner'

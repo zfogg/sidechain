@@ -5,14 +5,13 @@ import { Button } from '@/components/ui/button'
 
 interface DirectMessageButtonProps {
   userId: string
-  displayName: string
 }
 
 /**
  * DirectMessageButton - Opens direct message with a user
  * Used in profile pages and user cards
  */
-export function DirectMessageButton({ userId, displayName }: DirectMessageButtonProps) {
+export function DirectMessageButton({ userId }: DirectMessageButtonProps) {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 

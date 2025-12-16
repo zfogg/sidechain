@@ -170,7 +170,7 @@ export function useToggleCommentLikeMutation() {
 
       return { previousComments }
     },
-    onError: (err, variables, context: any) => {
+    onError: (_err, _variables, context: any) => {
       if (context?.previousComments) {
         context.previousComments.forEach(([queryKey, data]: [any, any]) => {
           queryClient.setQueryData(queryKey, data)

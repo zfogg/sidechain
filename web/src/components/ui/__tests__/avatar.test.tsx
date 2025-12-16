@@ -98,7 +98,7 @@ describe('Avatar Component', () => {
   })
 
   it('should show placeholder on image load error', () => {
-    const { container: errorContainer } = renderWithProviders(
+    renderWithProviders(
       <Avatar
         src="https://example.com/broken.jpg"
         alt="Test User"
