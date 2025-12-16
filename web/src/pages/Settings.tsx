@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { FollowRequestsSection } from '@/components/social/FollowRequestsSection'
 
 type SettingTab = 'profile' | 'privacy' | 'audio' | 'notifications' | 'appearance' | 'account'
 
@@ -217,6 +218,15 @@ export function Settings() {
           <TabsContent value="privacy">
             <div className="bg-card border border-border/50 rounded-2xl p-8 space-y-8">
               <h2 className="text-2xl font-bold text-foreground">Privacy & Control</h2>
+
+              {/* Follow Requests Section */}
+              <div className="space-y-4 border-b border-border/30 pb-6">
+                <h3 className="font-semibold text-foreground">Follow Requests</h3>
+                <p className="text-sm text-muted-foreground">
+                  Manage pending follow requests if your account is private
+                </p>
+                <FollowRequestsSection />
+              </div>
 
               <div className="space-y-6">
                 {/* Public Profile Toggle */}
