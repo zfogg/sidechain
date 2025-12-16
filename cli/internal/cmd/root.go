@@ -70,7 +70,7 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Path to config file (default: ~/.sidechain/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Path to config file (default: ~/.config/sidechain/cli/config.toml on Unix, %LOCALAPPDATA%\\sidechain\\cli\\config.toml on Windows)")
 	rootCmd.PersistentFlags().StringVar(&outputFmt, "output", "text", "Output format: text, json, table")
 	rootCmd.PersistentFlags().StringVar(&asUser, "as-user", "", "Admin impersonation: run commands as another user (requires admin account)")
 

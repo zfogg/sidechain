@@ -46,7 +46,7 @@ func TestGetCredentialsPath(t *testing.T) {
 // TestInitWithCustomPath validates custom config path
 func TestInitWithCustomPath(t *testing.T) {
 	tempDir := t.TempDir()
-	customConfigPath := filepath.Join(tempDir, "custom", "path", "config.yaml")
+	customConfigPath := filepath.Join(tempDir, "custom", "path", "config.toml")
 
 	if err := Init(customConfigPath); err != nil {
 		t.Fatalf("Failed to initialize with custom path: %v", err)
@@ -68,7 +68,7 @@ func TestInitWithoutPath(t *testing.T) {
 
 	configDir := GetConfigDir()
 	home, _ := os.UserHomeDir()
-	expectedDir := filepath.Join(home, ".sidechain")
+	expectedDir := filepath.Join(home, ".config", "sidechain", "cli")
 
 	if configDir != expectedDir {
 		t.Errorf("Expected default config dir %s, got %s", expectedDir, configDir)
@@ -78,7 +78,7 @@ func TestInitWithoutPath(t *testing.T) {
 // TestConfigDirectoryCreation validates directory is created
 func TestConfigDirectoryCreation(t *testing.T) {
 	tempDir := t.TempDir()
-	configPath := filepath.Join(tempDir, "new", "config", "location", "config.yaml")
+	configPath := filepath.Join(tempDir, "new", "config", "location", "config.toml")
 
 	if err := Init(configPath); err != nil {
 		t.Fatalf("Failed to initialize: %v", err)
@@ -147,8 +147,8 @@ func TestDefaultAPIBaseURL(t *testing.T) {
 	}
 
 	baseURL := GetString("api.base_url")
-	if baseURL != "http://localhost:8080" {
-		t.Errorf("Expected default base URL 'http://localhost:8080', got '%s'", baseURL)
+	if baseURL != "http://localhost:8787" {
+		t.Errorf("Expected default base URL 'http://localhost:8787', got '%s'", baseURL)
 	}
 }
 
@@ -191,8 +191,8 @@ func TestCredentialsPathStructure(t *testing.T) {
 // TestMultipleInitCalls validates multiple initialization calls
 func TestMultipleInitCalls(t *testing.T) {
 	tempDir := t.TempDir()
-	path1 := filepath.Join(tempDir, "config1", "config.yaml")
-	path2 := filepath.Join(tempDir, "config2", "config.yaml")
+	path1 := filepath.Join(tempDir, "config1", "config.toml")
+	path2 := filepath.Join(tempDir, "config2", "config.toml")
 
 	if err := Init(path1); err != nil {
 		t.Fatalf("First init failed: %v", err)
