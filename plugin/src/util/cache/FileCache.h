@@ -385,12 +385,12 @@ juce::String FileCache<T>::hashString(const juce::String &str) {
 
 template<typename T>
 juce::var FileCache<T>::CacheEntry::toJSON() const {
-  juce::var obj;
-  obj.getDynamicObject()->setProperty("key", key);
-  obj.getDynamicObject()->setProperty("filename", filename);
-  obj.getDynamicObject()->setProperty("fileSize", static_cast<int64>(fileSize));
-  obj.getDynamicObject()->setProperty("lastAccessTime", lastAccessTime);
-  return obj;
+  juce::DynamicObject::Ptr dynObj = new juce::DynamicObject();
+  dynObj->setProperty("key", key);
+  dynObj->setProperty("filename", filename);
+  dynObj->setProperty("fileSize", static_cast<int64>(fileSize));
+  dynObj->setProperty("lastAccessTime", lastAccessTime);
+  return juce::var(dynObj);
 }
 
 template<typename T>
