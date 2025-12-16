@@ -16,7 +16,7 @@ add_library(SidechainNetwork STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/api/AudioClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/FeedClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/SocialClient.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/DownloadClient.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/UploadDownloadClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/StoriesClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/CommentsClient.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/api/ProfileClient.cpp

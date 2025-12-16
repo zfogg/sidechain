@@ -8,12 +8,9 @@
 #include "../../util/Constants.h"
 #include "../../util/Log.h"
 #include "../NetworkClient.h"
+#include "Common.h"
 
-//==============================================================================
-// Helper to build API endpoint paths consistently
-static juce::String buildApiPath(const char *path) {
-  return juce::String("/api/v1") + path;
-}
+using namespace Sidechain::Network::Api;
 
 //==============================================================================
 void NetworkClient::uploadAudio(const juce::String &recordingId, const juce::AudioBuffer<float> &audioBuffer,
