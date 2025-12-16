@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePlaylistStore } from '@/stores/usePlaylistStore'
 import { PostCard } from '@/components/feed/PostCard'
-import { useFeedStore } from '@/stores/useFeedStore'
 import { Button } from '@/components/ui/button'
 import { FeedClient } from '@/api/FeedClient'
 

@@ -31,7 +31,7 @@ export function useFollowMutation() {
         }
       }
     },
-    onMutate: async ({ userId, shouldFollow }) => {
+    onMutate: async ({ shouldFollow }) => {
       // Cancel outgoing queries
       await queryClient.cancelQueries({ queryKey: ['profile'] })
 
@@ -53,7 +53,7 @@ export function useFollowMutation() {
 
       return { previousProfiles }
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousProfiles) {
         context.previousProfiles.forEach(([queryKey, data]) => {
