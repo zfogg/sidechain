@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../../models/FeedPost.h"
+#include "../../stores/SavedPostsStore.h"
 #include "../../util/Colors.h"
 #include <JuceHeader.h>
+#include <memory>
 
 class NetworkClient;
 class PostCard;
@@ -32,8 +34,9 @@ public:
   void scrollBarMoved(juce::ScrollBar *scrollBar, double newRangeStart) override;
 
   //==============================================================================
-  // Network client integration
+  // Store and network client integration
   void setNetworkClient(NetworkClient *client);
+  void setSavedPostsStore(std::shared_ptr<Sidechain::Stores::SavedPostsStore> store);
   void setCurrentUserId(const juce::String &userId) {
     currentUserId = userId;
   }
@@ -61,11 +64,15 @@ private:
   // Data
   NetworkClient *networkClient = nullptr;
   juce::String currentUserId;
+  std::shared_ptr<Sidechain::Stores::SavedPostsStore> savedPostsStore;
+  std::function<void()> storeUnsubscriber;
+
+  // Cached state from store
   juce::Array<FeedPost> savedPosts;
   bool isLoading = false;
   juce::String errorMessage;
 
-  // Pagination
+  // Pagination (for fallback direct NetworkClient usage)
   int currentOffset = 0;
   bool hasMore = true;
   static constexpr int PAGE_SIZE = 20;
@@ -106,7 +113,6 @@ private:
   //==============================================================================
   // Network operations
   void fetchSavedPosts();
-  void loadMoreIfNeeded();
 
   //==============================================================================
   // Helper methods
@@ -115,6 +121,8 @@ private:
   int calculateContentHeight() const;
   void updateScrollBounds();
   void setupPostCardCallbacks(PostCard *card);
+  void updateStateFromStore();
+  void loadMoreIfNeeded();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SavedPosts)
 };
