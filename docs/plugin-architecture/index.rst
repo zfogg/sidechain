@@ -9,8 +9,9 @@ eliminating callback hell and providing automatic UI updates.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Architecture Components:
+   :caption: Architecture Guide:
 
+   architecture
    stores
    observables
    reactive-components
