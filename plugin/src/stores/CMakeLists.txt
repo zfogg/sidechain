@@ -11,6 +11,7 @@ add_library(SidechainStores STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/AppStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/app/AppState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Base.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/Service.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Auth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/Feed.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/app/User.cpp
@@ -36,6 +37,7 @@ target_link_libraries(SidechainStores PUBLIC
     SidechainUtil
     SidechainModels
     SidechainNetwork
+    rxcpp
     juce::juce_core
     juce::juce_data_structures
     juce::juce_graphics

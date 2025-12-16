@@ -9,6 +9,8 @@
 #include "../util/cache/ImageCache.h"
 #include "../util/cache/AudioCache.h"
 #include <JuceHeader.h>
+#include <chrono>
+#include <any>
 
 namespace Sidechain {
 namespace Stores {
@@ -319,6 +321,94 @@ public:
    */
   void getImage(const juce::String &url, std::function<void(const juce::Image &)> callback);
 
+  //==============================================================================
+  // Memory Cache for Ephemeral Data
+  //
+  // Time-to-live (TTL) based expiration for non-persistent data.
+  // Used for: users, posts, messages, search results, comments
+  // NOT used for: binary assets (images, audio use file cache instead)
+  //
+  // Cache is session-only and cleared when app closes.
+  // Real-time invalidation via WebSocket events.
+
+  /**
+   * Get cached value by key with type safety.
+   * Returns std::optional - empty if not found or expired.
+   * Automatically removes expired entries.
+   *
+   * @param key Cache key (e.g., "user:123", "feed:home")
+   * @return std::optional<T> - cached value or std::nullopt if not cached
+   */
+  template <typename T> std::optional<T> getCached(const juce::String &key);
+
+  /**
+   * Store value in memory cache with TTL.
+   *
+   * @param key Cache key (e.g., "user:123", "feed:home")
+   * @param value Value to cache
+   * @param ttlSeconds Time-to-live in seconds (default 300 = 5 min)
+   */
+  template <typename T> void setCached(const juce::String &key, const T &value, int ttlSeconds = 300);
+
+  /**
+   * Remove specific cache entry immediately.
+   *
+   * @param key Cache key to invalidate
+   */
+  void invalidateCache(const juce::String &key);
+
+  /**
+   * Remove all cache entries matching wildcard pattern.
+   * Pattern examples: "feed:*", "user:*", "search:*"
+   *
+   * @param pattern Pattern with trailing * to match prefix
+   */
+  void invalidateCachePattern(const juce::String &pattern);
+
+  /**
+   * Clear all memory caches (for logout or app reset).
+   */
+  void clearMemoryCaches();
+
+  /**
+   * Get current memory cache size in bytes (for monitoring).
+   */
+  size_t getMemoryCacheSize() const;
+
+  //==============================================================================
+  // Image Service Operations (File Cache: memory → file → network)
+
+  /**
+   * Load image from URL with automatic multi-tier caching (Reactive).
+   *
+   * @param url Image URL
+   * @return rx::observable<Image> - emits loaded image when available
+   */
+  rx::observable<juce::Image> loadImageObservable(const juce::String &url);
+
+  /**
+   * Get image from cache synchronously (no network).
+   * Uses existing SidechainImageCache (memory → file hierarchy).
+   */
+  juce::Image getCachedImage(const juce::String &url);
+
+  //==============================================================================
+  // Audio Service Operations (File Cache: file → network)
+
+  /**
+   * Load audio file from URL with disk caching (Reactive).
+   *
+   * @param url Audio URL
+   * @return rx::observable<File> - emits file path when available
+   */
+  rx::observable<juce::File> loadAudioObservable(const juce::String &url);
+
+  /**
+   * Get audio file from cache synchronously (no network).
+   * Uses existing SidechainAudioCache (file cache only).
+   */
+  juce::File getCachedAudio(const juce::String &url);
+
 protected:
   /**
    * Constructor
@@ -353,9 +443,25 @@ protected:
 private:
   NetworkClient *networkClient = nullptr;
 
-  // File caching
+  // File caching (for binary assets: images, audio, MIDI)
   SidechainImageCache imageCache{500 * 1024 * 1024};        // 500MB
   SidechainAudioCache audioCache{5LL * 1024 * 1024 * 1024}; // 5GB
+
+  // Memory cache (for ephemeral data: users, posts, messages, search results)
+  struct CacheEntry {
+    std::any value;
+    std::chrono::steady_clock::time_point timestamp;
+    int ttlSeconds;
+  };
+
+  std::map<juce::String, CacheEntry> memoryCache;
+  mutable std::mutex memoryCacheLock;
+
+  // Helper to check if cache entry has expired
+  bool isCacheExpired(const CacheEntry &entry) const {
+    auto elapsed = std::chrono::steady_clock::now() - entry.timestamp;
+    return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count() >= entry.ttlSeconds;
+  }
 
   // Feed helpers
   void performFetch(FeedType feedType, int limit, int offset);
