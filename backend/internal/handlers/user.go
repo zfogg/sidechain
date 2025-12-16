@@ -206,15 +206,15 @@ func (h *Handlers) UnlikePost(c *gin.Context) {
 	})
 }
 
-// GetUserProfile gets a user's profile by ID (public endpoint)
-// GET /api/users/:id/profile
+// GetUserProfile gets a user's profile by ID or username (public endpoint)
+// GET /api/users/:id/profile (where :id can be user ID, stream ID, or username)
 func (h *Handlers) GetUserProfile(c *gin.Context) {
-	targetUserID := c.Param("id")
+	targetParam := c.Param("id")
 	currentUserID := c.GetString("user_id") // May be empty if not authenticated
 
-	// Fetch user from database
+	// Fetch user from database - accept ID, stream_user_id, or username
 	var user models.User
-	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -575,13 +575,13 @@ func (h *Handlers) ChangeUsername(c *gin.Context) {
 // GetUserFollowers gets the list of users who follow a user
 // GET /api/users/:id/followers
 func (h *Handlers) GetUserFollowers(c *gin.Context) {
-	targetUserID := c.Param("id")
+	targetParam := c.Param("id")
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
-	// Validate user exists
+	// Validate user exists - accept ID, stream_user_id, or username
 	var user models.User
-	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
 		return
 	}
@@ -625,13 +625,13 @@ func (h *Handlers) GetUserFollowers(c *gin.Context) {
 // GetUserFollowing gets the list of users a user follows
 // GET /api/users/:id/following
 func (h *Handlers) GetUserFollowing(c *gin.Context) {
-	targetUserID := c.Param("id")
+	targetParam := c.Param("id")
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	// Validate user exists
+	// Validate user exists - accept ID, stream_user_id, or username
 	var user models.User
-	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -676,14 +676,14 @@ func (h *Handlers) GetUserFollowing(c *gin.Context) {
 // GetUserPosts gets a user's posts with enriched data (likes, etc.)
 // GET /api/users/:id/posts
 func (h *Handlers) GetUserPosts(c *gin.Context) {
-	targetUserID := c.Param("id")
+	targetParam := c.Param("id")
 	currentUserID := c.GetString("user_id") // May be empty if not authenticated
 	limit := util.ParseInt(c.DefaultQuery("limit", "20"), 20)
 	offset := util.ParseInt(c.DefaultQuery("offset", "0"), 0)
 
-	// Validate user exists
+	// Validate user exists - accept ID, stream_user_id, or username
 	var user models.User
-	if err := database.DB.First(&user, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&user).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -876,11 +876,11 @@ func (h *Handlers) FollowUserByID(c *gin.Context) {
 	if !ok {
 		return
 	}
-	targetUserID := c.Param("id")
+	targetParam := c.Param("id")
 
-	// Validate target user exists
+	// Validate target user exists - accept ID, stream_user_id, or username
 	var targetUser models.User
-	if err := database.DB.First(&targetUser, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&targetUser).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}
@@ -977,11 +977,11 @@ func (h *Handlers) UnfollowUserByID(c *gin.Context) {
 	if !ok {
 		return
 	}
-	targetUserID := c.Param("id")
+	targetParam := c.Param("id")
 
-	// Validate target user exists
+	// Validate target user exists - accept ID, stream_user_id, or username
 	var targetUser models.User
-	if err := database.DB.First(&targetUser, "id = ? OR stream_user_id = ?", targetUserID, targetUserID).Error; err != nil {
+	if err := database.DB.Where("id = ? OR stream_user_id = ? OR username = ?", targetParam, targetParam, targetParam).First(&targetUser).Error; err != nil {
 		if util.HandleDBError(c, err, "user") {
 			return
 		}

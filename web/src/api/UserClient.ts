@@ -37,7 +37,7 @@ interface UserListResponse {
  * UserClient - Handles user profile and social operations
  *
  * API Endpoints:
- * GET /users/:username - Get user profile
+ * GET /users/:username/profile - Get user profile
  * POST /users/:userId/follow - Follow user
  * DELETE /users/:userId/follow - Unfollow user
  * GET /users/:userId/followers - Get followers list
@@ -49,7 +49,7 @@ export class UserClient {
    * Get user profile by username
    */
   static async getProfile(username: string): Promise<Outcome<UserProfile>> {
-    return apiClient.get<UserProfile>(`/users/${username}`)
+    return apiClient.get<UserProfile>(`/users/${username}/profile`)
   }
 
   /**
