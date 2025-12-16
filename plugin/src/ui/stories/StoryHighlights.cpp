@@ -143,10 +143,20 @@ void StoryHighlights::drawHighlight(juce::Graphics &g, const StoryHighlight &hig
   // - Downloads from HTTP if not cached
   // - Stores in both caches when downloading or loading from file
   if (appStore && !highlight.coverImageUrl.isEmpty()) {
-    appStore->getImage(highlight.coverImageUrl, [this](const juce::Image &image) {
-      // Image loaded successfully (from any cache level or HTTP)
-      repaint();
-    });
+    juce::Component::SafePointer<StoryHighlights> safeThis(this);
+    appStore->loadImageObservable(highlight.coverImageUrl)
+        .subscribe(
+            [safeThis](const juce::Image &image) {
+              if (safeThis == nullptr)
+                return;
+              // Image loaded successfully (from any cache level or HTTP)
+              safeThis->repaint();
+            },
+            [safeThis](std::exception_ptr) {
+              if (safeThis == nullptr)
+                return;
+              Log::warn("StoryHighlights: Failed to load story image");
+            });
   }
 
   // Draw placeholder while image loads, or cached image if available

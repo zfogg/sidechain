@@ -1,0 +1,315 @@
+name: Web E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'backend/**'
+      - '.github/workflows/test-web.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'backend/**'
+      - '.github/workflows/test-web.yml'
+
+concurrency:
+  group: web-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-web:
+    name: Web E2E Tests (300+ tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: sidechain
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: sidechain_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+      redis:
+        image: redis/redis-stack-server:latest
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6380:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Build backend
+        run: |
+          cd backend
+          go build -o /tmp/sidechain-backend cmd/server/main.go
+        env:
+          CGO_ENABLED: 0
+          GOOS: linux
+
+      - name: Start backend server
+        run: |
+          export DATABASE_URL="postgres://sidechain:test_password@localhost:5433/sidechain_test"
+          export PORT=8787
+          export ENVIRONMENT=test
+          export JWT_SECRET=test_jwt_secret
+          export REDIS_URL=redis://localhost:6380
+          export STREAM_API_KEY=test_key
+          export STREAM_API_SECRET=test_secret
+          /tmp/sidechain-backend &
+          sleep 5
+
+          # Verify backend is running
+          for i in {1..30}; do
+            if curl -f http://localhost:8787/health > /dev/null 2>&1; then
+              echo "✅ Backend is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 1
+          done
+          echo "❌ Backend failed to start"
+          exit 1
+        env:
+          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
+          PORT: 8787
+          ENVIRONMENT: test
+          JWT_SECRET: test_jwt_secret
+          REDIS_URL: redis://localhost:6380
+
+      - name: Run database migrations
+        run: |
+          cd backend
+          go run -mod=mod cmd/migrate/main.go up
+        env:
+          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
+
+      - name: Seed test database
+        run: |
+          cd backend
+          go run -mod=mod cmd/seed/main.go test
+        env:
+          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
+
+      - name: Install web dependencies
+        run: |
+          cd web
+          pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: |
+          cd web
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: |
+          cd web
+          pnpm run test:e2e
+        env:
+          BACKEND_URL: http://localhost:8787
+          DATABASE_URL: postgres://sidechain:test_password@localhost:5433/sidechain_test
+
+      - name: Parse test results
+        if: always()
+        id: parse-results
+        run: |
+          if [ -f web/test-results/results.json ]; then
+            PASSED=$(jq '.stats.expected // 0' web/test-results/results.json)
+            FAILED=$(jq '.stats.unexpected // 0' web/test-results/results.json)
+            SKIPPED=$(jq '.stats.skipped // 0' web/test-results/results.json)
+            DURATION=$(jq '.stats.duration // 0' web/test-results/results.json)
+            DURATION_SEC=$((DURATION / 1000))
+
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            echo "failed=$FAILED" >> $GITHUB_OUTPUT
+            echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+            echo "duration=$DURATION_SEC" >> $GITHUB_OUTPUT
+
+            # Calculate total and pass rate
+            TOTAL=$((PASSED + FAILED + SKIPPED))
+            if [ $TOTAL -gt 0 ]; then
+              PASS_RATE=$((PASSED * 100 / TOTAL))
+              echo "total=$TOTAL" >> $GITHUB_OUTPUT
+              echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ No test results file found"
+          fi
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 14
+
+      - name: Upload test results (JSON)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-json
+          path: web/test-results/
+          retention-days: 14
+
+      - name: Upload test videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-videos
+          path: web/test-results/**/*.webm
+          retention-days: 7
+
+      - name: Upload test traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-traces
+          path: web/test-results/**/*.zip
+          retention-days: 7
+
+      - name: Comment PR with detailed results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const testResultsPath = 'web/test-results/results.json';
+
+            let comment = '## 🧪 Web E2E Test Results\n\n';
+
+            if (fs.existsSync(testResultsPath)) {
+              try {
+                const results = JSON.parse(fs.readFileSync(testResultsPath, 'utf8'));
+                const { stats } = results;
+
+                const passed = stats.expected || 0;
+                const failed = stats.unexpected || 0;
+                const skipped = stats.skipped || 0;
+                const total = passed + failed + skipped;
+                const duration = ((stats.duration || 0) / 1000).toFixed(2);
+                const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+                comment += '### Summary\n';
+                comment += `| Metric | Value |\n`;
+                comment += `|--------|-------|\n`;
+                comment += `| ✅ **Passed** | **${passed}** |\n`;
+                comment += `| ❌ **Failed** | **${failed}** |\n`;
+                comment += `| ⏭️ **Skipped** | **${skipped}** |\n`;
+                comment += `| 📊 **Total** | **${total}** |\n`;
+                comment += `| 🎯 **Pass Rate** | **${passRate}%** |\n`;
+                comment += `| ⏱️ **Duration** | **${duration}s** |\n\n`;
+
+                // Test coverage by category
+                if (results.suites && results.suites.length > 0) {
+                  comment += '### Test Coverage\n';
+                  const categories = {};
+
+                  results.suites.forEach(suite => {
+                    const parts = suite.title.split(' - ');
+                    const category = parts[0] || 'Other';
+                    if (!categories[category]) {
+                      categories[category] = { passed: 0, failed: 0 };
+                    }
+                    suite.tests?.forEach(test => {
+                      if (test.status === 'passed') categories[category].passed++;
+                      else if (test.status === 'failed') categories[category].failed++;
+                    });
+                  });
+
+                  Object.entries(categories).forEach(([name, stats]) => {
+                    const status = stats.failed === 0 ? '✅' : '❌';
+                    comment += `- ${status} **${name}**: ${stats.passed}/${stats.passed + stats.failed}\n`;
+                  });
+                  comment += '\n';
+                }
+
+                if (failed > 0) {
+                  comment += '### Failed Tests\n';
+                  let failCount = 0;
+                  results.suites?.forEach(suite => {
+                    suite.tests?.forEach(test => {
+                      if (test.status === 'failed' && failCount < 10) {
+                        comment += `- ❌ ${test.title}\n`;
+                        failCount++;
+                      }
+                    });
+                  });
+                  if (failCount >= 10) {
+                    comment += `- ... and ${failed - 10} more\n`;
+                  }
+                  comment += '\n';
+                }
+
+                comment += `**[View full report →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
+              } catch (e) {
+                console.error('Error parsing results:', e);
+                comment += '⚠️ Error parsing test results\n';
+                comment += `**[View full report →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
+              }
+            } else {
+              comment += '⚠️ No test results file found\n';
+              comment += `**[View full report →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})**\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            }).catch((e) => {
+              console.error('Error posting comment:', e);
+            });
+
+      - name: Report test status
+        if: always()
+        run: |
+          echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Passed | ${{ steps.parse-results.outputs.passed || '?' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Failed | ${{ steps.parse-results.outputs.failed || '?' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Skipped | ${{ steps.parse-results.outputs.skipped || '?' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total | ${{ steps.parse-results.outputs.total || '?' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pass Rate | ${{ steps.parse-results.outputs.pass_rate || '?' }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Duration | ${{ steps.parse-results.outputs.duration || '?' }}s |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if tests failed
+        if: failure() && steps.parse-results.outputs.failed > 0
+        run: |
+          echo "❌ Tests failed!"
+          exit 1
